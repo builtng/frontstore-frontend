@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { toast } from 'react-toastify';
 import {
   Sparkles, Globe, Copy, CheckCircle2, Smartphone, Lock, Lightbulb,
   Share2, Store, AlertCircle, Eye, EyeOff, Loader2, ArrowRight, User, Phone, Check, ShieldCheck, Mail
@@ -214,13 +215,7 @@ function SignupFormContent() {
           <button
             onClick={() => {
               navigator.clipboard.writeText(successData.storeUrl);
-              // Custom simple check feedback
-              const btn = document.getElementById('copy-url-btn');
-              if (btn) {
-                const oldHTML = btn.innerHTML;
-                btn.innerHTML = `<span style="color: var(--primary)">✓ Copied storefront link!</span>`;
-                setTimeout(() => { btn.innerHTML = oldHTML; }, 2000);
-              }
+              toast.success('Storefront link copied! 📋');
             }}
             id="copy-url-btn"
             className="btn btn-outline clickable"

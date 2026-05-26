@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
+import { toast } from 'react-toastify';
 import {
   Search, X, ChevronLeft, ChevronRight, Share2, ShoppingCart,
   MessageCircle, Instagram, Music2, CheckCircle2, Star,
@@ -89,17 +90,36 @@ function buildCartWAMsg(store: Store, cart: CartItem[], total: number, symbol: s
   return `Hi ${store.store_name}! 👋\n\nI'd like to place an order:\n\n${lines}\n\n*Total: ${fmt(total, symbol)}*\n\nPlease confirm and share delivery details. Thank you!`;
 }
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
+// ─── Confirmation Modal ───────────────────────────────────────────────────────
 
-function Toast({ message, onDone }: { message: string; onDone: () => void }) {
-  useEffect(() => { const t = setTimeout(onDone, 2600); return () => clearTimeout(t); }, [onDone]);
+function ConfirmationModal({
+  isOpen, title, message, confirmText, cancelText, onConfirm, onCancel
+}: {
+  isOpen: boolean; title: string; message: string; confirmText?: string; cancelText?: string;
+  onConfirm: () => void; onCancel: () => void;
+}) {
+  if (!isOpen) return null;
   return (
-    <div style={{ position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)', zIndex: 200, width: 'calc(100% - 32px)', maxWidth: 400 }}>
-      <div className="toast animate-slide-up" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <CheckCircle2 size={15} />
-        {message}
+    <>
+      <div className="drawer-backdrop animate-backdrop" style={{ zIndex: 200 }} onClick={onCancel} />
+      <div className="card glass animate-scale-in" style={{
+        position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+        zIndex: 210, width: 'calc(100% - 32px)', maxWidth: 400, padding: 24,
+        display: 'flex', flexDirection: 'column', gap: 16, borderRadius: 'var(--r-xl)',
+        boxShadow: 'var(--shadow-xl)', border: '1px solid var(--border)'
+      }}>
+        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 800, margin: 0, color: 'var(--text)' }}>{title}</h3>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>{message}</p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
+          <button type="button" onClick={onCancel} className="btn btn-outline clickable" style={{ padding: '8px 16px', fontSize: 13, borderRadius: 'var(--r-md)' }}>
+            {cancelText ?? 'Cancel'}
+          </button>
+          <button type="button" onClick={onConfirm} className="btn btn-primary clickable" style={{ padding: '8px 16px', fontSize: 13, borderRadius: 'var(--r-md)', background: 'var(--danger)', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)', color: '#fff' }}>
+            {confirmText ?? 'Confirm'}
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -403,10 +423,11 @@ function ProductDetailDrawer({
 // ─── Cart Drawer ──────────────────────────────────────────────────────────────
 
 function CartDrawer({
-  cart, store, currencySymbol, cartTotal, onClose, onUpdateQty, onWhatsAppCheckout,
+  cart, store, currencySymbol, cartTotal, onClose, onUpdateQty, onWhatsAppCheckout, onRemoveItem, onClearCart
 }: {
   cart: CartItem[]; store: Store; currencySymbol: string; cartTotal: number;
   onClose: () => void; onUpdateQty: (id: string, delta: number) => void; onWhatsAppCheckout: () => void;
+  onRemoveItem: (id: string) => void; onClearCart: () => void;
 }) {
   return (
     <>
@@ -417,6 +438,11 @@ function CartDrawer({
           <span className="drawer__title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <ShoppingCart size={18} /> Cart ({cart.reduce((s, i) => s + i.quantity, 0)})
           </span>
+          {cart.length > 0 && (
+            <button onClick={onClearCart} style={{ background: 'none', border: 'none', color: 'var(--danger)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, marginRight: 'auto', marginLeft: 16 }} className="clickable">
+              <Trash2 size={12} /> Clear
+            </button>
+          )}
           <button className="drawer__close clickable" onClick={onClose} aria-label="Close cart">
             <X size={14} strokeWidth={2.5} />
           </button>
@@ -447,7 +473,7 @@ function CartDrawer({
                         <p style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{fmt(subtotal, currencySymbol)}</p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', overflow: 'hidden', flexShrink: 0 }}>
-                        <button onClick={() => onUpdateQty(item.product.id, -1)} style={{ width: 32, height: 32, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.quantity === 1 ? 'var(--danger)' : 'var(--text)' }} className="clickable" aria-label="Remove one">
+                        <button onClick={() => item.quantity === 1 ? onRemoveItem(item.product.id) : onUpdateQty(item.product.id, -1)} style={{ width: 32, height: 32, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.quantity === 1 ? 'var(--danger)' : 'var(--text)' }} className="clickable" aria-label="Remove one">
                           {item.quantity === 1 ? <Trash2 size={13} strokeWidth={2} /> : <Minus size={14} strokeWidth={2.5} />}
                         </button>
                         <span style={{ minWidth: 28, textAlign: 'center', fontSize: 13, fontWeight: 700 }}>{item.quantity}</span>
@@ -786,8 +812,9 @@ export default function StorefrontPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [pendingRemoveItem, setPendingRemoveItem] = useState<string | null>(null);
+  const [isClearCartConfirmOpen, setIsClearCartConfirmOpen] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -824,7 +851,7 @@ export default function StorefrontPage() {
       try { localStorage.setItem(`aloaye_cart_${uname}`, JSON.stringify(next)); } catch {}
       return next;
     });
-    setToast(`Added ${qty}× ${product.name}`);
+    toast.success(`Added ${qty}× ${product.name}`);
   }, [uname]);
 
   const updateCartQty = useCallback((productId: string, delta: number) => {
@@ -859,7 +886,7 @@ export default function StorefrontPage() {
 
   const handleShareProduct = async (product: Product) => {
     if (navigator.share) await navigator.share({ title: product.name, url: window.location.href });
-    else { navigator.clipboard.writeText(window.location.href); setToast('Link copied!'); }
+    else { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); }
   };
 
   if (loading) return <div style={{ minHeight: '100vh', background: 'var(--bg)' }}><StoreSkeleton /></div>;
@@ -1007,6 +1034,8 @@ export default function StorefrontPage() {
             cart={cart} store={store} currencySymbol={currencySymbol} cartTotal={cartTotal}
             onClose={() => setIsCartOpen(false)} onUpdateQty={updateCartQty}
             onWhatsAppCheckout={() => { setIsCartOpen(false); setIsCheckoutOpen(true); }}
+            onRemoveItem={(id) => setPendingRemoveItem(id)}
+            onClearCart={() => setIsClearCartConfirmOpen(true)}
           />
         )}
 
@@ -1023,14 +1052,41 @@ export default function StorefrontPage() {
               setCart([]);
               try { localStorage.removeItem(`aloaye_cart_${uname}`); } catch {}
               setIsCheckoutOpen(false);
-              setToast('Order created! Opening WhatsApp... 🚀');
+              toast.success('Order created! Opening WhatsApp... 🚀');
             }}
             API_URL={API_URL}
-            uname={uname}
+            uname={uname as string}
           />
         )}
 
-        {toast && <Toast message={toast} onDone={() => setToast(null)} />}
+        <ConfirmationModal
+          isOpen={!!pendingRemoveItem}
+          title="Remove Item?"
+          message={`Are you sure you want to remove "${cart.find(i => i.product.id === pendingRemoveItem)?.product.name}" from your cart?`}
+          confirmText="Remove"
+          onConfirm={() => {
+            if (pendingRemoveItem) {
+              updateCartQty(pendingRemoveItem, -1);
+              setPendingRemoveItem(null);
+              toast.info('Item removed from cart');
+            }
+          }}
+          onCancel={() => setPendingRemoveItem(null)}
+        />
+
+        <ConfirmationModal
+          isOpen={isClearCartConfirmOpen}
+          title="Clear Cart?"
+          message="Are you sure you want to remove all items from your cart?"
+          confirmText="Clear Cart"
+          onConfirm={() => {
+            setCart([]);
+            try { localStorage.removeItem(`aloaye_cart_${uname}`); } catch {}
+            setIsClearCartConfirmOpen(false);
+            toast.info('Cart cleared');
+          }}
+          onCancel={() => setIsClearCartConfirmOpen(false)}
+        />
       </div>
     </>
   );
