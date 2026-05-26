@@ -6,7 +6,7 @@ import {
   Search, X, ChevronLeft, ChevronRight, Share2, ShoppingCart,
   MessageCircle, Instagram, Music2, CheckCircle2, Star,
   Minus, Plus, Trash2, Package, AlertCircle, ArrowRight,
-  Copy, Heart, Tag, Truck, MapPin, Eye, Zap,
+  Copy, Heart, Tag, Truck, MapPin, Eye, Zap, Loader2,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -492,6 +492,159 @@ function CartDrawer({
   );
 }
 
+// ─── Checkout Drawer ──────────────────────────────────────────────────────────
+
+function CheckoutDrawer({
+  cart, store, currencySymbol, cartTotal, onClose, onBack, onOrderCreated, API_URL, uname
+}: {
+  cart: CartItem[]; store: Store; currencySymbol: string; cartTotal: number;
+  onClose: () => void; onBack: () => void; onOrderCreated: (whatsappUrl: string) => void;
+  API_URL: string; uname: string;
+}) {
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerWhatsapp, setCustomerWhatsapp] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerName || !customerPhone || (deliveryMethod === 'delivery' && !deliveryAddress)) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const items = cart.map(item => ({
+        product_id: item.product.id,
+        quantity: item.quantity
+      }));
+
+      const res = await fetch(`${API_URL}/v1/public/store/${uname}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer_name: customerName,
+          customer_phone: customerPhone,
+          customer_email: customerEmail || undefined,
+          customer_whatsapp: customerWhatsapp || customerPhone,
+          delivery_method: deliveryMethod,
+          delivery_address: deliveryMethod === 'delivery' ? deliveryAddress : undefined,
+          items
+        })
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to place order.');
+      }
+
+      onOrderCreated(json.data.whatsapp_url);
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="drawer-backdrop animate-backdrop" onClick={onClose} />
+      <div className="drawer animate-drawer" role="dialog" aria-modal="true" aria-label="Checkout details">
+        <div className="drawer__handle" />
+        <div className="drawer__header">
+          <button className="clickable" onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700, fontSize: 13.5 }}>
+            <ChevronLeft size={16} /> Back to Cart
+          </button>
+          <span className="drawer__title">Checkout</span>
+          <button className="drawer__close clickable" onClick={onClose} aria-label="Close checkout">
+            <X size={14} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ padding: '12px 20px 0', flex: 1, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto' }} className="no-scrollbar">
+          {error && (
+            <div style={{ background: 'var(--danger-light)', color: 'var(--danger)', borderRadius: 'var(--r-md)', padding: 12, fontSize: 13, fontWeight: 600 }}>
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Full Name *</label>
+            <input type="text" required placeholder="e.g. Amina Bello" value={customerName} onChange={e => setCustomerName(e.target.value)} className="input-field" />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Phone Number *</label>
+              <input type="tel" required placeholder="e.g. +234..." value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} className="input-field" />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>WhatsApp Number</label>
+              <input type="tel" placeholder="Defaults to phone" value={customerWhatsapp} onChange={e => setCustomerWhatsapp(e.target.value)} className="input-field" />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Email Address (Optional)</label>
+            <input type="email" placeholder="For order updates & tracking" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} className="input-field" />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Delivery Method *</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <button type="button" onClick={() => setDeliveryMethod('delivery')} style={{ padding: 12, borderRadius: 'var(--r-md)', border: deliveryMethod === 'delivery' ? '2px solid var(--primary)' : '1.5px solid var(--border)', background: deliveryMethod === 'delivery' ? 'var(--primary-light)' : 'transparent', color: deliveryMethod === 'delivery' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 700, cursor: 'pointer' }}>
+                Delivery
+              </button>
+              <button type="button" onClick={() => setDeliveryMethod('pickup')} style={{ padding: 12, borderRadius: 'var(--r-md)', border: deliveryMethod === 'pickup' ? '2px solid var(--primary)' : '1.5px solid var(--border)', background: deliveryMethod === 'pickup' ? 'var(--primary-light)' : 'transparent', color: deliveryMethod === 'pickup' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 700, cursor: 'pointer' }}>
+                Self-Pickup
+              </button>
+            </div>
+          </div>
+
+          {deliveryMethod === 'delivery' && (
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Delivery Address *</label>
+              <textarea required placeholder="Enter your full street address, city, and state" value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} className="input-field" style={{ minHeight: 80, resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+          )}
+
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginTop: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>
+              <span>Total Amount</span>
+              <span style={{ color: 'var(--primary)' }}>{fmt(cartTotal, currencySymbol)}</span>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-whatsapp clickable"
+            style={{ width: '100%', padding: '15px 20px', fontSize: 15, borderRadius: 'var(--r-lg)', marginBottom: 12, fontFamily: 'var(--font-heading)', fontWeight: 800, gap: 10 }}
+            id="submit-checkout-btn"
+          >
+            {loading ? (
+              <Loader2 size={20} className="spinner" />
+            ) : (
+              <>
+                <MessageCircle size={20} strokeWidth={2} />
+                Complete Order & Chat on WhatsApp
+              </>
+            )}
+          </button>
+        </form>
+        <div style={{ height: 'max(24px, env(safe-area-inset-bottom))' }} />
+      </div>
+    </>
+  );
+}
+
 // ─── Store Header ─────────────────────────────────────────────────────────────
 
 function StoreHeader({ store }: { store: Store }) {
@@ -632,6 +785,7 @@ export default function StorefrontPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
 
@@ -852,7 +1006,27 @@ export default function StorefrontPage() {
           <CartDrawer
             cart={cart} store={store} currencySymbol={currencySymbol} cartTotal={cartTotal}
             onClose={() => setIsCartOpen(false)} onUpdateQty={updateCartQty}
-            onWhatsAppCheckout={handleCartWhatsApp}
+            onWhatsAppCheckout={() => { setIsCartOpen(false); setIsCheckoutOpen(true); }}
+          />
+        )}
+
+        {isCheckoutOpen && (
+          <CheckoutDrawer
+            cart={cart}
+            store={store}
+            currencySymbol={currencySymbol}
+            cartTotal={cartTotal}
+            onClose={() => setIsCheckoutOpen(false)}
+            onBack={() => { setIsCheckoutOpen(false); setIsCartOpen(true); }}
+            onOrderCreated={(whatsappUrl) => {
+              window.open(whatsappUrl, '_blank');
+              setCart([]);
+              try { localStorage.removeItem(`aloaye_cart_${uname}`); } catch {}
+              setIsCheckoutOpen(false);
+              setToast('Order created! Opening WhatsApp... 🚀');
+            }}
+            API_URL={API_URL}
+            uname={uname}
           />
         )}
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Sparkles, Globe, Copy, CheckCircle2, Smartphone, Lock, Lightbulb,
-  Share2, Store, AlertCircle, Eye, EyeOff, Loader2, ArrowRight, User, Phone, Check, ShieldCheck
+  Share2, Store, AlertCircle, Eye, EyeOff, Loader2, ArrowRight, User, Phone, Check, ShieldCheck, Mail
 } from 'lucide-react';
 
 // ── Password strength helper ─────────────────────────────────────────────────
@@ -30,6 +30,7 @@ function SignupFormContent() {
   const [username,  setUsername]  = useState('');
   const [name,      setName]      = useState('');
   const [phone,     setPhone]     = useState('');
+  const [email,     setEmail]     = useState('');
   const [password,  setPassword]  = useState('');
   const [showPw,    setShowPw]    = useState(false);
   const [hostSuffix, setHostSuffix] = useState('.aloaye.com');
@@ -110,6 +111,7 @@ function SignupFormContent() {
           name,
           phone_number: phone,
           password,
+          email:        email || undefined,
         }),
       });
 
@@ -609,6 +611,44 @@ function SignupFormContent() {
             </div>
             <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
               Customers will redirect to this number when placing orders.
+            </span>
+          </div>
+
+          {/* Email Address */}
+          <div>
+            <label
+              htmlFor="email"
+              style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
+            >
+              Email Address (Optional)
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="email"
+                type="email"
+                placeholder="e.g. merchant@example.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                onFocus={() => setFocusedInput('email')}
+                onBlur={() => setFocusedInput(null)}
+                className="input-field"
+                style={{
+                  paddingLeft: 44,
+                  borderColor: focusedInput === 'email' ? 'var(--primary)' : 'var(--border)'
+                }}
+                autoComplete="email"
+              />
+              <Mail size={18} style={{
+                position: 'absolute',
+                left: 14,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: focusedInput === 'email' ? 'var(--primary)' : 'var(--text-faint)',
+                transition: 'color var(--t-fast)'
+              }} />
+            </div>
+            <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+              For receiving shop performance reports & order alerts.
             </span>
           </div>
         </div>
