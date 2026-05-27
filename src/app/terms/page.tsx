@@ -26,13 +26,13 @@ export default function TermsPage() {
         </a>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <a
+          {/* <a
             href="/stores"
             className="btn btn-ghost"
             style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none', color: 'var(--text-muted)' }}
           >
             Explore Stores
-          </a>
+          </a> */}
           <a
             href="/login"
             className="btn btn-ghost"

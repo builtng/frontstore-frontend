@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import StorefrontClient from './StorefrontClient';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     username: string;
-  };
+  }>;
 }
 
 async function getStoreData(username: string) {
@@ -24,7 +24,7 @@ async function getStoreData(username: string) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { username } = params;
+  const { username } = await params;
   const data = await getStoreData(username);
   
   if (!data || !data.store) {
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function Page({ params }: PageProps) {
-  const { username } = params;
+  const { username } = await params;
   const data = await getStoreData(username);
   
   // Inject Google Schema.org structured data (JSON-LD)
