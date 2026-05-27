@@ -324,7 +324,7 @@ export default function LoginPage() {
             marginBottom: 40,
             fontWeight: 500
           }}>
-            Sign in to manage your orders, tweak storefront settings, create products with Gemini AI descriptions, and interact with prospective buyers in real time.
+            Sign in to manage your orders, tweak storefront settings, create products with ChatGPT AI descriptions, and interact with prospective buyers in real time.
           </p>
 
           {/* Quick specs */}
@@ -332,7 +332,7 @@ export default function LoginPage() {
             {[
               'Track visitor views & conversion rates',
               'Update order shipping & payment statuses',
-              'Generate Gemini AI product descriptions',
+              'Generate ChatGPT AI product descriptions',
               'Manage storefront details in real-time'
             ].map(spec => (
               <div key={spec} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

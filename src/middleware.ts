@@ -40,7 +40,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/favicon.ico') ||
     pathname.startsWith('/globals.css') ||
     pathname === '/signup' ||
-    pathname.startsWith('/track');
+    pathname.startsWith('/track') ||
+    /\.(png|jpg|jpeg|gif|svg|ico|css|js|json|txt|xml|woff|woff2|ttf|otf)$/i.test(pathname);
 
   // If a valid subdomain is identified, rewrite requests internally
   if (subdomain && !isSystemPath) {

@@ -19,7 +19,7 @@ const FEATURES = [
   },
   {
     title: 'AI-Powered Listings',
-    body: 'Upload a photo — Gemini AI writes your product descriptions, suggests local prices, and creates searchable tags in seconds.',
+    body: 'Upload a photo — ChatGPT AI writes your product descriptions, suggests local prices, and creates searchable tags in seconds.',
     color: 'hsl(250, 84%, 60%)',
     bg: 'hsl(250, 84%, 97%)',
   },

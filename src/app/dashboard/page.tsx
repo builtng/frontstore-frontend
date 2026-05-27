@@ -22,6 +22,7 @@ interface UserInfo {
   name: string;
   phone_number: string;
   email?: string | null;
+  plan?: string;
 }
 
 interface StoreLink {
@@ -162,7 +163,7 @@ export default function DashboardPage() {
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   // --- Dashboard Data State ---
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'settings' | 'billing'>('overview');
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -556,6 +557,14 @@ export default function DashboardPage() {
   };
 
   const handleGenerateAIDescription = async () => {
+    if (user?.plan === 'free' || !user?.plan) {
+      toast.info('✨ AI Product Description Auto-Write requires a Pro subscription. Upgrade in the Billing tab!');
+      setActiveTab('billing');
+      setIsAddProductOpen(false);
+      setIsEditProductOpen(false);
+      return;
+    }
+
     if (!prodName.trim()) {
       toast.warning('Enter a product name first to generate details!');
       return;
@@ -577,7 +586,7 @@ export default function DashboardPage() {
       const json = await res.json();
       if (res.ok && json.data?.description) {
         setProdDesc(json.data.description);
-        toast.success('Description written by Gemini AI! 🧠✨');
+        toast.success('Description written by ChatGPT AI! 🧠✨');
       } else {
         throw new Error(json.message || 'Description generation failed.');
       }
@@ -885,6 +894,7 @@ export default function DashboardPage() {
           paystack_bank_code: paymentBankCode || null,
           bank_account_verified: accountVerified,
           custom_links: customLinks,
+          logo_url: logoUrl,
         })
       });
 
@@ -912,6 +922,31 @@ export default function DashboardPage() {
       toast.error(e.message || 'Error occurred saving settings.');
     } finally {
       setSettingsSaving(false);
+    }
+  };
+
+  // --- Upgrade/Downgrade Subscription Plan ---
+  const handleUpgradePlan = async (targetPlan: 'free' | 'pro_monthly' | 'pro_yearly') => {
+    try {
+      const res = await fetch(`${apiUrl}/v1/user/upgrade`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ plan: targetPlan })
+      });
+      const json = await res.json();
+      if (res.ok && json.data?.user) {
+        toast.success(`Plan updated to ${targetPlan === 'free' ? 'Free Tier' : targetPlan === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly'}! 🎉`);
+        setUser(json.data.user);
+        localStorage.setItem('user', JSON.stringify(json.data.user));
+        if (json.data.store) {
+          setStore(json.data.store);
+          localStorage.setItem('store', JSON.stringify(json.data.store));
+        }
+      } else {
+        throw new Error(json.message || 'Upgrade failed');
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Error updating subscription plan.');
     }
   };
 
@@ -1067,13 +1102,52 @@ export default function DashboardPage() {
 
         {/* Store Context Badge */}
         {store && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-2)', padding: '10px 12px', borderRadius: 'var(--r-lg)', marginBottom: 24, border: '1px solid var(--border)' }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, fontFamily: 'var(--font-heading)' }}>
-              {store.store_name.charAt(0).toUpperCase()}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--bg-2)', padding: '10px 12px', borderRadius: 'var(--r-lg)', marginBottom: 24, border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, fontFamily: 'var(--font-heading)' }}>
+                {store.store_name.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p style={{ fontSize: 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{store.store_name}</p>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>@{store.username}</span>
+              </div>
             </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={{ fontSize: 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{store.store_name}</p>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>@{store.username}</span>
+            {/* Plan Indicator Tag */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 2 }}>
+              <span style={{
+                fontSize: 10,
+                fontWeight: 900,
+                padding: '2px 6px',
+                borderRadius: 4,
+                background: user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'var(--border)',
+                color: user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly' ? '#fff' : 'var(--text-muted)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4
+              }}>
+                {(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') ? <Sparkles size={8} /> : null}
+                {user?.plan === 'pro_monthly' ? 'Pro Monthly' : user?.plan === 'pro_yearly' ? 'Pro Yearly' : 'Free Tier'}
+              </span>
+              {(!user?.plan || user?.plan === 'free') && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('billing')}
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: 'var(--primary)',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  Upgrade
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -1087,6 +1161,7 @@ export default function DashboardPage() {
             { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} />, badge: 1 },
             { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
             { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
+            { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
           ].map(item => {
             const active = activeTab === item.id;
             return (
@@ -1631,7 +1706,7 @@ export default function DashboardPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="responsive-product-header">
                     <div>
                       <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Product Catalog</h2>
-                      <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Create items, update pricing, and generate descriptions using Gemini AI.</p>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Create items, update pricing, and generate descriptions using ChatGPT AI.</p>
                     </div>
                     <button
                       onClick={openAddProductModal}
@@ -2127,6 +2202,7 @@ export default function DashboardPage() {
                           rows={3}
                           value={setStoreBio}
                           onChange={e => setSetStoreBio(e.target.value)}
+                          placeholder="Brief description of your shop..."
                           className="input-field"
                           style={{ resize: 'vertical' }}
                         />
@@ -2365,7 +2441,40 @@ export default function DashboardPage() {
                 </div>
 
                 {/* ── CUSTOM DOMAIN CONFIGURATION CARD ── */}
-                <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24 }}>
+                <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24, position: 'relative', overflow: 'hidden' }}>
+                  
+                  {/* Lock Overlay if Free */}
+                  {(user?.plan === 'free' || !user?.plan) && (
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      background: 'rgba(255, 255, 255, 0.85)',
+                      backdropFilter: 'blur(3px)',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      textAlign: 'center', zIndex: 10, padding: 24
+                    }}>
+                      <div style={{
+                        width: 50, height: 50, borderRadius: '50%',
+                        background: '#fef3c7', color: '#d97706',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 12px rgba(217,119,6,0.15)', marginBottom: 12
+                      }}>
+                        <Zap size={24} />
+                      </div>
+                      <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, color: 'var(--text)' }}>Custom Domain Mapping</h3>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)', maxWidth: 360, marginTop: 4, marginBottom: 16, lineHeight: 1.5 }}>
+                        Connect your own custom domain (e.g. <code>mybrand.com</code>) to personalize your store URL. Requires a Pro subscription.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('billing')}
+                        className="btn btn-primary clickable"
+                        style={{ padding: '8px 20px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13 }}
+                      >
+                        Upgrade to Pro (₦3,999/mo)
+                      </button>
+                    </div>
+                  )}
+
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
                     <div style={{
                       width: 44, height: 44, borderRadius: 'var(--r-md)',
@@ -3147,6 +3256,211 @@ export default function DashboardPage() {
 
                 </div>
               )}
+
+              {/* ── TAB 7: PLANS & BILLING ── */}
+              {activeTab === 'billing' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  
+                  {/* Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 'var(--r-md)',
+                      background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 4px 16px rgba(245,158,11,0.3)', flexShrink: 0
+                    }}>
+                      <Zap size={22} color="#fff" />
+                    </div>
+                    <div>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                        Subscription Plans & Billing
+                      </h2>
+                      <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                        Unlock custom domain, store bio profile description, product details, and ChatGPT AI features.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Plan Card Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 24 }} className="responsive-settings-grid">
+                    
+                    {/* Free Plan */}
+                    <div className="card" style={{
+                      padding: 28,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      border: user?.plan === 'free' || !user?.plan ? '2.5px solid var(--primary)' : '1px solid var(--border)',
+                      position: 'relative',
+                      background: 'var(--surface)'
+                    }}>
+                      {(user?.plan === 'free' || !user?.plan) && (
+                        <span style={{
+                          position: 'absolute', top: 12, right: 12,
+                          background: 'var(--primary-light)', color: 'var(--primary)',
+                          fontSize: 10, fontWeight: 900, padding: '4px 10px',
+                          borderRadius: 'var(--r-full)', textTransform: 'uppercase', letterSpacing: '0.05em'
+                        }}>Current Plan</span>
+                      )}
+                      
+                      <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--text)' }}>Free Starter Plan</h3>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>For small merchants starting their digital shop.</p>
+                      
+                      <div style={{ marginTop: 20, marginBottom: 24 }}>
+                        <span style={{ fontSize: 28, fontWeight: 900, color: 'var(--text)', fontFamily: 'var(--font-heading)' }}>₦0</span>
+                        <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}> / free forever</span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="var(--primary)" />
+                          <span>Unlimited WhatsApp orders</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="var(--primary)" />
+                          <span>Public catalog storefront</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="var(--primary)" />
+                          <span>Verify Paystack bank account</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="var(--primary)" />
+                          <span>Manually edit store title, bio &amp; description</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="var(--primary)" />
+                          <span>Manually upload product images</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, opacity: 0.5 }}>
+                          <span style={{ color: 'var(--danger)', fontWeight: 900, marginRight: 6 }}>✕</span>
+                          <span style={{ textDecoration: 'line-through' }}>Custom domain name mapping</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, opacity: 0.5 }}>
+                          <span style={{ color: 'var(--danger)', fontWeight: 900, marginRight: 6 }}>✕</span>
+                          <span style={{ textDecoration: 'line-through' }}>AI description auto-write (ChatGPT)</span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={user?.plan === 'free' || !user?.plan}
+                        onClick={() => handleUpgradePlan('free')}
+                        className={`btn clickable`}
+                        style={{
+                          width: '100%', marginTop: 24, padding: 12,
+                          background: user?.plan === 'free' || !user?.plan ? 'var(--bg-2)' : 'transparent',
+                          border: user?.plan === 'free' || !user?.plan ? '1px solid var(--border)' : '1px solid var(--primary)',
+                          color: user?.plan === 'free' || !user?.plan ? 'var(--text-muted)' : 'var(--primary)',
+                          fontWeight: 800, borderRadius: 'var(--r-md)'
+                        }}
+                      >
+                        {user?.plan === 'free' || !user?.plan ? 'Active Plan' : 'Downgrade to Free'}
+                      </button>
+                    </div>
+
+                    {/* Pro Plan */}
+                    <div className="card" style={{
+                      padding: 28,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      border: user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly' ? '2.5px solid #f59e0b' : '1px solid var(--border)',
+                      position: 'relative',
+                      background: 'var(--surface)',
+                      boxShadow: '0 10px 25px -5px rgba(245,158,11,0.08)'
+                    }}>
+                      {(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') && (
+                        <span style={{
+                          position: 'absolute', top: 12, right: 12,
+                          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: '#fff',
+                          fontSize: 10, fontWeight: 900, padding: '4px 10px',
+                          borderRadius: 'var(--r-full)', textTransform: 'uppercase', letterSpacing: '0.05em',
+                          display: 'flex', alignItems: 'center', gap: 4
+                        }}><Sparkles size={8} /> Active Pro</span>
+                      )}
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--text)' }}>Pro Business Plan</h3>
+                        <span style={{ background: '#fef3c7', color: '#d97706', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4 }}>POPULAR</span>
+                      </div>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Unlock full branding, SEO features, and ChatGPT AI.</p>
+                      
+                      <div style={{ marginTop: 20, marginBottom: 24, display: 'flex', gap: 24 }}>
+                        <div>
+                          <span style={{ fontSize: 28, fontWeight: 900, color: '#d97706', fontFamily: 'var(--font-heading)' }}>₦3,999</span>
+                          <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}> / month</span>
+                        </div>
+                        <div style={{ borderLeft: '1px solid var(--border)', paddingLeft: 24 }}>
+                          <span style={{ fontSize: 28, fontWeight: 900, color: '#b45309', fontFamily: 'var(--font-heading)' }}>₦39,900</span>
+                          <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}> / year</span>
+                          <span style={{ display: 'block', fontSize: 10, color: '#16a34a', fontWeight: 800, marginTop: 2 }}>SAVE ~₦8,000 (17%)</span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="#d97706" />
+                          <span>Everything in Free, plus:</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="#d97706" />
+                          <span><strong>Custom domain name</strong> (e.g. <code>mybrand.com</code>)</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="#d97706" />
+                          <span><strong>ChatGPT AI auto-write</strong> — generate title, bio &amp; descriptions instantly</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="#d97706" />
+                          <span><strong>AI product description</strong> generation for every listing</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="#d97706" />
+                          <span>Priority support &amp; instant feature updates</span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 24 }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (user?.plan === 'pro_monthly') return;
+                            handleUpgradePlan('pro_monthly');
+                          }}
+                          className={`btn clickable`}
+                          style={{
+                            padding: 12,
+                            background: user?.plan === 'pro_monthly' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'none',
+                            border: '1.5px solid #d97706',
+                            color: user?.plan === 'pro_monthly' ? '#fff' : '#d97706',
+                            fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13
+                          }}
+                        >
+                          {user?.plan === 'pro_monthly' ? 'Active Monthly' : 'Go Pro Monthly'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (user?.plan === 'pro_yearly') return;
+                            handleUpgradePlan('pro_yearly');
+                          }}
+                          className={`btn clickable`}
+                          style={{
+                            padding: 12,
+                            background: user?.plan === 'pro_yearly' ? 'linear-gradient(135deg, #b45309 0%, #78350f 100%)' : 'none',
+                            border: '1.5px solid #b45309',
+                            color: user?.plan === 'pro_yearly' ? '#fff' : '#b45309',
+                            fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13
+                          }}
+                        >
+                          {user?.plan === 'pro_yearly' ? 'Active Yearly' : 'Go Pro Yearly'}
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+              )}
             </>
           )}
 
@@ -3559,9 +3873,16 @@ export default function DashboardPage() {
                     onClick={handleGenerateAIDescription}
                     disabled={aiGenerating}
                     className="btn btn-outline"
-                    style={{ padding: '4px 10px', fontSize: 10.5, borderRadius: 'var(--r-sm)', color: 'var(--primary)', borderColor: 'var(--primary)' }}
+                    style={{
+                      padding: '4px 10px', fontSize: 10.5, borderRadius: 'var(--r-sm)',
+                      color: '#d97706', borderColor: '#d97706',
+                      display: 'inline-flex', alignItems: 'center', gap: 4
+                    }}
                   >
                     {aiGenerating ? <><Loader2 size={11} className="spinner" /> Generating...</> : <><Sparkles size={11} /> AI Auto-Write</>}
+                    {(user?.plan === 'free' || !user?.plan) && (
+                      <span style={{ fontSize: 8, fontWeight: 900, background: '#d97706', color: '#fff', padding: '1px 4px', borderRadius: 2 }}>PRO</span>
+                    )}
                   </button>
                 </div>
                 <textarea
@@ -3869,9 +4190,16 @@ export default function DashboardPage() {
                     onClick={handleGenerateAIDescription}
                     disabled={aiGenerating}
                     className="btn btn-outline"
-                    style={{ padding: '4px 10px', fontSize: 10.5, borderRadius: 'var(--r-sm)', color: 'var(--primary)', borderColor: 'var(--primary)' }}
+                    style={{
+                      padding: '4px 10px', fontSize: 10.5, borderRadius: 'var(--r-sm)',
+                      color: '#d97706', borderColor: '#d97706',
+                      display: 'inline-flex', alignItems: 'center', gap: 4
+                    }}
                   >
                     {aiGenerating ? <><Loader2 size={11} className="spinner" /> Generating...</> : <><Sparkles size={11} /> AI Auto-Write</>}
+                    {(user?.plan === 'free' || !user?.plan) && (
+                      <span style={{ fontSize: 8, fontWeight: 900, background: '#d97706', color: '#fff', padding: '1px 4px', borderRadius: 2 }}>PRO</span>
+                    )}
                   </button>
                 </div>
                 <textarea

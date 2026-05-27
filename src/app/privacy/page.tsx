@@ -114,7 +114,7 @@ export default function PrivacyPage() {
               <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14.5, color: 'var(--text-2)' }}>
                 <li><strong>To Serve Your Storefront:</strong> We make your store catalog public under your custom subdomain for anyone to browse.</li>
                 <li><strong>To Facilitate WhatsApp Ordering:</strong> We construct pre-filled WhatsApp link URLs so customers can instantly send item specs directly to your phone number.</li>
-                <li><strong>To Provide AI Descriptions:</strong> Product images and tags are processed through standard AI interfaces (e.g. Google Gemini API) to generate localized catalog descriptions.</li>
+                <li><strong>To Provide AI Descriptions:</strong> Product images and tags are processed through standard AI interfaces (e.g. OpenAI API) to generate localized catalog descriptions.</li>
                 <li><strong>Platform Security:</strong> Monitoring traffic patterns, detecting fraudulent stores, and verifying merchant registrations.</li>
               </ul>
             </section>
