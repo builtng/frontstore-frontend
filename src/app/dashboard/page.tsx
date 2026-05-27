@@ -255,6 +255,10 @@ export default function DashboardPage() {
   const [customDomainSaving, setCustomDomainSaving] = useState(false);
   const [customDomainBypassDNS, setCustomDomainBypassDNS] = useState(false);
 
+  // Paystack subscription payment state
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const [isInitializingPayment, setIsInitializingPayment] = useState(false);
+
   // --- AI Command Bar State ---
   const [aiCommand, setAiCommand] = useState('');
   const [aiResponseBubble, setAiResponseBubble] = useState<string | null>(null);
@@ -366,6 +370,52 @@ export default function DashboardPage() {
         }
       })
       .catch(() => {}); // silently fail — dropdown still works with empty list
+  }, []);
+
+  // Auto-verify Paystack payment when user returns from checkout
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get('reference') || params.get('trxref');
+    if (!reference) return;
+
+    // Remove query params from URL immediately
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const verifyPayment = async () => {
+      setIsVerifyingPayment(true);
+      try {
+        const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+        const res = await fetch(`${url}/v1/payments/verify-subscription`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ reference }),
+        });
+        const json = await res.json();
+        if (res.ok && json.data?.user) {
+          setUser(json.data.user);
+          localStorage.setItem('user', JSON.stringify(json.data.user));
+          if (json.data.store) {
+            setStore(json.data.store);
+            localStorage.setItem('store', JSON.stringify(json.data.store));
+          }
+          toast.success('🎉 Payment verified! Your Pro plan is now active.');
+          setActiveTab('overview');
+        } else {
+          toast.error(json.message || 'Payment verification failed. Contact support.');
+        }
+      } catch {
+        toast.error('Could not verify payment. Please try again or contact support.');
+      } finally {
+        setIsVerifyingPayment(false);
+      }
+    };
+
+    verifyPayment();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-resolve account name when 10 digits entered and bank selected
@@ -925,28 +975,50 @@ export default function DashboardPage() {
     }
   };
 
-  // --- Upgrade/Downgrade Subscription Plan ---
+  // --- Upgrade Plan via Real Paystack Payment ---
   const handleUpgradePlan = async (targetPlan: 'free' | 'pro_monthly' | 'pro_yearly') => {
+    if (targetPlan === 'free') {
+      // Downgrade is free — no payment needed
+      try {
+        const res = await fetch(`${apiUrl}/v1/user/upgrade`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ plan: 'free' })
+        });
+        const json = await res.json();
+        if (res.ok && json.data?.user) {
+          toast.success('Switched back to Free Tier.');
+          setUser(json.data.user);
+          localStorage.setItem('user', JSON.stringify(json.data.user));
+        } else {
+          throw new Error(json.message || 'Downgrade failed');
+        }
+      } catch (e: any) {
+        toast.error(e.message || 'Error downgrading plan.');
+      }
+      return;
+    }
+
+    // Pro plans require real payment via Paystack
     try {
-      const res = await fetch(`${apiUrl}/v1/user/upgrade`, {
+      setIsInitializingPayment(true);
+      const callbackUrl = `${window.location.origin}/dashboard`;
+      const res = await fetch(`${apiUrl}/v1/payments/initialize-subscription`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ plan: targetPlan })
+        body: JSON.stringify({ plan: targetPlan, redirect_url: callbackUrl }),
       });
       const json = await res.json();
-      if (res.ok && json.data?.user) {
-        toast.success(`Plan updated to ${targetPlan === 'free' ? 'Free Tier' : targetPlan === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly'}! 🎉`);
-        setUser(json.data.user);
-        localStorage.setItem('user', JSON.stringify(json.data.user));
-        if (json.data.store) {
-          setStore(json.data.store);
-          localStorage.setItem('store', JSON.stringify(json.data.store));
-        }
+      if (res.ok && json.data?.authorization_url) {
+        // Redirect to Paystack hosted checkout
+        window.location.href = json.data.authorization_url;
       } else {
-        throw new Error(json.message || 'Upgrade failed');
+        throw new Error(json.message || 'Could not start payment. Try again.');
       }
     } catch (e: any) {
-      toast.error(e.message || 'Error updating subscription plan.');
+      toast.error(e.message || 'Payment initialization failed.');
+    } finally {
+      setIsInitializingPayment(false);
     }
   };
 
@@ -1082,8 +1154,10 @@ export default function DashboardPage() {
         display: 'flex',
         flexDirection: 'column',
         borderRight: '1px solid var(--border)',
-        position: 'sticky',
+        position: 'fixed',
         top: 0,
+        left: 0,
+        bottom: 0,
         height: '100vh',
         zIndex: 40,
         padding: '24px 16px',
@@ -1153,7 +1227,7 @@ export default function DashboardPage() {
         )}
 
         {/* Nav Links */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
+        <nav className="no-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto' }}>
           {[
             { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
             { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
@@ -1222,7 +1296,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── MAIN CONTENT WORKSPACE ── */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
+      <main className="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
         
         {/* Desktop Topbar */}
         <header className="glass" style={{
@@ -3422,37 +3496,39 @@ export default function DashboardPage() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 24 }}>
                         <button
                           type="button"
-                          onClick={() => {
-                            if (user?.plan === 'pro_monthly') return;
-                            handleUpgradePlan('pro_monthly');
-                          }}
+                          disabled={user?.plan === 'pro_monthly' || isInitializingPayment}
+                          onClick={() => handleUpgradePlan('pro_monthly')}
                           className={`btn clickable`}
                           style={{
                             padding: 12,
                             background: user?.plan === 'pro_monthly' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'none',
                             border: '1.5px solid #d97706',
                             color: user?.plan === 'pro_monthly' ? '#fff' : '#d97706',
-                            fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13
+                            fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13,
+                            opacity: (user?.plan === 'pro_monthly' || isInitializingPayment) ? 0.7 : 1,
+                            display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center',
                           }}
                         >
-                          {user?.plan === 'pro_monthly' ? 'Active Monthly' : 'Go Pro Monthly'}
+                          {isInitializingPayment ? <Loader2 size={14} className="spinner" /> : null}
+                          {user?.plan === 'pro_monthly' ? '✓ Active Monthly' : isInitializingPayment ? 'Redirecting...' : 'Go Pro Monthly'}
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
-                            if (user?.plan === 'pro_yearly') return;
-                            handleUpgradePlan('pro_yearly');
-                          }}
+                          disabled={user?.plan === 'pro_yearly' || isInitializingPayment}
+                          onClick={() => handleUpgradePlan('pro_yearly')}
                           className={`btn clickable`}
                           style={{
                             padding: 12,
                             background: user?.plan === 'pro_yearly' ? 'linear-gradient(135deg, #b45309 0%, #78350f 100%)' : 'none',
                             border: '1.5px solid #b45309',
                             color: user?.plan === 'pro_yearly' ? '#fff' : '#b45309',
-                            fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13
+                            fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13,
+                            opacity: (user?.plan === 'pro_yearly' || isInitializingPayment) ? 0.7 : 1,
+                            display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center',
                           }}
                         >
-                          {user?.plan === 'pro_yearly' ? 'Active Yearly' : 'Go Pro Yearly'}
+                          {isInitializingPayment ? <Loader2 size={14} className="spinner" /> : null}
+                          {user?.plan === 'pro_yearly' ? '✓ Active Yearly' : isInitializingPayment ? 'Redirecting...' : 'Go Pro Yearly'}
                         </button>
                       </div>
                     </div>
@@ -4356,6 +4432,10 @@ export default function DashboardPage() {
 
       {/* Styled JSX layout rules to make dashboard fully responsive */}
       <style jsx global>{`
+        .main-content {
+          margin-left: 260px;
+        }
+
         .spinner {
           animation: spin 1s linear infinite;
         }
@@ -4384,6 +4464,9 @@ export default function DashboardPage() {
         }
 
         @media (max-width: 768px) {
+          .main-content {
+            margin-left: 0 !important;
+          }
           aside {
             display: none !important;
           }
