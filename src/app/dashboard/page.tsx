@@ -9,9 +9,12 @@ import {
   Package, ShoppingBag, Settings, Share2, Copy, Plus, Tag,
   Trash2, Edit2, AlertCircle, Check, Loader2, Phone,
   DollarSign, Calendar, MapPin, Receipt, Menu, X, ArrowUpRight,
-  TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon
+  TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
+  Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck,
+  ArrowUp, ArrowDown, Facebook, Twitter, Music2
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
+import SearchableSelect from '../../components/SearchableSelect';
 
 // --- Type Definitions ---
 interface UserInfo {
@@ -19,6 +22,14 @@ interface UserInfo {
   name: string;
   phone_number: string;
   email?: string | null;
+}
+
+interface StoreLink {
+  id: string;
+  title: string;
+  url: string;
+  platform: string;
+  is_active: boolean;
 }
 
 interface StoreInfo {
@@ -36,6 +47,10 @@ interface StoreInfo {
   bank_account_number?: string | null;
   bank_account_name?: string | null;
   payment_instructions?: string | null;
+  paystack_bank_code?: string | null;
+  bank_account_verified?: boolean;
+  custom_links?: StoreLink[] | null;
+  custom_domain?: string | null;
 }
 
 interface Category {
@@ -55,6 +70,9 @@ interface Product {
   description: string | null;
   image_urls?: string[];
   views_count?: number;
+  is_digital?: boolean;
+  digital_file_url?: string | null;
+  digital_link?: string | null;
 }
 
 interface OrderItem {
@@ -184,6 +202,11 @@ export default function DashboardPage() {
   const [prodImageUploading, setProdImageUploading] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [productPublishing, setProductPublishing] = useState(false);
+  // Digital product states
+  const [prodIsDigital, setProdIsDigital] = useState(false);
+  const [prodDigitalFileUrl, setProdDigitalFileUrl] = useState('');
+  const [prodDigitalLink, setProdDigitalLink] = useState('');
+  const [prodDigitalUploading, setProdDigitalUploading] = useState(false);
 
   // Settings Form
   const [setStoreName, setSetStoreName] = useState('');
@@ -198,16 +221,38 @@ export default function DashboardPage() {
   const [setTiktok, setSetTiktok] = useState('');
   const [setCurrency, setSetCurrency] = useState('NGN');
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [customLinks, setCustomLinks] = useState<StoreLink[]>([]);
+  // Form states for adding/editing a link
+  const [linkTitle, setLinkTitle] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkPlatform, setLinkPlatform] = useState('custom');
+  const [linkActive, setLinkActive] = useState(true);
+  const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
+  const [showLinkForm, setShowLinkForm] = useState(false);
 
   // Payment Account Form
   const [paymentBankName, setPaymentBankName] = useState('');
+  const [paymentBankCode, setPaymentBankCode] = useState('');
   const [paymentAccountNumber, setPaymentAccountNumber] = useState('');
-  const [paymentAccountName, setPaymentAccountName] = useState('');
+  const [paymentAccountName, setPaymentAccountName] = useState(''); // read-only after verify
   const [paymentInstructions, setPaymentInstructions] = useState('');
   const [paymentCopied, setPaymentCopied] = useState(false);
+  const [bankDropdownOpen, setBankDropdownOpen] = useState(false);
+  // Paystack bank list fetched from API
+  const [bankList, setBankList] = useState<{ name: string; code: string }[]>([]);
+  // Verification states
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
+  const [accountVerified, setAccountVerified] = useState(false);
+  const [nameMatchOk, setNameMatchOk] = useState<boolean | null>(null);
 
   // Developer Endpoint Form
   const [devApiInput, setDevApiInput] = useState('');
+
+  // Custom Domain Mapping Form
+  const [customDomainInput, setCustomDomainInput] = useState('');
+  const [customDomainSaving, setCustomDomainSaving] = useState(false);
+  const [customDomainBypassDNS, setCustomDomainBypassDNS] = useState(false);
 
   // --- AI Command Bar State ---
   const [aiCommand, setAiCommand] = useState('');
@@ -232,6 +277,8 @@ export default function DashboardPage() {
     { name: 'Fashion Dress', url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=600' },
     { name: 'Ankara Bag', url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=600' }
   ];
+
+  // Replaced by dynamic bank list fetched from Paystack via backend
 
   // --- Auth verification & Initial load ---
   useEffect(() => {
@@ -260,10 +307,14 @@ export default function DashboardPage() {
           setSetTiktok(parsedStore.tiktok_handle || '');
           setSetCurrency(parsedStore.currency_code || 'NGN');
           setPaymentBankName(parsedStore.bank_name || '');
+          setPaymentBankCode(parsedStore.paystack_bank_code || '');
           setPaymentAccountNumber(parsedStore.bank_account_number || '');
           setPaymentAccountName(parsedStore.bank_account_name || '');
           setPaymentInstructions(parsedStore.payment_instructions || '');
+          setAccountVerified(!!parsedStore.bank_account_verified);
+          setNameMatchOk(parsedStore.bank_account_verified ? true : null);
           setLogoUrl(parsedStore.logo_url || null);
+          setCustomLinks(parsedStore.custom_links || []);
         }
         setIsAuthenticated(true);
       } else {
@@ -288,6 +339,75 @@ export default function DashboardPage() {
     };
   }, [isCountryDropdownOpen]);
 
+  // Close bank dropdown on click outside
+  useEffect(() => {
+    if (!bankDropdownOpen) return;
+    const handleOutsideClick = () => {
+      setBankDropdownOpen(false);
+    };
+    const timer = setTimeout(() => {
+      window.addEventListener('click', handleOutsideClick);
+    }, 50);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('click', handleOutsideClick);
+    };
+  }, [bankDropdownOpen]);
+
+  // Fetch Paystack bank list from backend
+  useEffect(() => {
+    const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    fetch(`${url}/v1/payments/banks`)
+      .then(r => r.json())
+      .then(json => {
+        if (json.data && Array.isArray(json.data)) {
+          setBankList(json.data);
+        }
+      })
+      .catch(() => {}); // silently fail — dropdown still works with empty list
+  }, []);
+
+  // Auto-resolve account name when 10 digits entered and bank selected
+  const resolveAccountName = async (accountNumber: string, bankCode: string) => {
+    if (accountNumber.length !== 10 || !bankCode || !token) return;
+    try {
+      setIsVerifying(true);
+      setVerifyError('');
+      setPaymentAccountName('');
+      setAccountVerified(false);
+      setNameMatchOk(null);
+
+      const res = await fetch(`${apiUrl}/v1/payments/resolve-account`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ account_number: accountNumber, bank_code: bankCode }),
+      });
+      const json = await res.json();
+
+      if (res.ok && json.account_name) {
+        const verifiedName: string = json.account_name;
+        setPaymentAccountName(verifiedName);
+        setAccountVerified(true);
+
+        // Name-match check: compare against user full name or store name
+        const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const vn = normalize(verifiedName);
+        const userName = normalize(user?.name || '');
+        const storeName = normalize(store?.store_name || '');
+        const matched = vn.includes(userName) || userName.includes(vn) ||
+                        vn.includes(storeName) || storeName.includes(vn) ||
+                        verifiedName.toLowerCase().split(' ').some(w => w.length > 2 && (user?.name || '').toLowerCase().includes(w));
+        setNameMatchOk(matched);
+      } else {
+        setVerifyError(json.message || 'Could not verify account. Check account number and bank.');
+      }
+    } catch {
+      setVerifyError('Network error during account verification.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   // Headers helper
   const getAuthHeaders = () => ({
     'Authorization': `Bearer ${token}`,
@@ -302,22 +422,47 @@ export default function DashboardPage() {
       if (!silent) setDataLoading(true);
       else setIsRefreshing(true);
 
-      const [statsRes, productsRes, ordersRes, categoriesRes] = await Promise.all([
+      const [statsRes, productsRes, ordersRes, categoriesRes, storeRes] = await Promise.all([
         fetch(`${apiUrl}/v1/orders/stats`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/products`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/orders`, { headers: getAuthHeaders() }),
-        fetch(`${apiUrl}/v1/categories`, { headers: getAuthHeaders() })
+        fetch(`${apiUrl}/v1/categories`, { headers: getAuthHeaders() }),
+        fetch(`${apiUrl}/v1/store`, { headers: getAuthHeaders() })
       ]);
 
       const statsJson = await statsRes.json();
       const productsJson = await productsRes.json();
       const ordersJson = await ordersRes.json();
       const categoriesJson = await categoriesRes.json();
+      const storeJson = await storeRes.json();
 
       if (statsRes.ok) setStats(statsJson.data);
       if (productsRes.ok) setProducts(productsJson.data?.data || productsJson.data || []);
       if (ordersRes.ok) setOrders(ordersJson.data?.data || ordersJson.data || []);
       if (categoriesRes.ok) setCategories(categoriesJson.data || []);
+
+      if (storeRes.ok && storeJson.data) {
+        const liveStore = storeJson.data;
+        setStore(liveStore);
+        localStorage.setItem('store', JSON.stringify(liveStore));
+        setSetStoreName(liveStore.store_name || '');
+        setSetStoreBio(liveStore.store_bio || '');
+        const parsedPhone = parsePhoneNumber(liveStore.whatsapp_phone || '');
+        setSelectedCountry(parsedPhone.country);
+        setLocalWhatsapp(parsedPhone.local);
+        setSetInstagram(liveStore.instagram_handle || '');
+        setSetTiktok(liveStore.tiktok_handle || '');
+        setSetCurrency(liveStore.currency_code || 'NGN');
+        setPaymentBankName(liveStore.bank_name || '');
+        setPaymentBankCode(liveStore.paystack_bank_code || '');
+        setPaymentAccountNumber(liveStore.bank_account_number || '');
+        setPaymentAccountName(liveStore.bank_account_name || '');
+        setPaymentInstructions(liveStore.payment_instructions || '');
+        setAccountVerified(!!liveStore.bank_account_verified);
+        setNameMatchOk(liveStore.bank_account_verified ? true : null);
+        setLogoUrl(liveStore.logo_url || null);
+        setCustomLinks(liveStore.custom_links || []);
+      }
 
     } catch (e) {
       console.error(e);
@@ -404,6 +549,9 @@ export default function DashboardPage() {
     setProdDesc('');
     setProdStock('in_stock');
     setProdImageUrls([]);
+    setProdIsDigital(false);
+    setProdDigitalFileUrl('');
+    setProdDigitalLink('');
     setIsAddProductOpen(true);
   };
 
@@ -459,9 +607,12 @@ export default function DashboardPage() {
         compare_at_price: prodComparePrice ? parseFloat(prodComparePrice) : null,
         category_id: prodCategory || null,
         description: prodDesc || null,
-        stock_status: prodStock,
+        stock_status: prodIsDigital ? 'in_stock' : prodStock,
         is_draft: false,
-        image_urls: prodImageUrls
+        image_urls: prodImageUrls,
+        is_digital: prodIsDigital,
+        digital_file_url: prodIsDigital ? (prodDigitalFileUrl || null) : null,
+        digital_link: prodIsDigital ? (prodDigitalLink || null) : null,
       };
 
       const res = await fetch(`${apiUrl}/v1/products`, {
@@ -494,6 +645,9 @@ export default function DashboardPage() {
     setProdDesc(product.description || '');
     setProdStock(product.stock_status);
     setProdImageUrls(product.image_urls || []);
+    setProdIsDigital(product.is_digital ?? false);
+    setProdDigitalFileUrl(product.digital_file_url || '');
+    setProdDigitalLink(product.digital_link || '');
     setIsEditProductOpen(true);
   };
 
@@ -509,8 +663,11 @@ export default function DashboardPage() {
         compare_at_price: prodComparePrice ? parseFloat(prodComparePrice) : null,
         category_id: prodCategory || null,
         description: prodDesc || null,
-        stock_status: prodStock,
-        image_urls: prodImageUrls
+        stock_status: prodIsDigital ? 'in_stock' : prodStock,
+        image_urls: prodImageUrls,
+        is_digital: prodIsDigital,
+        digital_file_url: prodIsDigital ? (prodDigitalFileUrl || null) : null,
+        digital_link: prodIsDigital ? (prodDigitalLink || null) : null,
       };
 
       const res = await fetch(`${apiUrl}/v1/products/${selectedProduct.id}`, {
@@ -686,6 +843,16 @@ export default function DashboardPage() {
     toast.success('Simulated buyer marked as Paid.');
   };
 
+  const moveLink = (index: number, direction: 'up' | 'down') => {
+    const nextIndex = direction === 'up' ? index - 1 : index + 1;
+    if (nextIndex < 0 || nextIndex >= customLinks.length) return;
+    const updated = [...customLinks];
+    const temp = updated[index];
+    updated[index] = updated[nextIndex];
+    updated[nextIndex] = temp;
+    setCustomLinks(updated);
+  };
+
   // --- Settings Update Handler ---
   const handleSettingsSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -715,6 +882,9 @@ export default function DashboardPage() {
           bank_account_number: paymentAccountNumber || null,
           bank_account_name: paymentAccountName || null,
           payment_instructions: paymentInstructions || null,
+          paystack_bank_code: paymentBankCode || null,
+          bank_account_verified: accountVerified,
+          custom_links: customLinks,
         })
       });
 
@@ -724,14 +894,17 @@ export default function DashboardPage() {
         setStore(json.data);
         localStorage.setItem('store', JSON.stringify(json.data));
         setLogoUrl(json.data.logo_url || null);
-        
         const parsedPhone = parsePhoneNumber(json.data.whatsapp_phone || '');
         setSelectedCountry(parsedPhone.country);
         setLocalWhatsapp(parsedPhone.local);
         setPaymentBankName(json.data.bank_name || '');
+        setPaymentBankCode(json.data.paystack_bank_code || '');
         setPaymentAccountNumber(json.data.bank_account_number || '');
         setPaymentAccountName(json.data.bank_account_name || '');
         setPaymentInstructions(json.data.payment_instructions || '');
+        setAccountVerified(!!json.data.bank_account_verified);
+        setNameMatchOk(json.data.bank_account_verified ? true : null);
+        setCustomLinks(json.data.custom_links || []);
       } else {
         throw new Error(json.message || 'Store settings update failed.');
       }
@@ -739,6 +912,62 @@ export default function DashboardPage() {
       toast.error(e.message || 'Error occurred saving settings.');
     } finally {
       setSettingsSaving(false);
+    }
+  };
+
+  // --- Custom Domain Mapping Handlers ---
+  const handleLinkCustomDomain = async () => {
+    if (!customDomainInput.trim()) return;
+    try {
+      setCustomDomainSaving(true);
+      const res = await fetch(`${apiUrl}/v1/store/custom-domain`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          custom_domain: customDomainInput.trim(),
+          bypass_dns: customDomainBypassDNS ? 1 : 0
+        })
+      });
+
+      const json = await res.json();
+      if (res.ok && json.data) {
+        toast.success(json.message || 'Custom domain linked successfully! 🌐');
+        setStore(json.data);
+        localStorage.setItem('store', JSON.stringify(json.data));
+        setCustomDomainInput('');
+      } else {
+        throw new Error(json.message || 'Verification failed.');
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Error linking custom domain.');
+    } finally {
+      setCustomDomainSaving(false);
+    }
+  };
+
+  const handleRemoveCustomDomain = async () => {
+    if (!window.confirm('Are you sure you want to disconnect your custom domain? Your store will no longer be accessible via this domain.')) {
+      return;
+    }
+    try {
+      setCustomDomainSaving(true);
+      const res = await fetch(`${apiUrl}/v1/store/custom-domain`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.data) {
+        toast.success(json.message || 'Custom domain removed.');
+        setStore(json.data);
+        localStorage.setItem('store', JSON.stringify(json.data));
+      } else {
+        throw new Error(json.message || 'Failed to remove custom domain.');
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Error removing custom domain.');
+    } finally {
+      setCustomDomainSaving(false);
     }
   };
 
@@ -1002,12 +1231,142 @@ export default function DashboardPage() {
               {activeTab === 'overview' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }} className="animate-fade-in">
                   
+                  {/* ── STORE SETUP CHECKLIST (shown until store is fully configured) ── */}
+                  {(() => {
+                    const hasProducts = products.length > 0;
+                    const hasBio = !!(store?.store_bio && store.store_bio.trim().length > 5);
+                    const hasBank = !!(store?.bank_account_number && store.bank_account_number.trim().length > 4);
+                    const hasLogo = !!store?.logo_url;
+                    const steps = [
+                      { id: 'products', done: hasProducts, label: 'Add your first product', desc: 'List a physical or digital item to start selling.', action: () => openAddProductModal(), cta: 'Add Product', icon: <Package size={16} /> },
+                      { id: 'bank', done: hasBank, label: 'Connect payment details', desc: 'Add your bank account to receive payments.', action: () => setActiveTab('settings'), cta: 'Go to Settings', icon: <DollarSign size={16} /> },
+                      { id: 'bio', done: hasBio, label: 'Write your store bio', desc: 'Tell customers who you are and what you sell.', action: () => setActiveTab('settings'), cta: 'Edit Bio', icon: <Store size={16} /> },
+                      { id: 'logo', done: hasLogo, label: 'Upload a store logo', desc: 'A logo builds trust and makes your store look professional.', action: () => setActiveTab('settings'), cta: 'Upload Logo', icon: <Camera size={16} /> },
+                    ];
+                    const doneCount = steps.filter(s => s.done).length;
+                    const allDone = doneCount === steps.length;
+                    if (allDone) return null;
+                    const progressPct = Math.round((doneCount / steps.length) * 100);
+                    return (
+                      <div className="card" style={{
+                        padding: 0,
+                        overflow: 'hidden',
+                        border: '1.5px solid var(--primary)',
+                        boxShadow: '0 0 0 4px rgba(16,185,129,0.06)',
+                      }}>
+                        {/* Header gradient */}
+                        <div style={{
+                          background: 'linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%)',
+                          padding: '20px 24px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 16,
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Rocket size={20} color="#fff" />
+                            </div>
+                            <div>
+                              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
+                                Complete Your Store Setup
+                              </h3>
+                              <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
+                                {doneCount} of {steps.length} steps done · {progressPct}% complete
+                              </p>
+                            </div>
+                          </div>
+                          <span style={{ fontSize: 22, fontWeight: 900, color: '#fff', fontFamily: 'var(--font-heading)', letterSpacing: '-0.04em' }}>{progressPct}%</span>
+                        </div>
+
+                        {/* Progress bar */}
+                        <div style={{ height: 5, background: 'rgba(16,185,129,0.12)' }}>
+                          <div style={{
+                            height: '100%',
+                            width: `${progressPct}%`,
+                            background: 'linear-gradient(90deg, var(--primary-dark), var(--primary))',
+                            transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                            borderRadius: '0 4px 4px 0',
+                          }} />
+                        </div>
+
+                        {/* Steps list */}
+                        <div style={{ padding: '8px 24px 20px' }}>
+                          {steps.map((step, idx) => (
+                            <div
+                              key={step.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 14,
+                                padding: '14px 0',
+                                borderBottom: idx < steps.length - 1 ? '1px solid var(--border)' : 'none',
+                                opacity: step.done ? 0.55 : 1,
+                              }}
+                            >
+                              {/* Status circle */}
+                              <div style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: '50%',
+                                flexShrink: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: step.done ? 'var(--primary-light)' : 'var(--bg-2)',
+                                border: step.done ? '2px solid var(--primary)' : '2px solid var(--border)',
+                                color: step.done ? 'var(--primary)' : 'var(--text-muted)',
+                                transition: 'all 0.3s ease',
+                              }}>
+                                {step.done ? <CheckCircle2 size={16} strokeWidth={2.5} /> : step.icon}
+                              </div>
+
+                              {/* Text */}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{
+                                  fontSize: 14,
+                                  fontWeight: 700,
+                                  color: step.done ? 'var(--text-muted)' : 'var(--text)',
+                                  textDecoration: step.done ? 'line-through' : 'none',
+                                }}>
+                                  {step.label}
+                                </p>
+                                {!step.done && (
+                                  <p style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2, lineHeight: 1.4 }}>
+                                    {step.desc}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Action button */}
+                              {!step.done && (
+                                <button
+                                  onClick={step.action}
+                                  className="btn btn-primary clickable"
+                                  style={{ padding: '8px 14px', fontSize: 12, borderRadius: 'var(--r-md)', whiteSpace: 'nowrap', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 5 }}
+                                >
+                                  {step.cta} <ArrowRight size={11} />
+                                </button>
+                              )}
+                              {step.done && (
+                                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', background: 'var(--primary-light)', padding: '4px 10px', borderRadius: 'var(--r-full)', whiteSpace: 'nowrap' }}>
+                                  ✓ Done
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Top Stats Row */}
                   <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                     gap: 16
                   }}>
+
                     <div className="card hover-lift" style={{ padding: 20 }}>
                       <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Revenue</span>
                       <p style={{ fontSize: 26, fontWeight: 900, color: 'var(--primary)', fontFamily: 'var(--font-heading)', marginTop: 8 }}>
@@ -1574,11 +1933,12 @@ export default function DashboardPage() {
                         <label style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Store URL</label>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
                           <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary-dark)', wordBreak: 'break-all' }}>
-                            {store ? `${store.username}.aloaye.com` : 'aloaye.com'}
+                            {store?.custom_domain ? store.custom_domain : (store ? `${store.username}.aloaye.tech` : 'aloaye.tech')}
                           </span>
                           <button
                             onClick={() => {
-                              navigator.clipboard.writeText(`https://${store?.username}.aloaye.com`);
+                              const storeUrl = store?.custom_domain ? `https://${store.custom_domain}` : `https://${store?.username}.aloaye.tech`;
+                              navigator.clipboard.writeText(storeUrl);
                               toast.success('Store link copied! 📋');
                             }}
                             className="btn btn-outline clickable"
@@ -1592,7 +1952,7 @@ export default function DashboardPage() {
                       {/* WhatsApp share CTA */}
                       <button
                         onClick={() => {
-                          const url = `https://${store?.username}.aloaye.com`;
+                          const url = store?.custom_domain ? `https://${store.custom_domain}` : `https://${store?.username}.aloaye.tech`;
                           const msg = encodeURIComponent(`🏪 Check out my digital store on Aloaye! Shop here: ${url}`);
                           window.open(`https://wa.me/?text=${msg}`, '_blank');
                         }}
@@ -1892,17 +2252,18 @@ export default function DashboardPage() {
                         </div>
                         <div>
                           <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Currency</label>
-                          <select
+                          <SearchableSelect
+                            options={[
+                              { value: 'NGN', label: 'NGN (₦)', icon: <span style={{ fontSize: 16 }}>🇳🇬</span> },
+                              { value: 'GHS', label: 'GHS (₵)', icon: <span style={{ fontSize: 16 }}>🇬🇭</span> },
+                              { value: 'KES', label: 'KES (KSh)', icon: <span style={{ fontSize: 16 }}>🇰🇪</span> },
+                              { value: 'ZAR', label: 'ZAR (R)', icon: <span style={{ fontSize: 16 }}>🇿🇦</span> },
+                              { value: 'USD', label: 'USD ($)', icon: <span style={{ fontSize: 16 }}>🇺🇸</span> }
+                            ]}
                             value={setCurrency}
-                            onChange={e => setSetCurrency(e.target.value)}
-                            className="input-field"
-                          >
-                            <option value="NGN">NGN (₦)</option>
-                            <option value="GHS">GHS (₵)</option>
-                            <option value="KES">KES (KSh)</option>
-                            <option value="ZAR">ZAR (R)</option>
-                            <option value="USD">USD ($)</option>
-                          </select>
+                            onChange={val => setSetCurrency(val)}
+                            placeholder="Select Currency"
+                          />
                         </div>
                       </div>
 
@@ -2003,98 +2364,750 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                  {/* ── PAYMENT ACCOUNTS CARD ── */}
-                  <div className="card" style={{ padding: 28 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                {/* ── CUSTOM DOMAIN CONFIGURATION CARD ── */}
+                <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 'var(--r-md)',
+                      background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 4px 16px rgba(16,185,129,0.35)', flexShrink: 0
+                    }}>
+                      <Globe size={22} color="#fff" />
+                    </div>
+                    <div>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                        Custom Domain Mapping
+                      </h2>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                        Connect your own custom domain (e.g. <code>mybrand.com</code>) to your Aloaye storefront using nameservers.
+                      </p>
+                    </div>
+                  </div>
+
+                  {store?.custom_domain ? (
+                    // Linked Domain State
+                    <div style={{ background: 'var(--primary-light)', border: '1.5px solid var(--primary)', borderRadius: 'var(--r-lg)', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                        <div>
+                          <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Linked Custom Domain</span>
+                          <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--primary-dark)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            {store.custom_domain}
+                            <span style={{ fontSize: 11, background: '#10b981', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
+                          </h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleRemoveCustomDomain}
+                          disabled={customDomainSaving}
+                          className="btn btn-outline clickable"
+                          style={{ borderColor: 'var(--danger)', color: 'var(--danger)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                        >
+                          {customDomainSaving ? <Loader2 size={14} className="spinner" /> : <Trash2 size={14} />}
+                          Disconnect Domain
+                        </button>
+                      </div>
+                      <div style={{ borderTop: '1px solid rgba(16, 185, 129, 0.2)', paddingTop: 12, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                        ✨ Shoppers can now access your store directly at <a href={`https://${store.custom_domain}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, color: 'var(--primary-dark)', textDecoration: 'underline' }}>https://{store.custom_domain}</a>
+                      </div>
+                    </div>
+                  ) : (
+                    // Not Linked Domain State
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid">
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                            Enter your domain name
+                          </label>
+                          <div style={{ display: 'flex', gap: 12 }}>
+                            <input
+                              type="text"
+                              value={customDomainInput}
+                              onChange={e => setCustomDomainInput(e.target.value)}
+                              className="input-field"
+                              placeholder="e.g. mybrand.com"
+                              style={{ flex: 1 }}
+                            />
+                            <button
+                              type="button"
+                              onClick={handleLinkCustomDomain}
+                              disabled={customDomainSaving || !customDomainInput}
+                              className="btn btn-primary clickable"
+                              style={{ padding: '0 20px', borderRadius: 'var(--r-md)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                            >
+                              {customDomainSaving ? <Loader2 size={16} className="spinner" /> : <Link size={16} />}
+                              Link Domain
+                            </button>
+                          </div>
+                          
+                          {/* Bypass checkbox */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                            <input
+                              type="checkbox"
+                              id="bypass-dns-checkbox"
+                              checked={customDomainBypassDNS}
+                              onChange={e => setCustomDomainBypassDNS(e.target.checked)}
+                              style={{ cursor: 'pointer', width: 15, height: 15 }}
+                            />
+                            <label htmlFor="bypass-dns-checkbox" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', cursor: 'pointer' }}>
+                              Simulate DNS check (local/testing)
+                            </label>
+                          </div>
+                        </div>
+
+                        <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 18 }}>
+                          <h4 style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+                            Nameservers Setup Instructions
+                          </h4>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>
+                            At your domain registrar (GoDaddy, Namecheap, etc.), change your nameservers to:
+                          </p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
+                              <span>ns1.aloaye.tech</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText('ns1.aloaye.tech');
+                                  toast.success('Copied ns1.aloaye.tech');
+                                }}
+                                style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                              >Copy</button>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
+                              <span>ns2.aloaye.tech</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText('ns2.aloaye.tech');
+                                  toast.success('Copied ns2.aloaye.tech');
+                                }}
+                                style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                              >Copy</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* ── CUSTOM LINKS / LINKTREE SECTION ── */}
+                <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24 }}>
+                  {/* Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{
-                        width: 40, height: 40, borderRadius: 'var(--r-md)',
-                        background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                        width: 44, height: 44, borderRadius: 'var(--r-md)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 4px 14px rgba(22,163,74,0.35)', flexShrink: 0
+                        boxShadow: '0 4px 16px rgba(16,185,129,0.35)', flexShrink: 0
                       }}>
-                        <DollarSign size={20} color="#fff" />
+                        <Link size={20} color="#fff" />
                       </div>
                       <div>
-                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>Payment Accounts</h2>
-                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Where buyers send money — bank transfer, mobile money, etc.</p>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900 }}>Store Linktree & Socials</h2>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                          Add external links, websites, blogs, or chat channels that display as custom buttons on your storefront.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {!showLinkForm && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingLinkId(null);
+                          setLinkTitle('');
+                          setLinkUrl('');
+                          setLinkPlatform('custom');
+                          setLinkActive(true);
+                          setShowLinkForm(true);
+                        }}
+                        className="btn btn-primary clickable"
+                        style={{ padding: '10px 16px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                      >
+                        <Plus size={15} /> Add Custom Link
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 32 }} className="responsive-settings-grid">
+                    {/* Left Side: Editor list */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      
+                      {/* Inline Form to Add/Edit Link */}
+                      {showLinkForm && (
+                        <div className="glass" style={{ padding: 20, borderRadius: 'var(--r-lg)', border: '1px solid var(--primary)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                          <h3 style={{ fontSize: 14, fontWeight: 800, fontFamily: 'var(--font-heading)' }}>
+                            {editingLinkId ? 'Edit Link Details' : 'Add a New Store Link'}
+                          </h3>
+                          
+                          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: 12 }} className="responsive-settings-grid">
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 5 }}>Platform / Icon</label>
+                              <SearchableSelect
+                                options={[
+                                  { value: 'custom', label: 'Website / Custom', icon: <Globe size={14} /> },
+                                  { value: 'whatsapp', label: 'WhatsApp', icon: <WhatsAppIcon size={14} /> },
+                                  { value: 'instagram', label: 'Instagram', icon: <Camera size={14} /> },
+                                  { value: 'tiktok', label: 'TikTok', icon: <Zap size={14} /> },
+                                  { value: 'twitter', label: 'Twitter / X', icon: <Zap size={14} /> },
+                                  { value: 'facebook', label: 'Facebook', icon: <Globe size={14} /> },
+                                  { value: 'youtube', label: 'YouTube', icon: <Globe size={14} /> },
+                                  { value: 'linkedin', label: 'LinkedIn', icon: <Globe size={14} /> },
+                                  { value: 'pinterest', label: 'Pinterest', icon: <Globe size={14} /> },
+                                  { value: 'snapchat', label: 'Snapchat', icon: <Globe size={14} /> }
+                                ]}
+                                value={linkPlatform}
+                                onChange={val => setLinkPlatform(val)}
+                                placeholder="Select Icon"
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 5 }}>Button Title *</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Chat on Telegram, Visit my site"
+                                value={linkTitle}
+                                onChange={e => setLinkTitle(e.target.value)}
+                                className="input-field"
+                                style={{ padding: '8px 12px', fontSize: 14, height: 46 }}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 5 }}>Destination URL *</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. https://mywebsite.com or t.me/mychannel"
+                              value={linkUrl}
+                              onChange={e => setLinkUrl(e.target.value)}
+                              className="input-field"
+                              style={{ padding: '8px 12px', fontSize: 14, height: 46 }}
+                            />
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                              <input
+                                type="checkbox"
+                                checked={linkActive}
+                                onChange={e => setLinkActive(e.target.checked)}
+                                style={{ width: 16, height: 16, accentColor: 'var(--primary)' }}
+                              />
+                              Show link on storefront
+                            </label>
+
+                            <div style={{ display: 'flex', gap: 10 }}>
+                              <button
+                                type="button"
+                                onClick={() => setShowLinkForm(false)}
+                                className="btn btn-outline clickable"
+                                style={{ padding: '8px 14px', fontSize: 12.5, borderRadius: 'var(--r-md)' }}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!linkTitle.trim() || !linkUrl.trim()) {
+                                    toast.warning('Please enter a link title and destination URL.');
+                                    return;
+                                  }
+                                  let formattedUrl = linkUrl.trim();
+                                  if (!/^https?:\/\//i.test(formattedUrl)) {
+                                    formattedUrl = 'https://' + formattedUrl;
+                                  }
+
+                                  const newLink: StoreLink = {
+                                    id: editingLinkId || Math.random().toString(36).substring(2, 9),
+                                    title: linkTitle.trim(),
+                                    url: formattedUrl,
+                                    platform: linkPlatform,
+                                    is_active: linkActive
+                                  };
+
+                                  if (editingLinkId) {
+                                    setCustomLinks(prev => prev.map(l => l.id === editingLinkId ? newLink : l));
+                                    toast.info('Link updated locally. Remember to save changes below!');
+                                  } else {
+                                    setCustomLinks(prev => [...prev, newLink]);
+                                    toast.success('Link added locally. Remember to save changes below!');
+                                  }
+                                  setShowLinkForm(false);
+                                }}
+                                className="btn btn-primary clickable"
+                                style={{ padding: '8px 14px', fontSize: 12.5, borderRadius: 'var(--r-md)' }}
+                              >
+                                {editingLinkId ? 'Update' : 'Add Link'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* List of custom links */}
+                      {customLinks.length === 0 ? (
+                        <div style={{ padding: '32px 16px', textAlign: 'center', background: 'var(--bg-2)', borderRadius: 'var(--r-xl)', border: '1px dashed var(--border)' }}>
+                          <Link size={32} color="var(--text-faint)" style={{ marginBottom: 12, marginInline: 'auto' }} />
+                          <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-muted)', textAlign: 'center' }}>No custom links added yet</p>
+                          <p style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 4, textAlign: 'center' }}>
+                            Click "Add Custom Link" above to customize buttons like Linktree.
+                          </p>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                          {customLinks.map((link, idx) => {
+                            const IconComponent = () => {
+                              switch (link.platform) {
+                                  case 'whatsapp': return <WhatsAppIcon size={14} style={{ color: 'var(--wa-green)' }} />;
+                                  case 'instagram': return <Camera size={14} style={{ color: '#e1306c' }} />;
+                                  case 'tiktok': return <Music2 size={14} style={{ color: '#00f2fe' }} />;
+                                  case 'facebook': return <Facebook size={14} style={{ color: '#1877f2' }} />;
+                                  case 'twitter': return <Twitter size={14} style={{ color: '#1da1f2' }} />;
+                                  default: return <Globe size={14} />;
+                              }
+                            };
+                            return (
+                              <div
+                                key={link.id}
+                                className="glass"
+                                style={{
+                                  padding: '12px 16px',
+                                  borderRadius: 'var(--r-lg)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  gap: 12,
+                                  border: '1.5px solid var(--border)',
+                                  opacity: link.is_active ? 1 : 0.6,
+                                  transition: 'all 0.2s ease',
+                                  background: 'var(--surface)'
+                                }}
+                              >
+                                {/* Sort, title, URL */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+                                  {/* Sort handlers */}
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                    <button
+                                      type="button"
+                                      disabled={idx === 0}
+                                      onClick={() => moveLink(idx, 'up')}
+                                      style={{ background: 'none', border: 'none', padding: 2, cursor: idx === 0 ? 'not-allowed' : 'pointer', color: 'var(--text-muted)', opacity: idx === 0 ? 0.3 : 1 }}
+                                      title="Move up"
+                                    >
+                                      <ArrowUp size={13} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={idx === customLinks.length - 1}
+                                      onClick={() => moveLink(idx, 'down')}
+                                      style={{ background: 'none', border: 'none', padding: 2, cursor: idx === customLinks.length - 1 ? 'not-allowed' : 'pointer', color: 'var(--text-muted)', opacity: idx === customLinks.length - 1 ? 0.3 : 1 }}
+                                      title="Move down"
+                                    >
+                                      <ArrowDown size={13} />
+                                    </button>
+                                  </div>
+
+                                  {/* Platform Icon Badge */}
+                                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <IconComponent />
+                                  </div>
+
+                                  <div style={{ minWidth: 0 }}>
+                                    <p style={{ fontSize: 13.5, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{link.title}</p>
+                                    <span style={{ fontSize: 11, color: 'var(--text-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', marginTop: 2 }}>
+                                      {link.url}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Edit, status, delete buttons */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                  {/* Visibility Checkbox */}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setCustomLinks(prev => prev.map((l, i) => i === idx ? { ...l, is_active: !l.is_active } : l));
+                                    }}
+                                    style={{
+                                      border: 'none',
+                                      background: link.is_active ? 'var(--primary-light)' : 'var(--bg-2)',
+                                      color: link.is_active ? 'var(--primary)' : 'var(--text-muted)',
+                                      fontSize: 10,
+                                      fontWeight: 800,
+                                      padding: '4px 8px',
+                                      borderRadius: 'var(--r-sm)',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    {link.is_active ? 'Active' : 'Hidden'}
+                                  </button>
+
+                                  {/* Edit Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingLinkId(link.id);
+                                      setLinkTitle(link.title);
+                                      setLinkUrl(link.url);
+                                      setLinkPlatform(link.platform);
+                                      setLinkActive(link.is_active);
+                                      setShowLinkForm(true);
+                                    }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                                    title="Edit link"
+                                  >
+                                    <Edit2 size={13} />
+                                  </button>
+
+                                  {/* Delete Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (confirm(`Are you sure you want to remove "${link.title}"?`)) {
+                                        setCustomLinks(prev => prev.filter(l => l.id !== link.id));
+                                        toast.info('Link deleted locally.');
+                                      }
+                                    }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}
+                                    title="Delete link"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right Side: Smartphone Mockup Preview */}
+                    <div style={{ display: 'flex', justifyContent: 'center' }} className="desktop-only">
+                      <div style={{
+                        width: 250,
+                        height: 480,
+                        borderRadius: 36,
+                        border: '10px solid #1e293b',
+                        background: 'var(--bg)',
+                        position: 'relative',
+                        boxShadow: 'var(--shadow-xl)',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
+                      }}>
+                        {/* Notch */}
+                        <div style={{ width: 110, height: 18, background: '#1e293b', position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', borderRadius: '0 0 12px 12px', zIndex: 10 }} />
+                        
+                        {/* Screen Scroll Container */}
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 14px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center' }} className="no-scrollbar">
+                          
+                          {/* Avatar */}
+                          <div style={{ width: 60, height: 60, borderRadius: '50%', background: logoUrl ? 'transparent' : 'var(--primary-light)', border: '2px solid var(--primary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 16 }}>
+                            {logoUrl ? (
+                              <img src={logoUrl} alt="Store logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--primary)' }}>{setStoreName.charAt(0).toUpperCase() || 'A'}</span>
+                            )}
+                          </div>
+
+                          {/* Store Name & Bio */}
+                          <h4 style={{ fontSize: 13.5, fontWeight: 900, marginTop: 10, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {setStoreName || 'My Store'}
+                          </h4>
+                          <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', marginTop: 4, lineHeight: 1.4, maxHeight: 40, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                            {setStoreBio || 'No store description yet.'}
+                          </p>
+
+                          {/* Hardcoded Social Icons */}
+                          <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                            {localWhatsapp && (
+                              <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <WhatsAppIcon size={11} color="#fff" />
+                              </div>
+                            )}
+                            {setInstagram && (
+                              <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#e1306c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                                <Camera size={11} />
+                              </div>
+                            )}
+                            {setTiktok && (
+                              <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                                <Zap size={11} />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Linktree style Custom Links Stack */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', marginTop: 20 }}>
+                            {customLinks.filter(l => l.is_active).map(link => (
+                              <div
+                                key={link.id}
+                                style={{
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  borderRadius: 10,
+                                  border: '1px solid var(--border)',
+                                  background: 'var(--surface)',
+                                  fontSize: 11.5,
+                                  fontWeight: 700,
+                                  textAlign: 'center',
+                                  cursor: 'default',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  boxShadow: 'var(--shadow-xs)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 6
+                                }}
+                              >
+                                {link.platform === 'whatsapp' && <WhatsAppIcon size={11} style={{ color: 'var(--wa-green)' }} />}
+                                {link.platform === 'instagram' && <Camera size={11} style={{ color: '#e1306c' }} />}
+                                {link.platform === 'tiktok' && <Music2 size={11} style={{ color: '#00f2fe' }} />}
+                                {link.platform === 'facebook' && <Facebook size={11} style={{ color: '#1877f2' }} />}
+                                {link.platform === 'twitter' && <Twitter size={11} style={{ color: '#1da1f2' }} />}
+                                {link.platform === 'custom' && <Globe size={11} />}
+                                <span>{link.title}</span>
+                              </div>
+                            ))}
+                            {customLinks.filter(l => l.is_active).length === 0 && (
+                              <p style={{ fontSize: 10, color: 'var(--text-faint)', textAlign: 'center', marginTop: 12 }}>
+                                Active links will display here in real time.
+                              </p>
+                            )}
+                          </div>
+
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                  {/* ── PAYMENT ACCOUNTS CARD ── */}
+                  <div className="card" style={{ padding: 28 }}>
+
+                    {/* Card Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 'var(--r-md)',
+                        background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 16px rgba(22,163,74,0.35)', flexShrink: 0
+                      }}>
+                        <DollarSign size={22} color="#fff" />
+                      </div>
+                      <div>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                          Payment Accounts
+                        </h2>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                          Bank transfer details buyers use to pay you. Account name must match your registered name or business name.
+                        </p>
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+                    {/* Step 1: Bank selector */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-                      {/* Bank / Provider Name */}
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Bank / Provider Name</label>
-                        <input
-                          type="text"
-                          value={paymentBankName}
-                          onChange={e => setPaymentBankName(e.target.value)}
-                          className="input-field"
-                          placeholder="e.g. GTBank, Palmpay, MTN MoMo, OPay"
-                          id="payment-bank-name"
-                        />
-                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Enter the bank or mobile money provider name.</span>
-                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
 
-                      {/* Account Number with copy */}
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Account / Mobile Number</label>
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                          <input
-                            type="text"
-                            value={paymentAccountNumber}
-                            onChange={e => setPaymentAccountNumber(e.target.value)}
-                            className="input-field"
-                            placeholder="e.g. 0123456789"
-                            style={{ paddingRight: 52 }}
-                            id="payment-account-number"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (!paymentAccountNumber) return;
-                              navigator.clipboard.writeText(paymentAccountNumber);
-                              setPaymentCopied(true);
-                              setTimeout(() => setPaymentCopied(false), 2000);
-                            }}
-                            title="Copy account number"
-                            style={{
-                              position: 'absolute', right: 10,
-                              background: paymentCopied ? 'var(--primary-light)' : 'var(--bg-2)',
-                              border: '1px solid var(--border)',
-                              borderRadius: 'var(--r-sm)',
-                              padding: '4px 7px',
-                              cursor: 'pointer',
-                              color: paymentCopied ? 'var(--primary)' : 'var(--text-muted)',
-                              display: 'flex', alignItems: 'center', gap: 4,
-                              fontSize: 11, fontWeight: 700,
-                              transition: 'all var(--t-fast)'
-                            }}
-                          >
-                            {paymentCopied ? <Check size={12} /> : <Copy size={12} />}
-                            {paymentCopied ? 'Copied' : 'Copy'}
-                          </button>
+                        {/* Bank Searchable Dropdown */}
+                        <div style={{ position: 'relative' }}>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                            Bank / Provider
+                          </label>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type="text"
+                              value={paymentBankName}
+                              onChange={e => {
+                                setPaymentBankName(e.target.value);
+                                setPaymentBankCode('');
+                                setPaymentAccountName('');
+                                setAccountVerified(false);
+                                setNameMatchOk(null);
+                                setVerifyError('');
+                                setBankDropdownOpen(true);
+                              }}
+                              onFocus={() => setBankDropdownOpen(true)}
+                              className="input-field"
+                              placeholder={bankList.length > 0 ? 'Search bank or provider...' : 'Loading banks...'}
+                              id="payment-bank-name"
+                              autoComplete="off"
+                            />
+                            <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+                          </div>
+                          {/* Bank dropdown list */}
+                          {bankDropdownOpen && (() => {
+                            const q = paymentBankName.toLowerCase();
+                            const filtered = bankList.filter(b => b.name.toLowerCase().includes(q));
+                            if (filtered.length === 0) return null;
+                            return (
+                              <div style={{
+                                position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 300,
+                                background: 'var(--surface)', border: '1.5px solid var(--border)',
+                                borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-lg)',
+                                maxHeight: 230, overflowY: 'auto', marginTop: 4,
+                              }}>
+                                {filtered.map((bank, i) => (
+                                  <button
+                                    key={bank.code}
+                                    type="button"
+                                    onMouseDown={e => {
+                                      e.preventDefault();
+                                      setPaymentBankName(bank.name);
+                                      setPaymentBankCode(bank.code);
+                                      setBankDropdownOpen(false);
+                                      // Auto-resolve if account number already entered
+                                      if (paymentAccountNumber.length === 10) {
+                                        resolveAccountName(paymentAccountNumber, bank.code);
+                                      }
+                                    }}
+                                    style={{
+                                      width: '100%', textAlign: 'left', background: 'none',
+                                      border: 'none', padding: '10px 14px', fontSize: 13.5,
+                                      fontWeight: 600, cursor: 'pointer', color: 'var(--text)',
+                                      borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
+                                      display: 'flex', alignItems: 'center', gap: 8,
+                                      transition: 'background var(--t-fast)',
+                                    }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-2)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                                  >
+                                    <span style={{ fontSize: 16 }}>🏦</span>
+                                    <span style={{ flex: 1 }}>{bank.name}</span>
+                                    <span style={{ fontSize: 11, color: 'var(--text-faint)', fontFamily: 'monospace' }}>{bank.code}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                          {paymentBankCode && (
+                            <span style={{ fontSize: 11, color: 'var(--primary)', fontWeight: 700, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <Check size={11} /> Bank selected
+                            </span>
+                          )}
                         </div>
-                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Your 10-digit account or mobile money number.</span>
+
+                        {/* Account Number — auto-resolves on 10 digits */}
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                            Account Number
+                          </label>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={10}
+                              value={paymentAccountNumber}
+                              onChange={e => {
+                                const val = e.target.value.replace(/\D/g, '');
+                                setPaymentAccountNumber(val);
+                                setPaymentAccountName('');
+                                setAccountVerified(false);
+                                setNameMatchOk(null);
+                                setVerifyError('');
+                                if (val.length === 10 && paymentBankCode) {
+                                  resolveAccountName(val, paymentBankCode);
+                                }
+                              }}
+                              className="input-field"
+                              placeholder="10-digit account number"
+                              id="payment-account-number"
+                              style={{
+                                paddingRight: 44,
+                                fontFamily: 'monospace',
+                                letterSpacing: '0.08em',
+                                fontSize: 15,
+                                borderColor: accountVerified ? '#16a34a' : undefined,
+                              }}
+                            />
+                            {/* Right-side indicator */}
+                            <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
+                              {isVerifying ? (
+                                <Loader2 size={15} className="spinner" style={{ color: 'var(--primary)' }} />
+                              ) : accountVerified ? (
+                                <span style={{ color: '#16a34a', display: 'flex' }}><CheckCircle2 size={17} /></span>
+                              ) : paymentAccountNumber.length === 10 && paymentBankCode ? (
+                                <span style={{ color: 'var(--danger)', display: 'flex' }}><AlertCircle size={17} /></span>
+                              ) : null}
+                            </div>
+                          </div>
+                          {/* Resolve status messages */}
+                          {isVerifying && (
+                            <p style={{ fontSize: 11.5, color: 'var(--primary)', marginTop: 5, fontWeight: 600 }}>⏳ Verifying account with Paystack...</p>
+                          )}
+                          {verifyError && !isVerifying && (
+                            <p style={{ fontSize: 11.5, color: 'var(--danger)', marginTop: 5, fontWeight: 600 }}>⚠️ {verifyError}</p>
+                          )}
+                          {!paymentBankCode && paymentAccountNumber.length > 0 && (
+                            <p style={{ fontSize: 11.5, color: 'var(--accent)', marginTop: 5, fontWeight: 600 }}>⬆️ Please select a bank first.</p>
+                          )}
+                        </div>
+
                       </div>
 
-                      {/* Account Name */}
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Account Name</label>
-                        <input
-                          type="text"
-                          value={paymentAccountName}
-                          onChange={e => setPaymentAccountName(e.target.value)}
-                          className="input-field"
-                          placeholder="e.g. ADEWALE JAMES OBI"
-                          id="payment-account-name"
-                        />
-                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Name exactly as it appears on your bank account.</span>
-                      </div>
+                      {/* Verified Account Name — read-only result */}
+                      {(accountVerified || isVerifying) && (
+                        <div style={{
+                          padding: '16px 20px',
+                          borderRadius: 'var(--r-lg)',
+                          border: `2px solid ${nameMatchOk === false ? 'var(--danger)' : '#16a34a'}`,
+                          background: nameMatchOk === false ? 'rgba(239,68,68,0.06)' : 'rgba(22,163,74,0.07)',
+                          display: 'flex', flexDirection: 'column', gap: 6,
+                          transition: 'all 0.3s'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                            <div>
+                              <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>Verified Account Name</span>
+                              <p style={{ fontSize: 16, fontWeight: 900, marginTop: 2, color: 'var(--text)', fontFamily: 'var(--font-heading)' }}>
+                                {paymentAccountName || '...'}
+                              </p>
+                            </div>
+                            {nameMatchOk === true && (
+                              <span style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 5,
+                                background: '#16a34a', color: '#fff',
+                                padding: '5px 12px', borderRadius: 'var(--r-full)',
+                                fontSize: 12, fontWeight: 800
+                              }}>
+                                <Check size={13} /> Name Match
+                              </span>
+                            )}
+                            {nameMatchOk === false && (
+                              <span style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 5,
+                                background: 'var(--danger)', color: '#fff',
+                                padding: '5px 12px', borderRadius: 'var(--r-full)',
+                                fontSize: 12, fontWeight: 800
+                              }}>
+                                <AlertCircle size={13} /> Mismatch
+                              </span>
+                            )}
+                          </div>
+                          {nameMatchOk === false && (
+                            <p style={{ fontSize: 12, color: 'var(--danger)', fontWeight: 600, marginTop: 4, lineHeight: 1.5 }}>
+                              ⚠️ The verified name <strong>{paymentAccountName}</strong> does not match your registered name (<strong>{user?.name}</strong>) or store name. Please use a bank account that matches your identity.
+                            </p>
+                          )}
+                          {nameMatchOk === true && (
+                            <p style={{ fontSize: 12, color: '#15803d', fontWeight: 600, marginTop: 2 }}>
+                              ✅ Account verified — name matches your profile. You can save.
+                            </p>
+                          )}
+                        </div>
+                      )}
 
                       {/* Payment Instructions */}
                       <div>
-                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Payment Instructions <span style={{ fontWeight: 500, textTransform: 'none', color: 'var(--text-faint)', fontSize: 11 }}>(optional)</span></label>
+                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                          Payment Instructions <span style={{ fontWeight: 500, textTransform: 'none', color: 'var(--text-faint)', fontSize: 11 }}>(optional)</span>
+                        </label>
                         <textarea
                           rows={2}
                           value={paymentInstructions}
@@ -2107,47 +3120,29 @@ export default function DashboardPage() {
                         <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Shown to buyers after checkout so they know next steps.</span>
                       </div>
 
-                    </div>
-
-                    {/* Preview pill */}
-                    {(paymentBankName || paymentAccountNumber) && (
-                      <div style={{
-                        marginTop: 20,
-                        padding: '14px 18px',
-                        borderRadius: 'var(--r-lg)',
-                        background: 'var(--bg-2)',
-                        border: '1.5px dashed var(--border)',
-                        display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12
-                      }}>
-                        <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>Live Preview</span>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', flex: 1 }}>
-                          {paymentBankName && (
-                            <span style={{ fontSize: 13, fontWeight: 700, background: 'var(--primary-light)', color: 'var(--primary)', padding: '4px 10px', borderRadius: 'var(--r-full)' }}>
-                              🏦 {paymentBankName}
-                            </span>
-                          )}
-                          {paymentAccountNumber && (
-                            <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', fontFamily: 'monospace', letterSpacing: '0.04em' }}>
-                              {paymentAccountNumber}
-                            </span>
-                          )}
-                          {paymentAccountName && (
-                            <span style={{ fontSize: 12.5, color: 'var(--text-2)', fontWeight: 600 }}>
-                              · {paymentAccountName}
-                            </span>
-                          )}
-                        </div>
+                      {/* Save Button */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', paddingTop: 4 }}>
+                        <button
+                          onClick={handleSettingsSave as any}
+                          disabled={settingsSaving || !accountVerified || nameMatchOk === false}
+                          className="btn btn-primary clickable"
+                          style={{ padding: '13px 28px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                        >
+                          {settingsSaving ? <><Loader2 size={16} className="spinner" /> Saving...</> : '💳 Save Payment Details'}
+                        </button>
+                        {!accountVerified && (
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
+                            Account must be verified before saving.
+                          </span>
+                        )}
+                        {accountVerified && nameMatchOk === false && (
+                          <span style={{ fontSize: 12, color: 'var(--danger)', fontWeight: 700 }}>
+                            Name mismatch — cannot save until resolved.
+                          </span>
+                        )}
                       </div>
-                    )}
 
-                    <button
-                      onClick={handleSettingsSave as any}
-                      disabled={settingsSaving}
-                      className="btn btn-primary clickable"
-                      style={{ marginTop: 20, padding: '13px 28px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
-                    >
-                      {settingsSaving ? <><Loader2 size={16} className="spinner" /> Saving...</> : '💳 Save Payment Details'}
-                    </button>
+                    </div>
                   </div>
 
                 </div>
@@ -2258,16 +3253,17 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Discount Rate (%)</label>
-                <select
+                <SearchableSelect
+                  options={[
+                    { value: '5', label: '5% Discount' },
+                    { value: '10', label: '10% Discount (Recommended)' },
+                    { value: '15', label: '15% Discount' },
+                    { value: '20', label: '20% Discount' }
+                  ]}
                   value={discountPercent}
-                  onChange={e => setDiscountPercent(e.target.value)}
-                  className="input-field"
-                >
-                  <option value="5">5% Discount</option>
-                  <option value="10">10% Discount (Recommended)</option>
-                  <option value="15">15% Discount</option>
-                  <option value="20">20% Discount</option>
-                </select>
+                  onChange={val => setDiscountPercent(val)}
+                  placeholder="Select discount rate"
+                />
               </div>
             </div>
 
@@ -2330,28 +3326,165 @@ export default function DashboardPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Category</label>
-                  <select
+                  <SearchableSelect
+                    options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
                     value={prodCategory}
-                    onChange={e => setProdCategory(e.target.value)}
-                    className="input-field"
-                  >
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
+                    onChange={val => setProdCategory(val)}
+                    placeholder="Select Category"
+                  />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Inventory Status</label>
-                  <select
+                  <SearchableSelect
+                    options={[
+                      { value: 'in_stock', label: `In Stock ${prodIsDigital ? '(Auto-Managed)' : ''}` },
+                      { value: 'out_of_stock', label: 'Out of Stock' }
+                    ]}
                     value={prodStock}
-                    onChange={e => setProdStock(e.target.value)}
-                    className="input-field"
-                  >
-                    <option value="in_stock">In Stock</option>
-                    <option value="out_of_stock">Out of Stock</option>
-                  </select>
+                    onChange={val => setProdStock(val)}
+                    disabled={prodIsDigital}
+                    placeholder="Select Status"
+                  />
                 </div>
               </div>
+
+              {/* Digital Product Settings */}
+              <div style={{
+                background: 'rgba(16, 185, 129, 0.04)',
+                border: '1.5px dashed rgba(16, 185, 129, 0.3)',
+                borderRadius: 'var(--r-md)',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12
+              }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={prodIsDigital}
+                    onChange={e => {
+                      setProdIsDigital(e.target.checked);
+                      if (e.target.checked) {
+                        setProdStock('in_stock');
+                      }
+                    }}
+                    style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }}
+                  />
+                  <div>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Digital Product</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Sell eBooks, courses, templates, music, PDFs, etc.</span>
+                  </div>
+                </label>
+
+                {prodIsDigital && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(16, 185, 129, 0.15)', paddingTop: 14 }} className="animate-fade-in">
+                    
+                    {/* File Upload Slot */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                        Digital File (Optional, max 20MB)
+                      </label>
+                      {prodDigitalFileUrl ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-2)', padding: '10px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+                          <FileText size={18} color="var(--primary)" />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {prodDigitalFileUrl.split('/').pop()}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setProdDigitalFileUrl('')}
+                            className="btn btn-outline"
+                            style={{ padding: '4px 10px', fontSize: 10, color: 'var(--danger)', borderColor: 'var(--danger)', borderRadius: 'var(--r-sm)' }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <label
+                          style={{
+                            border: '2px dashed var(--border)',
+                            borderRadius: 'var(--r-md)',
+                            padding: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 6,
+                            cursor: prodDigitalUploading ? 'not-allowed' : 'pointer',
+                            background: 'var(--bg-2)',
+                            color: 'var(--text-muted)',
+                            opacity: prodDigitalUploading ? 0.6 : 1,
+                            transition: 'all var(--t-fast)'
+                          }}
+                        >
+                          {prodDigitalUploading ? (
+                            <Loader2 size={20} className="spinner" />
+                          ) : (
+                            <>
+                              <Download size={20} />
+                              <span style={{ fontSize: 12, fontWeight: 700 }}>Upload Product File</span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            style={{ display: 'none' }}
+                            disabled={prodDigitalUploading}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              try {
+                                setProdDigitalUploading(true);
+                                const fd = new FormData();
+                                fd.append('file', file);
+                                const res = await fetch(`${apiUrl}/v1/products/upload-file`, {
+                                  method: 'POST',
+                                  headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                                  body: fd
+                                });
+                                const json = await res.json();
+                                if (res.ok && json.url) {
+                                  setProdDigitalFileUrl(json.url);
+                                  toast.success('Digital file uploaded successfully! 📁');
+                                } else throw new Error(json.message || 'File upload failed');
+                              } catch (err: any) {
+                                toast.error(err.message || 'File upload error');
+                              } finally {
+                                setProdDigitalUploading(false);
+                                e.target.value = '';
+                              }
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                    {/* External Link */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                        Download / Access Link (Optional)
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="url"
+                          placeholder="e.g. https://drive.google.com/..."
+                          value={prodDigitalLink}
+                          onChange={e => setProdDigitalLink(e.target.value)}
+                          className="input-field"
+                          style={{ paddingLeft: 34 }}
+                        />
+                        <ExternalLink size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)' }} />
+                      </div>
+                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>
+                        Or provide a URL to a Google Drive folder, Notion page, private video, etc.
+                      </p>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+
 
               {/* Multi-Image Upload Slots (up to 3) */}
               <div>
@@ -2503,28 +3636,165 @@ export default function DashboardPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Category</label>
-                  <select
+                  <SearchableSelect
+                    options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
                     value={prodCategory}
-                    onChange={e => setProdCategory(e.target.value)}
-                    className="input-field"
-                  >
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
+                    onChange={val => setProdCategory(val)}
+                    placeholder="Select Category"
+                  />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Inventory Status</label>
-                  <select
+                  <SearchableSelect
+                    options={[
+                      { value: 'in_stock', label: `In Stock ${prodIsDigital ? '(Auto-Managed)' : ''}` },
+                      { value: 'out_of_stock', label: 'Out of Stock' }
+                    ]}
                     value={prodStock}
-                    onChange={e => setProdStock(e.target.value)}
-                    className="input-field"
-                  >
-                    <option value="in_stock">In Stock</option>
-                    <option value="out_of_stock">Out of Stock</option>
-                  </select>
+                    onChange={val => setProdStock(val)}
+                    disabled={prodIsDigital}
+                    placeholder="Select Status"
+                  />
                 </div>
               </div>
+
+              {/* Digital Product Settings */}
+              <div style={{
+                background: 'rgba(16, 185, 129, 0.04)',
+                border: '1.5px dashed rgba(16, 185, 129, 0.3)',
+                borderRadius: 'var(--r-md)',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12
+              }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={prodIsDigital}
+                    onChange={e => {
+                      setProdIsDigital(e.target.checked);
+                      if (e.target.checked) {
+                        setProdStock('in_stock');
+                      }
+                    }}
+                    style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }}
+                  />
+                  <div>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Digital Product</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Sell eBooks, courses, templates, music, PDFs, etc.</span>
+                  </div>
+                </label>
+
+                {prodIsDigital && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(16, 185, 129, 0.15)', paddingTop: 14 }} className="animate-fade-in">
+                    
+                    {/* File Upload Slot */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                        Digital File (Optional, max 20MB)
+                      </label>
+                      {prodDigitalFileUrl ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-2)', padding: '10px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+                          <FileText size={18} color="var(--primary)" />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {prodDigitalFileUrl.split('/').pop()}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setProdDigitalFileUrl('')}
+                            className="btn btn-outline"
+                            style={{ padding: '4px 10px', fontSize: 10, color: 'var(--danger)', borderColor: 'var(--danger)', borderRadius: 'var(--r-sm)' }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <label
+                          style={{
+                            border: '2px dashed var(--border)',
+                            borderRadius: 'var(--r-md)',
+                            padding: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 6,
+                            cursor: prodDigitalUploading ? 'not-allowed' : 'pointer',
+                            background: 'var(--bg-2)',
+                            color: 'var(--text-muted)',
+                            opacity: prodDigitalUploading ? 0.6 : 1,
+                            transition: 'all var(--t-fast)'
+                          }}
+                        >
+                          {prodDigitalUploading ? (
+                            <Loader2 size={20} className="spinner" />
+                          ) : (
+                            <>
+                              <Download size={20} />
+                              <span style={{ fontSize: 12, fontWeight: 700 }}>Upload Product File</span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            style={{ display: 'none' }}
+                            disabled={prodDigitalUploading}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              try {
+                                setProdDigitalUploading(true);
+                                const fd = new FormData();
+                                fd.append('file', file);
+                                const res = await fetch(`${apiUrl}/v1/products/upload-file`, {
+                                  method: 'POST',
+                                  headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                                  body: fd
+                                });
+                                const json = await res.json();
+                                if (res.ok && json.url) {
+                                  setProdDigitalFileUrl(json.url);
+                                  toast.success('Digital file uploaded successfully! 📁');
+                                } else throw new Error(json.message || 'File upload failed');
+                              } catch (err: any) {
+                                toast.error(err.message || 'File upload error');
+                              } finally {
+                                setProdDigitalUploading(false);
+                                e.target.value = '';
+                              }
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                    {/* External Link */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                        Download / Access Link (Optional)
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="url"
+                          placeholder="e.g. https://drive.google.com/..."
+                          value={prodDigitalLink}
+                          onChange={e => setProdDigitalLink(e.target.value)}
+                          className="input-field"
+                          style={{ paddingLeft: 34 }}
+                        />
+                        <ExternalLink size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)' }} />
+                      </div>
+                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>
+                        Or provide a URL to a Google Drive folder, Notion page, private video, etc.
+                      </p>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+
 
               {/* Multi-Image Upload Slots (up to 3) */}
               <div>
@@ -2656,30 +3926,32 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', gap: 10 }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Order Status</label>
-                  <select
+                  <SearchableSelect
+                    options={[
+                      { value: 'pending', label: 'Pending', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} /> },
+                      { value: 'confirmed', label: 'Confirmed', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', display: 'inline-block' }} /> },
+                      { value: 'completed', label: 'Completed/Shipped', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary-dark)', display: 'inline-block' }} /> },
+                      { value: 'cancelled', label: 'Cancelled', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger)', display: 'inline-block' }} /> }
+                    ]}
                     value={selectedOrder.order_status}
-                    onChange={e => handleUpdateOrderStatus(selectedOrder.id, e.target.value)}
-                    className="input-field"
-                    style={{ padding: '8px 12px', fontSize: 12.5, height: 38 }}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="completed">Completed/Shipped</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
+                    onChange={val => handleUpdateOrderStatus(selectedOrder.id, val)}
+                    style={{ padding: '8px 12px', fontSize: 12.5 }}
+                    placeholder="Order Status"
+                  />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Payment Status</label>
-                  <select
+                  <SearchableSelect
+                    options={[
+                      { value: 'unpaid', label: 'Unpaid', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger)', display: 'inline-block' }} /> },
+                      { value: 'paid', label: 'Paid', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', display: 'inline-block' }} /> },
+                      { value: 'refunded', label: 'Refunded', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--text-muted)', display: 'inline-block' }} /> }
+                    ]}
                     value={selectedOrder.payment_status}
-                    onChange={e => handleUpdatePaymentStatus(selectedOrder.id, e.target.value)}
-                    className="input-field"
-                    style={{ padding: '8px 12px', fontSize: 12.5, height: 38 }}
-                  >
-                    <option value="unpaid">Unpaid</option>
-                    <option value="paid">Paid</option>
-                    <option value="refunded">Refunded</option>
-                  </select>
+                    onChange={val => handleUpdatePaymentStatus(selectedOrder.id, val)}
+                    style={{ padding: '8px 12px', fontSize: 12.5 }}
+                    placeholder="Payment Status"
+                  />
                 </div>
               </div>
 

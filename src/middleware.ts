@@ -26,24 +26,31 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // Identify platform domains & local hosts to distinguish custom domains
+  const isMainDomain = cleanHost === 'aloaye.tech' || cleanHost === 'www.aloaye.tech' || cleanHost === 'aloaye.com' || cleanHost === 'www.aloaye.com';
+  const isLocalMain = cleanHost === 'localhost' || cleanHost === 'lvh.me' || cleanHost === 'www.localhost' || cleanHost === 'www.lvh.me';
+
+  const isCustomDomain = !isMainDomain && !isLocalMain && !subdomain && parts.length >= 2;
+
+  // Do NOT rewrite Next.js assets, system paths, standard global pages, or API requests
+  const { pathname } = url;
+  const isSystemPath = 
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/favicon.ico') ||
+    pathname.startsWith('/globals.css') ||
+    pathname === '/signup' ||
+    pathname.startsWith('/track');
+
   // If a valid subdomain is identified, rewrite requests internally
-  if (subdomain) {
-    const { pathname } = url;
-
-    // Do NOT rewrite Next.js assets, system paths, standard global pages, or API requests
-    if (
-      pathname.startsWith('/_next') ||
-      pathname.startsWith('/api') ||
-      pathname.startsWith('/favicon.ico') ||
-      pathname.startsWith('/globals.css') ||
-      pathname === '/signup' ||
-      pathname.startsWith('/track')
-    ) {
-      return NextResponse.next();
-    }
-
-    // Rewrite path internally to /[username]/path
+  if (subdomain && !isSystemPath) {
     url.pathname = `/${subdomain}${pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
+  // If a custom domain is identified, rewrite requests internally using the clean host as the identifier
+  if (isCustomDomain && !isSystemPath) {
+    url.pathname = `/${cleanHost}${pathname}`;
     return NextResponse.rewrite(url);
   }
 

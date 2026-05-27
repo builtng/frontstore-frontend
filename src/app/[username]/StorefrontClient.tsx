@@ -8,10 +8,20 @@ import {
   Instagram, Music2, CheckCircle2, Star,
   Minus, Plus, Trash2, Package, AlertCircle, ArrowRight,
   Copy, Heart, Tag, Truck, MapPin, Eye, Zap, Loader2,
+  Download, ExternalLink, Shield, FileText, Globe, Facebook,
+  Twitter
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
+
+interface StoreLink {
+  id: string;
+  title: string;
+  url: string;
+  platform: string;
+  is_active: boolean;
+}
 
 interface Store {
   id: string;
@@ -25,6 +35,7 @@ interface Store {
   tiktok_handle: string | null;
   twitter_handle?: string | null;
   is_verified?: boolean;
+  custom_links?: StoreLink[] | null;
 }
 
 interface Category {
@@ -45,6 +56,9 @@ interface Product {
   stock_status: string;
   stock_quantity?: number | null;
   category_id: string | null;
+  is_digital?: boolean;
+  digital_file_url?: string | null;
+  digital_link?: string | null;
 }
 
 interface CartItem {
@@ -200,6 +214,31 @@ function ProductCard({
           </div>
         )}
 
+        {/* Digital badge */}
+        {product.is_digital && (
+          <div style={{
+            position: 'absolute',
+            bottom: 8,
+            left: 8,
+            zIndex: 3,
+            background: 'var(--primary)',
+            color: '#fff',
+            fontSize: 9,
+            fontWeight: 800,
+            padding: '3px 8px',
+            borderRadius: 'var(--r-sm)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            boxShadow: '0 2px 4px rgba(16,185,129,0.2)'
+          }}>
+            <Download size={9} strokeWidth={2.5} />
+            Digital
+          </div>
+        )}
+
         {/* Share button */}
         <button
           className="product-card__share"
@@ -348,9 +387,12 @@ function ProductDetailDrawer({
           </div>
 
           {/* Stock */}
-          <div className={`product-detail__stock ${isOutOfStock ? 'out-of-stock' : isLowStock ? 'low-stock' : 'in-stock'}`} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+          <div className={`product-detail__stock ${product.is_digital ? 'in-stock' : (isOutOfStock ? 'out-of-stock' : (isLowStock ? 'low-stock' : 'in-stock'))}`} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
             <div className="product-detail__stock-dot" />
-            {isOutOfStock ? 'Out of Stock' : isLowStock ? `Low Stock — Only ${product.stock_quantity ?? 'a few'} left` : 'In Stock · Ready to ship'}
+            {product.is_digital 
+              ? 'Instant Digital Download · Available Immediately' 
+              : (isOutOfStock ? 'Out of Stock' : (isLowStock ? `Low Stock — Only ${product.stock_quantity ?? 'a few'} left` : 'In Stock · Ready to ship'))
+            }
           </div>
 
           {/* Description */}
@@ -532,14 +574,24 @@ function CheckoutDrawer({
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerWhatsapp, setCustomerWhatsapp] = useState('');
-  const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
+  const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup' | 'digital'>('delivery');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isAllDigital = cart.every(item => item.product.is_digital);
+
+  useEffect(() => {
+    if (isAllDigital) {
+      setDeliveryMethod('digital');
+    } else if (deliveryMethod === 'digital') {
+      setDeliveryMethod('delivery');
+    }
+  }, [isAllDigital, deliveryMethod]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName || !customerPhone || (deliveryMethod === 'delivery' && !deliveryAddress)) {
+    if (!customerName || !customerPhone || (deliveryMethod === 'delivery' && !isAllDigital && !deliveryAddress)) {
       setError('Please fill in all required fields.');
       return;
     }
@@ -625,17 +677,24 @@ function CheckoutDrawer({
 
           <div>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Delivery Method *</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <button type="button" onClick={() => setDeliveryMethod('delivery')} style={{ padding: 12, borderRadius: 'var(--r-md)', border: deliveryMethod === 'delivery' ? '2px solid var(--primary)' : '1.5px solid var(--border)', background: deliveryMethod === 'delivery' ? 'var(--primary-light)' : 'transparent', color: deliveryMethod === 'delivery' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 700, cursor: 'pointer' }}>
-                Delivery
-              </button>
-              <button type="button" onClick={() => setDeliveryMethod('pickup')} style={{ padding: 12, borderRadius: 'var(--r-md)', border: deliveryMethod === 'pickup' ? '2px solid var(--primary)' : '1.5px solid var(--border)', background: deliveryMethod === 'pickup' ? 'var(--primary-light)' : 'transparent', color: deliveryMethod === 'pickup' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 700, cursor: 'pointer' }}>
-                Self-Pickup
-              </button>
-            </div>
+            {!isAllDigital ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <button type="button" onClick={() => setDeliveryMethod('delivery')} style={{ padding: 12, borderRadius: 'var(--r-md)', border: deliveryMethod === 'delivery' ? '2px solid var(--primary)' : '1.5px solid var(--border)', background: deliveryMethod === 'delivery' ? 'var(--primary-light)' : 'transparent', color: deliveryMethod === 'delivery' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 700, cursor: 'pointer' }}>
+                  Delivery
+                </button>
+                <button type="button" onClick={() => setDeliveryMethod('pickup')} style={{ padding: 12, borderRadius: 'var(--r-md)', border: deliveryMethod === 'pickup' ? '2px solid var(--primary)' : '1.5px solid var(--border)', background: deliveryMethod === 'pickup' ? 'var(--primary-light)' : 'transparent', color: deliveryMethod === 'pickup' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 700, cursor: 'pointer' }}>
+                  Self-Pickup
+                </button>
+              </div>
+            ) : (
+              <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: '1px dashed var(--primary)', borderRadius: 'var(--r-md)', padding: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
+                <Shield size={16} style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: 12.5, fontWeight: 600 }}>Digital delivery active: link/file will be unlocked instantly on checkout payment confirmation.</span>
+              </div>
+            )}
           </div>
 
-          {deliveryMethod === 'delivery' && (
+          {deliveryMethod === 'delivery' && !isAllDigital && (
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Delivery Address *</label>
               <textarea required placeholder="Enter your full street address, city, and state" value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} className="input-field" style={{ minHeight: 80, resize: 'vertical', fontFamily: 'inherit' }} />
@@ -745,6 +804,81 @@ function StoreHeader({ store }: { store: Store }) {
             <Share2 size={13} strokeWidth={2} /> Share Store
           </button>
         </div>
+
+        {/* Linktree style Custom Links Stack */}
+        {store.custom_links && store.custom_links.filter(l => l.is_active).length > 0 && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+            width: '100%',
+            maxWidth: 480,
+            marginTop: 18,
+            borderTop: '1px solid var(--border)',
+            paddingTop: 16
+          }}>
+            <p style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>
+              Store Links & Socials
+            </p>
+            {store.custom_links.filter(l => l.is_active).map(link => {
+              const IconComponent = () => {
+                switch (link.platform) {
+                  case 'whatsapp': return <WhatsAppIcon size={14} style={{ color: 'var(--wa-green)' }} />;
+                  case 'instagram': return <Instagram size={14} style={{ color: '#e1306c' }} />;
+                  case 'tiktok': return <Music2 size={14} style={{ color: '#00f2fe' }} />;
+                  case 'facebook': return <Facebook size={14} style={{ color: '#1877f2' }} />;
+                  case 'twitter': return <Twitter size={14} style={{ color: '#1da1f2' }} />;
+                  default: return <Globe size={14} />;
+                }
+              };
+              return (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="clickable"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: '12px 18px',
+                    borderRadius: 'var(--r-xl)',
+                    border: '1.5px solid var(--border)',
+                    background: 'var(--surface)',
+                    color: 'var(--text)',
+                    fontSize: 13.5,
+                    fontWeight: 750,
+                    textDecoration: 'none',
+                    textAlign: 'center',
+                    boxShadow: 'var(--shadow-xs)',
+                    transition: 'all var(--t-fast) var(--ease)',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--primary)';
+                    e.currentTarget.style.color = 'var(--primary)';
+                    e.currentTarget.style.background = 'var(--primary-light)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px var(--primary-glow)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.color = 'var(--text)';
+                    e.currentTarget.style.background = 'var(--surface)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
+                  }}
+                >
+                  <IconComponent />
+                  <span>{link.title}</span>
+                </a>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

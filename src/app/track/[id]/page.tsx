@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Search, Package, AlertCircle, Check } from 'lucide-react';
+import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock, FileText, Shield } from 'lucide-react';
 import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
 
 interface OrderItem {
@@ -10,6 +10,12 @@ interface OrderItem {
   product_name: string;
   product_price: string;
   quantity: number;
+  product?: {
+    id: string;
+    is_digital: boolean;
+    digital_file_url?: string | null;
+    digital_link?: string | null;
+  } | null;
 }
 
 interface Store {
@@ -263,6 +269,123 @@ export default function OrderTrackingPage() {
               </div>
             </div>
 
+          </div>
+        )}
+
+        {/* Digital Downloads Card (Only shown if there are digital items) */}
+        {order.items.some(item => item.product?.is_digital) && (
+          <div style={{
+            background: 'var(--card-bg)',
+            border: '1.5px solid var(--primary)',
+            boxShadow: '0 0 0 4px rgba(16,185,129,0.06)',
+            borderRadius: '16px',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px'
+          }}>
+            <h3 style={{
+              fontSize: '14px',
+              fontWeight: 700,
+              color: 'var(--primary)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              borderBottom: '1px solid var(--border)',
+              paddingBottom: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
+            }}>
+              <Download size={16} /> Digital Downloads
+            </h3>
+
+            {order.payment_status === 'paid' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {order.items.filter(item => item.product?.is_digital).map(item => (
+                  <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 12px', background: 'var(--background)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                    <div style={{ fontWeight: 700, fontSize: '14px' }}>{item.product_name}</div>
+                    
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      {item.product?.digital_file_url && (
+                        <a
+                          href={item.product.digital_file_url}
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '8px 14px',
+                            background: 'var(--primary)',
+                            color: '#fff',
+                            borderRadius: '8px',
+                            fontWeight: 700,
+                            fontSize: '12.5px',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5
+                          }}
+                          className="clickable"
+                        >
+                          <Download size={13} /> Download File
+                        </a>
+                      )}
+                      
+                      {item.product?.digital_link && (
+                        <a
+                          href={item.product.digital_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '8px 14px',
+                            background: 'transparent',
+                            color: 'var(--primary)',
+                            border: '1.5px solid var(--primary)',
+                            borderRadius: '8px',
+                            fontWeight: 700,
+                            fontSize: '12.5px',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5
+                          }}
+                          className="clickable"
+                        >
+                          <ExternalLink size={13} /> Access Link
+                        </a>
+                      )}
+
+                      {!item.product?.digital_file_url && !item.product?.digital_link && (
+                        <span style={{ fontSize: '12px', color: 'var(--text-faint)' }}>
+                          No file or link provided by seller.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                
+                <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                  ✓ Your purchase is complete and verified. Click the buttons above to get your products.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {order.items.filter(item => item.product?.is_digital).map(item => (
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--background)', borderRadius: '10px', opacity: 0.8 }}>
+                    <span style={{ fontWeight: 600, fontSize: '13.5px' }}>{item.product_name}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#b45309', background: '#fef3c7', padding: '3px 8px', borderRadius: 'var(--r-full)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Lock size={10} /> Locked
+                    </span>
+                  </div>
+                ))}
+                
+                <div style={{ display: 'flex', gap: 8, background: 'rgba(217, 119, 6, 0.05)', border: '1px dashed #d97706', borderRadius: '10px', padding: 12, marginTop: 4 }}>
+                  <Lock size={16} style={{ color: '#d97706', flexShrink: 0, marginTop: 1 }} />
+                  <p style={{ fontSize: '12px', color: '#b45309', lineHeight: 1.4, margin: 0 }}>
+                    <strong>Downloads Locked:</strong> Please pay the seller and click <strong>"Chat with Seller"</strong> below to confirm payment. Once the seller marks this order as paid, your downloads will unlock here instantly.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
