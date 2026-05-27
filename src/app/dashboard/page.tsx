@@ -158,7 +158,7 @@ export default function DashboardPage() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserInfo | null>(null);
   const [store, setStore] = useState<StoreInfo | null>(null);
-  const [apiUrl, setApiUrl] = useState('http://localhost:8000/api');
+  const [apiUrl, setApiUrl] = useState('https://api.aloaye.tech/api');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
@@ -287,7 +287,7 @@ export default function DashboardPage() {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
       const storedStore = localStorage.getItem('store');
-      const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+      const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
       setApiUrl(savedApiUrl);
       setDevApiInput(savedApiUrl);
@@ -357,7 +357,7 @@ export default function DashboardPage() {
 
   // Fetch Paystack bank list from backend
   useEffect(() => {
-    const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
     fetch(`${url}/v1/payments/banks`)
       .then(r => r.json())
       .then(json => {

@@ -9,7 +9,7 @@ interface PageProps {
 }
 
 async function getStoreData(username: string) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/store/${username}`, {
       next: { revalidate: 60 }, // Cache store details for 60 seconds

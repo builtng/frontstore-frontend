@@ -18,7 +18,7 @@ function LoginFormContent() {
 
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
   // If already logged in, redirect to dashboard
   useEffect(() => {

@@ -114,7 +114,7 @@ export default function HomePage() {
   const [hostSuffix, setHostSuffix] = useState('.aloaye.com');
   const [mounted, setMounted] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
   useEffect(() => {
     setMounted(true);

@@ -950,7 +950,7 @@ export default function StorefrontClient({ username }: { username: string }) {
   const [pendingRemoveItem, setPendingRemoveItem] = useState<string | null>(null);
   const [isClearCartConfirmOpen, setIsClearCartConfirmOpen] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
   useEffect(() => {
     if (!uname) return;
