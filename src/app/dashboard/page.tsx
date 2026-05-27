@@ -2447,8 +2447,8 @@ export default function DashboardPage() {
                   {(user?.plan === 'free' || !user?.plan) && (
                     <div style={{
                       position: 'absolute', inset: 0,
-                      background: 'rgba(255, 255, 255, 0.85)',
-                      backdropFilter: 'blur(3px)',
+                      background: 'var(--glass-bg)',
+                      backdropFilter: 'blur(5px)',
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                       textAlign: 'center', zIndex: 10, padding: 24
                     }}>
