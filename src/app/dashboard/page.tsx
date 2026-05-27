@@ -52,6 +52,8 @@ interface StoreInfo {
   bank_account_verified?: boolean;
   custom_links?: StoreLink[] | null;
   custom_domain?: string | null;
+  primary_color?: string | null;
+  is_pro?: boolean;
 }
 
 interface Category {
@@ -157,6 +159,7 @@ export default function DashboardPage() {
   // --- Auth & API Settings State ---
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserInfo | null>(null);
+  const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
   const [store, setStore] = useState<StoreInfo | null>(null);
   const [apiUrl, setApiUrl] = useState('https://api.aloaye.tech/api');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -223,6 +226,7 @@ export default function DashboardPage() {
   const [setCurrency, setSetCurrency] = useState('NGN');
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [customLinks, setCustomLinks] = useState<StoreLink[]>([]);
+  const [primaryColor, setPrimaryColor] = useState('#10b981');
   // Form states for adding/editing a link
   const [linkTitle, setLinkTitle] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
@@ -320,6 +324,7 @@ export default function DashboardPage() {
           setNameMatchOk(parsedStore.bank_account_verified ? true : null);
           setLogoUrl(parsedStore.logo_url || null);
           setCustomLinks(parsedStore.custom_links || []);
+          setPrimaryColor(parsedStore.primary_color || '#10b981');
         }
         setIsAuthenticated(true);
       } else {
@@ -927,6 +932,7 @@ export default function DashboardPage() {
         return `+${cleanDial}${cleaned}`;
       };
       const normalizedPhone = normalizePhone(localWhatsapp, selectedCountry.dialCode);
+      const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
       const res = await fetch(`${apiUrl}/v1/store`, {
         method: 'PUT',
         headers: getAuthHeaders(),
@@ -945,6 +951,7 @@ export default function DashboardPage() {
           bank_account_verified: accountVerified,
           custom_links: customLinks,
           logo_url: logoUrl,
+          primary_color: isPro ? primaryColor : (store?.primary_color || '#10b981'),
         })
       });
 
@@ -965,6 +972,7 @@ export default function DashboardPage() {
         setAccountVerified(!!json.data.bank_account_verified);
         setNameMatchOk(json.data.bank_account_verified ? true : null);
         setCustomLinks(json.data.custom_links || []);
+        setPrimaryColor(json.data.primary_color || '#10b981');
       } else {
         throw new Error(json.message || 'Store settings update failed.');
       }
@@ -2437,6 +2445,169 @@ export default function DashboardPage() {
                             className="input-field"
                             placeholder="username"
                           />
+                        </div>
+                      </div>
+
+                      {/* Storefront Branding & Colors */}
+                      <div style={{
+                        position: 'relative',
+                        border: '1.5px solid var(--border)',
+                        borderRadius: 'var(--r-xl)',
+                        padding: 20,
+                        background: 'var(--bg-2)',
+                        marginTop: 16,
+                        overflow: 'hidden'
+                      }}>
+                        {/* Lock Overlay if Free */}
+                        {!isPro && (
+                          <div style={{
+                            position: 'absolute', inset: 0,
+                            background: 'rgba(255, 255, 255, 0.7)',
+                            backdropFilter: 'blur(4px)',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                            textAlign: 'center', zIndex: 10, padding: 16
+                          }}>
+                            <div style={{
+                              width: 38, height: 38, borderRadius: '50%',
+                              background: '#fef3c7', color: '#d97706',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              boxShadow: '0 4px 10px rgba(217,119,6,0.12)', marginBottom: 8
+                            }}>
+                              <Zap size={18} />
+                            </div>
+                            <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 900, color: 'var(--text)', margin: 0 }}>Custom Storefront Colors</h4>
+                            <p style={{ fontSize: 11.5, color: 'var(--text-muted)', maxWidth: 280, marginTop: 4, marginBottom: 12, lineHeight: 1.4 }}>
+                              Choose a custom theme color for your storefront. Requires a Pro subscription.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setActiveTab('billing')}
+                              className="btn btn-primary clickable"
+                              style={{ padding: '6px 14px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 12 }}
+                            >
+                              Upgrade to Pro
+                            </button>
+                          </div>
+                        )}
+
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          🎨 Storefront Branding & Colors
+                        </h3>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.4 }}>
+                          Customize the primary color of your storefront buttons, badges, highlights, and icons.
+                        </p>
+
+                        {/* Preset Swatches */}
+                        <div style={{ marginBottom: 16 }}>
+                          <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Preset Color Palettes</label>
+                          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                            {[
+                              { name: 'WhatsApp', value: '#10b981' },
+                              { name: 'Ocean', value: '#0284c7' },
+                              { name: 'Royal', value: '#4f46e5' },
+                              { name: 'Sunset', value: '#ea580c' },
+                              { name: 'Midnight', value: '#1f2937' },
+                              { name: 'Plum', value: '#7c3aed' },
+                              { name: 'Rose', value: '#db2777' }
+                            ].map(preset => (
+                              <button
+                                key={preset.name}
+                                type="button"
+                                onClick={() => setPrimaryColor(preset.value)}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: '50%',
+                                  background: preset.value,
+                                  border: primaryColor === preset.value ? '3px solid var(--text)' : '1px solid var(--border)',
+                                  cursor: 'pointer',
+                                  boxShadow: primaryColor === preset.value ? '0 0 0 2px var(--surface), var(--shadow-sm)' : 'var(--shadow-sm)',
+                                  transition: 'transform var(--t-fast)',
+                                  transform: primaryColor === preset.value ? 'scale(1.1)' : 'scale(1)'
+                                }}
+                                title={preset.name}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Custom Picker & Live Preview Grid */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'center' }} className="responsive-settings-grid">
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Custom Primary Color</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <input
+                                type="color"
+                                value={primaryColor}
+                                onChange={e => setPrimaryColor(e.target.value)}
+                                style={{
+                                  border: 'none',
+                                  width: 44,
+                                  height: 44,
+                                  borderRadius: 'var(--r-md)',
+                                  cursor: 'pointer',
+                                  background: 'none',
+                                  padding: 0
+                                }}
+                              />
+                              <input
+                                type="text"
+                                value={primaryColor}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  if (val.startsWith('#') && val.length <= 7) {
+                                    setPrimaryColor(val);
+                                  }
+                                }}
+                                className="input-field"
+                                style={{ padding: '8px 10px', fontSize: 13, height: 38, fontFamily: 'monospace' }}
+                                placeholder="#10b981"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Live Preview UI Widget */}
+                          <div style={{
+                            background: 'var(--surface)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--r-lg)',
+                            padding: 12,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 8,
+                            boxShadow: 'var(--shadow-sm)'
+                          }}>
+                            <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Live Preview</span>
+                            
+                            {/* Sample primary button */}
+                            <button type="button" style={{
+                              background: primaryColor,
+                              color: '#fff',
+                              border: 'none',
+                              padding: '6px 12px',
+                              borderRadius: 'var(--r-md)',
+                              fontSize: 12,
+                              fontWeight: 750,
+                              textAlign: 'center',
+                              boxShadow: `0 4px 10px ${primaryColor}2A`
+                            }}>
+                              Buy Now
+                            </button>
+
+                            {/* Sample Chat bubble */}
+                            <div style={{
+                              alignSelf: 'flex-end',
+                              background: primaryColor,
+                              color: '#fff',
+                              padding: '6px 12px',
+                              borderRadius: '12px 12px 0 12px',
+                              fontSize: 11,
+                              maxWidth: '85%',
+                              boxShadow: 'var(--shadow-sm)'
+                            }}>
+                              Hi! Can I order this item?
+                            </div>
+                          </div>
                         </div>
                       </div>
 

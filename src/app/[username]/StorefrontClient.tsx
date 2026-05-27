@@ -36,6 +36,8 @@ interface Store {
   twitter_handle?: string | null;
   is_verified?: boolean;
   custom_links?: StoreLink[] | null;
+  primary_color?: string | null;
+  is_pro?: boolean;
 }
 
 interface Category {
@@ -1041,6 +1043,11 @@ export default function StorefrontClient({ username }: { username: string }) {
   return (
     <>
       <title>{`${store.store_name} — Shop on aloaye`}</title>
+      {store.is_pro && store.primary_color && (
+        <style dangerouslySetInnerHTML={{
+          __html: `:root { --primary: ${store.primary_color} !important; }`
+        }} />
+      )}
       <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: cartCount > 0 ? 90 : 32 }}>
 
         <StoreHeader store={store} />
