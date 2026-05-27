@@ -121,6 +121,13 @@ function SignupFormContent() {
         throw new Error(json.message || 'Registration failed. Try a different username or phone number.');
       }
 
+      // Store credentials locally for automatic login
+      if (typeof window !== 'undefined' && json.data?.token) {
+        localStorage.setItem('token', json.data.token);
+        localStorage.setItem('user', JSON.stringify(json.data.user));
+        localStorage.setItem('store', JSON.stringify(json.data.store));
+      }
+
       // Build store URL
       let storeUrl = '';
       if (typeof window !== 'undefined') {
@@ -329,18 +336,25 @@ function SignupFormContent() {
         {/* Primary Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <a
+            href="/dashboard"
+            className="btn btn-primary clickable"
+            style={{ padding: '16px', fontSize: 15, textDecoration: 'none', borderRadius: 'var(--r-lg)', fontFamily: 'var(--font-heading)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+          >
+            <Sparkles size={18} /> Go to Web Dashboard
+          </a>
+          <a
             href={successData.storeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-primary clickable"
-            style={{ padding: '16px', fontSize: 15, textDecoration: 'none', borderRadius: 'var(--r-lg)', fontFamily: 'var(--font-heading)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            className="btn btn-outline clickable"
+            style={{ padding: '14px', fontSize: 14, textDecoration: 'none', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
           >
             <Store size={18} /> View Your Storefront
           </a>
           <a
             href="/"
-            className="btn btn-outline clickable"
-            style={{ padding: '14px', fontSize: 14, textDecoration: 'none', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+            className="btn btn-ghost clickable"
+            style={{ padding: '12px', fontSize: 13.5, textDecoration: 'none', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           >
             Go Back Home
           </a>

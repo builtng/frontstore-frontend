@@ -197,7 +197,14 @@ export default function HomePage() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <a
-            href="/signup"
+            href="/stores"
+            className="btn btn-ghost"
+            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none', color: 'var(--text-muted)' }}
+          >
+            Explore Stores
+          </a>
+          <a
+            href="/login"
             className="btn btn-ghost"
             style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
           >
@@ -547,6 +554,7 @@ export default function HomePage() {
           © {new Date().getFullYear()} aloaye. Africa's #1 WhatsApp Commerce Platform.
         </p>
         <div style={{ display: 'flex', gap: 16 }}>
+          <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 600 }}>Explore Directory</a>
           <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>
           <a href="#" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
           <a href="#" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
