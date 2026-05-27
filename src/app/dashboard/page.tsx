@@ -9,7 +9,7 @@ import {
   Package, ShoppingBag, Settings, Share2, Copy, Plus, Tag,
   Trash2, Edit2, AlertCircle, Check, Loader2, Phone,
   DollarSign, Calendar, MapPin, Receipt, Menu, X, ArrowUpRight,
-  TrendingUp, RefreshCw, Smartphone
+  TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 
@@ -32,6 +32,10 @@ interface StoreInfo {
   instagram_handle?: string | null;
   tiktok_handle?: string | null;
   is_active?: boolean;
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  bank_account_name?: string | null;
+  payment_instructions?: string | null;
 }
 
 interface Category {
@@ -176,7 +180,8 @@ export default function DashboardPage() {
   const [prodCategory, setProdCategory] = useState('');
   const [prodDesc, setProdDesc] = useState('');
   const [prodStock, setProdStock] = useState('in_stock');
-  const [prodImageUrl, setProdImageUrl] = useState('');
+  const [prodImageUrls, setProdImageUrls] = useState<string[]>([]);
+  const [prodImageUploading, setProdImageUploading] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [productPublishing, setProductPublishing] = useState(false);
 
@@ -184,6 +189,8 @@ export default function DashboardPage() {
   const [setStoreName, setSetStoreName] = useState('');
   const [setStoreBio, setSetStoreBio] = useState('');
   const [localWhatsapp, setLocalWhatsapp] = useState('');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
@@ -191,6 +198,13 @@ export default function DashboardPage() {
   const [setTiktok, setSetTiktok] = useState('');
   const [setCurrency, setSetCurrency] = useState('NGN');
   const [settingsSaving, setSettingsSaving] = useState(false);
+
+  // Payment Account Form
+  const [paymentBankName, setPaymentBankName] = useState('');
+  const [paymentAccountNumber, setPaymentAccountNumber] = useState('');
+  const [paymentAccountName, setPaymentAccountName] = useState('');
+  const [paymentInstructions, setPaymentInstructions] = useState('');
+  const [paymentCopied, setPaymentCopied] = useState(false);
 
   // Developer Endpoint Form
   const [devApiInput, setDevApiInput] = useState('');
@@ -245,6 +259,11 @@ export default function DashboardPage() {
           setSetInstagram(parsedStore.instagram_handle || '');
           setSetTiktok(parsedStore.tiktok_handle || '');
           setSetCurrency(parsedStore.currency_code || 'NGN');
+          setPaymentBankName(parsedStore.bank_name || '');
+          setPaymentAccountNumber(parsedStore.bank_account_number || '');
+          setPaymentAccountName(parsedStore.bank_account_name || '');
+          setPaymentInstructions(parsedStore.payment_instructions || '');
+          setLogoUrl(parsedStore.logo_url || null);
         }
         setIsAuthenticated(true);
       } else {
@@ -384,7 +403,7 @@ export default function DashboardPage() {
     setProdCategory(categories[0]?.id || '');
     setProdDesc('');
     setProdStock('in_stock');
-    setProdImageUrl(STOCK_IMAGE_OPTIONS[0].url);
+    setProdImageUrls([]);
     setIsAddProductOpen(true);
   };
 
@@ -442,7 +461,7 @@ export default function DashboardPage() {
         description: prodDesc || null,
         stock_status: prodStock,
         is_draft: false,
-        image_url: prodImageUrl || undefined
+        image_urls: prodImageUrls
       };
 
       const res = await fetch(`${apiUrl}/v1/products`, {
@@ -474,7 +493,7 @@ export default function DashboardPage() {
     setProdCategory(product.category_id || categories[0]?.id || '');
     setProdDesc(product.description || '');
     setProdStock(product.stock_status);
-    setProdImageUrl(product.image_urls?.[0] || STOCK_IMAGE_OPTIONS[0].url);
+    setProdImageUrls(product.image_urls || []);
     setIsEditProductOpen(true);
   };
 
@@ -491,7 +510,7 @@ export default function DashboardPage() {
         category_id: prodCategory || null,
         description: prodDesc || null,
         stock_status: prodStock,
-        image_url: prodImageUrl || undefined
+        image_urls: prodImageUrls
       };
 
       const res = await fetch(`${apiUrl}/v1/products/${selectedProduct.id}`, {
@@ -691,7 +710,11 @@ export default function DashboardPage() {
           whatsapp_phone: normalizedPhone,
           instagram_handle: setInstagram,
           tiktok_handle: setTiktok,
-          currency_code: setCurrency
+          currency_code: setCurrency,
+          bank_name: paymentBankName || null,
+          bank_account_number: paymentAccountNumber || null,
+          bank_account_name: paymentAccountName || null,
+          payment_instructions: paymentInstructions || null,
         })
       });
 
@@ -700,10 +723,15 @@ export default function DashboardPage() {
         toast.success('Storefront settings updated! 🌟');
         setStore(json.data);
         localStorage.setItem('store', JSON.stringify(json.data));
+        setLogoUrl(json.data.logo_url || null);
         
         const parsedPhone = parsePhoneNumber(json.data.whatsapp_phone || '');
         setSelectedCountry(parsedPhone.country);
         setLocalWhatsapp(parsedPhone.local);
+        setPaymentBankName(json.data.bank_name || '');
+        setPaymentAccountNumber(json.data.bank_account_number || '');
+        setPaymentAccountName(json.data.bank_account_name || '');
+        setPaymentInstructions(json.data.payment_instructions || '');
       } else {
         throw new Error(json.message || 'Store settings update failed.');
       }
@@ -1634,15 +1662,94 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* ── TAB 6: SETTINGS & DEVELOPER OVERRIDES ── */}
+                  {/* ── TAB 6: SETTINGS & DEVELOPER OVERRIDES ── */}
               {activeTab === 'settings' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid animate-fade-in">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid">
                   
                   {/* Shop Details updating form */}
                   <div className="card" style={{ padding: 24 }}>
                     <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 900, marginBottom: 16 }}>Storefront Configuration</h2>
                     
                     <form onSubmit={handleSettingsSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                      {/* ── Logo Upload ── */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '16px 0', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
+                        <label style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', alignSelf: 'flex-start' }}>Store Logo</label>
+                        <div style={{ position: 'relative', display: 'inline-block' }}>
+                          <div
+                            style={{
+                              width: 90, height: 90, borderRadius: '50%',
+                              background: logoUrl ? 'transparent' : 'var(--primary-light)',
+                              border: '2.5px dashed var(--primary)',
+                              overflow: 'hidden',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              cursor: 'pointer', position: 'relative',
+                              boxShadow: 'var(--shadow-md)'
+                            }}
+                            onClick={() => (document.getElementById('logo-upload-input') as HTMLInputElement)?.click()}
+                            title="Click to upload logo"
+                          >
+                            {logoUploading ? (
+                              <Loader2 size={24} className="spinner" style={{ color: 'var(--primary)' }} />
+                            ) : logoUrl ? (
+                              <img src={logoUrl} alt="Store logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                                <Camera size={24} style={{ color: 'var(--primary)' }} />
+                                <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase' }}>Upload</span>
+                              </div>
+                            )}
+                          </div>
+                          {logoUrl && !logoUploading && (
+                            <button
+                              type="button"
+                              onClick={() => setLogoUrl(null)}
+                              style={{
+                                position: 'absolute', top: -4, right: -4,
+                                width: 22, height: 22, borderRadius: '50%',
+                                background: 'var(--danger)', border: 'none',
+                                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', fontSize: 12, lineHeight: 1, boxShadow: 'var(--shadow-sm)'
+                              }}
+                              title="Remove logo"
+                            >✕</button>
+                          )}
+                        </div>
+                        <input
+                          id="logo-upload-input"
+                          type="file"
+                          accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                          style={{ display: 'none' }}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              setLogoUploading(true);
+                              const formData = new FormData();
+                              formData.append('logo', file);
+                              const res = await fetch(`${apiUrl}/v1/store/upload-logo`, {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                                body: formData
+                              });
+                              const json = await res.json();
+                              if (res.ok && json.url) {
+                                setLogoUrl(json.url);
+                                toast.success('Logo uploaded! 🎨');
+                              } else {
+                                throw new Error(json.message || 'Upload failed');
+                              }
+                            } catch (err: any) {
+                              toast.error(err.message || 'Logo upload error');
+                            } finally {
+                              setLogoUploading(false);
+                              e.target.value = '';
+                            }
+                          }}
+                        />
+                        <p style={{ fontSize: 11, color: 'var(--text-faint)', textAlign: 'center' }}>Click the circle to upload a logo<br />(JPG, PNG, WEBP · max 5MB)</p>
+                      </div>
                       <div>
                         <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Name</label>
                         <input
@@ -1895,6 +2002,155 @@ export default function DashboardPage() {
 
                   </div>
                 </div>
+
+                  {/* ── PAYMENT ACCOUNTS CARD ── */}
+                  <div className="card" style={{ padding: 28 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: 'var(--r-md)',
+                        background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 14px rgba(22,163,74,0.35)', flexShrink: 0
+                      }}>
+                        <DollarSign size={20} color="#fff" />
+                      </div>
+                      <div>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>Payment Accounts</h2>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Where buyers send money — bank transfer, mobile money, etc.</p>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+
+                      {/* Bank / Provider Name */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Bank / Provider Name</label>
+                        <input
+                          type="text"
+                          value={paymentBankName}
+                          onChange={e => setPaymentBankName(e.target.value)}
+                          className="input-field"
+                          placeholder="e.g. GTBank, Palmpay, MTN MoMo, OPay"
+                          id="payment-bank-name"
+                        />
+                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Enter the bank or mobile money provider name.</span>
+                      </div>
+
+                      {/* Account Number with copy */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Account / Mobile Number</label>
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            value={paymentAccountNumber}
+                            onChange={e => setPaymentAccountNumber(e.target.value)}
+                            className="input-field"
+                            placeholder="e.g. 0123456789"
+                            style={{ paddingRight: 52 }}
+                            id="payment-account-number"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!paymentAccountNumber) return;
+                              navigator.clipboard.writeText(paymentAccountNumber);
+                              setPaymentCopied(true);
+                              setTimeout(() => setPaymentCopied(false), 2000);
+                            }}
+                            title="Copy account number"
+                            style={{
+                              position: 'absolute', right: 10,
+                              background: paymentCopied ? 'var(--primary-light)' : 'var(--bg-2)',
+                              border: '1px solid var(--border)',
+                              borderRadius: 'var(--r-sm)',
+                              padding: '4px 7px',
+                              cursor: 'pointer',
+                              color: paymentCopied ? 'var(--primary)' : 'var(--text-muted)',
+                              display: 'flex', alignItems: 'center', gap: 4,
+                              fontSize: 11, fontWeight: 700,
+                              transition: 'all var(--t-fast)'
+                            }}
+                          >
+                            {paymentCopied ? <Check size={12} /> : <Copy size={12} />}
+                            {paymentCopied ? 'Copied' : 'Copy'}
+                          </button>
+                        </div>
+                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Your 10-digit account or mobile money number.</span>
+                      </div>
+
+                      {/* Account Name */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Account Name</label>
+                        <input
+                          type="text"
+                          value={paymentAccountName}
+                          onChange={e => setPaymentAccountName(e.target.value)}
+                          className="input-field"
+                          placeholder="e.g. ADEWALE JAMES OBI"
+                          id="payment-account-name"
+                        />
+                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Name exactly as it appears on your bank account.</span>
+                      </div>
+
+                      {/* Payment Instructions */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Payment Instructions <span style={{ fontWeight: 500, textTransform: 'none', color: 'var(--text-faint)', fontSize: 11 }}>(optional)</span></label>
+                        <textarea
+                          rows={2}
+                          value={paymentInstructions}
+                          onChange={e => setPaymentInstructions(e.target.value)}
+                          className="input-field"
+                          style={{ resize: 'vertical' }}
+                          placeholder="e.g. Send payment screenshot to WhatsApp after transfer."
+                          id="payment-instructions"
+                        />
+                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Shown to buyers after checkout so they know next steps.</span>
+                      </div>
+
+                    </div>
+
+                    {/* Preview pill */}
+                    {(paymentBankName || paymentAccountNumber) && (
+                      <div style={{
+                        marginTop: 20,
+                        padding: '14px 18px',
+                        borderRadius: 'var(--r-lg)',
+                        background: 'var(--bg-2)',
+                        border: '1.5px dashed var(--border)',
+                        display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12
+                      }}>
+                        <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>Live Preview</span>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', flex: 1 }}>
+                          {paymentBankName && (
+                            <span style={{ fontSize: 13, fontWeight: 700, background: 'var(--primary-light)', color: 'var(--primary)', padding: '4px 10px', borderRadius: 'var(--r-full)' }}>
+                              🏦 {paymentBankName}
+                            </span>
+                          )}
+                          {paymentAccountNumber && (
+                            <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', fontFamily: 'monospace', letterSpacing: '0.04em' }}>
+                              {paymentAccountNumber}
+                            </span>
+                          )}
+                          {paymentAccountName && (
+                            <span style={{ fontSize: 12.5, color: 'var(--text-2)', fontWeight: 600 }}>
+                              · {paymentAccountName}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={handleSettingsSave as any}
+                      disabled={settingsSaving}
+                      className="btn btn-primary clickable"
+                      style={{ marginTop: 20, padding: '13px 28px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                    >
+                      {settingsSaving ? <><Loader2 size={16} className="spinner" /> Saving...</> : '💳 Save Payment Details'}
+                    </button>
+                  </div>
+
+                </div>
               )}
             </>
           )}
@@ -2097,25 +2353,69 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Visual Stock Image Selector */}
+              {/* Multi-Image Upload Slots (up to 3) */}
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Product Banner Image</label>
-                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}>
-                  {STOCK_IMAGE_OPTIONS.map((img, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setProdImageUrl(img.url)}
-                      style={{
-                        width: 70, height: 70, borderRadius: 'var(--r-md)', overflow: 'hidden', flexShrink: 0,
-                        border: prodImageUrl === img.url ? '3px solid var(--primary)' : '1.5px solid var(--border)',
-                        cursor: 'pointer', position: 'relative'
-                      }}
-                    >
-                      <img src={img.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, fontSize: 8, color: '#fff', background: 'rgba(0,0,0,0.6)', textAlign: 'center', padding: '1px 0' }}>{img.name}</span>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                  Product Images ({prodImageUrls.length}/3)
+                </label>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {prodImageUrls.map((url, idx) => (
+                    <div key={idx} style={{ width: 80, height: 80, borderRadius: 'var(--r-md)', overflow: 'hidden', flexShrink: 0, position: 'relative', border: '2px solid var(--primary)' }}>
+                      <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={`Product image ${idx + 1}`} />
+                      <button
+                        type="button"
+                        onClick={() => setProdImageUrls(prev => prev.filter((_, i) => i !== idx))}
+                        style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', background: 'var(--danger)', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                        title="Remove image"
+                      >✕</button>
                     </div>
                   ))}
+                  {prodImageUrls.length < 3 && (
+                    <label
+                      style={{
+                        width: 80, height: 80, borderRadius: 'var(--r-md)', flexShrink: 0,
+                        border: '2px dashed var(--border)', display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center', gap: 4,
+                        cursor: prodImageUploading ? 'not-allowed' : 'pointer',
+                        background: 'var(--bg-2)', color: 'var(--text-muted)', opacity: prodImageUploading ? 0.6 : 1,
+                        transition: 'all var(--t-fast)'
+                      }}
+                    >
+                      {prodImageUploading ? <Loader2 size={18} className="spinner" /> : <><ImageIcon size={18} /><span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>Upload</span></>}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                        style={{ display: 'none' }}
+                        disabled={prodImageUploading}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            setProdImageUploading(true);
+                            const fd = new FormData();
+                            fd.append('image', file);
+                            const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
+                              method: 'POST',
+                              headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                              body: fd
+                            });
+                            const json = await res.json();
+                            if (res.ok && json.url) {
+                              setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
+                              toast.success('Image uploaded! 📸');
+                            } else throw new Error(json.message || 'Upload failed');
+                          } catch (err: any) {
+                            toast.error(err.message || 'Image upload error');
+                          } finally {
+                            setProdImageUploading(false);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
                 </div>
+                <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>Upload up to 3 photos. First image is the main product thumbnail.</p>
               </div>
 
               <div>
@@ -2226,23 +2526,69 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* Multi-Image Upload Slots (up to 3) */}
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Product Banner Image</label>
-                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}>
-                  {STOCK_IMAGE_OPTIONS.map((img, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setProdImageUrl(img.url)}
-                      style={{
-                        width: 70, height: 70, borderRadius: 'var(--r-md)', overflow: 'hidden', flexShrink: 0,
-                        border: prodImageUrl === img.url ? '3px solid var(--primary)' : '1.5px solid var(--border)',
-                        cursor: 'pointer', position: 'relative'
-                      }}
-                    >
-                      <img src={img.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                  Product Images ({prodImageUrls.length}/3)
+                </label>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {prodImageUrls.map((url, idx) => (
+                    <div key={idx} style={{ width: 80, height: 80, borderRadius: 'var(--r-md)', overflow: 'hidden', flexShrink: 0, position: 'relative', border: '2px solid var(--primary)' }}>
+                      <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={`Product image ${idx + 1}`} />
+                      <button
+                        type="button"
+                        onClick={() => setProdImageUrls(prev => prev.filter((_, i) => i !== idx))}
+                        style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', background: 'var(--danger)', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                        title="Remove image"
+                      >✕</button>
                     </div>
                   ))}
+                  {prodImageUrls.length < 3 && (
+                    <label
+                      style={{
+                        width: 80, height: 80, borderRadius: 'var(--r-md)', flexShrink: 0,
+                        border: '2px dashed var(--border)', display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center', gap: 4,
+                        cursor: prodImageUploading ? 'not-allowed' : 'pointer',
+                        background: 'var(--bg-2)', color: 'var(--text-muted)', opacity: prodImageUploading ? 0.6 : 1,
+                        transition: 'all var(--t-fast)'
+                      }}
+                    >
+                      {prodImageUploading ? <Loader2 size={18} className="spinner" /> : <><ImageIcon size={18} /><span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>Upload</span></>}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                        style={{ display: 'none' }}
+                        disabled={prodImageUploading}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            setProdImageUploading(true);
+                            const fd = new FormData();
+                            fd.append('image', file);
+                            const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
+                              method: 'POST',
+                              headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                              body: fd
+                            });
+                            const json = await res.json();
+                            if (res.ok && json.url) {
+                              setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
+                              toast.success('Image uploaded! 📸');
+                            } else throw new Error(json.message || 'Upload failed');
+                          } catch (err: any) {
+                            toast.error(err.message || 'Image upload error');
+                          } finally {
+                            setProdImageUploading(false);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
                 </div>
+                <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>Upload up to 3 photos. First image is the main product thumbnail.</p>
               </div>
 
               <div>
