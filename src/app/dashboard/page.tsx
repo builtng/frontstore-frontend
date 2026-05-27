@@ -11,7 +11,7 @@ import {
   DollarSign, Calendar, MapPin, Receipt, Menu, X, ArrowUpRight,
   TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck,
-  ArrowUp, ArrowDown, Facebook, Twitter, Music2
+  ArrowUp, ArrowDown, Facebook, Twitter, Music2, Eye, EyeOff, Key
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import SearchableSelect from '../../components/SearchableSelect';
@@ -258,6 +258,15 @@ export default function DashboardPage() {
   const [customDomainInput, setCustomDomainInput] = useState('');
   const [customDomainSaving, setCustomDomainSaving] = useState(false);
   const [customDomainBypassDNS, setCustomDomainBypassDNS] = useState(false);
+
+  // Change Password Form
+  const [cpCurrent, setCpCurrent] = useState('');
+  const [cpNew, setCpNew] = useState('');
+  const [cpConfirm, setCpConfirm] = useState('');
+  const [cpSaving, setCpSaving] = useState(false);
+  const [showCpCurrent, setShowCpCurrent] = useState(false);
+  const [showCpNew, setShowCpNew] = useState(false);
+  const [showCpConfirm, setShowCpConfirm] = useState(false);
 
   // Paystack subscription payment state
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
@@ -982,6 +991,54 @@ export default function DashboardPage() {
       setSettingsSaving(false);
     }
   };
+
+  // --- Change Password Handler ---
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!cpCurrent || !cpNew || !cpConfirm) {
+      toast.warning('Please fill in all password fields.');
+      return;
+    }
+
+    if (cpNew.length < 6) {
+      toast.warning('New password must be at least 6 characters.');
+      return;
+    }
+
+    if (cpNew !== cpConfirm) {
+      toast.warning('New password and confirmation do not match.');
+      return;
+    }
+
+    try {
+      setCpSaving(true);
+      const res = await fetch(`${apiUrl}/v1/auth/change-password`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          current_password: cpCurrent,
+          new_password: cpNew,
+          new_password_confirmation: cpConfirm,
+        }),
+      });
+
+      const json = await res.json();
+      if (res.ok) {
+        toast.success('Password updated successfully! 🔒');
+        setCpCurrent('');
+        setCpNew('');
+        setCpConfirm('');
+      } else {
+        throw new Error(json.message || 'Password update failed.');
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Error occurred updating password.');
+    } finally {
+      setCpSaving(false);
+    }
+  };
+
 
   // --- Upgrade Plan via Real Paystack Payment ---
   const handleUpgradePlan = async (targetPlan: 'free' | 'pro_monthly' | 'pro_yearly') => {
@@ -2649,6 +2706,113 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Change Password Card */}
+                    <div className="card" style={{ padding: 20 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                        <div style={{ background: 'var(--primary-light)', padding: 5, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
+                          <Key size={14} />
+                        </div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Update Password</h3>
+                      </div>
+                      <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {/* Current Password */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Current Password</label>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type={showCpCurrent ? 'text' : 'password'}
+                              value={cpCurrent}
+                              onChange={e => setCpCurrent(e.target.value)}
+                              className="input-field"
+                              placeholder="••••••••"
+                              style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCpCurrent(!showCpCurrent)}
+                              style={{
+                                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                                background: 'none', border: 'none', color: 'var(--text-muted)',
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                              }}
+                            >
+                              {showCpCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* New Password */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>New Password</label>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type={showCpNew ? 'text' : 'password'}
+                              value={cpNew}
+                              onChange={e => setCpNew(e.target.value)}
+                              className="input-field"
+                              placeholder="Min 6 characters"
+                              style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCpNew(!showCpNew)}
+                              style={{
+                                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                                background: 'none', border: 'none', color: 'var(--text-muted)',
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                              }}
+                            >
+                              {showCpNew ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Confirm New Password</label>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type={showCpConfirm ? 'text' : 'password'}
+                              value={cpConfirm}
+                              onChange={e => setCpConfirm(e.target.value)}
+                              className="input-field"
+                              placeholder="Confirm new password"
+                              style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCpConfirm(!showCpConfirm)}
+                              style={{
+                                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                                background: 'none', border: 'none', color: 'var(--text-muted)',
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                              }}
+                            >
+                              {showCpConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={cpSaving}
+                          className="btn btn-primary clickable"
+                          style={{
+                            width: '100%', padding: '10px', fontSize: 12.5, borderRadius: 'var(--r-md)',
+                            fontWeight: 800, marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                          }}
+                        >
+                          {cpSaving ? (
+                            <>
+                              <Loader2 size={14} className="spinner" />
+                              Updating...
+                            </>
+                          ) : 'Update Password'}
+                        </button>
+                      </form>
+                    </div>
+
 
                     {/* Developer settings URL override */}
                     {isDev && (

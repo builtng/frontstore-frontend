@@ -20,12 +20,14 @@ function LoginFormContent() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
-  // If already logged in, redirect to dashboard
+  // If already logged in, redirect appropriately
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
-      if (token) {
-        router.push('/dashboard');
+      const storedUser = localStorage.getItem('user');
+      if (token && storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        router.push(parsedUser?.is_admin ? '/admin' : '/dashboard');
       }
     }
   }, [router]);
@@ -63,9 +65,10 @@ function LoginFormContent() {
         localStorage.setItem('token', json.data.token);
         localStorage.setItem('user', JSON.stringify(json.data.user));
         localStorage.setItem('store', JSON.stringify(json.data.store || null));
-        
-        toast.success('Welcome back to aloaye! 👋');
-        router.push('/dashboard');
+
+        const isAdmin = json.data.user?.is_admin === true;
+        toast.success(isAdmin ? 'Welcome, Administrator! 🛡️' : 'Welcome back to aloaye! 👋');
+        router.push(isAdmin ? '/admin' : '/dashboard');
       } else {
         throw new Error('No authentication token received.');
       }
