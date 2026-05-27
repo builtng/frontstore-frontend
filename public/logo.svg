@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <!-- Primary Emerald-to-Teal Gradient -->
+    <linearGradient id="aloaye-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="50%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#14b8a6" />
+    </linearGradient>
+    
+    <!-- Soft Glow Filter -->
+    <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Base (Optional / Transparent for icon usage, here transparent) -->
+  
+  <!-- Logo Mark Group -->
+  <g transform="translate(10, 10)">
+    <!-- Outer circular 'a' loop -->
+    <path d="M 90 30 
+             A 60 60 0 1 0 135 130 
+             L 135 110 
+             A 45 45 0 1 1 90 45 
+             A 45 45 0 0 1 135 90 
+             L 135 90" 
+          fill="url(#aloaye-grad)" />
+    
+    <!-- Central Chat Bubble -->
+    <path d="M 90 60 
+             A 25 25 0 0 0 65 85 
+             A 25 25 0 0 0 72 101 
+             L 66 114 
+             L 81 109 
+             A 25 25 0 0 0 90 110 
+             A 25 25 0 0 0 115 85 
+             A 25 25 0 0 0 90 60 Z" 
+          fill="url(#aloaye-grad)" 
+          opacity="0.9" />
+
+    <!-- Shopping Bag at the lower right base -->
+    <g transform="translate(115, 95)">
+      <!-- Bag Handle -->
+      <path d="M 12 12 A 10 10 0 0 1 32 12" fill="none" stroke="url(#aloaye-grad)" stroke-width="4.5" stroke-linecap="round" />
+      <!-- Bag Body -->
+      <rect x="4" y="12" width="36" height="32" rx="6" fill="url(#aloaye-grad)" />
+    </g>
+  </g>
+</svg>

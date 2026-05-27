@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Search, Package, AlertCircle, MessageCircle, Check } from 'lucide-react';
+import { Search, Package, AlertCircle, Check } from 'lucide-react';
+import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
 
 interface OrderItem {
   id: string;
@@ -368,7 +369,7 @@ export default function OrderTrackingPage() {
           }}
           className="clickable"
         >
-          <MessageCircle size={20} /> Chat with Seller on WhatsApp
+          <WhatsAppIcon size={20} /> Chat with Seller on WhatsApp
         </a>
       </div>
 

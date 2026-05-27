@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  MessageSquare, Sparkles, Zap, Link, BarChart3, Globe,
+  Sparkles, Zap, Link, BarChart3, Globe,
   Store, Star, ArrowRight, CheckCircle2, User, Flame
 } from 'lucide-react';
+import { WhatsAppIcon } from '../components/WhatsAppIcon';
+import Logo from '../components/Logo';
 
 // ── Sample Store Feature Cards ───────────────────────────────────────────────
 
@@ -86,7 +88,7 @@ const HOW_IT_WORKS = [
 const getFeatureIcon = (title: string, color: string) => {
   switch (title) {
     case 'WhatsApp-Native Checkout':
-      return <MessageSquare size={22} color={color} />;
+      return <WhatsAppIcon size={22} color={color} />;
     case 'AI-Powered Listings':
       return <Sparkles size={22} color={color} />;
     case 'Ultra-Fast Loading':
@@ -181,19 +183,7 @@ export default function HomePage() {
           borderBottom: '1px solid var(--border)',
         }}
       >
-        <div style={{
-          fontFamily: 'var(--font-heading)',
-          fontSize: 20,
-          fontWeight: 900,
-          color: 'var(--primary)',
-          letterSpacing: '-0.04em',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-        }}>
-          <Store size={22} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-          aloaye
-        </div>
+        <Logo size={24} textColor="var(--primary)" />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <a
@@ -546,18 +536,15 @@ export default function HomePage() {
         justifyContent: 'space-between',
         alignItems: 'center',
       }}>
-        <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 16, color: 'var(--primary)', letterSpacing: '-0.03em', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Store size={18} style={{ color: 'var(--primary)' }} />
-          aloaye
-        </div>
+        <Logo size={20} textColor="var(--primary)" />
         <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
           © {new Date().getFullYear()} aloaye. Africa's #1 WhatsApp Commerce Platform.
         </p>
         <div style={{ display: 'flex', gap: 16 }}>
           <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 600 }}>Explore Directory</a>
           <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>
-          <a href="#" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
-          <a href="#" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
+          <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
+          <a href="/terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
         </div>
       </footer>
 

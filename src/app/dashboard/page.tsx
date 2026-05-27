@@ -4,13 +4,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import {
-  MessageSquare, Sparkles, Zap, Link, BarChart3, Globe,
+  Sparkles, Zap, Link, BarChart3, Globe,
   Store, Star, ArrowRight, CheckCircle2, User, LogOut,
-  Package, ShoppingBag, Settings, Share2, Copy, Plus,
+  Package, ShoppingBag, Settings, Share2, Copy, Plus, Tag,
   Trash2, Edit2, AlertCircle, Check, Loader2, Phone,
   DollarSign, Calendar, MapPin, Receipt, Menu, X, ArrowUpRight,
   TrendingUp, RefreshCw, Smartphone
 } from 'lucide-react';
+import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 
 // --- Type Definitions ---
 interface UserInfo {
@@ -95,8 +96,40 @@ interface DashboardStats {
   };
 }
 
+const countries = [
+  { code: 'NG', name: 'Nigeria', dialCode: '+234', flag: '🇳🇬' },
+  { code: 'GH', name: 'Ghana', dialCode: '+233', flag: '🇬🇭' },
+  { code: 'KE', name: 'Kenya', dialCode: '+254', flag: '🇰🇪' },
+  { code: 'ZA', name: 'South Africa', dialCode: '+27', flag: '🇿🇦' },
+  { code: 'UG', name: 'Uganda', dialCode: '+256', flag: '🇺🇬' },
+  { code: 'RW', name: 'Rwanda', dialCode: '+250', flag: '🇷🇼' },
+  { code: 'CM', name: 'Cameroon', dialCode: '+237', flag: '🇨🇲' },
+  { code: 'CI', name: 'Ivory Coast', dialCode: '+225', flag: '🇨🇮' },
+  { code: 'SN', name: 'Senegal', dialCode: '+221', flag: '🇸🇳' },
+  { code: 'TZ', name: 'Tanzania', dialCode: '+255', flag: '🇹🇿' },
+  { code: 'GB', name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧' },
+  { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸' },
+];
+
+const parsePhoneNumber = (fullPhone: string) => {
+  if (!fullPhone) return { country: countries[0], local: '' };
+  const sortedCountries = [...countries].sort((a, b) => b.dialCode.length - a.dialCode.length);
+  const cleaned = fullPhone.replace(/[^\d+]/g, '');
+  for (const c of sortedCountries) {
+    if (cleaned.startsWith(c.dialCode)) {
+      return { country: c, local: cleaned.slice(c.dialCode.length) };
+    }
+    const dialWithoutPlus = c.dialCode.slice(1);
+    if (cleaned.startsWith(dialWithoutPlus)) {
+      return { country: c, local: cleaned.slice(dialWithoutPlus.length) };
+    }
+  }
+  return { country: countries[0], local: cleaned };
+};
+
 export default function DashboardPage() {
   const router = useRouter();
+  const isDev = process.env.NODE_ENV !== 'production';
 
   // --- Auth & API Settings State ---
   const [token, setToken] = useState<string | null>(null);
@@ -150,7 +183,10 @@ export default function DashboardPage() {
   // Settings Form
   const [setStoreName, setSetStoreName] = useState('');
   const [setStoreBio, setSetStoreBio] = useState('');
-  const [setWhatsapp, setSetWhatsapp] = useState('');
+  const [localWhatsapp, setLocalWhatsapp] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
   const [setInstagram, setSetInstagram] = useState('');
   const [setTiktok, setSetTiktok] = useState('');
   const [setCurrency, setSetCurrency] = useState('NGN');
@@ -203,7 +239,9 @@ export default function DashboardPage() {
           // Prefill settings form
           setSetStoreName(parsedStore.store_name || '');
           setSetStoreBio(parsedStore.store_bio || '');
-          setSetWhatsapp(parsedStore.whatsapp_phone || '');
+          const parsedPhone = parsePhoneNumber(parsedStore.whatsapp_phone || '');
+          setSelectedCountry(parsedPhone.country);
+          setLocalWhatsapp(parsedPhone.local);
           setSetInstagram(parsedStore.instagram_handle || '');
           setSetTiktok(parsedStore.tiktok_handle || '');
           setSetCurrency(parsedStore.currency_code || 'NGN');
@@ -215,6 +253,21 @@ export default function DashboardPage() {
       setIsAuthChecking(false);
     }
   }, [router]);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    if (!isCountryDropdownOpen) return;
+    const handleOutsideClick = () => {
+      setIsCountryDropdownOpen(false);
+    };
+    const timer = setTimeout(() => {
+      window.addEventListener('click', handleOutsideClick);
+    }, 50);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('click', handleOutsideClick);
+    };
+  }, [isCountryDropdownOpen]);
 
   // Headers helper
   const getAuthHeaders = () => ({
@@ -619,13 +672,23 @@ export default function DashboardPage() {
     e.preventDefault();
     try {
       setSettingsSaving(true);
+      const normalizePhone = (input: string, dialCode: string) => {
+        const cleanDial = dialCode.replace(/[^\d]/g, '');
+        let cleaned = input.replace(/[^\d]/g, '');
+        if (cleaned.startsWith(cleanDial)) {
+          cleaned = cleaned.slice(cleanDial.length);
+        }
+        cleaned = cleaned.replace(/^0+/, '');
+        return `+${cleanDial}${cleaned}`;
+      };
+      const normalizedPhone = normalizePhone(localWhatsapp, selectedCountry.dialCode);
       const res = await fetch(`${apiUrl}/v1/store`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({
           store_name: setStoreName,
           store_bio: setStoreBio,
-          whatsapp_phone: setWhatsapp,
+          whatsapp_phone: normalizedPhone,
           instagram_handle: setInstagram,
           tiktok_handle: setTiktok,
           currency_code: setCurrency
@@ -637,6 +700,10 @@ export default function DashboardPage() {
         toast.success('Storefront settings updated! 🌟');
         setStore(json.data);
         localStorage.setItem('store', JSON.stringify(json.data));
+        
+        const parsedPhone = parsePhoneNumber(json.data.whatsapp_phone || '');
+        setSelectedCountry(parsedPhone.country);
+        setLocalWhatsapp(parsedPhone.local);
       } else {
         throw new Error(json.message || 'Store settings update failed.');
       }
@@ -760,9 +827,9 @@ export default function DashboardPage() {
             { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
             { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
             { id: 'products', label: 'Products CRUD', icon: <Package size={18} /> },
-            { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <MessageSquare size={18} />, badge: 1 },
+            { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} />, badge: 1 },
             { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
-            { id: 'settings', label: 'Settings & Dev', icon: <Settings size={18} /> },
+            { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
           ].map(item => {
             const active = activeTab === item.id;
             return (
@@ -887,7 +954,7 @@ export default function DashboardPage() {
               className="btn btn-primary clickable"
               style={{ padding: '8px 16px', fontSize: 12.5, borderRadius: 'var(--r-md)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
-              <span>Visit Shop</span>
+              <span>Visit Store</span>
               <ArrowUpRight size={14} />
             </a>
           </div>
@@ -899,7 +966,7 @@ export default function DashboardPage() {
           {dataLoading ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
               <div className="spinner spinner-primary" style={{ width: 32, height: 32 }} />
-              <span style={{ color: 'var(--text-muted)', fontSize: 14.5 }}>Fetching shop datasets...</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 14.5 }}>Fetching store datasets...</span>
             </div>
           ) : (
             <>
@@ -1221,8 +1288,8 @@ export default function DashboardPage() {
                                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                               />
                             ) : (
-                              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, color: 'var(--text-faint)' }}>
-                                📦
+                              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)' }}>
+                                <Package size={40} strokeWidth={1} />
                               </div>
                             )}
                             
@@ -1354,30 +1421,31 @@ export default function DashboardPage() {
                         <button
                           onClick={handleWaOfferCoupon}
                           className="btn btn-outline clickable"
-                          style={{ padding: '6px 12px', fontSize: 11.5, borderRadius: 'var(--r-sm)' }}
+                          style={{ padding: '6px 12px', fontSize: 11.5, borderRadius: 'var(--r-sm)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                         >
-                          🏷️ Send 10% Discount
+                          <Tag size={13} /> Send 10% Discount
                         </button>
                         <button
                           onClick={handleWaCloseSale}
                           disabled={waCloseSaleLoading}
                           className="btn btn-primary clickable"
-                          style={{ padding: '6px 12px', fontSize: 11.5, borderRadius: 'var(--r-sm)', background: '#25d366', boxShadow: 'none' }}
+                          style={{ padding: '6px 12px', fontSize: 11.5, borderRadius: 'var(--r-sm)', background: '#25d366', boxShadow: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                         >
-                          {waCloseSaleLoading ? <Loader2 size={12} className="spinner" /> : '🧾 Close Sale (Invoice)'}
+                          {waCloseSaleLoading ? <Loader2 size={12} className="spinner" /> : <Receipt size={13} />}
+                          {waCloseSaleLoading ? 'Closing...' : 'Close Sale (Invoice)'}
                         </button>
                         <button
                           onClick={handleWaConfirmPayment}
                           className="btn btn-outline clickable"
-                          style={{ padding: '6px 12px', fontSize: 11.5, borderRadius: 'var(--r-sm)', color: 'var(--primary)', borderColor: 'var(--primary)' }}
+                          style={{ padding: '6px 12px', fontSize: 11.5, borderRadius: 'var(--r-sm)', color: 'var(--primary)', borderColor: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                         >
-                          💚 Mark Paid
+                          <Check size={13} /> Mark Paid
                         </button>
                       </div>
                     </div>
 
                     {/* Chat Messages viewport */}
-                    <div style={{ flex: 1, padding: 20, display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', background: 'var(--bg)' }}>
+                    <div style={{ flex: 1, padding: 20, display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', background: 'var(--wa-chat-bg)' }}>
                       {waMessages.map((msg, index) => {
                         const isMerchant = msg.sender === 'merchant';
                         return (
@@ -1391,15 +1459,15 @@ export default function DashboardPage() {
                           >
                             <div style={{
                               maxWidth: '70%',
-                              background: isMerchant ? '#e7fed7' : 'var(--surface)',
-                              color: 'var(--text)',
+                              background: isMerchant ? 'var(--wa-bubble-merchant-bg)' : 'var(--wa-bubble-customer-bg)',
+                              color: isMerchant ? 'var(--wa-bubble-merchant-text)' : 'var(--wa-bubble-customer-text)',
                               padding: '10px 14px',
                               borderRadius: isMerchant ? '12px 12px 0 12px' : '12px 12px 12px 0',
                               border: '1px solid var(--border)',
                               boxShadow: 'var(--shadow-xs)'
                             }}>
                               <p style={{ fontSize: 13.5, lineHeight: 1.5, whiteSpace: 'pre-line' }}>{msg.text}</p>
-                              <span style={{ fontSize: 10, color: 'var(--text-faint)', display: 'block', textAlign: 'right', marginTop: 4 }}>
+                              <span style={{ fontSize: 10, color: isMerchant ? 'var(--wa-bubble-merchant-time)' : 'var(--wa-bubble-customer-time)', display: 'block', textAlign: 'right', marginTop: 4 }}>
                                 {msg.time}
                               </span>
                             </div>
@@ -1503,13 +1571,15 @@ export default function DashboardPage() {
                         className="btn clickable"
                         style={{ background: '#25d366', color: '#fff', padding: '14px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}
                       >
-                        <MessageSquare size={18} /> Share Store link on WhatsApp
+                        <WhatsAppIcon size={18} color="#fff" /> Share Store link on WhatsApp
                       </button>
 
                       {/* Visual storefront banner mock */}
                       <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', overflow: 'hidden', background: 'var(--bg-2)' }}>
                         <div style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', padding: '16px 20px', color: '#fff' }}>
-                          <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>🏪 Shop Live: {store?.store_name}</h4>
+                          <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Store size={18} /> Shop Live: {store?.store_name}
+                          </h4>
                           <p style={{ fontSize: 12, opacity: 0.9, marginTop: 4 }}>Fast browsing · Easy WhatsApp checkouts</p>
                         </div>
                         <div style={{ padding: 16, display: 'flex', gap: 10, overflowX: 'auto' }}>
@@ -1540,7 +1610,7 @@ export default function DashboardPage() {
                       <p style={{ fontSize: 32, fontWeight: 900, color: 'var(--primary-dark)', fontFamily: 'var(--font-heading)', margin: '8px 0 2px' }}>
                         ₦1,500
                       </p>
-                      <span style={{ fontSize: 12, color: 'var(--text-2)', fontWeight: 700 }}>Paid for each shop referral that publishes a product</span>
+                      <span style={{ fontSize: 12, color: 'var(--text-2)', fontWeight: 700 }}>Paid for each store referral that publishes a product</span>
                     </div>
 
                     {/* Ref Link */}
@@ -1598,13 +1668,120 @@ export default function DashboardPage() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                         <div>
                           <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>WhatsApp Number</label>
-                          <input
-                            type="text"
-                            required
-                            value={setWhatsapp}
-                            onChange={e => setSetWhatsapp(e.target.value)}
-                            className="input-field"
-                          />
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            border: '1.5px solid var(--border)',
+                            borderRadius: 'var(--r-md)',
+                            background: 'var(--surface)',
+                            transition: 'all var(--t-fast)',
+                            position: 'relative'
+                          }}>
+                            {/* Country Code Trigger Button */}
+                            <button
+                              type="button"
+                              onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                padding: '0 14px',
+                                height: '100%',
+                                minHeight: 46,
+                                background: 'none',
+                                border: 'none',
+                                borderRight: '1px solid var(--border)',
+                                cursor: 'pointer',
+                                fontSize: 15,
+                                color: 'var(--text)',
+                                fontWeight: 600,
+                                userSelect: 'none'
+                              }}
+                            >
+                              <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
+                              <span>{selectedCountry.dialCode}</span>
+                              <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
+                            </button>
+
+                            {/* Real Phone Input */}
+                            <input
+                              type="tel"
+                              required
+                              placeholder="e.g. 803 123 4567"
+                              value={localWhatsapp}
+                              onChange={e => setLocalWhatsapp(e.target.value)}
+                              style={{
+                                flex: 1,
+                                padding: '13px 14px',
+                                border: 'none',
+                                fontSize: 15,
+                                outline: 'none',
+                                background: 'transparent',
+                                color: 'var(--text)',
+                                minWidth: 0,
+                              }}
+                              autoComplete="tel"
+                            />
+
+                            {/* Dropdown Menu */}
+                            {isCountryDropdownOpen && (
+                              <div className="glass animate-scale-in" style={{
+                                position: 'absolute',
+                                top: '110%',
+                                left: 0,
+                                width: 280,
+                                maxHeight: 250,
+                                overflowY: 'auto',
+                                borderRadius: 'var(--r-lg)',
+                                border: '1px solid var(--border)',
+                                background: 'var(--surface)',
+                                boxShadow: 'var(--shadow-lg)',
+                                zIndex: 100,
+                                padding: '6px 0'
+                              }}>
+                                {countries.map((c, idx) => (
+                                  <button
+                                    key={c.code}
+                                    type="button"
+                                    onMouseEnter={() => setHoveredCountryIndex(idx)}
+                                    onMouseLeave={() => setHoveredCountryIndex(null)}
+                                    onClick={() => {
+                                      setSelectedCountry(c);
+                                      setIsCountryDropdownOpen(false);
+                                    }}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      width: '100%',
+                                      padding: '10px 14px',
+                                      background: selectedCountry.code === c.code 
+                                        ? 'var(--primary-light)' 
+                                        : hoveredCountryIndex === idx 
+                                          ? 'var(--bg-2)' 
+                                          : 'none',
+                                      border: 'none',
+                                      cursor: 'pointer',
+                                      fontSize: 14,
+                                      textAlign: 'left',
+                                      color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)',
+                                      fontWeight: selectedCountry.code === c.code ? 750 : 600,
+                                      transition: 'background var(--t-fast)'
+                                    }}
+                                  >
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                      <span style={{ fontSize: 18 }}>{c.flag}</span>
+                                      <span>{c.name}</span>
+                                    </span>
+                                    <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{c.dialCode}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                            Enter local number (e.g. 0808 943 7483). Country code is added automatically.
+                          </span>
                         </div>
                         <div>
                           <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Currency</label>
@@ -1678,41 +1855,43 @@ export default function DashboardPage() {
                           </div>
                         )}
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Shop Username</span>
+                          <span style={{ color: 'var(--text-muted)' }}>Store Username</span>
                           <span style={{ fontWeight: 700 }}>@{store?.username}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Developer settings URL override */}
-                    <div className="card" style={{ padding: 20 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                        <div style={{ background: 'var(--danger-light)', padding: 4, borderRadius: 'var(--r-sm)', color: 'var(--danger)' }}>
-                          <Settings size={14} />
+                    {isDev && (
+                      <div className="card" style={{ padding: 20 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                          <div style={{ background: 'var(--danger-light)', padding: 4, borderRadius: 'var(--r-sm)', color: 'var(--danger)' }}>
+                            <Settings size={14} />
+                          </div>
+                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14.5, fontWeight: 800 }}>Developer Overrides</h3>
                         </div>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14.5, fontWeight: 800 }}>Developer Overrides</h3>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 14 }}>
+                          Change the backend API endpoint address. (Default port is 8000). Useful for connecting local network devices.
+                        </p>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          <input
+                            type="text"
+                            value={devApiInput}
+                            onChange={e => setDevApiInput(e.target.value)}
+                            className="input-field"
+                            style={{ padding: '8px 12px', fontSize: 13, height: 38 }}
+                          />
+                          <button
+                            onClick={handleSaveDevApi}
+                            className="btn btn-outline clickable"
+                            style={{ width: '100%', padding: '8px', fontSize: 12, borderRadius: 'var(--r-md)', fontWeight: 700 }}
+                          >
+                            Sync Host Address
+                          </button>
+                        </div>
                       </div>
-                      <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 14 }}>
-                        Change the backend API endpoint address. (Default port is 8000). Useful for connecting local network devices.
-                      </p>
-                      
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <input
-                          type="text"
-                          value={devApiInput}
-                          onChange={e => setDevApiInput(e.target.value)}
-                          className="input-field"
-                          style={{ padding: '8px 12px', fontSize: 13, height: 38 }}
-                        />
-                        <button
-                          onClick={handleSaveDevApi}
-                          className="btn btn-outline clickable"
-                          style={{ width: '100%', padding: '8px', fontSize: 12, borderRadius: 'var(--r-md)', fontWeight: 700 }}
-                        >
-                          Sync Host Address
-                        </button>
-                      </div>
-                    </div>
+                    )}
 
                   </div>
                 </div>
@@ -1761,9 +1940,9 @@ export default function DashboardPage() {
                 { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
                 { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} /> },
                 { id: 'products', label: 'Products CRUD', icon: <Package size={18} /> },
-                { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <MessageSquare size={18} /> },
+                { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
-                { id: 'settings', label: 'Settings & Dev', icon: <Settings size={18} /> },
+                { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
               ].map(item => (
                 <button
                   key={item.id}
@@ -2168,7 +2347,7 @@ export default function DashboardPage() {
                   className="btn btn-outline clickable"
                   style={{ flex: 1, padding: 10, fontSize: 12, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}
                 >
-                  <MessageSquare size={14} style={{ color: '#25d366' }} /> Chat WhatsApp
+                  <WhatsAppIcon size={14} color="#25d366" /> Chat WhatsApp
                 </button>
 
                 <button

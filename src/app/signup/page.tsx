@@ -22,6 +22,37 @@ function getPasswordStrength(pw: string): { score: number; label: string; color:
   return                 { score, label: 'Strong', color: 'var(--primary)' };
 }
 
+const countries = [
+  { code: 'NG', name: 'Nigeria', dialCode: '+234', flag: '🇳🇬' },
+  { code: 'GH', name: 'Ghana', dialCode: '+233', flag: '🇬🇭' },
+  { code: 'KE', name: 'Kenya', dialCode: '+254', flag: '🇰🇪' },
+  { code: 'ZA', name: 'South Africa', dialCode: '+27', flag: '🇿🇦' },
+  { code: 'UG', name: 'Uganda', dialCode: '+256', flag: '🇺🇬' },
+  { code: 'RW', name: 'Rwanda', dialCode: '+250', flag: '🇷🇼' },
+  { code: 'CM', name: 'Cameroon', dialCode: '+237', flag: '🇨🇲' },
+  { code: 'CI', name: 'Ivory Coast', dialCode: '+225', flag: '🇨🇮' },
+  { code: 'SN', name: 'Senegal', dialCode: '+221', flag: '🇸🇳' },
+  { code: 'TZ', name: 'Tanzania', dialCode: '+255', flag: '🇹🇿' },
+  { code: 'GB', name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧' },
+  { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸' },
+];
+
+const parsePhoneNumber = (fullPhone: string) => {
+  if (!fullPhone) return { country: countries[0], local: '' };
+  const sortedCountries = [...countries].sort((a, b) => b.dialCode.length - a.dialCode.length);
+  const cleaned = fullPhone.replace(/[^\d+]/g, '');
+  for (const c of sortedCountries) {
+    if (cleaned.startsWith(c.dialCode)) {
+      return { country: c, local: cleaned.slice(c.dialCode.length) };
+    }
+    const dialWithoutPlus = c.dialCode.slice(1);
+    if (cleaned.startsWith(dialWithoutPlus)) {
+      return { country: c, local: cleaned.slice(dialWithoutPlus.length) };
+    }
+  }
+  return { country: countries[0], local: cleaned };
+};
+
 // ── Main form component ───────────────────────────────────────────────────────
 
 function SignupFormContent() {
@@ -35,6 +66,9 @@ function SignupFormContent() {
   const [password,  setPassword]  = useState('');
   const [showPw,    setShowPw]    = useState(false);
   const [hostSuffix, setHostSuffix] = useState('.aloaye.com');
+  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
 
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState<string | null>(null);
@@ -55,6 +89,40 @@ function SignupFormContent() {
       setHostSuffix(`.${clean}`);
     }
   }, []);
+
+  // Auto-detect country code from IP
+  useEffect(() => {
+    const detectCountry = async () => {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (res.ok) {
+          const data = await res.json();
+          const found = countries.find(c => c.code === data.country_code);
+          if (found) {
+            setSelectedCountry(found);
+          }
+        }
+      } catch (e) {
+        console.warn('Country auto-detection failed, using default:', e);
+      }
+    };
+    detectCountry();
+  }, []);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    if (!isCountryDropdownOpen) return;
+    const handleOutsideClick = () => {
+      setIsCountryDropdownOpen(false);
+    };
+    const timer = setTimeout(() => {
+      window.addEventListener('click', handleOutsideClick);
+    }, 50);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('click', handleOutsideClick);
+    };
+  }, [isCountryDropdownOpen]);
 
   // Pre-fill from URL param
   useEffect(() => {
@@ -80,10 +148,21 @@ function SignupFormContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!storeName || !username || !name || !phone || !password) {
+    if (!storeName || !username || !name || !phone.trim() || !password) {
       setError('Please fill in all required fields.');
       return;
     }
+
+    const normalizePhone = (input: string, dialCode: string) => {
+      const cleanDial = dialCode.replace(/[^\d]/g, '');
+      let cleaned = input.replace(/[^\d]/g, '');
+      if (cleaned.startsWith(cleanDial)) {
+        cleaned = cleaned.slice(cleanDial.length);
+      }
+      cleaned = cleaned.replace(/^0+/, '');
+      return `+${cleanDial}${cleaned}`;
+    };
+    const normalizedPhone = normalizePhone(phone, selectedCountry.dialCode);
 
     const cleanUsername = username.toLowerCase().replace(/[^a-z0-9_-]/g, '');
     if (cleanUsername.length < 3) {
@@ -110,7 +189,7 @@ function SignupFormContent() {
           store_name:   storeName,
           username:     cleanUsername,
           name,
-          phone_number: phone,
+          phone_number: normalizedPhone,
           password,
           email:        email || undefined,
         }),
@@ -306,7 +385,7 @@ function SignupFormContent() {
               if (navigator.share) {
                 navigator.share({
                   title: successData.storeName,
-                  text: `Visit my new shop: ${successData.storeName}!`,
+                  text: `Visit my new store: ${successData.storeName}!`,
                   url: successData.storeUrl,
                 });
               } else {
@@ -592,34 +671,123 @@ function SignupFormContent() {
             >
               WhatsApp Number
             </label>
-            <div style={{ position: 'relative' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              border: focusedInput === 'phone' ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
+              borderRadius: 'var(--r-md)',
+              background: 'var(--surface)',
+              boxShadow: focusedInput === 'phone' ? '0 0 0 3px var(--primary-glow)' : 'none',
+              transition: 'all var(--t-fast)',
+              position: 'relative'
+            }}>
+              {/* Country Code Trigger Button */}
+              <button
+                type="button"
+                onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '0 14px',
+                  height: '100%',
+                  minHeight: 46,
+                  background: 'none',
+                  border: 'none',
+                  borderRight: '1px solid var(--border)',
+                  cursor: 'pointer',
+                  fontSize: 15,
+                  color: 'var(--text)',
+                  fontWeight: 600,
+                  userSelect: 'none'
+                }}
+              >
+                <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
+                <span>{selectedCountry.dialCode}</span>
+                <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
+              </button>
+
+              {/* Real Phone Input */}
               <input
                 id="phone"
                 type="tel"
                 required
-                placeholder="e.g. +234 803 123 4567"
+                placeholder="e.g. 803 123 4567"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 onFocus={() => setFocusedInput('phone')}
                 onBlur={() => setFocusedInput(null)}
-                className="input-field"
                 style={{
-                  paddingLeft: 44,
-                  borderColor: focusedInput === 'phone' ? 'var(--primary)' : 'var(--border)'
+                  flex: 1,
+                  padding: '13px 14px',
+                  border: 'none',
+                  fontSize: 15,
+                  outline: 'none',
+                  background: 'transparent',
+                  color: 'var(--text)',
+                  minWidth: 0,
                 }}
                 autoComplete="tel"
               />
-              <Phone size={18} style={{
-                position: 'absolute',
-                left: 14,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: focusedInput === 'phone' ? 'var(--primary)' : 'var(--text-faint)',
-                transition: 'color var(--t-fast)'
-              }} />
+
+              {/* Dropdown Menu */}
+              {isCountryDropdownOpen && (
+                <div className="glass animate-scale-in" style={{
+                  position: 'absolute',
+                  top: '110%',
+                  left: 0,
+                  width: 280,
+                  maxHeight: 250,
+                  overflowY: 'auto',
+                  borderRadius: 'var(--r-lg)',
+                  border: '1px solid var(--border)',
+                  background: 'var(--surface)',
+                  boxShadow: 'var(--shadow-lg)',
+                  zIndex: 100,
+                  padding: '6px 0'
+                }}>
+                  {countries.map((c, idx) => (
+                    <button
+                      key={c.code}
+                      type="button"
+                      onMouseEnter={() => setHoveredCountryIndex(idx)}
+                      onMouseLeave={() => setHoveredCountryIndex(null)}
+                      onClick={() => {
+                        setSelectedCountry(c);
+                        setIsCountryDropdownOpen(false);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        padding: '10px 14px',
+                        background: selectedCountry.code === c.code 
+                          ? 'var(--primary-light)' 
+                          : hoveredCountryIndex === idx 
+                            ? 'var(--bg-2)' 
+                            : 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: 14,
+                        textAlign: 'left',
+                        color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)',
+                        fontWeight: selectedCountry.code === c.code ? 750 : 600,
+                        transition: 'background var(--t-fast)'
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 18 }}>{c.flag}</span>
+                        <span>{c.name}</span>
+                      </span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{c.dialCode}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-              Customers will redirect to this number when placing orders.
+              Enter your local number (e.g. 0808 943 7483). Country code is added automatically.
             </span>
           </div>
 
@@ -773,9 +941,9 @@ function SignupFormContent() {
 
         <p style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
           By launching your store, you agree to aloaye&apos;s{' '}
-          <a href="#" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Terms of Service</a>
+          <a href="/terms" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Terms of Service</a>
           {' '}and{' '}
-          <a href="#" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Privacy Policy</a>.
+          <a href="/privacy" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Privacy Policy</a>.
         </p>
 
       </form>
@@ -796,12 +964,13 @@ export default function SignupPage() {
     }}>
       {/* LEFT PANEL: Premium value prop (visible on desktop) */}
       <div className="left-hero-panel" style={{
-        flex: 1.1,
+        flex: 1,
         background: 'linear-gradient(135deg, var(--primary-dark), var(--primary))',
         color: '#fff',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        alignItems: 'center',
         padding: '60px 80px',
         position: 'relative',
         overflow: 'hidden',
@@ -918,9 +1087,9 @@ export default function SignupPage() {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        alignItems: 'center',
         padding: '40px 20px',
-        maxWidth: 580,
-        margin: '0 auto',
+        position: 'relative',
         width: '100%',
         minHeight: '100vh',
       }}>
@@ -937,14 +1106,16 @@ export default function SignupPage() {
           filter: 'blur(40px)'
         }} />
 
-        <Suspense fallback={
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
-            <div className="spinner spinner-primary" style={{ width: 36, height: 36 }} />
-            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading storefront creator...</span>
-          </div>
-        }>
-          <SignupFormContent />
-        </Suspense>
+        <div style={{ width: '100%', maxWidth: 500, display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
+          <Suspense fallback={
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
+              <div className="spinner spinner-primary" style={{ width: 36, height: 36 }} />
+              <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading storefront creator...</span>
+            </div>
+          }>
+            <SignupFormContent />
+          </Suspense>
+        </div>
       </div>
 
       {/* Styled JSX/Responsive rules for pure CSS hero hidden logic */}
@@ -954,7 +1125,6 @@ export default function SignupPage() {
             display: none !important;
           }
           .right-form-panel {
-            max-width: 480px !important;
             padding: 32px 16px !important;
           }
         }

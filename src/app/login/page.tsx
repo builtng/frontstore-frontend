@@ -257,12 +257,13 @@ export default function LoginPage() {
     }}>
       {/* LEFT PANEL: Premium value prop (visible on desktop) */}
       <div className="left-hero-panel" style={{
-        flex: 1.1,
+        flex: 1,
         background: 'linear-gradient(135deg, var(--primary-dark), var(--primary))',
         color: '#fff',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        alignItems: 'center',
         padding: '60px 80px',
         position: 'relative',
         overflow: 'hidden',
@@ -356,9 +357,9 @@ export default function LoginPage() {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        alignItems: 'center',
         padding: '40px 20px',
-        maxWidth: 580,
-        margin: '0 auto',
+        position: 'relative',
         width: '100%',
         minHeight: '100vh',
       }}>
@@ -375,14 +376,16 @@ export default function LoginPage() {
           filter: 'blur(40px)'
         }} />
 
-        <Suspense fallback={
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
-            <div className="spinner spinner-primary" style={{ width: 36, height: 36 }} />
-            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading storefront dashboard login...</span>
-          </div>
-        }>
-          <LoginFormContent />
-        </Suspense>
+        <div style={{ width: '100%', maxWidth: 500, display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
+          <Suspense fallback={
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
+              <div className="spinner spinner-primary" style={{ width: 36, height: 36 }} />
+              <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading storefront dashboard login...</span>
+            </div>
+          }>
+            <LoginFormContent />
+          </Suspense>
+        </div>
       </div>
 
       {/* Styled JSX/Responsive rules for pure CSS hero hidden logic */}
@@ -392,7 +395,6 @@ export default function LoginPage() {
             display: none !important;
           }
           .right-form-panel {
-            max-width: 480px !important;
             padding: 32px 16px !important;
           }
         }

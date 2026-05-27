@@ -43,6 +43,15 @@
   --wa-green:       #25D366;
   --wa-dark:        #128C7E;
 
+  /* WhatsApp Simulator Theme Variables */
+  --wa-chat-bg:             #efeae2;
+  --wa-bubble-merchant-bg:  #d9fdd3;
+  --wa-bubble-merchant-text:#111b21;
+  --wa-bubble-merchant-time:#667781;
+  --wa-bubble-customer-bg:  #ffffff;
+  --wa-bubble-customer-text:#111b21;
+  --wa-bubble-customer-time:#667781;
+
   /* Glassmorphism */
   --glass-bg:       rgba(255, 255, 255, 0.78);
   --glass-border:   rgba(255, 255, 255, 0.55);
@@ -123,6 +132,15 @@
     --primary-light:  hsl(158, 84%, 10%);
     --accent-light:   hsl(38, 92%, 10%);
     --danger-light:   hsl(0, 100%, 10%);
+
+    /* WhatsApp Simulator Dark Mode Overrides */
+    --wa-chat-bg:             #0b141a;
+    --wa-bubble-merchant-bg:  #005c4b;
+    --wa-bubble-merchant-text:#e9edef;
+    --wa-bubble-merchant-time:#8696a0;
+    --wa-bubble-customer-bg:  #202c33;
+    --wa-bubble-customer-text:#e9edef;
+    --wa-bubble-customer-time:#8696a0;
   }
 }
 

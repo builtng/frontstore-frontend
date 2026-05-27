@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Store, ArrowRight, Search, Globe, MessageSquare, Instagram, ShieldCheck, ShoppingBag } from 'lucide-react';
+import { Store, ArrowRight, Search, Globe, Instagram, ShieldCheck, ShoppingBag } from 'lucide-react';
+import { WhatsAppIcon } from '../../components/WhatsAppIcon';
+import Logo from '../../components/Logo';
 
 interface StoreItem {
   id: string;
@@ -65,19 +67,8 @@ export default function StoresDirectoryPage() {
           borderBottom: '1px solid var(--border)',
         }}
       >
-        <a href="/" style={{
-          fontFamily: 'var(--font-heading)',
-          fontSize: 20,
-          fontWeight: 900,
-          color: 'var(--primary)',
-          letterSpacing: '-0.04em',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          textDecoration: 'none'
-        }}>
-          <Store size={22} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-          aloaye
+        <a href="/" style={{ textDecoration: 'none' }}>
+          <Logo size={24} textColor="var(--primary)" />
         </a>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -110,7 +101,7 @@ export default function StoresDirectoryPage() {
             <ShoppingBag size={11} /> Storefront Directory
           </span>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 32, fontWeight: 900, letterSpacing: '-0.02em', marginBottom: 12 }}>
-            Explore Verified Shops
+            Explore Verified Stores
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 15.5, lineHeight: 1.6, marginBottom: 28 }}>
             Browse and purchase directly from verified WhatsApp-native stores on the aloaye platform.
@@ -132,7 +123,7 @@ export default function StoresDirectoryPage() {
             <Search size={18} style={{ color: 'var(--text-faint)' }} />
             <input
               type="text"
-              placeholder="Search shops by name, bio, or username..."
+              placeholder="Search stores by name, bio, or username..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               style={{
@@ -245,7 +236,7 @@ export default function StoresDirectoryPage() {
                             style={{ padding: 4 }}
                             title="Chat on WhatsApp"
                           >
-                            <MessageSquare size={16} />
+                            <WhatsAppIcon size={16} style={{ color: '#25d366' }} />
                           </a>
                           {store.instagram_handle && (
                             <a
@@ -276,7 +267,7 @@ export default function StoresDirectoryPage() {
               </div>
             ) : (
               <div className="card" style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                No shops matched your search filter. Try different keywords!
+                No stores matched your search filter. Try different keywords!
               </div>
             )}
           </>
@@ -316,10 +307,7 @@ export default function StoresDirectoryPage() {
         justifyContent: 'space-between',
         alignItems: 'center',
       }}>
-        <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 15, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Store size={16} />
-          aloaye
-        </div>
+        <Logo size={18} textColor="var(--primary)" />
         <p style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>
           © {new Date().getFullYear()} aloaye. Storefront Directory list.
         </p>
