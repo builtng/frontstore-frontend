@@ -1157,7 +1157,7 @@ export default function DashboardPage() {
           {[
             { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
             { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
-            { id: 'products', label: 'Products CRUD', icon: <Package size={18} /> },
+            { id: 'products', label: 'Products', icon: <Package size={18} /> },
             { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} />, badge: 1 },
             { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
             { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
@@ -3504,7 +3504,7 @@ export default function DashboardPage() {
               {[
                 { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
                 { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} /> },
-                { id: 'products', label: 'Products CRUD', icon: <Package size={18} /> },
+                { id: 'products', label: 'Products', icon: <Package size={18} /> },
                 { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
                 { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
