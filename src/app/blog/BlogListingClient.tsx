@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, MapPin, Clock, ArrowRight, BookOpen, RotateCcw } from 'lucide-react';
 import Logo from '@/components/Logo';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -14,6 +14,11 @@ export default function BlogListingClient() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedCity, setSelectedCity] = useState('All');
+
+  // Pagination & progressive loading states
+  const [visibleCount, setVisibleCount] = useState(9);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observerRef = useRef<HTMLDivElement | null>(null);
 
   // Filter and search logic
   const filteredArticles = useMemo(() => {
@@ -33,10 +38,54 @@ export default function BlogListingClient() {
     });
   }, [searchTerm, selectedCategory, selectedCity]);
 
+  // Sliced articles to render currently visible page
+  const visibleArticles = useMemo(() => {
+    return filteredArticles.slice(0, visibleCount);
+  }, [filteredArticles, visibleCount]);
+
+  // Reset pagination when active filters or search terms change
+  useEffect(() => {
+    setVisibleCount(9);
+  }, [searchTerm, selectedCategory, selectedCity]);
+
+  // Load more handler with simulated transition for premium feel
+  const handleLoadMore = () => {
+    if (isLoadingMore) return;
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setVisibleCount((prev) => Math.min(prev + 9, filteredArticles.length));
+      setIsLoadingMore(false);
+    }, 600); // 600ms delay for premium spinner effect
+  };
+
+  // Intersection Observer for automated infinite scroll loading
+  useEffect(() => {
+    const currentSentinel = observerRef.current;
+    if (!currentSentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const firstEntry = entries[0];
+        if (firstEntry.isIntersecting && visibleCount < filteredArticles.length && !isLoadingMore) {
+          handleLoadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(currentSentinel);
+    return () => {
+      if (currentSentinel) {
+        observer.unobserve(currentSentinel);
+      }
+    };
+  }, [visibleCount, filteredArticles.length, isLoadingMore]);
+
   const handleReset = () => {
     setSearchTerm('');
     setSelectedCategory('All');
     setSelectedCity('All');
+    setVisibleCount(9);
   };
 
   return (
@@ -232,102 +281,198 @@ export default function BlogListingClient() {
 
         {/* Grid of Articles */}
         {filteredArticles.length > 0 ? (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
-            gap: 20,
-          }}>
-            {filteredArticles.map((article, index) => (
-              <a
-                href={`/blog/${getCountrySlug(article.country)}/${article.slug}`}
-                key={article.slug}
-                className="card card-hover animate-fade-in stagger"
+          <>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+              gap: 20,
+            }}>
+              {visibleArticles.map((article, index) => (
+                <a
+                  href={`/blog/${getCountrySlug(article.country)}/${article.slug}`}
+                  key={article.slug}
+                  className="card card-hover animate-fade-in stagger"
+                  style={{
+                    display: 'flex', flexDirection: 'column', overflow: 'hidden', textDecoration: 'none',
+                    animationDelay: `${(index % 9) * 50}ms`
+                  }}
+                >
+                  {/* Visual Header Block */}
+                  <div style={{
+                    height: 140,
+                    background: `linear-gradient(135deg, ${article.gradientFrom} 0%, ${article.gradientTo} 100%)`,
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 20,
+                    color: '#fff',
+                    overflow: 'hidden'
+                  }}>
+                    {/* Decorative background grid */}
+                    <div style={{
+                      position: 'absolute', inset: 0, opacity: 0.1,
+                      background: "url(\"data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='2' fill='%23ffffff'/%3E%3C/svg%3E\") repeat"
+                    }} />
+
+                    <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+                      <span className="badge" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 'var(--r-sm)', marginBottom: 8 }}>
+                        {article.category}
+                      </span>
+                      <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 800, textShadow: '0 2px 4px rgba(0,0,0,0.15)', lineHeight: 1.2 }}>
+                        {article.city} Shop Setup
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Card Body */}
+                  <div style={{ padding: 18, display: 'flex', flexDirection: 'column', flex: 1, gap: 10 }}>
+                    {/* City/Location Tag */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' }}>
+                      <MapPin size={11} style={{ color: 'var(--primary)' }} />
+                      <span>{article.city}, {article.country}</span>
+                    </div>
+
+                    {/* Title */}
+                    <h2 style={{
+                      fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 700, color: 'var(--text)',
+                      lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden', minHeight: 40
+                    }}>
+                      {article.title}
+                    </h2>
+
+                    {/* Excerpt */}
+                    <p style={{
+                      fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5,
+                      display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden', flex: 1
+                    }}>
+                      {article.metaDescription}
+                    </p>
+
+                    {/* Divider */}
+                    <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+
+                    {/* Author / Date / Read Time */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-faint)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{
+                          width: 22, height: 22, borderRadius: '50%',
+                          background: article.author.avatarBg, color: article.author.avatarColor,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 700, fontSize: 10, fontFamily: 'var(--font-heading)'
+                        }}>
+                          {article.author.avatarInitials}
+                        </div>
+                        <span style={{ fontWeight: 600, color: 'var(--text-2)' }}>{article.author.name}</span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                          <Clock size={11} /> {article.readTime}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              ))}
+
+              {/* Skeleton loading cards when pagination/infinite scroll is active */}
+              {isLoadingMore &&
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={`skeleton-${i}`}
+                    className="card animate-fade-in"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      overflow: 'hidden',
+                      minHeight: 380,
+                    }}
+                  >
+                    {/* Visual header block skeleton */}
+                    <div
+                      className="skeleton"
+                      style={{
+                        height: 140,
+                        width: '100%',
+                      }}
+                    />
+                    {/* Card Body skeleton */}
+                    <div style={{ padding: 18, display: 'flex', flexDirection: 'column', flex: 1, gap: 12 }}>
+                      {/* Location tag skeleton */}
+                      <div className="skeleton" style={{ height: 12, width: '40%', borderRadius: 4 }} />
+                      
+                      {/* Title skeleton */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div className="skeleton" style={{ height: 16, width: '90%', borderRadius: 4 }} />
+                        <div className="skeleton" style={{ height: 16, width: '60%', borderRadius: 4 }} />
+                      </div>
+
+                      {/* Excerpt skeleton */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, marginTop: 8 }}>
+                        <div className="skeleton" style={{ height: 12, width: '100%', borderRadius: 3 }} />
+                        <div className="skeleton" style={{ height: 12, width: '95%', borderRadius: 3 }} />
+                        <div className="skeleton" style={{ height: 12, width: '80%', borderRadius: 3 }} />
+                      </div>
+
+                      {/* Divider */}
+                      <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+
+                      {/* Footer skeleton */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div className="skeleton" style={{ width: 22, height: 22, borderRadius: '50%' }} />
+                          <div className="skeleton" style={{ height: 10, width: 60, borderRadius: 3 }} />
+                        </div>
+                        <div className="skeleton" style={{ height: 10, width: 40, borderRadius: 3 }} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {/* Pagination Sentinel / Load More Button */}
+            {visibleCount < filteredArticles.length && (
+              <div
+                ref={observerRef}
                 style={{
-                  display: 'flex', flexDirection: 'column', overflow: 'hidden', textDecoration: 'none',
-                  animationDelay: `${index * 50}ms`
+                  marginTop: 48,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  width: '100%',
                 }}
               >
-                {/* Visual Header Block */}
-                <div style={{
-                  height: 140,
-                  background: `linear-gradient(135deg, ${article.gradientFrom} 0%, ${article.gradientTo} 100%)`,
-                  position: 'relative',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 20,
-                  color: '#fff',
-                  overflow: 'hidden'
-                }}>
-                  {/* Decorative background grid */}
-                  <div style={{
-                    position: 'absolute', inset: 0, opacity: 0.1,
-                    background: "url(\"data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='2' fill='%23ffffff'/%3E%3C/svg%3E\") repeat"
-                  }} />
-
-                  <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-                    <span className="badge" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 'var(--r-sm)', marginBottom: 8 }}>
-                      {article.category}
-                    </span>
-                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 800, textShadow: '0 2px 4px rgba(0,0,0,0.15)', lineHeight: 1.2 }}>
-                      {article.city} Shop Setup
-                    </h3>
-                  </div>
-                </div>
-
-                {/* Card Body */}
-                <div style={{ padding: 18, display: 'flex', flexDirection: 'column', flex: 1, gap: 10 }}>
-                  {/* City/Location Tag */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase' }}>
-                    <MapPin size={11} style={{ color: 'var(--primary)' }} />
-                    <span>{article.city}, {article.country}</span>
-                  </div>
-
-                  {/* Title */}
-                  <h2 style={{
-                    fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 700, color: 'var(--text)',
-                    lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden', minHeight: 40
-                  }}>
-                    {article.title}
-                  </h2>
-
-                  {/* Excerpt */}
-                  <p style={{
-                    fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5,
-                    display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden', flex: 1
-                  }}>
-                    {article.metaDescription}
-                  </p>
-
-                  {/* Divider */}
-                  <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
-
-                  {/* Author / Date / Read Time */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-faint)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <div style={{
-                        width: 22, height: 22, borderRadius: '50%',
-                        background: article.author.avatarBg, color: article.author.avatarColor,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 700, fontSize: 10, fontFamily: 'var(--font-heading)'
-                      }}>
-                        {article.author.avatarInitials}
-                      </div>
-                      <span style={{ fontWeight: 600, color: 'var(--text-2)' }}>{article.author.name}</span>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                        <Clock size={11} /> {article.readTime}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  className="btn btn-outline"
+                  style={{
+                    padding: '12px 28px',
+                    fontSize: 14,
+                    borderRadius: 'var(--r-full)',
+                    minWidth: 180,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    boxShadow: 'var(--shadow-sm)',
+                    transition: 'all var(--t-normal) var(--ease)',
+                  }}
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <div className="spinner spinner-primary" style={{ width: 16, height: 16 }} />
+                      <span>Loading...</span>
+                    </>
+                  ) : (
+                    'Load More Articles'
+                  )}
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div style={{
             textAlign: 'center', padding: '64px 20px', background: 'var(--surface)',

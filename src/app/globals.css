@@ -1691,6 +1691,10 @@ img, video {
   to { transform: rotate(360deg); }
 }
 
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
 .spinner {
   width: 20px;
   height: 20px;
@@ -1699,6 +1703,15 @@ img, video {
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   flex-shrink: 0;
+}
+
+/* Reset spinner styling when applied to SVGs (like Lucide icons) to avoid double borders */
+svg.spinner {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  width: unset !important;
+  height: unset !important;
 }
 
 .spinner-primary {

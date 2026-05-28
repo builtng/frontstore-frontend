@@ -69,7 +69,18 @@ export function proxy(request: NextRequest) {
   // Any *.localhost or *.lvh.me host is a loopback host — never a custom domain.
   const isLoopbackHost = isLocal;
 
-  const isCustomDomain = !isMainDomain && !isLocalMain && !isLoopbackHost && !subdomain && parts.length >= 2;
+  // A domain is a platform domain if it's one of our main domains, a loopback host,
+  // or ends with one of our domain suffixes (meaning it's a subdomain like admin.aloaye.tech).
+  const isPlatformDomain =
+    isMainDomain ||
+    isLocalMain ||
+    isLoopbackHost ||
+    cleanHost.endsWith('.aloaye.tech') ||
+    cleanHost.endsWith('.aloaye.com') ||
+    cleanHost.endsWith('.localhost') ||
+    cleanHost.endsWith('.lvh.me');
+
+  const isCustomDomain = !isPlatformDomain && parts.length >= 2;
 
 
   // Redirect dashboard, admin, login, and signup routes on subdomains back to the main domain

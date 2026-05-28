@@ -937,7 +937,7 @@ function SignupFormContent() {
           id="create-store-btn"
         >
           {loading ? (
-            <Loader2 size={18} className="spinner" />
+            <Loader2 size={18} className="animate-spin" />
           ) : null}
           <span>
             {loading ? 'Launching Your Store...' : 'Create My Live Store'}

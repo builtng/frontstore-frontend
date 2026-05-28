@@ -259,7 +259,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
           id="login-btn"
         >
           {mounted && loading ? (
-            <Loader2 size={18} className="spinner" />
+            <Loader2 size={18} className="animate-spin" />
           ) : null}
           <span>
             {!mounted ? 'Access Dashboard' : (loading ? 'Signing In...' : (isAdminMode ? 'Access Admin Portal' : 'Access Dashboard'))}

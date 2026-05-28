@@ -718,7 +718,7 @@ function CheckoutDrawer({
             id="submit-checkout-btn"
           >
             {loading ? (
-              <Loader2 size={20} className="spinner" />
+              <Loader2 size={20} className="animate-spin" />
             ) : (
               <>
                 <WhatsAppIcon size={20} />
