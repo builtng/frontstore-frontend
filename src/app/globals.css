@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+/* Fonts are loaded via next/font in layout.tsx — no @import needed here */
 
 /* ================================================================
    ALOAYE DESIGN SYSTEM v2.0
@@ -6,9 +6,9 @@
    ================================================================ */
 
 :root {
-  /* Fonts */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-heading: 'Outfit', var(--font-sans);
+  /* Fonts — resolved from next/font CSS variables injected on <html> */
+  --font-sans: var(--font-inter, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  --font-heading: var(--font-outfit, 'Outfit', var(--font-sans));
 
   /* Brand / Primary – WhatsApp-inspired Emerald (overridable per-store) */
   --primary:        hsl(158, 84%, 39%);
@@ -106,7 +106,7 @@
 
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --bg:             hsl(222, 47%, 7%);
     --bg-2:           hsl(222, 47%, 9%);
     --surface:        hsl(222, 40%, 11%);
@@ -142,6 +142,43 @@
     --wa-bubble-customer-text:#e9edef;
     --wa-bubble-customer-time:#8696a0;
   }
+}
+
+:root.dark {
+  --bg:             hsl(222, 47%, 7%);
+  --bg-2:           hsl(222, 47%, 9%);
+  --surface:        hsl(222, 40%, 11%);
+  --surface-2:      hsl(222, 36%, 13%);
+  --border:         hsl(222, 24%, 18%);
+  --border-strong:  hsl(222, 24%, 24%);
+
+  --text:           hsl(210, 40%, 96%);
+  --text-2:         hsl(214, 32%, 78%);
+  --text-muted:     hsl(215, 20%, 55%);
+  --text-faint:     hsl(215, 16%, 38%);
+
+  --glass-bg:       rgba(17, 24, 39, 0.78);
+  --glass-border:   rgba(255, 255, 255, 0.06);
+  --glass-shadow:   0 8px 32px rgba(0, 0, 0, 0.4);
+
+  --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md:  0 4px 8px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-lg:  0 12px 24px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2);
+  --shadow-xl:  0 24px 48px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.3);
+
+  --primary-light:  hsl(158, 84%, 10%);
+  --accent-light:   hsl(38, 92%, 10%);
+  --danger-light:   hsl(0, 100%, 10%);
+
+  /* WhatsApp Simulator Dark Mode Overrides */
+  --wa-chat-bg:             #0b141a;
+  --wa-bubble-merchant-bg:  #005c4b;
+  --wa-bubble-merchant-text:#e9edef;
+  --wa-bubble-merchant-time:#8696a0;
+  --wa-bubble-customer-bg:  #202c33;
+  --wa-bubble-customer-text:#e9edef;
+  --wa-bubble-customer-time:#8696a0;
 }
 
 /* ================================================================
@@ -376,9 +413,23 @@ img, video {
 }
 
 .badge-verified {
-  background: linear-gradient(135deg, var(--primary-light), hsl(158, 84%, 92%));
+  background: linear-gradient(135deg, var(--primary-light), color-mix(in srgb, var(--primary) 15%, white));
   color: var(--primary);
-  border: 1px solid hsl(158, 84%, 82%);
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, white);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .badge-verified {
+    background: linear-gradient(135deg, var(--primary-light), color-mix(in srgb, var(--primary) 18%, black));
+    color: color-mix(in srgb, var(--primary) 85%, white);
+    border: 1px solid color-mix(in srgb, var(--primary) 25%, black);
+  }
+}
+
+:root.dark .badge-verified {
+  background: linear-gradient(135deg, var(--primary-light), color-mix(in srgb, var(--primary) 18%, black));
+  color: color-mix(in srgb, var(--primary) 85%, white);
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, black);
 }
 
 /* Input */
@@ -1707,3 +1758,153 @@ img, video {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+/* ================================================================
+   ADDITIONAL RESPONSIVE DASHBOARD OPTIMIZATIONS
+   ================================================================ */
+
+/* Responsive tables & cards toggle */
+.desktop-table-view {
+  display: table !important;
+}
+.mobile-cards-view {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-table-view {
+    display: none !important;
+  }
+  .mobile-cards-view {
+    display: flex !important;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+/* Responsive grid layouts */
+.responsive-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+@media (max-width: 580px) {
+  .responsive-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+}
+
+/* Two-column catalog on mobile */
+.responsive-product-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+@media (max-width: 580px) {
+  .responsive-product-catalog-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+}
+
+/* Form row responsiveness */
+.responsive-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (max-width: 550px) {
+  .responsive-form-row {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+/* Responsive bottom sheet modals for mobile screens */
+@media (max-width: 640px) {
+  .responsive-modal-container {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 85vh !important;
+    border-radius: 24px 24px 0 0 !important;
+    border-bottom: none !important;
+    margin: 0 !important;
+    box-shadow: 0 -10px 32px rgba(15, 23, 42, 0.15) !important;
+    animation: slideSheetUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    padding: 20px 16px 32px !important;
+  }
+  
+  .responsive-modal-overlay {
+    background: rgba(15, 23, 42, 0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+}
+
+@keyframes slideSheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Horizontal scrolling helper for SVG chart on small screens */
+.chart-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.chart-scroll-content {
+  min-width: 520px;
+}
+
+/* Checklist layout helper */
+.checklist-step-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+}
+@media (max-width: 520px) {
+  .checklist-step-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .checklist-step-row > button,
+  .checklist-step-row > span {
+    align-self: flex-end !important;
+  }
+}
+
+/* Card adjustments for 2-column mobile view */
+@media (max-width: 580px) {
+  .responsive-product-card {
+    min-height: 290px !important;
+  }
+  .responsive-product-card-body {
+    padding: 10px !important;
+    gap: 2px !important;
+  }
+  .responsive-product-card-title {
+    font-size: 13px !important;
+    min-height: 36px !important;
+    line-height: 1.3 !important;
+  }
+  .responsive-product-card-price {
+    font-size: 14.5px !important;
+  }
+  .responsive-product-card-desc {
+    display: none !important; /* Hide description on mobile to save vertical space */
+  }
+}
+
+

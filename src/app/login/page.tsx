@@ -2,21 +2,26 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import {
-  Sparkles, Globe, Store, Lock, Eye, EyeOff, Loader2, ArrowRight, Phone, Check, LogIn
+  Sparkles, Globe, Store, Lock, Eye, EyeOff, Loader2, ArrowRight, Phone, Check, LogIn, Mail
 } from 'lucide-react';
 
-function LoginFormContent() {
+function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: boolean; merchantLoginUrl: string }) {
   const router = useRouter();
 
-  const [phone, setPhone] = useState('');
+  const [loginIdentifier, setLoginIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
@@ -26,8 +31,13 @@ function LoginFormContent() {
       const token = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
       if (token && storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        router.push(parsedUser?.is_admin ? '/admin' : '/dashboard');
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          const isAdmin = parsedUser?.is_admin === true || parsedUser?.is_admin === 1 || parsedUser?.is_admin === 'true' || parsedUser?.is_admin === '1';
+          router.push(isAdmin ? '/admin' : '/dashboard');
+        } catch (e) {
+          console.error("Failed to parse user details in login redirect hook", e);
+        }
       }
     }
   }, [router]);
@@ -35,8 +45,8 @@ function LoginFormContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!phone || !password) {
-      setError('Please enter your phone number and password.');
+    if (!loginIdentifier || !password) {
+      setError(isAdminMode ? 'Please enter your administrator email and password.' : 'Please enter your phone number and password.');
       return;
     }
 
@@ -51,7 +61,7 @@ function LoginFormContent() {
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          phone_number: phone,
+          phone_number: loginIdentifier,
           password: password,
         }),
       });
@@ -66,7 +76,7 @@ function LoginFormContent() {
         localStorage.setItem('user', JSON.stringify(json.data.user));
         localStorage.setItem('store', JSON.stringify(json.data.store || null));
 
-        const isAdmin = json.data.user?.is_admin === true;
+        const isAdmin = json.data.user?.is_admin === true || json.data.user?.is_admin === 1 || json.data.user?.is_admin === 'true' || json.data.user?.is_admin === '1';
         toast.success(isAdmin ? 'Welcome, Administrator! 🛡️' : 'Welcome back to aloaye! 👋');
         router.push(isAdmin ? '/admin' : '/dashboard');
       } else {
@@ -92,10 +102,13 @@ function LoginFormContent() {
           <span>aloaye</span>
         </a>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em' }}>
-          Merchant Log In
+          {isAdminMode ? 'Admin Log In' : 'Merchant Log In'}
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 14.5, lineHeight: 1.5 }}>
-          Access your digital storefront dashboard, manage orders, and upload products.
+          {isAdminMode 
+            ? 'Access the platform management, configure global settings, and view growth statistics.'
+            : 'Access your digital storefront dashboard, manage orders, and upload products.'
+          }
         </p>
       </header>
 
@@ -117,42 +130,56 @@ function LoginFormContent() {
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         
         <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)' }}>
-          {/* Phone Number */}
+          {/* Phone Number / Email */}
           <div>
             <label
-              htmlFor="phone"
+              htmlFor="loginIdentifier"
               style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
             >
-              WhatsApp Phone Number
+              {isAdminMode ? 'Admin Email Address' : 'WhatsApp Phone Number'}
             </label>
             <div style={{ position: 'relative' }}>
               <input
-                id="phone"
-                type="tel"
+                id="loginIdentifier"
+                type="text"
                 required
-                placeholder="e.g. +2348031234567"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                onFocus={() => setFocusedInput('phone')}
+                placeholder={isAdminMode ? 'e.g. admin@aloaye.tech' : 'e.g. +2348031234567'}
+                value={loginIdentifier}
+                onChange={e => setLoginIdentifier(e.target.value)}
+                onFocus={() => setFocusedInput('loginIdentifier')}
                 onBlur={() => setFocusedInput(null)}
                 className="input-field"
                 style={{
                   paddingLeft: 44,
-                  borderColor: focusedInput === 'phone' ? 'var(--primary)' : 'var(--border)'
+                  borderColor: focusedInput === 'loginIdentifier' ? 'var(--primary)' : 'var(--border)'
                 }}
-                autoComplete="tel"
+                autoComplete="username"
               />
-              <Phone size={18} style={{
-                position: 'absolute',
-                left: 14,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: focusedInput === 'phone' ? 'var(--primary)' : 'var(--text-faint)',
-                transition: 'color var(--t-fast)'
-              }} />
+              {loginIdentifier.includes('@') ? (
+                <Mail size={18} style={{
+                  position: 'absolute',
+                  left: 14,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: focusedInput === 'loginIdentifier' ? 'var(--primary)' : 'var(--text-faint)',
+                  transition: 'color var(--t-fast)'
+                }} />
+              ) : (
+                <Phone size={18} style={{
+                  position: 'absolute',
+                  left: 14,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: focusedInput === 'loginIdentifier' ? 'var(--primary)' : 'var(--text-faint)',
+                  transition: 'color var(--t-fast)'
+                }} />
+              )}
             </div>
             <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-              Use your registered WhatsApp phone number (with country code e.g. +234...)
+              {isAdminMode 
+                ? 'Enter your registered administrator email address'
+                : 'Use your registered WhatsApp phone number (with country code e.g. +234...)'
+              }
             </span>
           </div>
 
@@ -203,6 +230,7 @@ function LoginFormContent() {
                   color: 'var(--text-faint)', padding: 4,
                 }}
                 aria-label={showPw ? 'Hide password' : 'Show password'}
+                suppressHydrationWarning
               >
                 {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -230,19 +258,32 @@ function LoginFormContent() {
           }}
           id="login-btn"
         >
-          {loading ? (
-            <><Loader2 size={18} className="spinner" /> Signing In...</>
-          ) : (
-            <>Access Dashboard <ArrowRight size={18} /></>
-          )}
+          {mounted && loading ? (
+            <Loader2 size={18} className="spinner" />
+          ) : null}
+          <span>
+            {!mounted ? 'Access Dashboard' : (loading ? 'Signing In...' : (isAdminMode ? 'Access Admin Portal' : 'Access Dashboard'))}
+          </span>
+          {mounted && !loading ? (
+            <ArrowRight size={18} />
+          ) : null}
         </button>
 
-        <p style={{ textAlign: 'center', fontSize: 13.5, color: 'var(--text-muted)', marginTop: 8 }}>
-          Don't have a store yet?{' '}
-          <a href="/signup" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>
-            Create storefront
-          </a>
-        </p>
+        {isAdminMode ? (
+          <p style={{ textAlign: 'center', fontSize: 13.5, color: 'var(--text-muted)', marginTop: 8 }}>
+            Looking for merchant login?{' '}
+            <a href={merchantLoginUrl} style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>
+              Go to merchant login
+            </a>
+          </p>
+        ) : (
+          <p style={{ textAlign: 'center', fontSize: 13.5, color: 'var(--text-muted)', marginTop: 8 }}>
+            Don't have a store yet?{' '}
+            <a href="/signup" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>
+              Create storefront
+            </a>
+          </p>
+        )}
 
       </form>
     </div>
@@ -250,6 +291,32 @@ function LoginFormContent() {
 }
 
 export default function LoginPage() {
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [merchantLoginUrl, setMerchantLoginUrl] = useState('/login');
+
+  useEffect(() => {
+    const hostname = window.location.hostname;
+    const parts = hostname.split('.');
+    const isLocal = hostname.endsWith('localhost') || hostname.endsWith('lvh.me');
+    let subdomain = '';
+    if (isLocal) {
+      if (parts.length > 1 && parts[0] !== 'www' && parts[0] !== 'localhost' && parts[0] !== 'lvh') {
+        subdomain = parts[0];
+      }
+    } else {
+      if (parts.length >= 3 && parts[0] !== 'www') {
+        subdomain = parts[0];
+      }
+    }
+    if (subdomain === 'admin') {
+      setIsAdminMode(true);
+      // Build the merchant-facing login URL (strip the admin. subdomain)
+      const port = window.location.port;
+      const mainHost = hostname.replace('admin.', '');
+      setMerchantLoginUrl(`${window.location.protocol}//${mainHost}${port ? `:${port}` : ''}/login`);
+    }
+  }, []);
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -317,7 +384,7 @@ export default function LoginPage() {
             marginBottom: 24,
             letterSpacing: '-0.03em'
           }}>
-            Welcome Back to Your Store Headquarters.
+            {isAdminMode ? 'Welcome Back to Your Admin Control Center.' : 'Welcome Back to Your Store Headquarters.'}
           </h2>
 
           <p style={{
@@ -327,17 +394,28 @@ export default function LoginPage() {
             marginBottom: 40,
             fontWeight: 500
           }}>
-            Sign in to manage your orders, tweak storefront settings, create products with ChatGPT AI descriptions, and interact with prospective buyers in real time.
+            {isAdminMode
+              ? 'Sign in to monitor system performance, manage merchants, resolve support queries, and configure global platform settings.'
+              : 'Sign in to manage your orders, tweak storefront settings, create products with ChatGPT AI descriptions, and interact with prospective buyers in real time.'
+            }
           </p>
 
           {/* Quick specs */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {[
-              'Track visitor views & conversion rates',
-              'Update order shipping & payment statuses',
-              'Generate ChatGPT AI product descriptions',
-              'Manage storefront details in real-time'
-            ].map(spec => (
+            {(isAdminMode
+              ? [
+                  'Monitor real-time platform transactions',
+                  'Manage storefront statuses & active plans',
+                  'Configure application-wide settings & APIs',
+                  'Audit system activity & user accounts'
+                ]
+              : [
+                  'Track visitor views & conversion rates',
+                  'Update order shipping & payment statuses',
+                  'Generate ChatGPT AI product descriptions',
+                  'Manage storefront details in real-time'
+                ]
+            ).map(spec => (
               <div key={spec} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{
                   width: 24, height: 24, borderRadius: '50%',
@@ -386,7 +464,7 @@ export default function LoginPage() {
               <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading storefront dashboard login...</span>
             </div>
           }>
-            <LoginFormContent />
+            <LoginFormContent isAdminMode={isAdminMode} merchantLoginUrl={merchantLoginUrl} />
           </Suspense>
         </div>
       </div>

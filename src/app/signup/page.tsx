@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import {
   Sparkles, Globe, Copy, CheckCircle2, Smartphone, Lock, Lightbulb,
   Share2, Store, AlertCircle, Eye, EyeOff, Loader2, ArrowRight, User, Phone, Check, ShieldCheck, Mail
 } from 'lucide-react';
+import { RESERVED_SUBDOMAINS } from '../../utils/reservedKeywords';
 
 // ── Password strength helper ─────────────────────────────────────────────────
 
@@ -66,6 +67,7 @@ function SignupFormContent() {
   const [password,  setPassword]  = useState('');
   const [showPw,    setShowPw]    = useState(false);
   const [hostSuffix, setHostSuffix] = useState('.aloaye.com');
+  const [mounted, setMounted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
@@ -84,6 +86,7 @@ function SignupFormContent() {
 
   // Detect host suffix
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== 'undefined') {
       const clean = window.location.host.replace(/^www\./, '');
       setHostSuffix(`.${clean}`);
@@ -169,8 +172,8 @@ function SignupFormContent() {
       setError('Store username must be at least 3 characters.');
       return;
     }
-    if (cleanUsername === 'aloaye') {
-      setError('The username "aloaye" is reserved.');
+    if (RESERVED_SUBDOMAINS.includes(cleanUsername)) {
+      setError(`The username "${cleanUsername}" is reserved.`);
       return;
     }
     if (password.length < 6) {
@@ -884,6 +887,7 @@ function SignupFormContent() {
                   color: 'var(--text-faint)', padding: 4,
                 }}
                 aria-label={showPw ? 'Hide password' : 'Show password'}
+                suppressHydrationWarning
               >
                 {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -933,10 +937,14 @@ function SignupFormContent() {
           id="create-store-btn"
         >
           {loading ? (
-            <><Loader2 size={18} className="spinner" /> Launching Your Store...</>
-          ) : (
-            <>Create My Live Store <ArrowRight size={18} /></>
-          )}
+            <Loader2 size={18} className="spinner" />
+          ) : null}
+          <span>
+            {loading ? 'Launching Your Store...' : 'Create My Live Store'}
+          </span>
+          {!loading ? (
+            <ArrowRight size={18} />
+          ) : null}
         </button>
 
         <p style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
@@ -954,6 +962,30 @@ function SignupFormContent() {
 // ── Page wrapper ──────────────────────────────────────────────────────────────
 
 export default function SignupPage() {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      const parts = hostname.split('.');
+      const isLocal = hostname.endsWith('localhost') || hostname.endsWith('lvh.me');
+      let subdomain = '';
+      if (isLocal) {
+        if (parts.length > 1 && parts[0] !== 'www' && parts[0] !== 'localhost' && parts[0] !== 'lvh') {
+          subdomain = parts[0];
+        }
+      } else {
+        if (parts.length >= 3 && parts[0] !== 'www') {
+          subdomain = parts[0];
+        }
+      }
+      if (subdomain === 'admin') {
+        const port = window.location.port;
+        const mainHost = hostname.replace('admin.', '');
+        const targetUrl = `${window.location.protocol}//${mainHost}${port ? `:${port}` : ''}/signup`;
+        window.location.replace(targetUrl);
+      }
+    }
+  }, []);
+
   return (
     <div style={{
       minHeight: '100vh',

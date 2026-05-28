@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Store, ArrowRight, Search, Globe, Instagram, ShieldCheck, ShoppingBag } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import Logo from '../../components/Logo';
+import ThemeToggle from '../../components/ThemeToggle';
 
 interface StoreItem {
   id: string;
@@ -72,6 +73,14 @@ export default function StoresDirectoryPage() {
         </a>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <ThemeToggle />
+          <a
+            href="/blog"
+            className="btn btn-ghost"
+            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
+          >
+            Blog
+          </a>
           <a
             href="/login"
             className="btn btn-ghost"

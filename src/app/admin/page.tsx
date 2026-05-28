@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import {
   Shield, BarChart3, Store, Tag, Settings, LogOut,
   Users, ShoppingBag, DollarSign, Activity, Search,
@@ -124,18 +124,33 @@ export default function AdminPage() {
 
       setApiUrl(savedApiUrl);
 
-      if (storedToken && storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser.is_admin) {
-          setToken(storedToken);
-          setIsAdmin(true);
-          setIsAuthenticated(true);
-        } else {
-          setIsAdmin(false);
-          setIsAuthenticated(true); // Is a merchant, but NOT an admin
+      const triggerRedirect = () => {
+        router.replace('/login');
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+            window.location.replace('/login');
+          }
+        }, 1000);
+      };
+
+      if (storedToken && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          const userIsAdmin = parsedUser && (parsedUser.is_admin === true || parsedUser.is_admin === 1 || parsedUser.is_admin === 'true' || parsedUser.is_admin === '1');
+          if (userIsAdmin) {
+            setToken(storedToken);
+            setIsAdmin(true);
+            setIsAuthenticated(true);
+          } else {
+            setIsAdmin(false);
+            setIsAuthenticated(true); // Is a merchant, but NOT an admin
+          }
+        } catch (e) {
+          console.error("Failed to parse stored user:", e);
+          triggerRedirect();
         }
       } else {
-        router.push('/login');
+        triggerRedirect();
       }
       setIsAuthChecking(false);
     }
@@ -395,11 +410,35 @@ export default function AdminPage() {
   // --- UI Renders ---
 
   // Auth checking indicator
-  if (isAuthChecking) {
+  if (isAuthChecking || !isAuthenticated) {
     return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)', gap: 16 }}>
-        <RefreshCw style={{ animation: 'spin 1.5s linear infinite', color: 'var(--primary)' }} size={32} />
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)', gap: 20, fontFamily: 'var(--font-heading)' }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Outer glowing pulse ring */}
+          <div style={{
+            position: 'absolute',
+            width: 70,
+            height: 70,
+            borderRadius: '50%',
+            border: '2px solid var(--primary)',
+            opacity: 0,
+            animation: 'pulse-ring-admin 2s cubic-bezier(0.215, 0.610, 0.355, 1) infinite'
+          }} />
+          <RefreshCw style={{ animation: 'spin-loader-admin 1.5s linear infinite', color: 'var(--primary)' }} size={32} />
+        </div>
         <p style={{ fontSize: 14, color: 'var(--text-muted)', fontWeight: 600 }}>Securing Administrator Dashboard...</p>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes spin-loader-admin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            @keyframes pulse-ring-admin {
+              0% { transform: scale(0.6); opacity: 0.8; }
+              100% { transform: scale(1.3); opacity: 0; }
+            }
+          `
+        }} />
       </div>
     );
   }

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 // useParams imported removed for prop transition
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import {
   Search, X, ChevronLeft, ChevronRight, Share2, ShoppingCart,
   Instagram, Music2, CheckCircle2, Star,

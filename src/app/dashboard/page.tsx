@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import {
   Sparkles, Zap, Link, BarChart3, Globe,
   Store, Star, ArrowRight, CheckCircle2, User, LogOut,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import SearchableSelect from '../../components/SearchableSelect';
+import ThemeToggle from '../../components/ThemeToggle';
 
 // --- Type Definitions ---
 interface UserInfo {
@@ -179,6 +180,9 @@ export default function DashboardPage() {
   // Mobile navigation overlay
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // WhatsApp Simulator Mobile view state ('list' showing contacts, 'chat' showing chat viewport)
+  const [activeWaView, setActiveWaView] = useState<'list' | 'chat'>('list');
+
   // --- Active Dialog/Modal States ---
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [isEditProductOpen, setIsEditProductOpen] = useState(false);
@@ -309,35 +313,51 @@ export default function DashboardPage() {
       setApiUrl(savedApiUrl);
       setDevApiInput(savedApiUrl);
 
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-        if (storedStore && storedStore !== 'undefined') {
-          const parsedStore = JSON.parse(storedStore);
-          setStore(parsedStore);
-          // Prefill settings form
-          setSetStoreName(parsedStore.store_name || '');
-          setSetStoreBio(parsedStore.store_bio || '');
-          const parsedPhone = parsePhoneNumber(parsedStore.whatsapp_phone || '');
-          setSelectedCountry(parsedPhone.country);
-          setLocalWhatsapp(parsedPhone.local);
-          setSetInstagram(parsedStore.instagram_handle || '');
-          setSetTiktok(parsedStore.tiktok_handle || '');
-          setSetCurrency(parsedStore.currency_code || 'NGN');
-          setPaymentBankName(parsedStore.bank_name || '');
-          setPaymentBankCode(parsedStore.paystack_bank_code || '');
-          setPaymentAccountNumber(parsedStore.bank_account_number || '');
-          setPaymentAccountName(parsedStore.bank_account_name || '');
-          setPaymentInstructions(parsedStore.payment_instructions || '');
-          setAccountVerified(!!parsedStore.bank_account_verified);
-          setNameMatchOk(parsedStore.bank_account_verified ? true : null);
-          setLogoUrl(parsedStore.logo_url || null);
-          setCustomLinks(parsedStore.custom_links || []);
-          setPrimaryColor(parsedStore.primary_color || '#10b981');
+      const triggerRedirect = () => {
+        router.replace('/login');
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+            window.location.replace('/login');
+          }
+        }, 1000);
+      };
+
+      if (storedToken && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setToken(storedToken);
+          setUser(parsedUser);
+          
+          if (storedStore && storedStore !== 'undefined' && storedStore !== 'null') {
+            const parsedStore = JSON.parse(storedStore);
+            setStore(parsedStore);
+            // Prefill settings form
+            setSetStoreName(parsedStore.store_name || '');
+            setSetStoreBio(parsedStore.store_bio || '');
+            const parsedPhone = parsePhoneNumber(parsedStore.whatsapp_phone || '');
+            setSelectedCountry(parsedPhone.country);
+            setLocalWhatsapp(parsedPhone.local);
+            setSetInstagram(parsedStore.instagram_handle || '');
+            setSetTiktok(parsedStore.tiktok_handle || '');
+            setSetCurrency(parsedStore.currency_code || 'NGN');
+            setPaymentBankName(parsedStore.bank_name || '');
+            setPaymentBankCode(parsedStore.paystack_bank_code || '');
+            setPaymentAccountNumber(parsedStore.bank_account_number || '');
+            setPaymentAccountName(parsedStore.bank_account_name || '');
+            setPaymentInstructions(parsedStore.payment_instructions || '');
+            setAccountVerified(!!parsedStore.bank_account_verified);
+            setNameMatchOk(parsedStore.bank_account_verified ? true : null);
+            setLogoUrl(parsedStore.logo_url || null);
+            setCustomLinks(parsedStore.custom_links || []);
+            setPrimaryColor(parsedStore.primary_color || '#10b981');
+          }
+          setIsAuthenticated(true);
+        } catch (e) {
+          console.error("Failed to parse stored user or store:", e);
+          triggerRedirect();
         }
-        setIsAuthenticated(true);
       } else {
-        router.push('/login');
+        triggerRedirect();
       }
       setIsAuthChecking(false);
     }
@@ -571,11 +591,10 @@ export default function DashboardPage() {
         setActiveTab('orders');
       }, 1000);
     } else if (text.includes('chat') || text.includes('whatsapp') || text.includes('simulator') || text.includes('message')) {
-      setAiResponseBubble(`✨ AI Assistant: Opening simulated WhatsApp Chat panel...`);
+      setAiResponseBubble(`✨ AI Assistant: The WhatsApp Simulator is disabled for this environment. Share your store link to receive live customer checkouts!`);
       setTimeout(() => {
         setAiResponseBubble(null);
-        setActiveTab('whatsapp');
-      }, 1000);
+      }, 4000);
     } else if (text.includes('setting') || text.includes('bio') || text.includes('phone')) {
       setAiResponseBubble(`✨ AI Assistant: Navigating to settings...`);
       setTimeout(() => {
@@ -1193,11 +1212,35 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
-  if (isAuthChecking) {
+  if (isAuthChecking || !isAuthenticated) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', gap: 16 }}>
-        <Loader2 size={36} className="spinner" style={{ color: 'var(--primary)' }} />
-        <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-heading)', fontWeight: 600 }}>Verifying credentials...</span>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', gap: 20, fontFamily: 'var(--font-heading)' }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Outer glowing pulse ring */}
+          <div style={{
+            position: 'absolute',
+            width: 70,
+            height: 70,
+            borderRadius: '50%',
+            border: '2px solid var(--primary)',
+            opacity: 0,
+            animation: 'pulse-ring-dash 2s cubic-bezier(0.215, 0.610, 0.355, 1) infinite'
+          }} />
+          <Loader2 size={32} className="spinner" style={{ color: 'var(--primary)', animation: 'spin-loader-dash 1s linear infinite' }} />
+        </div>
+        <span style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: 14 }}>Verifying credentials...</span>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes spin-loader-dash {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            @keyframes pulse-ring-dash {
+              0% { transform: scale(0.6); opacity: 0.8; }
+              100% { transform: scale(1.3); opacity: 0; }
+            }
+          `
+        }} />
       </div>
     );
   }
@@ -1297,7 +1340,7 @@ export default function DashboardPage() {
             { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
             { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
             { id: 'products', label: 'Products', icon: <Package size={18} /> },
-            { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} />, badge: 1 },
+            // { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} />, badge: 1 },
             { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
             { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
             { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
@@ -1343,7 +1386,11 @@ export default function DashboardPage() {
         </nav>
 
         {/* Footer Actions */}
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>Theme Mode</span>
+            <ThemeToggle />
+          </div>
           <button
             onClick={handleLogout}
             className="btn btn-ghost clickable"
@@ -1363,33 +1410,42 @@ export default function DashboardPage() {
       {/* ── MAIN CONTENT WORKSPACE ── */}
       <main className="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
         
-        {/* Desktop Topbar */}
-        <header className="glass" style={{
+        {/* Desktop & Mobile Header Topbar */}
+        <header className="glass main-header" style={{
           position: 'sticky', top: 0, zIndex: 30,
-          padding: '16px 24px',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           borderBottom: '1px solid var(--border)',
         }}>
-          {/* Mobile menu trigger */}
-          <button
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="mobile-burger-btn"
-            style={{ background: 'none', border: 'none', color: 'var(--text)', display: 'none', padding: 4 }}
-          >
-            <Menu size={24} />
-          </button>
+          {/* Left section: mobile toggle and mobile brand logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Mobile menu trigger */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="mobile-burger-btn"
+              style={{ background: 'none', border: 'none', color: 'var(--text)', display: 'none', padding: 4 }}
+            >
+              <Menu size={24} />
+            </button>
+
+            {/* Mobile logo (hidden on desktop via css) */}
+            <div className="header-logo-mobile" style={{ display: 'none', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: 'var(--primary)', color: '#fff', width: 28, height: 28, borderRadius: 'var(--r-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-primary)' }}>
+                <Store size={15} />
+              </div>
+              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em' }}>aloaye</span>
+            </div>
+          </div>
 
           {/* AI Command Input Bar */}
-          <form onSubmit={handleAiCommandSubmit} style={{ display: 'flex', flex: 1, maxWidth: 460, position: 'relative', margin: '0 16px' }}>
+          <form onSubmit={handleAiCommandSubmit} className="header-search-form" style={{ display: 'flex', flex: 1, maxWidth: 460, position: 'relative', margin: '0 16px' }}>
             <input
               type="text"
-              placeholder="⚡ Type command: 'Add product', 'insights', 'discount'..."
+              placeholder="⚡ Search or command..."
               value={aiCommand}
               onChange={e => setAiCommand(e.target.value)}
               style={{
                 width: '100%',
-                padding: '10px 14px 10px 38px',
-                fontSize: 13.5,
+                padding: '9px 12px 9px 36px',
+                fontSize: 13,
                 background: 'var(--bg-2)',
                 border: '1.5px solid var(--border)',
                 borderRadius: 'var(--r-lg)',
@@ -1397,7 +1453,7 @@ export default function DashboardPage() {
                 color: 'var(--text)'
               }}
             />
-            <Sparkles size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
+            <Sparkles size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
             
             {aiResponseBubble && (
               <div className="card glass animate-scale-in" style={{ position: 'absolute', top: '115%', left: 0, right: 0, padding: 12, fontSize: 13, fontWeight: 600, border: '1px solid var(--primary)', zIndex: 50, color: 'var(--text)' }}>
@@ -1407,12 +1463,13 @@ export default function DashboardPage() {
           </form>
 
           {/* Right Action Widgets */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <ThemeToggle />
             <button
               onClick={() => loadAllData(true)}
               disabled={isRefreshing}
               className="btn btn-outline clickable"
-              style={{ padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-md)' }}
+              style={{ padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               title="Refresh Stats"
             >
               <RefreshCw size={14} className={isRefreshing ? 'spin' : ''} />
@@ -1423,9 +1480,10 @@ export default function DashboardPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-primary clickable"
-              style={{ padding: '8px 16px', fontSize: 12.5, borderRadius: 'var(--r-md)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              style={{ padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-md)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}
+              title="Visit Store"
             >
-              <span>Visit Store</span>
+              <span className="desktop-only-text">Visit Store</span>
               <ArrowUpRight size={14} />
             </a>
           </div>
@@ -1509,11 +1567,8 @@ export default function DashboardPage() {
                           {steps.map((step, idx) => (
                             <div
                               key={step.id}
+                              className="checklist-step-row"
                               style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 14,
-                                padding: '14px 0',
                                 borderBottom: idx < steps.length - 1 ? '1px solid var(--border)' : 'none',
                                 opacity: step.done ? 0.55 : 1,
                               }}
@@ -1575,11 +1630,7 @@ export default function DashboardPage() {
                   })()}
 
                   {/* Top Stats Row */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: 16
-                  }}>
+                  <div className="responsive-stats-grid">
 
                     <div className="card hover-lift" style={{ padding: 20 }}>
                       <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Revenue</span>
@@ -1635,42 +1686,46 @@ export default function DashboardPage() {
                         <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Last 7 Days</span>
                       </div>
                       
-                      {/* Bar columns */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', height: 160, padding: '0 10px', borderBottom: '1px solid var(--border)' }}>
-                        {[
-                          { day: 'Mon', views: 30, wa: 10 },
-                          { day: 'Tue', views: 45, wa: 15 },
-                          { day: 'Wed', views: 75, wa: 22 },
-                          { day: 'Thu', views: 50, wa: 18 },
-                          { day: 'Fri', views: 90, wa: 30 },
-                          { day: 'Sat', views: 120, wa: 42 },
-                          { day: 'Sun', views: 80, wa: 25 }
-                        ].map((item, idx) => {
-                          const maxVal = 130;
-                          const viewsHeight = `${(item.views / maxVal) * 100}%`;
-                          const waHeight = `${(item.wa / maxVal) * 100}%`;
-                          
-                          return (
-                            <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, gap: 8, height: '100%', justifyContent: 'flex-end' }}>
-                              <div style={{ display: 'flex', gap: 4, width: '70%', height: '100%', alignItems: 'flex-end', justifyContent: 'center' }}>
-                                {/* Views bar */}
-                                <div style={{ height: viewsHeight, width: 8, background: 'var(--primary)', opacity: 0.35, borderRadius: '4px 4px 0 0' }} title={`Views: ${item.views}`} />
-                                {/* WhatsApp clicks bar */}
-                                <div style={{ height: waHeight, width: 8, background: 'var(--primary)', borderRadius: '4px 4px 0 0' }} title={`WhatsApp Clicks: ${item.wa}`} />
-                              </div>
-                              <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginTop: 4 }}>{item.day}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      {/* Bar columns scrollable wrapper */}
+                      <div className="chart-scroll-container">
+                        <div className="chart-scroll-content">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', height: 160, padding: '0 10px', borderBottom: '1px solid var(--border)' }}>
+                            {[
+                              { day: 'Mon', views: 30, wa: 10 },
+                              { day: 'Tue', views: 45, wa: 15 },
+                              { day: 'Wed', views: 75, wa: 22 },
+                              { day: 'Thu', views: 50, wa: 18 },
+                              { day: 'Fri', views: 90, wa: 30 },
+                              { day: 'Sat', views: 120, wa: 42 },
+                              { day: 'Sun', views: 80, wa: 25 }
+                            ].map((item, idx) => {
+                              const maxVal = 130;
+                              const viewsHeight = `${(item.views / maxVal) * 100}%`;
+                              const waHeight = `${(item.wa / maxVal) * 100}%`;
+                              
+                              return (
+                                <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, gap: 8, height: '100%', justifyContent: 'flex-end' }}>
+                                  <div style={{ display: 'flex', gap: 4, width: '70%', height: '100%', alignItems: 'flex-end', justifyContent: 'center' }}>
+                                    {/* Views bar */}
+                                    <div style={{ height: viewsHeight, width: 8, background: 'var(--primary)', opacity: 0.35, borderRadius: '4px 4px 0 0' }} title={`Views: ${item.views}`} />
+                                    {/* WhatsApp clicks bar */}
+                                    <div style={{ height: waHeight, width: 8, background: 'var(--primary)', borderRadius: '4px 4px 0 0' }} title={`WhatsApp Clicks: ${item.wa}`} />
+                                  </div>
+                                  <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginTop: 4 }}>{item.day}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
 
-                      <div style={{ display: 'flex', gap: 20, marginTop: 16, justifyContent: 'center', fontSize: 12 }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)' }}>
-                          <span style={{ width: 10, height: 10, background: 'var(--primary)', opacity: 0.35, borderRadius: '50%' }} /> Catalog Views
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)' }}>
-                          <span style={{ width: 10, height: 10, background: 'var(--primary)', borderRadius: '50%' }} /> WhatsApp checkouts
-                        </span>
+                          <div style={{ display: 'flex', gap: 20, marginTop: 16, justifyContent: 'center', fontSize: 12 }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)' }}>
+                              <span style={{ width: 10, height: 10, background: 'var(--primary)', opacity: 0.35, borderRadius: '50%' }} /> Catalog Views
+                            </span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)' }}>
+                              <span style={{ width: 10, height: 10, background: 'var(--primary)', borderRadius: '50%' }} /> WhatsApp checkouts
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -1747,8 +1802,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Orders Table List */}
-                  <div style={{ overflowX: 'auto' }}>
+                  {/* Orders Table List (Desktop) */}
+                  <div className="desktop-table-view" style={{ overflowX: 'auto', width: '100%' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 600 }}>
                       <thead>
                         <tr style={{ borderBottom: '2px solid var(--border)', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
@@ -1829,12 +1884,94 @@ export default function DashboardPage() {
                         ) : (
                           <tr>
                             <td colSpan={7} style={{ padding: '40px 0', color: 'var(--text-muted)', textAlign: 'center' }}>
-                              No orders found. Set up your WhatsApp Simulator to test order creations!
+                              No orders found yet. Share your store link on WhatsApp to receive your first order!
                             </td>
                           </tr>
                         )}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Orders Card List (Mobile) */}
+                  <div className="mobile-cards-view">
+                    {orders.length > 0 ? (
+                      orders.map(order => (
+                        <div
+                          key={order.id}
+                          className="card"
+                          style={{
+                            padding: 16,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 12,
+                            background: 'var(--surface)',
+                            border: '1px solid var(--border)'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: 14.5 }}>
+                              {order.order_number}
+                            </span>
+                            <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                              {new Date(order.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+
+                          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+                            <p style={{ fontWeight: 700, fontSize: 14 }}>{order.customer_name}</p>
+                            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{order.customer_phone}</p>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              <span className={`badge ${
+                                order.payment_status === 'paid' ? 'badge-primary' : 
+                                order.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'
+                              }`} style={{ fontSize: 9 }}>
+                                Pay: {order.payment_status}
+                              </span>
+                              <span className={`badge ${
+                                order.order_status === 'completed' ? 'badge-primary' : 
+                                order.order_status === 'cancelled' ? 'badge-danger' : 
+                                order.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'
+                              }`} style={{ fontSize: 9 }}>
+                                Status: {order.order_status}
+                              </span>
+                            </div>
+                            <span style={{ fontWeight: 800, fontSize: 14.5 }}>
+                              ₦{formatVal(order.total_amount)}
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: 8, borderTop: '1px solid var(--border)', paddingTop: 10, marginTop: 2 }}>
+                            <button
+                              onClick={() => {
+                                setSelectedOrder(order);
+                                setIsOrderDetailsOpen(true);
+                              }}
+                              className="btn btn-outline clickable"
+                              style={{ flex: 1, padding: '8px 10px', fontSize: 12, borderRadius: 'var(--r-sm)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+                            >
+                              Inspect
+                            </button>
+                            <button
+                              onClick={() => {
+                                setReceiptOrder(order);
+                                setIsReceiptOpen(true);
+                              }}
+                              className="btn btn-ghost clickable"
+                              style={{ padding: '8px 10px', borderRadius: 'var(--r-sm)', color: 'var(--primary)', border: '1px solid var(--border)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+                            >
+                              <Receipt size={14} /> Receipt
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p style={{ padding: '24px 0', color: 'var(--text-muted)', textAlign: 'center', fontSize: 13 }}>
+                        No orders found yet. Share your store link on WhatsApp to receive your first order!
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -1857,16 +1994,12 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Product Grid */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                    gap: 20
-                  }}>
+                  <div className="responsive-product-catalog-grid">
                     {products.length > 0 ? (
                       products.map(prod => (
                         <div
                           key={prod.id}
-                          className="card hover-lift"
+                          className="card hover-lift responsive-product-card"
                           style={{
                             display: 'flex',
                             flexDirection: 'column',
@@ -1901,16 +2034,16 @@ export default function DashboardPage() {
                           </div>
 
                           {/* Info */}
-                          <div style={{ padding: 14, display: 'flex', flexDirection: 'column', flex: 1, gap: 4 }}>
+                          <div className="responsive-product-card-body" style={{ padding: 14, display: 'flex', flexDirection: 'column', flex: 1, gap: 4 }}>
                             <span style={{ fontSize: 10.5, color: 'var(--primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                               {prod.category?.name || 'Uncategorized'}
                             </span>
-                            <h4 style={{ fontSize: 14, fontWeight: 800, minHeight: 40, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', color: 'var(--text)' }}>
+                            <h4 className="responsive-product-card-title" style={{ fontSize: 14, fontWeight: 800, minHeight: 40, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', color: 'var(--text)' }}>
                               {prod.name}
                             </h4>
                             
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '4px 0' }}>
-                              <span style={{ fontSize: 16, fontWeight: 900, color: 'var(--primary)' }}>
+                              <span className="responsive-product-card-price" style={{ fontSize: 16, fontWeight: 900, color: 'var(--primary)' }}>
                                 ₦{formatVal(prod.price)}
                               </span>
                               {prod.compare_at_price && (
@@ -1920,7 +2053,7 @@ export default function DashboardPage() {
                               )}
                             </div>
 
-                            <p style={{ fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 12 }}>
+                            <p className="responsive-product-card-desc" style={{ fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 12 }}>
                               {prod.description || 'No description added.'}
                             </p>
 
@@ -1954,19 +2087,19 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* ── TAB 4: WHATSAPP CHAT SIMULATOR ── */}
-              {activeTab === 'whatsapp' && (
+              {/* ── TAB 4: WHATSAPP CHAT SIMULATOR (DEV ONLY) ── */}
+              {false && activeTab === 'whatsapp' && (
                 <div className="card animate-fade-in whatsapp-chat-shell" style={{ padding: 0, height: 'calc(100vh - 160px)', display: 'flex', overflow: 'hidden' }}>
                   
                   {/* Left Chats Sidebar */}
-                  <div style={{ width: 280, borderRight: '1px solid var(--border)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column' }} className="wa-contacts-panel">
+                  <div style={{ width: 280, borderRight: '1px solid var(--border)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column' }} className={`wa-contacts-panel ${activeWaView === 'list' ? 'wa-mobile-show' : 'wa-mobile-hide'}`}>
                     <div style={{ padding: 18, borderBottom: '1px solid var(--border)' }}>
                       <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900 }}>WhatsApp Chats</h3>
                       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Simulated buyer interactions</p>
                     </div>
 
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, padding: 8 }}>
-                      <div style={{ display: 'flex', gap: 10, background: 'var(--surface)', padding: 12, borderRadius: 'var(--r-md)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+                      <div onClick={() => setActiveWaView('chat')} style={{ display: 'flex', gap: 10, background: 'var(--surface)', padding: 12, borderRadius: 'var(--r-md)', border: '1px solid var(--border)', cursor: 'pointer' }}>
                         <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#25d366', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14 }}>
                           CO
                         </div>
@@ -2003,11 +2136,20 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Right Chat Screen */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface)' }}>
+                  <div className={`wa-chat-viewport ${activeWaView === 'chat' ? 'wa-mobile-show' : 'wa-mobile-hide'}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface)' }}>
                     
                     {/* Header */}
                     <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-2)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        {/* Back button for mobile view */}
+                        <button
+                          onClick={() => setActiveWaView('list')}
+                          className="btn btn-ghost wa-back-button"
+                          style={{ display: 'none', padding: 6, margin: '-6px 2px -6px -10px', color: 'var(--text-muted)' }}
+                          title="Back to Chats"
+                        >
+                          <ChevronDown size={20} style={{ transform: 'rotate(90deg)' }} />
+                        </button>
                         <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#25d366', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
                           CO
                         </div>
@@ -2347,7 +2489,7 @@ export default function DashboardPage() {
                         />
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div className="responsive-form-row">
                         <div>
                           <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>WhatsApp Number</label>
                           <div style={{
@@ -2482,7 +2624,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div className="responsive-form-row">
                         <div>
                           <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Instagram Handle</label>
                           <input
@@ -3916,7 +4058,7 @@ export default function DashboardPage() {
                 { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
                 { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} /> },
                 { id: 'products', label: 'Products', icon: <Package size={18} /> },
-                { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} /> },
+                // { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
                 { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
               ].map(item => (
@@ -3947,14 +4089,20 @@ export default function DashboardPage() {
               ))}
             </nav>
 
-            <button
-              onClick={handleLogout}
-              className="btn btn-ghost clickable"
-              style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--danger)', marginTop: 'auto', justifyContent: 'flex-start', padding: 10 }}
-            >
-              <LogOut size={16} />
-              <span>Sign Out</span>
-            </button>
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
+                <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>Theme Mode</span>
+                <ThemeToggle />
+              </div>
+              <button
+                onClick={handleLogout}
+                className="btn btn-ghost clickable"
+                style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--danger)', justifyContent: 'flex-start', padding: 10 }}
+              >
+                <LogOut size={16} />
+                <span>Sign Out</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -3962,8 +4110,8 @@ export default function DashboardPage() {
       {/* ── MODAL: INSIGHTS DISCOUNT CAMPAIGN ── */}
       {isDiscountModalOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsDiscountModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card glass animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 440, padding: 24, zIndex: 10 }}>
+          <div onClick={() => setIsDiscountModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 440, padding: 24, zIndex: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Zap size={18} style={{ color: 'var(--accent)' }} /> Create Flash Campaign
@@ -4003,8 +4151,8 @@ export default function DashboardPage() {
       {/* ── MODAL: ADD PRODUCT OVERLAY ── */}
       {isAddProductOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsAddProductOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card glass animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 540, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div onClick={() => setIsAddProductOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 540, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create Store Product</h3>
@@ -4024,7 +4172,7 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="responsive-form-row">
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Sales Price (₦)</label>
                   <input
@@ -4048,7 +4196,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="responsive-form-row">
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Category</label>
                   <SearchableSelect
@@ -4322,8 +4470,8 @@ export default function DashboardPage() {
       {/* ── MODAL: EDIT PRODUCT OVERLAY ── */}
       {isEditProductOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsEditProductOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card glass animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 540, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div onClick={() => setIsEditProductOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 540, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Edit Product Settings</h3>
@@ -4342,7 +4490,7 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="responsive-form-row">
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Sales Price (₦)</label>
                   <input
@@ -4365,7 +4513,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="responsive-form-row">
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Category</label>
                   <SearchableSelect
@@ -4639,8 +4787,8 @@ export default function DashboardPage() {
       {/* ── MODAL: ORDER DETAILS INPSECT ── */}
       {isOrderDetailsOpen && selectedOrder && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsOrderDetailsOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card glass animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 500, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div onClick={() => setIsOrderDetailsOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 500, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Inspect Order {selectedOrder.order_number}</h3>
@@ -4728,8 +4876,8 @@ export default function DashboardPage() {
       {/* ── MODAL: Sleek customer receipt view ── */}
       {isReceiptOpen && receiptOrder && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsReceiptOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card glass animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 420, padding: 24, zIndex: 10 }}>
+          <div onClick={() => setIsReceiptOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 420, padding: 24, zIndex: 10 }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -4808,18 +4956,40 @@ export default function DashboardPage() {
           .mobile-burger-btn {
             display: block !important;
           }
+          .header-logo-mobile {
+            display: flex !important;
+          }
           .desktop-only-text {
             display: none !important;
           }
+          .main-header {
+            padding: 10px 14px !important;
+            gap: 8px !important;
+          }
+          .header-search-form {
+            margin: 0 4px !important;
+            max-width: none !important;
+          }
           .whatsapp-chat-shell {
-            flex-direction: column !important;
+            flex-direction: row !important;
             height: calc(100vh - 120px) !important;
           }
-          .wa-contacts-panel {
+          .wa-contacts-panel.wa-mobile-hide,
+          .wa-chat-viewport.wa-mobile-hide {
+            display: none !important;
+          }
+          .wa-contacts-panel.wa-mobile-show {
+            display: flex !important;
             width: 100% !important;
-            height: 160px !important;
-            border-right: none !important;
-            border-bottom: 1px solid var(--border) !important;
+            height: 100% !important;
+          }
+          .wa-chat-viewport.wa-mobile-show {
+            display: flex !important;
+            width: 100% !important;
+            height: 100% !important;
+          }
+          .wa-back-button {
+            display: inline-flex !important;
           }
           .responsive-order-heading {
             flex-direction: column;

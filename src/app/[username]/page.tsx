@@ -44,6 +44,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description,
     keywords: [store.store_name, 'WhatsApp commerce', 'WhatsApp storefront', 'aloaye store', 'online shop', 'Africa e-commerce'],
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title,
       description,

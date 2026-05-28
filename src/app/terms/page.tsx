@@ -3,6 +3,7 @@
 import React from 'react';
 import { ArrowRight, ShieldCheck, Scale, FileText, Globe, MessageSquare, AlertTriangle, ArrowLeft } from 'lucide-react';
 import Logo from '@/components/Logo';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function TermsPage() {
   return (
@@ -26,13 +27,14 @@ export default function TermsPage() {
         </a>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* <a
-            href="/stores"
+          <ThemeToggle />
+          <a
+            href="/blog"
             className="btn btn-ghost"
-            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none', color: 'var(--text-muted)' }}
+            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
           >
-            Explore Stores
-          </a> */}
+            Blog
+          </a>
           <a
             href="/login"
             className="btn btn-ghost"
@@ -237,7 +239,7 @@ export default function TermsPage() {
           © {new Date().getFullYear()} aloaye. Africa&apos;s #1 WhatsApp Commerce Platform.
         </p>
         <div style={{ display: 'flex', gap: 16 }}>
-          <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 600 }}>Explore Directory</a>
+          {/* <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 600 }}>Explore Directory</a> */}
           <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>
           <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
           <a href="/terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 600 }}>Terms</a>

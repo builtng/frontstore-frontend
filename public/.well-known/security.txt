@@ -1,0 +1,9 @@
+Contact: mailto:security@aloaye.tech
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://aloaye.tech/.well-known/security.txt
+Policy: https://aloaye.tech/privacy
+
+# aloaye Security Policy
+# If you discover a security vulnerability, please report it responsibly.
+# We take all security reports seriously and will respond within 48 hours.
