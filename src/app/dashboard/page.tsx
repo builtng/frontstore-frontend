@@ -1470,6 +1470,9 @@ export default function DashboardPage() {
         <header className="glass main-header" style={{
           position: 'sticky', top: 0, zIndex: 30,
           borderBottom: '1px solid var(--border)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}>
           {/* Left section: mobile toggle and mobile brand logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1518,14 +1521,13 @@ export default function DashboardPage() {
             )}
           </form>
 
-          {/* Right Action Widgets */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <ThemeToggle />
+          {/* Right Action Widgets - Now aligned to top right on same line */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 'auto', paddingRight: '16px' }}>
             <button
               onClick={() => loadAllData(true)}
               disabled={isRefreshing}
               className="btn btn-outline clickable"
-              style={{ padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ padding: '8px 16px', fontSize: 12, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center', whiteSpace: 'nowrap' }}
               title="Refresh Stats"
             >
               <RefreshCw size={14} className={isRefreshing ? 'spin' : ''} />
@@ -1536,12 +1538,13 @@ export default function DashboardPage() {
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-primary clickable"
-              style={{ padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-md)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}
+              style={{ padding: '8px 16px', fontSize: 12, borderRadius: 'var(--r-md)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center', whiteSpace: 'nowrap' }}
               title="Visit Store"
             >
               <span className="desktop-only-text">Visit Store</span>
               <ArrowUpRight size={14} />
             </a>
+            <ThemeToggle />
           </div>
         </header>
 
@@ -1894,15 +1897,15 @@ export default function DashboardPage() {
                               </td>
                               <td style={{ padding: '16px 8px' }}>
                                 <span className={`badge ${order.payment_status === 'paid' ? 'badge-primary' :
-                                    order.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'
+                                  order.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'
                                   }`} style={{ fontSize: 10 }}>
                                   {order.payment_status}
                                 </span>
                               </td>
                               <td style={{ padding: '16px 8px' }}>
                                 <span className={`badge ${order.order_status === 'completed' ? 'badge-primary' :
-                                    order.order_status === 'cancelled' ? 'badge-danger' :
-                                      order.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'
+                                  order.order_status === 'cancelled' ? 'badge-danger' :
+                                    order.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'
                                   }`} style={{ fontSize: 10 }}>
                                   {order.order_status}
                                 </span>
@@ -1978,13 +1981,13 @@ export default function DashboardPage() {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                             <div style={{ display: 'flex', gap: 6 }}>
                               <span className={`badge ${order.payment_status === 'paid' ? 'badge-primary' :
-                                  order.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'
+                                order.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'
                                 }`} style={{ fontSize: 9 }}>
                                 Pay: {order.payment_status}
                               </span>
                               <span className={`badge ${order.order_status === 'completed' ? 'badge-primary' :
-                                  order.order_status === 'cancelled' ? 'badge-danger' :
-                                    order.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'
+                                order.order_status === 'cancelled' ? 'badge-danger' :
+                                  order.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'
                                 }`} style={{ fontSize: 9 }}>
                                 Status: {order.order_status}
                               </span>
