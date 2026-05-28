@@ -1748,7 +1748,7 @@ export default function DashboardPage() {
                         boxShadow: '0 0 0 4px rgba(16,185,129,0.06)',
                       }}>
                         {/* Header gradient */}
-                        <div style={{
+                        <div className="setup-checklist-header" style={{
                           background: 'linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%)',
                           padding: '20px 24px',
                           display: 'flex',
@@ -1784,7 +1784,7 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Steps list */}
-                        <div style={{ padding: '8px 24px 20px' }}>
+                        <div className="setup-checklist-body" style={{ padding: '8px 24px 20px' }}>
                           {steps.map((step, idx) => (
                             <div
                               key={step.id}
@@ -5436,6 +5436,18 @@ export default function DashboardPage() {
         }
 
         @media (max-width: 520px) {
+          .setup-checklist-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            padding: 16px !important;
+          }
+          .setup-checklist-header > span {
+            align-self: flex-start !important;
+            font-size: 18px !important;
+          }
+          .setup-checklist-body {
+            padding: 6px 16px 16px !important;
+          }
           .responsive-chart-grid .card {
             padding: 16px !important;
           }
