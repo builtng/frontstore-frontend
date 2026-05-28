@@ -163,20 +163,33 @@ export default function AdminPage() {
     'Accept': 'application/json',
   });
 
+  // Helper to handle fetch responses and detect 401 unauthorized errors
+  const handleFetchResponse = async (res: Response, defaultError: string) => {
+    if (res.status === 401) {
+      toast.error('Session expired. Please log in again.');
+      localStorage.clear();
+      router.push('/login');
+      throw new Error('Session expired');
+    }
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.message || defaultError);
+    }
+    return json;
+  };
+
   // Fetch Overview Stats
   const loadStats = async () => {
     if (!token) return;
     try {
       setStatsLoading(true);
       const res = await fetch(`${apiUrl}/v1/admin/stats`, { headers: getHeaders() });
-      const json = await res.json();
-      if (res.ok) {
-        setStats(json.data);
-      } else {
-        throw new Error(json.message || 'Could not fetch dashboard analytics.');
-      }
+      const json = await handleFetchResponse(res, 'Could not fetch dashboard analytics.');
+      setStats(json.data);
     } catch (e: any) {
-      toast.error(e.message);
+      if (e.message !== 'Session expired') {
+        toast.error(e.message);
+      }
     } finally {
       setStatsLoading(false);
     }
@@ -189,16 +202,14 @@ export default function AdminPage() {
       setStoresLoading(true);
       const url = `${apiUrl}/v1/admin/stores?page=${page}&search=${encodeURIComponent(search)}`;
       const res = await fetch(url, { headers: getHeaders() });
-      const json = await res.json();
-      if (res.ok) {
-        setStores(json.data?.data || []);
-        setCurrentPage(json.data?.current_page || 1);
-        setLastPage(json.data?.last_page || 1);
-      } else {
-        throw new Error(json.message || 'Could not fetch stores directory.');
-      }
+      const json = await handleFetchResponse(res, 'Could not fetch stores directory.');
+      setStores(json.data?.data || []);
+      setCurrentPage(json.data?.current_page || 1);
+      setLastPage(json.data?.last_page || 1);
     } catch (e: any) {
-      toast.error(e.message);
+      if (e.message !== 'Session expired') {
+        toast.error(e.message);
+      }
     } finally {
       setStoresLoading(false);
     }
@@ -210,14 +221,12 @@ export default function AdminPage() {
     try {
       setCategoriesLoading(true);
       const res = await fetch(`${apiUrl}/v1/admin/categories`, { headers: getHeaders() });
-      const json = await res.json();
-      if (res.ok) {
-        setCategories(json.data || []);
-      } else {
-        throw new Error(json.message || 'Could not fetch global categories.');
-      }
+      const json = await handleFetchResponse(res, 'Could not fetch global categories.');
+      setCategories(json.data || []);
     } catch (e: any) {
-      toast.error(e.message);
+      if (e.message !== 'Session expired') {
+        toast.error(e.message);
+      }
     } finally {
       setCategoriesLoading(false);
     }
@@ -229,14 +238,12 @@ export default function AdminPage() {
     try {
       setSettingsLoading(true);
       const res = await fetch(`${apiUrl}/v1/admin/settings`, { headers: getHeaders() });
-      const json = await res.json();
-      if (res.ok) {
-        setSettings(json.data);
-      } else {
-        throw new Error(json.message || 'Could not fetch dynamic settings configurations.');
-      }
+      const json = await handleFetchResponse(res, 'Could not fetch dynamic settings configurations.');
+      setSettings(json.data);
     } catch (e: any) {
-      toast.error(e.message);
+      if (e.message !== 'Session expired') {
+        toast.error(e.message);
+      }
     } finally {
       setSettingsLoading(false);
     }
@@ -260,16 +267,14 @@ export default function AdminPage() {
         method: 'PATCH',
         headers: getHeaders(),
       });
-      const json = await res.json();
-      if (res.ok) {
-        toast.success(json.message);
-        // Refresh local list smoothly
-        setStores(stores.map(s => s.id === storeId ? { ...s, is_active: !s.is_active } : s));
-      } else {
-        throw new Error(json.message || 'Failed to update store status.');
-      }
+      const json = await handleFetchResponse(res, 'Failed to update store status.');
+      toast.success(json.message);
+      // Refresh local list smoothly
+      setStores(stores.map(s => s.id === storeId ? { ...s, is_active: !s.is_active } : s));
     } catch (e: any) {
-      toast.error(e.message);
+      if (e.message !== 'Session expired') {
+        toast.error(e.message);
+      }
     }
   };
 
@@ -282,27 +287,25 @@ export default function AdminPage() {
         headers: getHeaders(),
         body: JSON.stringify({ plan }),
       });
-      const json = await res.json();
-      if (res.ok) {
-        toast.success(`User plan updated to ${plan.toUpperCase()}! 🎉`);
-        // Smoothly update state in local component
-        setStores(stores.map(s => {
-          if (s.user?.id === userId) {
-            return {
-              ...s,
-              user: {
-                ...s.user,
-                plan
-              }
-            };
-          }
-          return s;
-        }));
-      } else {
-        throw new Error(json.message || 'Failed to update user plan.');
-      }
+      const json = await handleFetchResponse(res, 'Failed to update user plan.');
+      toast.success(`User plan updated to ${plan.toUpperCase()}! 🎉`);
+      // Smoothly update state in local component
+      setStores(stores.map(s => {
+        if (s.user?.id === userId) {
+          return {
+            ...s,
+            user: {
+              ...s.user,
+              plan
+            }
+          };
+        }
+        return s;
+      }));
     } catch (e: any) {
-      toast.error(e.message);
+      if (e.message !== 'Session expired') {
+        toast.error(e.message);
+      }
     }
   };
 
@@ -317,16 +320,14 @@ export default function AdminPage() {
         headers: getHeaders(),
         body: JSON.stringify({ name: newCatName }),
       });
-      const json = await res.json();
-      if (res.ok) {
-        toast.success('Category created successfully! 🏷️');
-        setNewCatName('');
-        loadCategories();
-      } else {
-        throw new Error(json.message || 'Could not create category.');
-      }
+      const json = await handleFetchResponse(res, 'Could not create category.');
+      toast.success('Category created successfully! 🏷️');
+      setNewCatName('');
+      loadCategories();
     } catch (e: any) {
-      toast.error(e.message);
+      if (e.message !== 'Session expired') {
+        toast.error(e.message);
+      }
     } finally {
       setCatActionSaving(false);
     }
@@ -343,17 +344,15 @@ export default function AdminPage() {
         headers: getHeaders(),
         body: JSON.stringify({ name: editingCatName }),
       });
-      const json = await res.json();
-      if (res.ok) {
-        toast.success('Category updated successfully! 📝');
-        setEditingCatId(null);
-        setEditingCatName('');
-        loadCategories();
-      } else {
-        throw new Error(json.message || 'Could not update category.');
-      }
+      const json = await handleFetchResponse(res, 'Could not update category.');
+      toast.success('Category updated successfully! 📝');
+      setEditingCatId(null);
+      setEditingCatName('');
+      loadCategories();
     } catch (e: any) {
-      toast.error(e.message);
+      if (e.message !== 'Session expired') {
+        toast.error(e.message);
+      }
     } finally {
       setCatActionSaving(false);
     }
@@ -367,15 +366,13 @@ export default function AdminPage() {
         method: 'DELETE',
         headers: getHeaders(),
       });
-      const json = await res.json();
-      if (res.ok) {
-        toast.success('Category removed successfully!');
-        loadCategories();
-      } else {
-        throw new Error(json.message || 'Could not delete category.');
-      }
+      const json = await handleFetchResponse(res, 'Could not delete category.');
+      toast.success('Category removed successfully!');
+      loadCategories();
     } catch (e: any) {
-      toast.error(e.message);
+      if (e.message !== 'Session expired') {
+        toast.error(e.message);
+      }
     }
   };
 
@@ -389,14 +386,12 @@ export default function AdminPage() {
         headers: getHeaders(),
         body: JSON.stringify(settings),
       });
-      const json = await res.json();
-      if (res.ok) {
-        toast.success('System settings saved successfully! ⚙️');
-      } else {
-        throw new Error(json.message || 'Could not save configurations.');
-      }
+      const json = await handleFetchResponse(res, 'Could not save configurations.');
+      toast.success('System settings saved successfully! ⚙️');
     } catch (e: any) {
-      toast.error(e.message);
+      if (e.message !== 'Session expired') {
+        toast.error(e.message);
+      }
     } finally {
       setSettingsSaving(false);
     }
@@ -487,7 +482,7 @@ export default function AdminPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ textAlign: 'right' }}>
             <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>System Operator</p>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>admin@aloaye.tech</p>
+            <p className="admin-header-user-email" style={{ fontSize: 11, color: 'var(--text-muted)' }}>admin@aloaye.tech</p>
           </div>
           <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: 8, borderRadius: 10 }}>
             <LogOut size={18} />
@@ -496,9 +491,9 @@ export default function AdminPage() {
       </header>
 
       {/* Main Content Area */}
-      <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
+      <div className="admin-layout">
         {/* Sidebar Nav */}
-        <aside style={{ width: 260, borderRight: '1px solid var(--border)', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--surface)' }}>
+        <aside className="admin-sidebar">
           <button
             onClick={() => setActiveTab('overview')}
             className={`btn ${activeTab === 'overview' ? 'btn-primary' : 'btn-ghost'}`}
@@ -531,14 +526,14 @@ export default function AdminPage() {
             <Settings size={18} /> System Settings
           </button>
           
-          <div style={{ marginTop: 'auto', padding: '16px 12px', borderRadius: 12, backgroundColor: 'var(--bg-2)', textAlign: 'center' }}>
+          <div className="admin-sidebar-footer" style={{ marginTop: 'auto', padding: '16px 12px', borderRadius: 12, backgroundColor: 'var(--bg-2)', textAlign: 'center' }}>
             <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Aloaye System v2.1.2</p>
             <p style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 4 }}>Crafted for Social Sellers</p>
           </div>
         </aside>
 
         {/* Content Tabs */}
-        <main style={{ flex: 1, padding: 32, overflowY: 'auto' }}>
+        <main className="admin-main">
           
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
@@ -600,7 +595,7 @@ export default function AdminPage() {
 
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
+                  <div className="admin-grid-2-1">
                     
                     {/* Monthly Trend list */}
                     <div className="card" style={{ padding: 24 }}>
@@ -700,7 +695,7 @@ export default function AdminPage() {
                 </div>
               ) : (
                 <>
-                  <div className="card" style={{ overflow: 'hidden' }}>
+                  <div className="card admin-table-container">
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 14 }}>
                       <thead>
                         <tr style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-2)' }}>
@@ -831,7 +826,7 @@ export default function AdminPage() {
 
               {/* Form creation */}
               <div className="card glass" style={{ padding: 24, marginBottom: 32 }}>
-                <form onSubmit={editingCatId ? handleUpdateCategory : handleCreateCategory} style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+                <form onSubmit={editingCatId ? handleUpdateCategory : handleCreateCategory} className="admin-form-row">
                   <div style={{ flex: 1 }}>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
                       {editingCatId ? 'Edit Category' : 'Create New Platform Category'}
@@ -945,7 +940,7 @@ export default function AdminPage() {
                       <Globe size={18} color="var(--primary)" /> Platform Branding
                     </h3>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                    <div className="admin-grid-2col" style={{ marginBottom: 16 }}>
                       <div>
                         <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>App Display Name</label>
                         <input
@@ -975,7 +970,7 @@ export default function AdminPage() {
                       <Mail size={18} color="var(--primary)" /> Dynamic SMTP Mail Server
                     </h3>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 16 }}>
+                    <div className="admin-grid-2-1-settings" style={{ marginBottom: 16 }}>
                       <div>
                         <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>SMTP Host</label>
                         <input
@@ -999,7 +994,7 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <div className="admin-grid-2col">
                       <div>
                         <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>SMTP Username</label>
                         <input
@@ -1028,7 +1023,7 @@ export default function AdminPage() {
                       <Smartphone size={18} color="var(--primary)" /> Twilio Integrations (WhatsApp Alerts)
                     </h3>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                    <div className="admin-grid-2col" style={{ marginBottom: 16 }}>
                       <div>
                         <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Twilio SID</label>
                         <input

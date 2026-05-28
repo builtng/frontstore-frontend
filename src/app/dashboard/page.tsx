@@ -172,7 +172,7 @@ export default function DashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  
+
   // Loading states
   const [dataLoading, setDataLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -187,10 +187,10 @@ export default function DashboardPage() {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [isEditProductOpen, setIsEditProductOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  
+
   const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  
+
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
 
@@ -313,7 +313,15 @@ export default function DashboardPage() {
       setApiUrl(savedApiUrl);
       setDevApiInput(savedApiUrl);
 
-      const triggerRedirect = () => {
+      const triggerRedirect = (reason?: string) => {
+        // Clear all stored data when logging out due to account verification failure
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('store');
+        if (reason) {
+          console.warn(`Account verification failed: ${reason}`);
+          toast.error('Your session has expired. Please log in again.');
+        }
         router.replace('/login');
         setTimeout(() => {
           if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
@@ -322,44 +330,92 @@ export default function DashboardPage() {
         }, 1000);
       };
 
+      const verifyAccountExists = async (token: string, apiUrl: string) => {
+        try {
+          const response = await fetch(`${apiUrl}/v1/auth/me`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+              triggerRedirect('Unauthorized access - token invalid or expired');
+              return false;
+            } else if (response.status === 404) {
+              triggerRedirect('Account not found - account may have been deleted');
+              return false;
+            } else {
+              triggerRedirect(`Account verification failed with status ${response.status}`);
+              return false;
+            }
+          }
+
+          const data = await response.json();
+          if (!data.data || !data.data.user) {
+            triggerRedirect('Account data is missing - account may have been deleted');
+            return false;
+          }
+
+          return true;
+        } catch (error) {
+          console.error('Network error during account verification:', error);
+          triggerRedirect('Network error during account verification');
+          return false;
+        }
+      };
+
       if (storedToken && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
         try {
           const parsedUser = JSON.parse(storedUser);
-          setToken(storedToken);
-          setUser(parsedUser);
-          
-          if (storedStore && storedStore !== 'undefined' && storedStore !== 'null') {
-            const parsedStore = JSON.parse(storedStore);
-            setStore(parsedStore);
-            // Prefill settings form
-            setSetStoreName(parsedStore.store_name || '');
-            setSetStoreBio(parsedStore.store_bio || '');
-            const parsedPhone = parsePhoneNumber(parsedStore.whatsapp_phone || '');
-            setSelectedCountry(parsedPhone.country);
-            setLocalWhatsapp(parsedPhone.local);
-            setSetInstagram(parsedStore.instagram_handle || '');
-            setSetTiktok(parsedStore.tiktok_handle || '');
-            setSetCurrency(parsedStore.currency_code || 'NGN');
-            setPaymentBankName(parsedStore.bank_name || '');
-            setPaymentBankCode(parsedStore.paystack_bank_code || '');
-            setPaymentAccountNumber(parsedStore.bank_account_number || '');
-            setPaymentAccountName(parsedStore.bank_account_name || '');
-            setPaymentInstructions(parsedStore.payment_instructions || '');
-            setAccountVerified(!!parsedStore.bank_account_verified);
-            setNameMatchOk(parsedStore.bank_account_verified ? true : null);
-            setLogoUrl(parsedStore.logo_url || null);
-            setCustomLinks(parsedStore.custom_links || []);
-            setPrimaryColor(parsedStore.primary_color || '#10b981');
-          }
-          setIsAuthenticated(true);
+
+          // Verify the account exists on the server before loading the dashboard
+          verifyAccountExists(storedToken, savedApiUrl).then((accountExists) => {
+            if (!accountExists) {
+              setIsAuthChecking(false);
+              return; // triggerRedirect has already been called
+            }
+
+            setToken(storedToken);
+            setUser(parsedUser);
+
+            if (storedStore && storedStore !== 'undefined' && storedStore !== 'null') {
+              const parsedStore = JSON.parse(storedStore);
+              setStore(parsedStore);
+              // Prefill settings form
+              setSetStoreName(parsedStore.store_name || '');
+              setSetStoreBio(parsedStore.store_bio || '');
+              const parsedPhone = parsePhoneNumber(parsedStore.whatsapp_phone || '');
+              setSelectedCountry(parsedPhone.country);
+              setLocalWhatsapp(parsedPhone.local);
+              setSetInstagram(parsedStore.instagram_handle || '');
+              setSetTiktok(parsedStore.tiktok_handle || '');
+              setSetCurrency(parsedStore.currency_code || 'NGN');
+              setPaymentBankName(parsedStore.bank_name || '');
+              setPaymentBankCode(parsedStore.paystack_bank_code || '');
+              setPaymentAccountNumber(parsedStore.bank_account_number || '');
+              setPaymentAccountName(parsedStore.bank_account_name || '');
+              setPaymentInstructions(parsedStore.payment_instructions || '');
+              setAccountVerified(!!parsedStore.bank_account_verified);
+              setNameMatchOk(parsedStore.bank_account_verified ? true : null);
+              setLogoUrl(parsedStore.logo_url || null);
+              setCustomLinks(parsedStore.custom_links || []);
+              setPrimaryColor(parsedStore.primary_color || '#10b981');
+            }
+            setIsAuthenticated(true);
+            setIsAuthChecking(false);
+          });
         } catch (e) {
           console.error("Failed to parse stored user or store:", e);
-          triggerRedirect();
+          triggerRedirect('Failed to parse user data');
+          setIsAuthChecking(false);
         }
       } else {
         triggerRedirect();
+        setIsAuthChecking(false);
       }
-      setIsAuthChecking(false);
     }
   }, [router]);
 
@@ -403,7 +459,7 @@ export default function DashboardPage() {
           setBankList(json.data);
         }
       })
-      .catch(() => {}); // silently fail — dropdown still works with empty list
+      .catch(() => { }); // silently fail — dropdown still works with empty list
   }, []);
 
   // Auto-verify Paystack payment when user returns from checkout
@@ -449,7 +505,7 @@ export default function DashboardPage() {
     };
 
     verifyPayment();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-resolve account name when 10 digits entered and bank selected
@@ -480,8 +536,8 @@ export default function DashboardPage() {
         const userName = normalize(user?.name || '');
         const storeName = normalize(store?.store_name || '');
         const matched = vn.includes(userName) || userName.includes(vn) ||
-                        vn.includes(storeName) || storeName.includes(vn) ||
-                        verifiedName.toLowerCase().split(' ').some(w => w.length > 2 && (user?.name || '').toLowerCase().includes(w));
+          vn.includes(storeName) || storeName.includes(vn) ||
+          verifiedName.toLowerCase().split(' ').some(w => w.length > 2 && (user?.name || '').toLowerCase().includes(w));
         setNameMatchOk(matched);
       } else {
         setVerifyError(json.message || 'Could not verify account. Check account number and bank.');
@@ -611,7 +667,7 @@ export default function DashboardPage() {
   const handleApplyQuickDiscount = () => {
     setIsDiscountModalOpen(false);
     toast.success(`Discount of ${discountPercent}% applied! 🏷️`);
-    
+
     // Simulate updating conversion stats
     if (stats) {
       setStats({
@@ -656,7 +712,7 @@ export default function DashboardPage() {
     try {
       setAiGenerating(true);
       const activeCat = categories.find(c => c.id === prodCategory);
-      
+
       const res = await fetch(`${apiUrl}/v1/ai/generate-description`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -875,7 +931,7 @@ export default function DashboardPage() {
     try {
       setWaCloseSaleLoading(true);
       const nextOrderNo = 'ALO-INV' + Math.floor(Math.random() * 89000 + 10000);
-      
+
       const payload = {
         customer_name: 'Chioma Obi',
         customer_phone: '+2348099887766',
@@ -897,18 +953,18 @@ export default function DashboardPage() {
       const json = await res.json();
       if (res.ok) {
         toast.success(`Invoice created! Real Order #${json.data?.order_number || nextOrderNo} added.`);
-        
+
         // Post update message inside chat log
         const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         setWaMessages(prev => [
           ...prev,
-          { 
-            sender: 'merchant', 
+          {
+            sender: 'merchant',
             text: `🧾 Invoice Created! Order #${json.data?.order_number || nextOrderNo} total ₦11,000. Ready for delivery to Surulere, Lagos.`,
             time: timeNow
           }
         ]);
-        
+
         loadAllData(true);
       } else {
         throw new Error(json.message || 'Server failed to save order.');
@@ -1177,7 +1233,7 @@ export default function DashboardPage() {
     const storeHeader = `🏪 STORE: ${store?.store_name || 'aloaye merchant'}\nURL: ${store?.username}.aloaye.com\n`;
     const orderHeader = `ORDER NO: ${order.order_number}\nDATE: ${new Date(order.created_at).toLocaleDateString()}\n`;
     const customer = `CUSTOMER: ${order.customer_name}\nPHONE: ${order.customer_phone}\nADDRESS: ${order.delivery_address || 'N/A'}\n`;
-    
+
     // items summary list
     let itemSummary = '';
     if (order.items && order.items.length > 0) {
@@ -1203,7 +1259,7 @@ export default function DashboardPage() {
 
   // --- Logout helper ---
   const handleLogout = () => {
-    fetch(`${apiUrl}/v1/auth/logout`, { method: 'POST', headers: getAuthHeaders() }).catch(() => {});
+    fetch(`${apiUrl}/v1/auth/logout`, { method: 'POST', headers: getAuthHeaders() }).catch(() => { });
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('store');
@@ -1255,7 +1311,7 @@ export default function DashboardPage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg)', color: 'var(--text)', overflowX: 'hidden' }}>
-      
+
       {/* ── SIDEBAR NAVIGATION (Desktop) ── */}
       <aside className="glass" style={{
         width: 260,
@@ -1409,7 +1465,7 @@ export default function DashboardPage() {
 
       {/* ── MAIN CONTENT WORKSPACE ── */}
       <main className="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
-        
+
         {/* Desktop & Mobile Header Topbar */}
         <header className="glass main-header" style={{
           position: 'sticky', top: 0, zIndex: 30,
@@ -1454,7 +1510,7 @@ export default function DashboardPage() {
               }}
             />
             <Sparkles size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
-            
+
             {aiResponseBubble && (
               <div className="card glass animate-scale-in" style={{ position: 'absolute', top: '115%', left: 0, right: 0, padding: 12, fontSize: 13, fontWeight: 600, border: '1px solid var(--primary)', zIndex: 50, color: 'var(--text)' }}>
                 {aiResponseBubble}
@@ -1502,7 +1558,7 @@ export default function DashboardPage() {
               {/* ── TAB 1: OVERVIEW & ANALYTICS ── */}
               {activeTab === 'overview' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }} className="animate-fade-in">
-                  
+
                   {/* ── STORE SETUP CHECKLIST (shown until store is fully configured) ── */}
                   {(() => {
                     const hasProducts = products.length > 0;
@@ -1678,14 +1734,14 @@ export default function DashboardPage() {
 
                   {/* Visual charts block */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20, alignItems: 'start' }} className="responsive-chart-grid">
-                    
+
                     {/* SVG Analytics Graph */}
                     <div className="card" style={{ padding: 24 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                         <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 800 }}>Weekly Traffic & Redirects</h3>
                         <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Last 7 Days</span>
                       </div>
-                      
+
                       {/* Bar columns scrollable wrapper */}
                       <div className="chart-scroll-container">
                         <div className="chart-scroll-content">
@@ -1702,7 +1758,7 @@ export default function DashboardPage() {
                               const maxVal = 130;
                               const viewsHeight = `${(item.views / maxVal) * 100}%`;
                               const waHeight = `${(item.wa / maxVal) * 100}%`;
-                              
+
                               return (
                                 <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, gap: 8, height: '100%', justifyContent: 'flex-end' }}>
                                   <div style={{ display: 'flex', gap: 4, width: '70%', height: '100%', alignItems: 'flex-end', justifyContent: 'center' }}>
@@ -1748,11 +1804,10 @@ export default function DashboardPage() {
 
                         <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20 }}>
                           {stats && stats.metrics.total_views > 0
-                            ? `Your storefront has recorded ${stats.metrics.total_views} visits with a ${stats.metrics.conversion_rate}% conversion rate. ${
-                                stats.metrics.conversion_rate < 15
-                                  ? 'Your conversion rate is slightly below the target of 15%. I recommend launching a quick flash discount campaign to encourage checkouts.'
-                                  : 'Fantastic! Your store conversion is highly optimized. List additional products to grow your revenue further.'
-                              }`
+                            ? `Your storefront has recorded ${stats.metrics.total_views} visits with a ${stats.metrics.conversion_rate}% conversion rate. ${stats.metrics.conversion_rate < 15
+                              ? 'Your conversion rate is slightly below the target of 15%. I recommend launching a quick flash discount campaign to encourage checkouts.'
+                              : 'Fantastic! Your store conversion is highly optimized. List additional products to grow your revenue further.'
+                            }`
                             : 'Welcome back! List some items and share your store link. I will populate automated marketing suggestions here once visitors arrive.'}
                         </p>
 
@@ -1838,19 +1893,17 @@ export default function DashboardPage() {
                                 ₦{formatVal(order.total_amount)}
                               </td>
                               <td style={{ padding: '16px 8px' }}>
-                                <span className={`badge ${
-                                  order.payment_status === 'paid' ? 'badge-primary' : 
-                                  order.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'
-                                }`} style={{ fontSize: 10 }}>
+                                <span className={`badge ${order.payment_status === 'paid' ? 'badge-primary' :
+                                    order.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'
+                                  }`} style={{ fontSize: 10 }}>
                                   {order.payment_status}
                                 </span>
                               </td>
                               <td style={{ padding: '16px 8px' }}>
-                                <span className={`badge ${
-                                  order.order_status === 'completed' ? 'badge-primary' : 
-                                  order.order_status === 'cancelled' ? 'badge-danger' : 
-                                  order.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'
-                                }`} style={{ fontSize: 10 }}>
+                                <span className={`badge ${order.order_status === 'completed' ? 'badge-primary' :
+                                    order.order_status === 'cancelled' ? 'badge-danger' :
+                                      order.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'
+                                  }`} style={{ fontSize: 10 }}>
                                   {order.order_status}
                                 </span>
                               </td>
@@ -1924,17 +1977,15 @@ export default function DashboardPage() {
 
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                             <div style={{ display: 'flex', gap: 6 }}>
-                              <span className={`badge ${
-                                order.payment_status === 'paid' ? 'badge-primary' : 
-                                order.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'
-                              }`} style={{ fontSize: 9 }}>
+                              <span className={`badge ${order.payment_status === 'paid' ? 'badge-primary' :
+                                  order.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'
+                                }`} style={{ fontSize: 9 }}>
                                 Pay: {order.payment_status}
                               </span>
-                              <span className={`badge ${
-                                order.order_status === 'completed' ? 'badge-primary' : 
-                                order.order_status === 'cancelled' ? 'badge-danger' : 
-                                order.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'
-                              }`} style={{ fontSize: 9 }}>
+                              <span className={`badge ${order.order_status === 'completed' ? 'badge-primary' :
+                                  order.order_status === 'cancelled' ? 'badge-danger' :
+                                    order.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'
+                                }`} style={{ fontSize: 9 }}>
                                 Status: {order.order_status}
                               </span>
                             </div>
@@ -2026,7 +2077,7 @@ export default function DashboardPage() {
                                 <Package size={40} strokeWidth={1} />
                               </div>
                             )}
-                            
+
                             {/* Stock badge */}
                             <span className={`badge ${prod.stock_status === 'in_stock' ? 'badge-primary' : 'badge-danger'}`} style={{ position: 'absolute', top: 10, left: 10, fontSize: 9 }}>
                               {prod.stock_status === 'in_stock' ? 'In Stock' : 'Out of Stock'}
@@ -2041,7 +2092,7 @@ export default function DashboardPage() {
                             <h4 className="responsive-product-card-title" style={{ fontSize: 14, fontWeight: 800, minHeight: 40, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', color: 'var(--text)' }}>
                               {prod.name}
                             </h4>
-                            
+
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '4px 0' }}>
                               <span className="responsive-product-card-price" style={{ fontSize: 16, fontWeight: 900, color: 'var(--primary)' }}>
                                 ₦{formatVal(prod.price)}
@@ -2090,7 +2141,7 @@ export default function DashboardPage() {
               {/* ── TAB 4: WHATSAPP CHAT SIMULATOR (DEV ONLY) ── */}
               {false && activeTab === 'whatsapp' && (
                 <div className="card animate-fade-in whatsapp-chat-shell" style={{ padding: 0, height: 'calc(100vh - 160px)', display: 'flex', overflow: 'hidden' }}>
-                  
+
                   {/* Left Chats Sidebar */}
                   <div style={{ width: 280, borderRight: '1px solid var(--border)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column' }} className={`wa-contacts-panel ${activeWaView === 'list' ? 'wa-mobile-show' : 'wa-mobile-hide'}`}>
                     <div style={{ padding: 18, borderBottom: '1px solid var(--border)' }}>
@@ -2137,7 +2188,7 @@ export default function DashboardPage() {
 
                   {/* Right Chat Screen */}
                   <div className={`wa-chat-viewport ${activeWaView === 'chat' ? 'wa-mobile-show' : 'wa-mobile-hide'}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface)' }}>
-                    
+
                     {/* Header */}
                     <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-2)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -2276,14 +2327,14 @@ export default function DashboardPage() {
               {/* ── TAB 5: SHARE & REFERRALS ── */}
               {activeTab === 'share' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-share-grid animate-fade-in">
-                  
+
                   {/* Share Store Card */}
                   <div className="card" style={{ padding: 24 }}>
                     <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 900, marginBottom: 8 }}>Viral Share Center</h2>
                     <p style={{ fontSize: 13.5, color: 'var(--text-muted)', marginBottom: 24 }}>Share your catalog link to receive instant shopper orders directly into your dashboard.</p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                      
+
                       {/* URL Box */}
                       <div style={{ background: 'var(--bg-2)', padding: '16px 20px', borderRadius: 'var(--r-xl)', border: '1px solid var(--border)' }}>
                         <label style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Store URL</label>
@@ -2378,1175 +2429,1175 @@ export default function DashboardPage() {
                 </div>
               )}
 
-                  {/* ── TAB 6: SETTINGS & DEVELOPER OVERRIDES ── */}
+              {/* ── TAB 6: SETTINGS & DEVELOPER OVERRIDES ── */}
               {activeTab === 'settings' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid">
-                  
-                  {/* Shop Details updating form */}
-                  <div className="card" style={{ padding: 24 }}>
-                    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 900, marginBottom: 16 }}>Storefront Configuration</h2>
-                    
-                    <form onSubmit={handleSettingsSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid">
 
-                      {/* ── Logo Upload ── */}
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '16px 0', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
-                        <label style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', alignSelf: 'flex-start' }}>Store Logo</label>
-                        <div style={{ position: 'relative', display: 'inline-block' }}>
-                          <div
-                            style={{
-                              width: 90, height: 90, borderRadius: '50%',
-                              background: logoUrl ? 'transparent' : 'var(--primary-light)',
-                              border: '2.5px dashed var(--primary)',
-                              overflow: 'hidden',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              cursor: 'pointer', position: 'relative',
-                              boxShadow: 'var(--shadow-md)'
-                            }}
-                            onClick={() => (document.getElementById('logo-upload-input') as HTMLInputElement)?.click()}
-                            title="Click to upload logo"
-                          >
-                            {logoUploading ? (
-                              <Loader2 size={24} className="spinner" style={{ color: 'var(--primary)' }} />
-                            ) : logoUrl ? (
-                              <img src={logoUrl} alt="Store logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                                <Camera size={24} style={{ color: 'var(--primary)' }} />
-                                <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase' }}>Upload</span>
-                              </div>
-                            )}
-                          </div>
-                          {logoUrl && !logoUploading && (
-                            <button
-                              type="button"
-                              onClick={() => setLogoUrl(null)}
+                    {/* Shop Details updating form */}
+                    <div className="card" style={{ padding: 24 }}>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 900, marginBottom: 16 }}>Storefront Configuration</h2>
+
+                      <form onSubmit={handleSettingsSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                        {/* ── Logo Upload ── */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '16px 0', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
+                          <label style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', alignSelf: 'flex-start' }}>Store Logo</label>
+                          <div style={{ position: 'relative', display: 'inline-block' }}>
+                            <div
                               style={{
-                                position: 'absolute', top: -4, right: -4,
-                                width: 22, height: 22, borderRadius: '50%',
-                                background: 'var(--danger)', border: 'none',
-                                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                cursor: 'pointer', fontSize: 12, lineHeight: 1, boxShadow: 'var(--shadow-sm)'
+                                width: 90, height: 90, borderRadius: '50%',
+                                background: logoUrl ? 'transparent' : 'var(--primary-light)',
+                                border: '2.5px dashed var(--primary)',
+                                overflow: 'hidden',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', position: 'relative',
+                                boxShadow: 'var(--shadow-md)'
                               }}
-                              title="Remove logo"
-                            >✕</button>
-                          )}
-                        </div>
-                        <input
-                          id="logo-upload-input"
-                          type="file"
-                          accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                          style={{ display: 'none' }}
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            try {
-                              setLogoUploading(true);
-                              const formData = new FormData();
-                              formData.append('logo', file);
-                              const res = await fetch(`${apiUrl}/v1/store/upload-logo`, {
-                                method: 'POST',
-                                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                                body: formData
-                              });
-                              const json = await res.json();
-                              if (res.ok && json.url) {
-                                setLogoUrl(json.url);
-                                toast.success('Logo uploaded! 🎨');
-                              } else {
-                                throw new Error(json.message || 'Upload failed');
-                              }
-                            } catch (err: any) {
-                              toast.error(err.message || 'Logo upload error');
-                            } finally {
-                              setLogoUploading(false);
-                              e.target.value = '';
-                            }
-                          }}
-                        />
-                        <p style={{ fontSize: 11, color: 'var(--text-faint)', textAlign: 'center' }}>Click the circle to upload a logo<br />(JPG, PNG, WEBP · max 5MB)</p>
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Name</label>
-                        <input
-                          type="text"
-                          required
-                          value={setStoreName}
-                          onChange={e => setSetStoreName(e.target.value)}
-                          className="input-field"
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Description (Bio)</label>
-                        <textarea
-                          rows={3}
-                          value={setStoreBio}
-                          onChange={e => setSetStoreBio(e.target.value)}
-                          placeholder="Brief description of your shop..."
-                          className="input-field"
-                          style={{ resize: 'vertical' }}
-                        />
-                      </div>
-
-                      <div className="responsive-form-row">
-                        <div>
-                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>WhatsApp Number</label>
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            border: '1.5px solid var(--border)',
-                            borderRadius: 'var(--r-md)',
-                            background: 'var(--surface)',
-                            transition: 'all var(--t-fast)',
-                            position: 'relative'
-                          }}>
-                            {/* Country Code Trigger Button */}
-                            <button
-                              type="button"
-                              onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                padding: '0 14px',
-                                height: '100%',
-                                minHeight: 46,
-                                background: 'none',
-                                border: 'none',
-                                borderRight: '1px solid var(--border)',
-                                cursor: 'pointer',
-                                fontSize: 15,
-                                color: 'var(--text)',
-                                fontWeight: 600,
-                                userSelect: 'none'
-                              }}
+                              onClick={() => (document.getElementById('logo-upload-input') as HTMLInputElement)?.click()}
+                              title="Click to upload logo"
                             >
-                              <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
-                              <span>{selectedCountry.dialCode}</span>
-                              <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
-                            </button>
-
-                            {/* Real Phone Input */}
-                            <input
-                              type="tel"
-                              required
-                              placeholder="e.g. 803 123 4567"
-                              value={localWhatsapp}
-                              onChange={e => setLocalWhatsapp(e.target.value)}
-                              style={{
-                                flex: 1,
-                                padding: '13px 14px',
-                                border: 'none',
-                                fontSize: 15,
-                                outline: 'none',
-                                background: 'transparent',
-                                color: 'var(--text)',
-                                minWidth: 0,
-                              }}
-                              autoComplete="tel"
-                            />
-
-                            {/* Dropdown Menu */}
-                            {isCountryDropdownOpen && (
-                              <div className="glass animate-scale-in" style={{
-                                position: 'absolute',
-                                top: '110%',
-                                left: 0,
-                                width: 280,
-                                maxHeight: 250,
-                                overflowY: 'auto',
-                                borderRadius: 'var(--r-lg)',
-                                border: '1px solid var(--border)',
-                                background: 'var(--surface)',
-                                boxShadow: 'var(--shadow-lg)',
-                                zIndex: 100,
-                                padding: '6px 0'
-                              }}>
-                                {countries.map((c, idx) => (
-                                  <button
-                                    key={c.code}
-                                    type="button"
-                                    onMouseEnter={() => setHoveredCountryIndex(idx)}
-                                    onMouseLeave={() => setHoveredCountryIndex(null)}
-                                    onClick={() => {
-                                      setSelectedCountry(c);
-                                      setIsCountryDropdownOpen(false);
-                                    }}
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'space-between',
-                                      width: '100%',
-                                      padding: '10px 14px',
-                                      background: selectedCountry.code === c.code 
-                                        ? 'var(--primary-light)' 
-                                        : hoveredCountryIndex === idx 
-                                          ? 'var(--bg-2)' 
-                                          : 'none',
-                                      border: 'none',
-                                      cursor: 'pointer',
-                                      fontSize: 14,
-                                      textAlign: 'left',
-                                      color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)',
-                                      fontWeight: selectedCountry.code === c.code ? 750 : 600,
-                                      transition: 'background var(--t-fast)'
-                                    }}
-                                  >
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                      <span style={{ fontSize: 18 }}>{c.flag}</span>
-                                      <span>{c.name}</span>
-                                    </span>
-                                    <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{c.dialCode}</span>
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-                            Enter local number (e.g. 0808 943 7483). Country code is added automatically.
-                          </span>
-                        </div>
-                        <div>
-                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Currency</label>
-                          <SearchableSelect
-                            options={[
-                              { value: 'NGN', label: 'NGN (₦)', icon: <span style={{ fontSize: 16 }}>🇳🇬</span> },
-                              { value: 'GHS', label: 'GHS (₵)', icon: <span style={{ fontSize: 16 }}>🇬🇭</span> },
-                              { value: 'KES', label: 'KES (KSh)', icon: <span style={{ fontSize: 16 }}>🇰🇪</span> },
-                              { value: 'ZAR', label: 'ZAR (R)', icon: <span style={{ fontSize: 16 }}>🇿🇦</span> },
-                              { value: 'USD', label: 'USD ($)', icon: <span style={{ fontSize: 16 }}>🇺🇸</span> }
-                            ]}
-                            value={setCurrency}
-                            onChange={val => setSetCurrency(val)}
-                            placeholder="Select Currency"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="responsive-form-row">
-                        <div>
-                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Instagram Handle</label>
-                          <input
-                            type="text"
-                            value={setInstagram}
-                            onChange={e => setSetInstagram(e.target.value)}
-                            className="input-field"
-                            placeholder="username"
-                          />
-                        </div>
-                        <div>
-                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>TikTok Handle</label>
-                          <input
-                            type="text"
-                            value={setTiktok}
-                            onChange={e => setSetTiktok(e.target.value)}
-                            className="input-field"
-                            placeholder="username"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Storefront Branding & Colors */}
-                      <div style={{
-                        position: 'relative',
-                        border: '1.5px solid var(--border)',
-                        borderRadius: 'var(--r-xl)',
-                        padding: 20,
-                        background: 'var(--bg-2)',
-                        marginTop: 16,
-                        overflow: 'hidden'
-                      }}>
-                        {/* Lock Overlay if Free */}
-                        {!isPro && (
-                          <div style={{
-                            position: 'absolute', inset: 0,
-                            background: 'rgba(255, 255, 255, 0.7)',
-                            backdropFilter: 'blur(4px)',
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                            textAlign: 'center', zIndex: 10, padding: 16
-                          }}>
-                            <div style={{
-                              width: 38, height: 38, borderRadius: '50%',
-                              background: '#fef3c7', color: '#d97706',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              boxShadow: '0 4px 10px rgba(217,119,6,0.12)', marginBottom: 8
-                            }}>
-                              <Zap size={18} />
+                              {logoUploading ? (
+                                <Loader2 size={24} className="spinner" style={{ color: 'var(--primary)' }} />
+                              ) : logoUrl ? (
+                                <img src={logoUrl} alt="Store logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                                  <Camera size={24} style={{ color: 'var(--primary)' }} />
+                                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase' }}>Upload</span>
+                                </div>
+                              )}
                             </div>
-                            <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 900, color: 'var(--text)', margin: 0 }}>Custom Storefront Colors</h4>
-                            <p style={{ fontSize: 11.5, color: 'var(--text-muted)', maxWidth: 280, marginTop: 4, marginBottom: 12, lineHeight: 1.4 }}>
-                              Choose a custom theme color for your storefront. Requires a Pro subscription.
-                            </p>
-                            <button
-                              type="button"
-                              onClick={() => setActiveTab('billing')}
-                              className="btn btn-primary clickable"
-                              style={{ padding: '6px 14px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 12 }}
-                            >
-                              Upgrade to Pro
-                            </button>
-                          </div>
-                        )}
-
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                          🎨 Storefront Branding & Colors
-                        </h3>
-                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.4 }}>
-                          Customize the primary color of your storefront buttons, badges, highlights, and icons.
-                        </p>
-
-                        {/* Preset Swatches */}
-                        <div style={{ marginBottom: 16 }}>
-                          <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Preset Color Palettes</label>
-                          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                            {[
-                              { name: 'WhatsApp', value: '#10b981' },
-                              { name: 'Ocean', value: '#0284c7' },
-                              { name: 'Royal', value: '#4f46e5' },
-                              { name: 'Sunset', value: '#ea580c' },
-                              { name: 'Midnight', value: '#1f2937' },
-                              { name: 'Plum', value: '#7c3aed' },
-                              { name: 'Rose', value: '#db2777' }
-                            ].map(preset => (
+                            {logoUrl && !logoUploading && (
                               <button
-                                key={preset.name}
                                 type="button"
-                                onClick={() => setPrimaryColor(preset.value)}
+                                onClick={() => setLogoUrl(null)}
                                 style={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: '50%',
-                                  background: preset.value,
-                                  border: primaryColor === preset.value ? '3px solid var(--text)' : '1px solid var(--border)',
-                                  cursor: 'pointer',
-                                  boxShadow: primaryColor === preset.value ? '0 0 0 2px var(--surface), var(--shadow-sm)' : 'var(--shadow-sm)',
-                                  transition: 'transform var(--t-fast)',
-                                  transform: primaryColor === preset.value ? 'scale(1.1)' : 'scale(1)'
+                                  position: 'absolute', top: -4, right: -4,
+                                  width: 22, height: 22, borderRadius: '50%',
+                                  background: 'var(--danger)', border: 'none',
+                                  color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  cursor: 'pointer', fontSize: 12, lineHeight: 1, boxShadow: 'var(--shadow-sm)'
                                 }}
-                                title={preset.name}
+                                title="Remove logo"
+                              >✕</button>
+                            )}
+                          </div>
+                          <input
+                            id="logo-upload-input"
+                            type="file"
+                            accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                            style={{ display: 'none' }}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              try {
+                                setLogoUploading(true);
+                                const formData = new FormData();
+                                formData.append('logo', file);
+                                const res = await fetch(`${apiUrl}/v1/store/upload-logo`, {
+                                  method: 'POST',
+                                  headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                                  body: formData
+                                });
+                                const json = await res.json();
+                                if (res.ok && json.url) {
+                                  setLogoUrl(json.url);
+                                  toast.success('Logo uploaded! 🎨');
+                                } else {
+                                  throw new Error(json.message || 'Upload failed');
+                                }
+                              } catch (err: any) {
+                                toast.error(err.message || 'Logo upload error');
+                              } finally {
+                                setLogoUploading(false);
+                                e.target.value = '';
+                              }
+                            }}
+                          />
+                          <p style={{ fontSize: 11, color: 'var(--text-faint)', textAlign: 'center' }}>Click the circle to upload a logo<br />(JPG, PNG, WEBP · max 5MB)</p>
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Name</label>
+                          <input
+                            type="text"
+                            required
+                            value={setStoreName}
+                            onChange={e => setSetStoreName(e.target.value)}
+                            className="input-field"
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Description (Bio)</label>
+                          <textarea
+                            rows={3}
+                            value={setStoreBio}
+                            onChange={e => setSetStoreBio(e.target.value)}
+                            placeholder="Brief description of your shop..."
+                            className="input-field"
+                            style={{ resize: 'vertical' }}
+                          />
+                        </div>
+
+                        <div className="responsive-form-row">
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>WhatsApp Number</label>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              border: '1.5px solid var(--border)',
+                              borderRadius: 'var(--r-md)',
+                              background: 'var(--surface)',
+                              transition: 'all var(--t-fast)',
+                              position: 'relative'
+                            }}>
+                              {/* Country Code Trigger Button */}
+                              <button
+                                type="button"
+                                onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 6,
+                                  padding: '0 14px',
+                                  height: '100%',
+                                  minHeight: 46,
+                                  background: 'none',
+                                  border: 'none',
+                                  borderRight: '1px solid var(--border)',
+                                  cursor: 'pointer',
+                                  fontSize: 15,
+                                  color: 'var(--text)',
+                                  fontWeight: 600,
+                                  userSelect: 'none'
+                                }}
+                              >
+                                <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
+                                <span>{selectedCountry.dialCode}</span>
+                                <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
+                              </button>
+
+                              {/* Real Phone Input */}
+                              <input
+                                type="tel"
+                                required
+                                placeholder="e.g. 803 123 4567"
+                                value={localWhatsapp}
+                                onChange={e => setLocalWhatsapp(e.target.value)}
+                                style={{
+                                  flex: 1,
+                                  padding: '13px 14px',
+                                  border: 'none',
+                                  fontSize: 15,
+                                  outline: 'none',
+                                  background: 'transparent',
+                                  color: 'var(--text)',
+                                  minWidth: 0,
+                                }}
+                                autoComplete="tel"
                               />
-                            ))}
+
+                              {/* Dropdown Menu */}
+                              {isCountryDropdownOpen && (
+                                <div className="glass animate-scale-in" style={{
+                                  position: 'absolute',
+                                  top: '110%',
+                                  left: 0,
+                                  width: 280,
+                                  maxHeight: 250,
+                                  overflowY: 'auto',
+                                  borderRadius: 'var(--r-lg)',
+                                  border: '1px solid var(--border)',
+                                  background: 'var(--surface)',
+                                  boxShadow: 'var(--shadow-lg)',
+                                  zIndex: 100,
+                                  padding: '6px 0'
+                                }}>
+                                  {countries.map((c, idx) => (
+                                    <button
+                                      key={c.code}
+                                      type="button"
+                                      onMouseEnter={() => setHoveredCountryIndex(idx)}
+                                      onMouseLeave={() => setHoveredCountryIndex(null)}
+                                      onClick={() => {
+                                        setSelectedCountry(c);
+                                        setIsCountryDropdownOpen(false);
+                                      }}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        background: selectedCountry.code === c.code
+                                          ? 'var(--primary-light)'
+                                          : hoveredCountryIndex === idx
+                                            ? 'var(--bg-2)'
+                                            : 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontSize: 14,
+                                        textAlign: 'left',
+                                        color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)',
+                                        fontWeight: selectedCountry.code === c.code ? 750 : 600,
+                                        transition: 'background var(--t-fast)'
+                                      }}
+                                    >
+                                      <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <span style={{ fontSize: 18 }}>{c.flag}</span>
+                                        <span>{c.name}</span>
+                                      </span>
+                                      <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{c.dialCode}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                              Enter local number (e.g. 0808 943 7483). Country code is added automatically.
+                            </span>
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Currency</label>
+                            <SearchableSelect
+                              options={[
+                                { value: 'NGN', label: 'NGN (₦)', icon: <span style={{ fontSize: 16 }}>🇳🇬</span> },
+                                { value: 'GHS', label: 'GHS (₵)', icon: <span style={{ fontSize: 16 }}>🇬🇭</span> },
+                                { value: 'KES', label: 'KES (KSh)', icon: <span style={{ fontSize: 16 }}>🇰🇪</span> },
+                                { value: 'ZAR', label: 'ZAR (R)', icon: <span style={{ fontSize: 16 }}>🇿🇦</span> },
+                                { value: 'USD', label: 'USD ($)', icon: <span style={{ fontSize: 16 }}>🇺🇸</span> }
+                              ]}
+                              value={setCurrency}
+                              onChange={val => setSetCurrency(val)}
+                              placeholder="Select Currency"
+                            />
                           </div>
                         </div>
 
-                        {/* Custom Picker & Live Preview Grid */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'center' }} className="responsive-settings-grid">
+                        <div className="responsive-form-row">
                           <div>
-                            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Custom Primary Color</label>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                              <input
-                                type="color"
-                                value={primaryColor}
-                                onChange={e => setPrimaryColor(e.target.value)}
-                                style={{
-                                  border: 'none',
-                                  width: 44,
-                                  height: 44,
-                                  borderRadius: 'var(--r-md)',
-                                  cursor: 'pointer',
-                                  background: 'none',
-                                  padding: 0
-                                }}
-                              />
-                              <input
-                                type="text"
-                                value={primaryColor}
-                                onChange={e => {
-                                  const val = e.target.value;
-                                  if (val.startsWith('#') && val.length <= 7) {
-                                    setPrimaryColor(val);
-                                  }
-                                }}
-                                className="input-field"
-                                style={{ padding: '8px 10px', fontSize: 13, height: 38, fontFamily: 'monospace' }}
-                                placeholder="#10b981"
-                              />
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Instagram Handle</label>
+                            <input
+                              type="text"
+                              value={setInstagram}
+                              onChange={e => setSetInstagram(e.target.value)}
+                              className="input-field"
+                              placeholder="username"
+                            />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>TikTok Handle</label>
+                            <input
+                              type="text"
+                              value={setTiktok}
+                              onChange={e => setSetTiktok(e.target.value)}
+                              className="input-field"
+                              placeholder="username"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Storefront Branding & Colors */}
+                        <div style={{
+                          position: 'relative',
+                          border: '1.5px solid var(--border)',
+                          borderRadius: 'var(--r-xl)',
+                          padding: 20,
+                          background: 'var(--bg-2)',
+                          marginTop: 16,
+                          overflow: 'hidden'
+                        }}>
+                          {/* Lock Overlay if Free */}
+                          {!isPro && (
+                            <div style={{
+                              position: 'absolute', inset: 0,
+                              background: 'rgba(255, 255, 255, 0.7)',
+                              backdropFilter: 'blur(4px)',
+                              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                              textAlign: 'center', zIndex: 10, padding: 16
+                            }}>
+                              <div style={{
+                                width: 38, height: 38, borderRadius: '50%',
+                                background: '#fef3c7', color: '#d97706',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: '0 4px 10px rgba(217,119,6,0.12)', marginBottom: 8
+                              }}>
+                                <Zap size={18} />
+                              </div>
+                              <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 900, color: 'var(--text)', margin: 0 }}>Custom Storefront Colors</h4>
+                              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', maxWidth: 280, marginTop: 4, marginBottom: 12, lineHeight: 1.4 }}>
+                                Choose a custom theme color for your storefront. Requires a Pro subscription.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => setActiveTab('billing')}
+                                className="btn btn-primary clickable"
+                                style={{ padding: '6px 14px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 12 }}
+                              >
+                                Upgrade to Pro
+                              </button>
+                            </div>
+                          )}
+
+                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            🎨 Storefront Branding & Colors
+                          </h3>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.4 }}>
+                            Customize the primary color of your storefront buttons, badges, highlights, and icons.
+                          </p>
+
+                          {/* Preset Swatches */}
+                          <div style={{ marginBottom: 16 }}>
+                            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Preset Color Palettes</label>
+                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                              {[
+                                { name: 'WhatsApp', value: '#10b981' },
+                                { name: 'Ocean', value: '#0284c7' },
+                                { name: 'Royal', value: '#4f46e5' },
+                                { name: 'Sunset', value: '#ea580c' },
+                                { name: 'Midnight', value: '#1f2937' },
+                                { name: 'Plum', value: '#7c3aed' },
+                                { name: 'Rose', value: '#db2777' }
+                              ].map(preset => (
+                                <button
+                                  key={preset.name}
+                                  type="button"
+                                  onClick={() => setPrimaryColor(preset.value)}
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    background: preset.value,
+                                    border: primaryColor === preset.value ? '3px solid var(--text)' : '1px solid var(--border)',
+                                    cursor: 'pointer',
+                                    boxShadow: primaryColor === preset.value ? '0 0 0 2px var(--surface), var(--shadow-sm)' : 'var(--shadow-sm)',
+                                    transition: 'transform var(--t-fast)',
+                                    transform: primaryColor === preset.value ? 'scale(1.1)' : 'scale(1)'
+                                  }}
+                                  title={preset.name}
+                                />
+                              ))}
                             </div>
                           </div>
 
-                          {/* Live Preview UI Widget */}
-                          <div style={{
-                            background: 'var(--surface)',
-                            border: '1px solid var(--border)',
-                            borderRadius: 'var(--r-lg)',
-                            padding: 12,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 8,
-                            boxShadow: 'var(--shadow-sm)'
-                          }}>
-                            <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Live Preview</span>
-                            
-                            {/* Sample primary button */}
-                            <button type="button" style={{
-                              background: primaryColor,
-                              color: '#fff',
-                              border: 'none',
-                              padding: '6px 12px',
-                              borderRadius: 'var(--r-md)',
-                              fontSize: 12,
-                              fontWeight: 750,
-                              textAlign: 'center',
-                              boxShadow: `0 4px 10px ${primaryColor}2A`
-                            }}>
-                              Buy Now
-                            </button>
+                          {/* Custom Picker & Live Preview Grid */}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'center' }} className="responsive-settings-grid">
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Custom Primary Color</label>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <input
+                                  type="color"
+                                  value={primaryColor}
+                                  onChange={e => setPrimaryColor(e.target.value)}
+                                  style={{
+                                    border: 'none',
+                                    width: 44,
+                                    height: 44,
+                                    borderRadius: 'var(--r-md)',
+                                    cursor: 'pointer',
+                                    background: 'none',
+                                    padding: 0
+                                  }}
+                                />
+                                <input
+                                  type="text"
+                                  value={primaryColor}
+                                  onChange={e => {
+                                    const val = e.target.value;
+                                    if (val.startsWith('#') && val.length <= 7) {
+                                      setPrimaryColor(val);
+                                    }
+                                  }}
+                                  className="input-field"
+                                  style={{ padding: '8px 10px', fontSize: 13, height: 38, fontFamily: 'monospace' }}
+                                  placeholder="#10b981"
+                                />
+                              </div>
+                            </div>
 
-                            {/* Sample Chat bubble */}
+                            {/* Live Preview UI Widget */}
                             <div style={{
-                              alignSelf: 'flex-end',
-                              background: primaryColor,
-                              color: '#fff',
-                              padding: '6px 12px',
-                              borderRadius: '12px 12px 0 12px',
-                              fontSize: 11,
-                              maxWidth: '85%',
+                              background: 'var(--surface)',
+                              border: '1px solid var(--border)',
+                              borderRadius: 'var(--r-lg)',
+                              padding: 12,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 8,
                               boxShadow: 'var(--shadow-sm)'
                             }}>
-                              Hi! Can I order this item?
+                              <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Live Preview</span>
+
+                              {/* Sample primary button */}
+                              <button type="button" style={{
+                                background: primaryColor,
+                                color: '#fff',
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: 'var(--r-md)',
+                                fontSize: 12,
+                                fontWeight: 750,
+                                textAlign: 'center',
+                                boxShadow: `0 4px 10px ${primaryColor}2A`
+                              }}>
+                                Buy Now
+                              </button>
+
+                              {/* Sample Chat bubble */}
+                              <div style={{
+                                alignSelf: 'flex-end',
+                                background: primaryColor,
+                                color: '#fff',
+                                padding: '6px 12px',
+                                borderRadius: '12px 12px 0 12px',
+                                fontSize: 11,
+                                maxWidth: '85%',
+                                boxShadow: 'var(--shadow-sm)'
+                              }}>
+                                Hi! Can I order this item?
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={settingsSaving}
-                        className="btn btn-primary clickable"
-                        style={{ padding: '14px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 10 }}
-                      >
-                        {settingsSaving ? <><Loader2 size={16} className="spinner" /> Saving...</> : 'Save Configuration Changes'}
-                      </button>
-                    </form>
-                  </div>
-
-                  {/* Settings Side Panels (Identity, Developer Overrides) */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    
-                    {/* Identity Info Panel */}
-                    <div className="card" style={{ padding: 20 }}>
-                      <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800, marginBottom: 14 }}>Identity Context</h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13.5 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Merchant Name</span>
-                          <span style={{ fontWeight: 800 }}>{user?.name}</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Sign-in Phone</span>
-                          <span style={{ fontWeight: 700 }}>{user?.phone_number}</span>
-                        </div>
-                        {user?.email && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>
-                            <span style={{ color: 'var(--text-muted)' }}>Registered Email</span>
-                            <span style={{ fontWeight: 700 }}>{user.email}</span>
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Store Username</span>
-                          <span style={{ fontWeight: 700 }}>@{store?.username}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Change Password Card */}
-                    <div className="card" style={{ padding: 20 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-                        <div style={{ background: 'var(--primary-light)', padding: 5, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
-                          <Key size={14} />
-                        </div>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Update Password</h3>
-                      </div>
-                      <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {/* Current Password */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Current Password</label>
-                          <div style={{ position: 'relative' }}>
-                            <input
-                              type={showCpCurrent ? 'text' : 'password'}
-                              value={cpCurrent}
-                              onChange={e => setCpCurrent(e.target.value)}
-                              className="input-field"
-                              placeholder="••••••••"
-                              style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowCpCurrent(!showCpCurrent)}
-                              style={{
-                                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                                background: 'none', border: 'none', color: 'var(--text-muted)',
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                              }}
-                            >
-                              {showCpCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* New Password */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>New Password</label>
-                          <div style={{ position: 'relative' }}>
-                            <input
-                              type={showCpNew ? 'text' : 'password'}
-                              value={cpNew}
-                              onChange={e => setCpNew(e.target.value)}
-                              className="input-field"
-                              placeholder="Min 6 characters"
-                              style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowCpNew(!showCpNew)}
-                              style={{
-                                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                                background: 'none', border: 'none', color: 'var(--text-muted)',
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                              }}
-                            >
-                              {showCpNew ? <EyeOff size={16} /> : <Eye size={16} />}
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Confirm Password */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Confirm New Password</label>
-                          <div style={{ position: 'relative' }}>
-                            <input
-                              type={showCpConfirm ? 'text' : 'password'}
-                              value={cpConfirm}
-                              onChange={e => setCpConfirm(e.target.value)}
-                              className="input-field"
-                              placeholder="Confirm new password"
-                              style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowCpConfirm(!showCpConfirm)}
-                              style={{
-                                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                                background: 'none', border: 'none', color: 'var(--text-muted)',
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                              }}
-                            >
-                              {showCpConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                            </button>
                           </div>
                         </div>
 
                         <button
                           type="submit"
-                          disabled={cpSaving}
+                          disabled={settingsSaving}
                           className="btn btn-primary clickable"
-                          style={{
-                            width: '100%', padding: '10px', fontSize: 12.5, borderRadius: 'var(--r-md)',
-                            fontWeight: 800, marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
-                          }}
+                          style={{ padding: '14px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 10 }}
                         >
-                          {cpSaving ? (
-                            <>
-                              <Loader2 size={14} className="spinner" />
-                              Updating...
-                            </>
-                          ) : 'Update Password'}
+                          {settingsSaving ? <><Loader2 size={16} className="spinner" /> Saving...</> : 'Save Configuration Changes'}
                         </button>
                       </form>
                     </div>
 
+                    {/* Settings Side Panels (Identity, Developer Overrides) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-                    {/* Developer settings URL override */}
-                    {isDev && (
+                      {/* Identity Info Panel */}
                       <div className="card" style={{ padding: 20 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                          <div style={{ background: 'var(--danger-light)', padding: 4, borderRadius: 'var(--r-sm)', color: 'var(--danger)' }}>
-                            <Settings size={14} />
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800, marginBottom: 14 }}>Identity Context</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13.5 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Merchant Name</span>
+                            <span style={{ fontWeight: 800 }}>{user?.name}</span>
                           </div>
-                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14.5, fontWeight: 800 }}>Developer Overrides</h3>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Sign-in Phone</span>
+                            <span style={{ fontWeight: 700 }}>{user?.phone_number}</span>
+                          </div>
+                          {user?.email && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>
+                              <span style={{ color: 'var(--text-muted)' }}>Registered Email</span>
+                              <span style={{ fontWeight: 700 }}>{user.email}</span>
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Store Username</span>
+                            <span style={{ fontWeight: 700 }}>@{store?.username}</span>
+                          </div>
                         </div>
-                        <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 14 }}>
-                          Change the backend API endpoint address. (Default port is 8000). Useful for connecting local network devices.
-                        </p>
-                        
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                          <input
-                            type="text"
-                            value={devApiInput}
-                            onChange={e => setDevApiInput(e.target.value)}
-                            className="input-field"
-                            style={{ padding: '8px 12px', fontSize: 13, height: 38 }}
-                          />
+                      </div>
+
+                      {/* Change Password Card */}
+                      <div className="card" style={{ padding: 20 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                          <div style={{ background: 'var(--primary-light)', padding: 5, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
+                            <Key size={14} />
+                          </div>
+                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Update Password</h3>
+                        </div>
+                        <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          {/* Current Password */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Current Password</label>
+                            <div style={{ position: 'relative' }}>
+                              <input
+                                type={showCpCurrent ? 'text' : 'password'}
+                                value={cpCurrent}
+                                onChange={e => setCpCurrent(e.target.value)}
+                                className="input-field"
+                                placeholder="••••••••"
+                                style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowCpCurrent(!showCpCurrent)}
+                                style={{
+                                  position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                                  background: 'none', border: 'none', color: 'var(--text-muted)',
+                                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                }}
+                              >
+                                {showCpCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* New Password */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>New Password</label>
+                            <div style={{ position: 'relative' }}>
+                              <input
+                                type={showCpNew ? 'text' : 'password'}
+                                value={cpNew}
+                                onChange={e => setCpNew(e.target.value)}
+                                className="input-field"
+                                placeholder="Min 6 characters"
+                                style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowCpNew(!showCpNew)}
+                                style={{
+                                  position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                                  background: 'none', border: 'none', color: 'var(--text-muted)',
+                                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                }}
+                              >
+                                {showCpNew ? <EyeOff size={16} /> : <Eye size={16} />}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Confirm Password */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Confirm New Password</label>
+                            <div style={{ position: 'relative' }}>
+                              <input
+                                type={showCpConfirm ? 'text' : 'password'}
+                                value={cpConfirm}
+                                onChange={e => setCpConfirm(e.target.value)}
+                                className="input-field"
+                                placeholder="Confirm new password"
+                                style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowCpConfirm(!showCpConfirm)}
+                                style={{
+                                  position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                                  background: 'none', border: 'none', color: 'var(--text-muted)',
+                                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                }}
+                              >
+                                {showCpConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                              </button>
+                            </div>
+                          </div>
+
                           <button
-                            onClick={handleSaveDevApi}
-                            className="btn btn-outline clickable"
-                            style={{ width: '100%', padding: '8px', fontSize: 12, borderRadius: 'var(--r-md)', fontWeight: 700 }}
+                            type="submit"
+                            disabled={cpSaving}
+                            className="btn btn-primary clickable"
+                            style={{
+                              width: '100%', padding: '10px', fontSize: 12.5, borderRadius: 'var(--r-md)',
+                              fontWeight: 800, marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                            }}
                           >
-                            Sync Host Address
+                            {cpSaving ? (
+                              <>
+                                <Loader2 size={14} className="spinner" />
+                                Updating...
+                              </>
+                            ) : 'Update Password'}
                           </button>
+                        </form>
+                      </div>
+
+
+                      {/* Developer settings URL override */}
+                      {isDev && (
+                        <div className="card" style={{ padding: 20 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                            <div style={{ background: 'var(--danger-light)', padding: 4, borderRadius: 'var(--r-sm)', color: 'var(--danger)' }}>
+                              <Settings size={14} />
+                            </div>
+                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14.5, fontWeight: 800 }}>Developer Overrides</h3>
+                          </div>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 14 }}>
+                            Change the backend API endpoint address. (Default port is 8000). Useful for connecting local network devices.
+                          </p>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <input
+                              type="text"
+                              value={devApiInput}
+                              onChange={e => setDevApiInput(e.target.value)}
+                              className="input-field"
+                              style={{ padding: '8px 12px', fontSize: 13, height: 38 }}
+                            />
+                            <button
+                              onClick={handleSaveDevApi}
+                              className="btn btn-outline clickable"
+                              style={{ width: '100%', padding: '8px', fontSize: 12, borderRadius: 'var(--r-md)', fontWeight: 700 }}
+                            >
+                              Sync Host Address
+                            </button>
+                          </div>
                         </div>
+                      )}
+
+                    </div>
+                  </div>
+
+                  {/* ── CUSTOM DOMAIN CONFIGURATION CARD ── */}
+                  <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24, position: 'relative', overflow: 'hidden' }}>
+
+                    {/* Lock Overlay if Free */}
+                    {(user?.plan === 'free' || !user?.plan) && (
+                      <div style={{
+                        position: 'absolute', inset: 0,
+                        background: 'var(--glass-bg)',
+                        backdropFilter: 'blur(5px)',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        textAlign: 'center', zIndex: 10, padding: 24
+                      }}>
+                        <div style={{
+                          width: 50, height: 50, borderRadius: '50%',
+                          background: '#fef3c7', color: '#d97706',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: '0 4px 12px rgba(217,119,6,0.15)', marginBottom: 12
+                        }}>
+                          <Zap size={24} />
+                        </div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, color: 'var(--text)' }}>Custom Domain Mapping</h3>
+                        <p style={{ fontSize: 13, color: 'var(--text-muted)', maxWidth: 360, marginTop: 4, marginBottom: 16, lineHeight: 1.5 }}>
+                          Connect your own custom domain (e.g. <code>mybrand.com</code>) to personalize your store URL. Requires a Pro subscription.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('billing')}
+                          className="btn btn-primary clickable"
+                          style={{ padding: '8px 20px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13 }}
+                        >
+                          Upgrade to Pro (₦3,999/mo)
+                        </button>
                       </div>
                     )}
 
-                  </div>
-                </div>
-
-                {/* ── CUSTOM DOMAIN CONFIGURATION CARD ── */}
-                <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24, position: 'relative', overflow: 'hidden' }}>
-                  
-                  {/* Lock Overlay if Free */}
-                  {(user?.plan === 'free' || !user?.plan) && (
-                    <div style={{
-                      position: 'absolute', inset: 0,
-                      background: 'var(--glass-bg)',
-                      backdropFilter: 'blur(5px)',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                      textAlign: 'center', zIndex: 10, padding: 24
-                    }}>
-                      <div style={{
-                        width: 50, height: 50, borderRadius: '50%',
-                        background: '#fef3c7', color: '#d97706',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 4px 12px rgba(217,119,6,0.15)', marginBottom: 12
-                      }}>
-                        <Zap size={24} />
-                      </div>
-                      <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, color: 'var(--text)' }}>Custom Domain Mapping</h3>
-                      <p style={{ fontSize: 13, color: 'var(--text-muted)', maxWidth: 360, marginTop: 4, marginBottom: 16, lineHeight: 1.5 }}>
-                        Connect your own custom domain (e.g. <code>mybrand.com</code>) to personalize your store URL. Requires a Pro subscription.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab('billing')}
-                        className="btn btn-primary clickable"
-                        style={{ padding: '8px 20px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13 }}
-                      >
-                        Upgrade to Pro (₦3,999/mo)
-                      </button>
-                    </div>
-                  )}
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-                    <div style={{
-                      width: 44, height: 44, borderRadius: 'var(--r-md)',
-                      background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: '0 4px 16px rgba(16,185,129,0.35)', flexShrink: 0
-                    }}>
-                      <Globe size={22} color="#fff" />
-                    </div>
-                    <div>
-                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
-                        Custom Domain Mapping
-                      </h2>
-                      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                        Connect your own custom domain (e.g. <code>mybrand.com</code>) to your Aloaye storefront using nameservers.
-                      </p>
-                    </div>
-                  </div>
-
-                  {store?.custom_domain ? (
-                    // Linked Domain State
-                    <div style={{ background: 'var(--primary-light)', border: '1.5px solid var(--primary)', borderRadius: 'var(--r-lg)', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                        <div>
-                          <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Linked Custom Domain</span>
-                          <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--primary-dark)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            {store.custom_domain}
-                            <span style={{ fontSize: 11, background: '#10b981', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
-                          </h3>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleRemoveCustomDomain}
-                          disabled={customDomainSaving}
-                          className="btn btn-outline clickable"
-                          style={{ borderColor: 'var(--danger)', color: 'var(--danger)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                        >
-                          {customDomainSaving ? <Loader2 size={14} className="spinner" /> : <Trash2 size={14} />}
-                          Disconnect Domain
-                        </button>
-                      </div>
-                      <div style={{ borderTop: '1px solid rgba(16, 185, 129, 0.2)', paddingTop: 12, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
-                        ✨ Shoppers can now access your store directly at <a href={`https://${store.custom_domain}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, color: 'var(--primary-dark)', textDecoration: 'underline' }}>https://{store.custom_domain}</a>
-                      </div>
-                    </div>
-                  ) : (
-                    // Not Linked Domain State
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid">
-                        <div>
-                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-                            Enter your domain name
-                          </label>
-                          <div style={{ display: 'flex', gap: 12 }}>
-                            <input
-                              type="text"
-                              value={customDomainInput}
-                              onChange={e => setCustomDomainInput(e.target.value)}
-                              className="input-field"
-                              placeholder="e.g. mybrand.com"
-                              style={{ flex: 1 }}
-                            />
-                            <button
-                              type="button"
-                              onClick={handleLinkCustomDomain}
-                              disabled={customDomainSaving || !customDomainInput}
-                              className="btn btn-primary clickable"
-                              style={{ padding: '0 20px', borderRadius: 'var(--r-md)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                            >
-                              {customDomainSaving ? <Loader2 size={16} className="spinner" /> : <Link size={16} />}
-                              Link Domain
-                            </button>
-                          </div>
-                          
-                          {/* Bypass checkbox */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-                            <input
-                              type="checkbox"
-                              id="bypass-dns-checkbox"
-                              checked={customDomainBypassDNS}
-                              onChange={e => setCustomDomainBypassDNS(e.target.checked)}
-                              style={{ cursor: 'pointer', width: 15, height: 15 }}
-                            />
-                            <label htmlFor="bypass-dns-checkbox" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', cursor: 'pointer' }}>
-                              Simulate DNS check (local/testing)
-                            </label>
-                          </div>
-                        </div>
-
-                        <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 18 }}>
-                          <h4 style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
-                            Nameservers Setup Instructions
-                          </h4>
-                          <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>
-                            At your domain registrar (GoDaddy, Namecheap, etc.), change your nameservers to:
-                          </p>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
-                              <span>ns1.aloaye.tech</span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  navigator.clipboard.writeText('ns1.aloaye.tech');
-                                  toast.success('Copied ns1.aloaye.tech');
-                                }}
-                                style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
-                              >Copy</button>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
-                              <span>ns2.aloaye.tech</span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  navigator.clipboard.writeText('ns2.aloaye.tech');
-                                  toast.success('Copied ns2.aloaye.tech');
-                                }}
-                                style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
-                              >Copy</button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* ── CUSTOM LINKS / LINKTREE SECTION ── */}
-                <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24 }}>
-                  {/* Header */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
                       <div style={{
                         width: 44, height: 44, borderRadius: 'var(--r-md)',
                         background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         boxShadow: '0 4px 16px rgba(16,185,129,0.35)', flexShrink: 0
                       }}>
-                        <Link size={20} color="#fff" />
+                        <Globe size={22} color="#fff" />
                       </div>
                       <div>
-                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900 }}>Store Linktree & Socials</h2>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                          Custom Domain Mapping
+                        </h2>
                         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                          Add external links, websites, blogs, or chat channels that display as custom buttons on your storefront.
+                          Connect your own custom domain (e.g. <code>mybrand.com</code>) to your Aloaye storefront using nameservers.
                         </p>
                       </div>
                     </div>
-                    
-                    {!showLinkForm && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingLinkId(null);
-                          setLinkTitle('');
-                          setLinkUrl('');
-                          setLinkPlatform('custom');
-                          setLinkActive(true);
-                          setShowLinkForm(true);
-                        }}
-                        className="btn btn-primary clickable"
-                        style={{ padding: '10px 16px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                      >
-                        <Plus size={15} /> Add Custom Link
-                      </button>
+
+                    {store?.custom_domain ? (
+                      // Linked Domain State
+                      <div style={{ background: 'var(--primary-light)', border: '1.5px solid var(--primary)', borderRadius: 'var(--r-lg)', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                          <div>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Linked Custom Domain</span>
+                            <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--primary-dark)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+                              {store.custom_domain}
+                              <span style={{ fontSize: 11, background: '#10b981', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
+                            </h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRemoveCustomDomain}
+                            disabled={customDomainSaving}
+                            className="btn btn-outline clickable"
+                            style={{ borderColor: 'var(--danger)', color: 'var(--danger)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                          >
+                            {customDomainSaving ? <Loader2 size={14} className="spinner" /> : <Trash2 size={14} />}
+                            Disconnect Domain
+                          </button>
+                        </div>
+                        <div style={{ borderTop: '1px solid rgba(16, 185, 129, 0.2)', paddingTop: 12, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                          ✨ Shoppers can now access your store directly at <a href={`https://${store.custom_domain}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, color: 'var(--primary-dark)', textDecoration: 'underline' }}>https://{store.custom_domain}</a>
+                        </div>
+                      </div>
+                    ) : (
+                      // Not Linked Domain State
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid">
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                              Enter your domain name
+                            </label>
+                            <div style={{ display: 'flex', gap: 12 }}>
+                              <input
+                                type="text"
+                                value={customDomainInput}
+                                onChange={e => setCustomDomainInput(e.target.value)}
+                                className="input-field"
+                                placeholder="e.g. mybrand.com"
+                                style={{ flex: 1 }}
+                              />
+                              <button
+                                type="button"
+                                onClick={handleLinkCustomDomain}
+                                disabled={customDomainSaving || !customDomainInput}
+                                className="btn btn-primary clickable"
+                                style={{ padding: '0 20px', borderRadius: 'var(--r-md)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                              >
+                                {customDomainSaving ? <Loader2 size={16} className="spinner" /> : <Link size={16} />}
+                                Link Domain
+                              </button>
+                            </div>
+
+                            {/* Bypass checkbox */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                              <input
+                                type="checkbox"
+                                id="bypass-dns-checkbox"
+                                checked={customDomainBypassDNS}
+                                onChange={e => setCustomDomainBypassDNS(e.target.checked)}
+                                style={{ cursor: 'pointer', width: 15, height: 15 }}
+                              />
+                              <label htmlFor="bypass-dns-checkbox" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', cursor: 'pointer' }}>
+                                Simulate DNS check (local/testing)
+                              </label>
+                            </div>
+                          </div>
+
+                          <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 18 }}>
+                            <h4 style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+                              Nameservers Setup Instructions
+                            </h4>
+                            <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>
+                              At your domain registrar (GoDaddy, Namecheap, etc.), change your nameservers to:
+                            </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
+                                <span>ns1.aloaye.tech</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText('ns1.aloaye.tech');
+                                    toast.success('Copied ns1.aloaye.tech');
+                                  }}
+                                  style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                                >Copy</button>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
+                                <span>ns2.aloaye.tech</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText('ns2.aloaye.tech');
+                                    toast.success('Copied ns2.aloaye.tech');
+                                  }}
+                                  style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                                >Copy</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 32 }} className="responsive-settings-grid">
-                    {/* Left Side: Editor list */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                      
-                      {/* Inline Form to Add/Edit Link */}
-                      {showLinkForm && (
-                        <div className="glass" style={{ padding: 20, borderRadius: 'var(--r-lg)', border: '1px solid var(--primary)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                          <h3 style={{ fontSize: 14, fontWeight: 800, fontFamily: 'var(--font-heading)' }}>
-                            {editingLinkId ? 'Edit Link Details' : 'Add a New Store Link'}
-                          </h3>
-                          
-                          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: 12 }} className="responsive-settings-grid">
-                            <div>
-                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 5 }}>Platform / Icon</label>
-                              <SearchableSelect
-                                options={[
-                                  { value: 'custom', label: 'Website / Custom', icon: <Globe size={14} /> },
-                                  { value: 'whatsapp', label: 'WhatsApp', icon: <WhatsAppIcon size={14} /> },
-                                  { value: 'instagram', label: 'Instagram', icon: <Camera size={14} /> },
-                                  { value: 'tiktok', label: 'TikTok', icon: <Zap size={14} /> },
-                                  { value: 'twitter', label: 'Twitter / X', icon: <Zap size={14} /> },
-                                  { value: 'facebook', label: 'Facebook', icon: <Globe size={14} /> },
-                                  { value: 'youtube', label: 'YouTube', icon: <Globe size={14} /> },
-                                  { value: 'linkedin', label: 'LinkedIn', icon: <Globe size={14} /> },
-                                  { value: 'pinterest', label: 'Pinterest', icon: <Globe size={14} /> },
-                                  { value: 'snapchat', label: 'Snapchat', icon: <Globe size={14} /> }
-                                ]}
-                                value={linkPlatform}
-                                onChange={val => setLinkPlatform(val)}
-                                placeholder="Select Icon"
-                              />
+                  {/* ── CUSTOM LINKS / LINKTREE SECTION ── */}
+                  <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24 }}>
+                    {/* Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{
+                          width: 44, height: 44, borderRadius: 'var(--r-md)',
+                          background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: '0 4px 16px rgba(16,185,129,0.35)', flexShrink: 0
+                        }}>
+                          <Link size={20} color="#fff" />
+                        </div>
+                        <div>
+                          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900 }}>Store Linktree & Socials</h2>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                            Add external links, websites, blogs, or chat channels that display as custom buttons on your storefront.
+                          </p>
+                        </div>
+                      </div>
+
+                      {!showLinkForm && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingLinkId(null);
+                            setLinkTitle('');
+                            setLinkUrl('');
+                            setLinkPlatform('custom');
+                            setLinkActive(true);
+                            setShowLinkForm(true);
+                          }}
+                          className="btn btn-primary clickable"
+                          style={{ padding: '10px 16px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                        >
+                          <Plus size={15} /> Add Custom Link
+                        </button>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 32 }} className="responsive-settings-grid">
+                      {/* Left Side: Editor list */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                        {/* Inline Form to Add/Edit Link */}
+                        {showLinkForm && (
+                          <div className="glass" style={{ padding: 20, borderRadius: 'var(--r-lg)', border: '1px solid var(--primary)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                            <h3 style={{ fontSize: 14, fontWeight: 800, fontFamily: 'var(--font-heading)' }}>
+                              {editingLinkId ? 'Edit Link Details' : 'Add a New Store Link'}
+                            </h3>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: 12 }} className="responsive-settings-grid">
+                              <div>
+                                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 5 }}>Platform / Icon</label>
+                                <SearchableSelect
+                                  options={[
+                                    { value: 'custom', label: 'Website / Custom', icon: <Globe size={14} /> },
+                                    { value: 'whatsapp', label: 'WhatsApp', icon: <WhatsAppIcon size={14} /> },
+                                    { value: 'instagram', label: 'Instagram', icon: <Camera size={14} /> },
+                                    { value: 'tiktok', label: 'TikTok', icon: <Zap size={14} /> },
+                                    { value: 'twitter', label: 'Twitter / X', icon: <Zap size={14} /> },
+                                    { value: 'facebook', label: 'Facebook', icon: <Globe size={14} /> },
+                                    { value: 'youtube', label: 'YouTube', icon: <Globe size={14} /> },
+                                    { value: 'linkedin', label: 'LinkedIn', icon: <Globe size={14} /> },
+                                    { value: 'pinterest', label: 'Pinterest', icon: <Globe size={14} /> },
+                                    { value: 'snapchat', label: 'Snapchat', icon: <Globe size={14} /> }
+                                  ]}
+                                  value={linkPlatform}
+                                  onChange={val => setLinkPlatform(val)}
+                                  placeholder="Select Icon"
+                                />
+                              </div>
+                              <div>
+                                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 5 }}>Button Title *</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. Chat on Telegram, Visit my site"
+                                  value={linkTitle}
+                                  onChange={e => setLinkTitle(e.target.value)}
+                                  className="input-field"
+                                  style={{ padding: '8px 12px', fontSize: 14, height: 46 }}
+                                />
+                              </div>
                             </div>
+
                             <div>
-                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 5 }}>Button Title *</label>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 5 }}>Destination URL *</label>
                               <input
                                 type="text"
-                                placeholder="e.g. Chat on Telegram, Visit my site"
-                                value={linkTitle}
-                                onChange={e => setLinkTitle(e.target.value)}
+                                placeholder="e.g. https://mywebsite.com or t.me/mychannel"
+                                value={linkUrl}
+                                onChange={e => setLinkUrl(e.target.value)}
                                 className="input-field"
                                 style={{ padding: '8px 12px', fontSize: 14, height: 46 }}
                               />
                             </div>
-                          </div>
 
-                          <div>
-                            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 5 }}>Destination URL *</label>
-                            <input
-                              type="text"
-                              placeholder="e.g. https://mywebsite.com or t.me/mychannel"
-                              value={linkUrl}
-                              onChange={e => setLinkUrl(e.target.value)}
-                              className="input-field"
-                              style={{ padding: '8px 12px', fontSize: 14, height: 46 }}
-                            />
-                          </div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                                <input
+                                  type="checkbox"
+                                  checked={linkActive}
+                                  onChange={e => setLinkActive(e.target.checked)}
+                                  style={{ width: 16, height: 16, accentColor: 'var(--primary)' }}
+                                />
+                                Show link on storefront
+                              </label>
 
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-                              <input
-                                type="checkbox"
-                                checked={linkActive}
-                                onChange={e => setLinkActive(e.target.checked)}
-                                style={{ width: 16, height: 16, accentColor: 'var(--primary)' }}
-                              />
-                              Show link on storefront
-                            </label>
+                              <div style={{ display: 'flex', gap: 10 }}>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowLinkForm(false)}
+                                  className="btn btn-outline clickable"
+                                  style={{ padding: '8px 14px', fontSize: 12.5, borderRadius: 'var(--r-md)' }}
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!linkTitle.trim() || !linkUrl.trim()) {
+                                      toast.warning('Please enter a link title and destination URL.');
+                                      return;
+                                    }
+                                    let formattedUrl = linkUrl.trim();
+                                    if (!/^https?:\/\//i.test(formattedUrl)) {
+                                      formattedUrl = 'https://' + formattedUrl;
+                                    }
 
-                            <div style={{ display: 'flex', gap: 10 }}>
-                              <button
-                                type="button"
-                                onClick={() => setShowLinkForm(false)}
-                                className="btn btn-outline clickable"
-                                style={{ padding: '8px 14px', fontSize: 12.5, borderRadius: 'var(--r-md)' }}
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (!linkTitle.trim() || !linkUrl.trim()) {
-                                    toast.warning('Please enter a link title and destination URL.');
-                                    return;
-                                  }
-                                  let formattedUrl = linkUrl.trim();
-                                  if (!/^https?:\/\//i.test(formattedUrl)) {
-                                    formattedUrl = 'https://' + formattedUrl;
-                                  }
+                                    const newLink: StoreLink = {
+                                      id: editingLinkId || Math.random().toString(36).substring(2, 9),
+                                      title: linkTitle.trim(),
+                                      url: formattedUrl,
+                                      platform: linkPlatform,
+                                      is_active: linkActive
+                                    };
 
-                                  const newLink: StoreLink = {
-                                    id: editingLinkId || Math.random().toString(36).substring(2, 9),
-                                    title: linkTitle.trim(),
-                                    url: formattedUrl,
-                                    platform: linkPlatform,
-                                    is_active: linkActive
-                                  };
-
-                                  if (editingLinkId) {
-                                    setCustomLinks(prev => prev.map(l => l.id === editingLinkId ? newLink : l));
-                                    toast.info('Link updated locally. Remember to save changes below!');
-                                  } else {
-                                    setCustomLinks(prev => [...prev, newLink]);
-                                    toast.success('Link added locally. Remember to save changes below!');
-                                  }
-                                  setShowLinkForm(false);
-                                }}
-                                className="btn btn-primary clickable"
-                                style={{ padding: '8px 14px', fontSize: 12.5, borderRadius: 'var(--r-md)' }}
-                              >
-                                {editingLinkId ? 'Update' : 'Add Link'}
-                              </button>
+                                    if (editingLinkId) {
+                                      setCustomLinks(prev => prev.map(l => l.id === editingLinkId ? newLink : l));
+                                      toast.info('Link updated locally. Remember to save changes below!');
+                                    } else {
+                                      setCustomLinks(prev => [...prev, newLink]);
+                                      toast.success('Link added locally. Remember to save changes below!');
+                                    }
+                                    setShowLinkForm(false);
+                                  }}
+                                  className="btn btn-primary clickable"
+                                  style={{ padding: '8px 14px', fontSize: 12.5, borderRadius: 'var(--r-md)' }}
+                                >
+                                  {editingLinkId ? 'Update' : 'Add Link'}
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* List of custom links */}
-                      {customLinks.length === 0 ? (
-                        <div style={{ padding: '32px 16px', textAlign: 'center', background: 'var(--bg-2)', borderRadius: 'var(--r-xl)', border: '1px dashed var(--border)' }}>
-                          <Link size={32} color="var(--text-faint)" style={{ marginBottom: 12, marginInline: 'auto' }} />
-                          <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-muted)', textAlign: 'center' }}>No custom links added yet</p>
-                          <p style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 4, textAlign: 'center' }}>
-                            Click "Add Custom Link" above to customize buttons like Linktree.
-                          </p>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                          {customLinks.map((link, idx) => {
-                            const IconComponent = () => {
-                              switch (link.platform) {
+                        {/* List of custom links */}
+                        {customLinks.length === 0 ? (
+                          <div style={{ padding: '32px 16px', textAlign: 'center', background: 'var(--bg-2)', borderRadius: 'var(--r-xl)', border: '1px dashed var(--border)' }}>
+                            <Link size={32} color="var(--text-faint)" style={{ marginBottom: 12, marginInline: 'auto' }} />
+                            <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-muted)', textAlign: 'center' }}>No custom links added yet</p>
+                            <p style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 4, textAlign: 'center' }}>
+                              Click "Add Custom Link" above to customize buttons like Linktree.
+                            </p>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            {customLinks.map((link, idx) => {
+                              const IconComponent = () => {
+                                switch (link.platform) {
                                   case 'whatsapp': return <WhatsAppIcon size={14} style={{ color: 'var(--wa-green)' }} />;
                                   case 'instagram': return <Camera size={14} style={{ color: '#e1306c' }} />;
                                   case 'tiktok': return <Music2 size={14} style={{ color: '#00f2fe' }} />;
                                   case 'facebook': return <Facebook size={14} style={{ color: '#1877f2' }} />;
                                   case 'twitter': return <Twitter size={14} style={{ color: '#1da1f2' }} />;
                                   default: return <Globe size={14} />;
-                              }
-                            };
-                            return (
-                              <div
-                                key={link.id}
-                                className="glass"
-                                style={{
-                                  padding: '12px 16px',
-                                  borderRadius: 'var(--r-lg)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  gap: 12,
-                                  border: '1.5px solid var(--border)',
-                                  opacity: link.is_active ? 1 : 0.6,
-                                  transition: 'all 0.2s ease',
-                                  background: 'var(--surface)'
-                                }}
-                              >
-                                {/* Sort, title, URL */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
-                                  {/* Sort handlers */}
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                }
+                              };
+                              return (
+                                <div
+                                  key={link.id}
+                                  className="glass"
+                                  style={{
+                                    padding: '12px 16px',
+                                    borderRadius: 'var(--r-lg)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: 12,
+                                    border: '1.5px solid var(--border)',
+                                    opacity: link.is_active ? 1 : 0.6,
+                                    transition: 'all 0.2s ease',
+                                    background: 'var(--surface)'
+                                  }}
+                                >
+                                  {/* Sort, title, URL */}
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+                                    {/* Sort handlers */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                      <button
+                                        type="button"
+                                        disabled={idx === 0}
+                                        onClick={() => moveLink(idx, 'up')}
+                                        style={{ background: 'none', border: 'none', padding: 2, cursor: idx === 0 ? 'not-allowed' : 'pointer', color: 'var(--text-muted)', opacity: idx === 0 ? 0.3 : 1 }}
+                                        title="Move up"
+                                      >
+                                        <ArrowUp size={13} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={idx === customLinks.length - 1}
+                                        onClick={() => moveLink(idx, 'down')}
+                                        style={{ background: 'none', border: 'none', padding: 2, cursor: idx === customLinks.length - 1 ? 'not-allowed' : 'pointer', color: 'var(--text-muted)', opacity: idx === customLinks.length - 1 ? 0.3 : 1 }}
+                                        title="Move down"
+                                      >
+                                        <ArrowDown size={13} />
+                                      </button>
+                                    </div>
+
+                                    {/* Platform Icon Badge */}
+                                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                      <IconComponent />
+                                    </div>
+
+                                    <div style={{ minWidth: 0 }}>
+                                      <p style={{ fontSize: 13.5, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{link.title}</p>
+                                      <span style={{ fontSize: 11, color: 'var(--text-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', marginTop: 2 }}>
+                                        {link.url}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Edit, status, delete buttons */}
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                    {/* Visibility Checkbox */}
                                     <button
                                       type="button"
-                                      disabled={idx === 0}
-                                      onClick={() => moveLink(idx, 'up')}
-                                      style={{ background: 'none', border: 'none', padding: 2, cursor: idx === 0 ? 'not-allowed' : 'pointer', color: 'var(--text-muted)', opacity: idx === 0 ? 0.3 : 1 }}
-                                      title="Move up"
+                                      onClick={() => {
+                                        setCustomLinks(prev => prev.map((l, i) => i === idx ? { ...l, is_active: !l.is_active } : l));
+                                      }}
+                                      style={{
+                                        border: 'none',
+                                        background: link.is_active ? 'var(--primary-light)' : 'var(--bg-2)',
+                                        color: link.is_active ? 'var(--primary)' : 'var(--text-muted)',
+                                        fontSize: 10,
+                                        fontWeight: 800,
+                                        padding: '4px 8px',
+                                        borderRadius: 'var(--r-sm)',
+                                        cursor: 'pointer'
+                                      }}
                                     >
-                                      <ArrowUp size={13} />
+                                      {link.is_active ? 'Active' : 'Hidden'}
                                     </button>
+
+                                    {/* Edit Button */}
                                     <button
                                       type="button"
-                                      disabled={idx === customLinks.length - 1}
-                                      onClick={() => moveLink(idx, 'down')}
-                                      style={{ background: 'none', border: 'none', padding: 2, cursor: idx === customLinks.length - 1 ? 'not-allowed' : 'pointer', color: 'var(--text-muted)', opacity: idx === customLinks.length - 1 ? 0.3 : 1 }}
-                                      title="Move down"
+                                      onClick={() => {
+                                        setEditingLinkId(link.id);
+                                        setLinkTitle(link.title);
+                                        setLinkUrl(link.url);
+                                        setLinkPlatform(link.platform);
+                                        setLinkActive(link.is_active);
+                                        setShowLinkForm(true);
+                                      }}
+                                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                                      title="Edit link"
                                     >
-                                      <ArrowDown size={13} />
+                                      <Edit2 size={13} />
+                                    </button>
+
+                                    {/* Delete Button */}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (confirm(`Are you sure you want to remove "${link.title}"?`)) {
+                                          setCustomLinks(prev => prev.filter(l => l.id !== link.id));
+                                          toast.info('Link deleted locally.');
+                                        }
+                                      }}
+                                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}
+                                      title="Delete link"
+                                    >
+                                      <Trash2 size={13} />
                                     </button>
                                   </div>
-
-                                  {/* Platform Icon Badge */}
-                                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                    <IconComponent />
-                                  </div>
-
-                                  <div style={{ minWidth: 0 }}>
-                                    <p style={{ fontSize: 13.5, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{link.title}</p>
-                                    <span style={{ fontSize: 11, color: 'var(--text-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', marginTop: 2 }}>
-                                      {link.url}
-                                    </span>
-                                  </div>
                                 </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
 
-                                {/* Edit, status, delete buttons */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                  {/* Visibility Checkbox */}
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setCustomLinks(prev => prev.map((l, i) => i === idx ? { ...l, is_active: !l.is_active } : l));
-                                    }}
-                                    style={{
-                                      border: 'none',
-                                      background: link.is_active ? 'var(--primary-light)' : 'var(--bg-2)',
-                                      color: link.is_active ? 'var(--primary)' : 'var(--text-muted)',
-                                      fontSize: 10,
-                                      fontWeight: 800,
-                                      padding: '4px 8px',
-                                      borderRadius: 'var(--r-sm)',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    {link.is_active ? 'Active' : 'Hidden'}
-                                  </button>
+                      {/* Right Side: Smartphone Mockup Preview */}
+                      <div style={{ display: 'flex', justifyContent: 'center' }} className="desktop-only">
+                        <div style={{
+                          width: 250,
+                          height: 480,
+                          borderRadius: 36,
+                          border: '10px solid #1e293b',
+                          background: 'var(--bg)',
+                          position: 'relative',
+                          boxShadow: 'var(--shadow-xl)',
+                          overflow: 'hidden',
+                          display: 'flex',
+                          flexDirection: 'column',
+                        }}>
+                          {/* Notch */}
+                          <div style={{ width: 110, height: 18, background: '#1e293b', position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', borderRadius: '0 0 12px 12px', zIndex: 10 }} />
 
-                                  {/* Edit Button */}
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setEditingLinkId(link.id);
-                                      setLinkTitle(link.title);
-                                      setLinkUrl(link.url);
-                                      setLinkPlatform(link.platform);
-                                      setLinkActive(link.is_active);
-                                      setShowLinkForm(true);
-                                    }}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                                    title="Edit link"
-                                  >
-                                    <Edit2 size={13} />
-                                  </button>
+                          {/* Screen Scroll Container */}
+                          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 14px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center' }} className="no-scrollbar">
 
-                                  {/* Delete Button */}
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      if (confirm(`Are you sure you want to remove "${link.title}"?`)) {
-                                        setCustomLinks(prev => prev.filter(l => l.id !== link.id));
-                                        toast.info('Link deleted locally.');
-                                      }
-                                    }}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}
-                                    title="Delete link"
-                                  >
-                                    <Trash2 size={13} />
-                                  </button>
+                            {/* Avatar */}
+                            <div style={{ width: 60, height: 60, borderRadius: '50%', background: logoUrl ? 'transparent' : 'var(--primary-light)', border: '2px solid var(--primary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 16 }}>
+                              {logoUrl ? (
+                                <img src={logoUrl} alt="Store logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--primary)' }}>{setStoreName.charAt(0).toUpperCase() || 'A'}</span>
+                              )}
+                            </div>
+
+                            {/* Store Name & Bio */}
+                            <h4 style={{ fontSize: 13.5, fontWeight: 900, marginTop: 10, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {setStoreName || 'My Store'}
+                            </h4>
+                            <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', marginTop: 4, lineHeight: 1.4, maxHeight: 40, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                              {setStoreBio || 'No store description yet.'}
+                            </p>
+
+                            {/* Hardcoded Social Icons */}
+                            <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                              {localWhatsapp && (
+                                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <WhatsAppIcon size={11} color="#fff" />
                                 </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
+                              )}
+                              {setInstagram && (
+                                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#e1306c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                                  <Camera size={11} />
+                                </div>
+                              )}
+                              {setTiktok && (
+                                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                                  <Zap size={11} />
+                                </div>
+                              )}
+                            </div>
 
-                    {/* Right Side: Smartphone Mockup Preview */}
-                    <div style={{ display: 'flex', justifyContent: 'center' }} className="desktop-only">
-                      <div style={{
-                        width: 250,
-                        height: 480,
-                        borderRadius: 36,
-                        border: '10px solid #1e293b',
-                        background: 'var(--bg)',
-                        position: 'relative',
-                        boxShadow: 'var(--shadow-xl)',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        flexDirection: 'column',
-                      }}>
-                        {/* Notch */}
-                        <div style={{ width: 110, height: 18, background: '#1e293b', position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', borderRadius: '0 0 12px 12px', zIndex: 10 }} />
-                        
-                        {/* Screen Scroll Container */}
-                        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 14px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center' }} className="no-scrollbar">
-                          
-                          {/* Avatar */}
-                          <div style={{ width: 60, height: 60, borderRadius: '50%', background: logoUrl ? 'transparent' : 'var(--primary-light)', border: '2px solid var(--primary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 16 }}>
-                            {logoUrl ? (
-                              <img src={logoUrl} alt="Store logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                              <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--primary)' }}>{setStoreName.charAt(0).toUpperCase() || 'A'}</span>
-                            )}
+                            {/* Linktree style Custom Links Stack */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', marginTop: 20 }}>
+                              {customLinks.filter(l => l.is_active).map(link => (
+                                <div
+                                  key={link.id}
+                                  style={{
+                                    width: '100%',
+                                    padding: '8px 12px',
+                                    borderRadius: 10,
+                                    border: '1px solid var(--border)',
+                                    background: 'var(--surface)',
+                                    fontSize: 11.5,
+                                    fontWeight: 700,
+                                    textAlign: 'center',
+                                    cursor: 'default',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    boxShadow: 'var(--shadow-xs)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 6
+                                  }}
+                                >
+                                  {link.platform === 'whatsapp' && <WhatsAppIcon size={11} style={{ color: 'var(--wa-green)' }} />}
+                                  {link.platform === 'instagram' && <Camera size={11} style={{ color: '#e1306c' }} />}
+                                  {link.platform === 'tiktok' && <Music2 size={11} style={{ color: '#00f2fe' }} />}
+                                  {link.platform === 'facebook' && <Facebook size={11} style={{ color: '#1877f2' }} />}
+                                  {link.platform === 'twitter' && <Twitter size={11} style={{ color: '#1da1f2' }} />}
+                                  {link.platform === 'custom' && <Globe size={11} />}
+                                  <span>{link.title}</span>
+                                </div>
+                              ))}
+                              {customLinks.filter(l => l.is_active).length === 0 && (
+                                <p style={{ fontSize: 10, color: 'var(--text-faint)', textAlign: 'center', marginTop: 12 }}>
+                                  Active links will display here in real time.
+                                </p>
+                              )}
+                            </div>
+
                           </div>
-
-                          {/* Store Name & Bio */}
-                          <h4 style={{ fontSize: 13.5, fontWeight: 900, marginTop: 10, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {setStoreName || 'My Store'}
-                          </h4>
-                          <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', marginTop: 4, lineHeight: 1.4, maxHeight: 40, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                            {setStoreBio || 'No store description yet.'}
-                          </p>
-
-                          {/* Hardcoded Social Icons */}
-                          <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-                            {localWhatsapp && (
-                              <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <WhatsAppIcon size={11} color="#fff" />
-                              </div>
-                            )}
-                            {setInstagram && (
-                              <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#e1306c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                                <Camera size={11} />
-                              </div>
-                            )}
-                            {setTiktok && (
-                              <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                                <Zap size={11} />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Linktree style Custom Links Stack */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', marginTop: 20 }}>
-                            {customLinks.filter(l => l.is_active).map(link => (
-                              <div
-                                key={link.id}
-                                style={{
-                                  width: '100%',
-                                  padding: '8px 12px',
-                                  borderRadius: 10,
-                                  border: '1px solid var(--border)',
-                                  background: 'var(--surface)',
-                                  fontSize: 11.5,
-                                  fontWeight: 700,
-                                  textAlign: 'center',
-                                  cursor: 'default',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                  boxShadow: 'var(--shadow-xs)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  gap: 6
-                                }}
-                              >
-                                {link.platform === 'whatsapp' && <WhatsAppIcon size={11} style={{ color: 'var(--wa-green)' }} />}
-                                {link.platform === 'instagram' && <Camera size={11} style={{ color: '#e1306c' }} />}
-                                {link.platform === 'tiktok' && <Music2 size={11} style={{ color: '#00f2fe' }} />}
-                                {link.platform === 'facebook' && <Facebook size={11} style={{ color: '#1877f2' }} />}
-                                {link.platform === 'twitter' && <Twitter size={11} style={{ color: '#1da1f2' }} />}
-                                {link.platform === 'custom' && <Globe size={11} />}
-                                <span>{link.title}</span>
-                              </div>
-                            ))}
-                            {customLinks.filter(l => l.is_active).length === 0 && (
-                              <p style={{ fontSize: 10, color: 'var(--text-faint)', textAlign: 'center', marginTop: 12 }}>
-                                Active links will display here in real time.
-                              </p>
-                            )}
-                          </div>
-
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
                   {/* ── PAYMENT ACCOUNTS CARD ── */}
                   <div className="card" style={{ padding: 28 }}>
@@ -3811,7 +3862,7 @@ export default function DashboardPage() {
               {/* ── TAB 7: PLANS & BILLING ── */}
               {activeTab === 'billing' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
-                  
+
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
@@ -3834,7 +3885,7 @@ export default function DashboardPage() {
 
                   {/* Plan Card Grid */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 24 }} className="responsive-settings-grid">
-                    
+
                     {/* Free Plan */}
                     <div className="card" style={{
                       padding: 28,
@@ -3852,15 +3903,15 @@ export default function DashboardPage() {
                           borderRadius: 'var(--r-full)', textTransform: 'uppercase', letterSpacing: '0.05em'
                         }}>Current Plan</span>
                       )}
-                      
+
                       <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--text)' }}>Free Starter Plan</h3>
                       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>For small merchants starting their digital shop.</p>
-                      
+
                       <div style={{ marginTop: 20, marginBottom: 24 }}>
                         <span style={{ fontSize: 28, fontWeight: 900, color: 'var(--text)', fontFamily: 'var(--font-heading)' }}>₦0</span>
                         <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}> / free forever</span>
                       </div>
-                      
+
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
@@ -3934,7 +3985,7 @@ export default function DashboardPage() {
                         <span style={{ background: '#fef3c7', color: '#d97706', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4 }}>POPULAR</span>
                       </div>
                       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Unlock full branding, SEO features, and ChatGPT AI.</p>
-                      
+
                       <div style={{ marginTop: 20, marginBottom: 24, display: 'flex', gap: 24 }}>
                         <div>
                           <span style={{ fontSize: 28, fontWeight: 900, color: '#d97706', fontFamily: 'var(--font-heading)' }}>₦3,999</span>
@@ -4153,7 +4204,7 @@ export default function DashboardPage() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
           <div onClick={() => setIsAddProductOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
           <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 540, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
-            
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create Store Product</h3>
               <button onClick={() => setIsAddProductOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
@@ -4251,7 +4302,7 @@ export default function DashboardPage() {
 
                 {prodIsDigital && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(16, 185, 129, 0.15)', paddingTop: 14 }} className="animate-fade-in">
-                    
+
                     {/* File Upload Slot */}
                     <div>
                       <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
@@ -4472,7 +4523,7 @@ export default function DashboardPage() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
           <div onClick={() => setIsEditProductOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
           <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 540, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
-            
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Edit Product Settings</h3>
               <button onClick={() => setIsEditProductOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
@@ -4568,7 +4619,7 @@ export default function DashboardPage() {
 
                 {prodIsDigital && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(16, 185, 129, 0.15)', paddingTop: 14 }} className="animate-fade-in">
-                    
+
                     {/* File Upload Slot */}
                     <div>
                       <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
@@ -4789,7 +4840,7 @@ export default function DashboardPage() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
           <div onClick={() => setIsOrderDetailsOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
           <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 500, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
-            
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Inspect Order {selectedOrder.order_number}</h3>
               <button onClick={() => setIsOrderDetailsOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
@@ -4878,7 +4929,7 @@ export default function DashboardPage() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
           <div onClick={() => setIsReceiptOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
           <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 420, padding: 24, zIndex: 10 }}>
-            
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Receipt size={18} style={{ color: 'var(--primary)' }} /> Sales Receipt
