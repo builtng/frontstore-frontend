@@ -1,17 +1,41 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  Shield, BarChart3, Store, Tag, Settings, LogOut,
-  Users, ShoppingBag, DollarSign, Activity, Search,
-  Power, Trash2, Edit2, Plus, Check, X, RefreshCw,
-  Mail, MessageSquare, ExternalLink, Globe, LayoutDashboard,
-  Smartphone, Award, AlertTriangle, Key, Heart
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  BarChart3,
+  Check,
+  ChevronDown,
+  DollarSign,
+  Edit2,
+  ExternalLink,
+  Globe,
+  LayoutDashboard,
+  Loader2,
+  LogOut,
+  Mail,
+  MessageSquare,
+  Package,
+  Plus,
+  Power,
+  RefreshCw,
+  Search,
+  Settings,
+  Shield,
+  ShoppingBag,
+  Smartphone,
+  Store,
+  Tag,
+  Trash2,
+  TrendingUp,
+  Users,
+  X,
 } from 'lucide-react';
 
-// --- Type Definitions ---
 interface AdminStats {
   total_revenue: number;
   total_users: number;
@@ -65,31 +89,65 @@ interface SystemSettings {
   social_tiktok: string;
 }
 
+type AdminTab = 'overview' | 'stores' | 'categories' | 'settings';
+
+const defaultSettings: SystemSettings = {
+  app_name: '',
+  logo_url: '',
+  smtp_host: '',
+  smtp_port: '',
+  smtp_username: '',
+  smtp_password: '',
+  twilio_sid: '',
+  twilio_auth_token: '',
+  twilio_whatsapp_from: '',
+  social_instagram: '',
+  social_twitter: '',
+  social_tiktok: '',
+};
+
+const tabs: Array<{ id: AdminTab; label: string; icon: React.ReactNode }> = [
+  { id: 'overview', label: 'Overview', icon: <BarChart3 size={17} /> },
+  { id: 'stores', label: 'Stores', icon: <Store size={17} /> },
+  { id: 'categories', label: 'Categories', icon: <Tag size={17} /> },
+  { id: 'settings', label: 'Settings', icon: <Settings size={17} /> },
+];
+
+const formatMoney = (value?: number) =>
+  new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+
+const planLabel = (plan?: string | null) => {
+  if (plan === 'pro_yearly') return 'Pro Yearly';
+  if (plan === 'pro_monthly') return 'Pro Monthly';
+  return 'Free';
+};
+
+const isProPlan = (plan?: string | null) => plan === 'pro_monthly' || plan === 'pro_yearly';
+
 export default function AdminPage() {
   const router = useRouter();
 
-  // --- Auth & Endpoint States ---
   const [token, setToken] = useState<string | null>(null);
   const [apiUrl, setApiUrl] = useState('https://api.aloaye.tech/api');
+  const [adminEmail, setAdminEmail] = useState('admin@aloaye.tech');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
 
-  // --- Active Tab State ---
-  const [activeTab, setActiveTab] = useState<'overview' | 'stores' | 'categories' | 'settings'>('overview');
-
-  // --- Stats tab State ---
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
-  // --- Stores Directory State ---
   const [stores, setStores] = useState<StoreInfo[]>([]);
   const [storesLoading, setStoresLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
 
-  // --- Categories CRUD State ---
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [newCatName, setNewCatName] = useState('');
@@ -97,73 +155,56 @@ export default function AdminPage() {
   const [editingCatName, setEditingCatName] = useState('');
   const [catActionSaving, setCatActionSaving] = useState(false);
 
-  // --- Dynamic System Settings State ---
-  const [settings, setSettings] = useState<SystemSettings>({
-    app_name: '',
-    logo_url: '',
-    smtp_host: '',
-    smtp_port: '',
-    smtp_username: '',
-    smtp_password: '',
-    twilio_sid: '',
-    twilio_auth_token: '',
-    twilio_whatsapp_from: '',
-    social_instagram: '',
-    social_twitter: '',
-    social_tiktok: '',
-  });
+  const [settings, setSettings] = useState<SystemSettings>(defaultSettings);
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
 
-  // Auth & Permissions check
+  const proRate = useMemo(() => {
+    if (!stats?.total_users) return 0;
+    return Math.round((stats.plans.pro / stats.total_users) * 1000) / 10;
+  }, [stats]);
+
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-      const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+    const storedToken = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
-      setApiUrl(savedApiUrl);
+    setApiUrl(savedApiUrl);
 
-      const triggerRedirect = () => {
-        router.replace('/login');
-        setTimeout(() => {
-          if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-            window.location.replace('/login');
-          }
-        }, 1000);
-      };
+    const redirectToLogin = () => {
+      router.replace('/login');
+      setTimeout(() => {
+        if (window.location.pathname !== '/login') window.location.replace('/login');
+      }, 800);
+    };
 
-      if (storedToken && storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          const userIsAdmin = parsedUser && (parsedUser.is_admin === true || parsedUser.is_admin === 1 || parsedUser.is_admin === 'true' || parsedUser.is_admin === '1');
-          if (userIsAdmin) {
-            setToken(storedToken);
-            setIsAdmin(true);
-            setIsAuthenticated(true);
-          } else {
-            setIsAdmin(false);
-            setIsAuthenticated(true); // Is a merchant, but NOT an admin
-          }
-        } catch (e) {
-          console.error("Failed to parse stored user:", e);
-          triggerRedirect();
-        }
-      } else {
-        triggerRedirect();
-      }
+    if (!storedToken || !storedUser || storedUser === 'undefined' || storedUser === 'null') {
+      redirectToLogin();
+      setIsAuthChecking(false);
+      return;
+    }
+
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      const userIsAdmin = parsedUser?.is_admin === true || parsedUser?.is_admin === 1 || parsedUser?.is_admin === 'true' || parsedUser?.is_admin === '1';
+      setAdminEmail(parsedUser?.email || parsedUser?.phone_number || 'admin@aloaye.tech');
+      setToken(storedToken);
+      setIsAuthenticated(true);
+      setIsAdmin(userIsAdmin);
+    } catch (error) {
+      console.error('Failed to parse stored user:', error);
+      redirectToLogin();
+    } finally {
       setIsAuthChecking(false);
     }
   }, [router]);
 
-  // Headers helper
   const getHeaders = () => ({
-    'Authorization': `Bearer ${token}`,
+    Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   });
 
-  // Helper to handle fetch responses and detect 401 unauthorized errors
   const handleFetchResponse = async (res: Response, defaultError: string) => {
     if (res.status === 401) {
       toast.error('Session expired. Please log in again.');
@@ -171,14 +212,12 @@ export default function AdminPage() {
       router.push('/login');
       throw new Error('Session expired');
     }
-    const json = await res.json();
-    if (!res.ok) {
-      throw new Error(json.message || defaultError);
-    }
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.message || defaultError);
     return json;
   };
 
-  // Fetch Overview Stats
   const loadStats = async () => {
     if (!token) return;
     try {
@@ -186,16 +225,13 @@ export default function AdminPage() {
       const res = await fetch(`${apiUrl}/v1/admin/stats`, { headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch dashboard analytics.');
       setStats(json.data);
-    } catch (e: any) {
-      if (e.message !== 'Session expired') {
-        toast.error(e.message);
-      }
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
     } finally {
       setStatsLoading(false);
     }
   };
 
-  // Fetch Stores list
   const loadStores = async (page = 1, search = '') => {
     if (!token) return;
     try {
@@ -206,16 +242,13 @@ export default function AdminPage() {
       setStores(json.data?.data || []);
       setCurrentPage(json.data?.current_page || 1);
       setLastPage(json.data?.last_page || 1);
-    } catch (e: any) {
-      if (e.message !== 'Session expired') {
-        toast.error(e.message);
-      }
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
     } finally {
       setStoresLoading(false);
     }
   };
 
-  // Fetch Categories List
   const loadCategories = async () => {
     if (!token) return;
     try {
@@ -223,44 +256,36 @@ export default function AdminPage() {
       const res = await fetch(`${apiUrl}/v1/admin/categories`, { headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch global categories.');
       setCategories(json.data || []);
-    } catch (e: any) {
-      if (e.message !== 'Session expired') {
-        toast.error(e.message);
-      }
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
     } finally {
       setCategoriesLoading(false);
     }
   };
 
-  // Fetch dynamic system settings
   const loadSettings = async () => {
     if (!token) return;
     try {
       setSettingsLoading(true);
       const res = await fetch(`${apiUrl}/v1/admin/settings`, { headers: getHeaders() });
-      const json = await handleFetchResponse(res, 'Could not fetch dynamic settings configurations.');
-      setSettings(json.data);
-    } catch (e: any) {
-      if (e.message !== 'Session expired') {
-        toast.error(e.message);
-      }
+      const json = await handleFetchResponse(res, 'Could not fetch settings.');
+      setSettings({ ...defaultSettings, ...(json.data || {}) });
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
     } finally {
       setSettingsLoading(false);
     }
   };
 
-  // Load correct tab data on tab switch
   useEffect(() => {
-    if (token && isAdmin) {
-      if (activeTab === 'overview') loadStats();
-      if (activeTab === 'stores') loadStores(1, searchQuery);
-      if (activeTab === 'categories') loadCategories();
-      if (activeTab === 'settings') loadSettings();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!token || !isAdmin) return;
+    if (activeTab === 'overview') loadStats();
+    if (activeTab === 'stores') loadStores(1, searchQuery);
+    if (activeTab === 'categories') loadCategories();
+    if (activeTab === 'settings') loadSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, token, isAdmin]);
 
-  // --- Handlers ---
   const handleToggleStoreStatus = async (storeId: string) => {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}/toggle-status`, {
@@ -269,16 +294,12 @@ export default function AdminPage() {
       });
       const json = await handleFetchResponse(res, 'Failed to update store status.');
       toast.success(json.message);
-      // Refresh local list smoothly
-      setStores(stores.map(s => s.id === storeId ? { ...s, is_active: !s.is_active } : s));
-    } catch (e: any) {
-      if (e.message !== 'Session expired') {
-        toast.error(e.message);
-      }
+      setStores((items) => items.map((store) => (store.id === storeId ? { ...store, is_active: !store.is_active } : store)));
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
     }
   };
 
-  // Update merchant's plan (Upgrade to Pro / Downgrade to Free)
   const handleUpdateUserPlan = async (userId: string | undefined, plan: string) => {
     if (!userId) return;
     try {
@@ -287,98 +308,86 @@ export default function AdminPage() {
         headers: getHeaders(),
         body: JSON.stringify({ plan }),
       });
-      const json = await handleFetchResponse(res, 'Failed to update user plan.');
-      toast.success(`User plan updated to ${plan.toUpperCase()}! 🎉`);
-      // Smoothly update state in local component
-      setStores(stores.map(s => {
-        if (s.user?.id === userId) {
-          return {
-            ...s,
-            user: {
-              ...s.user,
-              plan
-            }
-          };
-        }
-        return s;
-      }));
-    } catch (e: any) {
-      if (e.message !== 'Session expired') {
-        toast.error(e.message);
-      }
+      await handleFetchResponse(res, 'Failed to update user plan.');
+      toast.success(`Plan updated to ${planLabel(plan)}.`);
+      setStores((items) =>
+        items.map((store) =>
+          store.user?.id === userId
+            ? {
+                ...store,
+                user: {
+                  ...store.user,
+                  plan,
+                },
+              }
+            : store,
+        ),
+      );
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
     }
   };
 
-  // Create Category
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateCategory = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!newCatName.trim()) return;
     try {
       setCatActionSaving(true);
       const res = await fetch(`${apiUrl}/v1/admin/categories`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ name: newCatName }),
+        body: JSON.stringify({ name: newCatName.trim() }),
       });
-      const json = await handleFetchResponse(res, 'Could not create category.');
-      toast.success('Category created successfully! 🏷️');
+      await handleFetchResponse(res, 'Could not create category.');
+      toast.success('Category created.');
       setNewCatName('');
       loadCategories();
-    } catch (e: any) {
-      if (e.message !== 'Session expired') {
-        toast.error(e.message);
-      }
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
     } finally {
       setCatActionSaving(false);
     }
   };
 
-  // Edit/Update Category
-  const handleUpdateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdateCategory = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!editingCatId || !editingCatName.trim()) return;
     try {
       setCatActionSaving(true);
       const res = await fetch(`${apiUrl}/v1/admin/categories/${editingCatId}`, {
         method: 'PUT',
         headers: getHeaders(),
-        body: JSON.stringify({ name: editingCatName }),
+        body: JSON.stringify({ name: editingCatName.trim() }),
       });
-      const json = await handleFetchResponse(res, 'Could not update category.');
-      toast.success('Category updated successfully! 📝');
+      await handleFetchResponse(res, 'Could not update category.');
+      toast.success('Category updated.');
       setEditingCatId(null);
       setEditingCatName('');
       loadCategories();
-    } catch (e: any) {
-      if (e.message !== 'Session expired') {
-        toast.error(e.message);
-      }
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
     } finally {
       setCatActionSaving(false);
     }
   };
 
-  // Delete Category
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this global category? Products mapped to this category will revert to uncategorized.')) return;
+    if (!confirm('Delete this global category?')) return;
     try {
       const res = await fetch(`${apiUrl}/v1/admin/categories/${id}`, {
         method: 'DELETE',
         headers: getHeaders(),
       });
-      const json = await handleFetchResponse(res, 'Could not delete category.');
-      toast.success('Category removed successfully!');
+      await handleFetchResponse(res, 'Could not delete category.');
+      toast.success('Category deleted.');
       loadCategories();
-    } catch (e: any) {
-      if (e.message !== 'Session expired') {
-        toast.error(e.message);
-      }
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
     }
   };
 
-  // Settings Save
-  const handleSaveSettings = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveSettings = async (event: React.FormEvent) => {
+    event.preventDefault();
     try {
       setSettingsSaving(true);
       const res = await fetch(`${apiUrl}/v1/admin/settings`, {
@@ -386,12 +395,10 @@ export default function AdminPage() {
         headers: getHeaders(),
         body: JSON.stringify(settings),
       });
-      const json = await handleFetchResponse(res, 'Could not save configurations.');
-      toast.success('System settings saved successfully! ⚙️');
-    } catch (e: any) {
-      if (e.message !== 'Session expired') {
-        toast.error(e.message);
-      }
+      await handleFetchResponse(res, 'Could not save settings.');
+      toast.success('Settings saved.');
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
     } finally {
       setSettingsSaving(false);
     }
@@ -402,727 +409,1312 @@ export default function AdminPage() {
     router.push('/login');
   };
 
-  // --- UI Renders ---
-
-  // Auth checking indicator
   if (isAuthChecking || !isAuthenticated) {
     return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)', gap: 20, fontFamily: 'var(--font-heading)' }}>
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {/* Outer glowing pulse ring */}
-          <div style={{
-            position: 'absolute',
-            width: 70,
-            height: 70,
-            borderRadius: '50%',
-            border: '2px solid var(--primary)',
-            opacity: 0,
-            animation: 'pulse-ring-admin 2s cubic-bezier(0.215, 0.610, 0.355, 1) infinite'
-          }} />
-          <RefreshCw style={{ animation: 'spin-loader-admin 1.5s linear infinite', color: 'var(--primary)' }} size={32} />
-        </div>
-        <p style={{ fontSize: 14, color: 'var(--text-muted)', fontWeight: 600 }}>Securing Administrator Dashboard...</p>
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            @keyframes spin-loader-admin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-            @keyframes pulse-ring-admin {
-              0% { transform: scale(0.6); opacity: 0.8; }
-              100% { transform: scale(1.3); opacity: 0; }
-            }
-          `
-        }} />
+      <div className="admin-state-screen">
+        <Loader2 className="admin-spin" size={30} />
+        <p>Checking admin session</p>
+        <AdminStyles />
       </div>
     );
   }
 
-  // Not an Admin layout (403 card)
   if (isAuthenticated && !isAdmin) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)', padding: 16 }} className="animate-fade-in">
-        <div style={{ maxWidth: 440, width: '100%', padding: 32, textAlign: 'center' }} className="card glass">
-          <div style={{ width: 64, height: 64, borderRadius: '50%', backgroundColor: 'var(--danger-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-            <AlertTriangle style={{ color: 'var(--danger)' }} size={32} />
-          </div>
-          <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text)', marginBottom: 8, fontFamily: 'var(--font-heading)' }}>Access Denied</h2>
-          <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 28 }}>
-            Your account does not have platform-level administrator permissions. If this is a mistake, please reach out to the system setup files.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <button onClick={() => router.push('/dashboard')} className="btn btn-primary" style={{ width: '100%' }}>
-              <LayoutDashboard size={18} /> Go to Store Dashboard
+      <div className="admin-state-screen admin-state-screen--padded">
+        <div className="admin-denied">
+          <span className="admin-denied__icon">
+            <AlertTriangle size={28} />
+          </span>
+          <h1>Access denied</h1>
+          <p>This account does not have platform administrator permissions.</p>
+          <div className="admin-denied__actions">
+            <button onClick={() => router.push('/dashboard')} className="btn btn-primary">
+              <LayoutDashboard size={17} /> Dashboard
             </button>
-            <button onClick={handleLogout} className="btn btn-outline" style={{ width: '100%' }}>
-              <LogOut size={18} /> Log Out
+            <button onClick={handleLogout} className="btn btn-outline">
+              <LogOut size={17} /> Log out
             </button>
           </div>
         </div>
+        <AdminStyles />
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg)' }}>
-      {/* Top Header Row */}
-      <header style={{ height: 72, borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 10, background: 'var(--surface)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Shield style={{ color: 'var(--primary)' }} size={22} />
-          </div>
+    <div className="admin-shell">
+      <aside className="admin-rail">
+        <div className="admin-brand">
+          <span className="admin-brand__mark">
+            <Shield size={21} />
+          </span>
           <div>
-            <h1 style={{ fontSize: 18, fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              {settings.app_name || 'aloaye'} <span style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', padding: '2px 6px', borderRadius: 4, backgroundColor: 'var(--primary)', color: '#fff' }}>Admin</span>
-            </h1>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Platform Management Portal</p>
+            <strong>{settings.app_name || 'Aloaye'}</strong>
+            <span>Admin</span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>System Operator</p>
-            <p className="admin-header-user-email" style={{ fontSize: 11, color: 'var(--text-muted)' }}>admin@aloaye.tech</p>
-          </div>
-          <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: 8, borderRadius: 10 }}>
-            <LogOut size={18} />
+        <nav className="admin-nav" aria-label="Admin sections">
+          {tabs.map((tab) => (
+            <button key={tab.id} type="button" className={activeTab === tab.id ? 'is-active' : ''} onClick={() => setActiveTab(tab.id)}>
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="admin-rail__footer">
+          <span>Signed in</span>
+          <strong>{adminEmail}</strong>
+          <button type="button" onClick={handleLogout}>
+            <LogOut size={16} /> Log out
           </button>
         </div>
-      </header>
+      </aside>
 
-      {/* Main Content Area */}
-      <div className="admin-layout">
-        {/* Sidebar Nav */}
-        <aside className="admin-sidebar">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`btn ${activeTab === 'overview' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 16px' }}
-          >
-            <BarChart3 size={18} /> Overview & Stats
-          </button>
-
-          <button
-            onClick={() => setActiveTab('stores')}
-            className={`btn ${activeTab === 'stores' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 16px' }}
-          >
-            <Store size={18} /> Stores Directory
-          </button>
-
-          <button
-            onClick={() => setActiveTab('categories')}
-            className={`btn ${activeTab === 'categories' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 16px' }}
-          >
-            <Tag size={18} /> Global Categories
-          </button>
-
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 16px' }}
-          >
-            <Settings size={18} /> System Settings
-          </button>
-          
-          <div className="admin-sidebar-footer" style={{ marginTop: 'auto', padding: '16px 12px', borderRadius: 12, backgroundColor: 'var(--bg-2)', textAlign: 'center' }}>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Aloaye System v2.1.2</p>
-            <p style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 4 }}>Crafted for Social Sellers</p>
+      <main className="admin-workspace">
+        <header className="admin-topbar">
+          <div>
+            <p>Platform Console</p>
+            <h1>{tabs.find((tab) => tab.id === activeTab)?.label}</h1>
           </div>
-        </aside>
+          <div className="admin-topbar__actions">
+            <button type="button" className="admin-icon-button" onClick={() => (activeTab === 'overview' ? loadStats() : activeTab === 'stores' ? loadStores(currentPage, searchQuery) : activeTab === 'categories' ? loadCategories() : loadSettings())}>
+              <RefreshCw size={17} className={statsLoading || storesLoading || categoriesLoading || settingsLoading ? 'admin-spin' : ''} />
+            </button>
+            <button type="button" className="admin-icon-button" onClick={handleLogout}>
+              <LogOut size={17} />
+            </button>
+          </div>
+        </header>
 
-        {/* Content Tabs */}
-        <main className="admin-main">
-          
-          {/* TAB 1: OVERVIEW */}
-          {activeTab === 'overview' && (
-            <div className="animate-fade-in stagger">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
-                <div>
-                  <h2 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--text)' }}>Platform Performance</h2>
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Realtime database aggregation statistics across all stores</p>
-                </div>
-                <button onClick={loadStats} disabled={statsLoading} className="btn btn-outline" style={{ padding: 10, borderRadius: 10 }}>
-                  <RefreshCw style={{ animation: statsLoading ? 'spin 1.5s linear infinite' : 'none' }} size={16} />
-                </button>
+        <div className="admin-mobile-tabs">
+          {tabs.map((tab) => (
+            <button key={tab.id} type="button" className={activeTab === tab.id ? 'is-active' : ''} onClick={() => setActiveTab(tab.id)}>
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'overview' && (
+          <section className="admin-section">
+            <div className="admin-section-heading">
+              <div>
+                <h2>Platform health</h2>
+                <p>Revenue, merchant activity, storefronts, and subscription split.</p>
               </div>
+              <button type="button" className="btn btn-outline" onClick={loadStats} disabled={statsLoading}>
+                <RefreshCw size={16} className={statsLoading ? 'admin-spin' : ''} /> Refresh
+              </button>
+            </div>
 
-              {statsLoading && !stats ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
-                  {[1, 2, 3, 4].map(n => <div key={n} style={{ height: 120 }} className="shimmer-loader rounded-xl" />)}
+            {statsLoading && !stats ? (
+              <SkeletonGrid />
+            ) : (
+              <>
+                <div className="admin-metric-grid">
+                  <Metric icon={<DollarSign size={18} />} label="Paid revenue" value={formatMoney(stats?.total_revenue)} tone="green" />
+                  <Metric icon={<Users size={18} />} label="Merchants" value={(stats?.total_users || 0).toLocaleString()} detail={`${stats?.plans?.pro || 0} Pro`} />
+                  <Metric icon={<Store size={18} />} label="Active stores" value={`${stats?.active_stores || 0}/${stats?.total_stores || 0}`} detail="Live storefronts" />
+                  <Metric icon={<Package size={18} />} label="Catalog" value={(stats?.total_products || 0).toLocaleString()} detail={`${stats?.total_orders || 0} orders`} />
                 </div>
-              ) : (
-                <>
-                  {/* Grid stats */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 32 }}>
-                    
-                    <div className="card" style={{ padding: 24, background: 'linear-gradient(135deg, var(--surface) 0%, var(--primary-light) 100%)', position: 'relative', overflow: 'hidden' }}>
-                      <p style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)' }}>Total Platform Sales</p>
-                      <h3 style={{ fontSize: 28, fontWeight: 900, color: 'var(--primary)', marginTop: 8 }}>
-                        ₦{(stats?.total_revenue || 0).toLocaleString()}
-                      </h3>
-                      <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Paid orders via Paystack/Direct Transfer</p>
-                      <DollarSign style={{ position: 'absolute', bottom: -10, right: -10, opacity: 0.1, color: 'var(--primary)' }} size={90} />
-                    </div>
 
-                    <div className="card" style={{ padding: 24 }}>
-                      <p style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)' }}>Active Storefronts</p>
-                      <h3 style={{ fontSize: 28, fontWeight: 900, color: 'var(--text)', marginTop: 8 }}>
-                        {stats?.active_stores || 0} <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>/ {stats?.total_stores || 0}</span>
-                      </h3>
-                      <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Stores loaded with active catalog views</p>
-                      <Store style={{ position: 'absolute', bottom: -10, right: -10, opacity: 0.05 }} size={90} />
-                    </div>
-
-                    <div className="card" style={{ padding: 24 }}>
-                      <p style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)' }}>Registered Merchants</p>
-                      <h3 style={{ fontSize: 28, fontWeight: 900, color: 'var(--text)', marginTop: 8 }}>
-                        {stats?.total_users || 0}
-                      </h3>
-                      <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Independent merchant sellers</p>
-                      <Users style={{ position: 'absolute', bottom: -10, right: -10, opacity: 0.05 }} size={90} />
-                    </div>
-
-                    <div className="card" style={{ padding: 24 }}>
-                      <p style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)' }}>Catalog Items & Orders</p>
-                      <h3 style={{ fontSize: 28, fontWeight: 900, color: 'var(--text)', marginTop: 8 }}>
-                        {stats?.total_products || 0} <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>products</span>
-                      </h3>
-                      <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Over {stats?.total_orders || 0} orders recorded</p>
-                      <ShoppingBag style={{ position: 'absolute', bottom: -10, right: -10, opacity: 0.05 }} size={90} />
-                    </div>
-
-                  </div>
-
-                  <div className="admin-grid-2-1">
-                    
-                    {/* Monthly Trend list */}
-                    <div className="card" style={{ padding: 24 }}>
-                      <h4 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Activity size={18} color="var(--primary)" /> Monthly Revenue breakdown
-                      </h4>
-                      {stats?.revenue_trend && stats.revenue_trend.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                          {stats.revenue_trend.map(t => (
-                            <div key={t.month} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: 8, backgroundColor: 'var(--bg)' }}>
-                              <p style={{ fontWeight: 700, fontSize: 14 }}>{t.month}</p>
-                              <p style={{ fontWeight: 800, color: 'var(--primary)' }}>₦{t.total.toLocaleString()}</p>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: '32px 0' }}>No paid order trends tracked yet.</p>
-                      )}
-                    </div>
-
-                    {/* Pro tier distributions */}
-                    <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div className="admin-overview-grid">
+                  <div className="admin-panel">
+                    <div className="admin-panel__header">
                       <div>
-                        <h4 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <Award size={18} color="var(--accent)" /> Premium Subscription share
-                        </h4>
-                        <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 20 }}>Free vs Pro Merchant accounts split</p>
+                        <h3>Monthly revenue</h3>
+                        <p>Paid order value by month</p>
                       </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1, justifyContent: 'center' }}>
-                        <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--primary)' }} /> Pro Plan (₦3,999/mo)</span>
-                            <span>{stats?.plans?.pro || 0}</span>
-                          </div>
-                          <div style={{ height: 10, width: '100%', borderRadius: 5, backgroundColor: 'var(--border)', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${stats?.total_users ? ((stats.plans.pro / stats.total_users) * 100) : 0}%`, backgroundColor: 'var(--primary)' }} />
-                          </div>
-                        </div>
-
-                        <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--text-muted)' }} /> Free Plan</span>
-                            <span>{stats?.plans?.free || 0}</span>
-                          </div>
-                          <div style={{ height: 10, width: '100%', borderRadius: 5, backgroundColor: 'var(--border)', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${stats?.total_users ? ((stats.plans.free / stats.total_users) * 100) : 0}%`, backgroundColor: 'var(--text-muted)' }} />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 16, display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)' }}>
-                        <span>Paid Conversion:</span>
-                        <span style={{ fontWeight: 800, color: 'var(--primary)' }}>
-                          {stats?.total_users ? ((stats.plans.pro / stats.total_users) * 100).toFixed(1) : '0'}%
-                        </span>
-                      </div>
+                      <TrendingUp size={18} />
                     </div>
-
+                    {stats?.revenue_trend?.length ? (
+                      <div className="admin-trend-list">
+                        {stats.revenue_trend.map((item) => (
+                          <div key={item.month} className="admin-trend-row">
+                            <span>{item.month}</span>
+                            <strong>{formatMoney(item.total)}</strong>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyState label="No paid revenue has been recorded yet." />
+                    )}
                   </div>
-                </>
-              )}
-            </div>
-          )}
 
-          {/* TAB 2: STORES DIRECTORY */}
-          {activeTab === 'stores' && (
-            <div className="animate-fade-in">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
-                <div>
-                  <h2 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--text)' }}>Stores Directory</h2>
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Search and manage active merchant stores on your network</p>
+                  <div className="admin-panel">
+                    <div className="admin-panel__header">
+                      <div>
+                        <h3>Subscription mix</h3>
+                        <p>{proRate}% of merchants are on Pro</p>
+                      </div>
+                      <Users size={18} />
+                    </div>
+                    <PlanMeter label="Pro" value={stats?.plans?.pro || 0} total={stats?.total_users || 0} tone="green" />
+                    <PlanMeter label="Free" value={stats?.plans?.free || 0} total={stats?.total_users || 0} tone="gray" />
+                  </div>
                 </div>
+              </>
+            )}
+          </section>
+        )}
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <form onSubmit={(e) => { e.preventDefault(); loadStores(1, searchQuery); }} style={{ position: 'relative' }}>
-                    <input
-                      type="text"
-                      className="input-field"
-                      placeholder="Search store, merchant or phone..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      style={{ paddingLeft: 40, width: 280, paddingRight: 16 }}
-                    />
-                    <Search style={{ position: 'absolute', left: 14, top: 15, color: 'var(--text-muted)' }} size={16} />
-                  </form>
-                  
-                  <button onClick={() => loadStores(1, searchQuery)} disabled={storesLoading} className="btn btn-outline" style={{ padding: 12, borderRadius: 10 }}>
-                    <RefreshCw style={{ animation: storesLoading ? 'spin 1.5s linear infinite' : 'none' }} size={16} />
-                  </button>
-                </div>
+        {activeTab === 'stores' && (
+          <section className="admin-section">
+            <div className="admin-section-heading">
+              <div>
+                <h2>Merchant stores</h2>
+                <p>Search, suspend, activate, and update subscription plans.</p>
               </div>
-
-              {storesLoading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {[1, 2, 3, 4, 5].map(n => <div key={n} style={{ height: 64 }} className="shimmer-loader rounded-xl" />)}
-                </div>
-              ) : (
-                <>
-                  <div className="card admin-table-container">
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 14 }}>
-                      <thead>
-                        <tr style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-2)' }}>
-                          <th style={{ padding: '16px 20px', fontWeight: 800, color: 'var(--text-2)', fontSize: 11, textTransform: 'uppercase' }}>Store Details</th>
-                          <th style={{ padding: '16px 20px', fontWeight: 800, color: 'var(--text-2)', fontSize: 11, textTransform: 'uppercase' }}>Merchant Owner</th>
-                          <th style={{ padding: '16px 20px', fontWeight: 800, color: 'var(--text-2)', fontSize: 11, textTransform: 'uppercase' }}>Membership</th>
-                          <th style={{ padding: '16px 20px', fontWeight: 800, color: 'var(--text-2)', fontSize: 11, textTransform: 'uppercase' }}>Status</th>
-                          <th style={{ padding: '16px 20px', fontWeight: 800, color: 'var(--text-2)', fontSize: 11, textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {stores.length > 0 ? (
-                          stores.map(store => (
-                            <tr key={store.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 120ms ease' }} className="clickable-row">
-                              <td style={{ padding: '16px 20px' }}>
-                                <p style={{ fontWeight: 700, color: 'var(--text)' }}>{store.store_name}</p>
-                                <a
-                                  href={`http://${store.username}.localhost:3001`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--primary)', fontWeight: 600, marginTop: 2 }}
-                                >
-                                  @{store.username} <ExternalLink size={10} />
-                                </a>
-                              </td>
-                              <td style={{ padding: '16px 20px' }}>
-                                <p style={{ fontWeight: 600 }}>{store.user?.name || 'Unnamed Merchant'}</p>
-                                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{store.user?.phone_number}</p>
-                              </td>
-                              <td style={{ padding: '16px 20px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                  <span className={`badge ${store.user?.plan && ['pro_monthly', 'pro_yearly'].includes(store.user.plan) ? 'badge-primary' : 'badge-ghost'}`}>
-                                    {store.user?.plan === 'pro_yearly' ? 'PRO YEARLY' : store.user?.plan === 'pro_monthly' ? 'PRO MONTHLY' : 'FREE'}
-                                  </span>
-                                  <select
-                                    value={store.user?.plan || 'free'}
-                                    onChange={(e) => handleUpdateUserPlan(store.user?.id, e.target.value)}
-                                    style={{
-                                      padding: '6px 10px',
-                                      fontSize: 12,
-                                      borderRadius: 8,
-                                      border: '1px solid var(--border)',
-                                      backgroundColor: 'var(--bg-2)',
-                                      color: 'var(--text)',
-                                      fontWeight: 700,
-                                      cursor: 'pointer',
-                                      outline: 'none',
-                                      transition: 'border-color var(--t-fast)'
-                                    }}
-                                    disabled={!store.user}
-                                  >
-                                    <option value="free">Free Tier</option>
-                                    <option value="pro_monthly">Pro Monthly</option>
-                                    <option value="pro_yearly">Pro Yearly</option>
-                                  </select>
-                                </div>
-                              </td>
-                              <td style={{ padding: '16px 20px' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13, color: store.is_active ? 'var(--primary)' : 'var(--danger)' }}>
-                                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: store.is_active ? 'var(--primary)' : 'var(--danger)' }} />
-                                  {store.is_active ? 'Active' : 'Suspended'}
-                                </span>
-                              </td>
-                              <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                                <button
-                                  onClick={() => handleToggleStoreStatus(store.id)}
-                                  className={`btn ${store.is_active ? 'btn-ghost' : 'btn-primary'}`}
-                                  style={{ padding: '8px 12px', fontSize: 12, borderRadius: 8 }}
-                                >
-                                  <Power size={14} />
-                                  {store.is_active ? 'Suspend' : 'Activate'}
-                                </button>
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan={5} style={{ padding: '48px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
-                              No registered merchant stores matching your search query.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Pagination row */}
-                  {lastPage > 1 && (
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 24 }}>
-                      <button
-                        onClick={() => loadStores(currentPage - 1, searchQuery)}
-                        disabled={currentPage === 1}
-                        className="btn btn-outline"
-                        style={{ padding: '8px 16px', fontSize: 13 }}
-                      >
-                        Prev
-                      </button>
-                      <span style={{ display: 'flex', alignItems: 'center', padding: '0 12px', fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>
-                        Page {currentPage} of {lastPage}
-                      </span>
-                      <button
-                        onClick={() => loadStores(currentPage + 1, searchQuery)}
-                        disabled={currentPage === lastPage}
-                        className="btn btn-outline"
-                        style={{ padding: '8px 16px', fontSize: 13 }}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
+              <form className="admin-search" onSubmit={(event) => { event.preventDefault(); loadStores(1, searchQuery); }}>
+                <Search size={16} />
+                <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search stores, owners, email, phone" />
+                <button type="submit">Search</button>
+              </form>
             </div>
-          )}
 
-          {/* TAB 3: GLOBAL CATEGORIES */}
-          {activeTab === 'categories' && (
-            <div className="animate-fade-in" style={{ maxWidth: 800 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
-                <div>
-                  <h2 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--text)' }}>Global Categories</h2>
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Manage global platform product categories. Storefronts dynamically consume this list.</p>
-                </div>
-                <button onClick={loadCategories} disabled={categoriesLoading} className="btn btn-outline" style={{ padding: 10, borderRadius: 10 }}>
-                  <RefreshCw style={{ animation: categoriesLoading ? 'spin 1.5s linear infinite' : 'none' }} size={16} />
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Store</th>
+                    <th>Merchant</th>
+                    <th>Plan</th>
+                    <th>Status</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {storesLoading ? (
+                    <TableSkeleton rows={6} columns={5} />
+                  ) : stores.length ? (
+                    stores.map((store) => (
+                      <tr key={store.id}>
+                        <td>
+                          <strong>{store.store_name}</strong>
+                          <a href={`http://${store.username}.localhost:3001`} target="_blank" rel="noreferrer">
+                            @{store.username} <ExternalLink size={12} />
+                          </a>
+                        </td>
+                        <td>
+                          <strong>{store.user?.name || 'Unnamed merchant'}</strong>
+                          <span>{store.user?.email || store.user?.phone_number || 'No contact'}</span>
+                        </td>
+                        <td>
+                          <div className="admin-plan-cell">
+                            <StatusChip tone={isProPlan(store.user?.plan) ? 'green' : 'gray'} label={planLabel(store.user?.plan)} />
+                            <label className="admin-select">
+                              <select value={store.user?.plan || 'free'} onChange={(event) => handleUpdateUserPlan(store.user?.id, event.target.value)} disabled={!store.user}>
+                                <option value="free">Free</option>
+                                <option value="pro_monthly">Pro Monthly</option>
+                                <option value="pro_yearly">Pro Yearly</option>
+                              </select>
+                              <ChevronDown size={14} />
+                            </label>
+                          </div>
+                        </td>
+                        <td>
+                          <StatusChip tone={store.is_active ? 'green' : 'red'} label={store.is_active ? 'Active' : 'Suspended'} />
+                        </td>
+                        <td className="admin-table__actions">
+                          <button type="button" className={store.is_active ? 'admin-action danger' : 'admin-action'} onClick={() => handleToggleStoreStatus(store.id)}>
+                            <Power size={15} />
+                            {store.is_active ? 'Suspend' : 'Activate'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5}>
+                        <EmptyState label="No stores match this search." />
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {lastPage > 1 && (
+              <div className="admin-pagination">
+                <button type="button" onClick={() => loadStores(currentPage - 1, searchQuery)} disabled={currentPage === 1}>
+                  <ArrowLeft size={15} /> Previous
+                </button>
+                <span>
+                  Page {currentPage} of {lastPage}
+                </span>
+                <button type="button" onClick={() => loadStores(currentPage + 1, searchQuery)} disabled={currentPage === lastPage}>
+                  Next <ArrowRight size={15} />
                 </button>
               </div>
+            )}
+          </section>
+        )}
 
-              {/* Form creation */}
-              <div className="card glass" style={{ padding: 24, marginBottom: 32 }}>
-                <form onSubmit={editingCatId ? handleUpdateCategory : handleCreateCategory} className="admin-form-row">
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
-                      {editingCatId ? 'Edit Category' : 'Create New Platform Category'}
-                    </label>
-                    <input
-                      type="text"
-                      className="input-field"
-                      placeholder="e.g. Health & Fitness, Gadgets, Baby Products..."
-                      value={editingCatId ? editingCatName : newCatName}
-                      onChange={(e) => editingCatId ? setEditingCatName(e.target.value) : setNewCatName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <button type="submit" disabled={catActionSaving} className="btn btn-primary" style={{ padding: '13px 24px' }}>
-                    {catActionSaving ? (
-                      <RefreshCw style={{ animation: 'spin 1.5s linear infinite' }} size={16} />
-                    ) : editingCatId ? (
-                      <Check size={16} />
-                    ) : (
-                      <Plus size={16} />
-                    )}
-                    {editingCatId ? 'Update' : 'Add Category'}
-                  </button>
-                  {editingCatId && (
-                    <button
-                      type="button"
-                      onClick={() => { setEditingCatId(null); setEditingCatName(''); }}
-                      className="btn btn-ghost"
-                      style={{ padding: '13px 16px' }}
-                    >
-                      Cancel
-                    </button>
-                  )}
-                </form>
+        {activeTab === 'categories' && (
+          <section className="admin-section admin-section--narrow">
+            <div className="admin-section-heading">
+              <div>
+                <h2>Global categories</h2>
+                <p>Categories available to every merchant catalog.</p>
               </div>
+            </div>
 
+            <form className="admin-inline-form" onSubmit={editingCatId ? handleUpdateCategory : handleCreateCategory}>
+              <input value={editingCatId ? editingCatName : newCatName} onChange={(event) => (editingCatId ? setEditingCatName(event.target.value) : setNewCatName(event.target.value))} placeholder="Category name" />
+              <button type="submit" className="btn btn-primary" disabled={catActionSaving}>
+                {catActionSaving ? <Loader2 className="admin-spin" size={16} /> : editingCatId ? <Check size={16} /> : <Plus size={16} />}
+                {editingCatId ? 'Update' : 'Add'}
+              </button>
+              {editingCatId && (
+                <button type="button" className="btn btn-outline" onClick={() => { setEditingCatId(null); setEditingCatName(''); }}>
+                  <X size={16} /> Cancel
+                </button>
+              )}
+            </form>
+
+            <div className="admin-list">
               {categoriesLoading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {[1, 2, 3, 4].map(n => <div key={n} style={{ height: 50 }} className="shimmer-loader rounded-xl" />)}
-                </div>
-              ) : (
-                <div className="card">
-                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                    <span>Category details ({categories.length})</span>
-                    <span>Actions</span>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {categories.length > 0 ? (
-                      categories.map(cat => (
-                        <div
-                          key={cat.id}
-                          style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                        >
-                          <div>
-                            <p style={{ fontWeight: 700, color: 'var(--text)' }}>{cat.name}</p>
-                            <p style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2 }}>slug: {cat.slug}</p>
-                          </div>
-
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <button
-                              onClick={() => { setEditingCatId(cat.id); setEditingCatName(cat.name); }}
-                              className="btn btn-ghost"
-                              style={{ padding: 8, color: 'var(--text)' }}
-                            >
-                              <Edit2 size={14} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteCategory(cat.id)}
-                              className="btn btn-ghost"
-                              style={{ padding: 8, color: 'var(--danger)' }}
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-muted)', fontSize: 13 }}>No global categories initialized.</p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 4: SYSTEM SETTINGS */}
-          {activeTab === 'settings' && (
-            <div className="animate-fade-in" style={{ maxWidth: 800 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
-                <div>
-                  <h2 style={{ fontSize: 24, fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--text)' }}>System Settings</h2>
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Configure dynamially overridable platform integrations and settings</p>
-                </div>
-                <button onClick={loadSettings} disabled={settingsLoading} className="btn btn-outline" style={{ padding: 10, borderRadius: 10 }}>
-                  <RefreshCw style={{ animation: settingsLoading ? 'spin 1.5s linear infinite' : 'none' }} size={16} />
-                </button>
-              </div>
-
-              {settingsLoading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                  <div style={{ height: 150 }} className="shimmer-loader rounded-xl" />
-                  <div style={{ height: 200 }} className="shimmer-loader rounded-xl" />
-                </div>
-              ) : (
-                <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                  
-                  {/* Branding Card */}
-                  <div className="card glass animate-slide-up" style={{ padding: 28, position: 'relative' }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Globe size={18} color="var(--primary)" /> Platform Branding
-                    </h3>
-
-                    <div className="admin-grid-2col" style={{ marginBottom: 16 }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>App Display Name</label>
-                        <input
-                          type="text"
-                          className="input-field"
-                          value={settings.app_name}
-                          onChange={(e) => setSettings({ ...settings, app_name: e.target.value })}
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>App Logo URL</label>
-                        <input
-                          type="text"
-                          className="input-field"
-                          value={settings.logo_url}
-                          onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Mail SMTP Card */}
-                  <div className="card glass animate-slide-up" style={{ padding: 28 }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Mail size={18} color="var(--primary)" /> Dynamic SMTP Mail Server
-                    </h3>
-
-                    <div className="admin-grid-2-1-settings" style={{ marginBottom: 16 }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>SMTP Host</label>
-                        <input
-                          type="text"
-                          className="input-field"
-                          value={settings.smtp_host}
-                          onChange={(e) => setSettings({ ...settings, smtp_host: e.target.value })}
-                          placeholder="e.g. smtp.mailgun.org"
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>SMTP Port</label>
-                        <input
-                          type="text"
-                          className="input-field"
-                          value={settings.smtp_port}
-                          onChange={(e) => setSettings({ ...settings, smtp_port: e.target.value })}
-                          placeholder="587"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="admin-grid-2col">
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>SMTP Username</label>
-                        <input
-                          type="text"
-                          className="input-field"
-                          value={settings.smtp_username}
-                          onChange={(e) => setSettings({ ...settings, smtp_username: e.target.value })}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>SMTP Password</label>
-                        <input
-                          type="password"
-                          className="input-field"
-                          value={settings.smtp_password}
-                          onChange={(e) => setSettings({ ...settings, smtp_password: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Twilio configurations */}
-                  <div className="card glass animate-slide-up" style={{ padding: 28 }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Smartphone size={18} color="var(--primary)" /> Twilio Integrations (WhatsApp Alerts)
-                    </h3>
-
-                    <div className="admin-grid-2col" style={{ marginBottom: 16 }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Twilio SID</label>
-                        <input
-                          type="text"
-                          className="input-field"
-                          value={settings.twilio_sid}
-                          onChange={(e) => setSettings({ ...settings, twilio_sid: e.target.value })}
-                          placeholder="AC..."
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Twilio Auth Token</label>
-                        <input
-                          type="password"
-                          className="input-field"
-                          value={settings.twilio_auth_token}
-                          onChange={(e) => setSettings({ ...settings, twilio_auth_token: e.target.value })}
-                        />
-                      </div>
-                    </div>
-
+                [1, 2, 3, 4].map((item) => <div key={item} className="admin-list-skeleton" />)
+              ) : categories.length ? (
+                categories.map((category) => (
+                  <div className="admin-list-row" key={category.id}>
                     <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Twilio WhatsApp Sender Number</label>
-                      <input
-                        type="text"
-                        className="input-field"
-                        value={settings.twilio_whatsapp_from}
-                        onChange={(e) => setSettings({ ...settings, twilio_whatsapp_from: e.target.value })}
-                        placeholder="whatsapp:+14155238886"
-                      />
+                      <strong>{category.name}</strong>
+                      <span>{category.slug}</span>
+                    </div>
+                    <div>
+                      <button type="button" onClick={() => { setEditingCatId(category.id); setEditingCatName(category.name); }}>
+                        <Edit2 size={15} />
+                      </button>
+                      <button type="button" className="danger" onClick={() => handleDeleteCategory(category.id)}>
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   </div>
-
-                  {/* Social Handles */}
-                  <div className="card glass animate-slide-up" style={{ padding: 28 }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <MessageSquare size={18} color="var(--primary)" /> Global Platform Socials
-                    </h3>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Instagram Handle</label>
-                        <input
-                          type="text"
-                          className="input-field"
-                          value={settings.social_instagram}
-                          onChange={(e) => setSettings({ ...settings, social_instagram: e.target.value })}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Twitter Handle</label>
-                        <input
-                          type="text"
-                          className="input-field"
-                          value={settings.social_twitter}
-                          onChange={(e) => setSettings({ ...settings, social_twitter: e.target.value })}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>TikTok Handle</label>
-                        <input
-                          type="text"
-                          className="input-field"
-                          value={settings.social_tiktok}
-                          onChange={(e) => setSettings({ ...settings, social_tiktok: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Submit Button */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
-                    <button type="submit" disabled={settingsSaving} className="btn btn-primary" style={{ padding: '14px 32px', fontSize: 14 }}>
-                      {settingsSaving ? (
-                        <RefreshCw style={{ animation: 'spin 1.5s linear infinite' }} size={18} />
-                      ) : (
-                        <Check size={18} />
-                      )}
-                      Save Settings Configuration
-                    </button>
-                  </div>
-
-                </form>
+                ))
+              ) : (
+                <EmptyState label="No categories have been created." />
               )}
             </div>
-          )}
+          </section>
+        )}
 
-        </main>
-      </div>
+        {activeTab === 'settings' && (
+          <section className="admin-section admin-section--narrow">
+            <div className="admin-section-heading">
+              <div>
+                <h2>System settings</h2>
+                <p>Branding, mail, Twilio, and social account configuration.</p>
+              </div>
+            </div>
 
-      {/* Footer */}
-      <footer style={{ height: 60, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'var(--text-faint)', backgroundColor: 'var(--surface)' }}>
-        <p style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          Security Audited Platform &bull; Made with <Heart size={12} color="var(--danger)" style={{ fill: 'var(--danger)' }} /> for Charles Aloaye Platform Admin.
-        </p>
-      </footer>
+            {settingsLoading ? (
+              <SkeletonGrid />
+            ) : (
+              <form className="admin-settings-form" onSubmit={handleSaveSettings}>
+                <SettingsGroup icon={<Globe size={17} />} title="Branding">
+                  <Field label="App name" value={settings.app_name} onChange={(value) => setSettings({ ...settings, app_name: value })} required />
+                  <Field label="Logo URL" value={settings.logo_url} onChange={(value) => setSettings({ ...settings, logo_url: value })} />
+                </SettingsGroup>
+
+                <SettingsGroup icon={<Mail size={17} />} title="SMTP mail">
+                  <Field label="Host" value={settings.smtp_host} onChange={(value) => setSettings({ ...settings, smtp_host: value })} />
+                  <Field label="Port" value={settings.smtp_port} onChange={(value) => setSettings({ ...settings, smtp_port: value })} />
+                  <Field label="Username" value={settings.smtp_username} onChange={(value) => setSettings({ ...settings, smtp_username: value })} />
+                  <Field label="Password" type="password" value={settings.smtp_password} onChange={(value) => setSettings({ ...settings, smtp_password: value })} />
+                </SettingsGroup>
+
+                <SettingsGroup icon={<Smartphone size={17} />} title="Twilio">
+                  <Field label="SID" value={settings.twilio_sid} onChange={(value) => setSettings({ ...settings, twilio_sid: value })} />
+                  <Field label="Auth token" type="password" value={settings.twilio_auth_token} onChange={(value) => setSettings({ ...settings, twilio_auth_token: value })} />
+                  <Field label="WhatsApp sender" value={settings.twilio_whatsapp_from} onChange={(value) => setSettings({ ...settings, twilio_whatsapp_from: value })} />
+                </SettingsGroup>
+
+                <SettingsGroup icon={<MessageSquare size={17} />} title="Socials">
+                  <Field label="Instagram" value={settings.social_instagram} onChange={(value) => setSettings({ ...settings, social_instagram: value })} />
+                  <Field label="Twitter" value={settings.social_twitter} onChange={(value) => setSettings({ ...settings, social_twitter: value })} />
+                  <Field label="TikTok" value={settings.social_tiktok} onChange={(value) => setSettings({ ...settings, social_tiktok: value })} />
+                </SettingsGroup>
+
+                <div className="admin-form-footer">
+                  <button type="submit" className="btn btn-primary" disabled={settingsSaving}>
+                    {settingsSaving ? <Loader2 className="admin-spin" size={17} /> : <Check size={17} />}
+                    Save settings
+                  </button>
+                </div>
+              </form>
+            )}
+          </section>
+        )}
+      </main>
+      <AdminStyles />
     </div>
+  );
+}
+
+function Metric({ icon, label, value, detail, tone = 'gray' }: { icon: React.ReactNode; label: string; value: string; detail?: string; tone?: 'green' | 'gray' }) {
+  return (
+    <div className={`admin-metric admin-metric--${tone}`}>
+      <span>{icon}</span>
+      <p>{label}</p>
+      <strong>{value}</strong>
+      {detail && <small>{detail}</small>}
+    </div>
+  );
+}
+
+function StatusChip({ label, tone }: { label: string; tone: 'green' | 'gray' | 'red' }) {
+  return <span className={`admin-chip admin-chip--${tone}`}>{label}</span>;
+}
+
+function PlanMeter({ label, value, total, tone }: { label: string; value: number; total: number; tone: 'green' | 'gray' }) {
+  const width = total ? Math.round((value / total) * 100) : 0;
+  return (
+    <div className="admin-meter">
+      <div>
+        <span>{label}</span>
+        <strong>{value}</strong>
+      </div>
+      <span className="admin-meter__track">
+        <span className={`admin-meter__fill admin-meter__fill--${tone}`} style={{ width: `${width}%` }} />
+      </span>
+    </div>
+  );
+}
+
+function EmptyState({ label }: { label: string }) {
+  return <div className="admin-empty">{label}</div>;
+}
+
+function SkeletonGrid() {
+  return (
+    <div className="admin-metric-grid">
+      {[1, 2, 3, 4].map((item) => (
+        <div key={item} className="admin-skeleton" />
+      ))}
+    </div>
+  );
+}
+
+function TableSkeleton({ rows, columns }: { rows: number; columns: number }) {
+  return (
+    <>
+      {Array.from({ length: rows }).map((_, row) => (
+        <tr key={row}>
+          {Array.from({ length: columns }).map((__, column) => (
+            <td key={column}>
+              <span className="admin-table-skeleton" />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+}
+
+function Field({ label, value, onChange, type = 'text', required = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean }) {
+  return (
+    <label className="admin-field">
+      <span>{label}</span>
+      <input type={type} value={value || ''} onChange={(event) => onChange(event.target.value)} required={required} />
+    </label>
+  );
+}
+
+function SettingsGroup({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+  return (
+    <fieldset className="admin-settings-group">
+      <legend>
+        {icon}
+        {title}
+      </legend>
+      <div>{children}</div>
+    </fieldset>
+  );
+}
+
+function AdminStyles() {
+  return (
+    <style jsx global>{`
+      .admin-shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .admin-rail {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        padding: 20px 16px;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+      }
+
+      .admin-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 6px 8px 18px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .admin-brand__mark {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        color: var(--primary);
+        background: var(--primary-light);
+      }
+
+      .admin-brand strong,
+      .admin-brand span {
+        display: block;
+      }
+
+      .admin-brand strong {
+        font-family: var(--font-heading);
+        font-size: 17px;
+        line-height: 1.1;
+      }
+
+      .admin-brand div > span {
+        margin-top: 3px;
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .admin-nav {
+        display: grid;
+        gap: 6px;
+      }
+
+      .admin-nav button,
+      .admin-mobile-tabs button,
+      .admin-icon-button,
+      .admin-action,
+      .admin-pagination button,
+      .admin-list-row button,
+      .admin-rail__footer button {
+        border: 0;
+        cursor: pointer;
+        font: inherit;
+      }
+
+      .admin-nav button {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 42px;
+        padding: 0 12px;
+        border-radius: 8px;
+        color: var(--text-muted);
+        background: transparent;
+        font-size: 14px;
+        font-weight: 750;
+        text-align: left;
+      }
+
+      .admin-nav button:hover,
+      .admin-nav button.is-active {
+        color: var(--text);
+        background: var(--surface-2);
+      }
+
+      .admin-nav button.is-active {
+        color: var(--primary);
+        box-shadow: inset 3px 0 0 var(--primary);
+      }
+
+      .admin-rail__footer {
+        margin-top: auto;
+        display: grid;
+        gap: 6px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface-2);
+      }
+
+      .admin-rail__footer span {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .admin-rail__footer strong {
+        overflow: hidden;
+        color: var(--text);
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .admin-rail__footer button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+        padding: 8px 0 0;
+        color: var(--danger);
+        background: transparent;
+        border-top: 1px solid var(--border);
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      .admin-workspace {
+        min-width: 0;
+        padding: 22px clamp(16px, 3vw, 36px) 40px;
+      }
+
+      .admin-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .admin-topbar p {
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .admin-topbar h1 {
+        margin-top: 2px;
+        font-family: var(--font-heading);
+        font-size: clamp(24px, 3vw, 34px);
+        letter-spacing: 0;
+      }
+
+      .admin-topbar__actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .admin-icon-button {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        color: var(--text-2);
+        background: var(--surface);
+        border: 1px solid var(--border);
+      }
+
+      .admin-mobile-tabs {
+        display: none;
+      }
+
+      .admin-section {
+        display: grid;
+        gap: 18px;
+      }
+
+      .admin-section--narrow {
+        max-width: 960px;
+      }
+
+      .admin-section-heading {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .admin-section-heading h2 {
+        font-family: var(--font-heading);
+        font-size: 20px;
+        line-height: 1.2;
+      }
+
+      .admin-section-heading p {
+        margin-top: 4px;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+
+      .admin-metric-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .admin-metric,
+      .admin-panel,
+      .admin-table-wrap,
+      .admin-inline-form,
+      .admin-list,
+      .admin-settings-group {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: var(--shadow-xs);
+      }
+
+      .admin-metric {
+        min-height: 136px;
+        padding: 16px;
+      }
+
+      .admin-metric > span {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        color: var(--text-2);
+        background: var(--surface-2);
+      }
+
+      .admin-metric--green > span {
+        color: var(--primary);
+        background: var(--primary-light);
+      }
+
+      .admin-metric p {
+        margin-top: 16px;
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .admin-metric strong {
+        display: block;
+        margin-top: 5px;
+        font-family: var(--font-heading);
+        font-size: 25px;
+        line-height: 1;
+      }
+
+      .admin-metric small {
+        display: block;
+        margin-top: 8px;
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .admin-overview-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.8fr);
+        gap: 12px;
+      }
+
+      .admin-panel {
+        padding: 18px;
+      }
+
+      .admin-panel__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .admin-panel__header h3,
+      .admin-settings-group legend {
+        color: var(--text);
+        font-size: 15px;
+        font-weight: 850;
+      }
+
+      .admin-panel__header p {
+        margin-top: 3px;
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .admin-trend-list,
+      .admin-settings-form {
+        display: grid;
+        gap: 10px;
+      }
+
+      .admin-trend-row,
+      .admin-list-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .admin-trend-row {
+        padding: 11px 12px;
+        border-radius: 8px;
+        background: var(--surface-2);
+      }
+
+      .admin-trend-row span,
+      .admin-meter span,
+      .admin-list-row span {
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+
+      .admin-trend-row strong {
+        color: var(--primary);
+        font-size: 14px;
+      }
+
+      .admin-meter {
+        display: grid;
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .admin-meter > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 13px;
+      }
+
+      .admin-meter__track {
+        height: 9px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: var(--surface-2);
+      }
+
+      .admin-meter__fill {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+      }
+
+      .admin-meter__fill--green {
+        background: var(--primary);
+      }
+
+      .admin-meter__fill--gray {
+        background: var(--text-muted);
+      }
+
+      .admin-search {
+        min-width: min(460px, 100%);
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        align-items: center;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        overflow: hidden;
+      }
+
+      .admin-search svg {
+        margin-left: 13px;
+        color: var(--text-muted);
+      }
+
+      .admin-search input,
+      .admin-inline-form input,
+      .admin-field input {
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        color: var(--text);
+        background: transparent;
+        font: inherit;
+      }
+
+      .admin-search input {
+        height: 42px;
+        font-size: 14px;
+      }
+
+      .admin-search button {
+        height: 42px;
+        padding: 0 14px;
+        border: 0;
+        border-left: 1px solid var(--border);
+        color: var(--primary);
+        background: var(--primary-light);
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .admin-table-wrap {
+        overflow: auto;
+      }
+
+      .admin-table {
+        width: 100%;
+        min-width: 860px;
+        border-collapse: collapse;
+        text-align: left;
+      }
+
+      .admin-table th {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-muted);
+        background: var(--surface-2);
+        font-size: 11px;
+        font-weight: 850;
+        text-transform: uppercase;
+      }
+
+      .admin-table td {
+        padding: 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+      }
+
+      .admin-table tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .admin-table td strong,
+      .admin-table td span,
+      .admin-table td a {
+        display: block;
+      }
+
+      .admin-table td strong {
+        font-size: 14px;
+      }
+
+      .admin-table td span,
+      .admin-table td a {
+        margin-top: 3px;
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .admin-table td a {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--primary);
+        font-weight: 750;
+      }
+
+      .admin-table__actions {
+        text-align: right;
+      }
+
+      .admin-plan-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .admin-chip {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        border-radius: 999px;
+        padding: 4px 9px;
+        font-size: 11px;
+        font-weight: 850;
+        text-transform: uppercase;
+      }
+
+      .admin-chip--green {
+        color: var(--primary);
+        background: var(--primary-light);
+      }
+
+      .admin-chip--gray {
+        color: var(--text-muted);
+        background: var(--surface-2);
+      }
+
+      .admin-chip--red {
+        color: var(--danger);
+        background: var(--danger-light);
+      }
+
+      .admin-select {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .admin-select select {
+        height: 32px;
+        min-width: 126px;
+        padding: 0 28px 0 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        background: var(--surface);
+        font-size: 12px;
+        font-weight: 750;
+        outline: 0;
+        appearance: none;
+      }
+
+      .admin-select svg {
+        position: absolute;
+        right: 9px;
+        pointer-events: none;
+        color: var(--text-muted);
+      }
+
+      .admin-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 34px;
+        padding: 0 11px;
+        border-radius: 8px;
+        color: var(--primary);
+        background: var(--primary-light);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .admin-action.danger {
+        color: var(--danger);
+        background: var(--danger-light);
+      }
+
+      .admin-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .admin-pagination button {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 36px;
+        padding: 0 13px;
+        border-radius: 8px;
+        color: var(--text);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      .admin-pagination button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .admin-pagination span {
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      .admin-inline-form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .admin-inline-form input,
+      .admin-field input {
+        height: 42px;
+        padding: 0 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        font-size: 14px;
+      }
+
+      .admin-list {
+        overflow: hidden;
+      }
+
+      .admin-list-row {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .admin-list-row:last-child {
+        border-bottom: 0;
+      }
+
+      .admin-list-row strong {
+        display: block;
+        font-size: 14px;
+      }
+
+      .admin-list-row button {
+        width: 34px;
+        height: 34px;
+        display: inline-grid;
+        place-items: center;
+        margin-left: 6px;
+        border-radius: 8px;
+        color: var(--text-2);
+        background: var(--surface-2);
+      }
+
+      .admin-list-row button.danger {
+        color: var(--danger);
+        background: var(--danger-light);
+      }
+
+      .admin-settings-group {
+        min-width: 0;
+        padding: 16px;
+      }
+
+      .admin-settings-group legend {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 6px;
+      }
+
+      .admin-settings-group legend svg {
+        color: var(--primary);
+      }
+
+      .admin-settings-group > div {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        padding-top: 10px;
+      }
+
+      .admin-field span {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 850;
+        text-transform: uppercase;
+      }
+
+      .admin-form-footer {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .admin-empty {
+        display: grid;
+        place-items: center;
+        min-height: 110px;
+        padding: 22px;
+        color: var(--text-muted);
+        font-size: 13px;
+        text-align: center;
+      }
+
+      .admin-state-screen {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 14px;
+        background: var(--bg);
+      }
+
+      .admin-state-screen--padded {
+        padding: 16px;
+      }
+
+      .admin-state-screen p {
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      .admin-denied {
+        width: min(430px, 100%);
+        display: grid;
+        justify-items: center;
+        gap: 14px;
+        padding: 28px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        text-align: center;
+      }
+
+      .admin-denied__icon {
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        color: var(--danger);
+        background: var(--danger-light);
+      }
+
+      .admin-denied h1 {
+        font-size: 24px;
+      }
+
+      .admin-denied__actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        width: 100%;
+        margin-top: 6px;
+      }
+
+      .admin-skeleton,
+      .admin-list-skeleton,
+      .admin-table-skeleton {
+        display: block;
+        border-radius: 8px;
+        background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 37%, var(--surface-2) 63%);
+        background-size: 400% 100%;
+        animation: admin-shimmer 1.2s ease-in-out infinite;
+      }
+
+      .admin-skeleton {
+        height: 136px;
+      }
+
+      .admin-list-skeleton {
+        height: 62px;
+        margin: 10px;
+      }
+
+      .admin-table-skeleton {
+        width: 100%;
+        height: 18px;
+      }
+
+      .admin-spin {
+        animation: admin-spin 0.9s linear infinite;
+      }
+
+      @keyframes admin-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes admin-shimmer {
+        0% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0 50%;
+        }
+      }
+
+      @media (max-width: 1120px) {
+        .admin-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .admin-rail {
+          display: none;
+        }
+
+        .admin-mobile-tabs {
+          position: sticky;
+          top: 0;
+          z-index: 5;
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 8px 0 14px;
+          margin-bottom: 4px;
+          background: var(--bg);
+        }
+
+        .admin-mobile-tabs button {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          min-height: 36px;
+          padding: 0 12px;
+          border-radius: 8px;
+          color: var(--text-muted);
+          background: var(--surface);
+          border: 1px solid var(--border);
+          font-size: 13px;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+
+        .admin-mobile-tabs button.is-active {
+          color: var(--primary);
+          border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+          background: var(--primary-light);
+        }
+      }
+
+      @media (max-width: 900px) {
+        .admin-section-heading {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .admin-metric-grid,
+        .admin-overview-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .admin-search {
+          min-width: 0;
+          width: 100%;
+        }
+
+        .admin-settings-group > div {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .admin-workspace {
+          padding: 16px 12px 28px;
+        }
+
+        .admin-topbar {
+          align-items: flex-start;
+        }
+
+        .admin-topbar h1 {
+          font-size: 25px;
+        }
+
+        .admin-metric-grid,
+        .admin-overview-grid,
+        .admin-inline-form,
+        .admin-denied__actions {
+          grid-template-columns: 1fr;
+        }
+
+        .admin-search {
+          grid-template-columns: 34px minmax(0, 1fr);
+        }
+
+        .admin-search button {
+          grid-column: 1 / -1;
+          border-top: 1px solid var(--border);
+          border-left: 0;
+        }
+
+        .admin-plan-cell {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    `}</style>
   );
 }
