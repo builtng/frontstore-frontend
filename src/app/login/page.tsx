@@ -56,7 +56,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
 
       const res = await fetch(`${API_URL}/v1/auth/login`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
@@ -105,7 +105,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
           {isAdminMode ? 'Admin Log In' : 'Merchant Log In'}
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 14.5, lineHeight: 1.5 }}>
-          {isAdminMode 
+          {isAdminMode
             ? 'Access the platform management, configure global settings, and view growth statistics.'
             : 'Access your digital storefront dashboard, manage orders, and upload products.'
           }
@@ -128,7 +128,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
 
       {/* Form Container */}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        
+
         <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)' }}>
           {/* Phone Number / Email */}
           <div>
@@ -143,7 +143,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
                 id="loginIdentifier"
                 type="text"
                 required
-                placeholder={isAdminMode ? 'e.g. admin@aloaye.tech' : 'e.g. +2348031234567'}
+                placeholder={isAdminMode ? 'e.g. Email Address' : 'e.g. +2348031234567'}
                 value={loginIdentifier}
                 onChange={e => setLoginIdentifier(e.target.value)}
                 onFocus={() => setFocusedInput('loginIdentifier')}
@@ -176,7 +176,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
               )}
             </div>
             <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-              {isAdminMode 
+              {isAdminMode
                 ? 'Enter your registered administrator email address'
                 : 'Use your registered WhatsApp phone number (with country code e.g. +234...)'
               }
@@ -404,17 +404,17 @@ export default function LoginPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {(isAdminMode
               ? [
-                  'Monitor real-time platform transactions',
-                  'Manage storefront statuses & active plans',
-                  'Configure application-wide settings & APIs',
-                  'Audit system activity & user accounts'
-                ]
+                'Monitor real-time platform transactions',
+                'Manage storefront statuses & active plans',
+                'Configure application-wide settings & APIs',
+                'Audit system activity & user accounts'
+              ]
               : [
-                  'Track visitor views & conversion rates',
-                  'Update order shipping & payment statuses',
-                  'Generate ChatGPT AI product descriptions',
-                  'Manage storefront details in real-time'
-                ]
+                'Track visitor views & conversion rates',
+                'Update order shipping & payment statuses',
+                'Generate ChatGPT AI product descriptions',
+                'Manage storefront details in real-time'
+              ]
             ).map(spec => (
               <div key={spec} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{
