@@ -54,6 +54,7 @@ interface StoreInfo {
   custom_links?: StoreLink[] | null;
   custom_domain?: string | null;
   primary_color?: string | null;
+  store_template?: string | null;
   is_pro?: boolean;
 }
 
@@ -122,6 +123,16 @@ interface DashboardStats {
   };
 }
 
+type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'templates' | 'settings' | 'billing';
+
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'templates', 'settings', 'billing'];
+
+const getDashboardTabFromUrl = (): DashboardTab => {
+  if (typeof window === 'undefined') return 'overview';
+  const tab = new URLSearchParams(window.location.search).get('page');
+  return DASHBOARD_TABS.includes(tab as DashboardTab) ? tab as DashboardTab : 'overview';
+};
+
 const countries = [
   { code: 'NG', name: 'Nigeria', dialCode: '+234', flag: '🇳🇬' },
   { code: 'GH', name: 'Ghana', dialCode: '+233', flag: '🇬🇭' },
@@ -135,6 +146,51 @@ const countries = [
   { code: 'TZ', name: 'Tanzania', dialCode: '+255', flag: '🇹🇿' },
   { code: 'GB', name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧' },
   { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸' },
+];
+
+const storeTemplates = [
+  {
+    id: 'luxe-market',
+    name: 'Luxe Market',
+    tone: 'Premium boutique',
+    description: 'Large cinematic header, polished trust row, balanced catalog cards.',
+    colors: ['#10b981', '#0f172a', '#f59e0b'],
+  },
+  {
+    id: 'editorial',
+    name: 'Editorial',
+    tone: 'Magazine commerce',
+    description: 'Story-led layout for fashion, beauty, food, and lifestyle brands.',
+    colors: ['#b42318', '#fbfaf7', '#0f766e'],
+  },
+  {
+    id: 'flash-sale',
+    name: 'Flash Sale',
+    tone: 'Promo engine',
+    description: 'Bold deal energy for drops, discounts, campaigns, and fast checkout.',
+    colors: ['#e11d48', '#f59e0b', '#190915'],
+  },
+  {
+    id: 'atelier',
+    name: 'Atelier',
+    tone: 'Minimal studio',
+    description: 'Quiet, gallery-like storefront for handcrafted or premium goods.',
+    colors: ['#27272a', '#f7f7f5', '#0e7490'],
+  },
+  {
+    id: 'digital-studio',
+    name: 'Digital Studio',
+    tone: 'Digital products',
+    description: 'Optimized for files, courses, services, templates, and creators.',
+    colors: ['#2563eb', '#14b8a6', '#07152f'],
+  },
+  {
+    id: 'whatsapp-native',
+    name: 'WhatsApp Native',
+    tone: 'Chat-first',
+    description: 'Feels close to WhatsApp with rounded CTAs and chat-led buying.',
+    colors: ['#128c7e', '#25d366', '#f3fbf6'],
+  },
 ];
 
 const parsePhoneNumber = (fullPhone: string) => {
@@ -167,7 +223,7 @@ export default function DashboardPage() {
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   // --- Dashboard Data State ---
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'settings' | 'billing'>('overview');
+  const [activeTab, setActiveTab] = useState<DashboardTab>(getDashboardTabFromUrl);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -231,6 +287,8 @@ export default function DashboardPage() {
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [customLinks, setCustomLinks] = useState<StoreLink[]>([]);
   const [primaryColor, setPrimaryColor] = useState('#10b981');
+  const [selectedTemplate, setSelectedTemplate] = useState('luxe-market');
+  const [templateSaving, setTemplateSaving] = useState<string | null>(null);
   // Form states for adding/editing a link
   const [linkTitle, setLinkTitle] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
@@ -257,6 +315,27 @@ export default function DashboardPage() {
 
   // Developer Endpoint Form
   const [devApiInput, setDevApiInput] = useState('');
+
+  const navigateDashboardTab = (tab: DashboardTab, replace = false) => {
+    setActiveTab(tab);
+    if (typeof window === 'undefined') return;
+
+    const url = new URL(window.location.href);
+    if (tab === 'overview') {
+      url.searchParams.delete('page');
+    } else {
+      url.searchParams.set('page', tab);
+    }
+    url.searchParams.delete('reference');
+    url.searchParams.delete('trxref');
+
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    if (replace) {
+      window.history.replaceState({ page: tab }, '', nextUrl);
+    } else {
+      window.history.pushState({ page: tab }, '', nextUrl);
+    }
+  };
 
   // Custom Domain Mapping Form
   const [customDomainInput, setCustomDomainInput] = useState('');
@@ -403,6 +482,7 @@ export default function DashboardPage() {
               setLogoUrl(parsedStore.logo_url || null);
               setCustomLinks(parsedStore.custom_links || []);
               setPrimaryColor(parsedStore.primary_color || '#10b981');
+              setSelectedTemplate(parsedStore.store_template || 'luxe-market');
             }
             setIsAuthenticated(true);
             setIsAuthChecking(false);
@@ -418,6 +498,13 @@ export default function DashboardPage() {
       }
     }
   }, [router]);
+
+  useEffect(() => {
+    const syncTabFromUrl = () => setActiveTab(getDashboardTabFromUrl());
+    syncTabFromUrl();
+    window.addEventListener('popstate', syncTabFromUrl);
+    return () => window.removeEventListener('popstate', syncTabFromUrl);
+  }, []);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -468,9 +555,10 @@ export default function DashboardPage() {
     const reference = params.get('reference') || params.get('trxref');
     if (!reference) return;
 
-    // Remove query params from URL immediately
-    const cleanUrl = window.location.pathname;
-    window.history.replaceState({}, '', cleanUrl);
+    // Remove payment query params immediately while keeping the user on Billing.
+    const cleanUrl = `${window.location.pathname}?page=billing`;
+    window.history.replaceState({ page: 'billing' }, '', cleanUrl);
+    setActiveTab('billing');
 
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -493,7 +581,7 @@ export default function DashboardPage() {
             localStorage.setItem('store', JSON.stringify(json.data.store));
           }
           toast.success('🎉 Payment verified! Your Pro plan is now active.');
-          setActiveTab('overview');
+          navigateDashboardTab('billing', true);
         } else {
           toast.error(json.message || 'Payment verification failed. Contact support.');
         }
@@ -603,6 +691,8 @@ export default function DashboardPage() {
         setNameMatchOk(liveStore.bank_account_verified ? true : null);
         setLogoUrl(liveStore.logo_url || null);
         setCustomLinks(liveStore.custom_links || []);
+        setPrimaryColor(liveStore.primary_color || '#10b981');
+        setSelectedTemplate(liveStore.store_template || 'luxe-market');
       }
 
     } catch (e) {
@@ -644,7 +734,7 @@ export default function DashboardPage() {
       setAiResponseBubble(`✨ AI Assistant: Redirecting to Orders section...`);
       setTimeout(() => {
         setAiResponseBubble(null);
-        setActiveTab('orders');
+        navigateDashboardTab('orders');
       }, 1000);
     } else if (text.includes('chat') || text.includes('whatsapp') || text.includes('simulator') || text.includes('message')) {
       setAiResponseBubble(`✨ AI Assistant: The WhatsApp Simulator is disabled for this environment. Share your store link to receive live customer checkouts!`);
@@ -655,7 +745,7 @@ export default function DashboardPage() {
       setAiResponseBubble(`✨ AI Assistant: Navigating to settings...`);
       setTimeout(() => {
         setAiResponseBubble(null);
-        setActiveTab('settings');
+        navigateDashboardTab('settings');
       }, 1000);
     } else {
       setAiResponseBubble(`💡 AI Coach: I can help you add products, launch discounts, inspect orders, or update settings. Try typing "Add product" or "view orders".`);
@@ -698,7 +788,7 @@ export default function DashboardPage() {
   const handleGenerateAIDescription = async () => {
     if (user?.plan === 'free' || !user?.plan) {
       toast.info('✨ AI Product Description Auto-Write requires a Pro subscription. Upgrade in the Billing tab!');
-      setActiveTab('billing');
+      navigateDashboardTab('billing');
       setIsAddProductOpen(false);
       setIsEditProductOpen(false);
       return;
@@ -1036,6 +1126,7 @@ export default function DashboardPage() {
           custom_links: customLinks,
           logo_url: logoUrl,
           primary_color: isPro ? primaryColor : (store?.primary_color || '#10b981'),
+          store_template: selectedTemplate,
         })
       });
 
@@ -1057,6 +1148,7 @@ export default function DashboardPage() {
         setNameMatchOk(json.data.bank_account_verified ? true : null);
         setCustomLinks(json.data.custom_links || []);
         setPrimaryColor(json.data.primary_color || '#10b981');
+        setSelectedTemplate(json.data.store_template || 'luxe-market');
       } else {
         throw new Error(json.message || 'Store settings update failed.');
       }
@@ -1064,6 +1156,73 @@ export default function DashboardPage() {
       toast.error(e.message || 'Error occurred saving settings.');
     } finally {
       setSettingsSaving(false);
+    }
+  };
+
+  const handleTemplateActivate = async (templateId: string) => {
+    if (templateSaving) return;
+    const previousTemplate = selectedTemplate;
+    const templateName = storeTemplates.find(t => t.id === templateId)?.name || 'Storefront';
+
+    try {
+      setTemplateSaving(templateId);
+      setSelectedTemplate(templateId);
+
+      const res = await fetch(`${apiUrl}/v1/store/template`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ store_template: templateId })
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.data) {
+        throw new Error(json.message || 'Template activation failed.');
+      }
+      if (json.data.store_template !== templateId) {
+        throw new Error('The server did not save the selected template. Please run the latest database migration and try again.');
+      }
+
+      setStore(json.data);
+      localStorage.setItem('store', JSON.stringify(json.data));
+      setSelectedTemplate(json.data.store_template || templateId);
+      toast.success(`${templateName} template activated. Refresh the public store to view it.`);
+    } catch (e: any) {
+      setSelectedTemplate(previousTemplate);
+      toast.error(e.message || 'Could not activate template.');
+    } finally {
+      setTemplateSaving(null);
+    }
+  };
+
+  const handleTemplateColorSave = async () => {
+    const isProUser = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
+    if (!isProUser && primaryColor !== '#10b981') {
+      navigateDashboardTab('billing');
+      toast.error('Custom storefront colors require a Pro subscription.');
+      return;
+    }
+
+    try {
+      setTemplateSaving('color');
+      const res = await fetch(`${apiUrl}/v1/store`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ primary_color: primaryColor })
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.data) {
+        throw new Error(json.message || 'Color update failed.');
+      }
+
+      setStore(json.data);
+      localStorage.setItem('store', JSON.stringify(json.data));
+      setPrimaryColor(json.data.primary_color || '#10b981');
+      toast.success('Template color updated.');
+    } catch (e: any) {
+      toast.error(e.message || 'Could not update template color.');
+    } finally {
+      setTemplateSaving(null);
     }
   };
 
@@ -1230,7 +1389,7 @@ export default function DashboardPage() {
   // --- Receipt view compiler ---
   const generateReceiptText = (order: Order) => {
     const divider = '===================================';
-    const storeHeader = `🏪 STORE: ${store?.store_name || 'aloaye merchant'}\nURL: ${store?.username}.aloaye.tech\n`;
+    const storeHeader = `🏪 STORE: ${store?.store_name || 'aloaye merchant'}\nURL: aloaye.tech/${store?.username}\n`;
     const orderHeader = `ORDER NO: ${order.order_number}\nDATE: ${new Date(order.created_at).toLocaleDateString()}\n`;
     const customer = `CUSTOMER: ${order.customer_name}\nPHONE: ${order.customer_phone}\nADDRESS: ${order.delivery_address || 'N/A'}\n`;
 
@@ -1307,7 +1466,7 @@ export default function DashboardPage() {
     return isNaN(num) ? '—' : num.toLocaleString();
   };
 
-  const liveStoreUrl = store ? `${window.location.protocol}//${store.username}.${window.location.host.replace(/^www\./, '')}` : '';
+  const liveStoreUrl = store ? `${window.location.origin}/${store.username}` : '';
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg)', color: 'var(--text)', overflowX: 'hidden' }}>
@@ -1371,7 +1530,7 @@ export default function DashboardPage() {
               {(!user?.plan || user?.plan === 'free') && (
                 <button
                   type="button"
-                  onClick={() => setActiveTab('billing')}
+                  onClick={() => navigateDashboardTab('billing')}
                   style={{
                     fontSize: 10,
                     fontWeight: 800,
@@ -1398,6 +1557,7 @@ export default function DashboardPage() {
             { id: 'products', label: 'Products', icon: <Package size={18} /> },
             // { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} />, badge: 1 },
             { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
+            { id: 'templates', label: 'Templates', icon: <Sparkles size={18} /> },
             { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
             { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
           ].map(item => {
@@ -1405,7 +1565,7 @@ export default function DashboardPage() {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id as any)}
+                onClick={() => navigateDashboardTab(item.id as DashboardTab)}
                 className="clickable"
                 style={{
                   display: 'flex',
@@ -1572,9 +1732,9 @@ export default function DashboardPage() {
                     const hasLogo = !!store?.logo_url;
                     const steps = [
                       { id: 'products', done: hasProducts, label: 'Add your first product', desc: 'List a physical or digital item to start selling.', action: () => openAddProductModal(), cta: 'Add Product', icon: <Package size={16} /> },
-                      { id: 'bank', done: hasBank, label: 'Connect payment details', desc: 'Add your bank account to receive payments.', action: () => setActiveTab('settings'), cta: 'Go to Settings', icon: <DollarSign size={16} /> },
-                      { id: 'bio', done: hasBio, label: 'Write your store bio', desc: 'Tell customers who you are and what you sell.', action: () => setActiveTab('settings'), cta: 'Edit Bio', icon: <Store size={16} /> },
-                      { id: 'logo', done: hasLogo, label: 'Upload a store logo', desc: 'A logo builds trust and makes your store look professional.', action: () => setActiveTab('settings'), cta: 'Upload Logo', icon: <Camera size={16} /> },
+                      { id: 'bank', done: hasBank, label: 'Connect payment details', desc: 'Add your bank account to receive payments.', action: () => navigateDashboardTab('settings'), cta: 'Go to Settings', icon: <DollarSign size={16} /> },
+                      { id: 'bio', done: hasBio, label: 'Write your store bio', desc: 'Tell customers who you are and what you sell.', action: () => navigateDashboardTab('settings'), cta: 'Edit Bio', icon: <Store size={16} /> },
+                      { id: 'logo', done: hasLogo, label: 'Upload a store logo', desc: 'A logo builds trust and makes your store look professional.', action: () => navigateDashboardTab('settings'), cta: 'Upload Logo', icon: <Camera size={16} /> },
                     ];
                     const doneCount = steps.filter(s => s.done).length;
                     const allDone = doneCount === steps.length;
@@ -2345,11 +2505,11 @@ export default function DashboardPage() {
                         <label style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Store URL</label>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
                           <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary-dark)', wordBreak: 'break-all' }}>
-                            {store?.custom_domain ? store.custom_domain : (store ? `${store.username}.aloaye.tech` : 'aloaye.tech')}
+                            {store?.custom_domain ? store.custom_domain : (store ? `aloaye.tech/${store.username}` : 'aloaye.tech')}
                           </span>
                           <button
                             onClick={() => {
-                              const storeUrl = store?.custom_domain ? `https://${store.custom_domain}` : `https://${store?.username}.aloaye.tech`;
+                              const storeUrl = store?.custom_domain ? `https://${store.custom_domain}` : `https://aloaye.tech/${store?.username}`;
                               navigator.clipboard.writeText(storeUrl);
                               toast.success('Store link copied! 📋');
                             }}
@@ -2364,7 +2524,7 @@ export default function DashboardPage() {
                       {/* WhatsApp share CTA */}
                       <button
                         onClick={() => {
-                          const url = store?.custom_domain ? `https://${store.custom_domain}` : `https://${store?.username}.aloaye.tech`;
+                          const url = store?.custom_domain ? `https://${store.custom_domain}` : `https://aloaye.tech/${store?.username}`;
                           const msg = encodeURIComponent(`🏪 Check out my digital store on Aloaye! Shop here: ${url}`);
                           window.open(`https://wa.me/?text=${msg}`, '_blank');
                         }}
@@ -2435,6 +2595,201 @@ export default function DashboardPage() {
               )}
 
               {/* ── TAB 6: SETTINGS & DEVELOPER OVERRIDES ── */}
+              {activeTab === 'templates' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }} className="animate-fade-in">
+                  <div className="card" style={{ padding: 24, overflow: 'hidden', position: 'relative' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 22 }}>
+                      <div>
+                        <p style={{ fontSize: 11, fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Storefront design</p>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 26, fontWeight: 950, margin: 0, letterSpacing: '-0.02em' }}>Templates</h2>
+                        <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, maxWidth: 680, marginTop: 8 }}>
+                          Choose the public storefront design customers see when they visit your store. Activation is instant after selection.
+                        </p>
+                      </div>
+                      <a
+                        href={liveStoreUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline clickable"
+                        style={{ textDecoration: 'none', gap: 8, flexShrink: 0 }}
+                      >
+                        <ExternalLink size={16} /> View Store
+                      </a>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+                      {storeTemplates.map(template => {
+                        const active = selectedTemplate === template.id;
+                        const saving = templateSaving === template.id;
+                        return (
+                          <div
+                            key={template.id}
+                            className="card"
+                            style={{
+                              border: active ? '2px solid var(--primary)' : '1px solid var(--border)',
+                              borderRadius: 'var(--r-xl)',
+                              overflow: 'hidden',
+                              background: active ? 'var(--primary-light)' : 'var(--surface)',
+                              boxShadow: active ? '0 16px 34px var(--primary-glow)' : 'var(--shadow-sm)',
+                            }}
+                          >
+                            <div style={{
+                              height: 140,
+                              background: `linear-gradient(135deg, ${template.colors[0]} 0%, ${template.colors[1]} 56%, ${template.colors[2]} 100%)`,
+                              position: 'relative',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{ position: 'absolute', inset: 14, border: '1px solid rgba(255,255,255,0.28)', borderRadius: 14 }} />
+                              <div style={{ position: 'absolute', left: 22, bottom: 26, width: '52%', height: 12, borderRadius: 999, background: 'rgba(255,255,255,0.9)' }} />
+                              <div style={{ position: 'absolute', left: 22, bottom: 48, width: '34%', height: 10, borderRadius: 999, background: 'rgba(255,255,255,0.45)' }} />
+                              <div style={{ position: 'absolute', right: 22, top: 22, width: 42, height: 42, borderRadius: template.id === 'atelier' ? 8 : 16, background: 'rgba(255,255,255,0.78)' }} />
+                              <div style={{ position: 'absolute', right: 22, bottom: 22, display: 'grid', gridTemplateColumns: 'repeat(2, 28px)', gap: 7 }}>
+                                {[0, 1, 2, 3].map(i => (
+                                  <span key={i} style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.32)' }} />
+                                ))}
+                              </div>
+                            </div>
+
+                            <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
+                                <div>
+                                  <h3 style={{ fontSize: 16, fontWeight: 950, color: 'var(--text)', margin: 0 }}>{template.name}</h3>
+                                  <p style={{ fontSize: 12, fontWeight: 850, color: active ? 'var(--primary)' : 'var(--text-2)', marginTop: 3 }}>{template.tone}</p>
+                                </div>
+                                {active && (
+                                  <span className="badge badge-primary" style={{ flexShrink: 0 }}>
+                                    <Check size={11} /> Active
+                                  </span>
+                                )}
+                              </div>
+                              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5, minHeight: 38 }}>{template.description}</p>
+                              <button
+                                type="button"
+                                onClick={() => handleTemplateActivate(template.id)}
+                                disabled={saving || (active && !templateSaving)}
+                                className={active ? 'btn btn-outline clickable' : 'btn btn-primary clickable'}
+                                style={{ width: '100%', borderRadius: 'var(--r-md)', fontWeight: 850 }}
+                              >
+                                {saving ? <><Loader2 size={16} className="spinner" /> Activating...</> : active ? 'Active Template' : 'Activate Template'}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="card" style={{ padding: 24 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 18 }}>
+                      <div>
+                        <p style={{ fontSize: 11, fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Template colors</p>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 950, margin: 0 }}>Customize active storefront color</h3>
+                        <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.55, maxWidth: 640, marginTop: 6 }}>
+                          This color controls your active template buttons, highlights, catalog accents, and customer-facing storefront styling.
+                        </p>
+                      </div>
+                      {!isPro && <span className="badge badge-accent" style={{ flexShrink: 0 }}>Pro feature</span>}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'stretch' }} className="responsive-settings-grid">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 9 }}>Fast palettes</label>
+                          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                            {[
+                              { name: 'Aloaye', value: '#10b981' },
+                              { name: 'Ruby', value: '#e11d48' },
+                              { name: 'Royal', value: '#4f46e5' },
+                              { name: 'Ocean', value: '#0284c7' },
+                              { name: 'Amber', value: '#d97706' },
+                              { name: 'Graphite', value: '#27272a' },
+                              { name: 'Teal', value: '#128c7e' },
+                              { name: 'Violet', value: '#7c3aed' },
+                            ].map(preset => (
+                              <button
+                                key={preset.value}
+                                type="button"
+                                onClick={() => setPrimaryColor(preset.value)}
+                                title={preset.name}
+                                aria-label={preset.name}
+                                style={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: 12,
+                                  background: preset.value,
+                                  border: primaryColor === preset.value ? '3px solid var(--text)' : '1px solid var(--border)',
+                                  boxShadow: primaryColor === preset.value ? '0 0 0 3px var(--surface), var(--shadow-md)' : 'var(--shadow-sm)',
+                                  cursor: 'pointer',
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '56px 1fr', gap: 12, alignItems: 'center' }}>
+                          <input
+                            type="color"
+                            value={primaryColor}
+                            onChange={e => setPrimaryColor(e.target.value)}
+                            style={{ width: 56, height: 48, border: 'none', background: 'transparent', cursor: 'pointer', padding: 0 }}
+                            aria-label="Custom template color"
+                          />
+                          <input
+                            type="text"
+                            value={primaryColor}
+                            onChange={e => {
+                              const val = e.target.value;
+                              if (val.startsWith('#') && val.length <= 7) setPrimaryColor(val);
+                            }}
+                            className="input-field"
+                            style={{ fontFamily: 'monospace', fontWeight: 800 }}
+                            placeholder="#10b981"
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleTemplateColorSave}
+                          disabled={templateSaving === 'color'}
+                          className="btn btn-primary clickable"
+                          style={{ width: 'fit-content', borderRadius: 'var(--r-md)', fontWeight: 850 }}
+                        >
+                          {templateSaving === 'color' ? <><Loader2 size={16} className="spinner" /> Saving color...</> : 'Apply Color to Storefront'}
+                        </button>
+                      </div>
+
+                      <div style={{
+                        minHeight: 190,
+                        borderRadius: 'var(--r-xl)',
+                        padding: 18,
+                        background: `linear-gradient(135deg, ${primaryColor} 0%, color-mix(in srgb, ${primaryColor} 56%, #ffffff) 100%)`,
+                        color: '#fff',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        overflow: 'hidden',
+                        position: 'relative',
+                        boxShadow: `0 18px 42px ${primaryColor}33`
+                      }}>
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(115deg, rgba(255,255,255,0.18) 0 1px, transparent 1px 42px)', opacity: 0.45 }} />
+                        <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: 11, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{selectedTemplate.replace(/-/g, ' ')}</span>
+                          <span style={{ width: 42, height: 42, borderRadius: 14, background: 'rgba(255,255,255,0.78)' }} />
+                        </div>
+                        <div style={{ position: 'relative', zIndex: 1 }}>
+                          <h4 style={{ fontSize: 24, fontWeight: 950, margin: 0, fontFamily: 'var(--font-heading)' }}>Customer storefront preview</h4>
+                          <p style={{ fontSize: 13, marginTop: 6, opacity: 0.86 }}>Buttons, badges, highlights, and accents use this color.</p>
+                          <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                            <span style={{ padding: '8px 12px', borderRadius: 999, background: '#fff', color: primaryColor, fontSize: 12, fontWeight: 900 }}>Shop now</span>
+                            <span style={{ padding: '8px 12px', borderRadius: 999, background: 'rgba(255,255,255,0.2)', color: '#fff', fontSize: 12, fontWeight: 900 }}>Featured</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'settings' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
                   <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid">
@@ -2736,7 +3091,7 @@ export default function DashboardPage() {
                               </p>
                               <button
                                 type="button"
-                                onClick={() => setActiveTab('billing')}
+                                onClick={() => navigateDashboardTab('billing')}
                                 className="btn btn-primary clickable"
                                 style={{ padding: '6px 14px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 12 }}
                               >
@@ -3073,7 +3428,7 @@ export default function DashboardPage() {
                         </p>
                         <button
                           type="button"
-                          onClick={() => setActiveTab('billing')}
+                          onClick={() => navigateDashboardTab('billing')}
                           className="btn btn-primary clickable"
                           style={{ padding: '8px 20px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13 }}
                         >
@@ -4116,12 +4471,14 @@ export default function DashboardPage() {
                 { id: 'products', label: 'Products', icon: <Package size={18} /> },
                 // { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
+                { id: 'templates', label: 'Templates', icon: <Sparkles size={18} /> },
                 { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
+                { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
               ].map(item => (
                 <button
                   key={item.id}
                   onClick={() => {
-                    setActiveTab(item.id as any);
+                    navigateDashboardTab(item.id as DashboardTab);
                     setIsMobileMenuOpen(false);
                   }}
                   style={{
@@ -5021,10 +5378,29 @@ export default function DashboardPage() {
           .main-header {
             padding: 10px 14px !important;
             gap: 8px !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
           }
           .header-search-form {
-            margin: 0 4px !important;
+            order: 3 !important;
+            flex-basis: 100% !important;
+            margin: 4px 0 0 !important;
             max-width: none !important;
+          }
+          .main-header > div:last-child {
+            padding-right: 0 !important;
+            gap: 8px !important;
+          }
+          .main-header > div:last-child .btn {
+            width: 38px !important;
+            height: 38px !important;
+            padding: 0 !important;
+          }
+          .main-header > div:last-child > :last-child {
+            display: none !important;
+          }
+          .main-content > div {
+            padding: 14px !important;
           }
           .whatsapp-chat-shell {
             flex-direction: row !important;
@@ -5056,6 +5432,21 @@ export default function DashboardPage() {
             flex-direction: column;
             gap: 12px;
             align-items: flex-start !important;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .responsive-chart-grid .card {
+            padding: 16px !important;
+          }
+          .chart-scroll-content {
+            min-width: 420px !important;
+          }
+          .responsive-chart-grid h3 {
+            font-size: 14px !important;
+          }
+          .responsive-chart-grid .btn {
+            white-space: normal !important;
           }
         }
       `}</style>

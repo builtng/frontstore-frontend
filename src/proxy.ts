@@ -84,7 +84,7 @@ export function proxy(request: NextRequest) {
 
   // Redirect dashboard, admin, login, and signup routes on subdomains back to the main domain
   const { pathname } = url;
-  const isAuthOrDashboard = 
+  const isAuthOrDashboard =
     pathname === '/login' ||
     pathname === '/signup' ||
     pathname === '/dashboard' ||
@@ -100,7 +100,7 @@ export function proxy(request: NextRequest) {
   }
 
   // Do NOT rewrite Next.js assets, system paths, standard global pages, or API requests
-  const isSystemPath = 
+  const isSystemPath =
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/favicon.ico') ||
@@ -109,10 +109,14 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/track') ||
     /\.(png|jpg|jpeg|gif|svg|ico|css|js|json|txt|xml|woff|woff2|ttf|otf)$/i.test(pathname);
 
-  // If a valid subdomain is identified, rewrite requests internally
-  if (subdomain && !isSystemPath) {
-    url.pathname = `/${subdomain}${pathname}`;
-    return NextResponse.rewrite(url);
+  // Platform storefronts now live on path URLs (e.g. aloaye.tech/ade).
+  // Redirect old subdomain links so shared legacy URLs resolve to the canonical path.
+  if (subdomain && isPlatformDomain && !isSystemPath) {
+    const mainUrl = request.nextUrl.clone();
+    const hostHeader = request.headers.get('host') || '';
+    mainUrl.host = hostHeader.replace(`${subdomain}.`, '');
+    mainUrl.pathname = `/${subdomain}${pathname}`;
+    return NextResponse.redirect(mainUrl, 308);
   }
 
   // If a custom domain is identified, rewrite requests internally using the clean host as the identifier
@@ -139,4 +143,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap.*\\.xml|llm\\.txt|manifest\\.json|.*\\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico|woff|woff2|ttf|otf|css|js)).*)',
   ],
 };
-

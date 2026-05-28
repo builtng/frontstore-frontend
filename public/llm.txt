@@ -1,6 +1,6 @@
 # aloaye — Africa's WhatsApp Commerce Platform
 
-aloaye enables micro-merchants and small businesses in Africa to claim a customized link (e.g., `yourbrand.aloaye.tech` or custom domain) and deploy a stunning, fast, highly responsive mobile storefront in under 2 minutes. Customers browse products, select quantities, and complete checkouts which generate a pre-filled, clean WhatsApp message to buy instantly.
+aloaye enables micro-merchants and small businesses in Africa to claim a customized link (e.g., `aloaye.tech/yourbrand` or custom domain) and deploy a stunning, fast, highly responsive mobile storefront in under 2 minutes. Customers browse products, select quantities, and complete checkouts which generate a pre-filled, clean WhatsApp message to buy instantly.
 
 ## Core Capabilities
 - **WhatsApp-Native Checkout**: Shoppers select items, tap order, and land directly inside the merchant's WhatsApp chat with all order details.
@@ -19,8 +19,8 @@ aloaye enables micro-merchants and small businesses in Africa to claim a customi
 - **Terms of Service**: [aloaye.tech/terms](https://aloaye.tech/terms) — Merchant guidelines and transaction standards.
 
 ## Dynamic Stores Route Mapping
-Individual storefronts are resolved dynamically via Next.js subdomains or direct custom DNS mappings.
-- Subdomain Path: `{storename}.aloaye.tech` (internally rewritten by middleware).
+Individual storefronts are resolved dynamically via Next.js path routes or direct custom DNS mappings.
+- Storefront Path: `aloaye.tech/{storename}`.
 - Custom Domain Path: `yourcustombrand.com` (internally resolved by middleware headers).
 - Store Home: Displays categories, search bar, product catalog grid, merchant banner, and customized bio.
 - Order Status Verification: `/{storename}/track/{order_id}` — real-time verification of orders.

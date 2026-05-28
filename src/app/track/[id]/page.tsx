@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock, FileText, Shield } from 'lucide-react';
+import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock } from 'lucide-react';
 import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
 
 interface OrderItem {
@@ -78,16 +78,6 @@ export default function OrderTrackingPage() {
     return code + ' ';
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending': return 'Received';
-      case 'confirmed': return 'Confirmed';
-      case 'completed': return 'Completed';
-      case 'cancelled': return 'Cancelled';
-      default: return status.toUpperCase();
-    }
-  };
-
   // Render Shimmer Loader
   if (loading) {
     return (
@@ -141,13 +131,13 @@ export default function OrderTrackingPage() {
   const whatsappChatUrl = `https://wa.me/${store.whatsapp_phone}?text=${encodeURIComponent(checkinMsg)}`;
 
   return (
-    <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--background)', position: 'relative' }}>
+    <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', position: 'relative' }}>
       
       {/* Navbar Header */}
-      <header style={{ padding: '20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
+      <header style={{ padding: '20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Package size={20} style={{ color: 'var(--primary)' }} />
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: 800, color: 'var(--foreground)' }}>
+          <span style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>
             Track Order
           </span>
         </div>
@@ -160,7 +150,7 @@ export default function OrderTrackingPage() {
         
         {/* Order Identifier Header */}
         <div style={{ textAlign: 'center' }}>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: 800, color: 'var(--foreground)', marginBottom: '4px' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '4px' }}>
             Order #{order.order_number}
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '13.5px' }}>
@@ -174,7 +164,7 @@ export default function OrderTrackingPage() {
             <AlertCircle size={16} style={{ flexShrink: 0 }} /> This order has been cancelled by the seller.
           </div>
         ) : (
-          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: 'var(--shadow-sm)' }}>
             
             {/* Timeline Item 1: Placed */}
             <div style={{ display: 'flex', gap: '16px', position: 'relative' }}>
@@ -203,7 +193,7 @@ export default function OrderTrackingPage() {
                 }}></div>
               </div>
               <div>
-                <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--foreground)' }}>Order Placed</h4>
+                <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Order Placed</h4>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>We have received your order details.</p>
               </div>
             </div>
@@ -215,7 +205,7 @@ export default function OrderTrackingPage() {
                   width: '28px', 
                   height: '28px', 
                   borderRadius: '50%', 
-                  backgroundColor: activeStepIndex >= 2 ? 'var(--primary)' : 'var(--background)', 
+                  backgroundColor: activeStepIndex >= 2 ? 'var(--primary)' : 'var(--bg)', 
                   border: activeStepIndex >= 2 ? 'none' : '2px solid var(--border)',
                   color: activeStepIndex >= 2 ? '#fff' : 'var(--text-muted)', 
                   display: 'flex', 
@@ -238,7 +228,7 @@ export default function OrderTrackingPage() {
                 }}></div>
               </div>
               <div>
-                <h4 style={{ fontSize: '15px', fontWeight: 700, color: activeStepIndex >= 2 ? 'var(--foreground)' : 'var(--text-muted)' }}>Confirmed</h4>
+                <h4 style={{ fontSize: '15px', fontWeight: 700, color: activeStepIndex >= 2 ? 'var(--text)' : 'var(--text-muted)' }}>Confirmed</h4>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>Merchant is preparing your items.</p>
               </div>
             </div>
@@ -250,7 +240,7 @@ export default function OrderTrackingPage() {
                   width: '28px', 
                   height: '28px', 
                   borderRadius: '50%', 
-                  backgroundColor: activeStepIndex >= 3 ? 'var(--primary)' : 'var(--background)', 
+                  backgroundColor: activeStepIndex >= 3 ? 'var(--primary)' : 'var(--bg)', 
                   border: activeStepIndex >= 3 ? 'none' : '2px solid var(--border)',
                   color: activeStepIndex >= 3 ? '#fff' : 'var(--text-muted)', 
                   display: 'flex', 
@@ -264,7 +254,7 @@ export default function OrderTrackingPage() {
                 </div>
               </div>
               <div>
-                <h4 style={{ fontSize: '15px', fontWeight: 700, color: activeStepIndex >= 3 ? 'var(--foreground)' : 'var(--text-muted)' }}>Ready / Handed Over</h4>
+                <h4 style={{ fontSize: '15px', fontWeight: 700, color: activeStepIndex >= 3 ? 'var(--text)' : 'var(--text-muted)' }}>Ready / Handed Over</h4>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>Order completed and shipped or picked up.</p>
               </div>
             </div>
@@ -275,7 +265,7 @@ export default function OrderTrackingPage() {
         {/* Digital Downloads Card (Only shown if there are digital items) */}
         {order.items.some(item => item.product?.is_digital) && (
           <div style={{
-            background: 'var(--card-bg)',
+            background: 'var(--surface)',
             border: '1.5px solid var(--primary)',
             boxShadow: '0 0 0 4px rgba(16,185,129,0.06)',
             borderRadius: '16px',
@@ -302,7 +292,7 @@ export default function OrderTrackingPage() {
             {order.payment_status === 'paid' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {order.items.filter(item => item.product?.is_digital).map(item => (
-                  <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 12px', background: 'var(--background)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                  <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 12px', background: 'var(--bg)', borderRadius: '10px', border: '1px solid var(--border)' }}>
                     <div style={{ fontWeight: 700, fontSize: '14px' }}>{item.product_name}</div>
                     
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -370,7 +360,7 @@ export default function OrderTrackingPage() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {order.items.filter(item => item.product?.is_digital).map(item => (
-                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--background)', borderRadius: '10px', opacity: 0.8 }}>
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--bg)', borderRadius: '10px', opacity: 0.8 }}>
                     <span style={{ fontWeight: 600, fontSize: '13.5px' }}>{item.product_name}</span>
                     <span style={{ fontSize: '11px', fontWeight: 700, color: '#b45309', background: '#fef3c7', padding: '3px 8px', borderRadius: 'var(--r-full)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <Lock size={10} /> Locked
@@ -390,7 +380,7 @@ export default function OrderTrackingPage() {
         )}
 
         {/* Delivery Details Card */}
-        <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: 'var(--shadow-sm)' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
             Delivery Details
           </h3>
@@ -412,7 +402,7 @@ export default function OrderTrackingPage() {
             {order.delivery_method === 'delivery' && order.delivery_address && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px', borderTop: '1px solid var(--border)', paddingTop: '8px' }}>
                 <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Shipping Address</span>
-                <span style={{ fontWeight: 500, lineHeight: 1.5, background: 'var(--background)', padding: '10px 12px', borderRadius: '8px', fontSize: '13.5px' }}>
+                <span style={{ fontWeight: 500, lineHeight: 1.5, background: 'var(--bg)', padding: '10px 12px', borderRadius: '8px', fontSize: '13.5px' }}>
                   {order.delivery_address}
                 </span>
               </div>
@@ -421,7 +411,7 @@ export default function OrderTrackingPage() {
         </div>
 
         {/* Order Items & Summary Card */}
-        <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: 'var(--shadow-sm)' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
             Order Items
           </h3>

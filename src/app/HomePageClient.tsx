@@ -32,7 +32,7 @@ const FEATURES = [
   },
   {
     title: 'Shareable Store Links',
-    body: 'Your store lives at yourbrand.aloaye.tech — share it on Instagram bio, TikTok profile, or WhatsApp status to drive traffic instantly.',
+    body: 'Your store gets a clean aloaye link — share it on Instagram bio, TikTok profile, or WhatsApp status to drive traffic instantly.',
     color: 'hsl(200, 98%, 45%)',
     bg: 'hsl(200, 98%, 96%)',
   },
@@ -81,7 +81,7 @@ const TESTIMONIALS = [
 ] as const;
 
 const HOW_IT_WORKS = [
-  { step: '01', title: 'Claim your URL', body: 'Type your business name and claim yourbrand.aloaye.tech in seconds.' },
+  { step: '01', title: 'Claim your URL', body: 'Type your business name and claim a branded aloaye store link in seconds.' },
   { step: '02', title: 'Add your products', body: 'Upload photos, add prices, and let AI write descriptions for you.' },
   { step: '03', title: 'Share & sell', body: 'Drop your store link on WhatsApp, Instagram, or TikTok and start receiving orders.' },
 ] as const;
@@ -110,17 +110,12 @@ export default function HomePageClient() {
   const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'error' | 'success' | null>(null);
-  const [hostSuffix, setHostSuffix] = useState('.aloaye.tech');
   const [mounted, setMounted] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined') {
-      const clean = window.location.host.replace(/^www\./, '');
-      setHostSuffix(`.${clean}`);
-    }
   }, []);
 
   const handleClaim = async (e: React.FormEvent) => {
@@ -147,10 +142,10 @@ export default function HomePageClient() {
       const res = await fetch(`${API_URL}/v1/public/store/${clean}`);
 
       if (res.ok) {
-        setMessage(`Sorry — ${clean}${hostSuffix} is already taken.`);
+        setMessage(`Sorry — aloaye.tech/${clean} is already taken.`);
         setMessageType('error');
       } else if (res.status === 404) {
-        setMessage(`🎉 ${clean}${hostSuffix} is available!`);
+        setMessage(`🎉 aloaye.tech/${clean} is available!`);
         setMessageType('success');
         setTimeout(() => {
           window.location.href = `/signup?username=${clean}`;
@@ -173,7 +168,7 @@ export default function HomePageClient() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflowX: 'hidden' }}>
       {/* ── Navbar ── */}
       <nav
-        className="glass"
+        className="glass home-nav"
         style={{
           position: 'sticky', top: 0, zIndex: 50,
           padding: '14px 20px',
@@ -183,7 +178,7 @@ export default function HomePageClient() {
       >
         <Logo size={24} textColor="var(--primary)" />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="home-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <ThemeToggle />
           <a
             href="/blog"
@@ -326,7 +321,7 @@ export default function HomePageClient() {
 
             {mounted && (
               <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-                Your store will be at <strong style={{ color: 'var(--text-muted)' }}>yourname{hostSuffix}</strong>
+                Your store will be at <strong style={{ color: 'var(--text-muted)' }}>aloaye.tech/yourname</strong>
               </p>
             )}
           </form>
@@ -362,6 +357,53 @@ export default function HomePageClient() {
           </div>
         </div>
       </header>
+
+      <style jsx global>{`
+        @media (max-width: 640px) {
+          .home-nav {
+            padding: 10px 12px !important;
+            gap: 10px !important;
+          }
+          .home-nav-actions {
+            gap: 4px !important;
+          }
+          .home-nav-actions a {
+            padding: 7px 9px !important;
+            font-size: 12px !important;
+          }
+          .home-nav-actions a[href="/blog"] {
+            display: none !important;
+          }
+          #nav-get-started svg {
+            display: none !important;
+          }
+          #store-name-input {
+            font-size: 14px !important;
+            padding: 10px 8px !important;
+          }
+          #claim-url-btn {
+            padding: 10px 12px !important;
+            min-width: 118px !important;
+          }
+          #claim-url-btn svg {
+            display: none !important;
+          }
+          footer {
+            justify-content: center !important;
+            text-align: center !important;
+          }
+        }
+
+        @media (max-width: 430px) {
+          #claim-url-btn {
+            min-width: 104px !important;
+            font-size: 12px !important;
+          }
+          .badge {
+            white-space: normal;
+          }
+        }
+      `}</style>
 
       {/* ── How It Works ── */}
       <section style={{ padding: 'clamp(40px, 8vw, 72px) 20px', background: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>

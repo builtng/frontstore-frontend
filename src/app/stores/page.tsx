@@ -22,16 +22,10 @@ export default function StoresDirectoryPage() {
   const [stores, setStores] = useState<StoreItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [hostSuffix, setHostSuffix] = useState('.aloaye.tech');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const clean = window.location.host.replace(/^www\./, '');
-      setHostSuffix(`.${clean}`);
-    }
-
     const fetchStores = async () => {
       try {
         const res = await fetch(`${API_URL}/v1/public/stores`);
@@ -170,16 +164,7 @@ export default function StoresDirectoryPage() {
                 gap: 20
               }}>
                 {filteredStores.map(store => {
-                  // Build URL dynamically matching subdomains logic
-                  let storeUrl = '';
-                  if (typeof window !== 'undefined') {
-                    const { protocol, host } = window.location;
-                    storeUrl = host.includes('localhost')
-                      ? `${protocol}//${store.username}.localhost:3000`
-                      : `${protocol}//${store.username}.${host.replace(/^www\./, '')}`;
-                  } else {
-                    storeUrl = `https://${store.username}${hostSuffix}`;
-                  }
+                  const storeUrl = `/${store.username}`;
 
                   return (
                     <div

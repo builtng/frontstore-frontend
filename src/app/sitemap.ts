@@ -77,20 +77,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       stores.forEach((store) => {
         if (!store.username) return;
 
-        // Subdomain store URL (e.g. myshop.aloaye.tech)
-        routes.push({
-          url: `https://${store.username}.aloaye.tech`,
-          lastModified: store.updated_at ? new Date(store.updated_at) : now,
-          changeFrequency: 'daily',
-          priority: 0.8,
-        });
-
-        // Also index via main domain path (e.g. aloaye.tech/myshop)
         routes.push({
           url: `${baseUrl}/${store.username}`,
           lastModified: store.updated_at ? new Date(store.updated_at) : now,
           changeFrequency: 'daily',
-          priority: 0.7,
+          priority: 0.8,
         });
       });
     }

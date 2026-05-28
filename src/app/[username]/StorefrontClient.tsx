@@ -37,6 +37,7 @@ interface Store {
   is_verified?: boolean;
   custom_links?: StoreLink[] | null;
   primary_color?: string | null;
+  store_template?: StoreTemplateId | null;
   is_pro?: boolean;
 }
 
@@ -68,6 +69,21 @@ interface CartItem {
   quantity: number;
 }
 
+interface CreatedOrder {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  delivery_method: string;
+  total_amount: string;
+  payment_status: string;
+  order_status: string;
+}
+
+interface CreatedOrderReceipt {
+  order: CreatedOrder;
+  whatsapp_url: string;
+}
+
 // ─── Currency ─────────────────────────────────────────────────────────────────
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -89,6 +105,22 @@ function discountPercent(price: string, compare: string): number {
   const p = parseFloat(price), c = parseFloat(compare);
   if (c <= p) return 0;
   return Math.round(((c - p) / c) * 100);
+}
+
+type StoreTemplateId = 'luxe-market' | 'editorial' | 'flash-sale' | 'atelier' | 'digital-studio' | 'whatsapp-native';
+
+const STORE_TEMPLATES: Record<StoreTemplateId, { name: string; tagline: string }> = {
+  'luxe-market': { name: 'Luxe Market', tagline: 'Premium boutique storefront' },
+  editorial: { name: 'Editorial', tagline: 'Magazine-style product storytelling' },
+  'flash-sale': { name: 'Flash Sale', tagline: 'High-conversion drops and promos' },
+  atelier: { name: 'Atelier', tagline: 'Minimal studio for crafted goods' },
+  'digital-studio': { name: 'Digital Studio', tagline: 'Software, files, services, and courses' },
+  'whatsapp-native': { name: 'WhatsApp Native', tagline: 'Chat-first commerce experience' },
+};
+
+function getTemplateId(store?: Store | null): StoreTemplateId {
+  const template = store?.store_template;
+  return template && template in STORE_TEMPLATES ? template as StoreTemplateId : 'luxe-market';
 }
 
 // ─── WhatsApp ─────────────────────────────────────────────────────────────────
@@ -135,6 +167,112 @@ function ConfirmationModal({
             {confirmText ?? 'Confirm'}
           </button>
         </div>
+      </div>
+    </>
+  );
+}
+
+function OrderReceiptModal({
+  receipt, store, currencySymbol, onContinue, onClose
+}: {
+  receipt: CreatedOrderReceipt; store: Store; currencySymbol: string;
+  onContinue: () => void; onClose: () => void;
+}) {
+  const trackUrl = `/track/${receipt.order.id}`;
+
+  const copyTrackingLink = async () => {
+    const absoluteUrl = `${window.location.origin}${trackUrl}`;
+    await navigator.clipboard.writeText(absoluteUrl);
+    toast.success('Tracking link copied');
+  };
+
+  return (
+    <>
+      <div className="drawer-backdrop animate-backdrop" style={{ zIndex: 220 }} />
+      <div
+        className="card animate-scale-in"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Order receipt"
+        style={{
+          position: 'fixed',
+          inset: 'auto 16px 16px',
+          zIndex: 230,
+          maxWidth: 440,
+          margin: '0 auto',
+          padding: 20,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+          boxShadow: 'var(--shadow-xl)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div style={{
+              width: 44,
+              height: 44,
+              borderRadius: 'var(--r-md)',
+              background: 'var(--primary-light)',
+              color: 'var(--primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <CheckCircle2 size={22} />
+            </div>
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 19, fontWeight: 800, margin: 0, color: 'var(--text)' }}>
+                Order created
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '3px 0 0' }}>
+                Receipt from {store.store_name}
+              </p>
+            </div>
+          </div>
+          <button className="drawer__close clickable" onClick={onClose} aria-label="Close receipt">
+            <X size={14} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 14, background: 'var(--surface-2)', display: 'grid', gap: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Order ID</span>
+            <strong style={{ color: 'var(--text)', fontSize: 14 }}>#{receipt.order.order_number}</strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Total</span>
+            <strong style={{ color: 'var(--primary)', fontSize: 15 }}>{fmt(receipt.order.total_amount, currencySymbol)}</strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Delivery</span>
+            <strong style={{ color: 'var(--text)', fontSize: 14, textTransform: 'capitalize' }}>{receipt.order.delivery_method}</strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Status</span>
+            <span className="badge badge-accent">{receipt.order.order_status}</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', color: 'var(--text-muted)', fontSize: 12.5, lineHeight: 1.45 }}>
+          <Shield size={16} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: 1 }} />
+          <span>Your tracking page is ready. Keep the link so you can confirm payment and order updates outside the WhatsApp chat.</span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px', gap: 10 }}>
+          <a href={trackUrl} className="btn btn-outline clickable" style={{ textDecoration: 'none', minWidth: 0 }}>
+            <ExternalLink size={16} /> View tracking page
+          </a>
+          <button type="button" onClick={copyTrackingLink} className="btn btn-outline clickable" aria-label="Copy tracking link" title="Copy tracking link" style={{ padding: 0 }}>
+            <Copy size={16} />
+          </button>
+        </div>
+
+        <button type="button" onClick={onContinue} className="btn btn-whatsapp clickable" style={{ width: '100%', padding: '15px 18px', fontWeight: 800 }}>
+          <WhatsAppIcon size={20} />
+          Continue on WhatsApp
+        </button>
       </div>
     </>
   );
@@ -569,7 +707,7 @@ function CheckoutDrawer({
   cart, store, currencySymbol, cartTotal, onClose, onBack, onOrderCreated, API_URL, uname
 }: {
   cart: CartItem[]; store: Store; currencySymbol: string; cartTotal: number;
-  onClose: () => void; onBack: () => void; onOrderCreated: (whatsappUrl: string) => void;
+  onClose: () => void; onBack: () => void; onOrderCreated: (receipt: CreatedOrderReceipt) => void;
   API_URL: string; uname: string;
 }) {
   const [customerName, setCustomerName] = useState('');
@@ -626,7 +764,7 @@ function CheckoutDrawer({
         throw new Error(json.message || 'Failed to place order.');
       }
 
-      onOrderCreated(json.data.whatsapp_url);
+      onOrderCreated(json.data);
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -735,8 +873,22 @@ function CheckoutDrawer({
 
 // ─── Store Header ─────────────────────────────────────────────────────────────
 
-function StoreHeader({ store }: { store: Store }) {
+function StoreHeader({
+  store,
+  productCount,
+  categoryCount,
+  featuredProducts,
+  currencySymbol,
+}: {
+  store: Store;
+  productCount: number;
+  categoryCount: number;
+  featuredProducts: Product[];
+  currencySymbol: string;
+}) {
   const initial = store.store_name.charAt(0).toUpperCase();
+  const template = STORE_TEMPLATES[getTemplateId(store)];
+  const spotlightProducts = featuredProducts.slice(0, 3);
 
   const handleShare = async () => {
     if (navigator.share) await navigator.share({ title: store.store_name, text: store.store_bio ?? `Check out my store!`, url: window.location.href });
@@ -745,43 +897,98 @@ function StoreHeader({ store }: { store: Store }) {
 
   return (
     <div className="store-header animate-fade-in">
-      {store.banner_url
-        ? <img src={store.banner_url} alt={`${store.store_name} banner`} className="store-header__banner" />
-        : <div className="store-header__banner-placeholder" />
-      }
+      <div className="store-header__media">
+        {store.banner_url
+          ? <img src={store.banner_url} alt={`${store.store_name} banner`} className="store-header__banner" />
+          : <div className="store-header__banner-placeholder" />
+        }
+        <div className="store-header__media-shade" />
+      </div>
 
-      <div className="store-header__info">
-        {/* Avatar */}
-        <div className="store-header__avatar-wrap">
-          {store.logo_url
-            ? <img src={store.logo_url} alt={store.store_name} className="store-header__avatar" style={{ display: 'block' }} />
-            : <div className="store-header__avatar">{initial}</div>
-          }
-          {store.is_verified && (
-            <div className="store-header__verified" title="Verified Store">
-              <CheckCircle2 size={11} strokeWidth={3} color="#fff" />
+      <div className="store-header__content">
+        <div className="store-header__brand-row">
+          <div className="store-header__avatar-wrap">
+            {store.logo_url
+              ? <img src={store.logo_url} alt={store.store_name} className="store-header__avatar" />
+              : <div className="store-header__avatar">{initial}</div>
+            }
+            {store.is_verified && (
+              <div className="store-header__verified" title="Verified Store">
+                <CheckCircle2 size={12} strokeWidth={3} color="#fff" />
+              </div>
+            )}
+          </div>
+
+          <div className="store-header__title-block">
+            <div className="store-header__eyebrow">
+              <span>{template.name}</span>
+              {store.is_pro && <span>Premium merchant</span>}
             </div>
-          )}
+
+            <div className="store-header__name-row">
+              <h1 className="store-header__name">{store.store_name}</h1>
+              {store.is_verified && (
+                <span className="badge badge-verified store-header__verified-badge">
+                  <CheckCircle2 size={11} strokeWidth={3} /> Verified
+                </span>
+              )}
+            </div>
+
+            {store.store_bio && <p className="store-header__bio">{store.store_bio}</p>}
+          </div>
         </div>
 
-        {/* Name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-          <h1 className="store-header__name">{store.store_name}</h1>
-          {store.is_verified && (
-            <span className="badge badge-verified" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <CheckCircle2 size={10} strokeWidth={3} /> Verified
-            </span>
-          )}
+        <div className="store-header__trust-row" aria-label="Store highlights">
+          <div className="store-header__trust-item">
+            <Package size={15} />
+            <span>{productCount} product{productCount === 1 ? '' : 's'}</span>
+          </div>
+          <div className="store-header__trust-item">
+            <Tag size={15} />
+            <span>{categoryCount > 0 ? `${categoryCount} collection${categoryCount === 1 ? '' : 's'}` : 'Fresh catalog'}</span>
+          </div>
+          <div className="store-header__trust-item">
+            <Shield size={15} />
+            <span>{template.tagline}</span>
+          </div>
         </div>
 
-        {store.store_bio && <p className="store-header__bio">{store.store_bio}</p>}
+        {spotlightProducts.length > 0 && (
+          <div className="store-header__spotlight" aria-label="Featured products">
+            <div className="store-header__spotlight-copy">
+              <span>Featured now</span>
+              <strong>Fresh picks from the catalog</strong>
+            </div>
+            <div className="store-header__spotlight-products">
+              {spotlightProducts.map((product, index) => (
+                <button
+                  key={product.id}
+                  type="button"
+                  className="store-header__spotlight-card clickable"
+                  onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  style={{ animationDelay: `${index * 70}ms` }}
+                >
+                  <span className="store-header__spotlight-image">
+                    {product.image_urls?.[0]
+                      ? <img src={product.image_urls[0]} alt={product.name} loading="eager" decoding="async" />
+                      : <Package size={22} strokeWidth={1.4} />
+                    }
+                  </span>
+                  <span className="store-header__spotlight-meta">
+                    <span>{product.name}</span>
+                    <strong>{fmt(product.price, currencySymbol)}</strong>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
-        {/* Social actions */}
         <div className="store-header__socials">
           <a
             href={buildWhatsAppUrl(store.whatsapp_phone, `Hi ${store.store_name}!`)}
             target="_blank" rel="noopener noreferrer"
-            className="social-btn clickable" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            className="social-btn social-btn--primary clickable"
             id="store-whatsapp-link"
           >
             <WhatsAppIcon size={14} /> Chat on WhatsApp
@@ -789,37 +996,27 @@ function StoreHeader({ store }: { store: Store }) {
 
           {store.instagram_handle && (
             <a href={`https://instagram.com/${store.instagram_handle}`} target="_blank" rel="noopener noreferrer"
-              className="social-btn clickable" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              className="social-btn clickable">
               <Instagram size={13} strokeWidth={2} /> Instagram
             </a>
           )}
 
           {store.tiktok_handle && (
             <a href={`https://tiktok.com/@${store.tiktok_handle}`} target="_blank" rel="noopener noreferrer"
-              className="social-btn clickable" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              className="social-btn clickable">
               <Music2 size={13} strokeWidth={2} /> TikTok
             </a>
           )}
 
           <button className="social-btn clickable" onClick={handleShare} id="share-store-btn"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          >
             <Share2 size={13} strokeWidth={2} /> Share Store
           </button>
         </div>
 
-        {/* Linktree style Custom Links Stack */}
         {store.custom_links && store.custom_links.filter(l => l.is_active).length > 0 && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-            width: '100%',
-            maxWidth: 480,
-            marginTop: 18,
-            borderTop: '1px solid var(--border)',
-            paddingTop: 16
-          }}>
-            <p style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>
+          <div className="store-header__links">
+            <p className="store-header__links-label">
               Store Links & Socials
             </p>
             {store.custom_links.filter(l => l.is_active).map(link => {
@@ -839,40 +1036,7 @@ function StoreHeader({ store }: { store: Store }) {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="clickable"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    padding: '12px 18px',
-                    borderRadius: 'var(--r-xl)',
-                    border: '1.5px solid var(--border)',
-                    background: 'var(--surface)',
-                    color: 'var(--text)',
-                    fontSize: 13.5,
-                    fontWeight: 750,
-                    textDecoration: 'none',
-                    textAlign: 'center',
-                    boxShadow: 'var(--shadow-xs)',
-                    transition: 'all var(--t-fast) var(--ease)',
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--primary)';
-                    e.currentTarget.style.color = 'var(--primary)';
-                    e.currentTarget.style.background = 'var(--primary-light)';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px var(--primary-glow)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border)';
-                    e.currentTarget.style.color = 'var(--text)';
-                    e.currentTarget.style.background = 'var(--surface)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
-                  }}
+                  className="store-header__link clickable"
                 >
                   <IconComponent />
                   <span>{link.title}</span>
@@ -951,6 +1115,7 @@ export default function StorefrontClient({ username }: { username: string }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [pendingRemoveItem, setPendingRemoveItem] = useState<string | null>(null);
   const [isClearCartConfirmOpen, setIsClearCartConfirmOpen] = useState(false);
+  const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
@@ -959,7 +1124,7 @@ export default function StorefrontClient({ username }: { username: string }) {
     (async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/v1/public/store/${uname}`);
+        const res = await fetch(`${API_URL}/v1/public/store/${uname}`, { cache: 'no-store' });
         if (!res.ok) throw new Error('Store not found or currently inactive');
         const { data } = await res.json();
         setStore(data.store);
@@ -1013,6 +1178,10 @@ export default function StorefrontClient({ username }: { username: string }) {
   });
 
   const currencySymbol = store ? getCurrencySymbol(store.currency_code) : '₦';
+  const templateId = getTemplateId(store);
+  const pageStyle = store?.is_pro && store.primary_color
+    ? ({ '--primary': store.primary_color } as React.CSSProperties)
+    : undefined;
 
   const handleCartWhatsApp = () => {
     if (!store || !cart.length) return;
@@ -1043,18 +1212,13 @@ export default function StorefrontClient({ username }: { username: string }) {
   return (
     <>
       <title>{`${store.store_name} — Shop on aloaye`}</title>
-      {store.is_pro && store.primary_color && (
-        <style dangerouslySetInnerHTML={{
-          __html: `:root { --primary: ${store.primary_color} !important; }`
-        }} />
-      )}
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: cartCount > 0 ? 90 : 32 }}>
+      <div className={`public-store-page template-${templateId}`} data-template={templateId} style={{ ...pageStyle, paddingBottom: cartCount > 0 ? 90 : 32 }}>
 
-        <StoreHeader store={store} />
+        <StoreHeader store={store} productCount={products.length} categoryCount={categories.length} featuredProducts={products} currencySymbol={currencySymbol} />
 
         {/* Sticky search + categories */}
         <div className="sticky-bar">
-          <div style={{ padding: '12px 16px 8px' }}>
+          <div className="storefront-shell storefront-toolbar">
             <div className="search-wrap">
               <Search size={15} strokeWidth={2} className="search-icon" style={{ position: 'absolute', left: 14, color: 'var(--text-faint)', pointerEvents: 'none' }} />
               <input
@@ -1076,7 +1240,7 @@ export default function StorefrontClient({ username }: { username: string }) {
           </div>
 
           {categories.length > 0 && (
-            <div style={{ display: 'flex', overflowX: 'auto', padding: '0 16px 12px', gap: 8 }} className="no-scrollbar" role="tablist">
+            <div className="storefront-shell category-scroll no-scrollbar" role="tablist">
               <button
                 className={`category-chip clickable${selectedCategoryId === 'all' ? ' active' : ''}`}
                 onClick={() => setSelectedCategoryId('all')} role="tab" id="category-all"
@@ -1098,26 +1262,51 @@ export default function StorefrontClient({ username }: { username: string }) {
         </div>
 
         {/* Product count */}
-        <div style={{ padding: '14px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ fontSize: 12.5, color: 'var(--text-muted)', fontWeight: 500 }}>
-            {filteredProducts.length === 0 ? 'No products found' : `${filteredProducts.length} product${filteredProducts.length !== 1 ? 's' : ''}`}
+        <div className="storefront-shell product-section-heading">
+          <div>
+            <p className="product-section-heading__eyebrow">Catalog</p>
+            <h2>{products.length === 0 ? 'Catalog opening soon' : templateId === 'flash-sale' ? 'Limited offers' : templateId === 'digital-studio' ? 'Browse digital products' : templateId === 'editorial' ? 'Featured collection' : 'Shop the collection'}</h2>
+          </div>
+          <p>
+            {products.length === 0 ? 'New products are being prepared' : filteredProducts.length === 0 ? 'No matching products' : `${filteredProducts.length} product${filteredProducts.length !== 1 ? 's' : ''}`}
+            {searchQuery && <span> for &ldquo;{searchQuery}&rdquo;</span>}
           </p>
-          {searchQuery && <p style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>for &ldquo;{searchQuery}&rdquo;</p>}
         </div>
 
         {/* Product grid */}
-        <main style={{ padding: '0 16px 24px' }} id="products-grid" aria-label="Products">
+        <main className="storefront-shell storefront-products" id="products-grid" aria-label="Products">
           {filteredProducts.length === 0 ? (
-            <div className="empty-state animate-fade-in">
-              <div className="empty-state__icon"><Package size={44} strokeWidth={1} /></div>
-              <p className="empty-state__title">No products found</p>
-              <p className="empty-state__body">Try a different search or select another category.</p>
-              {(searchQuery || selectedCategoryId !== 'all') && (
-                <button className="btn btn-outline clickable" style={{ marginTop: 16, gap: 6 }}
-                  onClick={() => { setSearchQuery(''); setSelectedCategoryId('all'); }}>
-                  <X size={14} /> Clear filters
-                </button>
-              )}
+            <div className="storefront-empty animate-fade-in">
+              <div className="storefront-empty__visual" aria-hidden="true">
+                <div className="storefront-empty__shelf">
+                  {[0, 1, 2].map(i => (
+                    <span key={i} style={{ animationDelay: `${i * 90}ms` }}>
+                      <Package size={28} strokeWidth={1.25} />
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="storefront-empty__copy">
+                <span>{products.length === 0 ? 'Opening soon' : 'Filter results'}</span>
+                <h3>{products.length === 0 ? `${store.store_name} is preparing its first drop` : 'No products match this view'}</h3>
+                <p>{products.length === 0 ? 'The merchant has not published products yet. You can still chat with them directly on WhatsApp for availability and custom requests.' : 'Try a different search term or browse the full catalog.'}</p>
+                <div className="storefront-empty__actions">
+                  <a
+                    href={buildWhatsAppUrl(store.whatsapp_phone, `Hi ${store.store_name}! I visited your store and would like to know what products are available.`)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-whatsapp clickable"
+                  >
+                    <WhatsAppIcon size={18} /> Chat on WhatsApp
+                  </a>
+                  {(searchQuery || selectedCategoryId !== 'all') && (
+                    <button className="btn btn-outline clickable"
+                      onClick={() => { setSearchQuery(''); setSelectedCategoryId('all'); }}>
+                      <X size={14} /> Clear filters
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="product-grid stagger">
@@ -1188,15 +1377,28 @@ export default function StorefrontClient({ username }: { username: string }) {
             cartTotal={cartTotal}
             onClose={() => setIsCheckoutOpen(false)}
             onBack={() => { setIsCheckoutOpen(false); setIsCartOpen(true); }}
-            onOrderCreated={(whatsappUrl) => {
-              window.open(whatsappUrl, '_blank');
+            onOrderCreated={(receipt) => {
+              setOrderReceipt(receipt);
               setCart([]);
               try { localStorage.removeItem(`aloaye_cart_${uname}`); } catch {}
               setIsCheckoutOpen(false);
-              toast.success('Order created! Opening WhatsApp... 🚀');
+              toast.success('Order created. Tracking page is ready.');
             }}
             API_URL={API_URL}
             uname={uname as string}
+          />
+        )}
+
+        {orderReceipt && store && (
+          <OrderReceiptModal
+            receipt={orderReceipt}
+            store={store}
+            currencySymbol={currencySymbol}
+            onClose={() => setOrderReceipt(null)}
+            onContinue={() => {
+              window.open(orderReceipt.whatsapp_url, '_blank');
+              setOrderReceipt(null);
+            }}
           />
         )}
 

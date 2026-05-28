@@ -66,7 +66,6 @@ function SignupFormContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [hostSuffix, setHostSuffix] = useState('.aloaye.tech');
   const [mounted, setMounted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
@@ -87,10 +86,6 @@ function SignupFormContent() {
   // Detect host suffix
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined') {
-      const clean = window.location.host.replace(/^www\./, '');
-      setHostSuffix(`.${clean}`);
-    }
   }, []);
 
   // Auto-detect country code from IP
@@ -166,6 +161,11 @@ function SignupFormContent() {
       return `+${cleanDial}${cleaned}`;
     };
     const normalizedPhone = normalizePhone(phone, selectedCountry.dialCode);
+    const localPhoneDigits = normalizedPhone.replace(/[^\d]/g, '').slice(selectedCountry.dialCode.replace(/[^\d]/g, '').length);
+    if (localPhoneDigits.length < 7) {
+      setError('Please enter a valid WhatsApp phone number.');
+      return;
+    }
 
     const cleanUsername = username.toLowerCase().replace(/[^a-z0-9_-]/g, '');
     if (cleanUsername.length < 3) {
@@ -187,12 +187,13 @@ function SignupFormContent() {
 
       const res = await fetch(`${API_URL}/v1/auth/signup`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           store_name: storeName,
           username: cleanUsername,
           name,
           phone_number: normalizedPhone,
+          country_dial_code: selectedCountry.dialCode,
           password,
           email: email || undefined,
         }),
@@ -210,14 +211,9 @@ function SignupFormContent() {
         localStorage.setItem('store', JSON.stringify(json.data.store));
       }
 
-      // Build store URL
-      let storeUrl = '';
-      if (typeof window !== 'undefined') {
-        const { protocol, host } = window.location;
-        storeUrl = host.includes('localhost')
-          ? `${protocol}//${cleanUsername}.localhost:3000`
-          : `${protocol}//${cleanUsername}.${host.replace(/^www\./, '')}`;
-      }
+      const storeUrl = typeof window !== 'undefined'
+        ? `${window.location.origin}/${cleanUsername}`
+        : `https://aloaye.tech/${cleanUsername}`;
 
       setSuccessData({
         storeName: json.data?.store?.store_name ?? storeName,
@@ -229,7 +225,11 @@ function SignupFormContent() {
       setPassword('');
 
     } catch (err: any) {
-      setError(err.message || 'An error occurred. Please try again.');
+      setError(
+        err instanceof TypeError
+          ? `Could not reach the server at ${API_URL}. Please check the API URL and try again.`
+          : err.message || 'An error occurred. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -582,19 +582,22 @@ function SignupFormContent() {
                 color: focusedInput === 'store-username' ? 'var(--primary)' : 'var(--text-faint)',
                 transition: 'color var(--t-fast)'
               }} />
+              <span style={{ padding: '0 0 0 44px', color: 'var(--text-muted)', fontSize: 13.5, fontWeight: 600, whiteSpace: 'nowrap', userSelect: 'none' }}>
+                aloaye.tech/
+              </span>
               <input
                 id="store-username"
                 type="text"
                 required
-                placeholder="username"
                 value={username}
-                onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
                 onFocus={() => setFocusedInput('store-username')}
                 onBlur={() => setFocusedInput(null)}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
+                placeholder="yourname"
                 style={{
                   flex: 1,
-                  padding: '13px 4px 13px 44px',
                   border: 'none',
+                  padding: '14px 14px 14px 0',
                   fontSize: 15,
                   outline: 'none',
                   background: 'transparent',
@@ -604,15 +607,12 @@ function SignupFormContent() {
                 autoComplete="off"
                 spellCheck={false}
               />
-              <span style={{ padding: '0 14px 0 0', color: 'var(--text-muted)', fontSize: 13.5, fontWeight: 600, whiteSpace: 'nowrap', userSelect: 'none' }}>
-                {hostSuffix}
-              </span>
             </div>
 
             {/* Live Link Preview Nudge */}
             {username && (
               <span style={{ fontSize: 11.5, color: 'var(--primary)', display: 'block', marginTop: 6, fontWeight: 700 }}>
-                Live link: {username.toLowerCase()}{hostSuffix}
+                Live link: aloaye.tech/{username.toLowerCase()}
               </span>
             )}
             <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 4 }}>

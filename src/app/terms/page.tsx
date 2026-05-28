@@ -54,7 +54,7 @@ export default function TermsPage() {
 
       {/* Main Content Layout */}
       <div style={{ flex: 1, width: '100%', maxWidth: 1100, margin: '0 auto', padding: '40px 20px' }}>
-        
+
         {/* Breadcrumb / Back Link */}
         <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--primary)', fontWeight: 600, textDecoration: 'none', marginBottom: 24 }} className="clickable">
           <ArrowLeft size={14} /> Back to Home
@@ -76,16 +76,16 @@ export default function TermsPage() {
 
         {/* Content & Sidebar Grid */}
         <div className="terms-grid" style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
-          
+
           {/* Detailed Content */}
           <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 32 }}>
-            
+
             <section className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Globe size={20} style={{ color: 'var(--primary)' }} /> 1. Introduction & Acceptance
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Welcome to <strong>aloaye</strong> (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;). These Terms of Service (&quot;Terms&quot;) govern your access to and use of our storefront builder website (aloaye.tech), subdomains (e.g., [yourbrand].aloaye.tech), mobile companion applications, and associated services.
+                Welcome to <strong>aloaye</strong> (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;). These Terms of Service (&quot;Terms&quot;) govern your access to and use of our storefront builder website (aloaye.tech), storefront paths (e.g., aloaye.tech/yourbrand), mobile companion applications, and associated services.
               </p>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 By creating a seller account, launching a storefront, or browsing the directory, you accept and agree to be bound by these Terms. If you do not agree to these Terms, you must not register an account or use our platform services.
@@ -180,7 +180,7 @@ export default function TermsPage() {
 
           {/* Sidebar (Quick Guide) */}
           <aside className="terms-sidebar" style={{ width: 320, flexShrink: 0, position: 'sticky', top: 90, display: 'flex', flexDirection: 'column', gap: 20 }}>
-            
+
             {/* Summary Box */}
             <div className="card" style={{ padding: 24, background: 'var(--surface)', border: '1px solid var(--border)' }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -194,7 +194,7 @@ export default function TermsPage() {
                   <strong>Listing Rules:</strong> No illegal items, drugs, weapons, or counterfeit goods. Violations lead to instant ban.
                 </p>
                 <p>
-                  <strong>Subdomain Ownership:</strong> Your URL (e.g. brand.aloaye.tech) is yours to use as long as your account remains active and compliant.
+                  <strong>Storefront URL Ownership:</strong> Your URL (e.g. aloaye.tech/brand) is yours to use as long as your account remains active and compliant.
                 </p>
               </div>
             </div>

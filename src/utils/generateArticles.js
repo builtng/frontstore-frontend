@@ -46,7 +46,7 @@ const ORIGINAL_ARTICLES = [
     faqs: [
       {
         question: 'Do I need a website domain to sell clothes on WhatsApp in Lagos?',
-        answer: 'No, you do not need a custom domain or hosting. Platforms like aloaye give you a direct storefront link (e.g. yourboutique.aloaye.tech) where customers can browse and order instantly.'
+        answer: 'No, you do not need a custom domain or hosting. Platforms like aloaye give you a direct storefront link (e.g. aloaye.tech/yourboutique) where customers can browse and order instantly.'
       },
       {
         question: 'How do I collect payments from customers in Lagos?',

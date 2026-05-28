@@ -4,8 +4,49 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  Sparkles, Globe, Store, Lock, Eye, EyeOff, Loader2, ArrowRight, Phone, Check, LogIn, Mail
+  Sparkles, Globe, Store, Lock, Eye, EyeOff, Loader2, ArrowRight, Check, LogIn, Mail
 } from 'lucide-react';
+
+const countries = [
+  { code: 'NG', name: 'Nigeria', dialCode: '+234', flag: '🇳🇬' },
+  { code: 'GH', name: 'Ghana', dialCode: '+233', flag: '🇬🇭' },
+  { code: 'KE', name: 'Kenya', dialCode: '+254', flag: '🇰🇪' },
+  { code: 'ZA', name: 'South Africa', dialCode: '+27', flag: '🇿🇦' },
+  { code: 'UG', name: 'Uganda', dialCode: '+256', flag: '🇺🇬' },
+  { code: 'RW', name: 'Rwanda', dialCode: '+250', flag: '🇷🇼' },
+  { code: 'CM', name: 'Cameroon', dialCode: '+237', flag: '🇨🇲' },
+  { code: 'CI', name: 'Ivory Coast', dialCode: '+225', flag: '🇨🇮' },
+  { code: 'SN', name: 'Senegal', dialCode: '+221', flag: '🇸🇳' },
+  { code: 'TZ', name: 'Tanzania', dialCode: '+255', flag: '🇹🇿' },
+  { code: 'GB', name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧' },
+  { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸' },
+];
+
+const normalizePhone = (input: string, dialCode: string) => {
+  const cleanDial = dialCode.replace(/[^\d]/g, '');
+  let cleaned = input.replace(/[^\d]/g, '');
+  if (cleaned.startsWith(cleanDial)) {
+    cleaned = cleaned.slice(cleanDial.length);
+  }
+  cleaned = cleaned.replace(/^0+/, '');
+  return `+${cleanDial}${cleaned}`;
+};
+
+const parsePhoneNumber = (fullPhone: string) => {
+  if (!fullPhone) return { country: countries[0], local: '' };
+  const sortedCountries = [...countries].sort((a, b) => b.dialCode.length - a.dialCode.length);
+  const cleaned = fullPhone.replace(/[^\d+]/g, '');
+  for (const c of sortedCountries) {
+    if (cleaned.startsWith(c.dialCode)) {
+      return { country: c, local: cleaned.slice(c.dialCode.length).replace(/^0+/, '') };
+    }
+    const dialWithoutPlus = c.dialCode.slice(1);
+    if (cleaned.startsWith(dialWithoutPlus)) {
+      return { country: c, local: cleaned.slice(dialWithoutPlus.length).replace(/^0+/, '') };
+    }
+  }
+  return { country: countries[0], local: cleaned.replace(/^0+/, '') };
+};
 
 function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: boolean; merchantLoginUrl: string }) {
   const router = useRouter();
@@ -18,10 +59,55 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
 
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const detectCountry = async () => {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (res.ok) {
+          const data = await res.json();
+          const found = countries.find(c => c.code === data.country_code);
+          if (found) setSelectedCountry(found);
+        }
+      } catch {
+        // Keep Nigeria as the default when detection is unavailable.
+      }
+    };
+    if (!isAdminMode) detectCountry();
+  }, [isAdminMode]);
+
+  useEffect(() => {
+    if (!isCountryDropdownOpen) return;
+    const handleOutsideClick = () => {
+      setIsCountryDropdownOpen(false);
+    };
+    const timer = setTimeout(() => {
+      window.addEventListener('click', handleOutsideClick);
+    }, 50);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('click', handleOutsideClick);
+    };
+  }, [isCountryDropdownOpen]);
+
+  const handleMerchantPhoneChange = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    const hasCountryPrefix = value.trim().startsWith('+') || countries.some(c => digits.startsWith(c.dialCode.slice(1)));
+    if (hasCountryPrefix) {
+      const parsed = parsePhoneNumber(value);
+      setSelectedCountry(parsed.country);
+      setLoginIdentifier(parsed.local);
+      return;
+    }
+    setLoginIdentifier(value);
+  };
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
@@ -53,6 +139,10 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
     try {
       setLoading(true);
       setError(null);
+      const trimmedIdentifier = loginIdentifier.trim();
+      const normalizedIdentifier = isAdminMode || trimmedIdentifier.includes('@')
+        ? trimmedIdentifier
+        : normalizePhone(trimmedIdentifier, selectedCountry.dialCode);
 
       const res = await fetch(`${API_URL}/v1/auth/login`, {
         method: 'POST',
@@ -61,7 +151,8 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          phone_number: loginIdentifier,
+          phone_number: normalizedIdentifier,
+          country_dial_code: selectedCountry.dialCode,
           password: password,
         }),
       });
@@ -84,7 +175,11 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
       }
 
     } catch (err: any) {
-      setError(err.message || 'An error occurred. Please try again.');
+      setError(
+        err instanceof TypeError
+          ? `Could not reach the server at ${API_URL}. Please check the API URL and try again.`
+          : err.message || 'An error occurred. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -136,49 +231,154 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
               htmlFor="loginIdentifier"
               style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
             >
-              {isAdminMode ? 'Admin Email Address' : 'WhatsApp Phone Number'}
+              {isAdminMode ? 'Admin Email Address' : 'Local WhatsApp Number'}
             </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="loginIdentifier"
-                type="text"
-                required
-                placeholder={isAdminMode ? 'e.g. Email Address' : 'e.g. +2348031234567'}
-                value={loginIdentifier}
-                onChange={e => setLoginIdentifier(e.target.value)}
-                onFocus={() => setFocusedInput('loginIdentifier')}
-                onBlur={() => setFocusedInput(null)}
-                className="input-field"
-                style={{
-                  paddingLeft: 44,
-                  borderColor: focusedInput === 'loginIdentifier' ? 'var(--primary)' : 'var(--border)'
-                }}
-                autoComplete="username"
-              />
-              {loginIdentifier.includes('@') ? (
+            {isAdminMode ? (
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="loginIdentifier"
+                  type="email"
+                  required
+                  placeholder="e.g. admin@aloaye.tech"
+                  value={loginIdentifier}
+                  onChange={e => setLoginIdentifier(e.target.value)}
+                  onFocus={() => setFocusedInput('loginIdentifier')}
+                  onBlur={() => setFocusedInput(null)}
+                  className="input-field"
+                  style={{
+                    paddingLeft: 44,
+                    borderColor: focusedInput === 'loginIdentifier' ? 'var(--primary)' : 'var(--border)'
+                  }}
+                  autoComplete="username"
+                />
                 <Mail size={18} style={{
-                  position: 'absolute',
-                  left: 14,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: focusedInput === 'loginIdentifier' ? 'var(--primary)' : 'var(--text-faint)',
-                  transition: 'color var(--t-fast)'
-                }} />
-              ) : (
-                <Phone size={18} style={{
-                  position: 'absolute',
-                  left: 14,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: focusedInput === 'loginIdentifier' ? 'var(--primary)' : 'var(--text-faint)',
-                  transition: 'color var(--t-fast)'
-                }} />
+                    position: 'absolute',
+                    left: 14,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: focusedInput === 'loginIdentifier' ? 'var(--primary)' : 'var(--text-faint)',
+                    transition: 'color var(--t-fast)'
+                  }} />
+              </div>
+            ) : (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                border: focusedInput === 'loginIdentifier' ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
+                borderRadius: 'var(--r-md)',
+                background: 'var(--surface)',
+                boxShadow: focusedInput === 'loginIdentifier' ? '0 0 0 3px var(--primary-glow)' : 'none',
+                transition: 'all var(--t-fast)',
+                position: 'relative'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '0 14px',
+                    height: '100%',
+                    minHeight: 46,
+                    background: 'none',
+                    border: 'none',
+                    borderRight: '1px solid var(--border)',
+                    cursor: 'pointer',
+                    fontSize: 15,
+                    color: 'var(--text)',
+                    fontWeight: 600,
+                    userSelect: 'none'
+                  }}
+                >
+                  <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
+                  <span>{selectedCountry.dialCode}</span>
+                  <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
+                </button>
+                <input
+                  id="loginIdentifier"
+                  type="tel"
+                  required
+                  placeholder="803 123 4567"
+                  value={loginIdentifier}
+                  onChange={e => handleMerchantPhoneChange(e.target.value)}
+                  onFocus={() => setFocusedInput('loginIdentifier')}
+                  onBlur={() => setFocusedInput(null)}
+                  style={{
+                    flex: 1,
+                    padding: '13px 14px',
+                    border: 'none',
+                    fontSize: 15,
+                    outline: 'none',
+                    background: 'transparent',
+                    color: 'var(--text)',
+                    minWidth: 0,
+                  }}
+                  autoComplete="tel"
+                />
+                {isCountryDropdownOpen && (
+                  <div className="glass animate-scale-in" style={{
+                    position: 'absolute',
+                    top: '110%',
+                    left: 0,
+                    width: 280,
+                    maxHeight: 250,
+                    overflowY: 'auto',
+                    borderRadius: 'var(--r-lg)',
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface)',
+                    boxShadow: 'var(--shadow-lg)',
+                    zIndex: 100,
+                    padding: '6px 0'
+                  }}>
+                    {countries.map((c, idx) => (
+                      <button
+                        key={c.code}
+                        type="button"
+                        onMouseEnter={() => setHoveredCountryIndex(idx)}
+                        onMouseLeave={() => setHoveredCountryIndex(null)}
+                        onClick={() => {
+                          setSelectedCountry(c);
+                          setIsCountryDropdownOpen(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          padding: '10px 14px',
+                          background: selectedCountry.code === c.code
+                            ? 'var(--primary-light)'
+                            : hoveredCountryIndex === idx
+                              ? 'var(--bg-2)'
+                              : 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: 14,
+                          textAlign: 'left',
+                          color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)',
+                          fontWeight: selectedCountry.code === c.code ? 750 : 600,
+                          transition: 'background var(--t-fast)'
+                        }}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontSize: 18 }}>{c.flag}</span>
+                          <span>{c.name}</span>
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 13 }}>
+                          {c.dialCode}
+                          {selectedCountry.code === c.code ? <Check size={13} color="var(--primary)" /> : null}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               )}
-            </div>
             <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
               {isAdminMode
                 ? 'Enter your registered administrator email address'
-                : 'Use your registered WhatsApp phone number (with country code e.g. +234...)'
+                : `Select ${selectedCountry.dialCode} from the dropdown, then enter only your local number. Do not type the country code.`
               }
             </span>
           </div>

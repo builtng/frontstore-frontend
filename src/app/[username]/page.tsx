@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = `${store.store_name} | Shop on aloaye`;
   const description = store.store_bio || `Shop directly from ${store.store_name} on WhatsApp. Browse products and place orders instantly.`;
   const logo = store.logo_url || 'https://aloaye.tech/icon.png';
-  const url = `https://${store.username}.aloaye.tech`;
+  const url = `https://aloaye.tech/${store.username}`;
 
   return {
     title,
@@ -82,7 +82,7 @@ export default async function Page({ params }: PageProps) {
     '@type': 'Store',
     'name': data.store.store_name,
     'description': data.store.store_bio || undefined,
-    'url': `https://${data.store.username}.aloaye.tech`,
+    'url': `https://aloaye.tech/${data.store.username}`,
     'image': data.store.logo_url || undefined,
     'telephone': data.store.whatsapp_phone || undefined,
     'address': {
