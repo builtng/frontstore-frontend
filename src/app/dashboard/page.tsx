@@ -1473,6 +1473,8 @@ export default function DashboardPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          paddingTop: '12px',
+          paddingBottom: '12px',
         }}>
           {/* Left section: mobile toggle and mobile brand logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
