@@ -32,7 +32,7 @@ const FEATURES = [
   },
   {
     title: 'Shareable Store Links',
-    body: 'Your store lives at yourbrand.aloaye.com — share it on Instagram bio, TikTok profile, or WhatsApp status to drive traffic instantly.',
+    body: 'Your store lives at yourbrand.aloaye.tech — share it on Instagram bio, TikTok profile, or WhatsApp status to drive traffic instantly.',
     color: 'hsl(200, 98%, 45%)',
     bg: 'hsl(200, 98%, 96%)',
   },
@@ -81,7 +81,7 @@ const TESTIMONIALS = [
 ] as const;
 
 const HOW_IT_WORKS = [
-  { step: '01', title: 'Claim your URL', body: 'Type your business name and claim yourbrand.aloaye.com in seconds.' },
+  { step: '01', title: 'Claim your URL', body: 'Type your business name and claim yourbrand.aloaye.tech in seconds.' },
   { step: '02', title: 'Add your products', body: 'Upload photos, add prices, and let AI write descriptions for you.' },
   { step: '03', title: 'Share & sell', body: 'Drop your store link on WhatsApp, Instagram, or TikTok and start receiving orders.' },
 ] as const;
@@ -110,7 +110,7 @@ export default function HomePageClient() {
   const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'error' | 'success' | null>(null);
-  const [hostSuffix, setHostSuffix] = useState('.aloaye.com');
+  const [hostSuffix, setHostSuffix] = useState('.aloaye.tech');
   const [mounted, setMounted] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';

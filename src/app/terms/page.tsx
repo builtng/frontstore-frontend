@@ -85,7 +85,7 @@ export default function TermsPage() {
                 <Globe size={20} style={{ color: 'var(--primary)' }} /> 1. Introduction & Acceptance
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Welcome to <strong>aloaye</strong> (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;). These Terms of Service (&quot;Terms&quot;) govern your access to and use of our storefront builder website (aloaye.tech), subdomains (e.g., [yourbrand].aloaye.com), mobile companion applications, and associated services.
+                Welcome to <strong>aloaye</strong> (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;). These Terms of Service (&quot;Terms&quot;) govern your access to and use of our storefront builder website (aloaye.tech), subdomains (e.g., [yourbrand].aloaye.tech), mobile companion applications, and associated services.
               </p>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 By creating a seller account, launching a storefront, or browsing the directory, you accept and agree to be bound by these Terms. If you do not agree to these Terms, you must not register an account or use our platform services.
@@ -194,7 +194,7 @@ export default function TermsPage() {
                   <strong>Listing Rules:</strong> No illegal items, drugs, weapons, or counterfeit goods. Violations lead to instant ban.
                 </p>
                 <p>
-                  <strong>Subdomain Ownership:</strong> Your URL (e.g. brand.aloaye.com) is yours to use as long as your account remains active and compliant.
+                  <strong>Subdomain Ownership:</strong> Your URL (e.g. brand.aloaye.tech) is yours to use as long as your account remains active and compliant.
                 </p>
               </div>
             </div>

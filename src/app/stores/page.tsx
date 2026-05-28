@@ -22,7 +22,7 @@ export default function StoresDirectoryPage() {
   const [stores, setStores] = useState<StoreItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [hostSuffix, setHostSuffix] = useState('.aloaye.com');
+  const [hostSuffix, setHostSuffix] = useState('.aloaye.tech');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
@@ -57,7 +57,7 @@ export default function StoresDirectoryPage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
-      
+
       {/* Navbar */}
       <nav
         className="glass"

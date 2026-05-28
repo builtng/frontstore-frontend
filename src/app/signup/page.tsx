@@ -13,14 +13,14 @@ import { RESERVED_SUBDOMAINS } from '../../utils/reservedKeywords';
 
 function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
   let score = 0;
-  if (pw.length >= 6)            score++;
-  if (pw.length >= 10)           score++;
-  if (/[A-Z]/.test(pw))         score++;
-  if (/[0-9]/.test(pw))         score++;
-  if (/[^A-Za-z0-9]/.test(pw))  score++;
-  if (score <= 1) return { score, label: 'Weak',   color: 'var(--danger)'  };
-  if (score <= 3) return { score, label: 'Fair',   color: 'var(--accent)'  };
-  return                 { score, label: 'Strong', color: 'var(--primary)' };
+  if (pw.length >= 6) score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (score <= 1) return { score, label: 'Weak', color: 'var(--danger)' };
+  if (score <= 3) return { score, label: 'Fair', color: 'var(--accent)' };
+  return { score, label: 'Strong', color: 'var(--primary)' };
 }
 
 const countries = [
@@ -60,26 +60,26 @@ function SignupFormContent() {
   const searchParams = useSearchParams();
 
   const [storeName, setStoreName] = useState('');
-  const [username,  setUsername]  = useState('');
-  const [name,      setName]      = useState('');
-  const [phone,     setPhone]     = useState('');
-  const [email,     setEmail]     = useState('');
-  const [password,  setPassword]  = useState('');
-  const [showPw,    setShowPw]    = useState(false);
-  const [hostSuffix, setHostSuffix] = useState('.aloaye.com');
+  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [hostSuffix, setHostSuffix] = useState('.aloaye.tech');
   const [mounted, setMounted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
 
-  const [loading,     setLoading]     = useState(false);
-  const [error,       setError]       = useState<string | null>(null);
-  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   // successData intentionally does NOT contain the password field
   const [successData, setSuccessData] = useState<{
     storeName: string;
-    username:  string;
-    storeUrl:  string;
+    username: string;
+    storeUrl: string;
   } | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
@@ -189,12 +189,12 @@ function SignupFormContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          store_name:   storeName,
-          username:     cleanUsername,
+          store_name: storeName,
+          username: cleanUsername,
           name,
           phone_number: normalizedPhone,
           password,
-          email:        email || undefined,
+          email: email || undefined,
         }),
       });
 
@@ -221,7 +221,7 @@ function SignupFormContent() {
 
       setSuccessData({
         storeName: json.data?.store?.store_name ?? storeName,
-        username:  cleanUsername,
+        username: cleanUsername,
         storeUrl,
       });
 
@@ -284,7 +284,7 @@ function SignupFormContent() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
             <Globe size={12} /> Your Live Digital Storefront
           </div>
-          
+
           <a
             href={successData.storeUrl}
             target="_blank"
@@ -511,7 +511,7 @@ function SignupFormContent() {
 
       {/* Form Container */}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        
+
         {/* Section 1: Store Setup */}
         <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 4 }}>
@@ -608,7 +608,7 @@ function SignupFormContent() {
                 {hostSuffix}
               </span>
             </div>
-            
+
             {/* Live Link Preview Nudge */}
             {username && (
               <span style={{ fontSize: 11.5, color: 'var(--primary)', display: 'block', marginTop: 6, fontWeight: 700 }}>
@@ -765,10 +765,10 @@ function SignupFormContent() {
                         justifyContent: 'space-between',
                         width: '100%',
                         padding: '10px 14px',
-                        background: selectedCountry.code === c.code 
-                          ? 'var(--primary-light)' 
-                          : hoveredCountryIndex === idx 
-                            ? 'var(--bg-2)' 
+                        background: selectedCountry.code === c.code
+                          ? 'var(--primary-light)'
+                          : hoveredCountryIndex === idx
+                            ? 'var(--bg-2)'
                             : 'none',
                         border: 'none',
                         cursor: 'pointer',

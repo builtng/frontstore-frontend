@@ -1230,7 +1230,7 @@ export default function DashboardPage() {
   // --- Receipt view compiler ---
   const generateReceiptText = (order: Order) => {
     const divider = '===================================';
-    const storeHeader = `🏪 STORE: ${store?.store_name || 'aloaye merchant'}\nURL: ${store?.username}.aloaye.com\n`;
+    const storeHeader = `🏪 STORE: ${store?.store_name || 'aloaye merchant'}\nURL: ${store?.username}.aloaye.tech\n`;
     const orderHeader = `ORDER NO: ${order.order_number}\nDATE: ${new Date(order.created_at).toLocaleDateString()}\n`;
     const customer = `CUSTOMER: ${order.customer_name}\nPHONE: ${order.customer_phone}\nADDRESS: ${order.delivery_address || 'N/A'}\n`;
 
@@ -1246,7 +1246,7 @@ export default function DashboardPage() {
     }
 
     const total = `\nTOTAL PAID: ₦${parseFloat(order.total_amount as string).toLocaleString()}\nSTATUS: PAID & CONFIRMED\n`;
-    const footer = `\nThank you for shopping with us!\nPowered by aloaye.com\n`;
+    const footer = `\nThank you for shopping with us!\nPowered by aloaye.tech\n`;
 
     return `${divider}\n${storeHeader}${divider}\n${orderHeader}${customer}${divider}\nITEMS:\n${itemSummary}${divider}${total}${divider}${footer}${divider}`;
   };
@@ -2417,10 +2417,10 @@ export default function DashboardPage() {
                     <div style={{ background: 'var(--bg-2)', padding: 14, borderRadius: 'var(--r-lg)', border: '1px solid var(--border)' }}>
                       <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Your referral link</span>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>aloaye.com/ref/{store?.username}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>aloaye.tech/ref/{store?.username}</span>
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(`https://aloaye.com/ref/${store?.username}`);
+                            navigator.clipboard.writeText(`https://aloaye.tech/ref/${store?.username}`);
                             toast.success('Referral link copied! 💰');
                           }}
                           className="btn btn-outline clickable"

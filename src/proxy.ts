@@ -50,7 +50,7 @@ export function proxy(request: NextRequest) {
       subdomain = parts[0];
     }
   } else {
-    // e.g. storename.aloaye.tld or storename.aloaye.com
+    // e.g. storename.aloaye.tech or storename.customdomain.com
     if (parts.length >= 3 && parts[0] !== 'www') {
       subdomain = parts[0];
     }
@@ -63,7 +63,7 @@ export function proxy(request: NextRequest) {
   }
 
   // Identify platform domains & local hosts to distinguish custom domains
-  const isMainDomain = cleanHost === 'aloaye.tech' || cleanHost === 'www.aloaye.tech' || cleanHost === 'aloaye.com' || cleanHost === 'www.aloaye.com';
+  const isMainDomain = cleanHost === 'aloaye.tech' || cleanHost === 'www.aloaye.tech';
   const isLocalMain = cleanHost === 'localhost' || cleanHost === 'lvh.me' || cleanHost === 'www.localhost' || cleanHost === 'www.lvh.me';
 
   // Any *.localhost or *.lvh.me host is a loopback host — never a custom domain.
@@ -76,7 +76,6 @@ export function proxy(request: NextRequest) {
     isLocalMain ||
     isLoopbackHost ||
     cleanHost.endsWith('.aloaye.tech') ||
-    cleanHost.endsWith('.aloaye.com') ||
     cleanHost.endsWith('.localhost') ||
     cleanHost.endsWith('.lvh.me');
 
