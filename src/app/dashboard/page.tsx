@@ -273,8 +273,6 @@ export default function DashboardPage() {
   // Billing Cycle state for Pro Subscription Plan
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
-  // WhatsApp Simulator Mobile view state ('list' showing contacts, 'chat' showing chat viewport)
-  const [activeWaView, setActiveWaView] = useState<'list' | 'chat'>('list');
 
   // --- Active Dialog/Modal States ---
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -396,114 +394,12 @@ export default function DashboardPage() {
   const [aiCommand, setAiCommand] = useState('');
   const [aiResponseBubble, setAiResponseBubble] = useState<string | null>(null);
 
-  // --- WhatsApp Simulator Chat State ---
-  const [waMessages, setWaMessages] = useState([
-    { sender: 'buyer', text: 'Hi! I saw your Adire Dashiki Shirt. Is it still available?', time: '10:02 AM' },
-    { sender: 'merchant', text: 'Yes, it is! We have it in stock. What size are you looking for?', time: '10:04 AM' },
-    { sender: 'buyer', text: 'I need size L. Can you ship to Lagos? Also, how much is the total with shipping?', time: '10:05 AM' }
-  ]);
-  const [waAiSuggestion, setWaAiSuggestion] = useState('₦8,500. Standard shipping to Lagos is ₦2,500. Total: ₦11,000. Should I set it aside for you?');
-  const [waCustomText, setWaCustomText] = useState('');
-  const [waChatLabels, setWaChatLabels] = useState(['High intent buyer', 'Negotiation active']);
-  const [waCloseSaleLoading, setWaCloseSaleLoading] = useState(false);
-  const [waAiAutopilot, setWaAiAutopilot] = useState(true);
-  const [waSelectedProduct, setWaSelectedProduct] = useState<Product | null>(null);
-
-  const simulateBuyerMessage = async (msgText: string) => {
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setWaMessages(prev => [...prev, { sender: 'buyer', text: msgText, time }]);
-    
-    if (waAiAutopilot) {
-      // Find matching product in catalog
-      const match = products.find(p => msgText.toLowerCase().includes(p.name.toLowerCase()) || 
-                                       p.name.toLowerCase().split(' ').some(w => w.length > 3 && msgText.toLowerCase().includes(w)));
-                                       
-      if (match) {
-        setWaSelectedProduct(match);
-        const inStock = match.stock_status === 'in_stock';
-        if (inStock) {
-          setWaChatLabels(['AI Responding...']);
-          
-          try {
-            // Create a real order on the backend via the public storefront API
-            const orderRes = await fetch(`${apiUrl}/v1/public/store/${store?.username}/orders`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                customer_name: 'Chioma Obi',
-                customer_phone: '+2348099887766',
-                customer_whatsapp: '+2348099887766',
-                customer_email: `customer-chioma@${systemDomain}`,
-                delivery_method: 'pickup',
-                items: [
-                  {
-                    product_id: match.id,
-                    quantity: 1
-                  }
-                ]
-              })
-            });
-            
-            const orderJson = await orderRes.json();
-            if (!orderRes.ok) {
-              throw new Error(orderJson.message || 'Failed to create real order');
-            }
-            
-            const order = orderJson.data.order;
-            
-            // Initialize payment via API to get real Paystack link
-            const payRes = await fetch(`${apiUrl}/v1/public/orders/${order.id}/initialize-payment`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' }
-            });
-            
-            const payJson = await payRes.json();
-            if (!payRes.ok) {
-              throw new Error(payJson.message || 'Failed to initialize payment');
-            }
-            
-            const payLink = payJson.data.authorization_url;
-            const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            setWaMessages(prev => [...prev, {
-              sender: 'merchant',
-              text: `🤖 *AI Auto-responder*:\nYes! *${match.name}* is in stock! 🛍️\n\nPrice: ${getCurrencySymbol(store?.currency_code)}${formatVal(match.price)}\n\nYou can pay securely via Paystack on WhatsApp here:\n${payLink}\n\nOnce paid, your receipt will generate automatically!`,
-              time: replyTime
-            }]);
-            setWaChatLabels(['AI Responded', 'Payment link sent']);
-            
-            // Refresh order list on dashboard
-            loadAllData(true);
-          } catch (err: any) {
-            console.error('Simulator AI Autopilot error:', err);
-            const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            setWaMessages(prev => [...prev, {
-              sender: 'merchant',
-              text: `🤖 *AI Auto-responder*:\nYes! *${match.name}* is in stock! 🛍️\n\nPrice: ${getCurrencySymbol(store?.currency_code)}${formatVal(match.price)}\n\nYou can pay securely via Paystack on WhatsApp here:\nhttps://checkout.paystack.com/alo-simulated-link\n\nOnce paid, your receipt will generate automatically!`,
-              time: replyTime
-            }]);
-            setWaChatLabels(['AI Responded', 'Payment link sent (mock)']);
-          }
-        } else {
-          const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          setWaMessages(prev => [...prev, {
-            sender: 'merchant',
-            text: `🤖 *AI Auto-responder*:\nThanks for asking! Unfortunately, *${match.name}* is currently out of stock. ✕`,
-            time: replyTime
-          }]);
-          setWaChatLabels(['AI Responded', 'Out of stock']);
-        }
-      } else {
-        const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        setWaMessages(prev => [...prev, {
-          sender: 'merchant',
-          text: `🤖 *AI Auto-responder*:\nWelcome! I can check if any of our items are in stock. Please specify the name of the product you are interested in!`,
-          time: replyTime
-        }]);
-        setWaChatLabels(['AI Responded']);
-      }
-    }
-  };
+  // --- WhatsApp Sales Inbox State ---
+  const [waOrders, setWaOrders] = useState<Order[]>([]);
+  const [waLoading, setWaLoading] = useState(false);
+  const [selectedWaOrder, setSelectedWaOrder] = useState<Order | null>(null);
+  const [waSearch, setWaSearch] = useState('');
+  const [activeWaView, setActiveWaView] = useState<'list' | 'chat'>('list');
 
   // Sample stock images for products
   const STOCK_IMAGE_OPTIONS = [
@@ -1273,124 +1169,29 @@ export default function DashboardPage() {
     }
   };
 
-  // --- WhatsApp Simulator Chat logic ---
-  const handleSendWaMessage = (text: string) => {
-    if (!text.trim()) return;
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setWaMessages(prev => [...prev, { sender: 'merchant', text, time }]);
-    setWaCustomText('');
-    setWaAiSuggestion('');
-
-    // Simulate buyer reply
-    setTimeout(() => {
-      const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setWaMessages(prev => [...prev, {
-        sender: 'buyer',
-        text: 'Awesome! That works for me. Please reserve it and let me know how to pay.',
-        time: replyTime
-      }]);
-      setWaAiSuggestion('Sure! We accept payment via bank transfer or card. Shall I generate your invoice receipt?');
-      setWaChatLabels(['High intent buyer', 'Invoice requested']);
-    }, 1800);
-  };
-
-  const handleWaOfferCoupon = () => {
-    const sym = getCurrencySymbol(store?.currency_code);
-    const offerText = `I can give you an exclusive 10% discount on the sandals. The total price will be ${sym}7,650 + ${sym}2,500 shipping (${sym}10,150). Let me know if I should finalize!`;
-    handleSendWaMessage(offerText);
-  };
-
-  const handleWaCloseSale = async () => {
+  // --- WhatsApp Sales Inbox: Load real WA orders ---
+  const loadWaOrders = async () => {
+    if (!token) return;
+    setWaLoading(true);
     try {
-      setWaCloseSaleLoading(true);
-      
-      const targetProduct = waSelectedProduct || products[0];
-      if (!targetProduct) {
-        toast.error('Please add a product to your catalog first.');
-        return;
-      }
-
-      const payload = {
-        customer_name: 'Chioma Obi',
-        customer_phone: '+2348099887766',
-        customer_whatsapp: '+2348099887766',
-        customer_email: `customer-chioma@${systemDomain}`,
-        delivery_method: targetProduct.is_digital ? 'digital' : 'delivery',
-        delivery_address: targetProduct.is_digital ? 'Digital Delivery' : 'No 15 Adeniran Ogunsanya St, Surulere, Lagos',
-        items: [
-          {
-            product_id: targetProduct.id,
-            quantity: 1
-          }
-        ]
-      };
-
-      // We hit the public storefront route to create order
-      const res = await fetch(`${apiUrl}/v1/public/store/${store?.username}/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      const res = await fetch(`${apiUrl}/v1/orders?payment_method=whatsapp&limit=100`, {
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
-
       const json = await res.json();
-      if (res.ok) {
-        const order = json.data?.order || json.data;
-        const total = order?.total_amount || targetProduct.price;
-        const orderNo = order?.order_number || ('ALO-INV' + Math.floor(Math.random() * 89000 + 10000));
-        
-        toast.success(`Invoice created! Real Order #${orderNo} added.`);
-
-        // Initialize payment via API to get real Paystack link
-        let payLink = '';
-        try {
-          const payRes = await fetch(`${apiUrl}/v1/public/orders/${order.id}/initialize-payment`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-          });
-          const payJson = await payRes.json();
-          if (payRes.ok && payJson.data?.authorization_url) {
-            payLink = payJson.data.authorization_url;
-          }
-        } catch (payErr) {
-          console.error('Failed to initialize payment for invoice:', payErr);
+      if (res.ok && json.data?.data) {
+        setWaOrders(json.data.data);
+        // Auto-select first order if none selected
+        if (!selectedWaOrder && json.data.data.length > 0) {
+          setSelectedWaOrder(json.data.data[0]);
         }
-
-        // Post update message inside chat log
-        const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        setWaMessages(prev => [
-          ...prev,
-          {
-            sender: 'merchant',
-            text: `🧾 Invoice Created! Order #${orderNo} total ${getCurrencySymbol(store?.currency_code)}${formatVal(total)}.\n\n💳 Paystack Payment Link:\n${payLink || 'https://checkout.paystack.com/alo-simulated-link'}`,
-            time: timeNow
-          }
-        ]);
-
-        loadAllData(true);
-      } else {
-        throw new Error(json.message || 'Server failed to save order.');
       }
-    } catch (e: any) {
-      toast.error(e.message || 'Invoice generation error.');
+    } catch (e) {
+      console.error('Failed to load WA orders:', e);
     } finally {
-      setWaCloseSaleLoading(false);
+      setWaLoading(false);
     }
   };
 
-  const handleWaConfirmPayment = () => {
-    // Look up the last pending invoice order for Chioma Obi and update it
-    const lastObiOrder = orders.find(o => o.customer_name === 'Chioma Obi' && o.payment_status === 'unpaid');
-    if (lastObiOrder) {
-      handleUpdatePaymentStatus(lastObiOrder.id, 'paid');
-      handleUpdateOrderStatus(lastObiOrder.id, 'confirmed');
-    }
-    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setWaMessages(prev => [
-      ...prev,
-      { sender: 'merchant', text: `💚 Payment confirmed! Thank you so much Chioma. Processing your dispatch details now!`, time: timeNow }
-    ]);
-    toast.success('Simulated buyer marked as Paid.');
-  };
 
   const moveLink = (index: number, direction: 'up' | 'down') => {
     const nextIndex = direction === 'up' ? index - 1 : index + 1;
@@ -1868,7 +1669,7 @@ export default function DashboardPage() {
             { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
             { id: 'products', label: 'Products', icon: <Package size={18} /> },
             { id: 'wallet', label: 'Payouts & Wallet', icon: <DollarSign size={18} /> },
-            { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} />, badge: 1 },
+            { id: 'whatsapp', label: 'WA Sales Inbox', icon: <WhatsAppIcon size={18} />, badge: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
             { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
             { id: 'templates', label: 'Templates', icon: <Sparkles size={18} /> },
             { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
@@ -2603,7 +2404,7 @@ export default function DashboardPage() {
                               >
                                 <Trash2 size={13} />
                               </button>
-                            </div>
+</div>
                           </div>
                         </div>
                       ))
@@ -2616,225 +2417,211 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* ── TAB 4: WHATSAPP CHAT SIMULATOR (DEV ONLY) ── */}
-              {activeTab === 'whatsapp' && (
-                <div className="card animate-fade-in whatsapp-chat-shell" style={{ padding: 0, height: 'calc(100vh - 160px)', display: 'flex', overflow: 'hidden' }}>
-
-                  {/* Left Chats Sidebar */}
-                  <div style={{ width: 280, borderRight: '1px solid var(--border)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column' }} className={`wa-contacts-panel ${activeWaView === 'list' ? 'wa-mobile-show' : 'wa-mobile-hide'}`}>
-                    <div style={{ padding: 18, borderBottom: '1px solid var(--border)' }}>
-                      <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900 }}>WhatsApp Chats</h3>
-                      <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Simulated buyer interactions</p>
-                    </div>
-
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, padding: 8 }}>
-                      <div onClick={() => setActiveWaView('chat')} style={{ display: 'flex', gap: 10, background: 'var(--surface)', padding: 12, borderRadius: 'var(--r-md)', border: '1px solid var(--border)', cursor: 'pointer' }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#25d366', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14 }}>
-                          CO
+              {/* ── TAB 4: WHATSAPP SALES INBOX ── */}
+              {activeTab === 'whatsapp' && (() => {
+                if (waOrders.length === 0 && !waLoading) loadWaOrders();
+                const sym = getCurrencySymbol(store?.currency_code);
+                const filtered = waOrders.filter(o =>
+                  !waSearch ||
+                  o.customer_name.toLowerCase().includes(waSearch.toLowerCase()) ||
+                  o.customer_phone.includes(waSearch) ||
+                  o.order_number.toLowerCase().includes(waSearch.toLowerCase())
+                );
+                const buildReplyMsg = (order: Order) => encodeURIComponent(
+                  `Hi ${order.customer_name}! This is ${store?.store_name || 'us'} 🛖\n\nRegarding your Order *#${order.order_number}* — ${sym}${parseFloat(order.total_amount as string).toLocaleString()}\n\nStatus: ${order.order_status.toUpperCase()} | Payment: ${order.payment_status.toUpperCase()}\n\nFeel free to reply with any questions!`
+                );
+                const buildReceiptMsg = (order: Order) => {
+                  const items = order.items?.map(i =>
+                    `- ${i.quantity}x ${i.product_name} @ ${sym}${parseFloat(i.product_price as string).toLocaleString()}`
+                  ).join('\n') || `- Order total: ${sym}${parseFloat(order.total_amount as string).toLocaleString()}`;
+                  return encodeURIComponent(
+                    `🧾 *RECEIPT — ${store?.store_name}*\n\nOrder: *#${order.order_number}*\nDate: ${new Date(order.created_at).toLocaleDateString()}\n\n${items}\n\n*TOTAL: ${sym}${parseFloat(order.total_amount as string).toLocaleString()}*\nStatus: ${order.payment_status.toUpperCase()}\n\nThank you for your purchase! 🎉`
+                  );
+                };
+                const cleanPhone = (p: string) => p.replace(/\D/g, '');
+                return (
+                  <div className="card animate-fade-in whatsapp-chat-shell" style={{ padding: 0, height: 'calc(100vh - 160px)', display: 'flex', overflow: 'hidden' }}>
+                    {/* Left Panel — Contacts */}
+                    <div style={{ width: 300, borderRight: '1px solid var(--border)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column' }} className={`wa-contacts-panel ${activeWaView === 'list' ? 'wa-mobile-show' : 'wa-mobile-hide'}`}>
+                      <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900 }}>WA Sales Inbox</h3>
+                          <button onClick={() => { loadWaOrders(); toast.success('Refreshing inbox...'); }} className="btn btn-ghost clickable" style={{ padding: 6, color: 'var(--primary)' }} title="Refresh"><RefreshCw size={14} /></button>
                         </div>
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <p style={{ fontSize: 13, fontWeight: 800 }}>Chioma Obi</p>
-                            <span style={{ fontSize: 10, color: 'var(--primary)', fontWeight: 800 }}>Active</span>
+                        <div style={{ position: 'relative' }}>
+                          <input type="text" placeholder="Search by name, phone, order #..." value={waSearch} onChange={e => setWaSearch(e.target.value)} style={{ width: '100%', padding: '8px 12px 8px 30px', fontSize: 12.5, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', outline: 'none', color: 'var(--text)' }} />
+                          <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', fontSize: 11 }}>🔍</span>
+                        </div>
+                        <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 8 }}>
+                          {waOrders.length} WA order{waOrders.length !== 1 ? 's' : ''} • {waOrders.filter(o => o.payment_status === 'unpaid').length} unpaid
+                        </p>
+                      </div>
+                      <div style={{ flex: 1, overflowY: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        {waLoading ? (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0', color: 'var(--text-muted)', gap: 8 }}>
+                            <Loader2 size={20} className="spinner" style={{ color: 'var(--primary)' }} /> Loading...
                           </div>
-                          <p style={{ fontSize: 11.5, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>
-                            I need size L. Can you ship...
-                          </p>
-                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
-                            {waChatLabels.map(l => (
-                              <span key={l} style={{ fontSize: 8, background: 'var(--primary-light)', color: 'var(--primary)', padding: '1px 5px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>
-                                {l}
-                              </span>
-                            ))}
+                        ) : filtered.length === 0 ? (
+                          <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}>
+                            <WhatsAppIcon size={32} color="var(--text-faint)" />
+                            <p style={{ marginTop: 12, fontSize: 13, fontWeight: 700 }}>{waSearch ? 'No contacts match.' : 'No WhatsApp orders yet.'}</p>
+                            {!waSearch && <p style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 6, lineHeight: 1.5 }}>When customers message your WhatsApp number, their orders appear here automatically.</p>}
                           </div>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: 10, padding: 12, borderRadius: 'var(--r-md)', opacity: 0.6, cursor: 'not-allowed' }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--text-faint)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14 }}>
-                          TB
-                        </div>
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <p style={{ fontSize: 13, fontWeight: 700 }}>Tunde Bakare</p>
-                          <p style={{ fontSize: 11, color: 'var(--text-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            Closed sale ORD-10002
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Chat Screen */}
-                  <div className={`wa-chat-viewport ${activeWaView === 'chat' ? 'wa-mobile-show' : 'wa-mobile-hide'}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface)' }}>
-
-                    {/* Header */}
-                    <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-2)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        {/* Back button for mobile view */}
-                        <button
-                          onClick={() => setActiveWaView('list')}
-                          className="btn btn-ghost wa-back-button"
-                          style={{ display: 'none', padding: 6, margin: '-6px 2px -6px -10px', color: 'var(--text-muted)' }}
-                          title="Back to Chats"
-                        >
-                          <ChevronDown size={20} style={{ transform: 'rotate(90deg)' }} />
-                        </button>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#25d366', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                          CO
-                        </div>
-                        <div>
-                          <h4 style={{ fontSize: 14, fontWeight: 800 }}>Chioma Obi</h4>
-                          <span style={{ fontSize: 11, color: '#25d366', fontWeight: 700 }}>● Online (Simulated)</span>
-                        </div>
-                      </div>
-
-                      {/* Simulator Top Action controls */}
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button
-                          onClick={handleWaOfferCoupon}
-                          className="btn btn-outline clickable"
-                          style={{ padding: '6px 12px', fontSize: 11.5, borderRadius: 'var(--r-sm)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                        >
-                          <Tag size={13} /> Send 10% Discount
-                        </button>
-                        <button
-                          onClick={handleWaCloseSale}
-                          disabled={waCloseSaleLoading}
-                          className="btn btn-primary clickable"
-                          style={{ padding: '6px 12px', fontSize: 11.5, borderRadius: 'var(--r-sm)', background: '#25d366', boxShadow: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                        >
-                          {waCloseSaleLoading ? <Loader2 size={12} className="spinner" /> : <Receipt size={13} />}
-                          {waCloseSaleLoading ? 'Closing...' : 'Close Sale (Invoice)'}
-                        </button>
-                        <button
-                          onClick={handleWaConfirmPayment}
-                          className="btn btn-outline clickable"
-                          style={{ padding: '6px 12px', fontSize: 11.5, borderRadius: 'var(--r-sm)', color: 'var(--primary)', borderColor: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                        >
-                          <Check size={13} /> Mark Paid
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Chat Messages viewport */}
-                    <div style={{ flex: 1, padding: 20, display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', background: 'var(--wa-chat-bg)' }}>
-                      {waMessages.map((msg, index) => {
-                        const isMerchant = msg.sender === 'merchant';
-                        return (
-                          <div
-                            key={index}
-                            style={{
-                              display: 'flex',
-                              justifyContent: isMerchant ? 'flex-end' : 'flex-start',
-                              width: '100%'
-                            }}
-                          >
-                            <div style={{
-                              maxWidth: '70%',
-                              background: isMerchant ? 'var(--wa-bubble-merchant-bg)' : 'var(--wa-bubble-customer-bg)',
-                              color: isMerchant ? 'var(--wa-bubble-merchant-text)' : 'var(--wa-bubble-customer-text)',
-                              padding: '10px 14px',
-                              borderRadius: isMerchant ? '12px 12px 0 12px' : '12px 12px 12px 0',
-                              border: '1px solid var(--border)',
-                              boxShadow: 'var(--shadow-xs)'
-                            }}>
-                              <p style={{ fontSize: 13.5, lineHeight: 1.5, whiteSpace: 'pre-line' }}>{msg.text}</p>
-                              <span style={{ fontSize: 10, color: isMerchant ? 'var(--wa-bubble-merchant-time)' : 'var(--wa-bubble-customer-time)', display: 'block', textAlign: 'right', marginTop: 4 }}>
-                                {msg.time}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Bottom AI Suggestion assistant pane */}
-                    {waAiSuggestion && (
-                      <div style={{ padding: '10px 16px', background: 'linear-gradient(135deg, var(--surface), rgba(16, 185, 129, 0.05))', borderTop: '1.5px dashed var(--primary)', display: 'flex', gap: 12, alignItems: 'center' }}>
-                        <div style={{ color: 'var(--primary)', flexShrink: 0 }}>
-                          <Sparkles size={16} />
-                        </div>
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>AI Response Suggestion</p>
-                          <p style={{ fontSize: 12.5, color: 'var(--text-2)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', marginTop: 2 }}>{waAiSuggestion}</p>
-                        </div>
-                        <button
-                          onClick={() => handleSendWaMessage(waAiSuggestion)}
-                          className="btn btn-primary clickable"
-                          style={{ padding: '6px 12px', fontSize: 11, borderRadius: 'var(--r-sm)' }}
-                        >
-                          Apply Send
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Quick Simulation controls & AI Autopilot Toggle */}
-                    <div style={{ padding: '8px 16px', background: 'var(--bg-2)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Simulate Buyer:</span>
-                        {products.length > 0 ? (
-                          products.slice(0, 3).map((p) => (
-                            <button
-                              key={p.id}
-                              type="button"
-                              onClick={() => simulateBuyerMessage(`Hi! Is the ${p.name} in stock?`)}
-                              className="btn btn-outline clickable"
-                              style={{ padding: '4px 8px', fontSize: 10.5, borderRadius: 4 }}
-                            >
-                              "Is {p.name.split(' ').slice(0, 2).join(' ')} in stock?"
-                            </button>
-                          ))
                         ) : (
-                          <span style={{ fontSize: 11, color: 'var(--danger)', fontWeight: 600, marginLeft: 4 }}>
-                            ⚠️ Add products to your catalog to simulate queries
-                          </span>
+                          filtered.map(order => {
+                            const isSelected = selectedWaOrder?.id === order.id;
+                            const initials = order.customer_name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase();
+                            const isUnpaid = order.payment_status === 'unpaid';
+                            return (
+                              <div key={order.id} onClick={() => { setSelectedWaOrder(order); setActiveWaView('chat'); }} style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 'var(--r-md)', cursor: 'pointer', background: isSelected ? 'var(--primary-light)' : 'transparent', border: isSelected ? '1px solid var(--primary)' : '1px solid transparent', transition: 'all 0.15s' }}>
+                                <div style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, background: isUnpaid ? 'rgba(234,179,8,0.12)' : '#25d36618', color: isUnpaid ? '#d97706' : '#25d366', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, border: `2px solid ${isUnpaid ? '#d97706' : '#25d366'}33` }}>
+                                  {initials}
+                                </div>
+                                <div style={{ minWidth: 0, flex: 1 }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>{order.customer_name}</p>
+                                    <span style={{ fontSize: 10, color: 'var(--text-faint)', flexShrink: 0, marginLeft: 4 }}>{new Date(order.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                                  </div>
+                                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{order.order_number}</p>
+                                  <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+                                    <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 'var(--r-full)', background: order.payment_status === 'paid' ? 'rgba(16,185,129,0.12)' : 'rgba(234,179,8,0.12)', color: order.payment_status === 'paid' ? 'var(--primary)' : '#d97706', textTransform: 'uppercase' }}>{order.payment_status}</span>
+                                    <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 'var(--r-full)', background: 'var(--bg-2)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{order.order_status}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--primary)', marginLeft: 'auto' }}>{sym}{formatVal(order.total_amount)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })
                         )}
                       </div>
-
-                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11.5, fontWeight: 700, color: 'var(--primary)' }}>
-                        <input
-                          type="checkbox"
-                          checked={waAiAutopilot}
-                          onChange={e => setWaAiAutopilot(e.target.checked)}
-                          style={{ cursor: 'pointer' }}
-                        />
-                        🤖 AI Agent Autopilot
-                      </label>
                     </div>
 
-                    {/* Chat Box Input area */}
-                    <div style={{ padding: 16, borderTop: '1px solid var(--border)', display: 'flex', gap: 10 }}>
-                      <input
-                        type="text"
-                        placeholder="Type WhatsApp reply to customer..."
-                        value={waCustomText}
-                        onChange={e => setWaCustomText(e.target.value)}
-                        style={{
-                          flex: 1,
-                          padding: '12px 14px',
-                          background: 'var(--bg-2)',
-                          border: '1.5px solid var(--border)',
-                          borderRadius: 'var(--r-xl)',
-                          outline: 'none',
-                          fontSize: 13.5,
-                          color: 'var(--text)'
-                        }}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') handleSendWaMessage(waCustomText);
-                        }}
-                      />
-                      <button
-                        onClick={() => handleSendWaMessage(waCustomText)}
-                        className="btn btn-primary clickable"
-                        style={{ padding: '12px 20px', borderRadius: 'var(--r-xl)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                      >
-                        Send
-                      </button>
-                    </div>
+                    {/* Right Panel — Order Detail */}
+                    <div className={`wa-chat-viewport ${activeWaView === 'chat' ? 'wa-mobile-show' : 'wa-mobile-hide'}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface)', overflowY: 'auto' }}>
+                      {!selectedWaOrder ? (
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, color: 'var(--text-muted)', padding: 40, textAlign: 'center' }}>
+                          <WhatsAppIcon size={48} color="var(--text-faint)" />
+                          <div>
+                            <p style={{ fontWeight: 700, fontSize: 15 }}>Select a conversation</p>
+                            <p style={{ fontSize: 13, color: 'var(--text-faint)', marginTop: 4 }}>Pick a WhatsApp order on the left to manage it here.</p>
+                          </div>
+                        </div>
+                      ) : (() => {
+                        const o = selectedWaOrder;
+                        const phone = o.customer_whatsapp || o.customer_phone;
+                        const waPhone = cleanPhone(phone);
+                        const initials = o.customer_name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase();
+                        return (
+                          <>
+                            {/* Header */}
+                            <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-2)', flexShrink: 0, flexWrap: 'wrap', gap: 10 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <button onClick={() => setActiveWaView('list')} className="btn btn-ghost wa-back-button" style={{ display: 'none', padding: 6, marginLeft: -6, color: 'var(--text-muted)' }}><ChevronDown size={20} style={{ transform: 'rotate(90deg)' }} /></button>
+                                <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#25d36618', border: '2px solid #25d36633', color: '#25d366', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13 }}>{initials}</div>
+                                <div>
+                                  <h4 style={{ fontSize: 14, fontWeight: 800 }}>{o.customer_name}</h4>
+                                  <span style={{ fontSize: 11, color: '#25d366', fontWeight: 700 }}>{phone}</span>
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                <a href={`https://wa.me/${waPhone}?text=${buildReplyMsg(o)}`} target="_blank" rel="noreferrer" className="btn clickable" style={{ padding: '7px 14px', fontSize: 12, borderRadius: 'var(--r-sm)', background: '#25d366', color: '#fff', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
+                                  <WhatsAppIcon size={14} color="#fff" /> Reply on WhatsApp
+                                </a>
+                                <a href={`https://wa.me/${waPhone}?text=${buildReceiptMsg(o)}`} target="_blank" rel="noreferrer" className="btn btn-outline clickable" style={{ padding: '7px 14px', fontSize: 12, borderRadius: 'var(--r-sm)', display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
+                                  <Receipt size={13} /> Send Receipt
+                                </a>
+                              </div>
+                            </div>
 
+                            {/* Body */}
+                            <div style={{ flex: 1, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+                              {/* Order Summary */}
+                              <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+                                  <div>
+                                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Order</span>
+                                    <p style={{ fontSize: 18, fontWeight: 900, color: 'var(--primary)', fontFamily: 'var(--font-heading)' }}>{o.order_number}</p>
+                                    <p style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2 }}>{new Date(o.created_at).toLocaleString()}</p>
+                                  </div>
+                                  <div style={{ textAlign: 'right' }}>
+                                    <span style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', fontFamily: 'var(--font-heading)' }}>{sym}{parseFloat(o.total_amount as string).toLocaleString()}</span>
+                                    <div style={{ display: 'flex', gap: 6, marginTop: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                                      <span className={`badge ${o.payment_status === 'paid' ? 'badge-primary' : o.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'}`} style={{ fontSize: 10 }}>{o.payment_status}</span>
+                                      <span className={`badge ${o.order_status === 'completed' ? 'badge-primary' : o.order_status === 'cancelled' ? 'badge-danger' : o.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'}`} style={{ fontSize: 10 }}>{o.order_status}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 14 }}>
+                                  <div>
+                                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Customer</span>
+                                    <p style={{ fontSize: 13, fontWeight: 700, marginTop: 2 }}>{o.customer_name}</p>
+                                    <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{phone}</p>
+                                  </div>
+                                  {o.delivery_address && (
+                                    <div>
+                                      <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Address</span>
+                                      <p style={{ fontSize: 12, fontWeight: 600, marginTop: 2, color: 'var(--text-2)' }}>{o.delivery_address}</p>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Method</span>
+                                    <p style={{ fontSize: 13, fontWeight: 700, marginTop: 2, textTransform: 'capitalize' }}>{o.delivery_method || 'delivery'}</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Items */}
+                              {o.items && o.items.length > 0 && (
+                                <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20 }}>
+                                  <h4 style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 12 }}>Items Ordered</h4>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    {o.items.map((item, idx) => (
+                                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--surface)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+                                        <div>
+                                          <p style={{ fontSize: 13.5, fontWeight: 700 }}>{item.product_name}</p>
+                                          <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>Qty: {item.quantity} × {sym}{parseFloat(item.product_price as string).toLocaleString()}</p>
+                                        </div>
+                                        <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--primary)' }}>{sym}{(parseFloat(item.product_price as string) * item.quantity).toLocaleString()}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Quick Actions */}
+                              <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20 }}>
+                                <h4 style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 14 }}>Quick Actions</h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+                                  {o.payment_status !== 'paid' && (
+                                    <button onClick={async () => { await handleUpdatePaymentStatus(o.id, 'paid'); const updated = { ...o, payment_status: 'paid' }; setSelectedWaOrder(updated as Order); setWaOrders(prev => prev.map(x => x.id === o.id ? updated as Order : x)); }} className="btn btn-primary clickable" style={{ padding: '10px 14px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+                                      <Check size={14} /> Mark Paid
+                                    </button>
+                                  )}
+                                  {o.order_status !== 'completed' && o.order_status !== 'cancelled' && (
+                                    <button onClick={async () => { await handleUpdateOrderStatus(o.id, 'completed'); const updated = { ...o, order_status: 'completed' }; setSelectedWaOrder(updated as Order); setWaOrders(prev => prev.map(x => x.id === o.id ? updated as Order : x)); }} className="btn btn-outline clickable" style={{ padding: '10px 14px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center', color: 'var(--primary)', borderColor: 'var(--primary)' }}>
+                                      <Package size={14} /> Mark Shipped
+                                    </button>
+                                  )}
+                                  {o.order_status !== 'cancelled' && (
+                                    <button onClick={async () => { await handleUpdateOrderStatus(o.id, 'cancelled'); const updated = { ...o, order_status: 'cancelled' }; setSelectedWaOrder(updated as Order); setWaOrders(prev => prev.map(x => x.id === o.id ? updated as Order : x)); }} className="btn btn-outline clickable" style={{ padding: '10px 14px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center', color: 'var(--danger)', borderColor: 'var(--danger)' }}>
+                                      <X size={14} /> Cancel Order
+                                    </button>
+                                  )}
+                                  <button onClick={() => { setSelectedOrder(o); setIsOrderDetailsOpen(true); }} className="btn btn-ghost clickable" style={{ padding: '10px 14px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center', border: '1px solid var(--border)' }}>
+                                    <Eye size={14} /> Full Details
+                                  </button>
+                                </div>
+                              </div>
+
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* ── TAB 5: SHARE & REFERRALS ── */}
               {activeTab === 'share' && (
@@ -5119,7 +4906,7 @@ export default function DashboardPage() {
                 { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} /> },
                 { id: 'products', label: 'Products', icon: <Package size={18} /> },
                 { id: 'wallet', label: 'Payouts & Wallet', icon: <DollarSign size={18} /> },
-                { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} /> },
+                { id: 'whatsapp', label: 'WA Sales Inbox', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
                 { id: 'templates', label: 'Templates', icon: <Sparkles size={18} /> },
                 { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },

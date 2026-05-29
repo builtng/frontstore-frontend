@@ -778,7 +778,7 @@ export default function AdminPage() {
                       <tr key={store.id} onClick={() => setSelectedStore(store)} style={{ cursor: 'pointer' }} className="admin-table-row-hoverable">
                         <td>
                           <strong>{store.store_name}</strong>
-                          <a href={`http://${store.username}.localhost:3001`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+                          <a href={store.custom_domain ? `https://${store.custom_domain}` : `https://aloaye.tech/${store.username}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
                             @{store.username} <ExternalLink size={12} />
                           </a>
                         </td>
@@ -1192,7 +1192,7 @@ export default function AdminPage() {
                         <tr key={v.id}>
                           <td>
                             <strong>{v.store_name}</strong>
-                            <a href={`http://${v.username}.localhost:3001`} target="_blank" rel="noreferrer">
+                            <a href={v.custom_domain ? `https://${v.custom_domain}` : `https://aloaye.tech/${v.username}`} target="_blank" rel="noreferrer">
                               @{v.username} <ExternalLink size={12} />
                             </a>
                           </td>
