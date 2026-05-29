@@ -127,10 +127,10 @@ const tabs: Array<{ id: AdminTab; label: string; icon: React.ReactNode }> = [
   { id: 'settings', label: 'Settings', icon: <Settings size={17} /> },
 ];
 
-const formatMoney = (value?: number) =>
+const formatMoney = (value?: number, currencyCode: string = 'NGN') =>
   new Intl.NumberFormat('en-NG', {
     style: 'currency',
-    currency: 'NGN',
+    currency: currencyCode,
     maximumFractionDigits: 0,
   }).format(Number(value || 0));
 
@@ -1119,7 +1119,7 @@ export default function AdminPage() {
                             <span>{w.store?.user?.email || w.store?.user?.phone_number || 'No contact'}</span>
                           </td>
                           <td>
-                            <strong style={{ fontSize: 15 }}>{formatMoney(w.amount)}</strong>
+                            <strong style={{ fontSize: 15 }}>{formatMoney(w.amount, w.store?.currency_code)}</strong>
                           </td>
                           <td>
                             <strong>{w.bank_name}</strong>
@@ -1286,11 +1286,11 @@ export default function AdminPage() {
                 <div className="admin-drawer__grid admin-drawer__grid--cols-2">
                   <div className="admin-balance-card withdrawable">
                     <label>Withdrawable Balance</label>
-                    <strong>{formatMoney(selectedStore.withdrawable_balance)}</strong>
+                    <strong>{formatMoney(selectedStore.withdrawable_balance, selectedStore.currency_code)}</strong>
                   </div>
                   <div className="admin-balance-card pending">
                     <label>Pending Escrow Balance</label>
-                    <strong>{formatMoney(selectedStore.pending_balance)}</strong>
+                    <strong>{formatMoney(selectedStore.pending_balance, selectedStore.currency_code)}</strong>
                   </div>
                 </div>
               </div>

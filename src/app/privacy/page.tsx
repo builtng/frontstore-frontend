@@ -1,7 +1,19 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, ShieldCheck, Scale, FileText, Globe, MessageSquare, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { 
+  ArrowRight, 
+  ShieldCheck, 
+  Scale, 
+  FileText, 
+  Globe, 
+  MessageSquare, 
+  AlertTriangle, 
+  ArrowLeft,
+  Bot,
+  Database,
+  Eye
+} from 'lucide-react';
 import Logo from '@/components/Logo';
 import ThemeToggle from '@/components/ThemeToggle';
 
@@ -53,10 +65,10 @@ export default function PrivacyPage() {
       </nav>
 
       {/* Main Content Layout */}
-      <div style={{ flex: 1, width: '100%', maxWidth: 1100, margin: '0 auto', padding: '40px 20px' }}>
+      <div style={{ flex: 1, width: '100%', maxWidth: 1150, margin: '0 auto', padding: '40px 20px' }}>
         
         {/* Breadcrumb / Back Link */}
-        <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--primary)', fontWeight: 600, textDecoration: 'none', marginBottom: 24 }} className="clickable">
+        <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--primary)', fontWeight: 700, textDecoration: 'none', marginBottom: 24 }} className="clickable">
           <ArrowLeft size={14} /> Back to Home
         </a>
 
@@ -64,13 +76,13 @@ export default function PrivacyPage() {
         <header style={{ marginBottom: 40 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
             <span className="badge badge-primary" style={{ padding: '5px 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <ShieldCheck size={11} /> Privacy & Protection
+              <ShieldCheck size={11} /> Privacy & Data Protection
             </span>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Last updated: May 27, 2026</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Last updated: May 29, 2026</span>
           </div>
           <h1 className="text-display" style={{ marginBottom: 16 }}>Privacy Policy</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 16, maxHeight: 'none', lineHeight: 1.6, maxWidth: 700 }}>
-            At aloaye, we respect your privacy. This policy describes how we collect, store, and manage merchant and customer information on our platform.
+          <p style={{ color: 'var(--text-muted)', fontSize: 16, maxHeight: 'none', lineHeight: 1.6, maxWidth: 800 }}>
+            At Aloaye, we respect your privacy. This policy describes how we collect, store, share, and process merchant and customer information across our conversational commerce infrastructure.
           </p>
         </header>
 
@@ -78,85 +90,122 @@ export default function PrivacyPage() {
         <div className="terms-grid" style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
           
           {/* Detailed Content */}
-          <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 32 }}>
+          <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 24 }}>
             
-            <section className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Globe size={20} style={{ color: 'var(--primary)' }} /> 1. Scope & Commitments
+                <Globe size={20} style={{ color: 'var(--primary)' }} /> 1. Commitment to Data Privacy
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                This Privacy Policy applies to all services provided by <strong>aloaye</strong> (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;). We are committed to protecting the privacy of our merchants (the business owners) and the customers who buy from them.
+                Aloaye (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) serves as a conversational commerce infrastructure. We handle data for two groups of users: **Merchants** (who create storefronts and sell products) and **Shoppers** (who browse stores, negotiate via chat, and place orders).
               </p>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                By using our platform to build a storefront, publish products, or browse shops, you consent to the data practices described in this policy.
+                We are committed to operating in full compliance with regional privacy laws, including the <strong>Nigeria Data Protection Act (NDPR/NDPA)</strong>, Kenya&apos;s <strong>Data Protection Act</strong>, and South Africa&apos;s <strong>Protection of Personal Information Act (POPIA)</strong>, alongside international guidelines such as the General Data Protection Regulation (GDPR).
               </p>
             </section>
 
-            <section className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <FileText size={20} style={{ color: 'var(--primary)' }} /> 2. Information We Collect
+                <Database size={20} style={{ color: 'var(--primary)' }} /> 2. Information We Collect
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                We collect information to build storefronts and improve user experiences. The categories of information include:
+                To make conversational checkouts and AI features possible, we collect the following types of information:
               </p>
-              <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14.5, color: 'var(--text-2)' }}>
-                <li><strong>Merchant Account Details:</strong> Name, email address, WhatsApp-connected phone number, business bio, social media handles, and catalog details (names, prices, and photos of products).</li>
-                <li><strong>Customer Order Logs:</strong> When a buyer initiates a checkout, we log basic order metrics (e.g. products selected, timestamps) to generate the WhatsApp redirect message and display order summaries on your dashboard.</li>
-                <li><strong>Usage Data:</strong> Anonymized server logs, browser types, device information, IP addresses, and page-load times to optimize network performance on 3G/4G connections.</li>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
+                <div>
+                  <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>A. Merchant Data</h4>
+                  <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13.5, color: 'var(--text-2)' }}>
+                    <li><strong>Account Information:</strong> Name, business email, login credentials, and WhatsApp-connected phone number.</li>
+                    <li><strong>Store & Catalog Data:</strong> Product titles, descriptions, pricing currencies (NGN, GHS, KES, ZAR, etc.), size/color variants, and catalog photos.</li>
+                    <li><strong>KYC Verification details:</strong> Legal business names, tax registry numbers, identification documents, and bank/mobile money details for Aloaye Pay settlements.</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>B. Shopper & Order Data</h4>
+                  <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13.5, color: 'var(--text-2)' }}>
+                    <li><strong>Order Details:</strong> Products browsed, checkout selection, totals, and transactional timestamps.</li>
+                    <li><strong>Delivery Details:</strong> Delivery contact name, physical shipping address, and phone number for coordinates.</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>C. Chat Transcripts & AI Inputs</h4>
+                  <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    When shoppers engage with <strong>Aloaye Aura</strong> conversational models, we collect and log the text dialogue to process requests, formulate catalog suggestions, and construct order summaries.
+                  </p>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>D. Technical Logs</h4>
+                  <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                    Anonymized IP addresses, browser specifications, and connection speeds to deliver lightweight, fast storefront screens to mobile phones operating on Erratic 3G/4G networks.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Bot size={20} style={{ color: 'var(--primary)' }} /> 3. Processing Data with Artificial Intelligence
+              </h2>
+              <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
+                Aloaye integrates state-of-the-art AI technology to generate catalog descriptions and run the <strong>Aloaye Aura</strong> chat agent. Data handling for AI features follows strict protocols:
+              </p>
+              <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55 }}>
+                <li>
+                  <strong>Security of AI Pipelines:</strong> Product details, tags, and chat transcripts sent to AI models (such as secure APIs from OpenAI or Google Gemini) are encrypted during transit and processing.
+                </li>
+                <li>
+                  <strong>No Public Training Use:</strong> We do not allow third-party AI models to use your personal or business-sensitive transaction records to train public models.
+                </li>
+                <li>
+                  <strong>Language Customization:</strong> Chat logs are evaluated internally by Aloaye to calibrate our conversational agents on regional colloquialisms, Pidgin, Sheng, and localized spelling formats.
+                </li>
               </ul>
             </section>
 
-            <section className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <MessageSquare size={20} style={{ color: 'var(--primary)' }} /> 3. How We Use Information
+                <Eye size={20} style={{ color: 'var(--primary)' }} /> 4. Information Sharing & Third Parties
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                We use collected information solely for operation, support, and optimization of the platform:
+                <strong>We do not sell, rent, or trade merchant or shopper information to marketing companies.</strong> Data is shared only under the following strictly defined operational contexts:
               </p>
-              <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14.5, color: 'var(--text-2)' }}>
-                <li><strong>To Serve Your Storefront:</strong> We make your store catalog public under your storefront path for anyone to browse.</li>
-                <li><strong>To Facilitate WhatsApp Ordering:</strong> We construct pre-filled WhatsApp link URLs so customers can instantly send item specs directly to your phone number.</li>
-                <li><strong>To Provide AI Descriptions:</strong> Product images and tags are processed through standard AI interfaces (e.g. OpenAI API) to generate localized catalog descriptions.</li>
-                <li><strong>Platform Security:</strong> Monitoring traffic patterns, detecting fraudulent stores, and verifying merchant registrations.</li>
+              <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55 }}>
+                <li>
+                  <strong>Public Storefront:</strong> A merchant&apos;s store name, bio, products, pricing, and WhatsApp phone number are publicly readable so that shoppers can discover and buy from them.
+                </li>
+                <li>
+                  <strong>With the Merchant:</strong> Customer order details, delivery addresses, and chat details are shared with the merchant to enable fulfillment.
+                </li>
+                <li>
+                  <strong>Licensed Payment Processors:</strong> We partner with licensed, PCI-DSS compliant financial providers (such as Paystack, Flutterwave, and M-Pesa channels) to process Aloaye Pay payments.
+                </li>
+                <li>
+                  <strong>Cloud & Hosting Infrastructure:</strong> Encrypted hosting providers (such as Vercel and Supabase) that comply with ISO security frameworks.
+                </li>
               </ul>
             </section>
 
-            <section className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <AlertTriangle size={20} style={{ color: 'var(--primary)' }} /> 4. Data Sharing & Third Parties
+                <Scale size={20} style={{ color: 'var(--primary)' }} /> 5. Regional Compliance & User Rights
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                <strong>We do not sell, rent, or trade your personal information</strong> with advertising companies or data brokers.
+                No matter where your business is situated in Africa or globally, we recognize your control over your data.
               </p>
-              <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Information is shared only under the following contexts:
-              </p>
-              <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14.5, color: 'var(--text-2)' }}>
-                <li><strong>With Store Shoppers:</strong> Your WhatsApp phone number, store name, prices, currency, and product listings are displayed publicly so customers can interact with your business.</li>
-                <li><strong>With Service Providers:</strong> Encrypted hosting providers (such as Vercel) and AI APIs used for storefront description generation.</li>
-                <li><strong>Legal Disclosures:</strong> If required by law enforcement or regulatory authorities to investigate illegal activities or violations of our Terms of Service.</li>
+              <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55 }}>
+                <li>
+                  <strong>Right to Access & Portability:</strong> Merchants may request a complete export of their sales logs, inventory, and account details.
+                </li>
+                <li>
+                  <strong>Right to Rectification:</strong> You can edit your catalog, password, name, and billing details directly within the Aloaye merchant dashboard.
+                </li>
+                <li>
+                  <strong>Right to Erasure (Deletion):</strong> You have the right to request that we delete your store, customer lists, and all associated personal data from our servers. Once verified, deletion will occur within 30 business days.
+                </li>
+                <li>
+                  <strong>Data Protection Officer:</strong> For any compliance inquiries, Data Subject Access Requests (DSAR), or privacy questions, contact our Data Protection Officer at `privacy@aloaye.tech`.
+                </li>
               </ul>
-            </section>
-
-            <section className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <ShieldCheck size={20} style={{ color: 'var(--primary)' }} /> 5. Data Security & Storage
-              </h2>
-              <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                All merchant passwords are encrypted before storage on our servers. Communication between your browser and our platform is secured via standard SSL/TLS (HTTPS) protocols.
-              </p>
-              <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                While we take industry-standard precautions, no transmission of data over the internet can be guaranteed 100% secure. You are responsible for keeping your login credentials confidential.
-              </p>
-            </section>
-
-            <section className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Scale size={20} style={{ color: 'var(--primary)' }} /> 6. Regional Compliance & Deletion
-              </h2>
-              <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                We operate primarily in Africa and align our data handling with major regional regulations, including the Nigeria Data Protection Regulation (NDPR). If you are a registered merchant and wish to delete your account, catalog, or personal records permanently from our servers, you may send a deletion request to our support email.
-              </p>
             </section>
 
           </main>
@@ -165,35 +214,42 @@ export default function PrivacyPage() {
           <aside className="terms-sidebar" style={{ width: 320, flexShrink: 0, position: 'sticky', top: 90, display: 'flex', flexDirection: 'column', gap: 20 }}>
             
             {/* Summary Box */}
-            <div className="card" style={{ padding: 24, background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="card shadow-md" style={{ padding: 24, background: 'var(--surface)', border: '1px solid var(--border)' }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <ShieldCheck size={16} style={{ color: 'var(--primary)' }} /> Quick Summary
+                <ShieldCheck size={16} style={{ color: 'var(--primary)' }} /> Privacy Highlights
               </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                <p>
-                  <strong>No Ad Tracking:</strong> We do not track you to show ads. We only collect the minimal info needed to make your WhatsApp shop function.
-                </p>
-                <p>
-                  <strong>Data Sharing:</strong> Buyers will see your public business name, logo, products, and WhatsApp phone number so they can message you.
-                </p>
-                <p>
-                  <strong>Security First:</strong> Passwords are fully hashed and encrypted. Store details are protected via Secure HTTPS connections.
-                </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.55 }}>
+                <div>
+                  <strong style={{ color: 'var(--text)' }}>No Ad Networks:</strong>
+                  <p style={{ marginTop: 2 }}>We never sell your phone numbers or order history to advertisers. Period.</p>
+                </div>
+                <div>
+                  <strong style={{ color: 'var(--text)' }}>AI Encryption:</strong>
+                  <p style={{ marginTop: 2 }}>Chats analyzed by Aloaye Aura are secure and not used to train public models.</p>
+                </div>
+                <div>
+                  <strong style={{ color: 'var(--text)' }}>Regulated Payments:</strong>
+                  <p style={{ marginTop: 2 }}>All transaction details are routed through PCI-DSS certified local payment gates.</p>
+                </div>
+                <div>
+                  <strong style={{ color: 'var(--text)' }}>African Laws Compliant:</strong>
+                  <p style={{ marginTop: 2 }}>Your data is protected under NDPA, POPIA, and Kenyan Data regulations.</p>
+                </div>
               </div>
             </div>
 
             {/* Help Card */}
-            <div className="card" style={{ padding: 24, background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="card shadow-sm" style={{ padding: 24, background: 'var(--surface)', border: '1px solid var(--border)' }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>
-                Privacy Concerns?
+                Privacy Support
               </h3>
               <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: 16 }}>
-                For data access requests, deletion commands, or queries regarding how your business details are secured on our servers:
+                Have questions about how your order records are stored, or want to submit an account deletion request?
               </p>
               <a
                 href="mailto:privacy@aloaye.tech"
                 className="btn btn-outline"
-                style={{ width: '100%', padding: '10px', fontSize: 12.5, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: '100%', padding: '10px', fontSize: 12.5, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}
               >
                 Email Privacy Team
               </a>
@@ -219,10 +275,9 @@ export default function PrivacyPage() {
       }}>
         <Logo size={20} textColor="var(--primary)" />
         <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-          © {new Date().getFullYear()} aloaye. Africa&apos;s #1 WhatsApp Commerce Platform.
+          © {new Date().getFullYear()} Aloaye. Conversational Commerce Infrastructure.
         </p>
         <div style={{ display: 'flex', gap: 16 }}>
-          {/* <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 600 }}>Explore Directory</a> */}
           <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>
           <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 600 }}>Privacy</a>
           <a href="/terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>

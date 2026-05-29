@@ -17,6 +17,21 @@ import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import SearchableSelect from '../../components/SearchableSelect';
 import ThemeToggle from '../../components/ThemeToggle';
 
+// --- Currency Configuration ---
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  NGN: '₦',
+  GHS: '₵',
+  KES: 'KSh',
+  ZAR: 'R',
+  USD: '$',
+  GBP: '£'
+};
+
+const getCurrencySymbol = (code?: string): string => {
+  if (!code) return CURRENCY_SYMBOLS['NGN'];
+  return CURRENCY_SYMBOLS[code.toUpperCase()] ?? `${code} `;
+};
+
 // --- Type Definitions ---
 interface UserInfo {
   id: string;
@@ -452,7 +467,7 @@ export default function DashboardPage() {
             
             setWaMessages(prev => [...prev, {
               sender: 'merchant',
-              text: `🤖 *AI Auto-responder*:\nYes! *${match.name}* is in stock! 🛍️\n\nPrice: ₦${formatVal(match.price)}\n\nYou can pay securely via Paystack on WhatsApp here:\n${payLink}\n\nOnce paid, your receipt will generate automatically!`,
+              text: `🤖 *AI Auto-responder*:\nYes! *${match.name}* is in stock! 🛍️\n\nPrice: ${getCurrencySymbol(store?.currency_code)}${formatVal(match.price)}\n\nYou can pay securely via Paystack on WhatsApp here:\n${payLink}\n\nOnce paid, your receipt will generate automatically!`,
               time: replyTime
             }]);
             setWaChatLabels(['AI Responded', 'Payment link sent']);
@@ -464,7 +479,7 @@ export default function DashboardPage() {
             const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             setWaMessages(prev => [...prev, {
               sender: 'merchant',
-              text: `🤖 *AI Auto-responder*:\nYes! *${match.name}* is in stock! 🛍️\n\nPrice: ₦${formatVal(match.price)}\n\nYou can pay securely via Paystack on WhatsApp here:\nhttps://checkout.paystack.com/alo-simulated-link\n\nOnce paid, your receipt will generate automatically!`,
+              text: `🤖 *AI Auto-responder*:\nYes! *${match.name}* is in stock! 🛍️\n\nPrice: ${getCurrencySymbol(store?.currency_code)}${formatVal(match.price)}\n\nYou can pay securely via Paystack on WhatsApp here:\nhttps://checkout.paystack.com/alo-simulated-link\n\nOnce paid, your receipt will generate automatically!`,
               time: replyTime
             }]);
             setWaChatLabels(['AI Responded', 'Payment link sent (mock)']);
@@ -1280,7 +1295,8 @@ export default function DashboardPage() {
   };
 
   const handleWaOfferCoupon = () => {
-    const offerText = 'I can give you an exclusive 10% discount on the sandals. The total price will be ₦7,650 + ₦2,500 shipping (₦10,150). Let me know if I should finalize!';
+    const sym = getCurrencySymbol(store?.currency_code);
+    const offerText = `I can give you an exclusive 10% discount on the sandals. The total price will be ${sym}7,650 + ${sym}2,500 shipping (${sym}10,150). Let me know if I should finalize!`;
     handleSendWaMessage(offerText);
   };
 
@@ -1345,7 +1361,7 @@ export default function DashboardPage() {
           ...prev,
           {
             sender: 'merchant',
-            text: `🧾 Invoice Created! Order #${orderNo} total ₦${formatVal(total)}.\n\n💳 Paystack Payment Link:\n${payLink || 'https://checkout.paystack.com/alo-simulated-link'}`,
+            text: `🧾 Invoice Created! Order #${orderNo} total ${getCurrencySymbol(store?.currency_code)}${formatVal(total)}.\n\n💳 Paystack Payment Link:\n${payLink || 'https://checkout.paystack.com/alo-simulated-link'}`,
             time: timeNow
           }
         ]);
@@ -1689,17 +1705,18 @@ export default function DashboardPage() {
     const customer = `CUSTOMER: ${order.customer_name}\nPHONE: ${order.customer_phone}\nADDRESS: ${order.delivery_address || 'N/A'}\n`;
 
     // items summary list
+    const sym = getCurrencySymbol(store?.currency_code);
     let itemSummary = '';
     if (order.items && order.items.length > 0) {
       order.items.forEach(item => {
         const itemTotal = parseFloat(item.product_price as string) * item.quantity;
-        itemSummary += `- ${item.quantity}x ${item.product_name} (@ ₦${parseFloat(item.product_price as string).toLocaleString()}) - ₦${itemTotal.toLocaleString()}\n`;
+        itemSummary += `- ${item.quantity}x ${item.product_name} (@ ${sym}${parseFloat(item.product_price as string).toLocaleString()}) - ${sym}${itemTotal.toLocaleString()}\n`;
       });
     } else {
-      itemSummary += `- 1x Digital Cart Purchase - ₦${parseFloat(order.total_amount as string).toLocaleString()}\n`;
+      itemSummary += `- 1x Digital Cart Purchase - ${sym}${parseFloat(order.total_amount as string).toLocaleString()}\n`;
     }
 
-    const total = `\nTOTAL PAID: ₦${parseFloat(order.total_amount as string).toLocaleString()}\nSTATUS: PAID & CONFIRMED\n`;
+    const total = `\nTOTAL PAID: ${sym}${parseFloat(order.total_amount as string).toLocaleString()}\nSTATUS: PAID & CONFIRMED\n`;
     const footer = `\nThank you for shopping with us!\nPowered by ${systemDomain}\n`;
 
     return `${divider}\n${storeHeader}${divider}\n${orderHeader}${customer}${divider}\nITEMS:\n${itemSummary}${divider}${total}${divider}${footer}${divider}`;
@@ -2152,7 +2169,7 @@ export default function DashboardPage() {
                     <div className="card hover-lift" style={{ padding: 20 }}>
                       <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Revenue</span>
                       <p style={{ fontSize: 26, fontWeight: 900, color: 'var(--primary)', fontFamily: 'var(--font-heading)', marginTop: 8 }}>
-                        ₦{stats ? formatVal(stats.revenue) : '0'}
+                        {getCurrencySymbol(store?.currency_code)}{stats ? formatVal(stats.revenue) : '0'}
                       </p>
                       <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 6, display: 'block' }}>Excludes cancelled orders</span>
                     </div>
@@ -2351,7 +2368,7 @@ export default function DashboardPage() {
                                 {new Date(order.created_at).toLocaleDateString()}
                               </td>
                               <td style={{ padding: '16px 8px', fontWeight: 800 }}>
-                                ₦{formatVal(order.total_amount)}
+                                {getCurrencySymbol(store?.currency_code)}{formatVal(order.total_amount)}
                               </td>
                               <td style={{ padding: '16px 8px' }}>
                                 <span className={`badge ${order.payment_status === 'paid' ? 'badge-primary' :
@@ -2451,7 +2468,7 @@ export default function DashboardPage() {
                               </span>
                             </div>
                             <span style={{ fontWeight: 800, fontSize: 14.5 }}>
-                              ₦{formatVal(order.total_amount)}
+                              {getCurrencySymbol(store?.currency_code)}{formatVal(order.total_amount)}
                             </span>
                           </div>
 
@@ -2556,11 +2573,11 @@ export default function DashboardPage() {
 
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '4px 0' }}>
                               <span className="responsive-product-card-price" style={{ fontSize: 16, fontWeight: 900, color: 'var(--primary)' }}>
-                                ₦{formatVal(prod.price)}
+                                {getCurrencySymbol(store?.currency_code)}{formatVal(prod.price)}
                               </span>
                               {prod.compare_at_price && (
                                 <span style={{ fontSize: 11, color: 'var(--text-faint)', textDecoration: 'line-through' }}>
-                                  ₦{formatVal(prod.compare_at_price)}
+                                  {getCurrencySymbol(store?.currency_code)}{formatVal(prod.compare_at_price)}
                                 </span>
                               )}
                             </div>
@@ -2879,7 +2896,7 @@ export default function DashboardPage() {
                                 {p.image_urls?.[0] && <img src={p.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                               </div>
                               <p style={{ fontSize: 10, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 6 }}>{p.name}</p>
-                              <span style={{ fontSize: 10, color: 'var(--primary)', fontWeight: 800, display: 'block', marginTop: 2 }}>₦{formatVal(p.price)}</span>
+                              <span style={{ fontSize: 10, color: 'var(--primary)', fontWeight: 800, display: 'block', marginTop: 2 }}>{getCurrencySymbol(store?.currency_code)}{formatVal(p.price)}</span>
                             </div>
                           ))}
                         </div>
@@ -3351,13 +3368,14 @@ export default function DashboardPage() {
                           <div>
                             <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Currency</label>
                             <SearchableSelect
-                              options={[
-                                { value: 'NGN', label: 'NGN (₦)', icon: <span style={{ fontSize: 16 }}>🇳🇬</span> },
-                                { value: 'GHS', label: 'GHS (₵)', icon: <span style={{ fontSize: 16 }}>🇬🇭</span> },
-                                { value: 'KES', label: 'KES (KSh)', icon: <span style={{ fontSize: 16 }}>🇰🇪</span> },
-                                { value: 'ZAR', label: 'ZAR (R)', icon: <span style={{ fontSize: 16 }}>🇿🇦</span> },
-                                { value: 'USD', label: 'USD ($)', icon: <span style={{ fontSize: 16 }}>🇺🇸</span> }
-                              ]}
+                                options={[
+                                  { value: 'NGN', label: 'NGN (₦)', icon: <span style={{ fontSize: 16 }}>🇳🇬</span> },
+                                  { value: 'GHS', label: 'GHS (₵)', icon: <span style={{ fontSize: 16 }}>🇬🇭</span> },
+                                  { value: 'KES', label: 'KES (KSh)', icon: <span style={{ fontSize: 16 }}>🇰🇪</span> },
+                                  { value: 'ZAR', label: 'ZAR (R)', icon: <span style={{ fontSize: 16 }}>🇿🇦</span> },
+                                  { value: 'USD', label: 'USD ($)', icon: <span style={{ fontSize: 16 }}>🇺🇸</span> },
+                                  { value: 'GBP', label: 'GBP (£)', icon: <span style={{ fontSize: 16 }}>🇬🇧</span> }
+                                ]}
                               value={setCurrency}
                               onChange={val => setSetCurrency(val)}
                               placeholder="Select Currency"
@@ -4859,7 +4877,7 @@ export default function DashboardPage() {
                         <div className="card" style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
                           <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Withdrawable Balance</span>
                           <div style={{ fontSize: 28, fontWeight: 900, marginTop: 8, color: 'var(--primary)', fontFamily: 'var(--font-heading)' }}>
-                            ₦{formatVal(walletBalances.withdrawable_balance)}
+                            {getCurrencySymbol(store?.currency_code)}{formatVal(walletBalances.withdrawable_balance)}
                           </div>
                           <button
                             onClick={() => {
@@ -4883,7 +4901,7 @@ export default function DashboardPage() {
                             <span title="Funds held in escrow until buyers confirm delivery of order."><AlertCircle size={14} style={{ color: 'var(--text-faint)' }} /></span>
                           </span>
                           <div style={{ fontSize: 28, fontWeight: 900, marginTop: 8, color: 'var(--text)', fontFamily: 'var(--font-heading)' }}>
-                            ₦{formatVal(walletBalances.pending_balance)}
+                            {getCurrencySymbol(store?.currency_code)}{formatVal(walletBalances.pending_balance)}
                           </div>
                           <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 16, lineHeight: 1.4 }}>
                             {isPro ? 'Pro plan bypasses escrow. Upfront payments credit immediately to your withdrawable balance!' : 'Under the Free Starter plan, checkout payments are held in escrow and released only when customers confirm delivery.'}
@@ -5030,7 +5048,7 @@ export default function DashboardPage() {
                                   return (
                                     <tr key={w.id} style={{ borderBottom: '1px solid var(--border)', fontSize: 13.5 }}>
                                       <td style={{ padding: '12px 8px', fontWeight: 600 }}>{dateStr}</td>
-                                      <td style={{ padding: '12px 8px', fontWeight: 700, color: 'var(--text)' }}>₦{formatVal(w.amount)}</td>
+                                      <td style={{ padding: '12px 8px', fontWeight: 700, color: 'var(--text)' }}>{getCurrencySymbol(store?.currency_code)}{formatVal(w.amount)}</td>
                                       <td style={{ padding: '12px 8px', color: 'var(--text-muted)' }}>
                                         {w.bank_name} • {w.account_number} <span style={{ fontSize: 11, display: 'block', color: 'var(--text-faint)' }}>{w.account_name}</span>
                                       </td>
@@ -5181,7 +5199,7 @@ export default function DashboardPage() {
             <form onSubmit={handleRequestWithdrawal} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
-                  Amount to Withdraw (₦)
+                  Amount to Withdraw ({getCurrencySymbol(store?.currency_code)})
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
@@ -5209,7 +5227,7 @@ export default function DashboardPage() {
                   </button>
                 </div>
                 <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 6, display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Withdrawable Balance: ₦{formatVal(walletBalances.withdrawable_balance)}</span>
+                  <span>Withdrawable Balance: {getCurrencySymbol(store?.currency_code)}{formatVal(walletBalances.withdrawable_balance)}</span>
                 </div>
               </div>
 
@@ -5296,7 +5314,7 @@ export default function DashboardPage() {
 
               <div className="responsive-form-row">
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Sales Price (₦)</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Sales Price ({getCurrencySymbol(store?.currency_code)})</label>
                   <input
                     type="number"
                     required
@@ -5614,7 +5632,7 @@ export default function DashboardPage() {
 
               <div className="responsive-form-row">
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Sales Price (₦)</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Sales Price ({getCurrencySymbol(store?.currency_code)})</label>
                   <input
                     type="number"
                     required
@@ -5968,7 +5986,7 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', borderTop: '1px solid var(--border)', paddingTop: 14 }}>
                 <button
                   onClick={() => {
-                    const msg = `Hi ${selectedOrder.customer_name}! This is ${store?.store_name || 'aloaye merchant'} following up regarding your Order ${selectedOrder.order_number} totaling ₦${parseFloat(selectedOrder.total_amount as string).toLocaleString()}.`;
+                    const msg = `Hi ${selectedOrder.customer_name}! This is ${store?.store_name || 'aloaye merchant'} following up regarding your Order ${selectedOrder.order_number} totaling ${getCurrencySymbol(store?.currency_code)}${parseFloat(selectedOrder.total_amount as string).toLocaleString()}.`;
                     window.open(`https://wa.me/${selectedOrder.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
                   }}
                   className="btn btn-outline clickable"

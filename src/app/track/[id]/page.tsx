@@ -175,6 +175,8 @@ export default function OrderTrackingPage() {
     if (code === 'NGN') return '₦';
     if (code === 'GHS') return 'GH₵';
     if (code === 'KES') return 'KSh';
+    if (code === 'ZAR') return 'R';
+    if (code === 'USD') return '$';
     return code + ' ';
   };
 
