@@ -35,15 +35,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const { store } = data;
-  const title = `${store.store_name} | Shop on aloaye`;
+  const systemDomain = data.system_domain || 'aloaye.tech';
+  const appName = data.app_name || 'Aloaye';
+  const title = `${store.store_name} | Shop on ${appName}`;
   const description = store.store_bio || `Shop directly from ${store.store_name} on WhatsApp. Browse products and place orders instantly.`;
-  const logo = store.logo_url || 'https://aloaye.tech/icon.png';
-  const url = `https://aloaye.tech/${store.username}`;
+  const logo = store.logo_url || data.logo_url || `https://${systemDomain}/icon.png`;
+  const url = `https://${systemDomain}/${store.username}`;
 
   return {
     title,
     description,
-    keywords: [store.store_name, 'WhatsApp commerce', 'WhatsApp storefront', 'aloaye store', 'online shop', 'Africa e-commerce'],
+    keywords: [store.store_name, 'WhatsApp commerce', 'WhatsApp storefront', `${appName.toLowerCase()} store`, 'online shop', 'conversational commerce'],
     alternates: {
       canonical: url,
     },
@@ -51,7 +53,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       url,
-      siteName: 'aloaye',
+      siteName: appName,
       images: [
         {
           url: logo,
@@ -77,12 +79,13 @@ export default async function Page({ params }: PageProps) {
   const data = await getStoreData(username);
   
   // Inject Google Schema.org structured data (JSON-LD)
+  const systemDomain = data?.system_domain || 'aloaye.tech';
   const jsonLd = data && data.store ? {
     '@context': 'https://schema.org',
     '@type': 'Store',
     'name': data.store.store_name,
     'description': data.store.store_bio || undefined,
-    'url': `https://aloaye.tech/${data.store.username}`,
+    'url': `https://${systemDomain}/${data.store.username}`,
     'image': data.store.logo_url || undefined,
     'telephone': data.store.whatsapp_phone || undefined,
     'address': {

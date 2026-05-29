@@ -754,11 +754,11 @@ function CartDrawer({
 // ─── Checkout Drawer ──────────────────────────────────────────────────────────
 
 function CheckoutDrawer({
-  cart, store, currencySymbol, cartTotal, onClose, onBack, onOrderCreated, API_URL, uname
+  cart, store, currencySymbol, cartTotal, onClose, onBack, onOrderCreated, API_URL, uname, storeDisclaimer
 }: {
   cart: CartItem[]; store: Store; currencySymbol: string; cartTotal: number;
   onClose: () => void; onBack: () => void; onOrderCreated: (receipt: CreatedOrderReceipt) => void;
-  API_URL: string; uname: string;
+  API_URL: string; uname: string; storeDisclaimer: string;
 }) {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -841,6 +841,25 @@ function CheckoutDrawer({
           {error && (
             <div style={{ background: 'var(--danger-light)', color: 'var(--danger)', borderRadius: 'var(--r-md)', padding: 12, fontSize: 13, fontWeight: 600 }}>
               {error}
+            </div>
+          )}
+
+          {storeDisclaimer && (
+            <div style={{
+              background: 'rgba(245, 158, 11, 0.08)',
+              color: '#d97706',
+              borderRadius: 'var(--r-md)',
+              border: '1px solid rgba(245, 158, 11, 0.25)',
+              padding: '12px 16px',
+              fontSize: '13px',
+              fontWeight: 600,
+              display: 'flex',
+              gap: '10px',
+              alignItems: 'flex-start',
+              lineHeight: '1.4'
+            }}>
+              <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>{storeDisclaimer}</div>
             </div>
           )}
 
@@ -1102,7 +1121,7 @@ function StoreHeader({
 
 // ─── Store Footer ─────────────────────────────────────────────────────────────
 
-function StoreFooter({ store }: { store: Store }) {
+function StoreFooter({ store, systemDomain = 'aloaye.tech', appName = 'Aloaye' }: { store: Store; systemDomain?: string; appName?: string }) {
   return (
     <footer className="store-footer">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 600 }}>
@@ -1138,7 +1157,7 @@ function StoreFooter({ store }: { store: Store }) {
 
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
           <p style={{ fontSize: 11, color: 'var(--text-faint)' }}>
-            Powered by <a href="/" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>aloaye</a> · Africa&apos;s #1 WhatsApp Commerce Platform
+            Powered by <a href="/" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>{appName}</a> · Africa&apos;s #1 WhatsApp Commerce Platform
           </p>
           <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>© {new Date().getFullYear()} {store.store_name}. All rights reserved.</p>
         </div>
@@ -1162,6 +1181,10 @@ export default function StorefrontClient({ username }: { username: string }) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [systemDomain, setSystemDomain] = useState('aloaye.tech');
+  const [storeDisclaimer, setStoreDisclaimer] = useState('');
+  const [appName, setAppName] = useState('Aloaye');
+  const [logoUrl, setLogoUrl] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [pendingRemoveItem, setPendingRemoveItem] = useState<string | null>(null);
   const [isClearCartConfirmOpen, setIsClearCartConfirmOpen] = useState(false);
@@ -1180,6 +1203,10 @@ export default function StorefrontClient({ username }: { username: string }) {
         setStore(data.store);
         setCategories(data.categories ?? []);
         setProducts(data.products ?? []);
+        if (data.system_domain) setSystemDomain(data.system_domain);
+        if (data.store_disclaimer) setStoreDisclaimer(data.store_disclaimer);
+        if (data.app_name) setAppName(data.app_name);
+        if (data.logo_url) setLogoUrl(data.logo_url);
       } catch (e: any) {
         setError(e.message ?? 'Something went wrong');
       } finally {
@@ -1261,10 +1288,31 @@ export default function StorefrontClient({ username }: { username: string }) {
 
   return (
     <>
-      <title>{`${store.store_name} — Shop on aloaye`}</title>
+      <title>{`${store.store_name} — Shop on ${appName}`}</title>
       <div className={`public-store-page template-${templateId}`} data-template={templateId} style={{ ...pageStyle, paddingBottom: cartCount > 0 ? 90 : 32 }}>
 
         <StoreHeader store={store} productCount={products.length} categoryCount={categories.length} featuredProducts={products} currencySymbol={currencySymbol} />
+
+        {storeDisclaimer && (
+          <div className="storefront-shell" style={{ marginTop: 12, marginBottom: 4 }}>
+            <div style={{
+              background: 'rgba(245, 158, 11, 0.08)',
+              color: '#d97706',
+              borderRadius: 'var(--r-md)',
+              border: '1px solid rgba(245, 158, 11, 0.25)',
+              padding: '12px 16px',
+              fontSize: '13px',
+              fontWeight: 600,
+              display: 'flex',
+              gap: '10px',
+              alignItems: 'center',
+              lineHeight: '1.4'
+            }}>
+              <AlertCircle size={18} style={{ flexShrink: 0 }} />
+              <div>{storeDisclaimer}</div>
+            </div>
+          </div>
+        )}
 
         {/* Sticky search + categories */}
         <div className="sticky-bar">
@@ -1377,7 +1425,7 @@ export default function StorefrontClient({ username }: { username: string }) {
           )}
         </main>
 
-        <StoreFooter store={store} />
+        <StoreFooter store={store} systemDomain={systemDomain} appName={appName} />
 
         {/* Cart FAB */}
         {cartCount > 0 && (
@@ -1436,6 +1484,7 @@ export default function StorefrontClient({ username }: { username: string }) {
             }}
             API_URL={API_URL}
             uname={uname as string}
+            storeDisclaimer={storeDisclaimer}
           />
         )}
 

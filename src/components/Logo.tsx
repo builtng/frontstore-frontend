@@ -5,6 +5,7 @@ interface LogoProps {
   showText?: boolean;
   textColor?: string;
   className?: string;
+  text?: string;
 }
 
 export default function Logo({
@@ -12,6 +13,7 @@ export default function Logo({
   showText = true,
   textColor = 'var(--text)',
   className = '',
+  text = 'Aloaye',
 }: LogoProps) {
   return (
     <div 
@@ -86,7 +88,7 @@ export default function Logo({
             lineHeight: 1,
           }}
         >
-          Aloaye
+          {text}
         </span>
       )}
     </div>

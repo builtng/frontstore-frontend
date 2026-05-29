@@ -221,6 +221,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
   const [store, setStore] = useState<StoreInfo | null>(null);
+  const [systemDomain, setSystemDomain] = useState('aloaye.tech');
   const [apiUrl, setApiUrl] = useState('https://api.aloaye.tech/api');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
@@ -253,6 +254,9 @@ export default function DashboardPage() {
 
   // Mobile navigation overlay
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Billing Cycle state for Pro Subscription Plan
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   // WhatsApp Simulator Mobile view state ('list' showing contacts, 'chat' showing chat viewport)
   const [activeWaView, setActiveWaView] = useState<'list' | 'chat'>('list');
@@ -414,7 +418,7 @@ export default function DashboardPage() {
                 customer_name: 'Chioma Obi',
                 customer_phone: '+2348099887766',
                 customer_whatsapp: '+2348099887766',
-                customer_email: 'customer-chioma@aloaye.tech',
+                customer_email: `customer-chioma@${systemDomain}`,
                 delivery_method: 'pickup',
                 items: [
                   {
@@ -576,6 +580,9 @@ export default function DashboardPage() {
             setToken(storedToken);
             setUser(parsedUser);
 
+            const storedSystemDomain = localStorage.getItem('system_domain') || 'aloaye.tech';
+            setSystemDomain(storedSystemDomain);
+
             if (storedStore && storedStore !== 'undefined' && storedStore !== 'null') {
               const parsedStore = JSON.parse(storedStore);
               setStore(parsedStore);
@@ -696,6 +703,10 @@ export default function DashboardPage() {
             setStore(json.data.store);
             localStorage.setItem('store', JSON.stringify(json.data.store));
           }
+          if (json.system_domain) {
+            setSystemDomain(json.system_domain);
+            localStorage.setItem('system_domain', json.system_domain);
+          }
           toast.success('🎉 Payment verified! Your Pro plan is now active.');
           navigateDashboardTab('billing', true);
         } else {
@@ -790,6 +801,10 @@ export default function DashboardPage() {
         const liveStore = storeJson.data;
         setStore(liveStore);
         localStorage.setItem('store', JSON.stringify(liveStore));
+        if (storeJson.system_domain) {
+          setSystemDomain(storeJson.system_domain);
+          localStorage.setItem('system_domain', storeJson.system_domain);
+        }
         setSetStoreName(liveStore.store_name || '');
         setSetStoreBio(liveStore.store_bio || '');
         const parsedPhone = parsePhoneNumber(liveStore.whatsapp_phone || '');
@@ -1283,7 +1298,7 @@ export default function DashboardPage() {
         customer_name: 'Chioma Obi',
         customer_phone: '+2348099887766',
         customer_whatsapp: '+2348099887766',
-        customer_email: 'customer-chioma@aloaye.tech',
+        customer_email: `customer-chioma@${systemDomain}`,
         delivery_method: targetProduct.is_digital ? 'digital' : 'delivery',
         delivery_address: targetProduct.is_digital ? 'Digital Delivery' : 'No 15 Adeniran Ogunsanya St, Surulere, Lagos',
         items: [
@@ -1669,7 +1684,7 @@ export default function DashboardPage() {
   // --- Receipt view compiler ---
   const generateReceiptText = (order: Order) => {
     const divider = '===================================';
-    const storeHeader = `🏪 STORE: ${store?.store_name || 'aloaye merchant'}\nURL: aloaye.tech/${store?.username}\n`;
+    const storeHeader = `🏪 STORE: ${store?.store_name || 'aloaye merchant'}\nURL: ${systemDomain}/${store?.username}\n`;
     const orderHeader = `ORDER NO: ${order.order_number}\nDATE: ${new Date(order.created_at).toLocaleDateString()}\n`;
     const customer = `CUSTOMER: ${order.customer_name}\nPHONE: ${order.customer_phone}\nADDRESS: ${order.delivery_address || 'N/A'}\n`;
 
@@ -1685,7 +1700,7 @@ export default function DashboardPage() {
     }
 
     const total = `\nTOTAL PAID: ₦${parseFloat(order.total_amount as string).toLocaleString()}\nSTATUS: PAID & CONFIRMED\n`;
-    const footer = `\nThank you for shopping with us!\nPowered by aloaye.tech\n`;
+    const footer = `\nThank you for shopping with us!\nPowered by ${systemDomain}\n`;
 
     return `${divider}\n${storeHeader}${divider}\n${orderHeader}${customer}${divider}\nITEMS:\n${itemSummary}${divider}${total}${divider}${footer}${divider}`;
   };
@@ -2820,11 +2835,11 @@ export default function DashboardPage() {
                         <label style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Store URL</label>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
                           <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary-dark)', wordBreak: 'break-all' }}>
-                            {store?.custom_domain ? store.custom_domain : (store ? `aloaye.tech/${store.username}` : 'aloaye.tech')}
+                            {store?.custom_domain ? store.custom_domain : (store ? `${systemDomain}/${store.username}` : systemDomain)}
                           </span>
                           <button
                             onClick={() => {
-                              const storeUrl = store?.custom_domain ? `https://${store.custom_domain}` : `https://aloaye.tech/${store?.username}`;
+                              const storeUrl = store?.custom_domain ? `https://${store.custom_domain}` : `https://${systemDomain}/${store?.username}`;
                               navigator.clipboard.writeText(storeUrl);
                               toast.success('Store link copied! 📋');
                             }}
@@ -2839,7 +2854,7 @@ export default function DashboardPage() {
                       {/* WhatsApp share CTA */}
                       <button
                         onClick={() => {
-                          const url = store?.custom_domain ? `https://${store.custom_domain}` : `https://aloaye.tech/${store?.username}`;
+                          const url = store?.custom_domain ? `https://${store.custom_domain}` : `https://${systemDomain}/${store?.username}`;
                           const msg = encodeURIComponent(`🏪 Check out my digital store on Aloaye! Shop here: ${url}`);
                           window.open(`https://wa.me/?text=${msg}`, '_blank');
                         }}
@@ -2892,10 +2907,10 @@ export default function DashboardPage() {
                     <div style={{ background: 'var(--bg-2)', padding: 14, borderRadius: 'var(--r-lg)', border: '1px solid var(--border)' }}>
                       <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Your referral link</span>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>aloaye.tech/ref/{store?.username}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>{systemDomain}/ref/{store?.username}</span>
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(`https://aloaye.tech/ref/${store?.username}`);
+                            navigator.clipboard.writeText(`https://${systemDomain}/ref/${store?.username}`);
                             toast.success('Referral link copied! 💰');
                           }}
                           className="btn btn-outline clickable"
@@ -3747,7 +3762,7 @@ export default function DashboardPage() {
                           className="btn btn-primary clickable"
                           style={{ padding: '8px 20px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13 }}
                         >
-                          Upgrade to Pro (₦3,999/mo)
+                          Upgrade to Pro (₦1,500/mo)
                         </button>
                       </div>
                     )}
@@ -3850,23 +3865,23 @@ export default function DashboardPage() {
                             </p>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
-                                <span>ns1.aloaye.tech</span>
+                                <span>ns1.{systemDomain}</span>
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    navigator.clipboard.writeText('ns1.aloaye.tech');
-                                    toast.success('Copied ns1.aloaye.tech');
+                                    navigator.clipboard.writeText(`ns1.${systemDomain}`);
+                                    toast.success(`Copied ns1.${systemDomain}`);
                                   }}
                                   style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
                                 >Copy</button>
                               </div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
-                                <span>ns2.aloaye.tech</span>
+                                <span>ns2.{systemDomain}</span>
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    navigator.clipboard.writeText('ns2.aloaye.tech');
-                                    toast.success('Copied ns2.aloaye.tech');
+                                    navigator.clipboard.writeText(`ns2.${systemDomain}`);
+                                    toast.success(`Copied ns2.${systemDomain}`);
                                   }}
                                   style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
                                 >Copy</button>
@@ -4590,6 +4605,10 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
+                          <span><strong>4% transaction fee</strong> per completed order</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="var(--primary)" />
                           <span>Limit of 3 products total</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
@@ -4656,7 +4675,7 @@ export default function DashboardPage() {
                           fontSize: 10, fontWeight: 900, padding: '4px 10px',
                           borderRadius: 'var(--r-full)', textTransform: 'uppercase', letterSpacing: '0.05em',
                           display: 'flex', alignItems: 'center', gap: 4
-                        }}><Sparkles size={8} /> Active Pro</span>
+                        }}><Sparkles size={8} /> Active Pro ({user?.plan === 'pro_yearly' ? 'Yearly' : 'Monthly'})</span>
                       )}
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -4665,12 +4684,87 @@ export default function DashboardPage() {
                       </div>
                       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Unlock full branding, SEO features, and ChatGPT AI.</p>
 
-                      <div style={{ marginTop: 20, marginBottom: 24 }}>
-                        <span style={{ fontSize: 28, fontWeight: 900, color: '#d97706', fontFamily: 'var(--font-heading)' }}>₦3,999</span>
-                        <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}> / month</span>
+                      {/* Billing Cycle Toggle */}
+                      <div style={{
+                        display: 'flex',
+                        background: 'var(--bg-2)',
+                        padding: 4,
+                        borderRadius: 'var(--r-md)',
+                        marginTop: 16,
+                        marginBottom: 4,
+                        border: '1px solid var(--border)',
+                        width: 'fit-content'
+                      }}>
+                        <button
+                          type="button"
+                          onClick={() => setBillingCycle('monthly')}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: 'var(--r-sm)',
+                            border: 'none',
+                            background: billingCycle === 'monthly' ? 'var(--surface)' : 'transparent',
+                            color: billingCycle === 'monthly' ? 'var(--text)' : 'var(--text-muted)',
+                            fontWeight: 700,
+                            fontSize: 12,
+                            cursor: 'pointer',
+                            boxShadow: billingCycle === 'monthly' ? 'var(--shadow-sm)' : 'none',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          Monthly
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBillingCycle('yearly')}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: 'var(--r-sm)',
+                            border: 'none',
+                            background: billingCycle === 'yearly' ? 'var(--surface)' : 'transparent',
+                            color: billingCycle === 'yearly' ? 'var(--text)' : 'var(--text-muted)',
+                            fontWeight: 700,
+                            fontSize: 12,
+                            cursor: 'pointer',
+                            boxShadow: billingCycle === 'yearly' ? 'var(--shadow-sm)' : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          Yearly
+                          <span style={{
+                            background: '#dcfce7',
+                            color: '#15803d',
+                            fontSize: 9,
+                            fontWeight: 900,
+                            padding: '1px 5px',
+                            borderRadius: 4
+                          }}>
+                            Save 17%
+                          </span>
+                        </button>
+                      </div>
+
+                      <div style={{ marginTop: 16, marginBottom: 20 }}>
+                        <span style={{ fontSize: 28, fontWeight: 900, color: '#d97706', fontFamily: 'var(--font-heading)' }}>
+                          {billingCycle === 'monthly' ? '₦1,500' : '₦15,000'}
+                        </span>
+                        <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+                          {billingCycle === 'monthly' ? ' / month' : ' / year'}
+                        </span>
+                        {billingCycle === 'yearly' && (
+                          <div style={{ fontSize: 11.5, color: '#16a34a', fontWeight: 700, marginTop: 4 }}>
+                            equivalent to ₦1,250 / month (billed annually)
+                          </div>
+                        )}
                       </div>
  
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="#d97706" />
+                          <span><strong>1.5% transaction fee</strong> on sales</span>
+                        </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
                           <span><strong>Unlimited products</strong> (unlimited listings)</span>
@@ -4697,7 +4791,7 @@ export default function DashboardPage() {
                         <button
                           type="button"
                           disabled={(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') || isInitializingPayment}
-                          onClick={() => handleUpgradePlan('pro_monthly')}
+                          onClick={() => handleUpgradePlan(billingCycle === 'monthly' ? 'pro_monthly' : 'pro_yearly')}
                           className={`btn clickable`}
                           style={{
                             padding: 12,
@@ -4710,7 +4804,13 @@ export default function DashboardPage() {
                           }}
                         >
                           {isInitializingPayment ? <Loader2 size={14} className="spinner" /> : null}
-                          {(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') ? '✓ Active Plan' : isInitializingPayment ? 'Redirecting...' : 'Go Pro Monthly'}
+                          {(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly')
+                            ? `✓ Active Plan (${user?.plan === 'pro_yearly' ? 'Yearly' : 'Monthly'})`
+                            : isInitializingPayment
+                              ? 'Redirecting...'
+                              : billingCycle === 'monthly'
+                                ? 'Go Pro Monthly'
+                                : 'Go Pro Yearly'}
                         </button>
                       </div>
                     </div>

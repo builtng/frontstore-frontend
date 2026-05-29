@@ -106,12 +106,16 @@ const getFeatureIcon = (title: string, color: string) => {
   }
 };
 
-export default function HomePageClient() {
+export default function HomePageClient({ initialSettings }: { initialSettings?: any }) {
   const [username, setUsername] = useState('');
   const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'error' | 'success' | null>(null);
   const [mounted, setMounted] = useState(false);
+  
+  const [appName, setAppName] = useState(initialSettings?.app_name || 'Aloaye');
+  const [logoUrl, setLogoUrl] = useState(initialSettings?.logo_url || '');
+  const [systemDomain, setSystemDomain] = useState(initialSettings?.system_domain || 'aloaye.tech');
   
   // Demo modal state variables
   const [showDemoModal, setShowDemoModal] = useState(false);
@@ -144,6 +148,21 @@ export default function HomePageClient() {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (!initialSettings) {
+      fetch(`${API_URL}/v1/public/settings`)
+        .then(res => res.json())
+        .then(json => {
+          if (json.data) {
+            if (json.data.app_name) setAppName(json.data.app_name);
+            if (json.data.logo_url) setLogoUrl(json.data.logo_url);
+            if (json.data.system_domain) setSystemDomain(json.data.system_domain);
+          }
+        })
+        .catch(err => console.error('Failed to fetch public settings:', err));
+    }
+  }, [initialSettings, API_URL]);
+
   const handleClaim = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || checking) return;
@@ -168,10 +187,10 @@ export default function HomePageClient() {
       const res = await fetch(`${API_URL}/v1/public/store/${clean}`);
 
       if (res.ok) {
-        setMessage(`Sorry — aloaye.tech/${clean} is already taken.`);
+        setMessage(`Sorry — ${systemDomain}/${clean} is already taken.`);
         setMessageType('error');
       } else if (res.status === 404) {
-        setMessage(`🎉 aloaye.tech/${clean} is available!`);
+        setMessage(`🎉 ${systemDomain}/${clean} is available!`);
         setMessageType('success');
         setTimeout(() => {
           window.location.href = `/signup?username=${clean}`;
@@ -202,7 +221,7 @@ export default function HomePageClient() {
           borderBottom: '1px solid var(--border)',
         }}
       >
-        <Logo size={24} textColor="var(--primary)" />
+        <Logo size={24} textColor="var(--primary)" text={appName} />
 
         <div className="home-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <ThemeToggle />
@@ -374,7 +393,7 @@ export default function HomePageClient() {
 
               {mounted && (
                 <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-                  Your store will be at <strong style={{ color: 'var(--text-muted)' }}>aloaye.tech/yourname</strong>
+                  Your store will be at <strong style={{ color: 'var(--text-muted)' }}>{systemDomain}/yourname</strong>
                 </p>
               )}
             </form>
@@ -942,9 +961,9 @@ export default function HomePageClient() {
         justifyContent: 'space-between',
         alignItems: 'center',
       }}>
-        <Logo size={20} textColor="var(--primary)" />
+        <Logo size={20} textColor="var(--primary)" text={appName} />
         <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-          © {new Date().getFullYear()} Aloaye. Conversational Commerce Platform.
+          © {new Date().getFullYear()} {appName}. Conversational Commerce Platform.
         </p>
         <div style={{ display: 'flex', gap: 16 }}>
           <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>
