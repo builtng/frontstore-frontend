@@ -2410,6 +2410,13 @@ export default function DashboardPage() {
                             <span className={`badge ${prod.stock_status === 'in_stock' ? 'badge-primary' : 'badge-danger'}`} style={{ position: 'absolute', top: 10, left: 10, fontSize: 9 }}>
                               {prod.stock_status === 'in_stock' ? 'In Stock' : 'Out of Stock'}
                             </span>
+
+                            {/* AI Image badge */}
+                            {prod.image_urls?.[0] && (prod.image_urls[0].includes('/products/ai_') || prod.image_urls[0].includes('/ai_') || prod.image_urls[0].includes('products/ai_')) && (
+                              <span className="badge" style={{ position: 'absolute', top: 10, right: 10, fontSize: 9, background: 'rgba(15, 23, 42, 0.65)', color: '#fff', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}>
+                                ✨ AI Image
+                              </span>
+                            )}
                           </div>
 
                           {/* Info */}

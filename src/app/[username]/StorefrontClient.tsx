@@ -139,6 +139,11 @@ function buildCartWAMsg(store: Store, cart: CartItem[], total: number, symbol: s
   return `Hi ${store.store_name}! 👋\n\nI'd like to place an order:\n\n${lines}\n\n*Total: ${fmt(total, symbol)}*\n\nPlease confirm and share delivery details. Thank you!`;
 }
 
+function isAiGeneratedImage(url?: string | null): boolean {
+  if (!url) return false;
+  return url.includes('/products/ai_') || url.includes('/ai_') || url.includes('products/ai_');
+}
+
 // ─── Confirmation Modal ───────────────────────────────────────────────────────
 
 function ConfirmationModal({
@@ -429,6 +434,33 @@ function ProductCard({
           </div>
         )}
 
+        {/* AI Generated badge */}
+        {hasImage && isAiGeneratedImage(product.image_urls![0]) && (
+          <div style={{
+            position: 'absolute',
+            bottom: 8,
+            right: 8,
+            zIndex: 3,
+            background: 'rgba(15, 23, 42, 0.65)',
+            color: '#fff',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            fontSize: 9,
+            fontWeight: 800,
+            padding: '3px 8px',
+            borderRadius: 'var(--r-sm)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+          }}>
+            <span>✨ AI Generated</span>
+          </div>
+        )}
+
         {/* Share button */}
         <button
           className="product-card__share"
@@ -528,6 +560,31 @@ function ProductDetailDrawer({
         {images.length > 0 ? (
           <div className="product-detail__carousel" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
             <img src={images[imgIdx]} alt={`${product.name} - image ${imgIdx + 1}`} />
+            {isAiGeneratedImage(images[imgIdx]) && (
+              <div style={{
+                position: 'absolute',
+                top: 12,
+                left: 12,
+                zIndex: 3,
+                background: 'rgba(15, 23, 42, 0.65)',
+                color: '#fff',
+                backdropFilter: 'blur(6px)',
+                WebkitBackdropFilter: 'blur(6px)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
+                fontSize: 9,
+                fontWeight: 800,
+                padding: '4px 10px',
+                borderRadius: 'var(--r-sm)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+              }}>
+                <span>✨ AI Generated Image</span>
+              </div>
+            )}
             {images.length > 1 && (
               <>
                 <div className="carousel-dots">
@@ -590,6 +647,26 @@ function ProductDetailDrawer({
             <div style={{ marginBottom: 18 }}>
               <p className="product-detail__desc-label">About this product</p>
               <p className="product-detail__desc">{product.description}</p>
+            </div>
+          )}
+
+          {/* AI generated image disclaimer */}
+          {images.some(url => isAiGeneratedImage(url)) && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 8,
+              padding: '10px 12px',
+              background: 'var(--surface-2)',
+              border: '1px dashed var(--border-strong)',
+              borderRadius: 'var(--r-md)',
+              marginBottom: 18,
+              fontSize: 12,
+              color: 'var(--text-muted)',
+              lineHeight: 1.4
+            }}>
+              <AlertCircle size={14} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: 1 }} />
+              <span>Note: One or more product images are AI-generated to showcase the item contextually.</span>
             </div>
           )}
 
@@ -990,8 +1067,7 @@ function StoreHeader({
 
           <div className="store-header__title-block">
             <div className="store-header__eyebrow">
-              <span>{template.name}</span>
-              {store.is_pro && <span>Premium merchant</span>}
+              {store.is_pro ? <span>Premium merchant</span> : <span>Storefront</span>}
             </div>
 
             <div className="store-header__name-row">
@@ -1122,6 +1198,9 @@ function StoreHeader({
 // ─── Store Footer ─────────────────────────────────────────────────────────────
 
 function StoreFooter({ store, systemDomain = 'aloaye.tech', appName = 'Aloaye' }: { store: Store; systemDomain?: string; appName?: string }) {
+  const templateId = getTemplateId(store);
+  const template = STORE_TEMPLATES[templateId];
+
   return (
     <footer className="store-footer">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 600 }}>
@@ -1157,7 +1236,7 @@ function StoreFooter({ store, systemDomain = 'aloaye.tech', appName = 'Aloaye' }
 
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
           <p style={{ fontSize: 11, color: 'var(--text-faint)' }}>
-            Powered by <a href="/" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>{appName}</a> · Africa&apos;s #1 WhatsApp Commerce Platform
+            Powered by <a href="/" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>{appName}</a> · Africa&apos;s #1 WhatsApp Commerce Platform · Template: <strong>{template.name}</strong>
           </p>
           <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>© {new Date().getFullYear()} {store.store_name}. All rights reserved.</p>
         </div>
