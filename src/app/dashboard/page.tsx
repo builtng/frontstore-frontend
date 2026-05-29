@@ -1002,7 +1002,7 @@ export default function DashboardPage() {
     } catch (e: any) {
       console.error(e);
       // Fallback description in case of server failure
-      const fallback = `✨ Premium quality ${prodName}.\n\n🔥 Handcrafted design, breathable materials, perfect for all occasions.\n🇳🇬 Handcrafted local inventory. Available now!`;
+      const fallback = `Premium quality ${prodName}.\n\nHandcrafted design, breathable materials, perfect for all occasions.\nHandcrafted local inventory. Available now!`;
       setProdDesc(fallback);
       toast.info('Loaded visual fallback description outline.');
     } finally {
