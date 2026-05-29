@@ -179,11 +179,36 @@ function OrderReceiptModal({
   onContinue: () => void; onClose: () => void;
 }) {
   const trackUrl = `/track/${receipt.order.id}`;
+  const [isPaying, setIsPaying] = useState(false);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
   const copyTrackingLink = async () => {
     const absoluteUrl = `${window.location.origin}${trackUrl}`;
     await navigator.clipboard.writeText(absoluteUrl);
     toast.success('Tracking link copied');
+  };
+
+  const handlePayNow = async () => {
+    try {
+      setIsPaying(true);
+      const res = await fetch(`${API_URL}/v1/public/orders/${receipt.order.id}/initialize-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to initialize payment.');
+      }
+      if (json.data && json.data.authorization_url) {
+        window.location.href = json.data.authorization_url;
+      } else {
+        throw new Error('Invalid payment response.');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Payment initialization failed.');
+    } finally {
+      setIsPaying(false);
+    }
   };
 
   return (
@@ -268,6 +293,31 @@ function OrderReceiptModal({
             <Copy size={16} />
           </button>
         </div>
+
+        {receipt.order.payment_status === 'unpaid' && (
+          <button
+            type="button"
+            onClick={handlePayNow}
+            disabled={isPaying}
+            className="btn btn-primary clickable"
+            style={{
+              width: '100%',
+              padding: '14px 18px',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              backgroundColor: 'var(--primary)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 'var(--r-lg)',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+            }}
+          >
+            {isPaying ? 'Initializing payment...' : `Pay Online Now (${fmt(receipt.order.total_amount, currencySymbol)})`}
+          </button>
+        )}
 
         <button type="button" onClick={onContinue} className="btn btn-whatsapp clickable" style={{ width: '100%', padding: '15px 18px', fontWeight: 800 }}>
           <WhatsAppIcon size={20} />

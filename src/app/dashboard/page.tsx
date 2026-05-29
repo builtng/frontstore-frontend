@@ -56,6 +56,9 @@ interface StoreInfo {
   primary_color?: string | null;
   store_template?: string | null;
   is_pro?: boolean;
+  verification_status?: string | null;
+  verification_document_type?: string | null;
+  verification_document_url?: string | null;
 }
 
 interface Category {
@@ -123,9 +126,9 @@ interface DashboardStats {
   };
 }
 
-type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'templates' | 'settings' | 'billing';
+type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'templates' | 'settings' | 'billing' | 'wallet';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'templates', 'settings', 'billing'];
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'templates', 'settings', 'billing', 'wallet'];
 
 const getDashboardTabFromUrl = (): DashboardTab => {
   if (typeof window === 'undefined') return 'overview';
@@ -228,6 +231,21 @@ export default function DashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+
+  // Wallet and Payouts States
+  const [walletBalances, setWalletBalances] = useState({
+    withdrawable_balance: 0,
+    pending_balance: 0,
+    bank_name: '',
+    bank_account_number: '',
+    bank_account_name: '',
+    bank_account_verified: false
+  });
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [withdrawalAmount, setWithdrawalAmount] = useState('');
+  const [withdrawalSubmitting, setWithdrawalSubmitting] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
   // Loading states
   const [dataLoading, setDataLoading] = useState(false);
@@ -369,6 +387,104 @@ export default function DashboardPage() {
   const [waCustomText, setWaCustomText] = useState('');
   const [waChatLabels, setWaChatLabels] = useState(['High intent buyer', 'Negotiation active']);
   const [waCloseSaleLoading, setWaCloseSaleLoading] = useState(false);
+  const [waAiAutopilot, setWaAiAutopilot] = useState(true);
+  const [waSelectedProduct, setWaSelectedProduct] = useState<Product | null>(null);
+
+  const simulateBuyerMessage = async (msgText: string) => {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setWaMessages(prev => [...prev, { sender: 'buyer', text: msgText, time }]);
+    
+    if (waAiAutopilot) {
+      // Find matching product in catalog
+      const match = products.find(p => msgText.toLowerCase().includes(p.name.toLowerCase()) || 
+                                       p.name.toLowerCase().split(' ').some(w => w.length > 3 && msgText.toLowerCase().includes(w)));
+                                       
+      if (match) {
+        setWaSelectedProduct(match);
+        const inStock = match.stock_status === 'in_stock';
+        if (inStock) {
+          setWaChatLabels(['AI Responding...']);
+          
+          try {
+            // Create a real order on the backend via the public storefront API
+            const orderRes = await fetch(`${apiUrl}/v1/public/store/${store?.username}/orders`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                customer_name: 'Chioma Obi',
+                customer_phone: '+2348099887766',
+                customer_whatsapp: '+2348099887766',
+                customer_email: 'customer-chioma@aloaye.tech',
+                delivery_method: 'pickup',
+                items: [
+                  {
+                    product_id: match.id,
+                    quantity: 1
+                  }
+                ]
+              })
+            });
+            
+            const orderJson = await orderRes.json();
+            if (!orderRes.ok) {
+              throw new Error(orderJson.message || 'Failed to create real order');
+            }
+            
+            const order = orderJson.data.order;
+            
+            // Initialize payment via API to get real Paystack link
+            const payRes = await fetch(`${apiUrl}/v1/public/orders/${order.id}/initialize-payment`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const payJson = await payRes.json();
+            if (!payRes.ok) {
+              throw new Error(payJson.message || 'Failed to initialize payment');
+            }
+            
+            const payLink = payJson.data.authorization_url;
+            const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            setWaMessages(prev => [...prev, {
+              sender: 'merchant',
+              text: `🤖 *AI Auto-responder*:\nYes! *${match.name}* is in stock! 🛍️\n\nPrice: ₦${formatVal(match.price)}\n\nYou can pay securely via Paystack on WhatsApp here:\n${payLink}\n\nOnce paid, your receipt will generate automatically!`,
+              time: replyTime
+            }]);
+            setWaChatLabels(['AI Responded', 'Payment link sent']);
+            
+            // Refresh order list on dashboard
+            loadAllData(true);
+          } catch (err: any) {
+            console.error('Simulator AI Autopilot error:', err);
+            const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            setWaMessages(prev => [...prev, {
+              sender: 'merchant',
+              text: `🤖 *AI Auto-responder*:\nYes! *${match.name}* is in stock! 🛍️\n\nPrice: ₦${formatVal(match.price)}\n\nYou can pay securely via Paystack on WhatsApp here:\nhttps://checkout.paystack.com/alo-simulated-link\n\nOnce paid, your receipt will generate automatically!`,
+              time: replyTime
+            }]);
+            setWaChatLabels(['AI Responded', 'Payment link sent (mock)']);
+          }
+        } else {
+          const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          setWaMessages(prev => [...prev, {
+            sender: 'merchant',
+            text: `🤖 *AI Auto-responder*:\nThanks for asking! Unfortunately, *${match.name}* is currently out of stock. ✕`,
+            time: replyTime
+          }]);
+          setWaChatLabels(['AI Responded', 'Out of stock']);
+        }
+      } else {
+        const replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setWaMessages(prev => [...prev, {
+          sender: 'merchant',
+          text: `🤖 *AI Auto-responder*:\nWelcome! I can check if any of our items are in stock. Please specify the name of the product you are interested in!`,
+          time: replyTime
+        }]);
+        setWaChatLabels(['AI Responded']);
+      }
+    }
+  };
 
   // Sample stock images for products
   const STOCK_IMAGE_OPTIONS = [
@@ -710,6 +826,133 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated, apiUrl]);
 
+  // Verification states
+  const [verificationDocType, setVerificationDocType] = useState('national_id');
+  const [verificationDocUrl, setVerificationDocUrl] = useState('');
+  const [verificationUploading, setVerificationUploading] = useState(false);
+  const [isSubmittingVerification, setIsSubmittingVerification] = useState(false);
+
+  const fetchWalletData = async () => {
+    if (!token) return;
+    try {
+      setWalletLoading(true);
+      const res = await fetch(`${apiUrl}/v1/store/wallet`, {
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (res.ok && json.data) {
+        setWalletBalances({
+          withdrawable_balance: json.data.withdrawable_balance,
+          pending_balance: json.data.pending_balance,
+          bank_name: json.data.bank_name || '',
+          bank_account_number: json.data.bank_account_number || '',
+          bank_account_name: json.data.bank_account_name || '',
+          bank_account_verified: !!json.data.bank_account_verified
+        });
+        setWithdrawals(json.data.withdrawals || []);
+      }
+    } catch (e) {
+      toast.error('Failed to load wallet information.');
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && activeTab === 'wallet') {
+      fetchWalletData();
+    }
+  }, [isAuthenticated, activeTab]);
+
+  const handleRequestWithdrawal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = parseFloat(withdrawalAmount);
+    if (isNaN(amt) || amt <= 0) {
+      toast.warning('Please enter a valid amount.');
+      return;
+    }
+    if (amt > walletBalances.withdrawable_balance) {
+      toast.error('Amount exceeds your withdrawable balance.');
+      return;
+    }
+    try {
+      setWithdrawalSubmitting(true);
+      const res = await fetch(`${apiUrl}/v1/store/withdraw`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ amount: amt })
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success(json.message || 'Withdrawal request submitted.');
+        setWithdrawalAmount('');
+        setIsWithdrawModalOpen(false);
+        fetchWalletData();
+        loadAllData(true);
+      } else {
+        toast.error(json.message || 'Failed to submit withdrawal request.');
+      }
+    } catch {
+      toast.error('Network error. Please try again.');
+    } finally {
+      setWithdrawalSubmitting(false);
+    }
+  };
+
+  const handleUploadVerificationDoc = async (file: File) => {
+    try {
+      setVerificationUploading(true);
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+        body: formData
+      });
+      const json = await res.json();
+      if (res.ok && json.url) {
+        setVerificationDocUrl(json.url);
+        toast.success('Document uploaded successfully! 📄');
+      } else {
+        throw new Error(json.message || 'Upload failed');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Document upload error');
+    } finally {
+      setVerificationUploading(false);
+    }
+  };
+
+  const handleSubmitVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verificationDocUrl) {
+      toast.warning('Please upload a document first.');
+      return;
+    }
+    try {
+      setIsSubmittingVerification(true);
+      const res = await fetch(`${apiUrl}/v1/store/verify-request`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          document_type: verificationDocType,
+          document_url: verificationDocUrl
+        })
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success(json.message || 'Verification request submitted.');
+        loadAllData(true);
+      } else {
+        toast.error(json.message || 'Failed to submit request.');
+      }
+    } catch {
+      toast.error('Network error. Please try again.');
+    } finally {
+      setIsSubmittingVerification(false);
+    }
+  };
+
   // --- AI Command Bar Submit handler ---
   const handleAiCommandSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -772,6 +1015,15 @@ export default function DashboardPage() {
 
   // --- Add / Edit Product CRUD Handlers ---
   const openAddProductModal = () => {
+    if (!isPro && products.length >= 3) {
+      toast.error('Free plan stores are limited to a maximum of 3 products. Please upgrade to Pro for unlimited products!', {
+        action: {
+          label: 'Upgrade',
+          onClick: () => navigateDashboardTab('billing')
+        }
+      });
+      return;
+    }
     setProdName('');
     setProdPrice('');
     setProdComparePrice('');
@@ -1020,20 +1272,29 @@ export default function DashboardPage() {
   const handleWaCloseSale = async () => {
     try {
       setWaCloseSaleLoading(true);
-      const nextOrderNo = 'ALO-INV' + Math.floor(Math.random() * 89000 + 10000);
+      
+      const targetProduct = waSelectedProduct || products[0];
+      if (!targetProduct) {
+        toast.error('Please add a product to your catalog first.');
+        return;
+      }
 
       const payload = {
         customer_name: 'Chioma Obi',
         customer_phone: '+2348099887766',
         customer_whatsapp: '+2348099887766',
-        delivery_method: 'delivery',
-        delivery_address: 'No 15 Adeniran Ogunsanya St, Surulere, Lagos',
-        total_amount: 11000.00,
-        payment_status: 'unpaid',
-        order_status: 'pending'
+        customer_email: 'customer-chioma@aloaye.tech',
+        delivery_method: targetProduct.is_digital ? 'digital' : 'delivery',
+        delivery_address: targetProduct.is_digital ? 'Digital Delivery' : 'No 15 Adeniran Ogunsanya St, Surulere, Lagos',
+        items: [
+          {
+            product_id: targetProduct.id,
+            quantity: 1
+          }
+        ]
       };
 
-      // We hit the public storefront route to create order or mock it
+      // We hit the public storefront route to create order
       const res = await fetch(`${apiUrl}/v1/public/store/${store?.username}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1042,7 +1303,26 @@ export default function DashboardPage() {
 
       const json = await res.json();
       if (res.ok) {
-        toast.success(`Invoice created! Real Order #${json.data?.order_number || nextOrderNo} added.`);
+        const order = json.data?.order || json.data;
+        const total = order?.total_amount || targetProduct.price;
+        const orderNo = order?.order_number || ('ALO-INV' + Math.floor(Math.random() * 89000 + 10000));
+        
+        toast.success(`Invoice created! Real Order #${orderNo} added.`);
+
+        // Initialize payment via API to get real Paystack link
+        let payLink = '';
+        try {
+          const payRes = await fetch(`${apiUrl}/v1/public/orders/${order.id}/initialize-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          const payJson = await payRes.json();
+          if (payRes.ok && payJson.data?.authorization_url) {
+            payLink = payJson.data.authorization_url;
+          }
+        } catch (payErr) {
+          console.error('Failed to initialize payment for invoice:', payErr);
+        }
 
         // Post update message inside chat log
         const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1050,7 +1330,7 @@ export default function DashboardPage() {
           ...prev,
           {
             sender: 'merchant',
-            text: `🧾 Invoice Created! Order #${json.data?.order_number || nextOrderNo} total ₦11,000. Ready for delivery to Surulere, Lagos.`,
+            text: `🧾 Invoice Created! Order #${orderNo} total ₦${formatVal(total)}.\n\n💳 Paystack Payment Link:\n${payLink || 'https://checkout.paystack.com/alo-simulated-link'}`,
             time: timeNow
           }
         ]);
@@ -1555,7 +1835,8 @@ export default function DashboardPage() {
             { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
             { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
             { id: 'products', label: 'Products', icon: <Package size={18} /> },
-            // { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} />, badge: 1 },
+            { id: 'wallet', label: 'Payouts & Wallet', icon: <DollarSign size={18} /> },
+            { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} />, badge: 1 },
             { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
             { id: 'templates', label: 'Templates', icon: <Sparkles size={18} /> },
             { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
@@ -2304,7 +2585,7 @@ export default function DashboardPage() {
               )}
 
               {/* ── TAB 4: WHATSAPP CHAT SIMULATOR (DEV ONLY) ── */}
-              {false && activeTab === 'whatsapp' && (
+              {activeTab === 'whatsapp' && (
                 <div className="card animate-fade-in whatsapp-chat-shell" style={{ padding: 0, height: 'calc(100vh - 160px)', display: 'flex', overflow: 'hidden' }}>
 
                   {/* Left Chats Sidebar */}
@@ -2454,6 +2735,40 @@ export default function DashboardPage() {
                         </button>
                       </div>
                     )}
+
+                    {/* Quick Simulation controls & AI Autopilot Toggle */}
+                    <div style={{ padding: '8px 16px', background: 'var(--bg-2)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Simulate Buyer:</span>
+                        {products.length > 0 ? (
+                          products.slice(0, 3).map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => simulateBuyerMessage(`Hi! Is the ${p.name} in stock?`)}
+                              className="btn btn-outline clickable"
+                              style={{ padding: '4px 8px', fontSize: 10.5, borderRadius: 4 }}
+                            >
+                              "Is {p.name.split(' ').slice(0, 2).join(' ')} in stock?"
+                            </button>
+                          ))
+                        ) : (
+                          <span style={{ fontSize: 11, color: 'var(--danger)', fontWeight: 600, marginLeft: 4 }}>
+                            ⚠️ Add products to your catalog to simulate queries
+                          </span>
+                        )}
+                      </div>
+
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11.5, fontWeight: 700, color: 'var(--primary)' }}>
+                        <input
+                          type="checkbox"
+                          checked={waAiAutopilot}
+                          onChange={e => setWaAiAutopilot(e.target.checked)}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        🤖 AI Agent Autopilot
+                      </label>
+                    </div>
 
                     {/* Chat Box Input area */}
                     <div style={{ padding: 16, borderTop: '1px solid var(--border)', display: 'flex', gap: 10 }}>
@@ -4275,6 +4590,10 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
+                          <span>Limit of 3 products total</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="var(--primary)" />
                           <span>Unlimited WhatsApp orders</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
@@ -4346,22 +4665,15 @@ export default function DashboardPage() {
                       </div>
                       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Unlock full branding, SEO features, and ChatGPT AI.</p>
 
-                      <div style={{ marginTop: 20, marginBottom: 24, display: 'flex', gap: 24 }}>
-                        <div>
-                          <span style={{ fontSize: 28, fontWeight: 900, color: '#d97706', fontFamily: 'var(--font-heading)' }}>₦3,999</span>
-                          <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}> / month</span>
-                        </div>
-                        <div style={{ borderLeft: '1px solid var(--border)', paddingLeft: 24 }}>
-                          <span style={{ fontSize: 28, fontWeight: 900, color: '#b45309', fontFamily: 'var(--font-heading)' }}>₦39,900</span>
-                          <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}> / year</span>
-                          <span style={{ display: 'block', fontSize: 10, color: '#16a34a', fontWeight: 800, marginTop: 2 }}>SAVE ~₦8,000 (17%)</span>
-                        </div>
+                      <div style={{ marginTop: 20, marginBottom: 24 }}>
+                        <span style={{ fontSize: 28, fontWeight: 900, color: '#d97706', fontFamily: 'var(--font-heading)' }}>₦3,999</span>
+                        <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}> / month</span>
                       </div>
-
+ 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
-                          <span>Everything in Free, plus:</span>
+                          <span><strong>Unlimited products</strong> (unlimited listings)</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
@@ -4380,48 +4692,267 @@ export default function DashboardPage() {
                           <span>Priority support &amp; instant feature updates</span>
                         </div>
                       </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 24 }}>
+ 
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginTop: 24 }}>
                         <button
                           type="button"
-                          disabled={user?.plan === 'pro_monthly' || isInitializingPayment}
+                          disabled={(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') || isInitializingPayment}
                           onClick={() => handleUpgradePlan('pro_monthly')}
                           className={`btn clickable`}
                           style={{
                             padding: 12,
-                            background: user?.plan === 'pro_monthly' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'none',
+                            background: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'none',
                             border: '1.5px solid #d97706',
-                            color: user?.plan === 'pro_monthly' ? '#fff' : '#d97706',
+                            color: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') ? '#fff' : '#d97706',
                             fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13,
-                            opacity: (user?.plan === 'pro_monthly' || isInitializingPayment) ? 0.7 : 1,
+                            opacity: ((user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') || isInitializingPayment) ? 0.7 : 1,
                             display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center',
                           }}
                         >
                           {isInitializingPayment ? <Loader2 size={14} className="spinner" /> : null}
-                          {user?.plan === 'pro_monthly' ? '✓ Active Monthly' : isInitializingPayment ? 'Redirecting...' : 'Go Pro Monthly'}
-                        </button>
-                        <button
-                          type="button"
-                          disabled={user?.plan === 'pro_yearly' || isInitializingPayment}
-                          onClick={() => handleUpgradePlan('pro_yearly')}
-                          className={`btn clickable`}
-                          style={{
-                            padding: 12,
-                            background: user?.plan === 'pro_yearly' ? 'linear-gradient(135deg, #b45309 0%, #78350f 100%)' : 'none',
-                            border: '1.5px solid #b45309',
-                            color: user?.plan === 'pro_yearly' ? '#fff' : '#b45309',
-                            fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13,
-                            opacity: (user?.plan === 'pro_yearly' || isInitializingPayment) ? 0.7 : 1,
-                            display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center',
-                          }}
-                        >
-                          {isInitializingPayment ? <Loader2 size={14} className="spinner" /> : null}
-                          {user?.plan === 'pro_yearly' ? '✓ Active Yearly' : isInitializingPayment ? 'Redirecting...' : 'Go Pro Yearly'}
+                          {(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') ? '✓ Active Plan' : isInitializingPayment ? 'Redirecting...' : 'Go Pro Monthly'}
                         </button>
                       </div>
                     </div>
 
                   </div>
+
+                </div>
+              )}
+
+              {/* ── TAB 8: WALLET & PAYOUTS ── */}
+              {activeTab === 'wallet' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  
+                  {/* Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 'var(--r-md)',
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 4px 16px rgba(16,185,129,0.3)', flexShrink: 0
+                    }}>
+                      <DollarSign size={22} color="#fff" />
+                    </div>
+                    <div>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                        Payouts & Wallet Balance
+                      </h2>
+                      <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                        Track your earnings, manage payout withdrawals, and submit trust verification documents.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Wallet loading/error state if applicable */}
+                  {walletLoading && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0' }}>
+                      <Loader2 size={32} className="spinner" style={{ color: 'var(--primary)' }} />
+                    </div>
+                  )}
+
+                  {!walletLoading && (
+                    <>
+                      {/* Balance Cards */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
+                        {/* Withdrawable Balance Card */}
+                        <div className="card" style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Withdrawable Balance</span>
+                          <div style={{ fontSize: 28, fontWeight: 900, marginTop: 8, color: 'var(--primary)', fontFamily: 'var(--font-heading)' }}>
+                            ₦{formatVal(walletBalances.withdrawable_balance)}
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (!walletBalances.bank_account_verified) {
+                                toast.warning('Please verify and save your Bank Details in Settings first.');
+                                return;
+                              }
+                              setIsWithdrawModalOpen(true);
+                            }}
+                            className="btn btn-primary clickable"
+                            style={{ marginTop: 16, width: '100%', padding: '10px 16px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13 }}
+                          >
+                            Withdraw Funds
+                          </button>
+                        </div>
+
+                        {/* Pending Escrow Balance Card */}
+                        <div className="card" style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            Pending (Escrow) Balance
+                            <span title="Funds held in escrow until buyers confirm delivery of order."><AlertCircle size={14} style={{ color: 'var(--text-faint)' }} /></span>
+                          </span>
+                          <div style={{ fontSize: 28, fontWeight: 900, marginTop: 8, color: 'var(--text)', fontFamily: 'var(--font-heading)' }}>
+                            ₦{formatVal(walletBalances.pending_balance)}
+                          </div>
+                          <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 16, lineHeight: 1.4 }}>
+                            {isPro ? 'Pro plan bypasses escrow. Upfront payments credit immediately to your withdrawable balance!' : 'Under the Free Starter plan, checkout payments are held in escrow and released only when customers confirm delivery.'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Trust Verification Card */}
+                      <div className="card" style={{ padding: 24 }}>
+                        <h3 style={{ fontSize: 15, fontWeight: 900, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Shield size={18} style={{ color: 'var(--primary)' }} />
+                          Trust & Store Verification
+                        </h3>
+
+                        {store?.verification_status === 'verified' && (
+                          <div style={{ display: 'flex', gap: 16, background: 'var(--primary-light)', padding: 18, borderRadius: 'var(--r-md)', border: '1px solid var(--primary-border)' }}>
+                            <BadgeCheck size={28} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                            <div>
+                              <h4 style={{ fontWeight: 800, fontSize: 14, color: 'var(--primary)' }}>Storefront Verified!</h4>
+                              <p style={{ fontSize: 12.5, color: 'var(--text)', marginTop: 4, lineHeight: 1.5 }}>
+                                Your business registration details or identity documents have been approved. A green "Verified" checkmark badge is now visible on your public storefront to build buyer trust.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {store?.verification_status === 'pending' && (
+                          <div style={{ display: 'flex', gap: 16, background: 'var(--bg-2)', padding: 18, borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+                            <RefreshCw size={24} className="spinner" style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                            <div>
+                              <h4 style={{ fontWeight: 800, fontSize: 14, color: 'var(--text)' }}>Verification Under Review</h4>
+                              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.5 }}>
+                                We are currently reviewing your submitted verification document ({store?.verification_document_type ? store.verification_document_type.replace('_', ' ').toUpperCase() : 'ID'}). The verification badge will appear once approved.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {(store?.verification_status === 'unverified' || store?.verification_status === 'rejected' || !store?.verification_status) && (
+                          <div>
+                            {store?.verification_status === 'rejected' && (
+                              <div style={{ display: 'flex', gap: 16, background: '#fee2e2', padding: 16, borderRadius: 'var(--r-md)', border: '1px solid #fca5a5', marginBottom: 20 }}>
+                                <AlertCircle size={24} style={{ color: '#dc2626', flexShrink: 0 }} />
+                                <div>
+                                  <h4 style={{ fontWeight: 800, fontSize: 14, color: '#b91c1c' }}>Verification Request Declined</h4>
+                                  <p style={{ fontSize: 12, color: '#7f1d1d', marginTop: 4, lineHeight: 1.5 }}>
+                                    Your previous submission was rejected. Please ensure your document scan is clearly visible and matches your account details, then upload and resubmit.
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 20 }}>
+                              To display a "Verified" trust badge on your public storefront and access higher payout limits, submit a scan of a government-issued ID or official business registration document.
+                            </p>
+
+                            <form onSubmit={handleSubmitVerification} style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 500 }}>
+                              <div>
+                                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Document Type</label>
+                                <SearchableSelect
+                                  options={[
+                                    { value: 'national_id', label: 'National ID Card (NIN)' },
+                                    { value: 'intl_passport', label: 'International Passport' },
+                                    { value: 'drivers_license', label: "Driver's License" },
+                                    { value: 'business_registration', label: 'CAC Business Registration Document' },
+                                  ]}
+                                  value={verificationDocType}
+                                  onChange={val => setVerificationDocType(val)}
+                                  placeholder="Select document type"
+                                />
+                              </div>
+
+                              <div>
+                                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Upload Document File (Image/PDF)</label>
+                                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                                  <input
+                                    type="file"
+                                    accept="image/*,application/pdf"
+                                    onChange={async e => {
+                                      const file = e.target.files?.[0];
+                                      if (file) await handleUploadVerificationDoc(file);
+                                    }}
+                                    style={{ display: 'none' }}
+                                    id="verification-file-input"
+                                  />
+                                  <label
+                                    htmlFor="verification-file-input"
+                                    className="btn btn-outline clickable"
+                                    style={{
+                                      padding: '12px 20px', borderRadius: 'var(--r-md)', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer'
+                                    }}
+                                  >
+                                    {verificationUploading ? <Loader2 size={16} className="spinner" /> : <Camera size={16} />}
+                                    {verificationDocUrl ? 'Change Document File' : 'Choose Document File'}
+                                  </label>
+                                  {verificationDocUrl && (
+                                    <span style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                      <CheckCircle2 size={14} /> Document Uploaded
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <button
+                                type="submit"
+                                disabled={isSubmittingVerification || !verificationDocUrl || verificationUploading}
+                                className="btn btn-primary clickable"
+                                style={{
+                                  padding: '12px 24px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13.5, width: 'fit-content', marginTop: 8
+                                }}
+                              >
+                                {isSubmittingVerification ? <><Loader2 size={15} className="spinner" /> Submitting...</> : 'Submit Documents for Verification'}
+                              </button>
+                            </form>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Withdrawal Request History Log */}
+                      <div className="card" style={{ padding: 24 }}>
+                        <h3 style={{ fontSize: 15, fontWeight: 900, marginBottom: 16 }}>Withdrawal History</h3>
+                        {withdrawals.length === 0 ? (
+                          <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-faint)' }}>
+                            <Receipt size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
+                            <p style={{ fontSize: 13.5, fontWeight: 600 }}>No withdrawal transactions yet.</p>
+                            <p style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 4 }}>Your withdrawal history logs will appear here.</p>
+                          </div>
+                        ) : (
+                          <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 500 }}>
+                              <thead>
+                                <tr style={{ borderBottom: '1.5px solid var(--border)' }}>
+                                  <th style={{ padding: '12px 8px', fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Date</th>
+                                  <th style={{ padding: '12px 8px', fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Amount</th>
+                                  <th style={{ padding: '12px 8px', fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Destination Bank Details</th>
+                                  <th style={{ padding: '12px 8px', fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {withdrawals.map((w: any) => {
+                                  const dateStr = new Date(w.created_at).toLocaleDateString(undefined, {
+                                    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                  });
+                                  return (
+                                    <tr key={w.id} style={{ borderBottom: '1px solid var(--border)', fontSize: 13.5 }}>
+                                      <td style={{ padding: '12px 8px', fontWeight: 600 }}>{dateStr}</td>
+                                      <td style={{ padding: '12px 8px', fontWeight: 700, color: 'var(--text)' }}>₦{formatVal(w.amount)}</td>
+                                      <td style={{ padding: '12px 8px', color: 'var(--text-muted)' }}>
+                                        {w.bank_name} • {w.account_number} <span style={{ fontSize: 11, display: 'block', color: 'var(--text-faint)' }}>{w.account_name}</span>
+                                      </td>
+                                      <td style={{ padding: '12px 8px' }}>
+                                        <span style={{
+                                          padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 800, textTransform: 'uppercase',
+                                          background: w.status === 'approved' ? 'var(--primary-light)' : w.status === 'rejected' ? '#fee2e2' : '#ffedd5',
+                                          color: w.status === 'approved' ? 'var(--primary)' : w.status === 'rejected' ? '#dc2626' : '#d97706'
+                                        }}>
+                                          {w.status}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
 
                 </div>
               )}
@@ -4469,7 +5000,8 @@ export default function DashboardPage() {
                 { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
                 { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} /> },
                 { id: 'products', label: 'Products', icon: <Package size={18} /> },
-                // { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} /> },
+                { id: 'wallet', label: 'Payouts & Wallet', icon: <DollarSign size={18} /> },
+                { id: 'whatsapp', label: 'WhatsApp Simulator', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
                 { id: 'templates', label: 'Templates', icon: <Sparkles size={18} /> },
                 { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
@@ -4516,6 +5048,83 @@ export default function DashboardPage() {
                 <span>Sign Out</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: WITHDRAW FUNDS OVERLAY ── */}
+      {isWithdrawModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsWithdrawModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 440, padding: 24, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <DollarSign size={18} style={{ color: 'var(--primary)' }} /> Request Payout Withdrawal
+              </h3>
+              <button onClick={() => setIsWithdrawModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
+            </div>
+
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 20 }}>
+              Specify the amount you would like to withdraw from your withdrawable balance. Funds will be transferred to your verified bank account below.
+            </p>
+
+            <div style={{ background: 'var(--bg-2)', padding: 14, borderRadius: 'var(--r-md)', border: '1px solid var(--border)', marginBottom: 20 }}>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', display: 'block' }}>Destination Bank Details</span>
+              <div style={{ fontSize: 13.5, fontWeight: 700, marginTop: 4, color: 'var(--text)' }}>
+                {walletBalances.bank_name} • {walletBalances.bank_account_number}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                {walletBalances.bank_account_name}
+              </div>
+            </div>
+
+            <form onSubmit={handleRequestWithdrawal} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                  Amount to Withdraw (₦)
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="number"
+                    required
+                    placeholder="Enter amount"
+                    value={withdrawalAmount}
+                    onChange={e => setWithdrawalAmount(e.target.value)}
+                    className="input-field"
+                    style={{ paddingRight: 80 }}
+                    min="1"
+                    step="0.01"
+                    max={walletBalances.withdrawable_balance}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setWithdrawalAmount(walletBalances.withdrawable_balance.toString())}
+                    style={{
+                      position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                      border: 'none', background: 'var(--primary-light)', color: 'var(--primary)',
+                      fontSize: 10.5, fontWeight: 800, padding: '4px 8px', borderRadius: 4, cursor: 'pointer'
+                    }}
+                  >
+                    Withdraw All
+                  </button>
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 6, display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Withdrawable Balance: ₦{formatVal(walletBalances.withdrawable_balance)}</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <button type="button" onClick={() => setIsWithdrawModalOpen(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
+                <button
+                  type="submit"
+                  disabled={withdrawalSubmitting || !withdrawalAmount || parseFloat(withdrawalAmount) <= 0 || parseFloat(withdrawalAmount) > walletBalances.withdrawable_balance}
+                  className="btn btn-primary clickable"
+                  style={{ flex: 1, padding: 12 }}
+                >
+                  {withdrawalSubmitting ? <Loader2 size={16} className="spinner" style={{ margin: '0 auto' }} /> : 'Confirm Payout'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

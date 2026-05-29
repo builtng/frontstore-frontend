@@ -24,21 +24,21 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL('https://aloaye.tech'),
   title: {
-    default: "aloaye — Africa's WhatsApp Commerce Platform",
-    template: "%s | aloaye",
+    default: "Aloaye — Conversational Commerce Platform",
+    template: "%s | Aloaye",
   },
   description:
-    "Create a stunning mobile storefront in under 2 minutes and sell directly via WhatsApp. Built for African small businesses.",
+    "Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa. Turn WhatsApp conversations into sales.",
   keywords: [
-    "WhatsApp commerce", "African e-commerce", "digital catalog", "mobile store",
+    "WhatsApp commerce", "conversational commerce", "African e-commerce", "digital catalog", "mobile store",
     "small business Nigeria", "sell on WhatsApp", "Africa shops", "WhatsApp store",
     "online store Africa", "ecommerce Nigeria", "ecommerce Ghana", "ecommerce Kenya",
     "sell online Africa", "digital storefront", "WhatsApp business", "micro business Africa",
-    "aloaye", "aloaye store",
+    "Aloaye", "Aloaye store", "African commerce infrastructure", "WhatsApp CRM",
   ],
-  authors: [{ name: "aloaye", url: 'https://aloaye.tech' }],
-  creator: "aloaye",
-  publisher: "aloaye Technologies",
+  authors: [{ name: "Aloaye", url: 'https://aloaye.tech' }],
+  creator: "Aloaye",
+  publisher: "Aloaye Technologies",
   alternates: {
     canonical: '/',
   },
@@ -54,24 +54,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_NG",
-    siteName: "aloaye",
-    title: "aloaye — Africa's WhatsApp Commerce Platform",
+    siteName: "Aloaye",
+    title: "Aloaye — Conversational Commerce Platform",
     description:
-      "Create a stunning mobile storefront in under 2 minutes and sell directly via WhatsApp. Built for African small businesses.",
+      "Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa. Turn WhatsApp conversations into sales.",
     url: 'https://aloaye.tech',
     images: [
       {
         url: '/icon.png',
         width: 512,
         height: 512,
-        alt: 'aloaye — WhatsApp Commerce Platform for Africa',
+        alt: 'Aloaye — Conversational Commerce Platform for Africa',
       }
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "aloaye — Africa's WhatsApp Commerce Platform",
-    description: "Sell to anyone on WhatsApp, instantly. No technical setup required.",
+    title: "Aloaye — Conversational Commerce Platform",
+    description: "Turn WhatsApp conversations into sales. Build a beautiful store and grow your business.",
     images: ['/icon.png'],
     creator: '@aloaye',
     site: '@aloaye',

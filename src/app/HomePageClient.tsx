@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Sparkles, Zap, Link, BarChart3, Globe,
-  Store, Star, ArrowRight, User
+  Store, Star, ArrowRight, User, MessageCircle,
+  CreditCard, Users, Brain, Megaphone, TrendingUp, Check, X
 } from 'lucide-react';
 import { WhatsAppIcon } from '../components/WhatsAppIcon';
 import Logo from '../components/Logo';
@@ -111,6 +112,31 @@ export default function HomePageClient() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'error' | 'success' | null>(null);
   const [mounted, setMounted] = useState(false);
+  
+  // Demo modal state variables
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [demoName, setDemoName] = useState('');
+  const [demoBusiness, setDemoBusiness] = useState('');
+  const [demoPhone, setDemoPhone] = useState('');
+  const [demoEmail, setDemoEmail] = useState('');
+  const [demoSubmitted, setDemoSubmitted] = useState(false);
+
+  const handleBookDemo = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!demoName.trim() || !demoBusiness.trim() || !demoPhone.trim()) {
+      return;
+    }
+    // Simulate booking demo submission
+    setDemoSubmitted(true);
+    setTimeout(() => {
+      setShowDemoModal(false);
+      setDemoSubmitted(false);
+      setDemoName('');
+      setDemoBusiness('');
+      setDemoPhone('');
+      setDemoEmail('');
+    }, 2500);
+  };
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
@@ -223,111 +249,139 @@ export default function HomePageClient() {
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 640, margin: '0 auto' }}>
           {/* Pill badges */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 20 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 24 }}>
             <span className="badge badge-primary" style={{ padding: '5px 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               <Zap size={11} /> Under 2 Minutes Setup
             </span>
             <span className="badge badge-verified" style={{ padding: '5px 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Globe size={11} /> Built for Africa
+              <Globe size={11} /> Conversational Commerce
             </span>
           </div>
 
           {/* Headline */}
           <h1
             className="text-display"
-            style={{ marginBottom: 20, maxWidth: 560, margin: '0 auto 20px' }}
+            style={{ marginBottom: 20, maxWidth: 620, margin: '0 auto 20px', lineHeight: 1.15 }}
           >
-            Sell to anyone on{' '}
+            Turn WhatsApp Conversations Into{' '}
             <span style={{
               background: 'linear-gradient(135deg, hsl(142, 71%, 45%), hsl(158, 84%, 39%))',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}>
-              WhatsApp
+              Sales
             </span>
-            , Instantly.
           </h1>
 
           <p style={{
             color: 'var(--text-muted)',
             fontSize: 'clamp(15px, 2vw, 17px)',
             lineHeight: 1.65,
-            maxWidth: 480,
+            maxWidth: 540,
             margin: '0 auto 32px',
           }}>
-            aloaye gives African small businesses a stunning digital store. Upload products with AI, share your link, and get orders straight to your WhatsApp in minutes.
+            Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa.
           </p>
 
+          {/* Hero CTAs */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', marginBottom: 40 }}>
+            <button
+              onClick={() => {
+                const el = document.getElementById('store-name-input');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  el.focus();
+                }
+              }}
+              className="btn btn-primary"
+              style={{ padding: '14px 28px', fontSize: 15, borderRadius: 'var(--r-xl)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+            >
+              Start Free <ArrowRight size={16} />
+            </button>
+            <button
+              onClick={() => setShowDemoModal(true)}
+              className="btn btn-outline"
+              style={{ padding: '14px 28px', fontSize: 15, borderRadius: 'var(--r-xl)' }}
+            >
+              Book Demo
+            </button>
+          </div>
+
           {/* Claim form */}
-          <form
-            onSubmit={handleClaim}
-            style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 420, margin: '0 auto' }}
-          >
-            <div style={{
-              display: 'flex',
-              background: 'var(--surface)',
-              border: '1.5px solid var(--border)',
-              borderRadius: 'var(--r-xl)',
-              padding: 6,
-              boxShadow: 'var(--shadow-lg)',
-              gap: 4,
-            }}>
-              <input
-                type="text"
-                placeholder="your-store-name"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                style={{
-                  flex: 1, border: 'none', outline: 'none',
-                  padding: '10px 12px', fontSize: 15,
-                  background: 'transparent', color: 'var(--text)',
-                  minWidth: 0,
-                }}
-                id="store-name-input"
-                aria-label="Choose your store name"
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <button
-                type="submit"
-                disabled={checking}
-                className="btn btn-primary"
-                style={{ padding: '10px 18px', fontSize: 13, borderRadius: 'var(--r-lg)', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                id="claim-url-btn"
-              >
-                {checking ? (
-                  <><span className="spinner" style={{ width: 14, height: 14 }} /> Checking...</>
-                ) : (
-                  <>Claim URL <ArrowRight size={14} /></>
-                )}
-              </button>
-            </div>
-
-            {message && (
-              <div
-                className="animate-slide-up"
-                style={{
-                  fontSize: 13, fontWeight: 600,
-                  color: messageType === 'error' ? 'var(--danger)' : 'var(--primary)',
-                  padding: '8px 14px',
-                  borderRadius: 'var(--r-md)',
-                  background: messageType === 'error' ? 'var(--danger-light)' : 'var(--primary-light)',
-                  textAlign: 'center',
-                }}
-              >
-                {message}
+          <div style={{ maxWidth: 440, margin: '0 auto 32px' }}>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 12 }}>
+              Or claim your instant store link directly:
+            </p>
+            <form
+              onSubmit={handleClaim}
+              style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}
+            >
+              <div style={{
+                display: 'flex',
+                background: 'var(--surface)',
+                border: '1.5px solid var(--border)',
+                borderRadius: 'var(--r-xl)',
+                padding: 6,
+                boxShadow: 'var(--shadow-lg)',
+                gap: 4,
+              }}>
+                <input
+                  type="text"
+                  placeholder="your-store-name"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  style={{
+                    flex: 1, border: 'none', outline: 'none',
+                    padding: '10px 12px', fontSize: 15,
+                    background: 'transparent', color: 'var(--text)',
+                    minWidth: 0,
+                  }}
+                  id="store-name-input"
+                  aria-label="Choose your store name"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <button
+                  type="submit"
+                  disabled={checking}
+                  className="btn btn-primary"
+                  style={{ padding: '10px 18px', fontSize: 13, borderRadius: 'var(--r-lg)', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  id="claim-url-btn"
+                >
+                  {checking ? (
+                    <><span className="spinner" style={{ width: 14, height: 14 }} /> Checking...</>
+                  ) : (
+                    <>Claim URL <ArrowRight size={14} /></>
+                  )}
+                </button>
               </div>
-            )}
 
-            {mounted && (
-              <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-                Your store will be at <strong style={{ color: 'var(--text-muted)' }}>aloaye.tech/yourname</strong>
-              </p>
-            )}
-          </form>
+              {message && (
+                <div
+                  className="animate-slide-up"
+                  style={{
+                    fontSize: 13, fontWeight: 600,
+                    color: messageType === 'error' ? 'var(--danger)' : 'var(--primary)',
+                    padding: '8px 14px',
+                    borderRadius: 'var(--r-md)',
+                    background: messageType === 'error' ? 'var(--danger-light)' : 'var(--primary-light)',
+                    textAlign: 'center',
+                  }}
+                >
+                  {message}
+                </div>
+              )}
+
+              {mounted && (
+                <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
+                  Your store will be at <strong style={{ color: 'var(--text-muted)' }}>aloaye.tech/yourname</strong>
+                </p>
+              )}
+            </form>
+          </div>
 
           {/* Social proof */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               {[
                 { bg: 'hsl(142, 70%, 85%)', color: 'hsl(142, 70%, 30%)' },
@@ -352,7 +406,7 @@ export default function HomePageClient() {
               ))}
             </div>
             <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              <strong style={{ color: 'var(--text)' }}>1,200+ sellers</strong> already selling on aloaye
+              <strong style={{ color: 'var(--text)' }}>1,200+ sellers</strong> already selling on Aloaye
             </p>
           </div>
         </div>
@@ -404,6 +458,317 @@ export default function HomePageClient() {
           }
         }
       `}</style>
+
+      {/* ── Premium Brand Narrative ── */}
+      <section style={{
+        padding: 'clamp(56px, 8vw, 88px) 20px',
+        background: 'linear-gradient(180deg, var(--bg) 0%, var(--surface-2) 100%)',
+        borderTop: '1px solid var(--border)',
+        position: 'relative'
+      }}>
+        <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
+          <span className="badge badge-accent" style={{ marginBottom: 16 }}>Our Narrative</span>
+          <h2 className="text-display" style={{ fontSize: 'clamp(24px, 4vw, 36px)', marginBottom: 32 }}>
+            Commerce Through Conversation
+          </h2>
+          
+          <div className="card animate-fade-in" style={{
+            padding: '40px 30px',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--r-2xl)',
+            boxShadow: 'var(--shadow-xl)',
+            textAlign: 'left',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            {/* Background glow */}
+            <div style={{
+              position: 'absolute', top: '-20%', right: '-10%',
+              width: 300, height: 300,
+              background: 'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)',
+              pointerEvents: 'none',
+            }} />
+            
+            <p style={{
+              fontSize: 'clamp(16px, 2.2vw, 19px)',
+              lineHeight: 1.7,
+              color: 'var(--text-2)',
+              fontWeight: 500,
+              marginBottom: 36
+            }}>
+              Most African businesses don't need complicated ecommerce websites.
+              <br /><br />
+              They already sell where customers spend their time: <strong style={{ color: 'var(--primary)' }}>WhatsApp</strong>.
+              <br /><br />
+              Aloaye transforms WhatsApp from a messaging app into a complete commerce engine.
+            </p>
+            
+            {/* Steps timeline */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+              gap: 20,
+              borderTop: '1px solid var(--border)',
+              paddingTop: 32
+            }}>
+              {[
+                { title: 'Create a Store', desc: 'Add products in 2 mins' },
+                { title: 'Share a Link', desc: 'Status, Instagram, TikTok' },
+                { title: 'Receive Orders', desc: 'Directly in WhatsApp' },
+                { title: 'Manage Customers', desc: 'Conversation-driven CRM' },
+                { title: 'Grow Revenue', desc: 'Scale with simple analytics' }
+              ].map((step, idx) => (
+                <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{
+                      width: 24, height: 24, borderRadius: '50%',
+                      background: 'var(--primary-light)', color: 'var(--primary)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 12, fontWeight: 800
+                    }}>
+                      {idx + 1}
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{step.title}</span>
+                  </div>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)', paddingLeft: 32 }}>{step.desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Billion-Dollar Brand Architecture Showcase ── */}
+      <section style={{
+        padding: 'clamp(56px, 8vw, 88px) 20px',
+        background: 'var(--surface)',
+        borderBottom: '1px solid var(--border)',
+        borderTop: '1px solid var(--border)'
+      }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <span className="badge badge-primary" style={{ marginBottom: 12 }}>Platform Suite</span>
+            <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>The Aloaye Business OS</h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: 12, fontSize: 16, maxWidth: 600, margin: '12px auto 0' }}>
+              A unified suite of products engineered to run your entire business infrastructure through conversations.
+            </p>
+          </div>
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: 20
+          }}>
+            {[
+              {
+                brand: 'Aloaye Store',
+                tagline: 'Instant storefront creation',
+                desc: 'Generate a stunning, light-speed catalog tailored for mobile browsers in under 2 minutes. No coding required.',
+                icon: <Store size={22} color="var(--primary)" />,
+                badge: 'Core OS'
+              },
+              {
+                brand: 'Aloaye Chat',
+                tagline: 'WhatsApp-native selling',
+                desc: 'Route customer selections directly to your WhatsApp with pre-filled checkouts. Turn chat history into signed orders.',
+                icon: <MessageCircle size={22} color="hsl(142, 71%, 45%)" />,
+                badge: 'WhatsApp Native'
+              },
+              {
+                brand: 'Aloaye Pay',
+                tagline: 'Seamless payments & escrow',
+                desc: 'Accept local African payments (cards, bank transfer, mobile money). Secure payments with conversation-linked escrow.',
+                icon: <CreditCard size={22} color="hsl(200, 98%, 45%)" />,
+                badge: 'Fintech Rails'
+              },
+              {
+                brand: 'Aloaye CRM',
+                tagline: 'Conversational client logs',
+                desc: 'Know who buys what. Log order histories, buyer preferences, and follow-up reminders right where you converse.',
+                icon: <Users size={22} color="hsl(250, 84%, 60%)" />,
+                badge: 'Customer Logs'
+              },
+              {
+                brand: 'Aloaye AI',
+                tagline: 'Your 24/7 sales assistant',
+                desc: 'Automatically generate descriptions, translate chats, suggest optimal regional pricing, and reply to customers.',
+                icon: <Brain size={22} color="hsl(280, 70%, 55%)" />,
+                badge: 'AI Powered'
+              },
+              {
+                brand: 'Aloaye Growth',
+                tagline: 'WhatsApp broadcast & marketing',
+                desc: 'Blast product drops and discount links to segmented buyer lists on WhatsApp. Drive repeat sales without high ad spend.',
+                icon: <Megaphone size={22} color="hsl(340, 82%, 55%)" />,
+                badge: 'Grow Audience'
+              },
+              {
+                brand: 'Aloaye Analytics',
+                tagline: 'Conversational insights',
+                desc: 'Track sales velocity, page views, and WhatsApp checkout conversions. Visual dashboards to scale what works.',
+                icon: <TrendingUp size={22} color="hsl(38, 92%, 50%)" />,
+                badge: 'Rich Analytics'
+              }
+            ].map((prod, idx) => (
+              <div
+                key={idx}
+                className="card hover-lift"
+                style={{
+                  padding: '28px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 16,
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--border)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 'var(--r-md)',
+                    background: 'var(--surface)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: 'var(--shadow-sm)'
+                  }}>
+                    {prod.icon}
+                  </div>
+                  <span className="badge badge-verified" style={{ textTransform: 'none', fontSize: 10 }}>{prod.badge}</span>
+                </div>
+                
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 700, marginBottom: 4, color: 'var(--text)' }}>
+                    {prod.brand}
+                  </h3>
+                  <p style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600, marginBottom: 12 }}>
+                    {prod.tagline}
+                  </p>
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                    {prod.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── What Makes Aloaye Different (Comparison Matrix) ── */}
+      <section style={{
+        padding: 'clamp(56px, 8vw, 88px) 20px',
+        background: 'var(--bg-2)',
+        borderBottom: '1px solid var(--border)'
+      }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <span className="badge badge-accent" style={{ marginBottom: 12 }}>Why Aloaye?</span>
+            <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>Engineered for African Entrepreneurs</h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: 12, fontSize: 16, maxWidth: 500, margin: '12px auto 0' }}>
+              How we stand out against standard e-commerce site builders.
+            </p>
+          </div>
+          
+          <div className="card" style={{ overflowX: 'auto', background: 'var(--surface)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 600 }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid var(--border)' }}>
+                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>Feature</th>
+                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)' }}>Aloaye</th>
+                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>Shopify</th>
+                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>Bumpa / Selar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  {
+                    feat: 'WhatsApp-first Checkout',
+                    alo: 'Direct order details sent straight to merchant chat',
+                    sho: 'Generic web-cart & email confirmations',
+                    oth: 'Partial integrations / web-redirects'
+                  },
+                  {
+                    feat: 'AI-assisted Listings',
+                    alo: 'Upload photo → Auto price, tags, and rich descriptions',
+                    sho: 'Manual data entry required',
+                    oth: 'No built-in AI catalog tool'
+                  },
+                  {
+                    feat: 'Mobile-first Merchant Operations',
+                    alo: 'Manage store fully on 3G mobile network',
+                    sho: 'Complex desk-oriented admin dashboard',
+                    oth: 'Limited mobile configuration'
+                  },
+                  {
+                    feat: 'African Payment Rails',
+                    alo: 'Escrow options + Paystack/Flutterwave/Mobile Money',
+                    sho: 'High card fees, complex setup for Africa',
+                    oth: 'Standard payments only, no escrow'
+                  },
+                  {
+                    feat: 'Setup Speed',
+                    alo: 'Under 2 minutes (claim & launch immediately)',
+                    sho: 'Hours/Days of theme editing',
+                    oth: '5-15 minutes configuration'
+                  }
+                ].map((row, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '16px 20px', fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{row.feat}</td>
+                    <td style={{ padding: '16px 20px', fontSize: 13, color: 'var(--text)', background: 'var(--primary-light)', fontWeight: 500 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <Check size={14} color="var(--primary)" strokeWidth={3} /> {row.alo}
+                      </span>
+                    </td>
+                    <td style={{ padding: '16px 20px', fontSize: 12, color: 'var(--text-muted)' }}>{row.sho}</td>
+                    <td style={{ padding: '16px 20px', fontSize: 12, color: 'var(--text-muted)' }}>{row.oth}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Operating System Vision Quote Callout ── */}
+      <section style={{
+        padding: 'clamp(64px, 10vw, 96px) 20px',
+        background: 'linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%)',
+        color: '#fff',
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Decorative circle shapes */}
+        <div style={{
+          position: 'absolute', top: '-50%', left: '-20%', width: 500, height: 500,
+          borderRadius: '50%', background: 'rgba(255,255,255,0.03)', pointerEvents: 'none'
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '-50%', right: '-20%', width: 500, height: 500,
+          borderRadius: '50%', background: 'rgba(255,255,255,0.03)', pointerEvents: 'none'
+        }} />
+        
+        <div style={{ maxWidth: 800, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <span className="badge" style={{
+            background: 'rgba(255,255,255,0.15)', color: '#fff', marginBottom: 24,
+            border: '1px solid rgba(255,255,255,0.2)'
+          }}>
+            Our Vision
+          </span>
+          <blockquote style={{
+            fontFamily: 'var(--font-heading)',
+            fontSize: 'clamp(20px, 4.2vw, 30px)',
+            fontWeight: 800,
+            lineHeight: 1.35,
+            letterSpacing: '-0.02em',
+            marginBottom: 24,
+            textShadow: '0 2px 10px rgba(0,0,0,0.1)'
+          }}>
+            "Become the operating system for African businesses, helping millions of merchants sell, get paid, manage customers, and grow through conversations."
+          </blockquote>
+          <cite style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', fontStyle: 'normal', fontWeight: 600 }}>
+            — The Aloaye Mission for African Commerce Infrastructure
+          </cite>
+        </div>
+      </section>
 
       {/* ── How It Works ── */}
       <section style={{ padding: 'clamp(40px, 8vw, 72px) 20px', background: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
@@ -492,7 +857,7 @@ export default function HomePageClient() {
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 36 }}>
             <span className="badge badge-accent" style={{ marginBottom: 12, display: 'inline-block' }}>Testimonials</span>
-            <h2 className="text-title">Sellers love aloaye</h2>
+            <h2 className="text-title">Sellers love Aloaye</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
             {TESTIMONIALS.map((t, i) => (
@@ -544,7 +909,7 @@ export default function HomePageClient() {
             Ready to start selling on WhatsApp?
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
-            Join 1,200+ African sellers already using aloaye to grow their business. Free to start — no credit card needed.
+            Join 1,200+ African sellers already using Aloaye to grow their business. Free to start — no credit card needed.
           </p>
           <a
             href="/signup"
@@ -579,7 +944,7 @@ export default function HomePageClient() {
       }}>
         <Logo size={20} textColor="var(--primary)" />
         <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-          © {new Date().getFullYear()} aloaye. Africa's #1 WhatsApp Commerce Platform.
+          © {new Date().getFullYear()} Aloaye. Conversational Commerce Platform.
         </p>
         <div style={{ display: 'flex', gap: 16 }}>
           <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>
@@ -587,6 +952,168 @@ export default function HomePageClient() {
           <a href="/terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
         </div>
       </footer>
+
+      {/* ── Demo Booking Modal ── */}
+      {showDemoModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20,
+        }}>
+          {/* Backdrop */}
+          <div 
+            onClick={() => setShowDemoModal(false)}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.6)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+            }} 
+          />
+          
+          {/* Modal Container */}
+          <div 
+            className="card animate-scale-in"
+            style={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: 460,
+              background: 'var(--surface)',
+              padding: 32,
+              borderRadius: 'var(--r-2xl)',
+              boxShadow: 'var(--shadow-xl)',
+              zIndex: 1001,
+            }}
+          >
+            {/* Close button */}
+            <button 
+              onClick={() => setShowDemoModal(false)}
+              style={{
+                position: 'absolute',
+                top: 20,
+                right: 20,
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--text-muted)',
+              }}
+              aria-label="Close modal"
+            >
+              <X size={20} />
+            </button>
+            
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: '50%',
+                background: 'var(--primary-light)', color: 'var(--primary)',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 16
+              }}>
+                <Sparkles size={24} />
+              </div>
+              <h3 className="text-title" style={{ marginBottom: 6 }}>Book a Live Demo</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                See how Aloaye Chat and Store OS can double your WhatsApp sales.
+              </p>
+            </div>
+            
+            {demoSubmitted ? (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <div style={{
+                  width: 56, height: 56, borderRadius: '50%',
+                  background: 'hsl(142, 71%, 96%)', color: 'hsl(142, 71%, 45%)',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  marginBottom: 16
+                }}>
+                  <Check size={28} strokeWidth={3} />
+                </div>
+                <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: 'var(--text)' }}>Demo Request Received!</h4>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                  One of our WhatsApp Commerce specialists will reach out to you on <strong>{demoPhone}</strong> via WhatsApp shortly.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleBookDemo} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label htmlFor="demo-name" style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    Your Name *
+                  </label>
+                  <input 
+                    type="text" 
+                    id="demo-name"
+                    required
+                    placeholder="e.g. Adebayo Benson"
+                    value={demoName}
+                    onChange={e => setDemoName(e.target.value)}
+                    className="input-field"
+                    style={{ fontSize: 14 }}
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="demo-business" style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    Business Name *
+                  </label>
+                  <input 
+                    type="text" 
+                    id="demo-business"
+                    required
+                    placeholder="e.g. Benson Fashion Hub"
+                    value={demoBusiness}
+                    onChange={e => setDemoBusiness(e.target.value)}
+                    className="input-field"
+                    style={{ fontSize: 14 }}
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="demo-phone" style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    WhatsApp Number *
+                  </label>
+                  <input 
+                    type="tel" 
+                    id="demo-phone"
+                    required
+                    placeholder="e.g. +234 80 1234 5678"
+                    value={demoPhone}
+                    onChange={e => setDemoPhone(e.target.value)}
+                    className="input-field"
+                    style={{ fontSize: 14 }}
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="demo-email" style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6 }}>
+                    Email Address (Optional)
+                  </label>
+                  <input 
+                    type="email" 
+                    id="demo-email"
+                    placeholder="e.g. adebayo@gmail.com"
+                    value={demoEmail}
+                    onChange={e => setDemoEmail(e.target.value)}
+                    className="input-field"
+                    style={{ fontSize: 14 }}
+                  />
+                </div>
+                
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  style={{ width: '100%', padding: '14px', borderRadius: 'var(--r-xl)', fontSize: 14, marginTop: 8 }}
+                >
+                  Schedule Demo Call
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

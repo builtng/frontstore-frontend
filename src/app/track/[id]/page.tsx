@@ -37,6 +37,7 @@ interface Order {
   created_at: string;
   store: Store;
   items: OrderItem[];
+  delivery_confirmed_at?: string | null;
 }
 
 export default function OrderTrackingPage() {
@@ -46,6 +47,12 @@ export default function OrderTrackingPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Payment and Confirmation States
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [isInitializingPayment, setIsInitializingPayment] = useState(false);
+  const [isConfirmingDelivery, setIsConfirmingDelivery] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
 
@@ -70,6 +77,99 @@ export default function OrderTrackingPage() {
 
     fetchOrderDetails();
   }, [id]);
+
+  // Payment Verification on Redirect
+  useEffect(() => {
+    if (!id || typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('reference');
+
+    if (ref) {
+      const verifyPaymentReference = async () => {
+        try {
+          setVerifyingPayment(true);
+          setPaymentError(null);
+          const res = await fetch(`${API_URL}/v1/public/orders/${id}/verify-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reference: ref })
+          });
+          const json = await res.json();
+          if (!res.ok) {
+            throw new Error(json.message || 'Payment verification failed.');
+          }
+          // Clean query params
+          window.history.replaceState({}, document.title, window.location.pathname);
+          // Reload
+          const updatedRes = await fetch(`${API_URL}/v1/public/orders/${id}`);
+          if (updatedRes.ok) {
+            const updatedJson = await updatedRes.json();
+            setOrder(updatedJson.data);
+          }
+        } catch (err: any) {
+          setPaymentError(err.message || 'Failed to verify payment.');
+        } finally {
+          setVerifyingPayment(false);
+        }
+      };
+
+      verifyPaymentReference();
+    }
+  }, [id, API_URL]);
+
+  const handlePayNow = async () => {
+    if (!id) return;
+    try {
+      setIsInitializingPayment(true);
+      const res = await fetch(`${API_URL}/v1/public/orders/${id}/initialize-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to initialize payment.');
+      }
+      if (json.data && json.data.authorization_url) {
+        window.location.href = json.data.authorization_url;
+      } else {
+        throw new Error('Invalid payment response.');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Something went wrong during payment initialization.');
+    } finally {
+      setIsInitializingPayment(false);
+    }
+  };
+
+  const handleConfirmDelivery = async () => {
+    if (!id) return;
+    if (!confirm('Are you sure you have received your order? This will release funds to the seller and mark the order as completed. This action cannot be undone.')) {
+      return;
+    }
+    try {
+      setIsConfirmingDelivery(true);
+      const res = await fetch(`${API_URL}/v1/public/orders/${id}/confirm-delivery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to confirm delivery.');
+      }
+      // Reload
+      const updatedRes = await fetch(`${API_URL}/v1/public/orders/${id}`);
+      if (updatedRes.ok) {
+        const updatedJson = await updatedRes.json();
+        setOrder(updatedJson.data);
+      }
+      alert('Delivery confirmed! Payment has been released to the seller.');
+    } catch (err: any) {
+      alert(err.message || 'Something went wrong during delivery confirmation.');
+    } finally {
+      setIsConfirmingDelivery(false);
+    }
+  };
 
   const getCurrencySymbol = (code: string) => {
     if (code === 'NGN') return '₦';
@@ -157,6 +257,143 @@ export default function OrderTrackingPage() {
             Placed on {formattedDate}
           </p>
         </div>
+
+        {/* Verifying Payment overlay/banner */}
+        {verifyingPayment && (
+          <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '16px', padding: '16px', textAlign: 'center', color: 'var(--text)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <div className="animate-spin" style={{ width: 16, height: 16, border: '2px solid var(--text-muted)', borderTopColor: 'var(--primary)', borderRadius: '50%' }}></div>
+            Verifying your payment with Paystack...
+          </div>
+        )}
+
+        {paymentError && (
+          <div style={{ background: 'var(--danger-light)', border: '1px solid var(--danger)', borderRadius: '16px', padding: '16px', textAlign: 'center', color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <AlertCircle size={16} /> {paymentError}
+          </div>
+        )}
+
+        {/* Secure Online Payment Box */}
+        {order.payment_status === 'unpaid' && (
+          <div style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '20px',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            boxShadow: 'var(--shadow-sm)',
+            textAlign: 'center'
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--text)' }}>
+              💳 Pay Online Securely
+            </h3>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+              Pay via Paystack using Cards, Bank Transfer, or USSD to instantly process your order.
+            </p>
+            {/* Trust Badge */}
+            <div style={{
+              background: 'var(--bg-2)',
+              borderRadius: '12px',
+              padding: '12px',
+              fontSize: '12px',
+              color: 'var(--text-muted)',
+              lineHeight: 1.4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              textAlign: 'left'
+            }}>
+              <span style={{ fontSize: '16px' }}>🛡️</span>
+              <span>
+                <strong>Escrow Protection Active:</strong> For Free Plan stores, your payment is held securely in escrow until you confirm delivery below.
+              </span>
+            </div>
+            <button
+              onClick={handlePayNow}
+              disabled={isInitializingPayment}
+              className="btn btn-primary clickable"
+              style={{
+                width: '100%',
+                padding: '14px',
+                borderRadius: '12px',
+                fontWeight: 700,
+                fontSize: '14px',
+                backgroundColor: 'var(--primary)',
+                color: '#fff',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              {isInitializingPayment ? 'Initializing...' : `Pay Now ${currencySymbol}${parseFloat(order.total_amount).toLocaleString()}`}
+            </button>
+          </div>
+        )}
+
+        {/* Confirm Delivery Box (Only when paid and not confirmed yet) */}
+        {order.payment_status === 'paid' && order.delivery_confirmed_at === null && (
+          <div style={{
+            background: 'rgba(16, 185, 129, 0.04)',
+            border: '1.5px solid var(--primary)',
+            boxShadow: '0 0 0 4px rgba(16,185,129,0.04)',
+            borderRadius: '20px',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              📦 Confirm Delivery Receipt
+            </h3>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+              Once you have received your order items or the services have been rendered, click below to confirm receipt and release funds to the seller.
+            </p>
+            <button
+              onClick={handleConfirmDelivery}
+              disabled={isConfirmingDelivery}
+              className="btn btn-whatsapp clickable"
+              style={{
+                width: '100%',
+                padding: '14px',
+                borderRadius: '12px',
+                fontWeight: 800,
+                fontSize: '14.5px',
+                backgroundColor: 'var(--primary)',
+                color: '#fff',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+              }}
+            >
+              {isConfirmingDelivery ? 'Confirming...' : "Yes, I've Received My Order"}
+            </button>
+          </div>
+        )}
+
+        {/* Delivery Confirmed Indicator */}
+        {order.delivery_confirmed_at !== null && (
+          <div style={{
+            background: 'rgba(16, 185, 129, 0.05)',
+            border: '1px solid rgba(16, 185, 129, 0.2)',
+            borderRadius: '16px',
+            padding: '16px',
+            textAlign: 'center',
+            color: 'var(--primary)',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            <Check size={16} strokeWidth={3} /> Delivery Confirmed & Funds Released.
+          </div>
+        )}
 
         {/* Visual Progress Timeline */}
         {isCancelled ? (

@@ -89,7 +89,7 @@ interface SystemSettings {
   social_tiktok: string;
 }
 
-type AdminTab = 'overview' | 'stores' | 'categories' | 'settings';
+type AdminTab = 'overview' | 'stores' | 'categories' | 'settings' | 'withdrawals' | 'verifications';
 
 const defaultSettings: SystemSettings = {
   app_name: '',
@@ -110,6 +110,8 @@ const tabs: Array<{ id: AdminTab; label: string; icon: React.ReactNode }> = [
   { id: 'overview', label: 'Overview', icon: <BarChart3 size={17} /> },
   { id: 'stores', label: 'Stores', icon: <Store size={17} /> },
   { id: 'categories', label: 'Categories', icon: <Tag size={17} /> },
+  { id: 'withdrawals', label: 'Payouts', icon: <DollarSign size={17} /> },
+  { id: 'verifications', label: 'Verifications', icon: <Shield size={17} /> },
   { id: 'settings', label: 'Settings', icon: <Settings size={17} /> },
 ];
 
@@ -158,6 +160,11 @@ export default function AdminPage() {
   const [settings, setSettings] = useState<SystemSettings>(defaultSettings);
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
+
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [withdrawalsLoading, setWithdrawalsLoading] = useState(false);
+  const [verifications, setVerifications] = useState<any[]>([]);
+  const [verificationsLoading, setVerificationsLoading] = useState(false);
 
   const proRate = useMemo(() => {
     if (!stats?.total_users) return 0;
@@ -277,12 +284,102 @@ export default function AdminPage() {
     }
   };
 
+  const loadWithdrawals = async () => {
+    if (!token) return;
+    try {
+      setWithdrawalsLoading(true);
+      const res = await fetch(`${apiUrl}/v1/admin/withdrawals`, { headers: getHeaders() });
+      const json = await handleFetchResponse(res, 'Could not fetch withdrawals list.');
+      setWithdrawals(json.data || []);
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    } finally {
+      setWithdrawalsLoading(false);
+    }
+  };
+
+  const loadVerifications = async () => {
+    if (!token) return;
+    try {
+      setVerificationsLoading(true);
+      const res = await fetch(`${apiUrl}/v1/admin/verifications`, { headers: getHeaders() });
+      const json = await handleFetchResponse(res, 'Could not fetch verifications list.');
+      setVerifications(json.data || []);
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    } finally {
+      setVerificationsLoading(false);
+    }
+  };
+
+  const handleApproveWithdrawal = async (id: string) => {
+    if (!confirm('Approve this withdrawal payout? This confirms you have sent the bank transfer.')) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/withdrawals/${id}/approve`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      const json = await handleFetchResponse(res, 'Failed to approve withdrawal.');
+      toast.success(json.message || 'Withdrawal approved.');
+      loadWithdrawals();
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    }
+  };
+
+  const handleRejectWithdrawal = async (id: string) => {
+    if (!confirm('Reject this withdrawal payout? The funds will be refunded back to the store withdrawable balance.')) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/withdrawals/${id}/reject`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      const json = await handleFetchResponse(res, 'Failed to reject withdrawal.');
+      toast.success(json.message || 'Withdrawal rejected & refunded.');
+      loadWithdrawals();
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    }
+  };
+
+  const handleApproveVerification = async (id: string) => {
+    if (!confirm('Approve this store verification request? This will activate the verified badge on their storefront.')) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/verifications/${id}/approve`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      const json = await handleFetchResponse(res, 'Failed to approve verification.');
+      toast.success(json.message || 'Verification approved.');
+      loadVerifications();
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    }
+  };
+
+  const handleRejectVerification = async (id: string) => {
+    if (!confirm('Reject this store verification request?')) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/verifications/${id}/reject`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      const json = await handleFetchResponse(res, 'Failed to reject verification.');
+      toast.success(json.message || 'Verification rejected.');
+      loadVerifications();
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    }
+  };
+
   useEffect(() => {
     if (!token || !isAdmin) return;
     if (activeTab === 'overview') loadStats();
     if (activeTab === 'stores') loadStores(1, searchQuery);
     if (activeTab === 'categories') loadCategories();
     if (activeTab === 'settings') loadSettings();
+    if (activeTab === 'withdrawals') loadWithdrawals();
+    if (activeTab === 'verifications') loadVerifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, token, isAdmin]);
 
@@ -480,8 +577,15 @@ export default function AdminPage() {
             <h1>{tabs.find((tab) => tab.id === activeTab)?.label}</h1>
           </div>
           <div className="admin-topbar__actions">
-            <button type="button" className="admin-icon-button" onClick={() => (activeTab === 'overview' ? loadStats() : activeTab === 'stores' ? loadStores(currentPage, searchQuery) : activeTab === 'categories' ? loadCategories() : loadSettings())}>
-              <RefreshCw size={17} className={statsLoading || storesLoading || categoriesLoading || settingsLoading ? 'admin-spin' : ''} />
+            <button type="button" className="admin-icon-button" onClick={() => {
+              if (activeTab === 'overview') loadStats();
+              else if (activeTab === 'stores') loadStores(currentPage, searchQuery);
+              else if (activeTab === 'categories') loadCategories();
+              else if (activeTab === 'settings') loadSettings();
+              else if (activeTab === 'withdrawals') loadWithdrawals();
+              else if (activeTab === 'verifications') loadVerifications();
+            }}>
+              <RefreshCw size={17} className={statsLoading || storesLoading || categoriesLoading || settingsLoading || withdrawalsLoading || verificationsLoading ? 'admin-spin' : ''} />
             </button>
             <button type="button" className="admin-icon-button" onClick={handleLogout}>
               <LogOut size={17} />
@@ -747,6 +851,170 @@ export default function AdminPage() {
                 </div>
               </form>
             )}
+          </section>
+        )}
+
+        {activeTab === 'withdrawals' && (
+          <section className="admin-section">
+            <div className="admin-section-heading">
+              <div>
+                <h2>Withdrawal requests</h2>
+                <p>Review and approve pending withdrawal payout requests from store wallets.</p>
+              </div>
+              <button type="button" className="btn btn-outline" onClick={loadWithdrawals} disabled={withdrawalsLoading}>
+                <RefreshCw size={16} className={withdrawalsLoading ? 'admin-spin' : ''} /> Refresh
+              </button>
+            </div>
+
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Store / Merchant</th>
+                    <th>Amount</th>
+                    <th>Destination Bank details</th>
+                    <th>Date Requested</th>
+                    <th>Status</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {withdrawalsLoading ? (
+                    <TableSkeleton rows={6} columns={6} />
+                  ) : withdrawals.length ? (
+                    withdrawals.map((w: any) => {
+                      const dateStr = new Date(w.created_at).toLocaleDateString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                      });
+                      return (
+                        <tr key={w.id}>
+                          <td>
+                            <strong>{w.store?.store_name || 'Unknown Store'}</strong>
+                            <span>{w.store?.user?.email || w.store?.user?.phone_number || 'No contact'}</span>
+                          </td>
+                          <td>
+                            <strong style={{ fontSize: 15 }}>{formatMoney(w.amount)}</strong>
+                          </td>
+                          <td>
+                            <strong>{w.bank_name}</strong>
+                            <span>{w.account_number} • {w.account_name}</span>
+                          </td>
+                          <td>
+                            <span>{dateStr}</span>
+                          </td>
+                          <td>
+                            <StatusChip tone={w.status === 'approved' ? 'green' : w.status === 'rejected' ? 'red' : 'gray'} label={w.status} />
+                          </td>
+                          <td className="admin-table__actions">
+                            {w.status === 'pending' && (
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <button type="button" className="admin-action" style={{ color: 'var(--primary)', border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleApproveWithdrawal(w.id)}>
+                                  <Check size={14} /> Approve
+                                </button>
+                                <button type="button" className="admin-action danger" style={{ border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleRejectWithdrawal(w.id)}>
+                                  <X size={14} /> Reject
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={6}>
+                        <EmptyState label="No withdrawal requests found." />
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'verifications' && (
+          <section className="admin-section">
+            <div className="admin-section-heading">
+              <div>
+                <h2>Store Trust Verifications</h2>
+                <p>Review uploaded ID/business documents and manage storefront verified badges.</p>
+              </div>
+              <button type="button" className="btn btn-outline" onClick={loadVerifications} disabled={verificationsLoading}>
+                <RefreshCw size={16} className={verificationsLoading ? 'admin-spin' : ''} /> Refresh
+              </button>
+            </div>
+
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Store / Merchant</th>
+                    <th>Document Type</th>
+                    <th>Uploaded Document File</th>
+                    <th>Status</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {verificationsLoading ? (
+                    <TableSkeleton rows={6} columns={5} />
+                  ) : verifications.length ? (
+                    verifications.map((v: any) => {
+                      const docLabel = v.verification_document_type ? v.verification_document_type.replace('_', ' ').toUpperCase() : 'ID';
+                      return (
+                        <tr key={v.id}>
+                          <td>
+                            <strong>{v.store_name}</strong>
+                            <a href={`http://${v.username}.localhost:3001`} target="_blank" rel="noreferrer">
+                              @{v.username} <ExternalLink size={12} />
+                            </a>
+                          </td>
+                          <td>
+                            <strong style={{ fontSize: 13 }}>{docLabel}</strong>
+                          </td>
+                          <td>
+                            {v.verification_document_url ? (
+                              <a
+                                href={v.verification_document_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--primary)', fontWeight: 700 }}
+                              >
+                                View File <ExternalLink size={14} />
+                              </a>
+                            ) : (
+                              <span style={{ color: 'var(--text-faint)' }}>No file uploaded</span>
+                            )}
+                          </td>
+                          <td>
+                            <StatusChip tone={v.verification_status === 'verified' ? 'green' : v.verification_status === 'rejected' ? 'red' : 'gray'} label={v.verification_status} />
+                          </td>
+                          <td className="admin-table__actions">
+                            {v.verification_status === 'pending' && (
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <button type="button" className="admin-action" style={{ color: 'var(--primary)', border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleApproveVerification(v.id)}>
+                                  <Check size={14} /> Approve
+                                </button>
+                                <button type="button" className="admin-action danger" style={{ border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleRejectVerification(v.id)}>
+                                  <X size={14} /> Reject
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={5}>
+                        <EmptyState label="No verification requests found." />
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </section>
         )}
       </main>

@@ -86,7 +86,7 @@ export default function Logo({
             lineHeight: 1,
           }}
         >
-          aloaye
+          Aloaye
         </span>
       )}
     </div>
