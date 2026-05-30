@@ -7,7 +7,7 @@ import {
   Sparkles, Zap, Link, BarChart3, Globe,
   Store, Star, ArrowRight, CheckCircle2, User, LogOut,
   Package, ShoppingBag, Settings, Share2, Copy, Plus, Tag,
-  Trash2, Edit2, AlertCircle, Check, Loader2, Phone,
+  Trash2, Edit2, AlertCircle, Check, Loader2, Phone, Megaphone,
   DollarSign, Calendar, MapPin, Receipt, Menu, X, ArrowUpRight,
   TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck,
@@ -141,7 +141,7 @@ interface DashboardStats {
   };
 }
 
-type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'templates' | 'settings' | 'billing' | 'wallet';
+type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach';
 
 const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'templates', 'settings', 'billing', 'wallet'];
 
@@ -1714,11 +1714,12 @@ export default function DashboardPage() {
         {/* Nav Links */}
         <nav className="no-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto' }}>
           {[
-            { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
+            { id: 'overview', label: 'Aloaye Pulse (Stats)', icon: <BarChart3 size={18} /> },
             { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
-            { id: 'products', label: 'Products', icon: <Package size={18} /> },
-            { id: 'wallet', label: 'Payouts & Wallet', icon: <DollarSign size={18} /> },
-            { id: 'whatsapp', label: 'WA Sales Inbox', icon: <WhatsAppIcon size={18} />, badge: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
+            { id: 'products', label: 'Aloaye Flow (Catalog)', icon: <Package size={18} /> },
+            { id: 'wallet', label: 'Aloaye Pay (Wallet)', icon: <DollarSign size={18} /> },
+            { id: 'whatsapp', label: 'Aloaye Aura (AI Chat)', icon: <WhatsAppIcon size={18} />, badge: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
+            { id: 'reach', label: 'Aloaye Reach (Broadcasts)', icon: <Megaphone size={18} />, badge: 'Pro' },
             { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
             { id: 'templates', label: 'Templates', icon: <Sparkles size={18} /> },
             { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
@@ -1886,6 +1887,10 @@ export default function DashboardPage() {
               {/* ── TAB 1: OVERVIEW & ANALYTICS ── */}
               {activeTab === 'overview' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }} className="animate-fade-in">
+                  <div>
+                    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Aloaye Pulse</h2>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Business Analytics & CRM metrics tracking customer purchases and conversion rates.</p>
+                  </div>
 
                   {/* ── STORE SETUP CHECKLIST (shown until store is fully configured) ── */}
                   {(() => {
@@ -2360,8 +2365,8 @@ export default function DashboardPage() {
                 <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="responsive-product-header">
                     <div>
-                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Product Catalog</h2>
-                      <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Create items, update pricing, and generate descriptions using ChatGPT AI.</p>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Aloaye Flow</h2>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Converts inventory into checkouts. Create items, update pricing, and generate descriptions using ChatGPT AI.</p>
                     </div>
                     <button
                       onClick={openAddProductModal}
@@ -2501,9 +2506,10 @@ export default function DashboardPage() {
                     <div style={{ width: 300, borderRight: '1px solid var(--border)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column' }} className={`wa-contacts-panel ${activeWaView === 'list' ? 'wa-mobile-show' : 'wa-mobile-hide'}`}>
                       <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--border)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900 }}>WA Sales Inbox</h3>
+                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900 }}>Aloaye Aura</h3>
                           <button onClick={() => { loadWaOrders(); toast.success('Refreshing inbox...'); }} className="btn btn-ghost clickable" style={{ padding: 6, color: 'var(--primary)' }} title="Refresh"><RefreshCw size={14} /></button>
                         </div>
+                        <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 8 }}>AI Conversational assistant replying to your customer chats 24/7.</p>
                         <div style={{ position: 'relative' }}>
                           <input type="text" placeholder="Search by name, phone, order #..." value={waSearch} onChange={e => setWaSearch(e.target.value)} style={{ width: '100%', padding: '8px 12px 8px 30px', fontSize: 12.5, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', outline: 'none', color: 'var(--text)' }} />
                           <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', fontSize: 11 }}>🔍</span>
@@ -4410,6 +4416,44 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* ── TAB: ALOAYE REACH (BROADCASTS) ── */}
+              {activeTab === 'reach' && (
+                <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
+                  <div style={{ background: 'rgba(255, 159, 67, 0.15)', color: '#FF9F43', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Megaphone size={32} style={{ margin: 'auto' }} />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Aloaye Reach</h2>
+                  <p style={{ fontSize: 11.5, fontWeight: 800, color: '#FF9F43', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Automated Marketing & Broadcasting</p>
+                  <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+                    Retarget your customers automatically. Send updates, discount codes, or custom promotional messages directly to your shoppers' WhatsApp inboxes with 98% open rates.
+                  </p>
+                  
+                  {/* Features List */}
+                  <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Smart Retargeting Campaigns</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>WhatsApp Broadcast Newsletters</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Custom Discount Trigger Automations</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => navigateDashboardTab('billing')}
+                    className="btn btn-primary clickable"
+                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
+                  >
+                    <Zap size={16} /> Upgrade to Pro to Unlock Reach
+                  </button>
+                </div>
+              )}
+
               {/* ── TAB 7: PLANS & BILLING ── */}
               {activeTab === 'billing' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
@@ -4697,10 +4741,10 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
-                        Payouts & Wallet Balance
+                        Aloaye Pay (Wallet Balance)
                       </h2>
-                      <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
-                        Track your earnings, manage payout withdrawals, and submit trust verification documents.
+                      <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                        Aloaye Pay: Frictionless Escrow & Payouts. Withdraw funds to your verified bank account instantly.
                       </p>
                     </div>
                   </div>
