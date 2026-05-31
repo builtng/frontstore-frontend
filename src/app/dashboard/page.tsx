@@ -1714,14 +1714,14 @@ export default function DashboardPage() {
         {/* Nav Links */}
         <nav className="no-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto' }}>
           {[
-            { id: 'overview', label: 'Frontstore Pulse (Stats)', icon: <BarChart3 size={18} /> },
-            { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
-            { id: 'products', label: 'Frontstore Flow (Catalog)', icon: <Package size={18} /> },
-            { id: 'wallet', label: 'Frontstore Pay (Wallet)', icon: <DollarSign size={18} /> },
-            { id: 'whatsapp', label: 'Frontstore Aura (AI Chat)', icon: <WhatsAppIcon size={18} />, badge: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
-            { id: 'reach', label: 'Frontstore Reach (Broadcasts)', icon: <Megaphone size={18} />, badge: 'Pro' },
-            { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
-            { id: 'templates', label: 'Templates', icon: <Sparkles size={18} /> },
+            { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={18} /> },
+            { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
+            { id: 'products', label: 'My Products', icon: <Package size={18} /> },
+            { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
+            { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} />, badge: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
+            { id: 'reach', label: 'Broadcast Messages', icon: <Megaphone size={18} />, badge: 'Pro' },
+            { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
+            { id: 'templates', label: 'Store Themes', icon: <Sparkles size={18} /> },
             { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
             { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
           ].map(item => {
@@ -4416,7 +4416,7 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* ── TAB: ALOAYE REACH (BROADCASTS) ── */}
+              {/* ── TAB: FRONTSTORE REACH (BROADCASTS) ── */}
               {activeTab === 'reach' && (
                 <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
                   <div style={{ background: 'rgba(255, 159, 67, 0.15)', color: '#FF9F43', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
@@ -5002,13 +5002,13 @@ export default function DashboardPage() {
 
             <nav style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
               {[
-                { id: 'overview', label: 'Overview', icon: <BarChart3 size={18} /> },
-                { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} /> },
-                { id: 'products', label: 'Products', icon: <Package size={18} /> },
-                { id: 'wallet', label: 'Payouts & Wallet', icon: <DollarSign size={18} /> },
-                { id: 'whatsapp', label: 'WA Sales Inbox', icon: <WhatsAppIcon size={18} /> },
-                { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
-                { id: 'templates', label: 'Templates', icon: <Sparkles size={18} /> },
+                { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={18} /> },
+                { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} /> },
+                { id: 'products', label: 'My Products', icon: <Package size={18} /> },
+                { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
+                { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
+                { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
+                { id: 'templates', label: 'Store Themes', icon: <Sparkles size={18} /> },
                 { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
                 { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
               ].map(item => (

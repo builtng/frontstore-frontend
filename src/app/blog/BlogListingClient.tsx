@@ -152,7 +152,7 @@ export default function BlogListingClient() {
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 680, margin: '0 auto' }}>
           <span className="badge badge-primary" style={{ marginBottom: 14, padding: '5px 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <BookOpen size={12} /> ALOAYE SELLER BLOG
+            <BookOpen size={12} /> FRONTSTORE SELLER BLOG
           </span>
           <h1
             className="text-display"
