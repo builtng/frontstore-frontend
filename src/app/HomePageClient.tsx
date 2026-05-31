@@ -82,7 +82,7 @@ const TESTIMONIALS = [
 ] as const;
 
 const HOW_IT_WORKS = [
-  { step: '01', title: 'Claim your URL', body: 'Type your business name and claim a branded frontstore store link in seconds.' },
+  { step: '01', title: 'Claim your URL', body: 'Type your business name and claim your branded store link in seconds.' },
   { step: '02', title: 'Add your products', body: 'Upload photos, add prices, and let AI write descriptions for you.' },
   { step: '03', title: 'Share & sell', body: 'Drop your store link on WhatsApp, Instagram, or TikTok and start receiving orders.' },
 ] as const;
@@ -568,7 +568,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <span className="badge badge-primary" style={{ marginBottom: 12 }}>Platform Suite</span>
-            <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>The Frontstore Business OS</h2>
+            <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>Everything You Need to Sell Online</h2>
             <p style={{ color: 'var(--text-muted)', marginTop: 12, fontSize: 16, maxWidth: 600, margin: '12px auto 0' }}>
               A unified suite of products engineered to run your entire business infrastructure through conversations.
             </p>
@@ -581,53 +581,53 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           }}>
             {[
               {
-                brand: 'Frontstore Store',
-                tagline: 'Instant storefront creation',
-                desc: 'Generate a stunning, light-speed catalog tailored for mobile browsers in under 2 minutes. No coding required.',
+                brand: 'Online Store',
+                tagline: 'Your store ready in 2 minutes',
+                desc: 'Generate a stunning, mobile-ready product catalog in under 2 minutes. No coding, no website builder — just add your products and go.',
                 icon: <Store size={22} color="var(--primary)" />,
-                badge: 'Core OS'
+                badge: 'Core Feature'
               },
               {
-                brand: 'Frontstore Chat',
-                tagline: 'WhatsApp-native selling',
-                desc: 'Route customer selections directly to your WhatsApp with pre-filled checkouts. Turn chat history into signed orders.',
+                brand: 'WhatsApp Checkout',
+                tagline: 'Sell directly in WhatsApp',
+                desc: 'Customers browse your store and tap "Order" — their message lands in your WhatsApp chat, pre-filled and ready to confirm.',
                 icon: <MessageCircle size={22} color="hsl(142, 71%, 45%)" />,
                 badge: 'WhatsApp Native'
               },
               {
-                brand: 'Frontstore Pay',
-                tagline: 'Seamless payments & escrow',
-                desc: 'Accept local African payments (cards, bank transfer, mobile money). Secure payments with conversation-linked escrow.',
+                brand: 'Accept Payments',
+                tagline: 'Cards, bank transfer & mobile money',
+                desc: 'Collect payments securely from your customers. Supports Paystack, cards, bank transfers, and mobile money across Africa.',
                 icon: <CreditCard size={22} color="hsl(200, 98%, 45%)" />,
-                badge: 'Fintech Rails'
+                badge: 'Secure Payments'
               },
               {
-                brand: 'Frontstore CRM',
-                tagline: 'Conversational client logs',
-                desc: 'Know who buys what. Log order histories, buyer preferences, and follow-up reminders right where you converse.',
+                brand: 'Customer Records',
+                tagline: 'Know who buys from you',
+                desc: 'Automatically log every buyer, their orders, and purchase history. Follow up easily and build lasting customer relationships.',
                 icon: <Users size={22} color="hsl(250, 84%, 60%)" />,
                 badge: 'Customer Logs'
               },
               {
-                brand: 'Frontstore AI',
-                tagline: 'Your 24/7 sales assistant',
-                desc: 'Automatically generate descriptions, translate chats, suggest optimal regional pricing, and reply to customers.',
+                brand: 'AI Assistant',
+                tagline: 'Write descriptions in one click',
+                desc: 'Upload a product photo and let AI write your description, suggest prices, and answer customer questions — 24/7.',
                 icon: <Brain size={22} color="hsl(280, 70%, 55%)" />,
                 badge: 'AI Powered'
               },
               {
-                brand: 'Frontstore Growth',
-                tagline: 'WhatsApp broadcast & marketing',
-                desc: 'Blast product drops and discount links to segmented buyer lists on WhatsApp. Drive repeat sales without high ad spend.',
+                brand: 'Broadcast Messages',
+                tagline: 'Reach all your customers at once',
+                desc: 'Send new product alerts, discounts, or promotions to all your buyers on WhatsApp in one click. Drive repeat sales effortlessly.',
                 icon: <Megaphone size={22} color="hsl(340, 82%, 55%)" />,
-                badge: 'Grow Audience'
+                badge: 'Marketing'
               },
               {
-                brand: 'Frontstore Analytics',
-                tagline: 'Conversational insights',
-                desc: 'Track sales velocity, page views, and WhatsApp checkout conversions. Visual dashboards to scale what works.',
+                brand: 'Sales Analytics',
+                tagline: 'See how your store is doing',
+                desc: 'Track your revenue, page views, and top products. Simple charts that show you what is working so you can grow faster.',
                 icon: <TrendingUp size={22} color="hsl(38, 92%, 50%)" />,
-                badge: 'Rich Analytics'
+                badge: 'Insights'
               }
             ].map((prod, idx) => (
               <div
@@ -1037,7 +1037,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               </div>
               <h3 className="text-title" style={{ marginBottom: 6 }}>Book a Live Demo</h3>
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                See how Frontstore Chat and Store OS can double your WhatsApp sales.
+                See how Frontstore can help you sell more, manage orders, and grow your business on WhatsApp.
               </p>
             </div>
             

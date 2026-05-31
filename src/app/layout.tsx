@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     "small business Nigeria", "sell on WhatsApp", "Africa shops", "WhatsApp store",
     "online store Africa", "ecommerce Nigeria", "ecommerce Ghana", "ecommerce Kenya",
     "sell online Africa", "digital storefront", "WhatsApp business", "micro business Africa",
-    "Frontstore", "Frontstore store", "African commerce infrastructure", "WhatsApp CRM",
+    "Frontstore", "social commerce", "African commerce infrastructure", "WhatsApp CRM",
   ],
   authors: [{ name: "Frontstore", url: 'https://frontstore.app' }],
   creator: "Frontstore",

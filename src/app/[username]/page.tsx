@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!data || !data.store) {
     return {
       title: 'Store Not Found',
-      description: 'The requested frontstore storefront could not be located.',
+      description: 'The requested storefront could not be located.',
     };
   }
 

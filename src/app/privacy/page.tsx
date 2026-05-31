@@ -117,7 +117,7 @@ export default function PrivacyPage() {
                   <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13.5, color: 'var(--text-2)' }}>
                     <li><strong>Account Information:</strong> Name, business email, login credentials, and WhatsApp-connected phone number.</li>
                     <li><strong>Store & Catalog Data:</strong> Product titles, descriptions, pricing currencies (NGN, GHS, KES, ZAR, etc.), size/color variants, and catalog photos.</li>
-                    <li><strong>KYC Verification details:</strong> Legal business names, tax registry numbers, identification documents, and bank/mobile money details for Frontstore Pay settlements.</li>
+                    <li><strong>KYC Verification details:</strong> Legal business names, tax registry numbers, identification documents, and bank/mobile money details for payment settlements.</li>
                   </ul>
                 </div>
                 <div>
@@ -130,7 +130,7 @@ export default function PrivacyPage() {
                 <div>
                   <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>C. Chat Transcripts & AI Inputs</h4>
                   <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    When shoppers engage with <strong>Frontstore Aura</strong> conversational models, we collect and log the text dialogue to process requests, formulate catalog suggestions, and construct order summaries.
+                    When shoppers engage with our AI chat assistant, we collect and log the text dialogue to process requests, formulate catalog suggestions, and construct order summaries.
                   </p>
                 </div>
                 <div>
@@ -147,7 +147,7 @@ export default function PrivacyPage() {
                 <Bot size={20} style={{ color: 'var(--primary)' }} /> 3. Processing Data with Artificial Intelligence
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Frontstore integrates state-of-the-art AI technology to generate catalog descriptions and run the <strong>Frontstore Aura</strong> chat agent. Data handling for AI features follows strict protocols:
+                Frontstore integrates state-of-the-art AI technology to generate catalog descriptions and run our AI chat assistant. Data handling for AI features follows strict protocols:
               </p>
               <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55 }}>
                 <li>
@@ -177,7 +177,7 @@ export default function PrivacyPage() {
                   <strong>With the Merchant:</strong> Customer order details, delivery addresses, and chat details are shared with the merchant to enable fulfillment.
                 </li>
                 <li>
-                  <strong>Licensed Payment Processors:</strong> We partner with licensed, PCI-DSS compliant financial providers (such as Paystack, Flutterwave, and M-Pesa channels) to process Frontstore Pay payments.
+                  <strong>Licensed Payment Processors:</strong> We partner with licensed, PCI-DSS compliant financial providers (such as Paystack, Flutterwave, and M-Pesa channels) to process payments.
                 </li>
                 <li>
                   <strong>Cloud & Hosting Infrastructure:</strong> Encrypted hosting providers (such as Vercel and Supabase) that comply with ISO security frameworks.
@@ -225,7 +225,7 @@ export default function PrivacyPage() {
                 </div>
                 <div>
                   <strong style={{ color: 'var(--text)' }}>AI Encryption:</strong>
-                  <p style={{ marginTop: 2 }}>Chats analyzed by Frontstore Aura are secure and not used to train public models.</p>
+                  <p style={{ marginTop: 2 }}>Chats analyzed by our AI are secure and not used to train public models.</p>
                 </div>
                 <div>
                   <strong style={{ color: 'var(--text)' }}>Regulated Payments:</strong>

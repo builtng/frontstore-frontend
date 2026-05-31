@@ -340,7 +340,7 @@ function SignupFormContent() {
             <Smartphone size={18} style={{ color: 'var(--primary)' }} /> Next Step: Manage on the App
           </h3>
           <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            Download the <strong>frontstore Store OS</strong> app on your Android or iOS device to start uploading products, tracking orders, and customizing your catalogs in seconds.
+            Download the <strong>Frontstore</strong> app on your Android or iOS device to start uploading products, tracking orders, and customizing your catalogs in seconds.
           </p>
 
           <div style={{

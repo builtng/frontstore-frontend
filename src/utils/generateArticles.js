@@ -184,7 +184,7 @@ const ORIGINAL_ARTICLES = [
       },
       {
         heading: 'Leveraging Social Media and Status Updates',
-        body: 'Accra gadget buyers are extremely active on WhatsApp Status and Instagram. Posting attractive device photos with a direct link to the product on your frontstore store lets interested buyers order in one click, skipping long negotiations.'
+        body: 'Accra gadget buyers are extremely active on WhatsApp Status and Instagram. Posting attractive device photos with a direct link to the product on your storefront lets interested buyers order in one click, skipping long negotiations.'
       }
     ],
     faqs: [
