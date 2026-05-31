@@ -82,7 +82,7 @@ export default function PrivacyPage() {
           </div>
           <h1 className="text-display" style={{ marginBottom: 16 }}>Privacy Policy</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 16, maxHeight: 'none', lineHeight: 1.6, maxWidth: 800 }}>
-            At Aloaye, we respect your privacy. This policy describes how we collect, store, share, and process merchant and customer information across our conversational commerce infrastructure.
+            At Frontstore, we respect your privacy. This policy describes how we collect, store, share, and process merchant and customer information across our conversational commerce infrastructure.
           </p>
         </header>
 
@@ -97,7 +97,7 @@ export default function PrivacyPage() {
                 <Globe size={20} style={{ color: 'var(--primary)' }} /> 1. Commitment to Data Privacy
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Aloaye (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) serves as a conversational commerce infrastructure. We handle data for two groups of users: **Merchants** (who create storefronts and sell products) and **Shoppers** (who browse stores, negotiate via chat, and place orders).
+                Frontstore (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) serves as a conversational commerce infrastructure. We handle data for two groups of users: **Merchants** (who create storefronts and sell products) and **Shoppers** (who browse stores, negotiate via chat, and place orders).
               </p>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 We are committed to operating in full compliance with regional privacy laws, including the <strong>Nigeria Data Protection Act (NDPR/NDPA)</strong>, Kenya&apos;s <strong>Data Protection Act</strong>, and South Africa&apos;s <strong>Protection of Personal Information Act (POPIA)</strong>, alongside international guidelines such as the General Data Protection Regulation (GDPR).
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
                   <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13.5, color: 'var(--text-2)' }}>
                     <li><strong>Account Information:</strong> Name, business email, login credentials, and WhatsApp-connected phone number.</li>
                     <li><strong>Store & Catalog Data:</strong> Product titles, descriptions, pricing currencies (NGN, GHS, KES, ZAR, etc.), size/color variants, and catalog photos.</li>
-                    <li><strong>KYC Verification details:</strong> Legal business names, tax registry numbers, identification documents, and bank/mobile money details for Aloaye Pay settlements.</li>
+                    <li><strong>KYC Verification details:</strong> Legal business names, tax registry numbers, identification documents, and bank/mobile money details for Frontstore Pay settlements.</li>
                   </ul>
                 </div>
                 <div>
@@ -130,7 +130,7 @@ export default function PrivacyPage() {
                 <div>
                   <h4 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>C. Chat Transcripts & AI Inputs</h4>
                   <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    When shoppers engage with <strong>Aloaye Aura</strong> conversational models, we collect and log the text dialogue to process requests, formulate catalog suggestions, and construct order summaries.
+                    When shoppers engage with <strong>Frontstore Aura</strong> conversational models, we collect and log the text dialogue to process requests, formulate catalog suggestions, and construct order summaries.
                   </p>
                 </div>
                 <div>
@@ -147,7 +147,7 @@ export default function PrivacyPage() {
                 <Bot size={20} style={{ color: 'var(--primary)' }} /> 3. Processing Data with Artificial Intelligence
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Aloaye integrates state-of-the-art AI technology to generate catalog descriptions and run the <strong>Aloaye Aura</strong> chat agent. Data handling for AI features follows strict protocols:
+                Frontstore integrates state-of-the-art AI technology to generate catalog descriptions and run the <strong>Frontstore Aura</strong> chat agent. Data handling for AI features follows strict protocols:
               </p>
               <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55 }}>
                 <li>
@@ -157,7 +157,7 @@ export default function PrivacyPage() {
                   <strong>No Public Training Use:</strong> We do not allow third-party AI models to use your personal or business-sensitive transaction records to train public models.
                 </li>
                 <li>
-                  <strong>Language Customization:</strong> Chat logs are evaluated internally by Aloaye to calibrate our conversational agents on regional colloquialisms, Pidgin, Sheng, and localized spelling formats.
+                  <strong>Language Customization:</strong> Chat logs are evaluated internally by Frontstore to calibrate our conversational agents on regional colloquialisms, Pidgin, Sheng, and localized spelling formats.
                 </li>
               </ul>
             </section>
@@ -177,7 +177,7 @@ export default function PrivacyPage() {
                   <strong>With the Merchant:</strong> Customer order details, delivery addresses, and chat details are shared with the merchant to enable fulfillment.
                 </li>
                 <li>
-                  <strong>Licensed Payment Processors:</strong> We partner with licensed, PCI-DSS compliant financial providers (such as Paystack, Flutterwave, and M-Pesa channels) to process Aloaye Pay payments.
+                  <strong>Licensed Payment Processors:</strong> We partner with licensed, PCI-DSS compliant financial providers (such as Paystack, Flutterwave, and M-Pesa channels) to process Frontstore Pay payments.
                 </li>
                 <li>
                   <strong>Cloud & Hosting Infrastructure:</strong> Encrypted hosting providers (such as Vercel and Supabase) that comply with ISO security frameworks.
@@ -197,13 +197,13 @@ export default function PrivacyPage() {
                   <strong>Right to Access & Portability:</strong> Merchants may request a complete export of their sales logs, inventory, and account details.
                 </li>
                 <li>
-                  <strong>Right to Rectification:</strong> You can edit your catalog, password, name, and billing details directly within the Aloaye merchant dashboard.
+                  <strong>Right to Rectification:</strong> You can edit your catalog, password, name, and billing details directly within the Frontstore merchant dashboard.
                 </li>
                 <li>
                   <strong>Right to Erasure (Deletion):</strong> You have the right to request that we delete your store, customer lists, and all associated personal data from our servers. Once verified, deletion will occur within 30 business days.
                 </li>
                 <li>
-                  <strong>Data Protection Officer:</strong> For any compliance inquiries, Data Subject Access Requests (DSAR), or privacy questions, contact our Data Protection Officer at `privacy@aloaye.tech`.
+                  <strong>Data Protection Officer:</strong> For any compliance inquiries, Data Subject Access Requests (DSAR), or privacy questions, contact our Data Protection Officer at `privacy@frontstore.app`.
                 </li>
               </ul>
             </section>
@@ -225,7 +225,7 @@ export default function PrivacyPage() {
                 </div>
                 <div>
                   <strong style={{ color: 'var(--text)' }}>AI Encryption:</strong>
-                  <p style={{ marginTop: 2 }}>Chats analyzed by Aloaye Aura are secure and not used to train public models.</p>
+                  <p style={{ marginTop: 2 }}>Chats analyzed by Frontstore Aura are secure and not used to train public models.</p>
                 </div>
                 <div>
                   <strong style={{ color: 'var(--text)' }}>Regulated Payments:</strong>
@@ -247,7 +247,7 @@ export default function PrivacyPage() {
                 Have questions about how your order records are stored, or want to submit an account deletion request?
               </p>
               <a
-                href="mailto:privacy@aloaye.tech"
+                href="mailto:privacy@frontstore.app"
                 className="btn btn-outline"
                 style={{ width: '100%', padding: '10px', fontSize: 12.5, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}
               >
@@ -275,7 +275,7 @@ export default function PrivacyPage() {
       }}>
         <Logo size={20} textColor="var(--primary)" />
         <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-          © {new Date().getFullYear()} Aloaye. Conversational Commerce Infrastructure.
+          © {new Date().getFullYear()} Frontstore. Conversational Commerce Infrastructure.
         </p>
         <div style={{ display: 'flex', gap: 16 }}>
           <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>

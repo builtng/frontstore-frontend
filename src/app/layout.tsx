@@ -22,10 +22,10 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://aloaye.tech'),
+  metadataBase: new URL('https://frontstore.app'),
   title: {
-    default: "Aloaye — Conversational Commerce Platform",
-    template: "%s | Aloaye",
+    default: "Frontstore — Conversational Commerce Platform",
+    template: "%s | Frontstore",
   },
   description:
     "Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa. Turn WhatsApp conversations into sales.",
@@ -34,11 +34,11 @@ export const metadata: Metadata = {
     "small business Nigeria", "sell on WhatsApp", "Africa shops", "WhatsApp store",
     "online store Africa", "ecommerce Nigeria", "ecommerce Ghana", "ecommerce Kenya",
     "sell online Africa", "digital storefront", "WhatsApp business", "micro business Africa",
-    "Aloaye", "Aloaye store", "African commerce infrastructure", "WhatsApp CRM",
+    "Frontstore", "Frontstore store", "African commerce infrastructure", "WhatsApp CRM",
   ],
-  authors: [{ name: "Aloaye", url: 'https://aloaye.tech' }],
-  creator: "Aloaye",
-  publisher: "Aloaye Technologies",
+  authors: [{ name: "Frontstore", url: 'https://frontstore.app' }],
+  creator: "Frontstore",
+  publisher: "Frontstore Technologies",
   alternates: {
     canonical: '/',
   },
@@ -54,27 +54,27 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_NG",
-    siteName: "Aloaye",
-    title: "Aloaye — Conversational Commerce Platform",
+    siteName: "Frontstore",
+    title: "Frontstore — Conversational Commerce Platform",
     description:
       "Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa. Turn WhatsApp conversations into sales.",
-    url: 'https://aloaye.tech',
+    url: 'https://frontstore.app',
     images: [
       {
         url: '/icon.png',
         width: 512,
         height: 512,
-        alt: 'Aloaye — Conversational Commerce Platform for Africa',
+        alt: 'Frontstore — Conversational Commerce Platform for Africa',
       }
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aloaye — Conversational Commerce Platform",
+    title: "Frontstore — Conversational Commerce Platform",
     description: "Turn WhatsApp conversations into sales. Build a beautiful store and grow your business.",
     images: ['/icon.png'],
-    creator: '@aloaye',
-    site: '@aloaye',
+    creator: '@frontstore',
+    site: '@frontstore',
   },
   robots: {
     index: true,
@@ -116,7 +116,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                var theme = localStorage.getItem('aloaye-theme') || 'system';
+                var theme = localStorage.getItem('frontstore-theme') || 'system';
                 if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                   document.documentElement.classList.add('dark');
                   document.documentElement.classList.remove('light');

@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next';
 import { BLOG_ARTICLES } from '@/utils/blogData';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aloaye.tech';
-  const apiHost = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://frontstore.app';
+  const apiHost = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   const now = new Date();
 
   // ── Static pages ──────────────────────────────────────────────────────────

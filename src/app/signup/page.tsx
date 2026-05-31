@@ -81,7 +81,7 @@ function SignupFormContent() {
     storeUrl: string;
   } | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   // Detect host suffix
   useEffect(() => {
@@ -213,7 +213,7 @@ function SignupFormContent() {
 
       const storeUrl = typeof window !== 'undefined'
         ? `${window.location.origin}/${cleanUsername}`
-        : `https://aloaye.tech/${cleanUsername}`;
+        : `https://frontstore.app/${cleanUsername}`;
 
       setSuccessData({
         storeName: json.data?.store?.store_name ?? storeName,
@@ -340,7 +340,7 @@ function SignupFormContent() {
             <Smartphone size={18} style={{ color: 'var(--primary)' }} /> Next Step: Manage on the App
           </h3>
           <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            Download the <strong>aloaye Store OS</strong> app on your Android or iOS device to start uploading products, tracking orders, and customizing your catalogs in seconds.
+            Download the <strong>frontstore Store OS</strong> app on your Android or iOS device to start uploading products, tracking orders, and customizing your catalogs in seconds.
           </p>
 
           <div style={{
@@ -457,7 +457,7 @@ function SignupFormContent() {
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', marginBottom: 12 }}
         >
           <Store size={28} style={{ color: 'var(--primary)', strokeWidth: 2.5 }} />
-          <span>aloaye</span>
+          <span>frontstore</span>
         </a>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em' }}>
           Create Your Storefront
@@ -583,7 +583,7 @@ function SignupFormContent() {
                 transition: 'color var(--t-fast)'
               }} />
               <span style={{ padding: '0 0 0 44px', color: 'var(--text-muted)', fontSize: 13.5, fontWeight: 600, whiteSpace: 'nowrap', userSelect: 'none' }}>
-                aloaye.tech/
+                frontstore.app/
               </span>
               <input
                 id="store-username"
@@ -612,7 +612,7 @@ function SignupFormContent() {
             {/* Live Link Preview Nudge */}
             {username && (
               <span style={{ fontSize: 11.5, color: 'var(--primary)', display: 'block', marginTop: 6, fontWeight: 700 }}>
-                Live link: aloaye.tech/{username.toLowerCase()}
+                Live link: frontstore.app/{username.toLowerCase()}
               </span>
             )}
             <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 4 }}>
@@ -948,7 +948,7 @@ function SignupFormContent() {
         </button>
 
         <p style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          By launching your store, you agree to aloaye&apos;s{' '}
+          By launching your store, you agree to frontstore&apos;s{' '}
           <a href="/terms" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Terms of Service</a>
           {' '}and{' '}
           <a href="/privacy" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Privacy Policy</a>.
@@ -1042,7 +1042,7 @@ export default function SignupPage() {
             color: '#fff'
           }}>
             <Store size={26} style={{ strokeWidth: 2.5 }} />
-            <span>aloaye</span>
+            <span>frontstore</span>
           </div>
 
           <h2 style={{
@@ -1098,7 +1098,7 @@ export default function SignupPage() {
             backdropFilter: 'blur(8px)'
           }}>
             <p style={{ fontSize: 14.5, fontStyle: 'italic', opacity: 0.95, lineHeight: 1.6, marginBottom: 12 }}>
-              &quot;Setting up my storefront on aloaye completely changed how I deal with online orders. Now customers see everything I have, choose their sizes, and order automatically on my WhatsApp.&quot;
+              &quot;Setting up my storefront on frontstore completely changed how I deal with online orders. Now customers see everything I have, choose their sizes, and order automatically on my WhatsApp.&quot;
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255, 255, 255, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12 }}>

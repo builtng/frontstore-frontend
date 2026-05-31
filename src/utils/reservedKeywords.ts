@@ -3,7 +3,7 @@ export const RESERVED_SUBDOMAINS = [
   'admin', 'administrator', 'adm', 'root', 'sys', 'system', 'manager', 'dashboard', 'portal', 'control', 'panel', 'cpanel', 'whm',
   
   // Core App & System
-  'aloaye', 'main', 'master', 'platform', 'domain', 'subdomain', 'site', 'website', 'web', 'home', 'index', 'track',
+  'frontstore', 'main', 'master', 'platform', 'domain', 'subdomain', 'site', 'website', 'web', 'home', 'index', 'track',
   
   // Auth & Accounts
   'auth', 'login', 'signin', 'signup', 'register', 'logout', 'signout', 'session', 'sessions', 'oauth', 'sso', 'account', 'accounts', 'profile', 'user', 'users', 'member', 'members', 'client', 'clients', 'customer', 'customers',

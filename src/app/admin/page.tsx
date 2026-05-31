@@ -146,8 +146,8 @@ export default function AdminPage() {
   const router = useRouter();
 
   const [token, setToken] = useState<string | null>(null);
-  const [apiUrl, setApiUrl] = useState('https://api.aloaye.tech/api');
-  const [adminEmail, setAdminEmail] = useState('admin@aloaye.tech');
+  const [apiUrl, setApiUrl] = useState('https://api.frontstore.app/api');
+  const [adminEmail, setAdminEmail] = useState('admin@frontstore.app');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
@@ -194,7 +194,7 @@ export default function AdminPage() {
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-    const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+    const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
     setApiUrl(savedApiUrl);
 
@@ -214,7 +214,7 @@ export default function AdminPage() {
     try {
       const parsedUser = JSON.parse(storedUser);
       const userIsAdmin = parsedUser?.is_admin === true || parsedUser?.is_admin === 1 || parsedUser?.is_admin === 'true' || parsedUser?.is_admin === '1';
-      setAdminEmail(parsedUser?.email || parsedUser?.phone_number || 'admin@aloaye.tech');
+      setAdminEmail(parsedUser?.email || parsedUser?.phone_number || 'admin@frontstore.app');
       setToken(storedToken);
       setIsAuthenticated(true);
       setIsAdmin(userIsAdmin);
@@ -588,7 +588,7 @@ export default function AdminPage() {
             <Shield size={21} />
           </span>
           <div>
-            <strong>{settings.app_name || 'Aloaye'}</strong>
+            <strong>{settings.app_name || 'Frontstore'}</strong>
             <span>Admin</span>
           </div>
         </div>
@@ -778,7 +778,7 @@ export default function AdminPage() {
                       <tr key={store.id} onClick={() => setSelectedStore(store)} style={{ cursor: 'pointer' }} className="admin-table-row-hoverable">
                         <td>
                           <strong>{store.store_name}</strong>
-                          <a href={store.custom_domain ? `https://${store.custom_domain}` : `https://aloaye.tech/${store.username}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+                          <a href={store.custom_domain ? `https://${store.custom_domain}` : `https://frontstore.app/${store.username}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
                             @{store.username} <ExternalLink size={12} />
                           </a>
                         </td>
@@ -1003,7 +1003,7 @@ export default function AdminPage() {
                     label="System Domain" 
                     value={settings.system_domain} 
                     onChange={(value) => setSettings({ ...settings, system_domain: value })} 
-                    placeholder="e.g. aloaye.tech"
+                    placeholder="e.g. frontstore.app"
                     description="The main platform domain used for link generation and routing."
                     required 
                   />
@@ -1192,7 +1192,7 @@ export default function AdminPage() {
                         <tr key={v.id}>
                           <td>
                             <strong>{v.store_name}</strong>
-                            <a href={v.custom_domain ? `https://${v.custom_domain}` : `https://aloaye.tech/${v.username}`} target="_blank" rel="noreferrer">
+                            <a href={v.custom_domain ? `https://${v.custom_domain}` : `https://frontstore.app/${v.username}`} target="_blank" rel="noreferrer">
                               @{v.username} <ExternalLink size={12} />
                             </a>
                           </td>

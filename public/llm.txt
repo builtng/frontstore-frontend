@@ -1,6 +1,6 @@
-# aloaye — Africa's WhatsApp Commerce Platform
+# frontstore — Africa's WhatsApp Commerce Platform
 
-aloaye enables micro-merchants and small businesses in Africa to claim a customized link (e.g., `aloaye.tech/yourbrand` or custom domain) and deploy a stunning, fast, highly responsive mobile storefront in under 2 minutes. Customers browse products, select quantities, and complete checkouts which generate a pre-filled, clean WhatsApp message to buy instantly.
+frontstore enables micro-merchants and small businesses in Africa to claim a customized link (e.g., `frontstore.app/yourbrand` or custom domain) and deploy a stunning, fast, highly responsive mobile storefront in under 2 minutes. Customers browse products, select quantities, and complete checkouts which generate a pre-filled, clean WhatsApp message to buy instantly.
 
 ## Core Capabilities
 - **WhatsApp-Native Checkout**: Shoppers select items, tap order, and land directly inside the merchant's WhatsApp chat with all order details.
@@ -9,22 +9,22 @@ aloaye enables micro-merchants and small businesses in Africa to claim a customi
 - **Zero-Config SEO**: Dynamically generated indexable storefront directories, XML sitemaps, semantic tags, and lightning-fast loading speeds (<2s on 3G mobile networks).
 
 ## Page Directory & Public Routes
-- **Platform Homepage**: [aloaye.tech](https://aloaye.tech) — Core platform landing page with storefront claiming widget, testimonials, and features.
-- **Merchant Explore Directory**: [aloaye.tech/stores](https://aloaye.tech/stores) — Crawlable directory listing verified merchants on the platform.
-- **Seller Growth Blog**: [aloaye.tech/blog](https://aloaye.tech/blog) — Central hub for localized WhatsApp commerce strategies, retail optimization guides, and step-by-step merchant growth resources.
-- **Localized Blog Articles**: Statically pre-rendered PSEO articles at `/blog/{country}/{article-slug}` (e.g. `aloaye.tech/blog/nigeria/sell-clothes-whatsapp-lagos`), targeting specific retail niches and African cities across Nigeria, Kenya, Ghana, South Africa, and Uganda.
-- **Merchant Sign Up**: [aloaye.tech/signup](https://aloaye.tech/signup) — Quick registration and onboarding.
-- **Merchant Sign In**: [aloaye.tech/login](https://aloaye.tech/login) — Secure portal for order and product management.
-- **Privacy Policy**: [aloaye.tech/privacy](https://aloaye.tech/privacy) — Security and user privacy parameters.
-- **Terms of Service**: [aloaye.tech/terms](https://aloaye.tech/terms) — Merchant guidelines and transaction standards.
+- **Platform Homepage**: [frontstore.app](https://frontstore.app) — Core platform landing page with storefront claiming widget, testimonials, and features.
+- **Merchant Explore Directory**: [frontstore.app/stores](https://frontstore.app/stores) — Crawlable directory listing verified merchants on the platform.
+- **Seller Growth Blog**: [frontstore.app/blog](https://frontstore.app/blog) — Central hub for localized WhatsApp commerce strategies, retail optimization guides, and step-by-step merchant growth resources.
+- **Localized Blog Articles**: Statically pre-rendered PSEO articles at `/blog/{country}/{article-slug}` (e.g. `frontstore.app/blog/nigeria/sell-clothes-whatsapp-lagos`), targeting specific retail niches and African cities across Nigeria, Kenya, Ghana, South Africa, and Uganda.
+- **Merchant Sign Up**: [frontstore.app/signup](https://frontstore.app/signup) — Quick registration and onboarding.
+- **Merchant Sign In**: [frontstore.app/login](https://frontstore.app/login) — Secure portal for order and product management.
+- **Privacy Policy**: [frontstore.app/privacy](https://frontstore.app/privacy) — Security and user privacy parameters.
+- **Terms of Service**: [frontstore.app/terms](https://frontstore.app/terms) — Merchant guidelines and transaction standards.
 
 ## Dynamic Stores Route Mapping
 Individual storefronts are resolved dynamically via Next.js path routes or direct custom DNS mappings.
-- Storefront Path: `aloaye.tech/{storename}`.
+- Storefront Path: `frontstore.app/{storename}`.
 - Custom Domain Path: `yourcustombrand.com` (internally resolved by middleware headers).
 - Store Home: Displays categories, search bar, product catalog grid, merchant banner, and customized bio.
 - Order Status Verification: `/{storename}/track/{order_id}` — real-time verification of orders.
 
 ## Developer & Integration Endpoints
-- **Public Stores API**: `https://api.aloaye.tech/api/v1/public/stores` (Lists active public storefronts in sitemap compiler).
-- **Public Product Search API**: `https://api.aloaye.tech/api/v1/public/store/{username}` (Checks storefront existence and returns product inventories).
+- **Public Stores API**: `https://api.frontstore.app/api/v1/public/stores` (Lists active public storefronts in sitemap compiler).
+- **Public Product Search API**: `https://api.frontstore.app/api/v1/public/store/{username}` (Checks storefront existence and returns product inventories).

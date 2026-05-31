@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 // Dashboard is a private, authenticated app shell — keep it out of search indices
 export const metadata: Metadata = {
   title: 'Merchant Dashboard',
-  description: 'Manage your aloaye store — products, orders, analytics, and settings.',
+  description: 'Manage your frontstore store — products, orders, analytics, and settings.',
   robots: {
     index: false,
     follow: false,

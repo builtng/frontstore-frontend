@@ -7,7 +7,7 @@ import type { NextRequest } from 'next/server';
 const RESERVED_SUBDOMAINS = new Set([
   'admin', 'administrator', 'adm', 'root', 'sys', 'system', 'manager',
   'dashboard', 'portal', 'control', 'panel', 'cpanel', 'whm',
-  'aloaye', 'main', 'master', 'platform', 'domain', 'subdomain',
+  'frontstore', 'main', 'master', 'platform', 'domain', 'subdomain',
   'site', 'website', 'web', 'home', 'index', 'track',
   'auth', 'login', 'signin', 'signup', 'register', 'logout', 'signout',
   'session', 'sessions', 'oauth', 'sso', 'account', 'accounts',
@@ -50,7 +50,7 @@ export function proxy(request: NextRequest) {
       subdomain = parts[0];
     }
   } else {
-    // e.g. storename.aloaye.tech or storename.customdomain.com
+    // e.g. storename.frontstore.app or storename.customdomain.com
     if (parts.length >= 3 && parts[0] !== 'www') {
       subdomain = parts[0];
     }
@@ -63,19 +63,19 @@ export function proxy(request: NextRequest) {
   }
 
   // Identify platform domains & local hosts to distinguish custom domains
-  const isMainDomain = cleanHost === 'aloaye.tech' || cleanHost === 'www.aloaye.tech';
+  const isMainDomain = cleanHost === 'frontstore.app' || cleanHost === 'www.frontstore.app';
   const isLocalMain = cleanHost === 'localhost' || cleanHost === 'lvh.me' || cleanHost === 'www.localhost' || cleanHost === 'www.lvh.me';
 
   // Any *.localhost or *.lvh.me host is a loopback host — never a custom domain.
   const isLoopbackHost = isLocal;
 
   // A domain is a platform domain if it's one of our main domains, a loopback host,
-  // or ends with one of our domain suffixes (meaning it's a subdomain like admin.aloaye.tech).
+  // or ends with one of our domain suffixes (meaning it's a subdomain like admin.frontstore.app).
   const isPlatformDomain =
     isMainDomain ||
     isLocalMain ||
     isLoopbackHost ||
-    cleanHost.endsWith('.aloaye.tech') ||
+    cleanHost.endsWith('.frontstore.app') ||
     cleanHost.endsWith('.localhost') ||
     cleanHost.endsWith('.lvh.me');
 
@@ -109,7 +109,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/track') ||
     /\.(png|jpg|jpeg|gif|svg|ico|css|js|json|txt|xml|woff|woff2|ttf|otf)$/i.test(pathname);
 
-  // Platform storefronts now live on path URLs (e.g. aloaye.tech/ade).
+  // Platform storefronts now live on path URLs (e.g. frontstore.app/ade).
   // Redirect old subdomain links so shared legacy URLs resolve to the canonical path.
   if (subdomain && isPlatformDomain && !isSystemPath) {
     const mainUrl = request.nextUrl.clone();

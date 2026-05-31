@@ -13,7 +13,7 @@ export default function Logo({
   showText = true,
   textColor = 'var(--text)',
   className = '',
-  text = 'Aloaye',
+  text = 'Frontstore',
 }: LogoProps) {
   return (
     <div 
@@ -25,7 +25,6 @@ export default function Logo({
         userSelect: 'none',
       }}
     >
-      {/* Brand Icon SVG */}
       <svg 
         viewBox="0 0 200 200" 
         width={size} 
@@ -42,38 +41,40 @@ export default function Logo({
           </linearGradient>
         </defs>
 
-        {/* Outer circular 'a' loop */}
-        <path 
-          d="M 90 30 
-             A 60 60 0 1 0 135 130 
-             L 135 110 
-             A 45 45 0 1 1 90 45 
-             A 45 45 0 0 1 135 90 
-             L 135 90" 
-          fill="url(#logo-grad)" 
+        <rect
+          x="38"
+          y="72"
+          width="124"
+          height="88"
+          rx="20"
+          fill="url(#logo-grad)"
         />
-        
-        {/* Central Chat Bubble */}
-        <path 
-          d="M 90 60 
-             A 25 25 0 0 0 65 85 
-             A 25 25 0 0 0 72 101 
-             L 66 114 
-             L 81 109 
-             A 25 25 0 0 0 90 110 
-             A 25 25 0 0 0 115 85 
-             A 25 25 0 0 0 90 60 Z" 
-          fill="url(#logo-grad)" 
-          opacity="0.9" 
+        <path
+          d="M48 46h104l18 34H30l18-34Z"
+          fill="url(#logo-grad)"
         />
-
-        {/* Shopping Bag at the lower right base */}
-        <g transform="translate(115, 95)">
-          {/* Bag Handle */}
-          <path d="M 12 12 A 10 10 0 0 1 32 12" fill="none" stroke="url(#logo-grad)" strokeWidth="4.5" strokeLinecap="round" />
-          {/* Bag Body */}
-          <rect x="4" y="12" width="36" height="32" rx="6" fill="url(#logo-grad)" />
-        </g>
+        <path
+          d="M30 80h140"
+          stroke="white"
+          strokeWidth="10"
+          strokeLinecap="round"
+          opacity="0.72"
+        />
+        <path
+          d="M62 80V58M90 80V58M118 80V58M146 80V58"
+          stroke="white"
+          strokeWidth="8"
+          strokeLinecap="round"
+          opacity="0.42"
+        />
+        <path
+          d="M72 106h56a16 16 0 0 1 16 16v2a16 16 0 0 1-16 16H98l-22 15 7-17H72a16 16 0 0 1-16-16 16 16 0 0 1 16-16Z"
+          fill="white"
+          opacity="0.95"
+        />
+        <circle cx="86" cy="123" r="5" fill="hsl(158, 84%, 39%)" />
+        <circle cx="104" cy="123" r="5" fill="hsl(158, 84%, 39%)" />
+        <circle cx="122" cy="123" r="5" fill="hsl(158, 84%, 39%)" />
       </svg>
 
       {/* Brand Text */}

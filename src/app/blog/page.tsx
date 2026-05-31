@@ -13,30 +13,30 @@ export const metadata: Metadata = {
     "e-commerce strategies Nigeria", "Ghana online retail", "South Africa small business guides"
   ],
   alternates: {
-    canonical: 'https://aloaye.tech/blog',
+    canonical: 'https://frontstore.app/blog',
   },
   openGraph: {
     type: "website",
     locale: "en_NG",
-    siteName: "aloaye",
-    title: "Seller Growth Blog — WhatsApp Commerce & Retail Guides | aloaye",
+    siteName: "frontstore",
+    title: "Seller Growth Blog — WhatsApp Commerce & Retail Guides | frontstore",
     description:
       "Grow your retail business on WhatsApp. Discover expert guides, catalog marketing tips, and localized growth strategies for merchants in Lagos, Nairobi, Accra, and Johannesburg.",
-    url: 'https://aloaye.tech/blog',
+    url: 'https://frontstore.app/blog',
     images: [
       {
-        url: 'https://aloaye.tech/icon.png',
+        url: 'https://frontstore.app/icon.png',
         width: 512,
         height: 512,
-        alt: 'aloaye Seller Growth Blog',
+        alt: 'frontstore Seller Growth Blog',
       }
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Seller Growth Blog — WhatsApp Commerce & Retail Guides | aloaye",
+    title: "Seller Growth Blog — WhatsApp Commerce & Retail Guides | frontstore",
     description: "Grow your business on WhatsApp with localized African e-commerce guides.",
-    images: ['https://aloaye.tech/icon.png'],
+    images: ['https://frontstore.app/icon.png'],
   },
 };
 
@@ -44,15 +44,15 @@ export const metadata: Metadata = {
 const blogHubJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Blog',
-  'name': 'aloaye Seller Growth Blog',
+  'name': 'frontstore Seller Growth Blog',
   'description': 'Grow your retail business on WhatsApp. Discover expert guides, catalog marketing tips, and localized growth strategies for African merchants.',
-  'url': 'https://aloaye.tech/blog',
+  'url': 'https://frontstore.app/blog',
   'publisher': {
     '@type': 'Organization',
-    'name': 'aloaye Technologies',
+    'name': 'frontstore Technologies',
     'logo': {
       '@type': 'ImageObject',
-      'url': 'https://aloaye.tech/icon.png'
+      'url': 'https://frontstore.app/icon.png'
     }
   }
 };

@@ -109,7 +109,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
     setLoginIdentifier(value);
   };
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   // If already logged in, redirect appropriately
   useEffect(() => {
@@ -168,7 +168,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
         localStorage.setItem('store', JSON.stringify(json.data.store || null));
 
         const isAdmin = json.data.user?.is_admin === true || json.data.user?.is_admin === 1 || json.data.user?.is_admin === 'true' || json.data.user?.is_admin === '1';
-        toast.success(isAdmin ? 'Welcome, Administrator! 🛡️' : 'Welcome back to aloaye! 👋');
+        toast.success(isAdmin ? 'Welcome, Administrator! 🛡️' : 'Welcome back to frontstore! 👋');
         router.push(isAdmin ? '/admin' : '/dashboard');
       } else {
         throw new Error('No authentication token received.');
@@ -194,7 +194,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', marginBottom: 12 }}
         >
           <Store size={28} style={{ color: 'var(--primary)', strokeWidth: 2.5 }} />
-          <span>aloaye</span>
+          <span>frontstore</span>
         </a>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em' }}>
           {isAdminMode ? 'Admin Log In' : 'Merchant Log In'}
@@ -239,7 +239,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
                   id="loginIdentifier"
                   type="email"
                   required
-                  placeholder="e.g. admin@aloaye.tech"
+                  placeholder="e.g. admin@frontstore.app"
                   value={loginIdentifier}
                   onChange={e => setLoginIdentifier(e.target.value)}
                   onFocus={() => setFocusedInput('loginIdentifier')}
@@ -573,7 +573,7 @@ export default function LoginPage() {
             color: '#fff'
           }}>
             <Store size={26} style={{ strokeWidth: 2.5 }} />
-            <span>aloaye</span>
+            <span>frontstore</span>
           </div>
 
           <h2 style={{

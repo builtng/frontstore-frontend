@@ -33,7 +33,7 @@ const FEATURES = [
   },
   {
     title: 'Shareable Store Links',
-    body: 'Your store gets a clean aloaye link — share it on Instagram bio, TikTok profile, or WhatsApp status to drive traffic instantly.',
+    body: 'Your store gets a clean frontstore link — share it on Instagram bio, TikTok profile, or WhatsApp status to drive traffic instantly.',
     color: 'hsl(200, 98%, 45%)',
     bg: 'hsl(200, 98%, 96%)',
   },
@@ -45,7 +45,7 @@ const FEATURES = [
   },
   {
     title: 'Multi-Currency Support',
-    body: 'Sell in NGN, GHS, KES, ZAR and more. aloaye handles local currency formatting so prices feel right to your local buyers.',
+    body: 'Sell in NGN, GHS, KES, ZAR and more. frontstore handles local currency formatting so prices feel right to your local buyers.',
     color: 'hsl(170, 70%, 40%)',
     bg: 'hsl(170, 70%, 96%)',
   },
@@ -58,7 +58,7 @@ const TESTIMONIALS = [
     initial: 'C',
     bg: 'hsl(142, 70%, 94%)',
     color: 'hsl(142, 70%, 35%)',
-    text: 'I set up my store in 5 minutes and got 3 orders the same day via WhatsApp. aloaye is a game changer for small businesses.',
+    text: 'I set up my store in 5 minutes and got 3 orders the same day via WhatsApp. frontstore is a game changer for small businesses.',
     stars: 5,
   },
   {
@@ -76,13 +76,13 @@ const TESTIMONIALS = [
     initial: 'F',
     bg: 'hsl(340, 80%, 94%)',
     color: 'hsl(340, 80%, 35%)',
-    text: 'Before aloaye I was sending photos one-by-one on WhatsApp. Now I just share my store link and let customers browse themselves!',
+    text: 'Before frontstore I was sending photos one-by-one on WhatsApp. Now I just share my store link and let customers browse themselves!',
     stars: 5,
   },
 ] as const;
 
 const HOW_IT_WORKS = [
-  { step: '01', title: 'Claim your URL', body: 'Type your business name and claim a branded aloaye store link in seconds.' },
+  { step: '01', title: 'Claim your URL', body: 'Type your business name and claim a branded frontstore store link in seconds.' },
   { step: '02', title: 'Add your products', body: 'Upload photos, add prices, and let AI write descriptions for you.' },
   { step: '03', title: 'Share & sell', body: 'Drop your store link on WhatsApp, Instagram, or TikTok and start receiving orders.' },
 ] as const;
@@ -113,9 +113,9 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
   const [messageType, setMessageType] = useState<'error' | 'success' | null>(null);
   const [mounted, setMounted] = useState(false);
   
-  const [appName, setAppName] = useState(initialSettings?.app_name || 'Aloaye');
+  const [appName, setAppName] = useState(initialSettings?.app_name || 'Frontstore');
   const [logoUrl, setLogoUrl] = useState(initialSettings?.logo_url || '');
-  const [systemDomain, setSystemDomain] = useState(initialSettings?.system_domain || 'aloaye.tech');
+  const [systemDomain, setSystemDomain] = useState(initialSettings?.system_domain || 'frontstore.app');
   
   // Demo modal state variables
   const [showDemoModal, setShowDemoModal] = useState(false);
@@ -142,7 +142,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
     }, 2500);
   };
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   useEffect(() => {
     setMounted(true);
@@ -425,7 +425,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               ))}
             </div>
             <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              <strong style={{ color: 'var(--text)' }}>1,200+ sellers</strong> already selling on Aloaye
+              <strong style={{ color: 'var(--text)' }}>1,200+ sellers</strong> already selling on Frontstore
             </p>
           </div>
         </div>
@@ -520,7 +520,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               <br /><br />
               They already sell where customers spend their time: <strong style={{ color: 'var(--primary)' }}>WhatsApp</strong>.
               <br /><br />
-              Aloaye transforms WhatsApp from a messaging app into a complete commerce engine.
+              Frontstore transforms WhatsApp from a messaging app into a complete commerce engine.
             </p>
             
             {/* Steps timeline */}
@@ -568,7 +568,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <span className="badge badge-primary" style={{ marginBottom: 12 }}>Platform Suite</span>
-            <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>The Aloaye Business OS</h2>
+            <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>The Frontstore Business OS</h2>
             <p style={{ color: 'var(--text-muted)', marginTop: 12, fontSize: 16, maxWidth: 600, margin: '12px auto 0' }}>
               A unified suite of products engineered to run your entire business infrastructure through conversations.
             </p>
@@ -581,49 +581,49 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           }}>
             {[
               {
-                brand: 'Aloaye Store',
+                brand: 'Frontstore Store',
                 tagline: 'Instant storefront creation',
                 desc: 'Generate a stunning, light-speed catalog tailored for mobile browsers in under 2 minutes. No coding required.',
                 icon: <Store size={22} color="var(--primary)" />,
                 badge: 'Core OS'
               },
               {
-                brand: 'Aloaye Chat',
+                brand: 'Frontstore Chat',
                 tagline: 'WhatsApp-native selling',
                 desc: 'Route customer selections directly to your WhatsApp with pre-filled checkouts. Turn chat history into signed orders.',
                 icon: <MessageCircle size={22} color="hsl(142, 71%, 45%)" />,
                 badge: 'WhatsApp Native'
               },
               {
-                brand: 'Aloaye Pay',
+                brand: 'Frontstore Pay',
                 tagline: 'Seamless payments & escrow',
                 desc: 'Accept local African payments (cards, bank transfer, mobile money). Secure payments with conversation-linked escrow.',
                 icon: <CreditCard size={22} color="hsl(200, 98%, 45%)" />,
                 badge: 'Fintech Rails'
               },
               {
-                brand: 'Aloaye CRM',
+                brand: 'Frontstore CRM',
                 tagline: 'Conversational client logs',
                 desc: 'Know who buys what. Log order histories, buyer preferences, and follow-up reminders right where you converse.',
                 icon: <Users size={22} color="hsl(250, 84%, 60%)" />,
                 badge: 'Customer Logs'
               },
               {
-                brand: 'Aloaye AI',
+                brand: 'Frontstore AI',
                 tagline: 'Your 24/7 sales assistant',
                 desc: 'Automatically generate descriptions, translate chats, suggest optimal regional pricing, and reply to customers.',
                 icon: <Brain size={22} color="hsl(280, 70%, 55%)" />,
                 badge: 'AI Powered'
               },
               {
-                brand: 'Aloaye Growth',
+                brand: 'Frontstore Growth',
                 tagline: 'WhatsApp broadcast & marketing',
                 desc: 'Blast product drops and discount links to segmented buyer lists on WhatsApp. Drive repeat sales without high ad spend.',
                 icon: <Megaphone size={22} color="hsl(340, 82%, 55%)" />,
                 badge: 'Grow Audience'
               },
               {
-                brand: 'Aloaye Analytics',
+                brand: 'Frontstore Analytics',
                 tagline: 'Conversational insights',
                 desc: 'Track sales velocity, page views, and WhatsApp checkout conversions. Visual dashboards to scale what works.',
                 icon: <TrendingUp size={22} color="hsl(38, 92%, 50%)" />,
@@ -671,7 +671,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         </div>
       </section>
 
-      {/* ── What Makes Aloaye Different (Comparison Matrix) ── */}
+      {/* ── What Makes Frontstore Different (Comparison Matrix) ── */}
       <section style={{
         padding: 'clamp(56px, 8vw, 88px) 20px',
         background: 'var(--bg-2)',
@@ -679,7 +679,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <span className="badge badge-accent" style={{ marginBottom: 12 }}>Why Aloaye?</span>
+            <span className="badge badge-accent" style={{ marginBottom: 12 }}>Why Frontstore?</span>
             <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>Engineered for African Entrepreneurs</h2>
             <p style={{ color: 'var(--text-muted)', marginTop: 12, fontSize: 16, maxWidth: 500, margin: '12px auto 0' }}>
               How we stand out against standard e-commerce site builders.
@@ -691,7 +691,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)' }}>
                   <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>Feature</th>
-                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)' }}>Aloaye</th>
+                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)' }}>Frontstore</th>
                   <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>Shopify</th>
                   <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>Bumpa / Selar</th>
                 </tr>
@@ -784,7 +784,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             "Become the operating system for African businesses, helping millions of merchants sell, get paid, manage customers, and grow through conversations."
           </blockquote>
           <cite style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', fontStyle: 'normal', fontWeight: 600 }}>
-            — The Aloaye Mission for African Commerce Infrastructure
+            — The Frontstore Mission for African Commerce Infrastructure
           </cite>
         </div>
       </section>
@@ -876,7 +876,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 36 }}>
             <span className="badge badge-accent" style={{ marginBottom: 12, display: 'inline-block' }}>Testimonials</span>
-            <h2 className="text-title">Sellers love Aloaye</h2>
+            <h2 className="text-title">Sellers love Frontstore</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
             {TESTIMONIALS.map((t, i) => (
@@ -928,7 +928,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             Ready to start selling on WhatsApp?
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
-            Join 1,200+ African sellers already using Aloaye to grow their business. Free to start — no credit card needed.
+            Join 1,200+ African sellers already using Frontstore to grow their business. Free to start — no credit card needed.
           </p>
           <a
             href="/signup"
@@ -1037,7 +1037,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               </div>
               <h3 className="text-title" style={{ marginBottom: 6 }}>Book a Live Demo</h3>
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                See how Aloaye Chat and Store OS can double your WhatsApp sales.
+                See how Frontstore Chat and Store OS can double your WhatsApp sales.
               </p>
             </div>
             

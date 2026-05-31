@@ -505,7 +505,7 @@ export default function BlogListingClient() {
           <Logo size={20} textColor="var(--primary)" />
         </a>
         <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-          © {new Date().getFullYear()} aloaye. Africa's #1 WhatsApp Commerce Platform.
+          © {new Date().getFullYear()} frontstore. Africa's #1 WhatsApp Commerce Platform.
         </p>
         <div style={{ display: 'flex', gap: 16 }}>
           <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>

@@ -45,7 +45,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https: http:",
-              "connect-src 'self' https://api.aloaye.tech https://*.supabase.co https://*.supabase.in https://api.paystack.co https://fonts.googleapis.com https://ipapi.co https://vercel.live",
+              "connect-src 'self' https://api.frontstore.app https://*.supabase.co https://*.supabase.in https://api.paystack.co https://fonts.googleapis.com https://ipapi.co https://vercel.live",
               "frame-src https://checkout.paystack.com",
               "object-src 'none'",
               "base-uri 'self'",

@@ -41,7 +41,7 @@ export default function Loading() {
           fontWeight: 800,
           letterSpacing: '-0.02em'
         }}>
-          aloaye
+          frontstore
         </span>
         <span style={{
           color: 'var(--text-muted)',

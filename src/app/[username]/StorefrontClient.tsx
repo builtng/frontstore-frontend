@@ -185,7 +185,7 @@ function OrderReceiptModal({
 }) {
   const trackUrl = `/track/${receipt.order.id}`;
   const [isPaying, setIsPaying] = useState(false);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   const copyTrackingLink = async () => {
     const absoluteUrl = `${window.location.origin}${trackUrl}`;
@@ -1197,7 +1197,7 @@ function StoreHeader({
 
 // ─── Store Footer ─────────────────────────────────────────────────────────────
 
-function StoreFooter({ store, systemDomain = 'aloaye.tech', appName = 'Aloaye' }: { store: Store; systemDomain?: string; appName?: string }) {
+function StoreFooter({ store, systemDomain = 'frontstore.app', appName = 'Frontstore' }: { store: Store; systemDomain?: string; appName?: string }) {
   const templateId = getTemplateId(store);
   const template = STORE_TEMPLATES[templateId];
 
@@ -1260,16 +1260,16 @@ export default function StorefrontClient({ username }: { username: string }) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [systemDomain, setSystemDomain] = useState('aloaye.tech');
+  const [systemDomain, setSystemDomain] = useState('frontstore.app');
   const [storeDisclaimer, setStoreDisclaimer] = useState('');
-  const [appName, setAppName] = useState('Aloaye');
+  const [appName, setAppName] = useState('Frontstore');
   const [logoUrl, setLogoUrl] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [pendingRemoveItem, setPendingRemoveItem] = useState<string | null>(null);
   const [isClearCartConfirmOpen, setIsClearCartConfirmOpen] = useState(false);
   const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   useEffect(() => {
     if (!uname) return;
@@ -1296,7 +1296,7 @@ export default function StorefrontClient({ username }: { username: string }) {
 
   useEffect(() => {
     if (!uname) return;
-    try { const s = localStorage.getItem(`aloaye_cart_${uname}`); if (s) setCart(JSON.parse(s)); } catch {}
+    try { const s = localStorage.getItem(`frontstore_cart_${uname}`); if (s) setCart(JSON.parse(s)); } catch {}
   }, [uname]);
 
   const addToCart = useCallback((product: Product, qty: number) => {
@@ -1305,7 +1305,7 @@ export default function StorefrontClient({ username }: { username: string }) {
       const next = [...prev];
       if (idx > -1) next[idx] = { ...next[idx], quantity: next[idx].quantity + qty };
       else next.push({ product, quantity: qty });
-      try { localStorage.setItem(`aloaye_cart_${uname}`, JSON.stringify(next)); } catch {}
+      try { localStorage.setItem(`frontstore_cart_${uname}`, JSON.stringify(next)); } catch {}
       return next;
     });
     toast.success(`Added ${qty}× ${product.name}`);
@@ -1319,7 +1319,7 @@ export default function StorefrontClient({ username }: { username: string }) {
       const newQty = next[idx].quantity + delta;
       if (newQty <= 0) next.splice(idx, 1);
       else next[idx] = { ...next[idx], quantity: newQty };
-      try { localStorage.setItem(`aloaye_cart_${uname}`, JSON.stringify(next)); } catch {}
+      try { localStorage.setItem(`frontstore_cart_${uname}`, JSON.stringify(next)); } catch {}
       return next;
     });
   }, [uname]);
@@ -1359,7 +1359,7 @@ export default function StorefrontClient({ username }: { username: string }) {
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Store Unavailable</h1>
         <p style={{ color: 'var(--text-muted)', marginBottom: 24, maxWidth: 300, lineHeight: 1.6 }}>{error ?? "We couldn't load this storefront. Please check the URL and try again."}</p>
         <a href="/" className="btn btn-primary" style={{ textDecoration: 'none', gap: 8 }}>
-          <ArrowRight size={16} /> Go to aloaye
+          <ArrowRight size={16} /> Go to frontstore
         </a>
       </div>
     );
@@ -1557,7 +1557,7 @@ export default function StorefrontClient({ username }: { username: string }) {
             onOrderCreated={(receipt) => {
               setOrderReceipt(receipt);
               setCart([]);
-              try { localStorage.removeItem(`aloaye_cart_${uname}`); } catch {}
+              try { localStorage.removeItem(`frontstore_cart_${uname}`); } catch {}
               setIsCheckoutOpen(false);
               toast.success('Order created. Tracking page is ready.');
             }}
@@ -1602,7 +1602,7 @@ export default function StorefrontClient({ username }: { username: string }) {
           confirmText="Clear Cart"
           onConfirm={() => {
             setCart([]);
-            try { localStorage.removeItem(`aloaye_cart_${uname}`); } catch {}
+            try { localStorage.removeItem(`frontstore_cart_${uname}`); } catch {}
             setIsClearCartConfirmOpen(false);
             toast.info('Cart cleared');
           }}

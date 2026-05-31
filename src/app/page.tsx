@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import HomePageClient from './HomePageClient';
 
 async function getPublicSettings() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/settings`, {
       next: { revalidate: 60 }, // Cache settings for 60 seconds
@@ -20,9 +20,9 @@ async function getPublicSettings() {
 // ── SEO & Platform Metadata ──────────────────────────────────────────────────
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings();
-  const appName = settings?.app_name || 'Aloaye';
-  const logoUrl = settings?.logo_url || 'https://aloaye.tech/icon.png';
-  const systemDomain = settings?.system_domain || 'aloaye.tech';
+  const appName = settings?.app_name || 'Frontstore';
+  const logoUrl = settings?.logo_url || 'https://frontstore.app/icon.png';
+  const systemDomain = settings?.system_domain || 'frontstore.app';
 
   const title = `${appName} — Conversational Commerce Platform`;
   const description = "Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa. Turn WhatsApp conversations into sales.";
@@ -65,9 +65,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const settings = await getPublicSettings();
-  const appName = settings?.app_name || 'Aloaye';
-  const logoUrl = settings?.logo_url || 'https://aloaye.tech/icon.png';
-  const systemDomain = settings?.system_domain || 'aloaye.tech';
+  const appName = settings?.app_name || 'Frontstore';
+  const logoUrl = settings?.logo_url || 'https://frontstore.app/icon.png';
+  const systemDomain = settings?.system_domain || 'frontstore.app';
 
   const jsonLd = {
     '@context': 'https://schema.org',

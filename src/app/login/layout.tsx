@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Merchant Login',
-  description: 'Log in to your aloaye merchant dashboard to manage your products, track orders, and view sales metrics.',
+  description: 'Log in to your frontstore merchant dashboard to manage your products, track orders, and view sales metrics.',
   alternates: {
     canonical: '/login',
   },

@@ -9,7 +9,7 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem('aloaye-theme');
+    const saved = localStorage.getItem('frontstore-theme');
     if (saved === 'dark') {
       setIsDark(true);
     } else if (saved === 'light') {
@@ -24,7 +24,7 @@ export default function ThemeToggle() {
     const nextDark = !isDark;
     setIsDark(nextDark);
     const nextTheme = nextDark ? 'dark' : 'light';
-    localStorage.setItem('aloaye-theme', nextTheme);
+    localStorage.setItem('frontstore-theme', nextTheme);
 
     const root = document.documentElement;
     if (nextDark) {

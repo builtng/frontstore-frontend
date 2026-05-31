@@ -54,7 +54,7 @@ export default function OrderTrackingPage() {
   const [isConfirmingDelivery, setIsConfirmingDelivery] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   useEffect(() => {
     if (!id) return;

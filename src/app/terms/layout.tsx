@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: 'Terms of service and merchant agreements for using the aloaye WhatsApp commerce platform.',
+  description: 'Terms of service and merchant agreements for using the frontstore WhatsApp commerce platform.',
   alternates: {
     canonical: '/terms',
   },

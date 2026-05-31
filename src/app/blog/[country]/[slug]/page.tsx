@@ -35,10 +35,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   );
   if (!article) return {};
 
-  const url = `https://aloaye.tech/blog/${getCountrySlug(article.country)}/${article.slug}`;
+  const url = `https://frontstore.app/blog/${getCountrySlug(article.country)}/${article.slug}`;
 
   return {
-    title: `${article.title} | aloaye Blog`,
+    title: `${article.title} | frontstore Blog`,
     description: article.metaDescription,
     keywords: [
       article.category, article.city, article.country,
@@ -49,17 +49,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: url,
     },
     openGraph: {
-      title: `${article.title} | aloaye Blog`,
+      title: `${article.title} | frontstore Blog`,
       description: article.metaDescription,
       url,
       type: 'article',
       locale: 'en_NG',
       publishedTime: article.publishedAt,
       modifiedTime: article.updatedAt,
-      siteName: 'aloaye',
+      siteName: 'frontstore',
       images: [
         {
-          url: 'https://aloaye.tech/icon.png',
+          url: 'https://frontstore.app/icon.png',
           width: 512,
           height: 512,
           alt: article.title,
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image',
       title: article.title,
       description: article.metaDescription,
-      images: ['https://aloaye.tech/icon.png'],
+      images: ['https://frontstore.app/icon.png'],
     },
   };
 }
@@ -91,11 +91,11 @@ export default async function BlogArticlePage({ params }: PageProps) {
     '@type': 'BlogPosting',
     'mainEntityOfPage': {
       '@type': 'WebPage',
-      '@id': `https://aloaye.tech/blog/${getCountrySlug(article.country)}/${article.slug}`
+      '@id': `https://frontstore.app/blog/${getCountrySlug(article.country)}/${article.slug}`
     },
     'headline': article.title,
     'description': article.metaDescription,
-    'image': 'https://aloaye.tech/icon.png',
+    'image': 'https://frontstore.app/icon.png',
     'datePublished': article.publishedAt,
     'dateModified': article.updatedAt,
     'author': {
@@ -104,10 +104,10 @@ export default async function BlogArticlePage({ params }: PageProps) {
     },
     'publisher': {
       '@type': 'Organization',
-      'name': 'aloaye Technologies',
+      'name': 'frontstore Technologies',
       'logo': {
         '@type': 'ImageObject',
-        'url': 'https://aloaye.tech/icon.png'
+        'url': 'https://frontstore.app/icon.png'
       }
     }
   };
@@ -417,7 +417,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
           <Logo size={20} textColor="var(--primary)" />
         </a>
         <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-          © {new Date().getFullYear()} aloaye. Africa's #1 WhatsApp Commerce Platform.
+          © {new Date().getFullYear()} frontstore. Africa's #1 WhatsApp Commerce Platform.
         </p>
         <div style={{ display: 'flex', gap: 16 }}>
           <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>

@@ -9,7 +9,7 @@ interface PageProps {
 }
 
 async function getStoreData(username: string) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/store/${username}`, {
       next: { revalidate: 60 }, // Cache store details for 60 seconds
@@ -30,13 +30,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!data || !data.store) {
     return {
       title: 'Store Not Found',
-      description: 'The requested aloaye storefront could not be located.',
+      description: 'The requested frontstore storefront could not be located.',
     };
   }
 
   const { store } = data;
-  const systemDomain = data.system_domain || 'aloaye.tech';
-  const appName = data.app_name || 'Aloaye';
+  const systemDomain = data.system_domain || 'frontstore.app';
+  const appName = data.app_name || 'Frontstore';
   const title = `${store.store_name} | Shop on ${appName}`;
   const description = store.store_bio || `Shop directly from ${store.store_name} on WhatsApp. Browse products and place orders instantly.`;
   const logo = store.logo_url || data.logo_url || `https://${systemDomain}/icon.png`;
@@ -79,7 +79,7 @@ export default async function Page({ params }: PageProps) {
   const data = await getStoreData(username);
   
   // Inject Google Schema.org structured data (JSON-LD)
-  const systemDomain = data?.system_domain || 'aloaye.tech';
+  const systemDomain = data?.system_domain || 'frontstore.app';
   const jsonLd = data && data.store ? {
     '@context': 'https://schema.org',
     '@type': 'Store',

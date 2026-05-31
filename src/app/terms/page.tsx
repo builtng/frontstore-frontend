@@ -82,7 +82,7 @@ export default function TermsPage() {
           </div>
           <h1 className="text-display" style={{ marginBottom: 16 }}>Terms of Service</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 16, maxHeight: 'none', lineHeight: 1.6, maxWidth: 800 }}>
-            Welcome to Aloaye, the conversational commerce infrastructure built for African businesses. By accessing our platform, utilizing our checkout features, enabling chat payments, or engaging our conversational AI, you agree to these Terms. Please read them carefully.
+            Welcome to Frontstore, the conversational commerce infrastructure built for African businesses. By accessing our platform, utilizing our checkout features, enabling chat payments, or engaging our conversational AI, you agree to these Terms. Please read them carefully.
           </p>
         </header>
 
@@ -97,41 +97,41 @@ export default function TermsPage() {
                 <Globe size={20} style={{ color: 'var(--primary)' }} /> 1. Overview & Infrastructure Scope
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                These Terms of Service (&quot;Terms&quot;) govern your access to and use of the applications, APIs, subdomains (e.g., yourbrand.aloaye.tech), WhatsApp integrations, and services operated by <strong>Aloaye</strong> (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;). 
+                These Terms of Service (&quot;Terms&quot;) govern your access to and use of the applications, APIs, subdomains (e.g., yourbrand.frontstore.app), WhatsApp integrations, and services operated by <strong>Frontstore</strong> (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;). 
               </p>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Aloaye is a comprehensive <strong>Conversational Commerce Infrastructure</strong> designed to convert informal chat-based interactions into structured business flows. By creating a merchant account, you establish a contract with us to access this infrastructure.
+                Frontstore is a comprehensive <strong>Conversational Commerce Infrastructure</strong> designed to convert informal chat-based interactions into structured business flows. By creating a merchant account, you establish a contract with us to access this infrastructure.
               </p>
             </section>
 
             <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Sparkles size={20} style={{ color: 'var(--primary)' }} /> 2. The Aloaye Product Suite
+                <Sparkles size={20} style={{ color: 'var(--primary)' }} /> 2. The Frontstore Product Suite
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 Our infrastructure consists of the following products, and your usage is subject to the rules designated for each:
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
                 <div style={{ borderLeft: '3px solid var(--primary)', paddingLeft: 16 }}>
-                  <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Aloaye Flow (Conversational Storefronts)</h4>
+                  <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Frontstore Flow (Conversational Storefronts)</h4>
                   <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
                     Allows you to deploy mobile-responsive product catalogs, structure size/variant attributes, and establish pre-filled checkout flows that route order messages directly to your WhatsApp Business number.
                   </p>
                 </div>
                 <div style={{ borderLeft: '3px solid var(--accent)', paddingLeft: 16 }}>
-                  <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Aloaye Pay (Escrow & Payments)</h4>
+                  <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Frontstore Pay (Escrow & Payments)</h4>
                   <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
                     Natively handles digital payment collection (cards, bank transfers, mobile money) within your chat threads. Payouts are subject to escrow holds, merchant KYC validation, and transaction fees.
                   </p>
                 </div>
                 <div style={{ borderLeft: '3px solid var(--primary-dark)', paddingLeft: 16 }}>
-                  <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Aloaye Aura (AI Sales Agents)</h4>
+                  <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Frontstore Aura (AI Sales Agents)</h4>
                   <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    AI-powered agent that can answer FAQs, summarize product details, and help buyers coordinate orders. You remain responsible for all transactions finalized or representations made by Aloaye Aura.
+                    AI-powered agent that can answer FAQs, summarize product details, and help buyers coordinate orders. You remain responsible for all transactions finalized or representations made by Frontstore Aura.
                   </p>
                 </div>
                 <div style={{ borderLeft: '3px solid var(--border-strong)', paddingLeft: 16 }}>
-                  <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Aloaye Pulse & Reach (CRM & Broadcasts)</h4>
+                  <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Frontstore Pulse & Reach (CRM & Broadcasts)</h4>
                   <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
                     Analytics tools to track shopper purchase histories and send bulk notifications or marketing campaigns to buyers who have opted into receiving updates.
                   </p>
@@ -141,10 +141,10 @@ export default function TermsPage() {
 
             <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <CreditCard size={20} style={{ color: 'var(--primary)' }} /> 3. Aloaye Pay Escrow, Payouts, & KYC
+                <CreditCard size={20} style={{ color: 'var(--primary)' }} /> 3. Frontstore Pay Escrow, Payouts, & KYC
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Aloaye Pay acts as a secure, neutral transaction facilitator to build trust between merchants and shoppers. The following rules govern all Aloaye Pay transactions:
+                Frontstore Pay acts as a secure, neutral transaction facilitator to build trust between merchants and shoppers. The following rules govern all Frontstore Pay transactions:
               </p>
               <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55 }}>
                 <li>
@@ -157,17 +157,17 @@ export default function TermsPage() {
                   <strong>KYC Verification:</strong> To receive payouts, merchants must complete Know Your Customer (KYC) verification by providing valid business registration documents, national identification, or tax credentials as required by local regulators.
                 </li>
                 <li>
-                  <strong>Fees:</strong> We charge a transaction fee on payments processed through Aloaye Pay, as specified in your dashboard. Processing fees are non-refundable in the event of customer returns or disputes.
+                  <strong>Fees:</strong> We charge a transaction fee on payments processed through Frontstore Pay, as specified in your dashboard. Processing fees are non-refundable in the event of customer returns or disputes.
                 </li>
               </ul>
             </section>
 
             <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Bot size={20} style={{ color: 'var(--primary)' }} /> 4. Aloaye Aura AI Usage & Responsibility
+                <Bot size={20} style={{ color: 'var(--primary)' }} /> 4. Frontstore Aura AI Usage & Responsibility
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Aloaye Aura uses artificial intelligence and large language models to assist merchants in generating product descriptions and interacting with shoppers.
+                Frontstore Aura uses artificial intelligence and large language models to assist merchants in generating product descriptions and interacting with shoppers.
               </p>
               <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55 }}>
                 <li>
@@ -177,7 +177,7 @@ export default function TermsPage() {
                   <strong>No Guarantee:</strong> We do not guarantee that AI-generated responses will be 100% accurate, error-free, or compliant with all local consumer protection laws. The merchant is solely liable for any product description error or checkout agreement reached via the AI.
                 </li>
                 <li>
-                  <strong>Data Training Policy:</strong> Chat interactions processed through Aloaye Aura may be logged and used to improve the model&apos;s ability to understand regional colloquialisms (including Pidgin and Sheng), subject to our Privacy Policy.
+                  <strong>Data Training Policy:</strong> Chat interactions processed through Frontstore Aura may be logged and used to improve the model&apos;s ability to understand regional colloquialisms (including Pidgin and Sheng), subject to our Privacy Policy.
                 </li>
               </ul>
             </section>
@@ -208,7 +208,7 @@ export default function TermsPage() {
                 <div style={{ color: 'var(--text-2)' }}>• <strong>Smuggled & Contraband Goods:</strong> Items imported without custom clearing or illegal under local regulations.</div>
               </div>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Aloaye reserves the right to immediately suspend accounts, confiscate pending escrow balances for fraudulent activities, and report illegal actions to local enforcement authorities.
+                Frontstore reserves the right to immediately suspend accounts, confiscate pending escrow balances for fraudulent activities, and report illegal actions to local enforcement authorities.
               </p>
             </section>
 
@@ -253,11 +253,11 @@ export default function TermsPage() {
                 </div>
                 <div>
                   <strong style={{ color: 'var(--text)' }}>2. Escrow Protection:</strong>
-                  <p style={{ marginTop: 2 }}>Aloaye Pay locks shopper funds in escrow to reduce transaction fraud and build shopper confidence.</p>
+                  <p style={{ marginTop: 2 }}>Frontstore Pay locks shopper funds in escrow to reduce transaction fraud and build shopper confidence.</p>
                 </div>
                 <div>
                   <strong style={{ color: 'var(--text)' }}>3. AI Responsibility:</strong>
-                  <p style={{ marginTop: 2 }}>You are responsible for reviewing and authorizing all product prices and details drafted by Aloaye Aura.</p>
+                  <p style={{ marginTop: 2 }}>You are responsible for reviewing and authorizing all product prices and details drafted by Frontstore Aura.</p>
                 </div>
                 <div>
                   <strong style={{ color: 'var(--text)' }}>4. Absolute Compliance:</strong>
@@ -275,7 +275,7 @@ export default function TermsPage() {
                 Need help clarifying our terms, setting up merchant verification, or resolving an escrow transaction dispute?
               </p>
               <a
-                href="mailto:compliance@aloaye.tech"
+                href="mailto:compliance@frontstore.app"
                 className="btn btn-outline"
                 style={{ width: '100%', padding: '10px', fontSize: 12.5, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}
               >
@@ -303,7 +303,7 @@ export default function TermsPage() {
       }}>
         <Logo size={20} textColor="var(--primary)" />
         <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-          © {new Date().getFullYear()} Aloaye. Conversational Commerce Infrastructure.
+          © {new Date().getFullYear()} Frontstore. Conversational Commerce Infrastructure.
         </p>
         <div style={{ display: 'flex', gap: 16 }}>
           <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>

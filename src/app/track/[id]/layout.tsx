@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Track Order',
-  description: 'Track your order status on aloaye.',
+  description: 'Track your order status on frontstore.',
   robots: {
     index: false,
     follow: false,

@@ -23,7 +23,7 @@ export default function StoresDirectoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -107,7 +107,7 @@ export default function StoresDirectoryPage() {
             Explore Verified Stores
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 15.5, lineHeight: 1.6, marginBottom: 28 }}>
-            Browse and purchase directly from verified WhatsApp-native stores on the aloaye platform.
+            Browse and purchase directly from verified WhatsApp-native stores on the frontstore platform.
           </p>
 
           {/* Search bar */}
@@ -303,7 +303,7 @@ export default function StoresDirectoryPage() {
       }}>
         <Logo size={18} textColor="var(--primary)" />
         <p style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>
-          © {new Date().getFullYear()} aloaye. Storefront Directory list.
+          © {new Date().getFullYear()} frontstore. Storefront Directory list.
         </p>
       </footer>
 

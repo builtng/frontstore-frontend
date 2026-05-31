@@ -236,8 +236,8 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
   const [store, setStore] = useState<StoreInfo | null>(null);
-  const [systemDomain, setSystemDomain] = useState('aloaye.tech');
-  const [apiUrl, setApiUrl] = useState('https://api.aloaye.tech/api');
+  const [systemDomain, setSystemDomain] = useState('frontstore.app');
+  const [apiUrl, setApiUrl] = useState('https://api.frontstore.app/api');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
@@ -419,7 +419,7 @@ export default function DashboardPage() {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
       const storedStore = localStorage.getItem('store');
-      const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+      const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
       setApiUrl(savedApiUrl);
       setDevApiInput(savedApiUrl);
@@ -492,7 +492,7 @@ export default function DashboardPage() {
             setToken(storedToken);
             setUser(parsedUser);
 
-            const storedSystemDomain = localStorage.getItem('system_domain') || 'aloaye.tech';
+            const storedSystemDomain = localStorage.getItem('system_domain') || 'frontstore.app';
             setSystemDomain(storedSystemDomain);
 
             if (storedStore && storedStore !== 'undefined' && storedStore !== 'null') {
@@ -573,7 +573,7 @@ export default function DashboardPage() {
 
   // Fetch Paystack bank list from backend
   useEffect(() => {
-    const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+    const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
     fetch(`${url}/v1/payments/banks`)
       .then(r => r.json())
       .then(json => {
@@ -601,7 +601,7 @@ export default function DashboardPage() {
     const verifyPayment = async () => {
       setIsVerifyingPayment(true);
       try {
-        const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.aloaye.tech/api';
+        const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
         const res = await fetch(`${url}/v1/payments/verify-subscription`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -1550,7 +1550,7 @@ export default function DashboardPage() {
   // --- Receipt view compiler ---
   const generateReceiptText = (order: Order) => {
     const divider = '===================================';
-    const storeHeader = `🏪 STORE: ${store?.store_name || 'aloaye merchant'}\nURL: ${systemDomain}/${store?.username}\n`;
+    const storeHeader = `🏪 STORE: ${store?.store_name || 'frontstore merchant'}\nURL: ${systemDomain}/${store?.username}\n`;
     const orderHeader = `ORDER NO: ${order.order_number}\nDATE: ${new Date(order.created_at).toLocaleDateString()}\n`;
     const customer = `CUSTOMER: ${order.customer_name}\nPHONE: ${order.customer_phone}\nADDRESS: ${order.delivery_address || 'N/A'}\n`;
 
@@ -1654,7 +1654,7 @@ export default function DashboardPage() {
             <Store size={20} />
           </div>
           <div>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>aloaye</h1>
+            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>frontstore</h1>
             <span style={{ fontSize: 10, color: 'var(--primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Store OS v2.0</span>
           </div>
         </div>
@@ -1714,12 +1714,12 @@ export default function DashboardPage() {
         {/* Nav Links */}
         <nav className="no-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto' }}>
           {[
-            { id: 'overview', label: 'Aloaye Pulse (Stats)', icon: <BarChart3 size={18} /> },
+            { id: 'overview', label: 'Frontstore Pulse (Stats)', icon: <BarChart3 size={18} /> },
             { id: 'orders', label: 'Orders Manager', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
-            { id: 'products', label: 'Aloaye Flow (Catalog)', icon: <Package size={18} /> },
-            { id: 'wallet', label: 'Aloaye Pay (Wallet)', icon: <DollarSign size={18} /> },
-            { id: 'whatsapp', label: 'Aloaye Aura (AI Chat)', icon: <WhatsAppIcon size={18} />, badge: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
-            { id: 'reach', label: 'Aloaye Reach (Broadcasts)', icon: <Megaphone size={18} />, badge: 'Pro' },
+            { id: 'products', label: 'Frontstore Flow (Catalog)', icon: <Package size={18} /> },
+            { id: 'wallet', label: 'Frontstore Pay (Wallet)', icon: <DollarSign size={18} /> },
+            { id: 'whatsapp', label: 'Frontstore Aura (AI Chat)', icon: <WhatsAppIcon size={18} />, badge: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
+            { id: 'reach', label: 'Frontstore Reach (Broadcasts)', icon: <Megaphone size={18} />, badge: 'Pro' },
             { id: 'share', label: 'Share & Referrals', icon: <Share2 size={18} /> },
             { id: 'templates', label: 'Templates', icon: <Sparkles size={18} /> },
             { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
@@ -1816,7 +1816,7 @@ export default function DashboardPage() {
               <div style={{ background: 'var(--primary)', color: '#fff', width: 28, height: 28, borderRadius: 'var(--r-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-primary)' }}>
                 <Store size={15} />
               </div>
-              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em' }}>aloaye</span>
+              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em' }}>frontstore</span>
             </div>
           </div>
 
@@ -1888,7 +1888,7 @@ export default function DashboardPage() {
               {activeTab === 'overview' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }} className="animate-fade-in">
                   <div>
-                    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Aloaye Pulse</h2>
+                    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Frontstore Pulse</h2>
                     <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Business Analytics & CRM metrics tracking customer purchases and conversion rates.</p>
                   </div>
 
@@ -2365,7 +2365,7 @@ export default function DashboardPage() {
                 <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="responsive-product-header">
                     <div>
-                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Aloaye Flow</h2>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Frontstore Flow</h2>
                       <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Converts inventory into checkouts. Create items, update pricing, and generate descriptions using ChatGPT AI.</p>
                     </div>
                     <button
@@ -2506,7 +2506,7 @@ export default function DashboardPage() {
                     <div style={{ width: 300, borderRight: '1px solid var(--border)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column' }} className={`wa-contacts-panel ${activeWaView === 'list' ? 'wa-mobile-show' : 'wa-mobile-hide'}`}>
                       <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--border)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900 }}>Aloaye Aura</h3>
+                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900 }}>Frontstore Aura</h3>
                           <button onClick={() => { loadWaOrders(); toast.success('Refreshing inbox...'); }} className="btn btn-ghost clickable" style={{ padding: 6, color: 'var(--primary)' }} title="Refresh"><RefreshCw size={14} /></button>
                         </div>
                         <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 8 }}>AI Conversational assistant replying to your customer chats 24/7.</p>
@@ -2721,7 +2721,7 @@ export default function DashboardPage() {
                       <button
                         onClick={() => {
                           const url = store?.custom_domain ? `https://${store.custom_domain}` : `https://${systemDomain}/${store?.username}`;
-                          const msg = encodeURIComponent(`🏪 Check out my digital store on Aloaye! Shop here: ${url}`);
+                          const msg = encodeURIComponent(`🏪 Check out my digital store on Frontstore! Shop here: ${url}`);
                           window.open(`https://wa.me/?text=${msg}`, '_blank');
                         }}
                         className="btn clickable"
@@ -2758,7 +2758,7 @@ export default function DashboardPage() {
                   <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
                     <div>
                       <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 900 }}>Referral Reward Center</h2>
-                      <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>Earn commissions by introducing other vendors to Aloaye.</p>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>Earn commissions by introducing other vendors to Frontstore.</p>
                     </div>
 
                     <div style={{ background: 'linear-gradient(135deg, var(--primary-light), rgba(16, 185, 129, 0.02))', border: '1.5px dashed var(--primary)', borderRadius: 'var(--r-xl)', padding: 24, textAlign: 'center' }}>
@@ -2893,7 +2893,7 @@ export default function DashboardPage() {
                           <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 9 }}>Fast palettes</label>
                           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                             {[
-                              { name: 'Aloaye', value: '#10b981' },
+                              { name: 'Frontstore', value: '#10b981' },
                               { name: 'Ruby', value: '#e11d48' },
                               { name: 'Royal', value: '#4f46e5' },
                               { name: 'Ocean', value: '#0284c7' },
@@ -3648,7 +3648,7 @@ export default function DashboardPage() {
                           Custom Domain Mapping
                         </h2>
                         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                          Connect your own custom domain (e.g. <code>mybrand.com</code>) to your Aloaye storefront using nameservers.
+                          Connect your own custom domain (e.g. <code>mybrand.com</code>) to your Frontstore storefront using nameservers.
                         </p>
                       </div>
                     </div>
@@ -4422,7 +4422,7 @@ export default function DashboardPage() {
                   <div style={{ background: 'rgba(255, 159, 67, 0.15)', color: '#FF9F43', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                     <Megaphone size={32} style={{ margin: 'auto' }} />
                   </div>
-                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Aloaye Reach</h2>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Frontstore Reach</h2>
                   <p style={{ fontSize: 11.5, fontWeight: 800, color: '#FF9F43', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Automated Marketing & Broadcasting</p>
                   <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
                     Retarget your customers automatically. Send updates, discount codes, or custom promotional messages directly to your shoppers' WhatsApp inboxes with 98% open rates.
@@ -4741,10 +4741,10 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
-                        Aloaye Pay (Wallet Balance)
+                        Frontstore Pay (Wallet Balance)
                       </h2>
                       <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
-                        Aloaye Pay: Frictionless Escrow & Payouts. Withdraw funds to your verified bank account instantly.
+                        Frontstore Pay: Frictionless Escrow & Payouts. Withdraw funds to your verified bank account instantly.
                       </p>
                     </div>
                   </div>
@@ -4990,7 +4990,7 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Store size={22} style={{ color: 'var(--primary)' }} />
-                <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 18 }}>aloaye</span>
+                <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 18 }}>frontstore</span>
               </div>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -5909,7 +5909,7 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', borderTop: '1px solid var(--border)', paddingTop: 14 }}>
                 <button
                   onClick={() => {
-                    const msg = `Hi ${selectedOrder.customer_name}! This is ${store?.store_name || 'aloaye merchant'} following up regarding your Order ${selectedOrder.order_number} totaling ${getCurrencySymbol(store?.currency_code)}${parseFloat(selectedOrder.total_amount as string).toLocaleString()}.`;
+                    const msg = `Hi ${selectedOrder.customer_name}! This is ${store?.store_name || 'frontstore merchant'} following up regarding your Order ${selectedOrder.order_number} totaling ${getCurrencySymbol(store?.currency_code)}${parseFloat(selectedOrder.total_amount as string).toLocaleString()}.`;
                     window.open(`https://wa.me/${selectedOrder.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
                   }}
                   className="btn btn-outline clickable"
