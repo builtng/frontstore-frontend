@@ -66,6 +66,11 @@ interface StoreInfo {
   payment_instructions?: string | null;
   paystack_bank_code?: string | null;
   bank_account_verified?: boolean;
+  paystack_dva_bank_name?: string | null;
+  paystack_dva_account_number?: string | null;
+  paystack_dva_account_name?: string | null;
+  paystack_dva_currency?: string | null;
+  paystack_dva_active?: boolean;
   custom_links?: StoreLink[] | null;
   custom_domain?: string | null;
   primary_color?: string | null;
@@ -293,6 +298,10 @@ export default function DashboardPage() {
 
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
+  const [upgradePrompt, setUpgradePrompt] = useState<{
+    title: string;
+    description: string;
+  } | null>(null);
 
   // Quick discount campaign modal
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
@@ -391,6 +400,15 @@ export default function DashboardPage() {
     }
   };
 
+  const openUpgradePrompt = (title: string, description: string) => {
+    setUpgradePrompt({ title, description });
+  };
+
+  const goToBillingFromPrompt = () => {
+    setUpgradePrompt(null);
+    navigateDashboardTab('billing');
+  };
+
   // Custom Domain Mapping Form
   const [customDomainInput, setCustomDomainInput] = useState('');
   const [customDomainSaving, setCustomDomainSaving] = useState(false);
@@ -408,6 +426,7 @@ export default function DashboardPage() {
   // Paystack subscription payment state
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [isInitializingPayment, setIsInitializingPayment] = useState(false);
+  const [isGeneratingDedicatedAccount, setIsGeneratingDedicatedAccount] = useState(false);
 
   // --- AI Command Bar State ---
   const [aiCommand, setAiCommand] = useState('');
@@ -979,12 +998,10 @@ export default function DashboardPage() {
   // --- Add / Edit Product CRUD Handlers ---
   const openAddProductModal = () => {
     if (!isPro && products.length >= 3) {
-      toast.error('Free plan stores are limited to a maximum of 3 products. Please upgrade to Pro for unlimited products!', {
-        action: {
-          label: 'Upgrade',
-          onClick: () => navigateDashboardTab('billing')
-        }
-      });
+      openUpgradePrompt(
+        'Unlimited products require Pro',
+        'Free stores can publish up to 3 products. Upgrade to Pro when you are ready to list more products and scale your catalog.'
+      );
       return;
     }
     setProdName('');
@@ -1002,10 +1019,10 @@ export default function DashboardPage() {
 
   const handleGenerateAIDescription = async () => {
     if (user?.plan === 'free' || !user?.plan) {
-      toast.info('✨ AI Product Description Auto-Write requires a Pro subscription. Upgrade in the Billing tab!');
-      navigateDashboardTab('billing');
-      setIsAddProductOpen(false);
-      setIsEditProductOpen(false);
+      openUpgradePrompt(
+        'AI product writing requires Pro',
+        'Generate richer product descriptions automatically with AI. You can keep editing manually on Free, or upgrade when you want AI assistance.'
+      );
       return;
     }
 
@@ -1048,10 +1065,10 @@ export default function DashboardPage() {
 
   const handleGenerateAIImage = async () => {
     if (user?.plan === 'free' || !user?.plan) {
-      toast.info('✨ AI Image Generation requires a Pro subscription. Upgrade in the Billing tab!');
-      navigateDashboardTab('billing');
-      setIsAddProductOpen(false);
-      setIsEditProductOpen(false);
+      openUpgradePrompt(
+        'AI image generation requires Pro',
+        'Create product images with AI from your product name and description. You can still upload your own images on Free.'
+      );
       return;
     }
 
@@ -1422,11 +1439,45 @@ export default function DashboardPage() {
     }
   };
 
+  const handleGenerateDedicatedAccount = async () => {
+    if (!isPro) {
+      openUpgradePrompt(
+        'Dedicated virtual accounts require Pro',
+        'Pro merchants can generate a Paystack virtual account that buyers pay into directly. You can review plans before deciding.'
+      );
+      return;
+    }
+
+    try {
+      setIsGeneratingDedicatedAccount(true);
+      const res = await fetch(`${apiUrl}/v1/payments/dedicated-account`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ preferred_bank: 'titan-paystack' }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.data) {
+        throw new Error(json.message || 'Could not generate dedicated account.');
+      }
+
+      setStore(json.data);
+      localStorage.setItem('store', JSON.stringify(json.data));
+      toast.success('Dedicated Paystack account generated.');
+    } catch (e: any) {
+      toast.error(e.message || 'Could not generate dedicated account.');
+    } finally {
+      setIsGeneratingDedicatedAccount(false);
+    }
+  };
+
   const handleTemplateColorSave = async () => {
     const isProUser = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
     if (!isProUser && primaryColor !== '#10b981') {
-      navigateDashboardTab('billing');
-      toast.error('Custom storefront colors require a Pro subscription.');
+      openUpgradePrompt(
+        'Custom storefront colors require Pro',
+        'Free stores use the default brand color. Upgrade to Pro when you want custom theme colors across your storefront.'
+      );
       return;
     }
 
@@ -3536,7 +3587,10 @@ export default function DashboardPage() {
                               </p>
                               <button
                                 type="button"
-                                onClick={() => navigateDashboardTab('billing')}
+                                onClick={() => openUpgradePrompt(
+                                  'Custom storefront colors require Pro',
+                                  'Free stores use the default brand color. Upgrade to Pro when you want custom theme colors across your storefront.'
+                                )}
                                 className="btn btn-primary clickable"
                                 style={{ padding: '6px 14px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 12 }}
                               >
@@ -3873,7 +3927,10 @@ export default function DashboardPage() {
                         </p>
                         <button
                           type="button"
-                          onClick={() => navigateDashboardTab('billing')}
+                          onClick={() => openUpgradePrompt(
+                            'Custom domain mapping requires Pro',
+                            'Connect your own domain to your store when you are ready for a more branded storefront experience.'
+                          )}
                           className="btn btn-primary clickable"
                           style={{ padding: '8px 20px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13 }}
                         >
@@ -4429,6 +4486,47 @@ export default function DashboardPage() {
 
                     {/* Step 1: Bank selector */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                      <div style={{
+                        padding: 18,
+                        borderRadius: 'var(--r-xl)',
+                        border: '1.5px solid var(--border)',
+                        background: store?.paystack_dva_active
+                          ? 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(15,23,42,0.03))'
+                          : 'var(--surface-2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 16,
+                        flexWrap: 'wrap',
+                      }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <span style={{ fontSize: 18 }}>🏦</span>
+                            <strong style={{ fontSize: 14.5 }}>Dedicated Paystack account</strong>
+                            {store?.paystack_dva_active && (
+                              <span className="badge badge-primary" style={{ fontSize: 10 }}>Active</span>
+                            )}
+                          </div>
+                          {store?.paystack_dva_account_number ? (
+                            <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
+                              {store.paystack_dva_bank_name || 'Paystack'} · <strong>{store.paystack_dva_account_number}</strong> · {store.paystack_dva_account_name}
+                            </p>
+                          ) : (
+                            <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                              Pro merchants can generate a dedicated account buyers pay into through Paystack.
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className={isPro ? 'btn btn-primary clickable' : 'btn btn-outline clickable'}
+                          onClick={handleGenerateDedicatedAccount}
+                          disabled={isGeneratingDedicatedAccount}
+                          style={{ padding: '11px 16px', borderRadius: 'var(--r-lg)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                        >
+                          {isGeneratingDedicatedAccount ? <><Loader2 size={15} className="spinner" /> Generating...</> : store?.paystack_dva_account_number ? 'Refresh account' : 'Generate account'}
+                        </button>
+                      </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
 
@@ -4693,7 +4791,10 @@ export default function DashboardPage() {
                   </div>
 
                   <button
-                    onClick={() => navigateDashboardTab('billing')}
+                    onClick={() => openUpgradePrompt(
+                      'Broadcast reach requires Pro',
+                      'Automated WhatsApp campaigns and retargeting tools are available on Pro. You can review the plan before upgrading.'
+                    )}
                     className="btn btn-primary clickable"
                     style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
                   >
@@ -6091,6 +6192,51 @@ export default function DashboardPage() {
               </div>
             </form>
 
+          </div>
+        </div>
+      )}
+
+      {upgradePrompt && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setUpgradePrompt(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(2,6,23,0.52)', backdropFilter: 'blur(6px)' }} />
+          <div className="card glass animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 430, padding: 28, zIndex: 10, textAlign: 'center' }}>
+            <button
+              onClick={() => setUpgradePrompt(null)}
+              aria-label="Close upgrade prompt"
+              style={{ position: 'absolute', top: 14, right: 14, width: 34, height: 34, borderRadius: '50%', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            >
+              <X size={16} />
+            </button>
+
+            <div style={{ width: 58, height: 58, borderRadius: '50%', margin: '0 auto 16px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 16px 32px rgba(217,119,6,0.28)' }}>
+              <Zap size={26} />
+            </div>
+
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 900, marginBottom: 8 }}>
+              {upgradePrompt.title}
+            </h3>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 22 }}>
+              {upgradePrompt.description}
+            </p>
+
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setUpgradePrompt(null)}
+                className="btn btn-outline clickable"
+                style={{ flex: 1, minWidth: 140, padding: '12px 16px', borderRadius: 'var(--r-lg)', fontWeight: 800 }}
+              >
+                Not now
+              </button>
+              <button
+                type="button"
+                onClick={goToBillingFromPrompt}
+                className="btn btn-primary clickable"
+                style={{ flex: 1, minWidth: 140, padding: '12px 16px', borderRadius: 'var(--r-lg)', fontWeight: 800 }}
+              >
+                View Pro plans
+              </button>
+            </div>
           </div>
         </div>
       )}
