@@ -150,7 +150,7 @@ const DEFAULT_HOME_CONTENT = {
   narrative: {
     eyebrow: 'Our Narrative',
     title: 'Commerce Through Conversation',
-    body: "Most African businesses don't need complicated ecommerce websites.\n\nThey already sell where customers spend their time: WhatsApp.\n\nFrontstore transforms WhatsApp from a messaging app into a complete commerce engine.",
+    body: "Most African businesses don't need complicated ecommerce websites before they can start selling with confidence. They need a fast way to show products, answer questions, confirm orders, and collect buyer details without leaving the channel their customers already trust.\n\nThat channel is WhatsApp. It is where discovery, negotiation, referrals, payment conversations, and repeat purchases already happen every day.\n\nFrontstore turns those conversations into a structured commerce system. A merchant can launch a branded store, organize products, share one link, receive clear order intent, and keep customer conversations moving toward payment and delivery.\n\nInstead of forcing sellers to choose between a website and WhatsApp, Frontstore connects both. The store gives buyers a clean catalog experience, while WhatsApp keeps the human relationship that drives trust.\n\nThe result is simple: sellers look more professional, customers understand what to buy, and every conversation has a clearer path to revenue.",
     steps: [
       { title: 'Create a Store', desc: 'Add products in 2 mins' },
       { title: 'Share a Link', desc: 'Status, Instagram, TikTok' },
@@ -250,6 +250,10 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
   const [logoUrl, setLogoUrl] = useState(initialSettings?.logo_url || '');
   const [systemDomain, setSystemDomain] = useState(initialSettings?.system_domain || 'frontstore.app');
   const [homeContent, setHomeContent] = useState<HomeContent>(() => mergeHomeContent(initialSettings?.homepage_content));
+  const narrativeParagraphs = homeContent.narrative.body
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
   
   // Demo modal state variables
   const [showDemoModal, setShowDemoModal] = useState(false);
@@ -696,20 +700,25 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               pointerEvents: 'none',
             }} />
             
-            <p style={{
-              fontSize: 'clamp(16px, 2.2vw, 19px)',
-              lineHeight: 1.7,
-              color: 'var(--text-2)',
-              fontWeight: 500,
-              marginBottom: 36
+            <div style={{
+              display: 'grid',
+              gap: 18,
+              marginBottom: 36,
+              position: 'relative',
+              zIndex: 1
             }}>
-              {homeContent.narrative.body.split('\n').map((line, index) => (
-                <React.Fragment key={index}>
-                  {line}
-                  {index < homeContent.narrative.body.split('\n').length - 1 && <><br /><br /></>}
-                </React.Fragment>
+              {narrativeParagraphs.map((paragraph, index) => (
+                <p key={index} style={{
+                  fontSize: 'clamp(15px, 2vw, 18px)',
+                  lineHeight: 1.75,
+                  color: index === 0 ? 'var(--text)' : 'var(--text-2)',
+                  fontWeight: index === 0 ? 650 : 500,
+                  margin: 0
+                }}>
+                  {paragraph}
+                </p>
               ))}
-            </p>
+            </div>
             
             {/* Steps timeline */}
             <div style={{
