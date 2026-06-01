@@ -130,15 +130,6 @@ function buildWhatsAppUrl(phone: string, message: string): string {
   return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
 }
 
-function buildSingleWAMsg(store: Store, product: Product, qty: number, symbol: string): string {
-  return `Hi ${store.store_name}! 👋\n\nI'd like to order:\n\n🛍️ *${product.name}*\nQty: ${qty}\nPrice: ${fmt(parseFloat(product.price) * qty, symbol)}\n\nPlease confirm availability. Thank you!`;
-}
-
-function buildCartWAMsg(store: Store, cart: CartItem[], total: number, symbol: string): string {
-  const lines = cart.map(i => `• ${i.product.name} × ${i.quantity} — ${fmt(parseFloat(i.product.price) * i.quantity, symbol)}`).join('\n');
-  return `Hi ${store.store_name}! 👋\n\nI'd like to place an order:\n\n${lines}\n\n*Total: ${fmt(total, symbol)}*\n\nPlease confirm and share delivery details. Thank you!`;
-}
-
 function isAiGeneratedImage(url?: string | null): boolean {
   if (!url) return false;
   return url.includes('/products/ai_') || url.includes('/ai_') || url.includes('products/ai_');
@@ -516,10 +507,11 @@ function ProductCard({
 // ─── Product Detail Drawer ────────────────────────────────────────────────────
 
 function ProductDetailDrawer({
-  product, store, currencySymbol, onClose, onAddToCart,
+  product, store, currencySymbol, onClose, onAddToCart, onOrderNow,
 }: {
   product: Product; store: Store; currencySymbol: string;
   onClose: () => void; onAddToCart: (p: Product, q: number) => void;
+  onOrderNow: (p: Product, q: number) => void;
 }) {
   const [qty, setQty] = useState(1);
   const [imgIdx, setImgIdx] = useState(0);
@@ -538,10 +530,6 @@ function ProductDetailDrawer({
       if (diff > 0) setImgIdx(i => Math.min(i + 1, images.length - 1));
       else setImgIdx(i => Math.max(i - 1, 0));
     }
-  };
-
-  const handleWhatsApp = () => {
-    window.open(buildWhatsAppUrl(store.whatsapp_phone, buildSingleWAMsg(store, product, qty, currencySymbol)), '_blank');
   };
 
   const handleShare = async () => {
@@ -701,7 +689,7 @@ function ProductDetailDrawer({
               <button
                 className="btn btn-whatsapp clickable"
                 style={{ width: '100%', padding: '15px 20px', fontSize: 15, borderRadius: 'var(--r-lg)', fontFamily: 'var(--font-heading)', fontWeight: 800, gap: 10 }}
-                onClick={handleWhatsApp}
+                onClick={() => onOrderNow(product, qty)}
                 id={`whatsapp-order-${product.id}`}
               >
                 <WhatsAppIcon size={20} />
@@ -1339,11 +1327,24 @@ export default function StorefrontClient({ username }: { username: string }) {
     ? ({ '--primary': store.primary_color } as React.CSSProperties)
     : undefined;
 
-  const handleCartWhatsApp = () => {
-    if (!store || !cart.length) return;
-    window.open(buildWhatsAppUrl(store.whatsapp_phone, buildCartWAMsg(store, cart, cartTotal, currencySymbol)), '_blank');
+  const startCheckoutForProduct = useCallback((product: Product, quantity: number) => {
+    setCart(prev => {
+      const idx = prev.findIndex(item => item.product.id === product.id);
+      const next = [...prev];
+      if (idx > -1) {
+        next[idx] = { ...next[idx], quantity: next[idx].quantity + quantity };
+      } else {
+        next.push({ product, quantity });
+      }
+      try {
+        localStorage.setItem(`frontstore_cart_${uname}`, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    setSelectedProduct(null);
     setIsCartOpen(false);
-  };
+    setIsCheckoutOpen(true);
+  }, [uname]);
 
   const handleShareProduct = async (product: Product) => {
     if (navigator.share) await navigator.share({ title: product.name, url: window.location.href });
@@ -1494,8 +1495,7 @@ export default function StorefrontClient({ username }: { username: string }) {
                   currencySymbol={currencySymbol}
                   onView={() => setSelectedProduct(product)}
                   onWhatsApp={() => {
-                    if (!store) return;
-                    window.open(buildWhatsAppUrl(store.whatsapp_phone, buildSingleWAMsg(store, product, 1, currencySymbol)), '_blank');
+                    startCheckoutForProduct(product, 1);
                   }}
                   onShare={() => handleShareProduct(product)}
                 />
@@ -1533,6 +1533,7 @@ export default function StorefrontClient({ username }: { username: string }) {
           <ProductDetailDrawer
             product={selectedProduct} store={store} currencySymbol={currencySymbol}
             onClose={() => setSelectedProduct(null)} onAddToCart={addToCart}
+            onOrderNow={startCheckoutForProduct}
           />
         )}
 
