@@ -27,6 +27,7 @@ import {
   Settings,
   Shield,
   ShoppingBag,
+  Sparkles,
   Smartphone,
   Store,
   Tag,
@@ -96,6 +97,7 @@ interface SystemSettings {
   social_tiktok: string;
   system_domain: string;
   store_disclaimer: string;
+  homepage_content: string;
 }
 
 type AdminTab = 'overview' | 'stores' | 'orders' | 'categories' | 'withdrawals' | 'verifications' | 'settings';
@@ -115,6 +117,7 @@ const defaultSettings: SystemSettings = {
   social_tiktok: '',
   system_domain: '',
   store_disclaimer: '',
+  homepage_content: '',
 };
 
 const tabs: Array<{ id: AdminTab; label: string; icon: React.ReactNode }> = [
@@ -1036,6 +1039,17 @@ export default function AdminPage() {
                   <Field label="TikTok" value={settings.social_tiktok} onChange={(value) => setSettings({ ...settings, social_tiktok: value })} />
                 </SettingsGroup>
 
+                <SettingsGroup icon={<Sparkles size={17} />} title="Homepage content">
+                  <TextAreaField
+                    label="Homepage content JSON"
+                    value={settings.homepage_content}
+                    onChange={(value) => setSettings({ ...settings, homepage_content: value })}
+                    rows={18}
+                    placeholder='{"hero":{"titlePrefix":"Turn WhatsApp Conversations Into","titleHighlight":"Sales"}}'
+                    description="Controls hero text, badges, buttons, stats, narrative, platform suite, comparison, vision, how-it-works, features, and testimonials. Leave blank to use default homepage copy."
+                  />
+                </SettingsGroup>
+
                 <SettingsGroup icon={<Shield size={17} />} title="System Connection Health">
                   <div className="admin-health-grid">
                     <div className="admin-health-item">
@@ -1426,6 +1440,16 @@ function Field({ label, value, onChange, type = 'text', required = false, placeh
       <span>{label}</span>
       {description && <small className="admin-field-desc">{description}</small>}
       <input type={type} value={value || ''} onChange={(event) => onChange(event.target.value)} required={required} placeholder={placeholder} />
+    </label>
+  );
+}
+
+function TextAreaField({ label, value, onChange, required = false, placeholder = '', description = '', rows = 8 }: { label: string; value: string; onChange: (value: string) => void; required?: boolean; placeholder?: string; description?: string; rows?: number }) {
+  return (
+    <label className="admin-field">
+      <span>{label}</span>
+      {description && <small className="admin-field-desc">{description}</small>}
+      <textarea value={value || ''} onChange={(event) => onChange(event.target.value)} required={required} placeholder={placeholder} rows={rows} />
     </label>
   );
 }
@@ -1885,7 +1909,8 @@ function AdminStyles() {
 
       .admin-search input,
       .admin-inline-form input,
-      .admin-field input {
+      .admin-field input,
+      .admin-field textarea {
         width: 100%;
         min-width: 0;
         border: 0;
@@ -2124,7 +2149,8 @@ function AdminStyles() {
       }
 
       .admin-inline-form input,
-      .admin-field input {
+      .admin-field input,
+      .admin-field textarea {
         height: 42px;
         padding: 0 14px;
         border: 1px solid var(--border);
@@ -2133,8 +2159,17 @@ function AdminStyles() {
         font-size: 14px;
         transition: all 0.2s;
       }
+      .admin-field textarea {
+        height: auto;
+        min-height: 180px;
+        padding: 12px 14px;
+        resize: vertical;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        line-height: 1.5;
+      }
       .admin-inline-form input:focus,
-      .admin-field input:focus {
+      .admin-field input:focus,
+      .admin-field textarea:focus {
         border-color: var(--primary);
         box-shadow: 0 0 0 2px var(--primary-light);
       }

@@ -2,8 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, MapPin, Clock, ArrowRight, BookOpen, RotateCcw } from 'lucide-react';
-import Logo from '@/components/Logo';
-import ThemeToggle from '@/components/ThemeToggle';
+import { PublicSiteFooter, PublicSiteNav } from '@/components/PublicSiteChrome';
 import { BLOG_ARTICLES, CATEGORIES, CITIES } from '@/utils/blogData';
 
 function getCountrySlug(country: string): string {
@@ -90,45 +89,7 @@ export default function BlogListingClient() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
-      {/* ── Navbar ── */}
-      <nav
-        className="glass"
-        style={{
-          position: 'sticky', top: 0, zIndex: 50,
-          padding: '14px 20px',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          borderBottom: '1px solid var(--border)',
-        }}
-      >
-        <a href="/" style={{ display: 'inline-flex' }}>
-          <Logo size={24} textColor="var(--primary)" />
-        </a>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <ThemeToggle />
-          <a
-            href="/blog"
-            className="btn btn-ghost"
-            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none', fontWeight: 600 }}
-          >
-            Blog
-          </a>
-          <a
-            href="/login"
-            className="btn btn-ghost"
-            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
-          >
-            Sign in
-          </a>
-          <a
-            href="/signup"
-            className="btn btn-primary"
-            style={{ padding: '9px 18px', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
-            Get Started <ArrowRight size={14} />
-          </a>
-        </div>
-      </nav>
+      <PublicSiteNav />
 
       {/* ── Hero Section ── */}
       <header
@@ -489,30 +450,7 @@ export default function BlogListingClient() {
         )}
       </main>
 
-      {/* ── Footer ── */}
-      <footer style={{
-        padding: '24px 20px',
-        borderTop: '1px solid var(--border)',
-        background: 'var(--surface)',
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 12,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 48
-      }}>
-        <a href="/" style={{ display: 'inline-flex' }}>
-          <Logo size={20} textColor="var(--primary)" />
-        </a>
-        <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-          © {new Date().getFullYear()} frontstore. Africa's #1 WhatsApp Commerce Platform.
-        </p>
-        <div style={{ display: 'flex', gap: 16 }}>
-          <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>
-          <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
-          <a href="/terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
-        </div>
-      </footer>
+      <PublicSiteFooter />
     </div>
   );
 }

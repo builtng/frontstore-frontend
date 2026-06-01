@@ -87,6 +87,138 @@ const HOW_IT_WORKS = [
   { step: '03', title: 'Share & sell', body: 'Drop your store link on WhatsApp, Instagram, or TikTok and start receiving orders.' },
 ] as const;
 
+const DEFAULT_PLATFORM_SUITE = [
+  {
+    brand: 'Online Store',
+    tagline: 'Your store ready in 2 minutes',
+    desc: 'Generate a stunning, mobile-ready product catalog in under 2 minutes. No coding, no website builder — just add your products and go.',
+    badge: 'Core Feature'
+  },
+  {
+    brand: 'WhatsApp Checkout',
+    tagline: 'Sell directly in WhatsApp',
+    desc: 'Customers browse your store and tap "Order" — their message lands in your WhatsApp chat, pre-filled and ready to confirm.',
+    badge: 'WhatsApp Native'
+  },
+  {
+    brand: 'Accept Payments',
+    tagline: 'Cards, bank transfer & mobile money',
+    desc: 'Collect payments securely from your customers. Supports Paystack, cards, bank transfers, and mobile money across Africa.',
+    badge: 'Secure Payments'
+  },
+  {
+    brand: 'Customer Records',
+    tagline: 'Know who buys from you',
+    desc: 'Automatically log every buyer, their orders, and purchase history. Follow up easily and build lasting customer relationships.',
+    badge: 'Customer Logs'
+  },
+  {
+    brand: 'AI Assistant',
+    tagline: 'Write descriptions in one click',
+    desc: 'Upload a product photo and let AI write your description, suggest prices, and answer customer questions — 24/7.',
+    badge: 'AI Powered'
+  },
+  {
+    brand: 'Broadcast Messages',
+    tagline: 'Reach all your customers at once',
+    desc: 'Send product drops, promos, and updates to your customer base without rebuilding your audience from scratch.',
+    badge: 'Growth Tools'
+  },
+];
+
+const DEFAULT_COMPARISON_ROWS = [
+  { feat: 'WhatsApp-first Checkout', alo: 'Direct order details sent straight to merchant chat', sho: 'Generic web-cart & email confirmations', oth: 'Partial integrations / web-redirects' },
+  { feat: 'AI-assisted Listings', alo: 'Upload photo → Auto price, tags, and rich descriptions', sho: 'Manual data entry required', oth: 'No built-in AI catalog tool' },
+  { feat: 'Mobile-first Merchant Operations', alo: 'Manage store fully on 3G mobile network', sho: 'Complex desk-oriented admin dashboard', oth: 'Limited mobile configuration' },
+  { feat: 'African Payment Rails', alo: 'Escrow options + Paystack/Flutterwave/Mobile Money', sho: 'High card fees, complex setup for Africa', oth: 'Standard payments only, no escrow' },
+  { feat: 'Setup Speed', alo: 'Under 2 minutes (claim & launch immediately)', sho: 'Hours/Days of theme editing', oth: '5-15 minutes configuration' },
+];
+
+const DEFAULT_HOME_CONTENT = {
+  hero: {
+    badges: ['Under 2 Minutes Setup', 'Conversational Commerce'],
+    titlePrefix: 'Turn WhatsApp Conversations Into',
+    titleHighlight: 'Sales',
+    description: 'Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa.',
+    primaryButton: { label: 'Start Free', href: '#store-name-input' },
+    secondaryButton: { label: 'Book Demo', href: '#book-demo' },
+  },
+  stats: {
+    sellerCount: '1,200+ sellers',
+    text: 'already selling on Frontstore',
+  },
+  narrative: {
+    eyebrow: 'Our Narrative',
+    title: 'Commerce Through Conversation',
+    body: "Most African businesses don't need complicated ecommerce websites.\n\nThey already sell where customers spend their time: WhatsApp.\n\nFrontstore transforms WhatsApp from a messaging app into a complete commerce engine.",
+    steps: [
+      { title: 'Create a Store', desc: 'Add products in 2 mins' },
+      { title: 'Share a Link', desc: 'Status, Instagram, TikTok' },
+      { title: 'Receive Orders', desc: 'Directly in WhatsApp' },
+      { title: 'Manage Customers', desc: 'Conversation-driven CRM' },
+      { title: 'Grow Revenue', desc: 'Scale with simple analytics' },
+    ],
+  },
+  platformSuite: {
+    eyebrow: 'Platform Suite',
+    title: 'Everything You Need to Sell Online',
+    description: 'A unified suite of products engineered to run your entire business infrastructure through conversations.',
+    items: DEFAULT_PLATFORM_SUITE,
+  },
+  comparison: {
+    eyebrow: 'Why Frontstore?',
+    title: 'Engineered for African Entrepreneurs',
+    description: 'How we stand out against standard e-commerce site builders.',
+    columns: ['Feature', 'Frontstore', 'Shopify', 'Bumpa / Selar'],
+    rows: DEFAULT_COMPARISON_ROWS,
+  },
+  vision: {
+    eyebrow: 'Our Vision',
+    quote: 'Become the operating system for African businesses, helping millions of merchants sell, get paid, manage customers, and grow through conversations.',
+    cite: '— The Frontstore Mission for African Commerce Infrastructure',
+  },
+  howItWorks: {
+    eyebrow: 'How it works',
+    title: 'Start selling in 3 simple steps',
+    items: HOW_IT_WORKS,
+  },
+  features: {
+    eyebrow: 'Features',
+    title: 'Built for how business is done in Africa',
+    description: 'Every feature is designed for African sellers — low bandwidth, WhatsApp-first, and mobile-optimized.',
+    items: FEATURES,
+  },
+  testimonials: {
+    eyebrow: 'Testimonials',
+    title: 'Sellers love Frontstore',
+    items: TESTIMONIALS,
+  },
+};
+
+type HomeContent = typeof DEFAULT_HOME_CONTENT;
+
+function mergeHomeContent(raw?: string): HomeContent {
+  if (!raw) return DEFAULT_HOME_CONTENT;
+  try {
+    const parsed = JSON.parse(raw);
+    return {
+      ...DEFAULT_HOME_CONTENT,
+      ...parsed,
+      hero: { ...DEFAULT_HOME_CONTENT.hero, ...(parsed.hero || {}) },
+      stats: { ...DEFAULT_HOME_CONTENT.stats, ...(parsed.stats || {}) },
+      narrative: { ...DEFAULT_HOME_CONTENT.narrative, ...(parsed.narrative || {}) },
+      platformSuite: { ...DEFAULT_HOME_CONTENT.platformSuite, ...(parsed.platformSuite || {}) },
+      comparison: { ...DEFAULT_HOME_CONTENT.comparison, ...(parsed.comparison || {}) },
+      vision: { ...DEFAULT_HOME_CONTENT.vision, ...(parsed.vision || {}) },
+      howItWorks: { ...DEFAULT_HOME_CONTENT.howItWorks, ...(parsed.howItWorks || {}) },
+      features: { ...DEFAULT_HOME_CONTENT.features, ...(parsed.features || {}) },
+      testimonials: { ...DEFAULT_HOME_CONTENT.testimonials, ...(parsed.testimonials || {}) },
+    };
+  } catch {
+    return DEFAULT_HOME_CONTENT;
+  }
+}
+
 const getFeatureIcon = (title: string, color: string) => {
   switch (title) {
     case 'WhatsApp-Native Checkout':
@@ -117,6 +249,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
   const [appName, setAppName] = useState(initialSettings?.app_name || 'Frontstore');
   const [logoUrl, setLogoUrl] = useState(initialSettings?.logo_url || '');
   const [systemDomain, setSystemDomain] = useState(initialSettings?.system_domain || 'frontstore.app');
+  const [homeContent, setHomeContent] = useState<HomeContent>(() => mergeHomeContent(initialSettings?.homepage_content));
   
   // Demo modal state variables
   const [showDemoModal, setShowDemoModal] = useState(false);
@@ -165,6 +298,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             if (json.data.app_name) setAppName(json.data.app_name);
             if (json.data.logo_url) setLogoUrl(json.data.logo_url);
             if (json.data.system_domain) setSystemDomain(json.data.system_domain);
+            setHomeContent(mergeHomeContent(json.data.homepage_content));
           }
         })
         .catch(err => console.error('Failed to fetch public settings:', err));
@@ -312,10 +446,10 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           {/* Pill badges */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 24 }}>
             <span className="badge badge-primary" style={{ padding: '5px 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Zap size={11} /> Under 2 Minutes Setup
+              <Zap size={11} /> {homeContent.hero.badges[0]}
             </span>
             <span className="badge badge-verified" style={{ padding: '5px 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Globe size={11} /> Conversational Commerce
+              <Globe size={11} /> {homeContent.hero.badges[1]}
             </span>
           </div>
 
@@ -324,13 +458,13 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             className="text-display"
             style={{ marginBottom: 20, maxWidth: 620, margin: '0 auto 20px', lineHeight: 1.15 }}
           >
-            Turn WhatsApp Conversations Into{' '}
+            {homeContent.hero.titlePrefix}{' '}
             <span style={{
               background: 'linear-gradient(135deg, hsl(142, 71%, 45%), hsl(158, 84%, 39%))',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}>
-              Sales
+              {homeContent.hero.titleHighlight}
             </span>
           </h1>
 
@@ -341,13 +475,17 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             maxWidth: 540,
             margin: '0 auto 32px',
           }}>
-            Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa.
+            {homeContent.hero.description}
           </p>
 
           {/* Hero CTAs */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', marginBottom: 40 }}>
             <button
               onClick={() => {
+                if (homeContent.hero.primaryButton.href && homeContent.hero.primaryButton.href !== '#store-name-input') {
+                  window.location.href = homeContent.hero.primaryButton.href;
+                  return;
+                }
                 const el = document.getElementById('store-name-input');
                 if (el) {
                   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -357,14 +495,20 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               className="btn btn-primary"
               style={{ padding: '14px 28px', fontSize: 15, borderRadius: 'var(--r-xl)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
             >
-              Start Free <ArrowRight size={16} />
+              {homeContent.hero.primaryButton.label} <ArrowRight size={16} />
             </button>
             <button
-              onClick={() => setShowDemoModal(true)}
+              onClick={() => {
+                if (homeContent.hero.secondaryButton.href && homeContent.hero.secondaryButton.href !== '#book-demo') {
+                  window.location.href = homeContent.hero.secondaryButton.href;
+                  return;
+                }
+                setShowDemoModal(true);
+              }}
               className="btn btn-outline"
               style={{ padding: '14px 28px', fontSize: 15, borderRadius: 'var(--r-xl)' }}
             >
-              Book Demo
+              {homeContent.hero.secondaryButton.label}
             </button>
           </div>
 
@@ -467,7 +611,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               ))}
             </div>
             <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              <strong style={{ color: 'var(--text)' }}>1,200+ sellers</strong> already selling on Frontstore
+              <strong style={{ color: 'var(--text)' }}>{homeContent.stats.sellerCount}</strong> {homeContent.stats.text}
             </p>
           </div>
         </div>
@@ -529,9 +673,9 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         position: 'relative'
       }}>
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-          <span className="badge badge-accent" style={{ marginBottom: 16 }}>Our Narrative</span>
+          <span className="badge badge-accent" style={{ marginBottom: 16 }}>{homeContent.narrative.eyebrow}</span>
           <h2 className="text-display" style={{ fontSize: 'clamp(24px, 4vw, 36px)', marginBottom: 32 }}>
-            Commerce Through Conversation
+            {homeContent.narrative.title}
           </h2>
           
           <div className="card animate-fade-in" style={{
@@ -559,11 +703,12 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               fontWeight: 500,
               marginBottom: 36
             }}>
-              Most African businesses don't need complicated ecommerce websites.
-              <br /><br />
-              They already sell where customers spend their time: <strong style={{ color: 'var(--primary)' }}>WhatsApp</strong>.
-              <br /><br />
-              Frontstore transforms WhatsApp from a messaging app into a complete commerce engine.
+              {homeContent.narrative.body.split('\n').map((line, index) => (
+                <React.Fragment key={index}>
+                  {line}
+                  {index < homeContent.narrative.body.split('\n').length - 1 && <><br /><br /></>}
+                </React.Fragment>
+              ))}
             </p>
             
             {/* Steps timeline */}
@@ -574,13 +719,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               borderTop: '1px solid var(--border)',
               paddingTop: 32
             }}>
-              {[
-                { title: 'Create a Store', desc: 'Add products in 2 mins' },
-                { title: 'Share a Link', desc: 'Status, Instagram, TikTok' },
-                { title: 'Receive Orders', desc: 'Directly in WhatsApp' },
-                { title: 'Manage Customers', desc: 'Conversation-driven CRM' },
-                { title: 'Grow Revenue', desc: 'Scale with simple analytics' }
-              ].map((step, idx) => (
+              {homeContent.narrative.steps.map((step, idx) => (
                 <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{
@@ -610,10 +749,10 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <span className="badge badge-primary" style={{ marginBottom: 12 }}>Platform Suite</span>
-            <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>Everything You Need to Sell Online</h2>
+            <span className="badge badge-primary" style={{ marginBottom: 12 }}>{homeContent.platformSuite.eyebrow}</span>
+            <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>{homeContent.platformSuite.title}</h2>
             <p style={{ color: 'var(--text-muted)', marginTop: 12, fontSize: 16, maxWidth: 600, margin: '12px auto 0' }}>
-              A unified suite of products engineered to run your entire business infrastructure through conversations.
+              {homeContent.platformSuite.description}
             </p>
           </div>
           
@@ -622,57 +761,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: 20
           }}>
-            {[
-              {
-                brand: 'Online Store',
-                tagline: 'Your store ready in 2 minutes',
-                desc: 'Generate a stunning, mobile-ready product catalog in under 2 minutes. No coding, no website builder — just add your products and go.',
-                icon: <Store size={22} color="var(--primary)" />,
-                badge: 'Core Feature'
-              },
-              {
-                brand: 'WhatsApp Checkout',
-                tagline: 'Sell directly in WhatsApp',
-                desc: 'Customers browse your store and tap "Order" — their message lands in your WhatsApp chat, pre-filled and ready to confirm.',
-                icon: <MessageCircle size={22} color="hsl(142, 71%, 45%)" />,
-                badge: 'WhatsApp Native'
-              },
-              {
-                brand: 'Accept Payments',
-                tagline: 'Cards, bank transfer & mobile money',
-                desc: 'Collect payments securely from your customers. Supports Paystack, cards, bank transfers, and mobile money across Africa.',
-                icon: <CreditCard size={22} color="hsl(200, 98%, 45%)" />,
-                badge: 'Secure Payments'
-              },
-              {
-                brand: 'Customer Records',
-                tagline: 'Know who buys from you',
-                desc: 'Automatically log every buyer, their orders, and purchase history. Follow up easily and build lasting customer relationships.',
-                icon: <Users size={22} color="hsl(250, 84%, 60%)" />,
-                badge: 'Customer Logs'
-              },
-              {
-                brand: 'AI Assistant',
-                tagline: 'Write descriptions in one click',
-                desc: 'Upload a product photo and let AI write your description, suggest prices, and answer customer questions — 24/7.',
-                icon: <Brain size={22} color="hsl(280, 70%, 55%)" />,
-                badge: 'AI Powered'
-              },
-              {
-                brand: 'Broadcast Messages',
-                tagline: 'Reach all your customers at once',
-                desc: 'Send new product alerts, discounts, or promotions to all your buyers on WhatsApp in one click. Drive repeat sales effortlessly.',
-                icon: <Megaphone size={22} color="hsl(340, 82%, 55%)" />,
-                badge: 'Marketing'
-              },
-              {
-                brand: 'Sales Analytics',
-                tagline: 'See how your store is doing',
-                desc: 'Track your revenue, page views, and top products. Simple charts that show you what is working so you can grow faster.',
-                icon: <TrendingUp size={22} color="hsl(38, 92%, 50%)" />,
-                badge: 'Insights'
-              }
-            ].map((prod, idx) => (
+            {homeContent.platformSuite.items.map((prod, idx) => (
               <div
                 key={idx}
                 className="card hover-lift"
@@ -692,7 +781,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     boxShadow: 'var(--shadow-sm)'
                   }}>
-                    {prod.icon}
+                    {[<Store key="store" size={22} color="var(--primary)" />, <MessageCircle key="message" size={22} color="hsl(142, 71%, 45%)" />, <CreditCard key="credit" size={22} color="hsl(200, 98%, 45%)" />, <Users key="users" size={22} color="hsl(250, 84%, 60%)" />, <Brain key="brain" size={22} color="hsl(280, 70%, 55%)" />, <Megaphone key="mega" size={22} color="hsl(340, 82%, 55%)" />, <TrendingUp key="trend" size={22} color="hsl(38, 92%, 50%)" />][idx % 7]}
                   </div>
                   <span className="badge badge-verified" style={{ textTransform: 'none', fontSize: 10 }}>{prod.badge}</span>
                 </div>
@@ -722,10 +811,10 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <span className="badge badge-accent" style={{ marginBottom: 12 }}>Why Frontstore?</span>
-            <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>Engineered for African Entrepreneurs</h2>
+            <span className="badge badge-accent" style={{ marginBottom: 12 }}>{homeContent.comparison.eyebrow}</span>
+            <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>{homeContent.comparison.title}</h2>
             <p style={{ color: 'var(--text-muted)', marginTop: 12, fontSize: 16, maxWidth: 500, margin: '12px auto 0' }}>
-              How we stand out against standard e-commerce site builders.
+              {homeContent.comparison.description}
             </p>
           </div>
           
@@ -733,45 +822,14 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 600 }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)' }}>
-                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>Feature</th>
-                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)' }}>Frontstore</th>
-                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>Shopify</th>
-                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>Bumpa / Selar</th>
+                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{homeContent.comparison.columns[0]}</th>
+                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)' }}>{homeContent.comparison.columns[1]}</th>
+                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>{homeContent.comparison.columns[2]}</th>
+                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>{homeContent.comparison.columns[3]}</th>
                 </tr>
               </thead>
               <tbody>
-                {[
-                  {
-                    feat: 'WhatsApp-first Checkout',
-                    alo: 'Direct order details sent straight to merchant chat',
-                    sho: 'Generic web-cart & email confirmations',
-                    oth: 'Partial integrations / web-redirects'
-                  },
-                  {
-                    feat: 'AI-assisted Listings',
-                    alo: 'Upload photo → Auto price, tags, and rich descriptions',
-                    sho: 'Manual data entry required',
-                    oth: 'No built-in AI catalog tool'
-                  },
-                  {
-                    feat: 'Mobile-first Merchant Operations',
-                    alo: 'Manage store fully on 3G mobile network',
-                    sho: 'Complex desk-oriented admin dashboard',
-                    oth: 'Limited mobile configuration'
-                  },
-                  {
-                    feat: 'African Payment Rails',
-                    alo: 'Escrow options + Paystack/Flutterwave/Mobile Money',
-                    sho: 'High card fees, complex setup for Africa',
-                    oth: 'Standard payments only, no escrow'
-                  },
-                  {
-                    feat: 'Setup Speed',
-                    alo: 'Under 2 minutes (claim & launch immediately)',
-                    sho: 'Hours/Days of theme editing',
-                    oth: '5-15 minutes configuration'
-                  }
-                ].map((row, i) => (
+                {homeContent.comparison.rows.map((row, i) => (
                   <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '16px 20px', fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{row.feat}</td>
                     <td style={{ padding: '16px 20px', fontSize: 13, color: 'var(--text)', background: 'var(--primary-light)', fontWeight: 500 }}>
@@ -813,7 +871,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             background: 'rgba(255,255,255,0.15)', color: '#fff', marginBottom: 24,
             border: '1px solid rgba(255,255,255,0.2)'
           }}>
-            Our Vision
+            {homeContent.vision.eyebrow}
           </span>
           <blockquote style={{
             fontFamily: 'var(--font-heading)',
@@ -824,10 +882,10 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             marginBottom: 24,
             textShadow: '0 2px 10px rgba(0,0,0,0.1)'
           }}>
-            "Become the operating system for African businesses, helping millions of merchants sell, get paid, manage customers, and grow through conversations."
+            "{homeContent.vision.quote}"
           </blockquote>
           <cite style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', fontStyle: 'normal', fontWeight: 600 }}>
-            — The Frontstore Mission for African Commerce Infrastructure
+            {homeContent.vision.cite}
           </cite>
         </div>
       </section>
@@ -836,15 +894,15 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       <section id="how-it-works" style={{ padding: 'clamp(40px, 8vw, 72px) 20px', background: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-block' }}>How it works</span>
-            <h2 className="text-title">Start selling in 3 simple steps</h2>
+            <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-block' }}>{homeContent.howItWorks.eyebrow}</span>
+            <h2 className="text-title">{homeContent.howItWorks.title}</h2>
           </div>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
             gap: 20,
           }}>
-            {HOW_IT_WORKS.map((item, i) => (
+            {homeContent.howItWorks.items.map((item, i) => (
               <div
                 key={item.step}
                 className="card hover-lift animate-fade-in"
@@ -879,10 +937,10 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       <section style={{ padding: 'clamp(48px, 8vw, 80px) 20px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-block' }}>Features</span>
-            <h2 className="text-title">Built for how business is done in Africa</h2>
+            <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-block' }}>{homeContent.features.eyebrow}</span>
+            <h2 className="text-title">{homeContent.features.title}</h2>
             <p style={{ color: 'var(--text-muted)', marginTop: 12, fontSize: 15, maxWidth: 500, margin: '12px auto 0' }}>
-              Every feature is designed for African sellers — low bandwidth, WhatsApp-first, and mobile-optimized.
+              {homeContent.features.description}
             </p>
           </div>
 
@@ -891,7 +949,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
             gap: 16,
           }}>
-            {FEATURES.map((f, i) => (
+            {homeContent.features.items.map((f, i) => (
               <div
                 key={f.title}
                 className="card hover-lift animate-fade-in"
@@ -918,11 +976,11 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       <section style={{ padding: 'clamp(48px, 8vw, 72px) 20px', background: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 36 }}>
-            <span className="badge badge-accent" style={{ marginBottom: 12, display: 'inline-block' }}>Testimonials</span>
-            <h2 className="text-title">Sellers love Frontstore</h2>
+            <span className="badge badge-accent" style={{ marginBottom: 12, display: 'inline-block' }}>{homeContent.testimonials.eyebrow}</span>
+            <h2 className="text-title">{homeContent.testimonials.title}</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-            {TESTIMONIALS.map((t, i) => (
+            {homeContent.testimonials.items.map((t, i) => (
               <div key={t.name} className="card animate-fade-in" style={{ padding: '22px', animationDelay: `${i * 80}ms` }}>
                 <div style={{ display: 'flex', gap: 2, marginBottom: 12 }}>
                   {Array.from({ length: t.stars }).map((_, j) => (

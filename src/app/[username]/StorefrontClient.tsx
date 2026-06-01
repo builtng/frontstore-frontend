@@ -25,6 +25,7 @@ interface StoreLink {
 
 interface Store {
   id: string;
+  username: string;
   store_name: string;
   store_bio: string | null;
   logo_url: string | null;
@@ -1246,7 +1247,7 @@ function StoreFooter({ store, systemDomain = 'frontstore.app', appName = 'Fronts
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function StorefrontClient({ username }: { username: string }) {
+export default function StorefrontClient({ username, initialProductSlug }: { username: string; initialProductSlug?: string }) {
   const uname = username;
 
   const [store, setStore] = useState<Store | null>(null);
@@ -1292,6 +1293,14 @@ export default function StorefrontClient({ username }: { username: string }) {
       }
     })();
   }, [uname]);
+
+  useEffect(() => {
+    if (!initialProductSlug || products.length === 0) return;
+    const product = products.find(item => item.slug === initialProductSlug);
+    if (product) {
+      setSelectedProduct(product);
+    }
+  }, [initialProductSlug, products]);
 
   useEffect(() => {
     if (!uname) return;
@@ -1369,8 +1378,10 @@ export default function StorefrontClient({ username }: { username: string }) {
   }, [uname]);
 
   const handleShareProduct = async (product: Product) => {
-    if (navigator.share) await navigator.share({ title: product.name, url: window.location.href });
-    else { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); }
+    const productUrl = `${window.location.origin}/${store?.username || uname}/products/${product.slug}`;
+    const shareText = `${product.name} — ${fmt(product.price, currencySymbol)}`;
+    if (navigator.share) await navigator.share({ title: product.name, text: shareText, url: productUrl });
+    else { navigator.clipboard.writeText(productUrl); toast.success('Product link copied!'); }
   };
 
   const handleShareStore = async () => {
