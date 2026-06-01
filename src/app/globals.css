@@ -559,6 +559,11 @@ img, video {
   to   { transform: scale(1);    opacity: 1; }
 }
 
+@keyframes modalScaleIn {
+  from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
+  to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
 @keyframes drawerUp {
   from { transform: translateY(100%); }
   to   { transform: translateY(0); }
@@ -584,6 +589,7 @@ img, video {
 .animate-scale-in  { animation: scaleIn var(--t-normal) var(--ease-spring) both; }
 .animate-drawer    { animation: drawerUp var(--t-slow) var(--ease-out) both; }
 .animate-backdrop  { animation: backdropIn var(--t-normal) var(--ease) both; }
+.confirmation-modal { animation: modalScaleIn var(--t-normal) var(--ease-spring) both; }
 
 /* Stagger children */
 .stagger > *:nth-child(1) { animation-delay: 0ms; }
@@ -2408,10 +2414,10 @@ svg.spinner {
 .store-header__spotlight-products {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(164px, 1fr);
+  grid-auto-columns: minmax(260px, 42%);
   overflow-x: auto;
   overflow-y: hidden;
-  gap: 10px;
+  gap: 12px;
   padding: 2px 0 8px;
   scroll-snap-type: x mandatory;
   scrollbar-color: color-mix(in srgb, var(--primary) 55%, transparent) transparent;
@@ -2420,11 +2426,11 @@ svg.spinner {
 .store-header__spotlight-card {
   min-width: 0;
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
+  grid-template-columns: 72px minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
-  min-height: 94px;
-  padding: 10px;
+  gap: 12px;
+  min-height: 108px;
+  padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.34);
   border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--surface) 90%, transparent);
@@ -2443,8 +2449,8 @@ svg.spinner {
 }
 
 .store-header__spotlight-image {
-  width: 58px;
-  height: 58px;
+  width: 72px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2838,7 +2844,7 @@ svg.spinner {
   }
 
   .store-header__spotlight-products {
-    grid-template-columns: repeat(3, minmax(160px, 1fr));
+    grid-auto-columns: minmax(250px, 82%);
     overflow-x: auto;
     padding-bottom: 2px;
     scroll-snap-type: x mandatory;
@@ -2955,13 +2961,13 @@ svg.spinner {
   }
 
   .store-header__spotlight-card {
-    min-height: 82px;
-    grid-template-columns: 50px minmax(0, 1fr);
+    min-height: 96px;
+    grid-template-columns: 64px minmax(0, 1fr);
   }
 
   .store-header__spotlight-image {
-    width: 50px;
-    height: 50px;
+    width: 64px;
+    height: 64px;
   }
 
   .store-header__socials {

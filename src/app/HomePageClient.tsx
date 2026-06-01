@@ -112,6 +112,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'error' | 'success' | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   const [appName, setAppName] = useState(initialSettings?.app_name || 'Frontstore');
   const [logoUrl, setLogoUrl] = useState(initialSettings?.logo_url || '');
@@ -146,6 +147,13 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
 
   useEffect(() => {
     setMounted(true);
+    try {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      setIsLoggedIn(Boolean(token && user && user !== 'undefined' && user !== 'null'));
+    } catch {
+      setIsLoggedIn(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -226,27 +234,61 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         <div className="home-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <ThemeToggle />
           <a
+            href="/"
+            className="btn btn-ghost home-nav-link"
+            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
+          >
+            Home
+          </a>
+          <a
+            href="#about"
+            className="btn btn-ghost home-nav-link"
+            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
+          >
+            About
+          </a>
+          <a
+            href="#how-it-works"
+            className="btn btn-ghost home-nav-link"
+            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
+          >
+            How it works
+          </a>
+          <a
             href="/blog"
-            className="btn btn-ghost"
-            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
+            className="btn btn-ghost home-nav-link"
+            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
           >
             Blog
           </a>
-          <a
-            href="/login"
-            className="btn btn-ghost"
-            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
-          >
-            Sign in
-          </a>
-          <a
-            href="/signup"
-            className="btn btn-primary"
-            style={{ padding: '9px 18px', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            id="nav-get-started"
-          >
-            Get Started <ArrowRight size={14} />
-          </a>
+          {isLoggedIn ? (
+            <a
+              href="/dashboard"
+              className="btn btn-primary"
+              style={{ padding: '9px 18px', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              id="nav-dashboard"
+            >
+              Dashboard <ArrowRight size={14} />
+            </a>
+          ) : (
+            <>
+              <a
+                href="/login"
+                className="btn btn-ghost"
+                style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
+              >
+                Sign in
+              </a>
+              <a
+                href="/signup"
+                className="btn btn-primary"
+                style={{ padding: '9px 18px', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                id="nav-get-started"
+              >
+                Get started <ArrowRight size={14} />
+              </a>
+            </>
+          )}
         </div>
       </nav>
 
@@ -444,10 +486,11 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             padding: 7px 9px !important;
             font-size: 12px !important;
           }
-          .home-nav-actions a[href="/blog"] {
+          .home-nav-actions .home-nav-link {
             display: none !important;
           }
-          #nav-get-started svg {
+          #nav-get-started svg,
+          #nav-dashboard svg {
             display: none !important;
           }
           #store-name-input {
@@ -479,7 +522,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       `}</style>
 
       {/* ── Premium Brand Narrative ── */}
-      <section style={{
+      <section id="about" style={{
         padding: 'clamp(56px, 8vw, 88px) 20px',
         background: 'linear-gradient(180deg, var(--bg) 0%, var(--surface-2) 100%)',
         borderTop: '1px solid var(--border)',
@@ -790,7 +833,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       </section>
 
       {/* ── How It Works ── */}
-      <section style={{ padding: 'clamp(40px, 8vw, 72px) 20px', background: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+      <section id="how-it-works" style={{ padding: 'clamp(40px, 8vw, 72px) 20px', background: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-block' }}>How it works</span>
@@ -965,8 +1008,12 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
           © {new Date().getFullYear()} {appName}. Conversational Commerce Platform.
         </p>
-        <div style={{ display: 'flex', gap: 16 }}>
-          <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <a href="/" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Home</a>
+          <a href="#about" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>About</a>
+          <a href="#how-it-works" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>How it works</a>
+          <a href="/blog" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Blog</a>
+          <a href={isLoggedIn ? '/dashboard' : '/signup'} style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>{isLoggedIn ? 'Dashboard' : 'Sign up'}</a>
           <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
           <a href="/terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
         </div>

@@ -156,7 +156,7 @@ function ConfirmationModal({
   return (
     <>
       <div className="drawer-backdrop animate-backdrop" style={{ zIndex: 200 }} onClick={onCancel} />
-      <div className="card glass animate-scale-in" style={{
+      <div className="card glass confirmation-modal" style={{
         position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
         zIndex: 210, width: 'calc(100% - 32px)', maxWidth: 400, padding: 24,
         display: 'flex', flexDirection: 'column', gap: 16, borderRadius: 'var(--r-xl)',
@@ -369,10 +369,10 @@ function StoreSkeleton() {
 // ─── Product Card ─────────────────────────────────────────────────────────────
 
 function ProductCard({
-  product, currencySymbol, onView, onWhatsApp, onShare,
+  product, currencySymbol, onView, onShare,
 }: {
   product: Product; currencySymbol: string;
-  onView: () => void; onWhatsApp: () => void; onShare: () => void;
+  onView: () => void; onShare: () => void;
 }) {
   const hasImage = product.image_urls && product.image_urls.length > 0;
   const isOutOfStock = product.stock_status === 'out_of_stock';
@@ -491,9 +491,9 @@ function ProductCard({
         {!isOutOfStock ? (
           <button
             className="product-card__buy"
-            onClick={e => { e.stopPropagation(); onWhatsApp(); }}
+            onClick={e => { e.stopPropagation(); onView(); }}
             id={`wa-buy-${product.id}`}
-            aria-label={`Order ${product.name} via WhatsApp`}
+            aria-label={`View ${product.name} details`}
           >
           <WhatsAppIcon size={12} />
             Order on WhatsApp
@@ -702,7 +702,7 @@ function ProductDetailDrawer({
                 id={`whatsapp-order-${product.id}`}
               >
                 <WhatsAppIcon size={20} />
-                Order on WhatsApp — {fmt(total, currencySymbol)}
+                Buy Now — {fmt(total, currencySymbol)}
               </button>
 
               {/* Add to cart secondary */}
@@ -1517,9 +1517,6 @@ export default function StorefrontClient({ username }: { username: string }) {
                   product={product}
                   currencySymbol={currencySymbol}
                   onView={() => setSelectedProduct(product)}
-                  onWhatsApp={() => {
-                    startCheckoutForProduct(product, 1);
-                  }}
                   onShare={() => handleShareProduct(product)}
                 />
               ))}
