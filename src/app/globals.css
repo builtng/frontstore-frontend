@@ -2065,7 +2065,7 @@ svg.spinner {
   content: 'Live deals';
   display: inline-flex;
   align-items: center;
-  margin-left: 12px;
+  margin-left: 0;
   padding: 8px 12px;
   border-radius: var(--r-full);
   background: #fff;
@@ -2305,9 +2305,13 @@ svg.spinner {
 }
 
 .store-header__name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   color: #fff;
   font-size: clamp(30px, 5vw, 58px);
-  line-height: 1;
+  line-height: 1.04;
   letter-spacing: 0;
   margin: 0;
   max-width: 900px;
@@ -2359,18 +2363,18 @@ svg.spinner {
 }
 
 .store-header__spotlight {
-  display: grid;
-  grid-template-columns: minmax(180px, 0.55fr) minmax(0, 1.45fr);
-  align-items: stretch;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   margin-top: 14px;
-  padding: 12px;
+  padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: var(--r-xl);
-  background: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
   box-shadow: 0 20px 54px rgba(8, 12, 20, 0.16);
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
+  overflow: hidden;
 }
 
 .store-header__spotlight-copy {
@@ -2378,10 +2382,10 @@ svg.spinner {
   flex-direction: column;
   justify-content: center;
   gap: 4px;
-  min-height: 94px;
-  padding: 10px 12px;
-  border-radius: var(--r-lg);
-  background: rgba(255, 255, 255, 0.14);
+  min-height: auto;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
   color: #fff;
 }
 
@@ -2394,17 +2398,23 @@ svg.spinner {
 }
 
 .store-header__spotlight-copy strong {
-  max-width: 220px;
+  max-width: 560px;
   font-family: var(--font-heading);
-  font-size: 20px;
-  line-height: 1.08;
+  font-size: 21px;
+  line-height: 1.12;
   letter-spacing: 0;
 }
 
 .store-header__spotlight-products {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(164px, 1fr);
+  overflow-x: auto;
+  overflow-y: hidden;
   gap: 10px;
+  padding: 2px 0 8px;
+  scroll-snap-type: x mandatory;
+  scrollbar-color: color-mix(in srgb, var(--primary) 55%, transparent) transparent;
 }
 
 .store-header__spotlight-card {
@@ -2422,6 +2432,7 @@ svg.spinner {
   color: var(--text);
   text-align: left;
   overflow: hidden;
+  scroll-snap-align: start;
   animation: slideUp var(--t-slow) var(--ease) both;
 }
 
@@ -2896,6 +2907,26 @@ svg.spinner {
 
   .store-header__title-block {
     text-shadow: 0 1px 14px rgba(0, 0, 0, 0.28);
+  }
+
+  .store-header__eyebrow {
+    margin-bottom: 12px;
+  }
+
+  .store-header__name-row {
+    row-gap: 10px;
+  }
+
+  .store-header__name {
+    gap: 8px;
+    font-size: clamp(28px, 9.5vw, 40px);
+    line-height: 1.08;
+  }
+
+  .template-flash-sale .store-header__name::after {
+    padding: 6px 10px;
+    font-size: 11px;
+    line-height: 1;
   }
 
   .store-header__trust-row {

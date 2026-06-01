@@ -71,6 +71,15 @@ interface StoreInfo {
   primary_color?: string | null;
   store_template?: string | null;
   is_pro?: boolean;
+  catalog_label?: string | null;
+  category_label?: string | null;
+  template_highlight_label?: string | null;
+  product_section_eyebrow?: string | null;
+  product_section_title?: string | null;
+  featured_carousel_enabled?: boolean;
+  featured_carousel_eyebrow?: string | null;
+  featured_carousel_title?: string | null;
+  featured_product_ids?: string[] | null;
   verification_status?: string | null;
   verification_document_type?: string | null;
   verification_document_url?: string | null;
@@ -324,6 +333,15 @@ export default function DashboardPage() {
   const [customLinks, setCustomLinks] = useState<StoreLink[]>([]);
   const [primaryColor, setPrimaryColor] = useState('#10b981');
   const [selectedTemplate, setSelectedTemplate] = useState('luxe-market');
+  const [catalogLabel, setCatalogLabel] = useState('product');
+  const [categoryLabel, setCategoryLabel] = useState('collection');
+  const [templateHighlightLabel, setTemplateHighlightLabel] = useState('');
+  const [productSectionEyebrow, setProductSectionEyebrow] = useState('Catalog');
+  const [productSectionTitle, setProductSectionTitle] = useState('');
+  const [featuredCarouselEnabled, setFeaturedCarouselEnabled] = useState(true);
+  const [featuredCarouselEyebrow, setFeaturedCarouselEyebrow] = useState('Featured now');
+  const [featuredCarouselTitle, setFeaturedCarouselTitle] = useState('Fresh picks from the catalog');
+  const [featuredProductIds, setFeaturedProductIds] = useState<string[]>([]);
   const [templateSaving, setTemplateSaving] = useState<string | null>(null);
   // Form states for adding/editing a link
   const [linkTitle, setLinkTitle] = useState('');
@@ -518,6 +536,15 @@ export default function DashboardPage() {
               setCustomLinks(parsedStore.custom_links || []);
               setPrimaryColor(parsedStore.primary_color || '#10b981');
               setSelectedTemplate(parsedStore.store_template || 'luxe-market');
+              setCatalogLabel(parsedStore.catalog_label || 'product');
+              setCategoryLabel(parsedStore.category_label || 'collection');
+              setTemplateHighlightLabel(parsedStore.template_highlight_label || '');
+              setProductSectionEyebrow(parsedStore.product_section_eyebrow || 'Catalog');
+              setProductSectionTitle(parsedStore.product_section_title || '');
+              setFeaturedCarouselEnabled(parsedStore.featured_carousel_enabled !== false);
+              setFeaturedCarouselEyebrow(parsedStore.featured_carousel_eyebrow || 'Featured now');
+              setFeaturedCarouselTitle(parsedStore.featured_carousel_title || 'Fresh picks from the catalog');
+              setFeaturedProductIds((parsedStore.featured_product_ids || []).slice(0, 5));
             }
             setIsAuthenticated(true);
             setIsAuthChecking(false);
@@ -736,6 +763,15 @@ export default function DashboardPage() {
         setCustomLinks(liveStore.custom_links || []);
         setPrimaryColor(liveStore.primary_color || '#10b981');
         setSelectedTemplate(liveStore.store_template || 'luxe-market');
+        setCatalogLabel(liveStore.catalog_label || 'product');
+        setCategoryLabel(liveStore.category_label || 'collection');
+        setTemplateHighlightLabel(liveStore.template_highlight_label || '');
+        setProductSectionEyebrow(liveStore.product_section_eyebrow || 'Catalog');
+        setProductSectionTitle(liveStore.product_section_title || '');
+        setFeaturedCarouselEnabled(liveStore.featured_carousel_enabled !== false);
+        setFeaturedCarouselEyebrow(liveStore.featured_carousel_eyebrow || 'Featured now');
+        setFeaturedCarouselTitle(liveStore.featured_carousel_title || 'Fresh picks from the catalog');
+        setFeaturedProductIds((liveStore.featured_product_ids || []).slice(0, 5));
       }
 
     } catch (e) {
@@ -1252,6 +1288,19 @@ export default function DashboardPage() {
     setCustomLinks(updated);
   };
 
+  const toggleFeaturedProduct = (productId: string) => {
+    setFeaturedProductIds(prev => {
+      if (prev.includes(productId)) {
+        return prev.filter(id => id !== productId);
+      }
+      if (prev.length >= 5) {
+        toast.error('You can feature up to 5 products in the carousel.');
+        return prev;
+      }
+      return [...prev, productId];
+    });
+  };
+
   // --- Settings Update Handler ---
   const handleSettingsSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1288,6 +1337,15 @@ export default function DashboardPage() {
           logo_url: logoUrl,
           primary_color: isPro ? primaryColor : (store?.primary_color || '#10b981'),
           store_template: selectedTemplate,
+          catalog_label: catalogLabel || null,
+          category_label: categoryLabel || null,
+          template_highlight_label: templateHighlightLabel || null,
+          product_section_eyebrow: productSectionEyebrow || null,
+          product_section_title: productSectionTitle || null,
+          featured_carousel_enabled: featuredCarouselEnabled,
+          featured_carousel_eyebrow: featuredCarouselEyebrow || null,
+          featured_carousel_title: featuredCarouselTitle || null,
+          featured_product_ids: featuredProductIds.slice(0, 5),
         })
       });
 
@@ -1310,6 +1368,15 @@ export default function DashboardPage() {
         setCustomLinks(json.data.custom_links || []);
         setPrimaryColor(json.data.primary_color || '#10b981');
         setSelectedTemplate(json.data.store_template || 'luxe-market');
+        setCatalogLabel(json.data.catalog_label || 'product');
+        setCategoryLabel(json.data.category_label || 'collection');
+        setTemplateHighlightLabel(json.data.template_highlight_label || '');
+        setProductSectionEyebrow(json.data.product_section_eyebrow || 'Catalog');
+        setProductSectionTitle(json.data.product_section_title || '');
+        setFeaturedCarouselEnabled(json.data.featured_carousel_enabled !== false);
+        setFeaturedCarouselEyebrow(json.data.featured_carousel_eyebrow || 'Featured now');
+        setFeaturedCarouselTitle(json.data.featured_carousel_title || 'Fresh picks from the catalog');
+        setFeaturedProductIds((json.data.featured_product_ids || []).slice(0, 5));
       } else {
         throw new Error(json.message || 'Store settings update failed.');
       }
@@ -3094,6 +3161,187 @@ export default function DashboardPage() {
                             className="input-field"
                             style={{ resize: 'vertical' }}
                           />
+                        </div>
+
+                        <div style={{
+                          border: '1.5px solid var(--border)',
+                          borderRadius: 'var(--r-xl)',
+                          padding: 18,
+                          background: 'var(--bg-2)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 16
+                        }}>
+                          <div>
+                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0 }}>Storefront Writing</h3>
+                            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.45 }}>
+                              Control the words customers see on your public storefront. Free stores always show the active template name.
+                            </p>
+                          </div>
+
+                          <div className="responsive-form-row">
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Product Count Label</label>
+                              <input
+                                type="text"
+                                value={catalogLabel}
+                                onChange={e => setCatalogLabel(e.target.value)}
+                                className="input-field"
+                                placeholder="product"
+                                maxLength={80}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Category Count Label</label>
+                              <input
+                                type="text"
+                                value={categoryLabel}
+                                onChange={e => setCategoryLabel(e.target.value)}
+                                className="input-field"
+                                placeholder="collection"
+                                maxLength={80}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Template Highlight Text</label>
+                            <input
+                              type="text"
+                              value={templateHighlightLabel}
+                              onChange={e => setTemplateHighlightLabel(e.target.value)}
+                              className="input-field"
+                              placeholder="High-conversion drops and promos"
+                              maxLength={120}
+                              disabled={!isPro}
+                            />
+                            {!isPro && (
+                              <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                                Free stores show the active template name here.
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="responsive-form-row">
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Catalog Eyebrow</label>
+                              <input
+                                type="text"
+                                value={productSectionEyebrow}
+                                onChange={e => setProductSectionEyebrow(e.target.value)}
+                                className="input-field"
+                                placeholder="Catalog"
+                                maxLength={80}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Catalog Section Title</label>
+                              <input
+                                type="text"
+                                value={productSectionTitle}
+                                onChange={e => setProductSectionTitle(e.target.value)}
+                                className="input-field"
+                                placeholder="Limited offers"
+                                maxLength={120}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{
+                          border: '1.5px solid var(--border)',
+                          borderRadius: 'var(--r-xl)',
+                          padding: 18,
+                          background: 'var(--surface)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 16
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
+                            <div>
+                              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0 }}>Top Products Carousel</h3>
+                              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.45 }}>
+                                Show a polished carousel at the top of the store. Select up to 5 products.
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setFeaturedCarouselEnabled(v => !v)}
+                              className={featuredCarouselEnabled ? 'btn btn-primary clickable' : 'btn btn-outline clickable'}
+                              style={{ flexShrink: 0, padding: '8px 12px', borderRadius: 'var(--r-md)', fontSize: 12, fontWeight: 850 }}
+                            >
+                              {featuredCarouselEnabled ? 'Enabled' : 'Disabled'}
+                            </button>
+                          </div>
+
+                          <div className="responsive-form-row">
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Carousel Eyebrow</label>
+                              <input
+                                type="text"
+                                value={featuredCarouselEyebrow}
+                                onChange={e => setFeaturedCarouselEyebrow(e.target.value)}
+                                className="input-field"
+                                placeholder="Featured now"
+                                maxLength={80}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Carousel Title</label>
+                              <input
+                                type="text"
+                                value={featuredCarouselTitle}
+                                onChange={e => setFeaturedCarouselTitle(e.target.value)}
+                                className="input-field"
+                                placeholder="Fresh picks from the catalog"
+                                maxLength={120}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>Featured Products</label>
+                              <span style={{ fontSize: 11, color: 'var(--text-faint)', fontWeight: 750 }}>{featuredProductIds.length}/5 selected</span>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+                              {products.slice(0, 20).map(product => {
+                                const active = featuredProductIds.includes(product.id);
+                                return (
+                                  <button
+                                    key={product.id}
+                                    type="button"
+                                    onClick={() => toggleFeaturedProduct(product.id)}
+                                    className="clickable"
+                                    style={{
+                                      display: 'grid',
+                                      gridTemplateColumns: '42px minmax(0, 1fr)',
+                                      gap: 10,
+                                      alignItems: 'center',
+                                      textAlign: 'left',
+                                      padding: 10,
+                                      borderRadius: 'var(--r-md)',
+                                      border: active ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                      background: active ? 'var(--primary-light)' : 'var(--surface)',
+                                      color: 'var(--text)',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    <span style={{ width: 42, height: 42, borderRadius: 10, overflow: 'hidden', background: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      {product.image_urls?.[0]
+                                        ? <img src={product.image_urls[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        : <Package size={18} color="var(--text-faint)" />
+                                      }
+                                    </span>
+                                    <span style={{ minWidth: 0 }}>
+                                      <strong style={{ display: 'block', fontSize: 12.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</strong>
+                                      <span style={{ fontSize: 11, color: active ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 800 }}>{active ? 'Featured' : 'Tap to feature'}</span>
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
                         </div>
 
                         <div className="responsive-form-row">

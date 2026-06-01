@@ -39,6 +39,15 @@ interface Store {
   primary_color?: string | null;
   store_template?: StoreTemplateId | null;
   is_pro?: boolean;
+  catalog_label?: string | null;
+  category_label?: string | null;
+  template_highlight_label?: string | null;
+  product_section_eyebrow?: string | null;
+  product_section_title?: string | null;
+  featured_carousel_enabled?: boolean;
+  featured_carousel_eyebrow?: string | null;
+  featured_carousel_title?: string | null;
+  featured_product_ids?: string[] | null;
 }
 
 interface Category {
@@ -1022,7 +1031,22 @@ function StoreHeader({
 }) {
   const initial = store.store_name.charAt(0).toUpperCase();
   const template = STORE_TEMPLATES[getTemplateId(store)];
-  const spotlightProducts = featuredProducts.slice(0, 3);
+  const selectedFeaturedIds = store.featured_product_ids ?? [];
+  const spotlightProducts = store.featured_carousel_enabled === false
+    ? []
+    : (selectedFeaturedIds.length
+        ? selectedFeaturedIds
+            .map(id => featuredProducts.find(product => product.id === id))
+            .filter((product): product is Product => Boolean(product))
+        : featuredProducts
+      ).slice(0, 5);
+  const catalogLabel = store.catalog_label || 'product';
+  const categoryLabel = store.category_label || 'collection';
+  const templateHighlight = store.is_pro
+    ? (store.template_highlight_label || template.tagline)
+    : template.name;
+  const featuredEyebrow = store.featured_carousel_eyebrow || 'Featured now';
+  const featuredTitle = store.featured_carousel_title || 'Fresh picks from the catalog';
 
   const handleShare = async () => {
     if (navigator.share) await navigator.share({ title: store.store_name, text: store.store_bio ?? `Check out my store!`, url: window.location.href });
@@ -1074,23 +1098,23 @@ function StoreHeader({
         <div className="store-header__trust-row" aria-label="Store highlights">
           <div className="store-header__trust-item">
             <Package size={15} />
-            <span>{productCount} product{productCount === 1 ? '' : 's'}</span>
+            <span>{productCount} {catalogLabel}{productCount === 1 ? '' : 's'}</span>
           </div>
           <div className="store-header__trust-item">
             <Tag size={15} />
-            <span>{categoryCount > 0 ? `${categoryCount} collection${categoryCount === 1 ? '' : 's'}` : 'Fresh catalog'}</span>
+            <span>{categoryCount > 0 ? `${categoryCount} ${categoryLabel}${categoryCount === 1 ? '' : 's'}` : 'Fresh catalog'}</span>
           </div>
           <div className="store-header__trust-item">
             <Shield size={15} />
-            <span>{template.tagline}</span>
+            <span>{templateHighlight}</span>
           </div>
         </div>
 
         {spotlightProducts.length > 0 && (
           <div className="store-header__spotlight" aria-label="Featured products">
             <div className="store-header__spotlight-copy">
-              <span>Featured now</span>
-              <strong>Fresh picks from the catalog</strong>
+              <span>{featuredEyebrow}</span>
+              <strong>{featuredTitle}</strong>
             </div>
             <div className="store-header__spotlight-products">
               {spotlightProducts.map((product, index) => (
@@ -1147,12 +1171,12 @@ function StoreHeader({
           </button>
         </div>
 
-        {store.custom_links && store.custom_links.filter(l => l.is_active).length > 0 && (
+        {store.custom_links && store.custom_links.filter(l => l.is_active && l.platform !== 'whatsapp').length > 0 && (
           <div className="store-header__links">
             <p className="store-header__links-label">
               Store Links & Socials
             </p>
-            {store.custom_links.filter(l => l.is_active).map(link => {
+            {store.custom_links.filter(l => l.is_active && l.platform !== 'whatsapp').map(link => {
               const IconComponent = () => {
                 switch (link.platform) {
                   case 'whatsapp': return <WhatsAppIcon size={14} style={{ color: 'var(--wa-green)' }} />;
@@ -1192,19 +1216,6 @@ function StoreFooter({ store, systemDomain = 'frontstore.app', appName = 'Fronts
   return (
     <footer className="store-footer">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 600 }}>
-        <div>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Contact</p>
-          <a
-            href={buildWhatsAppUrl(store.whatsapp_phone, `Hi ${store.store_name}!`)}
-            target="_blank" rel="noopener noreferrer"
-            className="btn btn-whatsapp clickable"
-            style={{ display: 'inline-flex', padding: '10px 16px', fontSize: 13, gap: 8, textDecoration: 'none' }}
-            id="footer-whatsapp-link"
-          >
-            <WhatsAppIcon size={16} /> Chat on WhatsApp
-          </a>
-        </div>
-
         {(store.instagram_handle || store.tiktok_handle) && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {store.instagram_handle && (
@@ -1323,6 +1334,17 @@ export default function StorefrontClient({ username }: { username: string }) {
 
   const currencySymbol = store ? getCurrencySymbol(store.currency_code) : '₦';
   const templateId = getTemplateId(store);
+  const productSectionEyebrow = store?.product_section_eyebrow || 'Catalog';
+  const productSectionTitle = store?.product_section_title
+    || (products.length === 0
+      ? 'Catalog opening soon'
+      : templateId === 'flash-sale'
+        ? 'Limited offers'
+        : templateId === 'digital-studio'
+          ? 'Browse digital products'
+          : templateId === 'editorial'
+            ? 'Featured collection'
+            : 'Shop the collection');
   const pageStyle = store?.is_pro && store.primary_color
     ? ({ '--primary': store.primary_color } as React.CSSProperties)
     : undefined;
@@ -1349,6 +1371,12 @@ export default function StorefrontClient({ username }: { username: string }) {
   const handleShareProduct = async (product: Product) => {
     if (navigator.share) await navigator.share({ title: product.name, url: window.location.href });
     else { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); }
+  };
+
+  const handleShareStore = async () => {
+    if (!store) return;
+    if (navigator.share) await navigator.share({ title: store.store_name, url: window.location.href });
+    else { navigator.clipboard.writeText(window.location.href); toast.success('Store link copied!'); }
   };
 
   if (loading) return <div style={{ minHeight: '100vh', background: 'var(--bg)' }}><StoreSkeleton /></div>;
@@ -1442,8 +1470,8 @@ export default function StorefrontClient({ username }: { username: string }) {
         {/* Product count */}
         <div className="storefront-shell product-section-heading">
           <div>
-            <p className="product-section-heading__eyebrow">Catalog</p>
-            <h2>{products.length === 0 ? 'Catalog opening soon' : templateId === 'flash-sale' ? 'Limited offers' : templateId === 'digital-studio' ? 'Browse digital products' : templateId === 'editorial' ? 'Featured collection' : 'Shop the collection'}</h2>
+            <p className="product-section-heading__eyebrow">{productSectionEyebrow}</p>
+            <h2>{productSectionTitle}</h2>
           </div>
           <p>
             {products.length === 0 ? 'New products are being prepared' : filteredProducts.length === 0 ? 'No matching products' : `${filteredProducts.length} product${filteredProducts.length !== 1 ? 's' : ''}`}
@@ -1469,14 +1497,9 @@ export default function StorefrontClient({ username }: { username: string }) {
                 <h3>{products.length === 0 ? `${store.store_name} is preparing its first drop` : 'No products match this view'}</h3>
                 <p>{products.length === 0 ? 'The merchant has not published products yet. You can still chat with them directly on WhatsApp for availability and custom requests.' : 'Try a different search term or browse the full catalog.'}</p>
                 <div className="storefront-empty__actions">
-                  <a
-                    href={buildWhatsAppUrl(store.whatsapp_phone, `Hi ${store.store_name}! I visited your store and would like to know what products are available.`)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-whatsapp clickable"
-                  >
-                    <WhatsAppIcon size={18} /> Chat on WhatsApp
-                  </a>
+                  <button className="btn btn-outline clickable" onClick={handleShareStore}>
+                    <Share2 size={14} /> Share Store
+                  </button>
                   {(searchQuery || selectedCategoryId !== 'all') && (
                     <button className="btn btn-outline clickable"
                       onClick={() => { setSearchQuery(''); setSelectedCategoryId('all'); }}>
