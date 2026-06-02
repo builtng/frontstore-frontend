@@ -1166,6 +1166,10 @@ export default function DashboardPage() {
       toast.error('Product name and price are required.');
       return;
     }
+    if (prodImageUrls.length === 0) {
+      toast.error('Add at least one product image before publishing.');
+      return;
+    }
 
     try {
       setProductPublishing(true);
@@ -1222,6 +1226,10 @@ export default function DashboardPage() {
   const handleUpdateProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduct) return;
+    if (prodImageUrls.length === 0) {
+      toast.error('Add at least one product image before saving.');
+      return;
+    }
 
     try {
       setProductPublishing(true);
