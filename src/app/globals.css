@@ -1314,8 +1314,10 @@ img, video {
 
 .product-detail__carousel {
   position: relative;
+  display: grid;
+  place-items: center;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: clamp(240px, 46vh, 420px);
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--primary) 5%, transparent), transparent),
     var(--bg-2);
@@ -1325,7 +1327,6 @@ img, video {
 .product-detail__carousel img {
   width: 100%;
   height: 100%;
-  max-height: min(46vh, 420px);
   object-fit: contain;
   display: block;
 }
