@@ -525,6 +525,7 @@ function ProductDetailDrawer({
 }) {
   const [qty, setQty] = useState(1);
   const [imgIdx, setImgIdx] = useState(0);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const images = product.image_urls ?? [];
   const isOutOfStock = product.stock_status === 'out_of_stock';
   const isLowStock = product.stock_status === 'low_stock' || (product.stock_quantity != null && product.stock_quantity <= 5 && product.stock_quantity > 0);
@@ -558,6 +559,14 @@ function ProductDetailDrawer({
         {images.length > 0 ? (
           <div className="product-detail__carousel" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
             <img src={images[imgIdx]} alt={`${product.name} - image ${imgIdx + 1}`} />
+            <button
+              type="button"
+              className="product-detail__image-view clickable"
+              onClick={() => setImageViewerOpen(true)}
+              aria-label="View product image"
+            >
+              <Eye size={17} strokeWidth={2.4} />
+            </button>
             {isAiGeneratedImage(images[imgIdx]) && (
               <div style={{
                 position: 'absolute',
@@ -606,6 +615,54 @@ function ProductDetailDrawer({
         ) : (
           <div style={{ height: 200, background: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Package size={56} strokeWidth={1} color="var(--text-faint)" />
+          </div>
+        )}
+
+        {imageViewerOpen && images.length > 0 && (
+          <div className="product-image-viewer animate-backdrop" role="dialog" aria-modal="true" aria-label={`${product.name} image viewer`} onClick={() => setImageViewerOpen(false)}>
+            <button
+              type="button"
+              className="product-image-viewer__close clickable"
+              onClick={() => setImageViewerOpen(false)}
+              aria-label="Close image viewer"
+            >
+              <X size={18} strokeWidth={2.5} />
+            </button>
+
+            {images.length > 1 && imgIdx > 0 && (
+              <button
+                type="button"
+                className="product-image-viewer__nav product-image-viewer__nav--prev clickable"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setImgIdx(i => Math.max(i - 1, 0));
+                }}
+                aria-label="Previous product image"
+              >
+                <ChevronLeft size={24} strokeWidth={2.5} />
+              </button>
+            )}
+
+            <div className="product-image-viewer__stage" onClick={(event) => event.stopPropagation()}>
+              <img src={images[imgIdx]} alt={`${product.name} - image ${imgIdx + 1}`} />
+              {images.length > 1 && (
+                <div className="product-image-viewer__count">{imgIdx + 1} / {images.length}</div>
+              )}
+            </div>
+
+            {images.length > 1 && imgIdx < images.length - 1 && (
+              <button
+                type="button"
+                className="product-image-viewer__nav product-image-viewer__nav--next clickable"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setImgIdx(i => Math.min(i + 1, images.length - 1));
+                }}
+                aria-label="Next product image"
+              >
+                <ChevronRight size={24} strokeWidth={2.5} />
+              </button>
+            )}
           </div>
         )}
 
