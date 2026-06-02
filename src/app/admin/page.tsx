@@ -610,10 +610,9 @@ export default function AdminPage() {
       'Delete',
       'Cancel'
     );
-  }
-};
+  };
 
-const handleSaveSettings = async (event: React.FormEvent) => {
+  const handleSaveSettings = async (event: React.FormEvent) => {
   event.preventDefault();
   try {
     setSettingsSaving(true);
