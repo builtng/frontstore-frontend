@@ -76,6 +76,7 @@ interface StoreInfo {
   custom_domain?: string | null;
   primary_color?: string | null;
   store_template?: string | null;
+  business_persona?: string | null;
   is_pro?: boolean;
   catalog_label?: string | null;
   category_label?: string | null;
@@ -226,6 +227,121 @@ const storeTemplates = [
   },
 ];
 
+const businessPersonas = [
+  {
+    id: 'retail-groceries',
+    name: 'Retail & Groceries',
+    persona: 'Mama Tunde',
+    summary: 'Bulk foodstuffs, neighborhood retail, supermarkets, and everyday goods.',
+    template: 'whatsapp-native',
+    catalogLabel: 'item',
+    categoryLabel: 'aisle',
+    highlight: 'Everyday essentials, easy WhatsApp ordering',
+    sectionEyebrow: 'Shop essentials',
+    sectionTitle: 'Fresh stock ready for pickup or delivery',
+    carouselEyebrow: 'Popular today',
+    carouselTitle: 'Fast-moving items customers ask for',
+  },
+  {
+    id: 'fashion-apparel',
+    name: 'Fashion & Apparel',
+    persona: 'Chidi',
+    summary: 'Boutiques, thrift sellers, bespoke apparel, shoes, bags, and accessories.',
+    template: 'editorial',
+    catalogLabel: 'look',
+    categoryLabel: 'collection',
+    highlight: 'Premium looks with direct chat checkout',
+    sectionEyebrow: 'New arrivals',
+    sectionTitle: 'Curated pieces for your next look',
+    carouselEyebrow: 'Featured fits',
+    carouselTitle: 'Statement pieces from the catalog',
+  },
+  {
+    id: 'food-vendor',
+    name: 'Food Vendor',
+    persona: 'Aisha',
+    summary: 'Cloud kitchens, bakeries, lunch bowls, restaurants, and daily menus.',
+    template: 'flash-sale',
+    catalogLabel: 'meal',
+    categoryLabel: 'menu section',
+    highlight: 'Lunch-rush ordering without scattered messages',
+    sectionEyebrow: 'Menu',
+    sectionTitle: 'Order fresh meals before the rush',
+    carouselEyebrow: 'Chef picks',
+    carouselTitle: 'Customer favorites ready to order',
+  },
+  {
+    id: 'creator-digital',
+    name: 'Creator & Digital Products',
+    persona: 'Tobi',
+    summary: 'E-books, courses, templates, music, PDFs, and instant downloads.',
+    template: 'digital-studio',
+    catalogLabel: 'digital product',
+    categoryLabel: 'library',
+    highlight: 'Instant digital delivery after payment',
+    sectionEyebrow: 'Digital library',
+    sectionTitle: 'Downloadable products built for growth',
+    carouselEyebrow: 'Best sellers',
+    carouselTitle: 'Digital products people keep buying',
+  },
+  {
+    id: 'faith-community',
+    name: 'Faith Community',
+    persona: 'Brother Samuel',
+    summary: 'Church offerings, event registration, donations, books, and community programs.',
+    template: 'whatsapp-native',
+    catalogLabel: 'offering',
+    categoryLabel: 'ministry',
+    highlight: 'Simple giving, events, and community payments',
+    sectionEyebrow: 'Community desk',
+    sectionTitle: 'Support, register, and give with ease',
+    carouselEyebrow: 'Open now',
+    carouselTitle: 'Current programs and giving options',
+  },
+  {
+    id: 'school-education',
+    name: 'School & Education',
+    persona: 'Mrs. Okoro',
+    summary: 'School fees, uniforms, books, events, lesson materials, and parent payments.',
+    template: 'luxe-market',
+    catalogLabel: 'school item',
+    categoryLabel: 'department',
+    highlight: 'Organized payments for parents and pupils',
+    sectionEyebrow: 'School payments',
+    sectionTitle: 'Fees, uniforms, books, and school essentials',
+    carouselEyebrow: 'Important',
+    carouselTitle: 'Priority payments and school items',
+  },
+  {
+    id: 'pharmacy-health',
+    name: 'Pharmacy & Health',
+    persona: 'Dr. Emeka',
+    summary: 'Community pharmacies, wellness shops, prescription pre-orders, and consultations.',
+    template: 'atelier',
+    catalogLabel: 'health item',
+    categoryLabel: 'care category',
+    highlight: 'Trusted pre-orders and health essentials',
+    sectionEyebrow: 'Health catalog',
+    sectionTitle: 'Wellness products and pharmacy essentials',
+    carouselEyebrow: 'Recommended',
+    carouselTitle: 'Frequently requested health items',
+  },
+  {
+    id: 'beauty-service',
+    name: 'Beauty & Services',
+    persona: 'Sarah',
+    summary: 'Stylists, makeup artists, salons, service bookings, deposits, and beauty products.',
+    template: 'editorial',
+    catalogLabel: 'service',
+    categoryLabel: 'service menu',
+    highlight: 'Premium bookings, deposits, and beauty sales',
+    sectionEyebrow: 'Services',
+    sectionTitle: 'Book your next beauty experience',
+    carouselEyebrow: 'Signature services',
+    carouselTitle: 'Popular bookings and beauty picks',
+  },
+];
+
 const parsePhoneNumber = (fullPhone: string) => {
   if (!fullPhone) return { country: countries[0], local: '' };
   const sortedCountries = [...countries].sort((a, b) => b.dialCode.length - a.dialCode.length);
@@ -353,6 +469,22 @@ export default function DashboardPage() {
     }
   };
 
+  const applyPersonaPreset = (personaId: string) => {
+    const persona = businessPersonas.find(item => item.id === personaId);
+    if (!persona) return;
+
+    setSelectedPersona(persona.id);
+    setSelectedTemplate(persona.template);
+    setCatalogLabel(persona.catalogLabel);
+    setCategoryLabel(persona.categoryLabel);
+    setTemplateHighlightLabel(persona.highlight);
+    setProductSectionEyebrow(persona.sectionEyebrow);
+    setProductSectionTitle(persona.sectionTitle);
+    setFeaturedCarouselEyebrow(persona.carouselEyebrow);
+    setFeaturedCarouselTitle(persona.carouselTitle);
+    toast.success(`${persona.name} persona applied. Save settings to publish it.`);
+  };
+
   // Quick discount campaign modal
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [discountPercent, setDiscountPercent] = useState('10');
@@ -392,6 +524,7 @@ export default function DashboardPage() {
   const [customLinks, setCustomLinks] = useState<StoreLink[]>([]);
   const [primaryColor, setPrimaryColor] = useState('#10b981');
   const [selectedTemplate, setSelectedTemplate] = useState('luxe-market');
+  const [selectedPersona, setSelectedPersona] = useState('');
   const [catalogLabel, setCatalogLabel] = useState('product');
   const [categoryLabel, setCategoryLabel] = useState('collection');
   const [templateHighlightLabel, setTemplateHighlightLabel] = useState('');
@@ -832,6 +965,7 @@ export default function DashboardPage() {
         setCustomLinks(liveStore.custom_links || []);
         setPrimaryColor(liveStore.primary_color || '#10b981');
         setSelectedTemplate(liveStore.store_template || 'luxe-market');
+        setSelectedPersona(liveStore.business_persona || '');
         setCatalogLabel(liveStore.catalog_label || 'product');
         setCategoryLabel(liveStore.category_label || 'collection');
         setTemplateHighlightLabel(liveStore.template_highlight_label || '');
@@ -1419,6 +1553,7 @@ export default function DashboardPage() {
           logo_url: logoUrl,
           primary_color: isPro ? primaryColor : (store?.primary_color || '#10b981'),
           store_template: selectedTemplate,
+          business_persona: selectedPersona || null,
           catalog_label: catalogLabel || null,
           category_label: categoryLabel || null,
           template_highlight_label: templateHighlightLabel || null,
@@ -1450,6 +1585,7 @@ export default function DashboardPage() {
         setCustomLinks(json.data.custom_links || []);
         setPrimaryColor(json.data.primary_color || '#10b981');
         setSelectedTemplate(json.data.store_template || 'luxe-market');
+        setSelectedPersona(json.data.business_persona || '');
         setCatalogLabel(json.data.catalog_label || 'product');
         setCategoryLabel(json.data.category_label || 'collection');
         setTemplateHighlightLabel(json.data.template_highlight_label || '');
@@ -3297,6 +3433,52 @@ export default function DashboardPage() {
                             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0 }}>Storefront Writing</h3>
                             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.45 }}>
                               Control the words customers see on your public storefront. Free stores always show the active template name.
+                            </p>
+                          </div>
+
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>Business Persona</label>
+                              {selectedPersona && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedPersona('')}
+                                  className="clickable"
+                                  style={{ border: 'none', background: 'transparent', color: 'var(--text-faint)', fontSize: 11, fontWeight: 800 }}
+                                >
+                                  Clear
+                                </button>
+                              )}
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10 }}>
+                              {businessPersonas.map(persona => {
+                                const active = selectedPersona === persona.id;
+                                return (
+                                  <button
+                                    key={persona.id}
+                                    type="button"
+                                    onClick={() => applyPersonaPreset(persona.id)}
+                                    className="clickable"
+                                    style={{
+                                      textAlign: 'left',
+                                      border: active ? '1.5px solid var(--primary)' : '1px solid var(--border)',
+                                      borderRadius: 'var(--r-lg)',
+                                      background: active ? 'var(--primary-light)' : 'var(--surface)',
+                                      padding: 12,
+                                      boxShadow: active ? '0 12px 28px var(--primary-glow)' : 'var(--shadow-xs)'
+                                    }}
+                                  >
+                                    <span style={{ display: 'block', fontSize: 10.5, color: active ? 'var(--primary)' : 'var(--text-faint)', fontWeight: 900, textTransform: 'uppercase', marginBottom: 4 }}>
+                                      {persona.persona}
+                                    </span>
+                                    <strong style={{ display: 'block', color: 'var(--text)', fontSize: 13.5, marginBottom: 4 }}>{persona.name}</strong>
+                                    <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: 11.5, lineHeight: 1.4 }}>{persona.summary}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8, lineHeight: 1.45 }}>
+                              Persona presets apply the recommended theme, catalog labels, section titles, and featured carousel copy. Save settings to publish.
                             </p>
                           </div>
 
