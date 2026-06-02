@@ -3787,12 +3787,18 @@ svg.spinner {
   }
 
   .marketplace-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
   .marketplace-product__body {
-    padding: 12px;
+    padding: 10px;
+  }
+
+  .marketplace-product__name {
+    font-size: 13px;
+    line-height: 1.35;
+    min-height: 36px;
   }
 
   .marketplace-product__desc {
@@ -3800,7 +3806,30 @@ svg.spinner {
   }
 
   .marketplace-product__price {
-    font-size: 16px;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+
+  .marketplace-product__store {
+    gap: 7px;
+    padding-top: 9px;
+  }
+
+  .marketplace-product__avatar {
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
+  }
+
+  .marketplace-product__store span:last-child {
+    min-width: 0;
+  }
+
+  .marketplace-product__store strong {
+    overflow: hidden;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
