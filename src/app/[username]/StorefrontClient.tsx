@@ -551,7 +551,7 @@ function ProductDetailDrawer({
   return (
     <>
       <div className="drawer-backdrop animate-backdrop" onClick={onClose} />
-      <div className="drawer animate-drawer" role="dialog" aria-modal="true" aria-label={product.name}>
+      <div className="drawer drawer--product-detail animate-drawer" role="dialog" aria-modal="true" aria-label={product.name}>
         <div className="drawer__handle" />
 
         {/* Carousel */}
