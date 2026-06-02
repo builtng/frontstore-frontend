@@ -149,7 +149,7 @@ export default function MarketplaceHomeClient({
   const [products, setProducts] = useState<MarketplaceProduct[]>(initialData.products || []);
   const [categories, setCategories] = useState<CategorySummary[]>(initialData.categories || []);
   const [stats, setStats] = useState(initialData.stats);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!initialData || !initialData.products || initialData.products.length === 0);
 
   useEffect(() => {
     const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
@@ -211,9 +211,19 @@ export default function MarketplaceHomeClient({
           </div>
 
           <div className="marketplace-stats" aria-label="Marketplace stats">
-            <span><strong>{productsCount.toLocaleString()}</strong> uploads</span>
-            <span><strong>{storesCount.toLocaleString()}</strong> businesses</span>
-            <span><strong>{categories.length.toLocaleString()}</strong> categories</span>
+            {loading ? (
+              <>
+                <span className="skeleton" style={{ width: 80, height: 28, borderRadius: 'var(--r-full)' }} />
+                <span className="skeleton" style={{ width: 95, height: 28, borderRadius: 'var(--r-full)' }} />
+                <span className="skeleton" style={{ width: 95, height: 28, borderRadius: 'var(--r-full)' }} />
+              </>
+            ) : (
+              <>
+                <span><strong>{productsCount.toLocaleString()}</strong> uploads</span>
+                <span><strong>{storesCount.toLocaleString()}</strong> businesses</span>
+                <span><strong>{categories.length.toLocaleString()}</strong> categories</span>
+              </>
+            )}
           </div>
         </section>
 
@@ -248,24 +258,36 @@ export default function MarketplaceHomeClient({
 
       <main className="marketplace-main">
         <section className="marketplace-categories" aria-label="Product categories">
-          <button
-            type="button"
-            className={activeCategory === 'all' ? 'is-active' : ''}
-            onClick={() => setActiveCategory('all')}
-          >
-            <Grid3X3 size={15} /> All
-          </button>
-          {topCategories.map((category) => (
-            <button
-              type="button"
-              key={category.id}
-              className={activeCategory === category.slug ? 'is-active' : ''}
-              onClick={() => setActiveCategory(category.slug)}
-            >
-              <Tag size={15} /> {category.name}
-              {typeof category.active_products_count === 'number' && <span>{category.active_products_count}</span>}
-            </button>
-          ))}
+          {loading && categories.length === 0 ? (
+            <>
+              <div className="skeleton" style={{ width: 68, height: 38, borderRadius: 'var(--r-full)' }} />
+              <div className="skeleton" style={{ width: 88, height: 38, borderRadius: 'var(--r-full)' }} />
+              <div className="skeleton" style={{ width: 100, height: 38, borderRadius: 'var(--r-full)' }} />
+              <div className="skeleton" style={{ width: 80, height: 38, borderRadius: 'var(--r-full)' }} />
+              <div className="skeleton" style={{ width: 92, height: 38, borderRadius: 'var(--r-full)' }} />
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className={activeCategory === 'all' ? 'is-active' : ''}
+                onClick={() => setActiveCategory('all')}
+              >
+                <Grid3X3 size={15} /> All
+              </button>
+              {topCategories.map((category) => (
+                <button
+                  type="button"
+                  key={category.id}
+                  className={activeCategory === category.slug ? 'is-active' : ''}
+                  onClick={() => setActiveCategory(category.slug)}
+                >
+                  <Tag size={15} /> {category.name}
+                  {typeof category.active_products_count === 'number' && <span>{category.active_products_count}</span>}
+                </button>
+              ))}
+            </>
+          )}
         </section>
 
         <section className="marketplace-section-heading">
