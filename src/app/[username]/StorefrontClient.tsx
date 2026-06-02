@@ -496,7 +496,7 @@ function ProductCard({
             id={`wa-buy-${product.id}`}
             aria-label={`View ${product.name} details`}
           >
-          <WhatsAppIcon size={12} />
+            <WhatsAppIcon size={12} />
             Order on WhatsApp
           </button>
         ) : (
@@ -559,14 +559,14 @@ function ProductDetailDrawer({
         {images.length > 0 ? (
           <div className="product-detail__carousel" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
             <img src={images[imgIdx]} alt={`${product.name} - image ${imgIdx + 1}`} />
-            <button
+            {/* <button
               type="button"
               className="product-detail__image-view clickable"
               onClick={() => setImageViewerOpen(true)}
               aria-label="View product image"
             >
               <Eye size={17} strokeWidth={2.4} />
-            </button>
+            </button> */}
             {isAiGeneratedImage(images[imgIdx]) && (
               <div style={{
                 position: 'absolute',
@@ -691,8 +691,8 @@ function ProductDetailDrawer({
           {/* Stock */}
           <div className={`product-detail__stock ${product.is_digital ? 'in-stock' : (isOutOfStock ? 'out-of-stock' : (isLowStock ? 'low-stock' : 'in-stock'))}`} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
             <div className="product-detail__stock-dot" />
-            {product.is_digital 
-              ? 'Instant Digital Download · Available Immediately' 
+            {product.is_digital
+              ? 'Instant Digital Download · Available Immediately'
               : (isOutOfStock ? 'Out of Stock' : (isLowStock ? `Low Stock — Only ${product.stock_quantity ?? 'a few'} left` : 'In Stock · Ready to ship'))
             }
           </div>
@@ -921,7 +921,7 @@ function CheckoutDrawer({
     try {
       setLoading(true);
       setError(null);
-      
+
       const items = cart.map(item => ({
         product_id: item.product.id,
         quantity: item.quantity
@@ -1093,11 +1093,11 @@ function StoreHeader({
   const spotlightProducts = store.featured_carousel_enabled === false
     ? []
     : (selectedFeaturedIds.length
-        ? selectedFeaturedIds
-            .map(id => featuredProducts.find(product => product.id === id))
-            .filter((product): product is Product => Boolean(product))
-        : featuredProducts
-      ).slice(0, 5);
+      ? selectedFeaturedIds
+        .map(id => featuredProducts.find(product => product.id === id))
+        .filter((product): product is Product => Boolean(product))
+      : featuredProducts
+    ).slice(0, 5);
   const catalogLabel = store.catalog_label || 'product';
   const categoryLabel = store.category_label || 'collection';
   const templateHighlight = store.is_pro
@@ -1400,7 +1400,7 @@ export default function StorefrontClient({
 
   useEffect(() => {
     if (!uname) return;
-    try { const s = localStorage.getItem(`frontstore_cart_${uname}`); if (s) setCart(JSON.parse(s)); } catch {}
+    try { const s = localStorage.getItem(`frontstore_cart_${uname}`); if (s) setCart(JSON.parse(s)); } catch { }
   }, [uname]);
 
   const addToCart = useCallback((product: Product, qty: number) => {
@@ -1409,7 +1409,7 @@ export default function StorefrontClient({
       const next = [...prev];
       if (idx > -1) next[idx] = { ...next[idx], quantity: next[idx].quantity + qty };
       else next.push({ product, quantity: qty });
-      try { localStorage.setItem(`frontstore_cart_${uname}`, JSON.stringify(next)); } catch {}
+      try { localStorage.setItem(`frontstore_cart_${uname}`, JSON.stringify(next)); } catch { }
       return next;
     });
     toast.success(`Added ${qty}× ${product.name}`);
@@ -1423,7 +1423,7 @@ export default function StorefrontClient({
       const newQty = next[idx].quantity + delta;
       if (newQty <= 0) next.splice(idx, 1);
       else next[idx] = { ...next[idx], quantity: newQty };
-      try { localStorage.setItem(`frontstore_cart_${uname}`, JSON.stringify(next)); } catch {}
+      try { localStorage.setItem(`frontstore_cart_${uname}`, JSON.stringify(next)); } catch { }
       return next;
     });
   }, [uname]);
@@ -1465,7 +1465,7 @@ export default function StorefrontClient({
       }
       try {
         localStorage.setItem(`frontstore_cart_${uname}`, JSON.stringify(next));
-      } catch {}
+      } catch { }
       return next;
     });
     setSelectedProduct(null);
@@ -1685,7 +1685,7 @@ export default function StorefrontClient({
             onOrderCreated={(receipt) => {
               setOrderReceipt(receipt);
               setCart([]);
-              try { localStorage.removeItem(`frontstore_cart_${uname}`); } catch {}
+              try { localStorage.removeItem(`frontstore_cart_${uname}`); } catch { }
               setIsCheckoutOpen(false);
               toast.success('Order created. Tracking page is ready.');
             }}
@@ -1730,7 +1730,7 @@ export default function StorefrontClient({
           confirmText="Clear Cart"
           onConfirm={() => {
             setCart([]);
-            try { localStorage.removeItem(`frontstore_cart_${uname}`); } catch {}
+            try { localStorage.removeItem(`frontstore_cart_${uname}`); } catch { }
             setIsClearCartConfirmOpen(false);
             toast.info('Cart cleared');
           }}
