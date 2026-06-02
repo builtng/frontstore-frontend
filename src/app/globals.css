@@ -2227,8 +2227,8 @@ svg.spinner {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(8, 12, 20, 0.06) 0%, rgba(8, 12, 20, 0.72) 100%),
-    linear-gradient(90deg, rgba(8, 12, 20, 0.72) 0%, rgba(8, 12, 20, 0.34) 52%, rgba(8, 12, 20, 0.08) 82%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.82) 100%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0.46) 52%, rgba(255, 255, 255, 0.12) 82%);
 }
 
 .store-header__content {
@@ -2275,8 +2275,8 @@ svg.spinner {
 .store-header__title-block {
   min-width: 0;
   max-width: min(760px, 100%);
-  color: #fff;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.5);
+  color: #0f172a;
+  text-shadow: 0 1px 12px rgba(255, 255, 255, 0.68);
   padding-bottom: 2px;
 }
 
@@ -2293,11 +2293,11 @@ svg.spinner {
   min-height: 24px;
   padding: 5px 10px;
   border-radius: var(--r-full);
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  color: rgba(255, 255, 255, 0.92);
+  color: #111827;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0;
@@ -2316,7 +2316,7 @@ svg.spinner {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  color: #fff;
+  color: #0f172a;
   font-size: clamp(30px, 5vw, 58px);
   line-height: 1.04;
   letter-spacing: 0;
@@ -2334,7 +2334,7 @@ svg.spinner {
 .store-header__bio {
   max-width: 720px;
   margin: 10px 0 0;
-  color: rgba(255, 255, 255, 0.94);
+  color: #111827;
   font-size: clamp(14px, 1.6vw, 17px);
   line-height: 1.58;
   font-weight: 650;
@@ -2896,8 +2896,8 @@ svg.spinner {
 
   .store-header__media-shade {
     background:
-      linear-gradient(180deg, rgba(8, 12, 20, 0.08) 0%, rgba(8, 12, 20, 0.76) 100%),
-      linear-gradient(90deg, rgba(8, 12, 20, 0.62) 0%, rgba(8, 12, 20, 0.22) 100%);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.86) 100%),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.76) 0%, rgba(255, 255, 255, 0.32) 100%);
   }
 
   .store-header__content {
@@ -2919,7 +2919,7 @@ svg.spinner {
 
   .store-header__title-block {
     max-width: 100%;
-    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.54);
+    text-shadow: 0 1px 12px rgba(255, 255, 255, 0.72);
   }
 
   .store-header__eyebrow {
