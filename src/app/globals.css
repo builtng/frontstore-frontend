@@ -1315,14 +1315,18 @@ img, video {
 .product-detail__carousel {
   position: relative;
   width: 100%;
-  background: var(--bg-2);
+  aspect-ratio: 4 / 3;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 5%, transparent), transparent),
+    var(--bg-2);
   overflow: hidden;
 }
 
 .product-detail__carousel img {
   width: 100%;
-  height: 280px;
-  object-fit: cover;
+  height: 100%;
+  max-height: min(46vh, 420px);
+  object-fit: contain;
   display: block;
 }
 
