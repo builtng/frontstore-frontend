@@ -1327,6 +1327,21 @@ export default function StorefrontClient({
   }, [initialProductSlug, products]);
 
   useEffect(() => {
+    if (loading || !store) return;
+    if (selectedProduct) {
+      const targetUrl = `/${store.username}/products/${selectedProduct.slug}`;
+      if (window.location.pathname !== targetUrl) {
+        window.history.pushState({}, '', targetUrl);
+      }
+    } else {
+      const targetUrl = `/${store.username}`;
+      if (window.location.pathname !== targetUrl) {
+        window.history.pushState({}, '', targetUrl);
+      }
+    }
+  }, [selectedProduct, store, loading]);
+
+  useEffect(() => {
     if (!uname) return;
     try { const s = localStorage.getItem(`frontstore_cart_${uname}`); if (s) setCart(JSON.parse(s)); } catch {}
   }, [uname]);
