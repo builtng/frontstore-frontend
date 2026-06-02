@@ -14,55 +14,13 @@ import {
   Database,
   Eye
 } from 'lucide-react';
-import Logo from '@/components/Logo';
-import ThemeToggle from '@/components/ThemeToggle';
+import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
 
 export default function PrivacyPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', color: 'var(--text)' }}>
       {/* Navbar */}
-      <nav
-        className="glass"
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          padding: '14px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          borderBottom: '1px solid var(--border)',
-        }}
-      >
-        <a href="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
-          <Logo size={24} textColor="var(--primary)" />
-        </a>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <ThemeToggle />
-          <a
-            href="/blog"
-            className="btn btn-ghost"
-            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
-          >
-            Blog
-          </a>
-          <a
-            href="/login"
-            className="btn btn-ghost"
-            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
-          >
-            Sign in
-          </a>
-          <a
-            href="/signup"
-            className="btn btn-primary"
-            style={{ padding: '9px 18px', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
-            Get Started <ArrowRight size={14} />
-          </a>
-        </div>
-      </nav>
+      <PublicSiteNav />
 
       {/* Main Content Layout */}
       <div style={{ flex: 1, width: '100%', maxWidth: 1150, margin: '0 auto', padding: '40px 20px' }}>
@@ -262,27 +220,7 @@ export default function PrivacyPage() {
       </div>
 
       {/* Footer */}
-      <footer style={{
-        padding: '24px 20px',
-        borderTop: '1px solid var(--border)',
-        background: 'var(--surface)',
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 12,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 'auto',
-      }}>
-        <Logo size={20} textColor="var(--primary)" />
-        <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-          © {new Date().getFullYear()} Frontstore. Conversational Commerce Infrastructure.
-        </p>
-        <div style={{ display: 'flex', gap: 16 }}>
-          <a href="/signup" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Sign Up</a>
-          <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 600 }}>Privacy</a>
-          <a href="/terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
-        </div>
-      </footer>
+      <PublicSiteFooter />
 
       {/* Styling media queries */}
       <style jsx global>{`

@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Store, ArrowRight, Search, Globe, Instagram, ShieldCheck, ShoppingBag } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
-import Logo from '../../components/Logo';
-import ThemeToggle from '../../components/ThemeToggle';
+import { PublicSiteNav, PublicSiteFooter } from '../../components/PublicSiteChrome';
 
 interface StoreItem {
   id: string;
@@ -16,6 +15,34 @@ interface StoreItem {
   logo_url?: string | null;
   instagram_handle?: string | null;
   tiktok_handle?: string | null;
+}
+
+function StoreCardSkeleton() {
+  return (
+    <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 220 }}>
+      <div>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 14 }}>
+          <div className="skeleton" style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
+            <div className="skeleton" style={{ height: 16, width: '60%', borderRadius: 4 }} />
+            <div className="skeleton" style={{ height: 12, width: '30%', borderRadius: 3 }} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
+          <div className="skeleton" style={{ height: 12, width: '100%', borderRadius: 3 }} />
+          <div className="skeleton" style={{ height: 12, width: '95%', borderRadius: 3 }} />
+          <div className="skeleton" style={{ height: 12, width: '80%', borderRadius: 3 }} />
+        </div>
+      </div>
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div className="skeleton" style={{ width: 24, height: 24, borderRadius: '50%' }} />
+          <div className="skeleton" style={{ width: 24, height: 24, borderRadius: '50%' }} />
+        </div>
+        <div className="skeleton" style={{ width: 100, height: 32, borderRadius: 'var(--r-sm)' }} />
+      </div>
+    </div>
+  );
 }
 
 export default function StoresDirectoryPage() {
@@ -52,45 +79,7 @@ export default function StoresDirectoryPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
 
-      {/* Navbar */}
-      <nav
-        className="glass"
-        style={{
-          position: 'sticky', top: 0, zIndex: 50,
-          padding: '14px 20px',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          borderBottom: '1px solid var(--border)',
-        }}
-      >
-        <a href="/" style={{ textDecoration: 'none' }}>
-          <Logo size={24} textColor="var(--primary)" />
-        </a>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <ThemeToggle />
-          <a
-            href="/blog"
-            className="btn btn-ghost"
-            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
-          >
-            Blog
-          </a>
-          <a
-            href="/login"
-            className="btn btn-ghost"
-            style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
-          >
-            Sign in
-          </a>
-          <a
-            href="/signup"
-            className="btn btn-primary"
-            style={{ padding: '9px 18px', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
-            Create Store <ArrowRight size={14} />
-          </a>
-        </div>
-      </nav>
+      <PublicSiteNav />
 
       {/* Hero Header */}
       <header style={{
@@ -142,9 +131,14 @@ export default function StoresDirectoryPage() {
       {/* Directory list container */}
       <main style={{ flex: 1, padding: '40px 20px', maxWidth: 1000, margin: '0 auto', width: '100%' }}>
         {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 12 }}>
-            <div className="spinner" style={{ width: 28, height: 28, border: '3px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%' }} />
-            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Retrieving directory list...</span>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: 20
+          }}>
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <StoreCardSkeleton key={idx} />
+            ))}
           </div>
         ) : (
           <>
@@ -292,20 +286,7 @@ export default function StoresDirectoryPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{
-        padding: '24px 20px',
-        borderTop: '1px solid var(--border)',
-        background: 'var(--bg-2)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <Logo size={18} textColor="var(--primary)" />
-        <p style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>
-          © {new Date().getFullYear()} frontstore. Storefront Directory list.
-        </p>
-      </footer>
+      <PublicSiteFooter />
 
       {/* CSS Spin style helper */}
       <style jsx global>{`

@@ -35,10 +35,10 @@ export function PublicSiteNav() {
 
         <div className="public-site-nav__links" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <ThemeToggle />
-          <a href="/" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Home</a>
-          <a href="/#about" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>About</a>
-          <a href="/#how-it-works" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>How it works</a>
-          <a href="/blog" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>Blog</a>
+          <a href="/" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Marketplace</a>
+          <a href="/stores" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Stores</a>
+          <a href="/business" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>For Business</a>
+          <a href="/blog" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Blog</a>
           {isLoggedIn ? (
             <a href="/dashboard" className="btn btn-primary" style={{ padding: '9px 18px', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               Dashboard <ArrowRight size={14} />
@@ -54,6 +54,11 @@ export function PublicSiteNav() {
         </div>
       </nav>
       <style jsx global>{`
+        @media (max-width: 768px) {
+          .public-site-nav__secondary {
+            display: none !important;
+          }
+        }
         @media (max-width: 640px) {
           .public-site-nav {
             padding: 10px 12px !important;
@@ -65,9 +70,6 @@ export function PublicSiteNav() {
           .public-site-nav__links a {
             padding: 7px 9px !important;
             font-size: 12px !important;
-          }
-          .public-site-nav__secondary {
-            display: none !important;
           }
           .public-site-nav__links a svg {
             display: none !important;
@@ -110,9 +112,9 @@ export function PublicSiteFooter() {
         © {new Date().getFullYear()} frontstore. Africa's #1 WhatsApp commerce platform.
       </p>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <a href="/" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Home</a>
-        <a href="/#about" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>About</a>
-        <a href="/#how-it-works" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>How it works</a>
+        <a href="/" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Marketplace</a>
+        <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Stores</a>
+        <a href="/business" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>For Business</a>
         <a href="/blog" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Blog</a>
         <a href={isLoggedIn ? '/dashboard' : '/signup'} style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>{isLoggedIn ? 'Dashboard' : 'Sign up'}</a>
         <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>

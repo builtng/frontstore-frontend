@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   ArrowRight,
   BadgeCheck,
@@ -14,8 +14,7 @@ import {
   Store,
   Tag,
 } from 'lucide-react';
-import Logo from '../components/Logo';
-import ThemeToggle from '../components/ThemeToggle';
+import { PublicSiteNav, PublicSiteFooter } from '../components/PublicSiteChrome';
 
 type StoreSummary = {
   id: string;
@@ -103,6 +102,40 @@ function productMatches(product: MarketplaceProduct, searchTerm: string, categor
     .some((value) => String(value).toLowerCase().includes(search));
 }
 
+function ProductCardSkeleton() {
+  return (
+    <div className="marketplace-product card" style={{ overflow: 'hidden' }}>
+      <div className="skeleton" style={{ aspectRatio: '1 / 1', width: '100%' }} />
+      <div className="marketplace-product__body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="skeleton" style={{ height: 16, width: '80%', borderRadius: 4 }} />
+        <div className="skeleton" style={{ height: 14, width: '40%', borderRadius: 4 }} />
+        <div className="skeleton" style={{ height: 12, width: '100%', borderRadius: 3, marginTop: 4 }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+          <div className="skeleton" style={{ width: 34, height: 34, borderRadius: '50%' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+            <div className="skeleton" style={{ height: 10, width: '30%', borderRadius: 3 }} />
+            <div className="skeleton" style={{ height: 12, width: '60%', borderRadius: 3 }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeaturedProductSkeleton() {
+  return (
+    <div className="marketplace-featured__card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="skeleton" style={{ aspectRatio: '4 / 3', width: '100%' }} />
+      <div className="marketplace-featured__meta" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="skeleton" style={{ height: 16, width: '30%', borderRadius: 4 }} />
+        <div className="skeleton" style={{ height: 24, width: '80%', borderRadius: 4 }} />
+        <div className="skeleton" style={{ height: 20, width: '40%', borderRadius: 4 }} />
+        <div className="skeleton" style={{ height: 14, width: '60%', borderRadius: 4, marginTop: 12 }} />
+      </div>
+    </div>
+  );
+}
+
 export default function MarketplaceHomeClient({
   initialData,
   initialSettings,
@@ -113,9 +146,36 @@ export default function MarketplaceHomeClient({
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
 
+  const [products, setProducts] = useState<MarketplaceProduct[]>(initialData.products || []);
+  const [categories, setCategories] = useState<CategorySummary[]>(initialData.categories || []);
+  const [stats, setStats] = useState(initialData.stats);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+    const loadFreshData = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${savedApiUrl}/v1/public/marketplace`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data) {
+            setProducts(json.data.products || []);
+            setCategories(json.data.categories || []);
+            setStats(json.data.stats);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch marketplace data on client:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFreshData();
+  }, []);
+
   const appName = initialSettings?.app_name || 'Frontstore';
-  const products = initialData.products || [];
-  const categories = initialData.categories || [];
 
   const filteredProducts = useMemo(
     () => products.filter((product) => productMatches(product, searchTerm, activeCategory)),
@@ -124,23 +184,12 @@ export default function MarketplaceHomeClient({
 
   const featuredProduct = products.find((product) => product.image_url) || products[0];
   const topCategories = categories.slice(0, 8);
-  const storesCount = initialData.stats?.stores_count || new Set(products.map((product) => product.store?.username).filter(Boolean)).size;
-  const productsCount = initialData.stats?.products_count || products.length;
+  const storesCount = stats?.stores_count || new Set(products.map((product) => product.store?.username).filter(Boolean)).size;
+  const productsCount = stats?.products_count || products.length;
 
   return (
     <div className="marketplace-page">
-      <nav className="marketplace-nav glass">
-        <a href="/" className="marketplace-logo" aria-label={`${appName} home`}>
-          <Logo size={24} textColor="var(--primary)" />
-        </a>
-        <div className="marketplace-nav__links">
-          <ThemeToggle />
-          <a href="/stores" className="btn btn-ghost marketplace-nav__secondary">Stores</a>
-          <a href="/business" className="btn btn-ghost marketplace-nav__secondary">For Business</a>
-          <a href="/login" className="btn btn-ghost">Sign in</a>
-          <a href="/signup" className="btn btn-primary">Sell here <ArrowRight size={14} /></a>
-        </div>
-      </nav>
+      <PublicSiteNav />
 
       <header className="marketplace-hero">
         <section className="marketplace-hero__copy">
@@ -168,7 +217,9 @@ export default function MarketplaceHomeClient({
         </section>
 
         <aside className="marketplace-featured" aria-label="Featured product">
-          {featuredProduct ? (
+          {loading ? (
+            <FeaturedProductSkeleton />
+          ) : featuredProduct ? (
             <a href={`/${featuredProduct.store?.username}/products/${featuredProduct.slug}`} className="marketplace-featured__card">
               <div className="marketplace-featured__image">
                 {featuredProduct.image_url ? (
@@ -224,7 +275,13 @@ export default function MarketplaceHomeClient({
           <p>{filteredProducts.length.toLocaleString()} product{filteredProducts.length === 1 ? '' : 's'} visible</p>
         </section>
 
-        {filteredProducts.length > 0 ? (
+        {loading ? (
+          <section className="marketplace-grid">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
+          </section>
+        ) : filteredProducts.length > 0 ? (
           <section className="marketplace-grid">
             {filteredProducts.map((product) => {
               const productUrl = product.store?.username ? `/${product.store.username}/products/${product.slug}` : '#';
@@ -273,15 +330,7 @@ export default function MarketplaceHomeClient({
         )}
       </main>
 
-      <footer className="marketplace-footer">
-        <Logo size={20} textColor="var(--primary)" />
-        <div>
-          <a href="/stores">Stores</a>
-          <a href="/business">For Business</a>
-          <a href="/blog">Blog</a>
-          <a href="/privacy">Privacy</a>
-        </div>
-      </footer>
+      <PublicSiteFooter />
 
       <style jsx global>{`
         .marketplace-page {

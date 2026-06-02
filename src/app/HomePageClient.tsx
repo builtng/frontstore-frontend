@@ -7,8 +7,7 @@ import {
   CreditCard, Users, Brain, Megaphone, TrendingUp, Check, X
 } from 'lucide-react';
 import { WhatsAppIcon } from '../components/WhatsAppIcon';
-import Logo from '../components/Logo';
-import ThemeToggle from '../components/ThemeToggle';
+import { PublicSiteNav, PublicSiteFooter } from '../components/PublicSiteChrome';
 import { RESERVED_SUBDOMAINS } from '../utils/reservedKeywords';
 
 // ── Sample Store Feature Cards ───────────────────────────────────────────────
@@ -358,77 +357,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflowX: 'hidden' }}>
       {/* ── Navbar ── */}
-      <nav
-        className="glass home-nav"
-        style={{
-          position: 'sticky', top: 0, zIndex: 50,
-          padding: '14px 20px',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          borderBottom: '1px solid var(--border)',
-        }}
-      >
-        <Logo size={24} textColor="var(--primary)" text={appName} />
-
-        <div className="home-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <ThemeToggle />
-          <a
-            href="/"
-            className="btn btn-ghost home-nav-link"
-            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
-          >
-            Home
-          </a>
-          <a
-            href="#about"
-            className="btn btn-ghost home-nav-link"
-            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
-          >
-            About
-          </a>
-          <a
-            href="#how-it-works"
-            className="btn btn-ghost home-nav-link"
-            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
-          >
-            How it works
-          </a>
-          <a
-            href="/blog"
-            className="btn btn-ghost home-nav-link"
-            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
-          >
-            Blog
-          </a>
-          {isLoggedIn ? (
-            <a
-              href="/dashboard"
-              className="btn btn-primary"
-              style={{ padding: '9px 18px', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              id="nav-dashboard"
-            >
-              Dashboard <ArrowRight size={14} />
-            </a>
-          ) : (
-            <>
-              <a
-                href="/login"
-                className="btn btn-ghost"
-                style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none' }}
-              >
-                Sign in
-              </a>
-              <a
-                href="/signup"
-                className="btn btn-primary"
-                style={{ padding: '9px 18px', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                id="nav-get-started"
-              >
-                Get started <ArrowRight size={14} />
-              </a>
-            </>
-          )}
-        </div>
-      </nav>
+      <PublicSiteNav />
 
       {/* ── Hero ── */}
       <header style={{
@@ -1061,30 +990,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{
-        padding: '24px 20px',
-        borderTop: '1px solid var(--border)',
-        background: 'var(--surface)',
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 12,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <Logo size={20} textColor="var(--primary)" text={appName} />
-        <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-          © {new Date().getFullYear()} {appName}. Conversational Commerce Platform.
-        </p>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <a href="/" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Home</a>
-          <a href="#about" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>About</a>
-          <a href="#how-it-works" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>How it works</a>
-          <a href="/blog" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Blog</a>
-          <a href={isLoggedIn ? '/dashboard' : '/signup'} style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>{isLoggedIn ? 'Dashboard' : 'Sign up'}</a>
-          <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
-          <a href="/terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
-        </div>
-      </footer>
+      <PublicSiteFooter />
 
       {/* ── Demo Booking Modal ── */}
       {showDemoModal && (
