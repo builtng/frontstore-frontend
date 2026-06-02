@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -187,7 +188,56 @@ export default function AdminPage() {
   const [ordersPage, setOrdersPage] = useState(1);
   const [ordersLastPage, setOrdersLastPage] = useState(1);
 
+  const [confirmationDialog, setConfirmationDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    confirmLabel: string;
+    cancelLabel: string;
+    onConfirm: () => Promise<void>;
+    loading: boolean;
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    confirmLabel: 'Confirm',
+    cancelLabel: 'Cancel',
+    onConfirm: async () => { },
+    loading: false,
+  });
+
   const [selectedStore, setSelectedStore] = useState<StoreInfo | null>(null);
+
+  const openConfirmationDialog = (
+    title: string,
+    message: string,
+    onConfirm: () => Promise<void>,
+    confirmLabel = 'Confirm',
+    cancelLabel = 'Cancel'
+  ) => {
+    setConfirmationDialog({
+      open: true,
+      title,
+      message,
+      confirmLabel,
+      cancelLabel,
+      onConfirm,
+      loading: false,
+    });
+  };
+
+  const closeConfirmationDialog = () => {
+    setConfirmationDialog((prev) => ({ ...prev, open: false, loading: false }));
+  };
+
+  const executeConfirmationDialog = async () => {
+    setConfirmationDialog((prev) => ({ ...prev, loading: true }));
+    try {
+      await confirmationDialog.onConfirm();
+    } finally {
+      closeConfirmationDialog();
+    }
+  };
 
   const proRate = useMemo(() => {
     if (!stats?.total_users) return 0;
@@ -352,64 +402,92 @@ export default function AdminPage() {
     }
   };
 
-  const handleApproveWithdrawal = async (id: string) => {
-    if (!confirm('Approve this withdrawal payout? This confirms you have sent the bank transfer.')) return;
-    try {
-      const res = await fetch(`${apiUrl}/v1/admin/withdrawals/${id}/approve`, {
-        method: 'POST',
-        headers: getHeaders(),
-      });
-      const json = await handleFetchResponse(res, 'Failed to approve withdrawal.');
-      toast.success(json.message || 'Withdrawal approved.');
-      loadWithdrawals();
-    } catch (error: any) {
-      if (error.message !== 'Session expired') toast.error(error.message);
-    }
+  const handleApproveWithdrawal = (id: string) => {
+    openConfirmationDialog(
+      'Approve withdrawal',
+      'Approve this withdrawal payout? This confirms you have sent the bank transfer.',
+      async () => {
+        try {
+          const res = await fetch(`${apiUrl}/v1/admin/withdrawals/${id}/approve`, {
+            method: 'POST',
+            headers: getHeaders(),
+          });
+          const json = await handleFetchResponse(res, 'Failed to approve withdrawal.');
+          toast.success(json.message || 'Withdrawal approved.');
+          loadWithdrawals();
+        } catch (error: any) {
+          if (error.message !== 'Session expired') toast.error(error.message);
+        }
+      },
+      'Approve',
+      'Cancel'
+    );
   };
 
-  const handleRejectWithdrawal = async (id: string) => {
-    if (!confirm('Reject this withdrawal payout? The funds will be refunded back to the store withdrawable balance.')) return;
-    try {
-      const res = await fetch(`${apiUrl}/v1/admin/withdrawals/${id}/reject`, {
-        method: 'POST',
-        headers: getHeaders(),
-      });
-      const json = await handleFetchResponse(res, 'Failed to reject withdrawal.');
-      toast.success(json.message || 'Withdrawal rejected & refunded.');
-      loadWithdrawals();
-    } catch (error: any) {
-      if (error.message !== 'Session expired') toast.error(error.message);
-    }
+  const handleRejectWithdrawal = (id: string) => {
+    openConfirmationDialog(
+      'Reject withdrawal',
+      'Reject this withdrawal payout? The funds will be refunded back to the store withdrawable balance.',
+      async () => {
+        try {
+          const res = await fetch(`${apiUrl}/v1/admin/withdrawals/${id}/reject`, {
+            method: 'POST',
+            headers: getHeaders(),
+          });
+          const json = await handleFetchResponse(res, 'Failed to reject withdrawal.');
+          toast.success(json.message || 'Withdrawal rejected & refunded.');
+          loadWithdrawals();
+        } catch (error: any) {
+          if (error.message !== 'Session expired') toast.error(error.message);
+        }
+      },
+      'Reject',
+      'Cancel'
+    );
   };
 
-  const handleApproveVerification = async (id: string) => {
-    if (!confirm('Approve this store verification request? This will activate the verified badge on their storefront.')) return;
-    try {
-      const res = await fetch(`${apiUrl}/v1/admin/verifications/${id}/approve`, {
-        method: 'POST',
-        headers: getHeaders(),
-      });
-      const json = await handleFetchResponse(res, 'Failed to approve verification.');
-      toast.success(json.message || 'Verification approved.');
-      loadVerifications();
-    } catch (error: any) {
-      if (error.message !== 'Session expired') toast.error(error.message);
-    }
+  const handleApproveVerification = (id: string) => {
+    openConfirmationDialog(
+      'Approve verification',
+      'Approve this store verification request? This will activate the verified badge on their storefront.',
+      async () => {
+        try {
+          const res = await fetch(`${apiUrl}/v1/admin/verifications/${id}/approve`, {
+            method: 'POST',
+            headers: getHeaders(),
+          });
+          const json = await handleFetchResponse(res, 'Failed to approve verification.');
+          toast.success(json.message || 'Verification approved.');
+          loadVerifications();
+        } catch (error: any) {
+          if (error.message !== 'Session expired') toast.error(error.message);
+        }
+      },
+      'Approve',
+      'Cancel'
+    );
   };
 
-  const handleRejectVerification = async (id: string) => {
-    if (!confirm('Reject this store verification request?')) return;
-    try {
-      const res = await fetch(`${apiUrl}/v1/admin/verifications/${id}/reject`, {
-        method: 'POST',
-        headers: getHeaders(),
-      });
-      const json = await handleFetchResponse(res, 'Failed to reject verification.');
-      toast.success(json.message || 'Verification rejected.');
-      loadVerifications();
-    } catch (error: any) {
-      if (error.message !== 'Session expired') toast.error(error.message);
-    }
+  const handleRejectVerification = (id: string) => {
+    openConfirmationDialog(
+      'Reject verification',
+      'Reject this store verification request?',
+      async () => {
+        try {
+          const res = await fetch(`${apiUrl}/v1/admin/verifications/${id}/reject`, {
+            method: 'POST',
+            headers: getHeaders(),
+          });
+          const json = await handleFetchResponse(res, 'Failed to reject verification.');
+          toast.success(json.message || 'Verification rejected.');
+          loadVerifications();
+        } catch (error: any) {
+          if (error.message !== 'Session expired') toast.error(error.message);
+        }
+      },
+      'Reject',
+      'Cancel'
+    );
   };
 
   useEffect(() => {
@@ -455,12 +533,12 @@ export default function AdminPage() {
         items.map((store) =>
           store.user?.id === userId
             ? {
-                ...store,
-                user: {
-                  ...store.user,
-                  plan,
-                },
-              }
+              ...store,
+              user: {
+                ...store.user,
+                plan,
+              },
+            }
             : store,
         ),
       );
@@ -512,866 +590,879 @@ export default function AdminPage() {
     }
   };
 
-  const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Delete this global category?')) return;
-    try {
-      const res = await fetch(`${apiUrl}/v1/admin/categories/${id}`, {
-        method: 'DELETE',
-        headers: getHeaders(),
-      });
-      await handleFetchResponse(res, 'Could not delete category.');
-      toast.success('Category deleted.');
-      loadCategories();
-    } catch (error: any) {
-      if (error.message !== 'Session expired') toast.error(error.message);
-    }
-  };
-
-  const handleSaveSettings = async (event: React.FormEvent) => {
-    event.preventDefault();
-    try {
-      setSettingsSaving(true);
-      const res = await fetch(`${apiUrl}/v1/admin/settings`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify(settings),
-      });
-      await handleFetchResponse(res, 'Could not save settings.');
-      toast.success('Settings saved.');
-    } catch (error: any) {
-      if (error.message !== 'Session expired') toast.error(error.message);
-    } finally {
-      setSettingsSaving(false);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push('/login');
-  };
-
-  if (isAuthChecking || !isAuthenticated) {
-    return (
-      <div className="admin-state-screen">
-        <Loader2 className="admin-spin" size={30} />
-        <p>Checking admin session</p>
-        <AdminStyles />
-      </div>
+  const handleDeleteCategory = (id: string) => {
+    openConfirmationDialog(
+      'Delete category',
+      'Delete this global category?',
+      async () => {
+        try {
+          const res = await fetch(`${apiUrl}/v1/admin/categories/${id}`, {
+            method: 'DELETE',
+            headers: getHeaders(),
+          });
+          await handleFetchResponse(res, 'Could not delete category.');
+          toast.success('Category deleted.');
+          loadCategories();
+        } catch (error: any) {
+          if (error.message !== 'Session expired') toast.error(error.message);
+        }
+      },
+      'Delete',
+      'Cancel'
     );
   }
+};
 
-  if (isAuthenticated && !isAdmin) {
-    return (
-      <div className="admin-state-screen admin-state-screen--padded">
-        <div className="admin-denied">
-          <span className="admin-denied__icon">
-            <AlertTriangle size={28} />
-          </span>
-          <h1>Access denied</h1>
-          <p>This account does not have platform administrator permissions.</p>
-          <div className="admin-denied__actions">
-            <button onClick={() => router.push('/dashboard')} className="btn btn-primary">
-              <LayoutDashboard size={17} /> Dashboard
-            </button>
-            <button onClick={handleLogout} className="btn btn-outline">
-              <LogOut size={17} /> Log out
-            </button>
-          </div>
-        </div>
-        <AdminStyles />
-      </div>
-    );
+const handleSaveSettings = async (event: React.FormEvent) => {
+  event.preventDefault();
+  try {
+    setSettingsSaving(true);
+    const res = await fetch(`${apiUrl}/v1/admin/settings`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(settings),
+    });
+    await handleFetchResponse(res, 'Could not save settings.');
+    toast.success('Settings saved.');
+  } catch (error: any) {
+    if (error.message !== 'Session expired') toast.error(error.message);
+  } finally {
+    setSettingsSaving(false);
   }
+};
 
+const handleLogout = () => {
+  localStorage.clear();
+  router.push('/login');
+};
+
+if (isAuthChecking || !isAuthenticated) {
   return (
-    <div className="admin-shell">
-      <aside className="admin-rail">
-        <div className="admin-brand">
-          <span className="admin-brand__mark">
-            <Shield size={21} />
-          </span>
-          <div>
-            <strong>{settings.app_name || 'Frontstore'}</strong>
-            <span>Admin</span>
-          </div>
-        </div>
-
-        <nav className="admin-nav" aria-label="Admin sections">
-          {tabs.map((tab) => (
-            <button key={tab.id} type="button" className={activeTab === tab.id ? 'is-active' : ''} onClick={() => setActiveTab(tab.id)}>
-              {tab.icon}
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </nav>
-
-        <div className="admin-rail__footer">
-          <span>Signed in</span>
-          <strong>{adminEmail}</strong>
-          <button type="button" onClick={handleLogout}>
-            <LogOut size={16} /> Log out
-          </button>
-        </div>
-      </aside>
-
-      <main className="admin-workspace">
-        <header className="admin-topbar">
-          <div>
-            <p>Platform Console</p>
-            <h1>{tabs.find((tab) => tab.id === activeTab)?.label}</h1>
-          </div>
-          <div className="admin-topbar__actions">
-            <button type="button" className="admin-icon-button" onClick={() => {
-              if (activeTab === 'overview') { loadStats(); loadStores(1, ''); }
-              else if (activeTab === 'stores') loadStores(currentPage, searchQuery);
-              else if (activeTab === 'orders') loadOrders(ordersPage, ordersSearch);
-              else if (activeTab === 'categories') loadCategories();
-              else if (activeTab === 'settings') loadSettings();
-              else if (activeTab === 'withdrawals') loadWithdrawals();
-              else if (activeTab === 'verifications') loadVerifications();
-            }}>
-              <RefreshCw size={17} className={statsLoading || storesLoading || ordersLoading || categoriesLoading || settingsLoading || withdrawalsLoading || verificationsLoading ? 'admin-spin' : ''} />
-            </button>
-            <button type="button" className="admin-icon-button" onClick={handleLogout}>
-              <LogOut size={17} />
-            </button>
-          </div>
-        </header>
-
-        <div className="admin-mobile-tabs">
-          {tabs.map((tab) => (
-            <button key={tab.id} type="button" className={activeTab === tab.id ? 'is-active' : ''} onClick={() => setActiveTab(tab.id)}>
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === 'overview' && (
-          <section className="admin-section">
-            <div className="admin-section-heading">
-              <div>
-                <h2>Platform health</h2>
-                <p>Revenue, merchant activity, storefronts, and subscription split.</p>
-              </div>
-              <button type="button" className="btn btn-outline" onClick={loadStats} disabled={statsLoading}>
-                <RefreshCw size={16} className={statsLoading ? 'admin-spin' : ''} /> Refresh
-              </button>
-            </div>
-
-            {statsLoading && !stats ? (
-              <SkeletonGrid />
-            ) : (
-              <>
-                <div className="admin-metric-grid">
-                  <Metric icon={<DollarSign size={18} />} label="Paid revenue" value={formatMoney(stats?.total_revenue)} tone="green" />
-                  <Metric icon={<Users size={18} />} label="Merchants" value={(stats?.total_users || 0).toLocaleString()} detail={`${stats?.plans?.pro || 0} Pro`} />
-                  <Metric icon={<Store size={18} />} label="Active stores" value={`${stats?.active_stores || 0}/${stats?.total_stores || 0}`} detail="Live storefronts" />
-                  <Metric icon={<Package size={18} />} label="Catalog" value={(stats?.total_products || 0).toLocaleString()} detail={`${stats?.total_orders || 0} orders`} />
-                </div>
-
-                <div className="admin-overview-grid">
-                  <div className="admin-panel">
-                    <div className="admin-panel__header">
-                      <div>
-                        <h3>Monthly revenue</h3>
-                        <p>Paid order value by month</p>
-                      </div>
-                      <TrendingUp size={18} />
-                    </div>
-                    {stats?.revenue_trend?.length ? (
-                      <div className="admin-chart-container">
-                        <div className="admin-chart">
-                          {stats.revenue_trend.map((item: any) => {
-                            const maxVal = Math.max(...stats.revenue_trend.map((r: any) => r.total)) || 1;
-                            const heightPercent = Math.min(100, Math.max(10, (item.total / maxVal) * 100));
-                            return (
-                              <div key={item.month} className="admin-chart-bar-wrapper">
-                                <div className="admin-chart-bar-tooltip">
-                                  <span className="tooltip-date">{item.month}</span>
-                                  <strong className="tooltip-value">{formatMoney(item.total)}</strong>
-                                </div>
-                                <div className="admin-chart-bar" style={{ height: `${heightPercent}%` }}>
-                                  <span className="admin-chart-bar-fill" />
-                                </div>
-                                <span className="admin-chart-bar-label">{item.month}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ) : (
-                      <EmptyState label="No paid revenue has been recorded yet." />
-                    )}
-                  </div>
-
-                  <div className="admin-panel admin-flex-column-panel">
-                    <div className="admin-panel-sub-card">
-                      <div className="admin-panel__header">
-                        <div>
-                          <h3>Subscription mix</h3>
-                          <p>{proRate}% of merchants are on Pro</p>
-                        </div>
-                        <Users size={18} />
-                      </div>
-                      <PlanMeter label="Pro" value={stats?.plans?.pro || 0} total={stats?.total_users || 0} tone="green" />
-                      <PlanMeter label="Free" value={stats?.plans?.free || 0} total={stats?.total_users || 0} tone="gray" />
-                    </div>
-
-                    <div className="admin-panel-sub-card border-top-divider">
-                      <div className="admin-panel__header" style={{ marginBottom: 12 }}>
-                        <div>
-                          <h3>Top stores</h3>
-                          <p>Most active stores listed in console</p>
-                        </div>
-                        <Store size={18} />
-                      </div>
-                      <div className="admin-top-stores-list">
-                        {stores.slice(0, 3).map((store) => (
-                          <div key={store.id} className="admin-top-store-row" onClick={() => setSelectedStore(store)} style={{ cursor: 'pointer' }}>
-                            <div>
-                              <strong>{store.store_name}</strong>
-                              <span>@{store.username}</span>
-                            </div>
-                            <span className={`admin-chip admin-chip--${isProPlan(store.user?.plan) ? 'green' : 'gray'}`}>
-                              {planLabel(store.user?.plan)}
-                            </span>
-                          </div>
-                        ))}
-                        {!stores.length && <span className="admin-no-data-hint">No stores registered yet</span>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </section>
-        )}
-
-        {activeTab === 'stores' && (
-          <section className="admin-section">
-            <div className="admin-section-heading">
-              <div>
-                <h2>Merchant stores</h2>
-                <p>Search, suspend, activate, and update subscription plans.</p>
-              </div>
-              <form className="admin-search" onSubmit={(event) => { event.preventDefault(); loadStores(1, searchQuery); }}>
-                <Search size={16} />
-                <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search stores, owners, email, phone" />
-                <button type="submit">Search</button>
-              </form>
-            </div>
-
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Store</th>
-                    <th>Merchant</th>
-                    <th>Plan</th>
-                    <th>Status</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {storesLoading ? (
-                    <TableSkeleton rows={6} columns={5} />
-                  ) : stores.length ? (
-                    stores.map((store) => (
-                      <tr key={store.id} onClick={() => setSelectedStore(store)} style={{ cursor: 'pointer' }} className="admin-table-row-hoverable">
-                        <td>
-                          <strong>{store.store_name}</strong>
-                          <a href={store.custom_domain ? `https://${store.custom_domain}` : `https://frontstore.app/${store.username}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
-                            @{store.username} <ExternalLink size={12} />
-                          </a>
-                        </td>
-                        <td>
-                          <strong>{store.user?.name || 'Unnamed merchant'}</strong>
-                          <span>{store.user?.email || store.user?.phone_number || 'No contact'}</span>
-                        </td>
-                        <td>
-                          <div className="admin-plan-cell">
-                            <StatusChip tone={isProPlan(store.user?.plan) ? 'green' : 'gray'} label={planLabel(store.user?.plan)} />
-                            <label className="admin-select" onClick={(e) => e.stopPropagation()}>
-                              <select value={store.user?.plan || 'free'} onChange={(event) => handleUpdateUserPlan(store.user?.id, event.target.value)} disabled={!store.user}>
-                                <option value="free">Free</option>
-                                <option value="pro_monthly">Pro Monthly</option>
-                                <option value="pro_yearly">Pro Yearly</option>
-                              </select>
-                              <ChevronDown size={14} />
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <StatusChip tone={store.is_active ? 'green' : 'red'} label={store.is_active ? 'Active' : 'Suspended'} />
-                        </td>
-                        <td className="admin-table__actions">
-                          <button type="button" className={store.is_active ? 'admin-action danger' : 'admin-action'} onClick={(e) => { e.stopPropagation(); handleToggleStoreStatus(store.id); }}>
-                            <Power size={15} />
-                            {store.is_active ? 'Suspend' : 'Activate'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5}>
-                        <EmptyState label="No stores match this search." />
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {lastPage > 1 && (
-              <div className="admin-pagination">
-                <button type="button" onClick={() => loadStores(currentPage - 1, searchQuery)} disabled={currentPage === 1}>
-                  <ArrowLeft size={15} /> Previous
-                </button>
-                <span>
-                  Page {currentPage} of {lastPage}
-                </span>
-                <button type="button" onClick={() => loadStores(currentPage + 1, searchQuery)} disabled={currentPage === lastPage}>
-                  Next <ArrowRight size={15} />
-                </button>
-              </div>
-            )}
-          </section>
-        )}
-
-        {activeTab === 'categories' && (
-          <section className="admin-section admin-section--narrow">
-            <div className="admin-section-heading">
-              <div>
-                <h2>Global categories</h2>
-                <p>Categories available to every merchant catalog.</p>
-              </div>
-            </div>
-
-            <form className="admin-inline-form" onSubmit={editingCatId ? handleUpdateCategory : handleCreateCategory}>
-              <input value={editingCatId ? editingCatName : newCatName} onChange={(event) => (editingCatId ? setEditingCatName(event.target.value) : setNewCatName(event.target.value))} placeholder="Category name" />
-              <button type="submit" className="btn btn-primary" disabled={catActionSaving}>
-                {catActionSaving ? <Loader2 className="admin-spin" size={16} /> : editingCatId ? <Check size={16} /> : <Plus size={16} />}
-                {editingCatId ? 'Update' : 'Add'}
-              </button>
-              {editingCatId && (
-                <button type="button" className="btn btn-outline" onClick={() => { setEditingCatId(null); setEditingCatName(''); }}>
-                  <X size={16} /> Cancel
-                </button>
-              )}
-            </form>
-
-            <div className="admin-list">
-              {categoriesLoading ? (
-                [1, 2, 3, 4].map((item) => <div key={item} className="admin-list-skeleton" />)
-              ) : categories.length ? (
-                categories.map((category) => (
-                  <div className="admin-list-row" key={category.id}>
-                    <div>
-                      <strong>{category.name}</strong>
-                      <span>{category.slug}</span>
-                    </div>
-                    <div>
-                      <button type="button" onClick={() => { setEditingCatId(category.id); setEditingCatName(category.name); }}>
-                        <Edit2 size={15} />
-                      </button>
-                      <button type="button" className="danger" onClick={() => handleDeleteCategory(category.id)}>
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <EmptyState label="No categories have been created." />
-              )}
-            </div>
-          </section>
-        )}
-
-        {activeTab === 'orders' && (
-          <section className="admin-section">
-            <div className="admin-section-heading">
-              <div>
-                <h2>Platform Transaction Audit</h2>
-                <p>Monitor customer orders, payment status, and commission fees across all merchants.</p>
-              </div>
-              <form className="admin-search" onSubmit={(event) => { event.preventDefault(); loadOrders(1, ordersSearch); }}>
-                <Search size={16} />
-                <input value={ordersSearch} onChange={(event) => setOrdersSearch(event.target.value)} placeholder="Search orders, store name, customer name" />
-                <button type="submit">Search</button>
-              </form>
-            </div>
-
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Order Ref</th>
-                    <th>Store</th>
-                    <th>Customer details</th>
-                    <th>Subtotal</th>
-                    <th>Platform Fees</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ordersLoading ? (
-                    <TableSkeleton rows={6} columns={7} />
-                  ) : orders.length ? (
-                    orders.map((order) => {
-                      const dateStr = new Date(order.created_at).toLocaleDateString(undefined, {
-                        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                      });
-                      const currencySymbol = order.store?.currency_code === 'NGN' ? '₦' : (order.store?.currency_code || '₦');
-                      return (
-                        <tr key={order.id}>
-                          <td>
-                            <strong>#{order.order_number}</strong>
-                            <span>{order.payment_method ? order.payment_method.toUpperCase() : 'WHATSAPP'}</span>
-                          </td>
-                          <td>
-                            <strong>{order.store?.store_name || 'Unknown Store'}</strong>
-                            <span>@{order.store?.username}</span>
-                          </td>
-                          <td>
-                            <strong>{order.customer_name}</strong>
-                            <span>{order.customer_phone || order.customer_email}</span>
-                          </td>
-                          <td>
-                            <strong style={{ color: 'var(--primary)' }}>{currencySymbol}{Number(order.total_amount).toLocaleString()}</strong>
-                          </td>
-                          <td>
-                            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                              {order.fee_amount ? `${currencySymbol}${Number(order.fee_amount).toLocaleString()}` : '—'}
-                            </span>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                              <StatusChip tone={order.payment_status === 'paid' ? 'green' : 'red'} label={`Payment: ${order.payment_status}`} />
-                              <StatusChip tone={order.order_status === 'completed' ? 'green' : order.order_status === 'cancelled' ? 'red' : 'gray'} label={`Order: ${order.order_status}`} />
-                            </div>
-                          </td>
-                          <td>
-                            <span style={{ fontSize: 12 }}>{dateStr}</span>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={7}>
-                        <EmptyState label="No orders match this search." />
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {ordersLastPage > 1 && (
-              <div className="admin-pagination">
-                <button type="button" onClick={() => loadOrders(ordersPage - 1, ordersSearch)} disabled={ordersPage === 1}>
-                  <ArrowLeft size={15} /> Previous
-                </button>
-                <span>
-                  Page {ordersPage} of {ordersLastPage}
-                </span>
-                <button type="button" onClick={() => loadOrders(ordersPage + 1, ordersSearch)} disabled={ordersPage === ordersLastPage}>
-                  Next <ArrowRight size={15} />
-                </button>
-              </div>
-            )}
-          </section>
-        )}
-
-        {activeTab === 'settings' && (
-          <section className="admin-section admin-section--narrow">
-            <div className="admin-section-heading">
-              <div>
-                <h2>System settings</h2>
-                <p>Branding, mail, Twilio, and social account configuration.</p>
-              </div>
-            </div>
-
-            {settingsLoading ? (
-              <SkeletonGrid />
-            ) : (
-              <form className="admin-settings-form" onSubmit={handleSaveSettings}>
-                <SettingsGroup icon={<Globe size={17} />} title="Branding & Domain settings">
-                  <Field label="App name" value={settings.app_name} onChange={(value) => setSettings({ ...settings, app_name: value })} required />
-                  <Field label="Logo URL" value={settings.logo_url} onChange={(value) => setSettings({ ...settings, logo_url: value })} />
-                  <Field 
-                    label="System Domain" 
-                    value={settings.system_domain} 
-                    onChange={(value) => setSettings({ ...settings, system_domain: value })} 
-                    placeholder="e.g. frontstore.app"
-                    description="The main platform domain used for link generation and routing."
-                    required 
-                  />
-                  <Field 
-                    label="Global Storefront Disclaimer" 
-                    value={settings.store_disclaimer} 
-                    onChange={(value) => setSettings({ ...settings, store_disclaimer: value })} 
-                    placeholder="e.g. Ensure you go through products before paying kind message"
-                    description="The disclaimer message shown to buyers across all store checkout pages."
-                    required 
-                  />
-                </SettingsGroup>
-
-                <SettingsGroup icon={<Mail size={17} />} title="SMTP mail">
-                  <Field label="Host" value={settings.smtp_host} onChange={(value) => setSettings({ ...settings, smtp_host: value })} />
-                  <Field label="Port" value={settings.smtp_port} onChange={(value) => setSettings({ ...settings, smtp_port: value })} />
-                  <Field label="Username" value={settings.smtp_username} onChange={(value) => setSettings({ ...settings, smtp_username: value })} />
-                  <Field label="Password" type="password" value={settings.smtp_password} onChange={(value) => setSettings({ ...settings, smtp_password: value })} />
-                </SettingsGroup>
-
-                <SettingsGroup icon={<Smartphone size={17} />} title="Twilio">
-                  <Field label="SID" value={settings.twilio_sid} onChange={(value) => setSettings({ ...settings, twilio_sid: value })} />
-                  <Field label="Auth token" type="password" value={settings.twilio_auth_token} onChange={(value) => setSettings({ ...settings, twilio_auth_token: value })} />
-                  <Field label="WhatsApp sender" value={settings.twilio_whatsapp_from} onChange={(value) => setSettings({ ...settings, twilio_whatsapp_from: value })} />
-                </SettingsGroup>
-
-                <SettingsGroup icon={<MessageSquare size={17} />} title="Socials">
-                  <Field label="Instagram" value={settings.social_instagram} onChange={(value) => setSettings({ ...settings, social_instagram: value })} />
-                  <Field label="Twitter" value={settings.social_twitter} onChange={(value) => setSettings({ ...settings, social_twitter: value })} />
-                  <Field label="TikTok" value={settings.social_tiktok} onChange={(value) => setSettings({ ...settings, social_tiktok: value })} />
-                </SettingsGroup>
-
-                <SettingsGroup icon={<Sparkles size={17} />} title="Homepage content">
-                  <TextAreaField
-                    label="Homepage content JSON"
-                    value={settings.homepage_content}
-                    onChange={(value) => setSettings({ ...settings, homepage_content: value })}
-                    rows={18}
-                    placeholder='{"hero":{"titlePrefix":"Turn WhatsApp Conversations Into","titleHighlight":"Sales"}}'
-                    description="Controls hero text, badges, buttons, stats, narrative, platform suite, comparison, vision, how-it-works, features, and testimonials. Leave blank to use default homepage copy."
-                  />
-                </SettingsGroup>
-
-                <SettingsGroup icon={<Shield size={17} />} title="System Connection Health">
-                  <div className="admin-health-grid">
-                    <div className="admin-health-item">
-                      <div>
-                        <strong>Laravel Backend API</strong>
-                        <span>Endpoint connection secure</span>
-                      </div>
-                      <span className="admin-health-dot online" />
-                    </div>
-                    <div className="admin-health-item">
-                      <div>
-                        <strong>Platform SQLite Database</strong>
-                        <span>Write and read operations active</span>
-                      </div>
-                      <span className="admin-health-dot online" />
-                    </div>
-                    <div className="admin-health-item">
-                      <div>
-                        <strong>Twilio WhatsApp Service</strong>
-                        <span>Webhook listener online</span>
-                      </div>
-                      <span className="admin-health-dot online" />
-                    </div>
-                    <div className="admin-health-item">
-                      <div>
-                        <strong>Paystack API Gateway</strong>
-                        <span>Key authentication success</span>
-                      </div>
-                      <span className="admin-health-dot online" />
-                    </div>
-                  </div>
-                </SettingsGroup>
-
-                <div className="admin-form-footer">
-                  <button type="submit" className="btn btn-primary" disabled={settingsSaving}>
-                    {settingsSaving ? <Loader2 className="admin-spin" size={17} /> : <Check size={17} />}
-                    Save settings
-                  </button>
-                </div>
-              </form>
-            )}
-          </section>
-        )}
-
-        {activeTab === 'withdrawals' && (
-          <section className="admin-section">
-            <div className="admin-section-heading">
-              <div>
-                <h2>Withdrawal requests</h2>
-                <p>Review and approve pending withdrawal payout requests from store wallets.</p>
-              </div>
-              <button type="button" className="btn btn-outline" onClick={loadWithdrawals} disabled={withdrawalsLoading}>
-                <RefreshCw size={16} className={withdrawalsLoading ? 'admin-spin' : ''} /> Refresh
-              </button>
-            </div>
-
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Store / Merchant</th>
-                    <th>Amount</th>
-                    <th>Destination Bank details</th>
-                    <th>Date Requested</th>
-                    <th>Status</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {withdrawalsLoading ? (
-                    <TableSkeleton rows={6} columns={6} />
-                  ) : withdrawals.length ? (
-                    withdrawals.map((w: any) => {
-                      const dateStr = new Date(w.created_at).toLocaleDateString(undefined, {
-                        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                      });
-                      return (
-                        <tr key={w.id}>
-                          <td>
-                            <strong>{w.store?.store_name || 'Unknown Store'}</strong>
-                            <span>{w.store?.user?.email || w.store?.user?.phone_number || 'No contact'}</span>
-                          </td>
-                          <td>
-                            <strong style={{ fontSize: 15 }}>{formatMoney(w.amount, w.store?.currency_code)}</strong>
-                          </td>
-                          <td>
-                            <strong>{w.bank_name}</strong>
-                            <span>{w.account_number} • {w.account_name}</span>
-                          </td>
-                          <td>
-                            <span>{dateStr}</span>
-                          </td>
-                          <td>
-                            <StatusChip tone={w.status === 'approved' ? 'green' : w.status === 'rejected' ? 'red' : 'gray'} label={w.status} />
-                          </td>
-                          <td className="admin-table__actions">
-                            {w.status === 'pending' && (
-                              <div style={{ display: 'flex', gap: 8 }}>
-                                <button type="button" className="admin-action" style={{ color: 'var(--primary)', border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleApproveWithdrawal(w.id)}>
-                                  <Check size={14} /> Approve
-                                </button>
-                                <button type="button" className="admin-action danger" style={{ border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleRejectWithdrawal(w.id)}>
-                                  <X size={14} /> Reject
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={6}>
-                        <EmptyState label="No withdrawal requests found." />
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-
-        {activeTab === 'verifications' && (
-          <section className="admin-section">
-            <div className="admin-section-heading">
-              <div>
-                <h2>Store Trust Verifications</h2>
-                <p>Review uploaded ID/business documents and manage storefront verified badges.</p>
-              </div>
-              <button type="button" className="btn btn-outline" onClick={loadVerifications} disabled={verificationsLoading}>
-                <RefreshCw size={16} className={verificationsLoading ? 'admin-spin' : ''} /> Refresh
-              </button>
-            </div>
-
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Store / Merchant</th>
-                    <th>Document Type</th>
-                    <th>Uploaded Document File</th>
-                    <th>Status</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {verificationsLoading ? (
-                    <TableSkeleton rows={6} columns={5} />
-                  ) : verifications.length ? (
-                    verifications.map((v: any) => {
-                      const docLabel = v.verification_document_type ? v.verification_document_type.replace('_', ' ').toUpperCase() : 'ID';
-                      return (
-                        <tr key={v.id}>
-                          <td>
-                            <strong>{v.store_name}</strong>
-                            <a href={v.custom_domain ? `https://${v.custom_domain}` : `https://frontstore.app/${v.username}`} target="_blank" rel="noreferrer">
-                              @{v.username} <ExternalLink size={12} />
-                            </a>
-                          </td>
-                          <td>
-                            <strong style={{ fontSize: 13 }}>{docLabel}</strong>
-                          </td>
-                          <td>
-                            {v.verification_document_url ? (
-                              <a
-                                href={v.verification_document_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--primary)', fontWeight: 700 }}
-                              >
-                                View File <ExternalLink size={14} />
-                              </a>
-                            ) : (
-                              <span style={{ color: 'var(--text-faint)' }}>No file uploaded</span>
-                            )}
-                          </td>
-                          <td>
-                            <StatusChip tone={v.verification_status === 'verified' ? 'green' : v.verification_status === 'rejected' ? 'red' : 'gray'} label={v.verification_status} />
-                          </td>
-                          <td className="admin-table__actions">
-                            {v.verification_status === 'pending' && (
-                              <div style={{ display: 'flex', gap: 8 }}>
-                                <button type="button" className="admin-action" style={{ color: 'var(--primary)', border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleApproveVerification(v.id)}>
-                                  <Check size={14} /> Approve
-                                </button>
-                                <button type="button" className="admin-action danger" style={{ border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleRejectVerification(v.id)}>
-                                  <X size={14} /> Reject
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={5}>
-                        <EmptyState label="No verification requests found." />
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-      </main>
-
-      {selectedStore && (
-        <div className="admin-drawer-overlay" onClick={() => setSelectedStore(null)}>
-          <div className="admin-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-drawer__header">
-              <div>
-                <h2>Store Inspector</h2>
-                <p>Inspect and manage details for @{selectedStore.username}</p>
-              </div>
-              <button type="button" className="admin-drawer__close" onClick={() => setSelectedStore(null)}>
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="admin-drawer__content">
-              <div className="admin-drawer__section">
-                <h3>Store Information</h3>
-                <div className="admin-drawer__grid">
-                  <div>
-                    <label>Store Name</label>
-                    <strong>{selectedStore.store_name}</strong>
-                  </div>
-                  <div>
-                    <label>Username</label>
-                    <span>@{selectedStore.username}</span>
-                  </div>
-                  <div>
-                    <label>Status</label>
-                    <StatusChip tone={selectedStore.is_active ? 'green' : 'red'} label={selectedStore.is_active ? 'Active' : 'Suspended'} />
-                  </div>
-                  <div>
-                    <label>Verification Badge</label>
-                    <StatusChip tone={selectedStore.verification_status === 'verified' ? 'green' : selectedStore.verification_status === 'rejected' ? 'red' : 'gray'} label={selectedStore.verification_status || 'unverified'} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="admin-drawer__section">
-                <h3>Wallet Balances</h3>
-                <div className="admin-drawer__grid admin-drawer__grid--cols-2">
-                  <div className="admin-balance-card withdrawable">
-                    <label>Withdrawable Balance</label>
-                    <strong>{formatMoney(selectedStore.withdrawable_balance, selectedStore.currency_code)}</strong>
-                  </div>
-                  <div className="admin-balance-card pending">
-                    <label>Pending Escrow Balance</label>
-                    <strong>{formatMoney(selectedStore.pending_balance, selectedStore.currency_code)}</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="admin-drawer__section">
-                <h3>Merchant details</h3>
-                <div className="admin-drawer__grid">
-                  <div>
-                    <label>Owner Name</label>
-                    <strong>{selectedStore.user?.name || 'No name'}</strong>
-                  </div>
-                  <div>
-                    <label>Email Address</label>
-                    <span>{selectedStore.user?.email || 'No email'}</span>
-                  </div>
-                  <div>
-                    <label>Phone Number</label>
-                    <span>{selectedStore.user?.phone_number || 'No phone'}</span>
-                  </div>
-                  <div>
-                    <label>Joined Platform</label>
-                    <span>{selectedStore.user?.created_at ? new Date(selectedStore.user.created_at).toLocaleDateString() : 'N/A'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {selectedStore.bank_account_number && (
-                <div className="admin-drawer__section">
-                  <h3>Payout Bank account</h3>
-                  <div className="admin-drawer__grid">
-                    <div>
-                      <label>Bank Name</label>
-                      <strong>{selectedStore.bank_name || 'N/A'}</strong>
-                    </div>
-                    <div>
-                      <label>Account Number</label>
-                      <span>{selectedStore.bank_account_number}</span>
-                    </div>
-                    <div>
-                      <label>Account Name</label>
-                      <span>{selectedStore.bank_account_name || 'N/A'}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="admin-drawer__actions">
-              <button type="button" className="btn btn-outline" onClick={() => setSelectedStore(null)}>Close Inspector</button>
-              <button 
-                type="button" 
-                className={selectedStore.is_active ? 'btn btn-primary btn-danger-tone' : 'btn btn-primary'} 
-                onClick={() => {
-                  handleToggleStoreStatus(selectedStore.id);
-                  setSelectedStore(prev => prev ? { ...prev, is_active: !prev.is_active } : null);
-                }}
-              >
-                {selectedStore.is_active ? 'Suspend Store' : 'Activate Store'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <div className="admin-state-screen">
+      <Loader2 className="admin-spin" size={30} />
+      <p>Checking admin session</p>
       <AdminStyles />
     </div>
   );
+}
+
+if (isAuthenticated && !isAdmin) {
+  return (
+    <div className="admin-state-screen admin-state-screen--padded">
+      <div className="admin-denied">
+        <span className="admin-denied__icon">
+          <AlertTriangle size={28} />
+        </span>
+        <h1>Access denied</h1>
+        <p>This account does not have platform administrator permissions.</p>
+        <div className="admin-denied__actions">
+          <button onClick={() => router.push('/dashboard')} className="btn btn-primary">
+            <LayoutDashboard size={17} /> Dashboard
+          </button>
+          <button onClick={handleLogout} className="btn btn-outline">
+            <LogOut size={17} /> Log out
+          </button>
+        </div>
+      </div>
+      <AdminStyles />
+    </div>
+  );
+}
+
+return (
+  <div className="admin-shell">
+    <aside className="admin-rail">
+      <div className="admin-brand">
+        <span className="admin-brand__mark">
+          <Shield size={21} />
+        </span>
+        <div>
+          <strong>{settings.app_name || 'Frontstore'}</strong>
+          <span>Admin</span>
+        </div>
+      </div>
+
+      <nav className="admin-nav" aria-label="Admin sections">
+        {tabs.map((tab) => (
+          <button key={tab.id} type="button" className={activeTab === tab.id ? 'is-active' : ''} onClick={() => setActiveTab(tab.id)}>
+            {tab.icon}
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      <div className="admin-rail__footer">
+        <span>Signed in</span>
+        <strong>{adminEmail}</strong>
+        <button type="button" onClick={handleLogout}>
+          <LogOut size={16} /> Log out
+        </button>
+      </div>
+    </aside>
+
+    <main className="admin-workspace">
+      <header className="admin-topbar">
+        <div>
+          <p>Platform Console</p>
+          <h1>{tabs.find((tab) => tab.id === activeTab)?.label}</h1>
+        </div>
+        <div className="admin-topbar__actions">
+          <button type="button" className="admin-icon-button" onClick={() => {
+            if (activeTab === 'overview') { loadStats(); loadStores(1, ''); }
+            else if (activeTab === 'stores') loadStores(currentPage, searchQuery);
+            else if (activeTab === 'orders') loadOrders(ordersPage, ordersSearch);
+            else if (activeTab === 'categories') loadCategories();
+            else if (activeTab === 'settings') loadSettings();
+            else if (activeTab === 'withdrawals') loadWithdrawals();
+            else if (activeTab === 'verifications') loadVerifications();
+          }}>
+            <RefreshCw size={17} className={statsLoading || storesLoading || ordersLoading || categoriesLoading || settingsLoading || withdrawalsLoading || verificationsLoading ? 'admin-spin' : ''} />
+          </button>
+          <button type="button" className="admin-icon-button" onClick={handleLogout}>
+            <LogOut size={17} />
+          </button>
+        </div>
+      </header>
+
+      <div className="admin-mobile-tabs">
+        {tabs.map((tab) => (
+          <button key={tab.id} type="button" className={activeTab === tab.id ? 'is-active' : ''} onClick={() => setActiveTab(tab.id)}>
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'overview' && (
+        <section className="admin-section">
+          <div className="admin-section-heading">
+            <div>
+              <h2>Platform health</h2>
+              <p>Revenue, merchant activity, storefronts, and subscription split.</p>
+            </div>
+            <button type="button" className="btn btn-outline" onClick={loadStats} disabled={statsLoading}>
+              <RefreshCw size={16} className={statsLoading ? 'admin-spin' : ''} /> Refresh
+            </button>
+          </div>
+
+          {statsLoading && !stats ? (
+            <SkeletonGrid />
+          ) : (
+            <>
+              <div className="admin-metric-grid">
+                <Metric icon={<DollarSign size={18} />} label="Paid revenue" value={formatMoney(stats?.total_revenue)} tone="green" />
+                <Metric icon={<Users size={18} />} label="Merchants" value={(stats?.total_users || 0).toLocaleString()} detail={`${stats?.plans?.pro || 0} Pro`} />
+                <Metric icon={<Store size={18} />} label="Active stores" value={`${stats?.active_stores || 0}/${stats?.total_stores || 0}`} detail="Live storefronts" />
+                <Metric icon={<Package size={18} />} label="Catalog" value={(stats?.total_products || 0).toLocaleString()} detail={`${stats?.total_orders || 0} orders`} />
+              </div>
+
+              <div className="admin-overview-grid">
+                <div className="admin-panel">
+                  <div className="admin-panel__header">
+                    <div>
+                      <h3>Monthly revenue</h3>
+                      <p>Paid order value by month</p>
+                    </div>
+                    <TrendingUp size={18} />
+                  </div>
+                  {stats?.revenue_trend?.length ? (
+                    <div className="admin-chart-container">
+                      <div className="admin-chart">
+                        {stats.revenue_trend.map((item: any) => {
+                          const maxVal = Math.max(...stats.revenue_trend.map((r: any) => r.total)) || 1;
+                          const heightPercent = Math.min(100, Math.max(10, (item.total / maxVal) * 100));
+                          return (
+                            <div key={item.month} className="admin-chart-bar-wrapper">
+                              <div className="admin-chart-bar-tooltip">
+                                <span className="tooltip-date">{item.month}</span>
+                                <strong className="tooltip-value">{formatMoney(item.total)}</strong>
+                              </div>
+                              <div className="admin-chart-bar" style={{ height: `${heightPercent}%` }}>
+                                <span className="admin-chart-bar-fill" />
+                              </div>
+                              <span className="admin-chart-bar-label">{item.month}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <EmptyState label="No paid revenue has been recorded yet." />
+                  )}
+                </div>
+
+                <div className="admin-panel admin-flex-column-panel">
+                  <div className="admin-panel-sub-card">
+                    <div className="admin-panel__header">
+                      <div>
+                        <h3>Subscription mix</h3>
+                        <p>{proRate}% of merchants are on Pro</p>
+                      </div>
+                      <Users size={18} />
+                    </div>
+                    <PlanMeter label="Pro" value={stats?.plans?.pro || 0} total={stats?.total_users || 0} tone="green" />
+                    <PlanMeter label="Free" value={stats?.plans?.free || 0} total={stats?.total_users || 0} tone="gray" />
+                  </div>
+
+                  <div className="admin-panel-sub-card border-top-divider">
+                    <div className="admin-panel__header" style={{ marginBottom: 12 }}>
+                      <div>
+                        <h3>Top stores</h3>
+                        <p>Most active stores listed in console</p>
+                      </div>
+                      <Store size={18} />
+                    </div>
+                    <div className="admin-top-stores-list">
+                      {stores.slice(0, 3).map((store) => (
+                        <div key={store.id} className="admin-top-store-row" onClick={() => setSelectedStore(store)} style={{ cursor: 'pointer' }}>
+                          <div>
+                            <strong>{store.store_name}</strong>
+                            <span>@{store.username}</span>
+                          </div>
+                          <span className={`admin-chip admin-chip--${isProPlan(store.user?.plan) ? 'green' : 'gray'}`}>
+                            {planLabel(store.user?.plan)}
+                          </span>
+                        </div>
+                      ))}
+                      {!stores.length && <span className="admin-no-data-hint">No stores registered yet</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
+      {activeTab === 'stores' && (
+        <section className="admin-section">
+          <div className="admin-section-heading">
+            <div>
+              <h2>Merchant stores</h2>
+              <p>Search, suspend, activate, and update subscription plans.</p>
+            </div>
+            <form className="admin-search" onSubmit={(event) => { event.preventDefault(); loadStores(1, searchQuery); }}>
+              <Search size={16} />
+              <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search stores, owners, email, phone" />
+              <button type="submit">Search</button>
+            </form>
+          </div>
+
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Store</th>
+                  <th>Merchant</th>
+                  <th>Plan</th>
+                  <th>Status</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {storesLoading ? (
+                  <TableSkeleton rows={6} columns={5} />
+                ) : stores.length ? (
+                  stores.map((store) => (
+                    <tr key={store.id} onClick={() => setSelectedStore(store)} style={{ cursor: 'pointer' }} className="admin-table-row-hoverable">
+                      <td>
+                        <strong>{store.store_name}</strong>
+                        <a href={store.custom_domain ? `https://${store.custom_domain}` : `https://frontstore.app/${store.username}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+                          @{store.username} <ExternalLink size={12} />
+                        </a>
+                      </td>
+                      <td>
+                        <strong>{store.user?.name || 'Unnamed merchant'}</strong>
+                        <span>{store.user?.email || store.user?.phone_number || 'No contact'}</span>
+                      </td>
+                      <td>
+                        <div className="admin-plan-cell">
+                          <StatusChip tone={isProPlan(store.user?.plan) ? 'green' : 'gray'} label={planLabel(store.user?.plan)} />
+                          <label className="admin-select" onClick={(e) => e.stopPropagation()}>
+                            <select value={store.user?.plan || 'free'} onChange={(event) => handleUpdateUserPlan(store.user?.id, event.target.value)} disabled={!store.user}>
+                              <option value="free">Free</option>
+                              <option value="pro_monthly">Pro Monthly</option>
+                              <option value="pro_yearly">Pro Yearly</option>
+                            </select>
+                            <ChevronDown size={14} />
+                          </label>
+                        </div>
+                      </td>
+                      <td>
+                        <StatusChip tone={store.is_active ? 'green' : 'red'} label={store.is_active ? 'Active' : 'Suspended'} />
+                      </td>
+                      <td className="admin-table__actions">
+                        <button type="button" className={store.is_active ? 'admin-action danger' : 'admin-action'} onClick={(e) => { e.stopPropagation(); handleToggleStoreStatus(store.id); }}>
+                          <Power size={15} />
+                          {store.is_active ? 'Suspend' : 'Activate'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5}>
+                      <EmptyState label="No stores match this search." />
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {lastPage > 1 && (
+            <div className="admin-pagination">
+              <button type="button" onClick={() => loadStores(currentPage - 1, searchQuery)} disabled={currentPage === 1}>
+                <ArrowLeft size={15} /> Previous
+              </button>
+              <span>
+                Page {currentPage} of {lastPage}
+              </span>
+              <button type="button" onClick={() => loadStores(currentPage + 1, searchQuery)} disabled={currentPage === lastPage}>
+                Next <ArrowRight size={15} />
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === 'categories' && (
+        <section className="admin-section admin-section--narrow">
+          <div className="admin-section-heading">
+            <div>
+              <h2>Global categories</h2>
+              <p>Categories available to every merchant catalog.</p>
+            </div>
+          </div>
+
+          <form className="admin-inline-form" onSubmit={editingCatId ? handleUpdateCategory : handleCreateCategory}>
+            <input value={editingCatId ? editingCatName : newCatName} onChange={(event) => (editingCatId ? setEditingCatName(event.target.value) : setNewCatName(event.target.value))} placeholder="Category name" />
+            <button type="submit" className="btn btn-primary" disabled={catActionSaving}>
+              {catActionSaving ? <Loader2 className="admin-spin" size={16} /> : editingCatId ? <Check size={16} /> : <Plus size={16} />}
+              {editingCatId ? 'Update' : 'Add'}
+            </button>
+            {editingCatId && (
+              <button type="button" className="btn btn-outline" onClick={() => { setEditingCatId(null); setEditingCatName(''); }}>
+                <X size={16} /> Cancel
+              </button>
+            )}
+          </form>
+
+          <div className="admin-list">
+            {categoriesLoading ? (
+              [1, 2, 3, 4].map((item) => <div key={item} className="admin-list-skeleton" />)
+            ) : categories.length ? (
+              categories.map((category) => (
+                <div className="admin-list-row" key={category.id}>
+                  <div>
+                    <strong>{category.name}</strong>
+                    <span>{category.slug}</span>
+                  </div>
+                  <div>
+                    <button type="button" onClick={() => { setEditingCatId(category.id); setEditingCatName(category.name); }}>
+                      <Edit2 size={15} />
+                    </button>
+                    <button type="button" className="danger" onClick={() => handleDeleteCategory(category.id)}>
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <EmptyState label="No categories have been created." />
+            )}
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'orders' && (
+        <section className="admin-section">
+          <div className="admin-section-heading">
+            <div>
+              <h2>Platform Transaction Audit</h2>
+              <p>Monitor customer orders, payment status, and order totals across all merchants.</p>
+            </div>
+            <form className="admin-search" onSubmit={(event) => { event.preventDefault(); loadOrders(1, ordersSearch); }}>
+              <Search size={16} />
+              <input value={ordersSearch} onChange={(event) => setOrdersSearch(event.target.value)} placeholder="Search orders, store name, customer name" />
+              <button type="submit">Search</button>
+            </form>
+          </div>
+
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Order Ref</th>
+                  <th>Store</th>
+                  <th>Customer details</th>
+                  <th>Subtotal</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ordersLoading ? (
+                  <TableSkeleton rows={6} columns={6} />
+                ) : orders.length ? (
+                  orders.map((order) => {
+                    const dateStr = new Date(order.created_at).toLocaleDateString(undefined, {
+                      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    const currencySymbol = order.store?.currency_code === 'NGN' ? '₦' : (order.store?.currency_code || '₦');
+                    return (
+                      <tr key={order.id}>
+                        <td>
+                          <strong>#{order.order_number}</strong>
+                          <span>{order.payment_method ? order.payment_method.toUpperCase() : 'WHATSAPP'}</span>
+                        </td>
+                        <td>
+                          <strong>{order.store?.store_name || 'Unknown Store'}</strong>
+                          <span>@{order.store?.username}</span>
+                        </td>
+                        <td>
+                          <strong>{order.customer_name}</strong>
+                          <span>{order.customer_phone || order.customer_email}</span>
+                        </td>
+                        <td>
+                          <strong style={{ color: 'var(--primary)' }}>{currencySymbol}{Number(order.total_amount).toLocaleString()}</strong>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <StatusChip tone={order.payment_status === 'paid' ? 'green' : 'red'} label={`Payment: ${order.payment_status}`} />
+                            <StatusChip tone={order.order_status === 'completed' ? 'green' : order.order_status === 'cancelled' ? 'red' : 'gray'} label={`Order: ${order.order_status}`} />
+                          </div>
+                        </td>
+                        <td>
+                          <span style={{ fontSize: 12 }}>{dateStr}</span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={6}>
+                      <EmptyState label="No orders match this search." />
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {ordersLastPage > 1 && (
+            <div className="admin-pagination">
+              <button type="button" onClick={() => loadOrders(ordersPage - 1, ordersSearch)} disabled={ordersPage === 1}>
+                <ArrowLeft size={15} /> Previous
+              </button>
+              <span>
+                Page {ordersPage} of {ordersLastPage}
+              </span>
+              <button type="button" onClick={() => loadOrders(ordersPage + 1, ordersSearch)} disabled={ordersPage === ordersLastPage}>
+                Next <ArrowRight size={15} />
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === 'settings' && (
+        <section className="admin-section admin-section--narrow">
+          <div className="admin-section-heading">
+            <div>
+              <h2>System settings</h2>
+              <p>Branding, mail, Twilio, and social account configuration.</p>
+            </div>
+          </div>
+
+          {settingsLoading ? (
+            <SkeletonGrid />
+          ) : (
+            <form className="admin-settings-form" onSubmit={handleSaveSettings}>
+              <SettingsGroup icon={<Globe size={17} />} title="Branding & Domain settings">
+                <Field label="App name" value={settings.app_name} onChange={(value) => setSettings({ ...settings, app_name: value })} required />
+                <Field label="Logo URL" value={settings.logo_url} onChange={(value) => setSettings({ ...settings, logo_url: value })} />
+                <Field
+                  label="System Domain"
+                  value={settings.system_domain}
+                  onChange={(value) => setSettings({ ...settings, system_domain: value })}
+                  placeholder="e.g. frontstore.app"
+                  description="The main platform domain used for link generation and routing."
+                  required
+                />
+                <Field
+                  label="Global Storefront Disclaimer"
+                  value={settings.store_disclaimer}
+                  onChange={(value) => setSettings({ ...settings, store_disclaimer: value })}
+                  placeholder="e.g. Ensure you go through products before paying kind message"
+                  description="The disclaimer message shown to buyers across all store checkout pages."
+                  required
+                />
+              </SettingsGroup>
+
+              <SettingsGroup icon={<Mail size={17} />} title="SMTP mail">
+                <Field label="Host" value={settings.smtp_host} onChange={(value) => setSettings({ ...settings, smtp_host: value })} />
+                <Field label="Port" value={settings.smtp_port} onChange={(value) => setSettings({ ...settings, smtp_port: value })} />
+                <Field label="Username" value={settings.smtp_username} onChange={(value) => setSettings({ ...settings, smtp_username: value })} />
+                <Field label="Password" type="password" value={settings.smtp_password} onChange={(value) => setSettings({ ...settings, smtp_password: value })} />
+              </SettingsGroup>
+
+              <SettingsGroup icon={<Smartphone size={17} />} title="Twilio">
+                <Field label="SID" value={settings.twilio_sid} onChange={(value) => setSettings({ ...settings, twilio_sid: value })} />
+                <Field label="Auth token" type="password" value={settings.twilio_auth_token} onChange={(value) => setSettings({ ...settings, twilio_auth_token: value })} />
+                <Field label="WhatsApp sender" value={settings.twilio_whatsapp_from} onChange={(value) => setSettings({ ...settings, twilio_whatsapp_from: value })} />
+              </SettingsGroup>
+
+              <SettingsGroup icon={<MessageSquare size={17} />} title="Socials">
+                <Field label="Instagram" value={settings.social_instagram} onChange={(value) => setSettings({ ...settings, social_instagram: value })} />
+                <Field label="Twitter" value={settings.social_twitter} onChange={(value) => setSettings({ ...settings, social_twitter: value })} />
+                <Field label="TikTok" value={settings.social_tiktok} onChange={(value) => setSettings({ ...settings, social_tiktok: value })} />
+              </SettingsGroup>
+
+              <SettingsGroup icon={<Sparkles size={17} />} title="Homepage content">
+                <TextAreaField
+                  label="Homepage content JSON"
+                  value={settings.homepage_content}
+                  onChange={(value) => setSettings({ ...settings, homepage_content: value })}
+                  rows={18}
+                  placeholder='{"hero":{"titlePrefix":"Turn WhatsApp Conversations Into","titleHighlight":"Sales"}}'
+                  description="Controls hero text, badges, buttons, stats, narrative, platform suite, comparison, vision, how-it-works, features, and testimonials. Leave blank to use default homepage copy."
+                />
+              </SettingsGroup>
+
+              <SettingsGroup icon={<Shield size={17} />} title="System Connection Health">
+                <div className="admin-health-grid">
+                  <div className="admin-health-item">
+                    <div>
+                      <strong>Laravel Backend API</strong>
+                      <span>Endpoint connection secure</span>
+                    </div>
+                    <span className="admin-health-dot online" />
+                  </div>
+                  <div className="admin-health-item">
+                    <div>
+                      <strong>Platform SQLite Database</strong>
+                      <span>Write and read operations active</span>
+                    </div>
+                    <span className="admin-health-dot online" />
+                  </div>
+                  <div className="admin-health-item">
+                    <div>
+                      <strong>Twilio WhatsApp Service</strong>
+                      <span>Webhook listener online</span>
+                    </div>
+                    <span className="admin-health-dot online" />
+                  </div>
+                  <div className="admin-health-item">
+                    <div>
+                      <strong>Paystack API Gateway</strong>
+                      <span>Key authentication success</span>
+                    </div>
+                    <span className="admin-health-dot online" />
+                  </div>
+                </div>
+              </SettingsGroup>
+
+              <div className="admin-form-footer">
+                <button type="submit" className="btn btn-primary" disabled={settingsSaving}>
+                  {settingsSaving ? <Loader2 className="admin-spin" size={17} /> : <Check size={17} />}
+                  Save settings
+                </button>
+              </div>
+            </form>
+          )}
+        </section>
+      )}
+
+      {activeTab === 'withdrawals' && (
+        <section className="admin-section">
+          <div className="admin-section-heading">
+            <div>
+              <h2>Withdrawal requests</h2>
+              <p>Review and approve pending withdrawal payout requests from store wallets.</p>
+            </div>
+            <button type="button" className="btn btn-outline" onClick={loadWithdrawals} disabled={withdrawalsLoading}>
+              <RefreshCw size={16} className={withdrawalsLoading ? 'admin-spin' : ''} /> Refresh
+            </button>
+          </div>
+
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Store / Merchant</th>
+                  <th>Amount</th>
+                  <th>Destination Bank details</th>
+                  <th>Date Requested</th>
+                  <th>Status</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {withdrawalsLoading ? (
+                  <TableSkeleton rows={6} columns={6} />
+                ) : withdrawals.length ? (
+                  withdrawals.map((w: any) => {
+                    const dateStr = new Date(w.created_at).toLocaleDateString(undefined, {
+                      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    return (
+                      <tr key={w.id}>
+                        <td>
+                          <strong>{w.store?.store_name || 'Unknown Store'}</strong>
+                          <span>{w.store?.user?.email || w.store?.user?.phone_number || 'No contact'}</span>
+                        </td>
+                        <td>
+                          <strong style={{ fontSize: 15 }}>{formatMoney(w.amount, w.store?.currency_code)}</strong>
+                        </td>
+                        <td>
+                          <strong>{w.bank_name}</strong>
+                          <span>{w.account_number} • {w.account_name}</span>
+                        </td>
+                        <td>
+                          <span>{dateStr}</span>
+                        </td>
+                        <td>
+                          <StatusChip tone={w.status === 'approved' ? 'green' : w.status === 'rejected' ? 'red' : 'gray'} label={w.status} />
+                        </td>
+                        <td className="admin-table__actions">
+                          {w.status === 'pending' && (
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              <button type="button" className="admin-action" style={{ color: 'var(--primary)', border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleApproveWithdrawal(w.id)}>
+                                <Check size={14} /> Approve
+                              </button>
+                              <button type="button" className="admin-action danger" style={{ border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleRejectWithdrawal(w.id)}>
+                                <X size={14} /> Reject
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={6}>
+                      <EmptyState label="No withdrawal requests found." />
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'verifications' && (
+        <section className="admin-section">
+          <div className="admin-section-heading">
+            <div>
+              <h2>Store Trust Verifications</h2>
+              <p>Review uploaded ID/business documents and manage storefront verified badges.</p>
+            </div>
+            <button type="button" className="btn btn-outline" onClick={loadVerifications} disabled={verificationsLoading}>
+              <RefreshCw size={16} className={verificationsLoading ? 'admin-spin' : ''} /> Refresh
+            </button>
+          </div>
+
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Store / Merchant</th>
+                  <th>Document Type</th>
+                  <th>Uploaded Document File</th>
+                  <th>Status</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {verificationsLoading ? (
+                  <TableSkeleton rows={6} columns={5} />
+                ) : verifications.length ? (
+                  verifications.map((v: any) => {
+                    const docLabel = v.verification_document_type ? v.verification_document_type.replace('_', ' ').toUpperCase() : 'ID';
+                    return (
+                      <tr key={v.id}>
+                        <td>
+                          <strong>{v.store_name}</strong>
+                          <a href={v.custom_domain ? `https://${v.custom_domain}` : `https://frontstore.app/${v.username}`} target="_blank" rel="noreferrer">
+                            @{v.username} <ExternalLink size={12} />
+                          </a>
+                        </td>
+                        <td>
+                          <strong style={{ fontSize: 13 }}>{docLabel}</strong>
+                        </td>
+                        <td>
+                          {v.verification_document_url ? (
+                            <a
+                              href={v.verification_document_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--primary)', fontWeight: 700 }}
+                            >
+                              View File <ExternalLink size={14} />
+                            </a>
+                          ) : (
+                            <span style={{ color: 'var(--text-faint)' }}>No file uploaded</span>
+                          )}
+                        </td>
+                        <td>
+                          <StatusChip tone={v.verification_status === 'verified' ? 'green' : v.verification_status === 'rejected' ? 'red' : 'gray'} label={v.verification_status} />
+                        </td>
+                        <td className="admin-table__actions">
+                          {v.verification_status === 'pending' && (
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              <button type="button" className="admin-action" style={{ color: 'var(--primary)', border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleApproveVerification(v.id)}>
+                                <Check size={14} /> Approve
+                              </button>
+                              <button type="button" className="admin-action danger" style={{ border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => handleRejectVerification(v.id)}>
+                                <X size={14} /> Reject
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={5}>
+                      <EmptyState label="No verification requests found." />
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+    </main>
+
+    {selectedStore && (
+      <div className="admin-drawer-overlay" onClick={() => setSelectedStore(null)}>
+        <div className="admin-drawer" onClick={(e) => e.stopPropagation()}>
+          <div className="admin-drawer__header">
+            <div>
+              <h2>Store Inspector</h2>
+              <p>Inspect and manage details for @{selectedStore.username}</p>
+            </div>
+            <button type="button" className="admin-drawer__close" onClick={() => setSelectedStore(null)}>
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="admin-drawer__content">
+            <div className="admin-drawer__section">
+              <h3>Store Information</h3>
+              <div className="admin-drawer__grid">
+                <div>
+                  <label>Store Name</label>
+                  <strong>{selectedStore.store_name}</strong>
+                </div>
+                <div>
+                  <label>Username</label>
+                  <span>@{selectedStore.username}</span>
+                </div>
+                <div>
+                  <label>Status</label>
+                  <StatusChip tone={selectedStore.is_active ? 'green' : 'red'} label={selectedStore.is_active ? 'Active' : 'Suspended'} />
+                </div>
+                <div>
+                  <label>Verification Badge</label>
+                  <StatusChip tone={selectedStore.verification_status === 'verified' ? 'green' : selectedStore.verification_status === 'rejected' ? 'red' : 'gray'} label={selectedStore.verification_status || 'unverified'} />
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-drawer__section">
+              <h3>Wallet Balances</h3>
+              <div className="admin-drawer__grid admin-drawer__grid--cols-2">
+                <div className="admin-balance-card withdrawable">
+                  <label>Withdrawable Balance</label>
+                  <strong>{formatMoney(selectedStore.withdrawable_balance, selectedStore.currency_code)}</strong>
+                </div>
+                <div className="admin-balance-card pending">
+                  <label>Pending Escrow Balance</label>
+                  <strong>{formatMoney(selectedStore.pending_balance, selectedStore.currency_code)}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-drawer__section">
+              <h3>Merchant details</h3>
+              <div className="admin-drawer__grid">
+                <div>
+                  <label>Owner Name</label>
+                  <strong>{selectedStore.user?.name || 'No name'}</strong>
+                </div>
+                <div>
+                  <label>Email Address</label>
+                  <span>{selectedStore.user?.email || 'No email'}</span>
+                </div>
+                <div>
+                  <label>Phone Number</label>
+                  <span>{selectedStore.user?.phone_number || 'No phone'}</span>
+                </div>
+                <div>
+                  <label>Joined Platform</label>
+                  <span>{selectedStore.user?.created_at ? new Date(selectedStore.user.created_at).toLocaleDateString() : 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+
+            {selectedStore.bank_account_number && (
+              <div className="admin-drawer__section">
+                <h3>Payout Bank account</h3>
+                <div className="admin-drawer__grid">
+                  <div>
+                    <label>Bank Name</label>
+                    <strong>{selectedStore.bank_name || 'N/A'}</strong>
+                  </div>
+                  <div>
+                    <label>Account Number</label>
+                    <span>{selectedStore.bank_account_number}</span>
+                  </div>
+                  <div>
+                    <label>Account Name</label>
+                    <span>{selectedStore.bank_account_name || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="admin-drawer__actions">
+            <button type="button" className="btn btn-outline" onClick={() => setSelectedStore(null)}>Close Inspector</button>
+            <button
+              type="button"
+              className={selectedStore.is_active ? 'btn btn-primary btn-danger-tone' : 'btn btn-primary'}
+              onClick={() => {
+                handleToggleStoreStatus(selectedStore.id);
+                setSelectedStore(prev => prev ? { ...prev, is_active: !prev.is_active } : null);
+              }}
+            >
+              {selectedStore.is_active ? 'Suspend Store' : 'Activate Store'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    <ConfirmDialog
+      open={confirmationDialog.open}
+      title={confirmationDialog.title}
+      description={confirmationDialog.message}
+      confirmLabel={confirmationDialog.confirmLabel}
+      cancelLabel={confirmationDialog.cancelLabel}
+      onConfirm={executeConfirmationDialog}
+      onCancel={closeConfirmationDialog}
+      loading={confirmationDialog.loading}
+    />
+
+    <AdminStyles />
+  </div>
+);
 }
 
 function Metric({ icon, label, value, detail, tone = 'gray' }: { icon: React.ReactNode; label: string; value: string; detail?: string; tone?: 'green' | 'gray' }) {

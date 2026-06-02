@@ -1063,7 +1063,7 @@ export default function SignupPage() {
             marginBottom: 40,
             fontWeight: 500
           }}>
-            Create a fast, responsive mobile catalog for your business. Accept orders instantly, manage payments, and chat with customers directly. No high commissions, no complexity.
+            Create a fast, responsive mobile catalog for your business. Accept orders instantly, manage payments, and chat with customers directly. No commissions, no complexity.
           </p>
 
           {/* Quick specs */}

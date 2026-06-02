@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock } from 'lucide-react';
+import ConfirmDialog from '../../../components/ConfirmDialog';
 import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
 
 interface OrderItem {
@@ -47,12 +49,13 @@ export default function OrderTrackingPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Payment and Confirmation States
   const [verifyingPayment, setVerifyingPayment] = useState(false);
   const [isInitializingPayment, setIsInitializingPayment] = useState(false);
   const [isConfirmingDelivery, setIsConfirmingDelivery] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [deliveryConfirmationOpen, setDeliveryConfirmationOpen] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
@@ -136,17 +139,20 @@ export default function OrderTrackingPage() {
         throw new Error('Invalid payment response.');
       }
     } catch (err: any) {
-      alert(err.message || 'Something went wrong during payment initialization.');
+      toast.error(err.message || 'Something went wrong during payment initialization.');
     } finally {
       setIsInitializingPayment(false);
     }
   };
 
-  const handleConfirmDelivery = async () => {
+  const handleConfirmDelivery = () => {
     if (!id) return;
-    if (!confirm('Are you sure you have received your order? This will release funds to the seller and mark the order as completed. This action cannot be undone.')) {
-      return;
-    }
+    setDeliveryConfirmationOpen(true);
+  };
+
+  const confirmDelivery = async () => {
+    if (!id) return;
+    setDeliveryConfirmationOpen(false);
     try {
       setIsConfirmingDelivery(true);
       const res = await fetch(`${API_URL}/v1/public/orders/${id}/confirm-delivery`, {
@@ -157,15 +163,14 @@ export default function OrderTrackingPage() {
       if (!res.ok) {
         throw new Error(json.message || 'Failed to confirm delivery.');
       }
-      // Reload
       const updatedRes = await fetch(`${API_URL}/v1/public/orders/${id}`);
       if (updatedRes.ok) {
         const updatedJson = await updatedRes.json();
         setOrder(updatedJson.data);
       }
-      alert('Delivery confirmed! Payment has been released to the seller.');
+      toast.success('Delivery confirmed! Payment has been released to the seller.');
     } catch (err: any) {
-      alert(err.message || 'Something went wrong during delivery confirmation.');
+      toast.error(err.message || 'Something went wrong during delivery confirmation.');
     } finally {
       setIsConfirmingDelivery(false);
     }
@@ -186,10 +191,10 @@ export default function OrderTrackingPage() {
       <div className="storefront-container" style={{ padding: '24px', maxWidth: '480px', margin: '0 auto' }}>
         <div className="shimmer-loader" style={{ height: '32px', width: '40%', margin: '24px auto 16px', borderRadius: '6px' }}></div>
         <div className="shimmer-loader" style={{ height: '18px', width: '70%', margin: '0 auto 32px', borderRadius: '4px' }}></div>
-        
+
         {/* Shimmer Tracker Box */}
         <div className="shimmer-loader" style={{ height: '120px', width: '100%', marginBottom: '24px', borderRadius: '16px' }}></div>
-        
+
         {/* Shimmer Details */}
         <div className="shimmer-loader" style={{ height: '20px', width: '40%', marginBottom: '12px', borderRadius: '4px' }}></div>
         <div className="shimmer-loader" style={{ height: '100px', width: '100%', marginBottom: '24px', borderRadius: '12px' }}></div>
@@ -234,7 +239,7 @@ export default function OrderTrackingPage() {
 
   return (
     <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', position: 'relative' }}>
-      
+
       {/* Navbar Header */}
       <header style={{ padding: '20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -249,7 +254,7 @@ export default function OrderTrackingPage() {
       </header>
 
       <main style={{ padding: '24px 16px 100px', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        
+
         {/* Order Identifier Header */}
         <div style={{ textAlign: 'center' }}>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '4px' }}>
@@ -404,31 +409,31 @@ export default function OrderTrackingPage() {
           </div>
         ) : (
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: 'var(--shadow-sm)' }}>
-            
+
             {/* Timeline Item 1: Placed */}
             <div style={{ display: 'flex', gap: '16px', position: 'relative' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ 
-                  width: '28px', 
-                  height: '28px', 
-                  borderRadius: '50%', 
-                  backgroundColor: 'var(--primary)', 
-                  color: '#fff', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  zIndex: 2 
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--primary)',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 2
                 }}>
                   <Check size={14} strokeWidth={3} />
                 </div>
                 {/* Connecting Line */}
-                <div style={{ 
-                  width: '3px', 
-                  backgroundColor: activeStepIndex >= 2 ? 'var(--primary)' : 'var(--border)', 
+                <div style={{
+                  width: '3px',
+                  backgroundColor: activeStepIndex >= 2 ? 'var(--primary)' : 'var(--border)',
                   position: 'absolute',
                   top: 28,
                   bottom: -20,
-                  zIndex: 1 
+                  zIndex: 1
                 }}></div>
               </div>
               <div>
@@ -440,30 +445,30 @@ export default function OrderTrackingPage() {
             {/* Timeline Item 2: Confirmed */}
             <div style={{ display: 'flex', gap: '16px', position: 'relative' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ 
-                  width: '28px', 
-                  height: '28px', 
-                  borderRadius: '50%', 
-                  backgroundColor: activeStepIndex >= 2 ? 'var(--primary)' : 'var(--bg)', 
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  backgroundColor: activeStepIndex >= 2 ? 'var(--primary)' : 'var(--bg)',
                   border: activeStepIndex >= 2 ? 'none' : '2px solid var(--border)',
-                  color: activeStepIndex >= 2 ? '#fff' : 'var(--text-muted)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  fontSize: '13px', 
-                  fontWeight: 'bold', 
-                  zIndex: 2 
+                  color: activeStepIndex >= 2 ? '#fff' : 'var(--text-muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '13px',
+                  fontWeight: 'bold',
+                  zIndex: 2
                 }}>
                   {activeStepIndex >= 2 ? <Check size={14} strokeWidth={3} /> : '2'}
                 </div>
                 {/* Connecting Line */}
-                <div style={{ 
-                  width: '3px', 
-                  backgroundColor: activeStepIndex >= 3 ? 'var(--primary)' : 'var(--border)', 
+                <div style={{
+                  width: '3px',
+                  backgroundColor: activeStepIndex >= 3 ? 'var(--primary)' : 'var(--border)',
                   position: 'absolute',
                   top: 28,
                   bottom: -20,
-                  zIndex: 1 
+                  zIndex: 1
                 }}></div>
               </div>
               <div>
@@ -475,19 +480,19 @@ export default function OrderTrackingPage() {
             {/* Timeline Item 3: Completed */}
             <div style={{ display: 'flex', gap: '16px', position: 'relative' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{ 
-                  width: '28px', 
-                  height: '28px', 
-                  borderRadius: '50%', 
-                  backgroundColor: activeStepIndex >= 3 ? 'var(--primary)' : 'var(--bg)', 
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  backgroundColor: activeStepIndex >= 3 ? 'var(--primary)' : 'var(--bg)',
                   border: activeStepIndex >= 3 ? 'none' : '2px solid var(--border)',
-                  color: activeStepIndex >= 3 ? '#fff' : 'var(--text-muted)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  fontSize: '13px', 
-                  fontWeight: 'bold', 
-                  zIndex: 2 
+                  color: activeStepIndex >= 3 ? '#fff' : 'var(--text-muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '13px',
+                  fontWeight: 'bold',
+                  zIndex: 2
                 }}>
                   {activeStepIndex >= 3 ? <Check size={14} strokeWidth={3} /> : '3'}
                 </div>
@@ -533,7 +538,7 @@ export default function OrderTrackingPage() {
                 {order.items.filter(item => item.product?.is_digital).map(item => (
                   <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '10px 12px', background: 'var(--bg)', borderRadius: '10px', border: '1px solid var(--border)' }}>
                     <div style={{ fontWeight: 700, fontSize: '14px' }}>{item.product_name}</div>
-                    
+
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                       {item.product?.digital_file_url && (
                         <a
@@ -558,7 +563,7 @@ export default function OrderTrackingPage() {
                           <Download size={13} /> Download File
                         </a>
                       )}
-                      
+
                       {item.product?.digital_link && (
                         <a
                           href={item.product.digital_link}
@@ -591,7 +596,7 @@ export default function OrderTrackingPage() {
                     </div>
                   </div>
                 ))}
-                
+
                 <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                   ✓ Your purchase is complete and verified. Click the buttons above to get your products.
                 </p>
@@ -606,7 +611,7 @@ export default function OrderTrackingPage() {
                     </span>
                   </div>
                 ))}
-                
+
                 <div style={{ display: 'flex', gap: 8, background: 'rgba(217, 119, 6, 0.05)', border: '1px dashed #d97706', borderRadius: '10px', padding: 12, marginTop: 4 }}>
                   <Lock size={16} style={{ color: '#d97706', flexShrink: 0, marginTop: 1 }} />
                   <p style={{ fontSize: '12px', color: '#b45309', lineHeight: 1.4, margin: 0 }}>
@@ -654,7 +659,7 @@ export default function OrderTrackingPage() {
           <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
             Order Items
           </h3>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {order.items.map(item => (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px' }}>
@@ -674,11 +679,11 @@ export default function OrderTrackingPage() {
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
               <span style={{ color: 'var(--text-muted)' }}>Payment Status</span>
-              <span style={{ 
-                fontWeight: 600, 
-                fontSize: '13px', 
-                padding: '2px 8px', 
-                borderRadius: '6px', 
+              <span style={{
+                fontWeight: 600,
+                fontSize: '13px',
+                padding: '2px 8px',
+                borderRadius: '6px',
                 backgroundColor: order.payment_status === 'paid' ? 'var(--primary-light)' : '#fef3c7',
                 color: order.payment_status === 'paid' ? 'var(--primary)' : '#b45309',
                 textTransform: 'uppercase'
@@ -686,7 +691,7 @@ export default function OrderTrackingPage() {
                 {order.payment_status}
               </span>
             </div>
-            
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '17px', fontWeight: 800, borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
               <span>Total Paid/Due</span>
               <span style={{ color: 'var(--primary)' }}>
@@ -700,22 +705,22 @@ export default function OrderTrackingPage() {
 
       {/* Floating Bottom Sticky Action Button */}
       <div style={{ position: 'fixed', bottom: 16, left: 16, right: 16, maxWidth: '448px', margin: '0 auto', zIndex: 30 }}>
-        <a 
+        <a
           href={whatsappChatUrl}
           target="_blank"
-          style={{ 
-            width: '100%', 
-            padding: '16px 20px', 
-            borderRadius: '16px', 
-            backgroundColor: '#25D366', 
-            border: 'none', 
-            color: '#fff', 
-            fontWeight: 700, 
-            fontSize: '15px', 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            gap: '8px', 
+          style={{
+            width: '100%',
+            padding: '16px 20px',
+            borderRadius: '16px',
+            backgroundColor: '#25D366',
+            border: 'none',
+            color: '#fff',
+            fontWeight: 700,
+            fontSize: '15px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '8px',
             boxShadow: '0 8px 25px rgba(37, 211, 102, 0.3)',
             textDecoration: 'none'
           }}
@@ -724,6 +729,17 @@ export default function OrderTrackingPage() {
           <WhatsAppIcon size={20} /> Chat with Seller on WhatsApp
         </a>
       </div>
+
+      <ConfirmDialog
+        open={deliveryConfirmationOpen}
+        title="Confirm delivery"
+        description="Are you sure you have received your order? This will release funds to the seller and mark the order as completed. This action cannot be undone."
+        confirmLabel="Yes, confirm"
+        cancelLabel="Cancel"
+        onConfirm={confirmDelivery}
+        onCancel={() => setDeliveryConfirmationOpen(false)}
+        loading={isConfirmingDelivery}
+      />
 
     </div>
   );

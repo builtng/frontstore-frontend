@@ -1,12 +1,12 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import HomePageClient from './HomePageClient';
+import MarketplaceHomeClient from './MarketplaceHomeClient';
 
 async function getPublicSettings() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/settings`, {
-      next: { revalidate: 60 }, // Cache settings for 60 seconds
+      next: { revalidate: 60 },
     });
     if (!res.ok) return null;
     const { data } = await res.json();
@@ -17,30 +17,50 @@ async function getPublicSettings() {
   }
 }
 
-// ── SEO & Platform Metadata ──────────────────────────────────────────────────
+async function getMarketplaceData() {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  try {
+    const res = await fetch(`${API_URL}/v1/public/marketplace`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) {
+      return { products: [], categories: [], stats: { products_count: 0, stores_count: 0 } };
+    }
+    const { data } = await res.json();
+    return data;
+  } catch (err) {
+    console.error('Error fetching marketplace data:', err);
+    return { products: [], categories: [], stats: { products_count: 0, stores_count: 0 } };
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings();
   const appName = settings?.app_name || 'Frontstore';
   const logoUrl = settings?.logo_url || 'https://frontstore.app/icon.png';
   const systemDomain = settings?.system_domain || 'frontstore.app';
 
-  const title = `${appName} — Conversational Commerce Platform`;
-  const description = "Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa. Turn WhatsApp conversations into sales.";
+  const title = `${appName} Marketplace - Shop Products from Local Businesses`;
+  const description = `Discover products uploaded by businesses on ${appName}. Browse by category, see the business behind each product, and shop directly from trusted storefronts.`;
   const url = `https://${systemDomain}`;
 
   return {
     title,
     description,
     keywords: [
-      "WhatsApp commerce", "conversational commerce", "African e-commerce", "digital catalog", "mobile store",
-      "sell on WhatsApp", `${appName.toLowerCase()} store`, "online store Africa",
+      `${appName} marketplace`,
+      'online marketplace',
+      'African businesses',
+      'shop local businesses',
+      'WhatsApp stores',
+      'product discovery',
     ],
     alternates: {
       canonical: url,
     },
     openGraph: {
-      type: "website",
-      locale: "en_NG",
+      type: 'website',
+      locale: 'en_NG',
       siteName: appName,
       title,
       description,
@@ -50,12 +70,12 @@ export async function generateMetadata(): Promise<Metadata> {
           url: logoUrl,
           width: 512,
           height: 512,
-          alt: `${appName} — Conversational Commerce Platform for Africa`,
-        }
+          alt: `${appName} Marketplace`,
+        },
       ],
     },
     twitter: {
-      card: "summary_large_image",
+      card: 'summary_large_image',
       title,
       description,
       images: [logoUrl],
@@ -64,25 +84,27 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const settings = await getPublicSettings();
+  const [settings, marketplaceData] = await Promise.all([
+    getPublicSettings(),
+    getMarketplaceData(),
+  ]);
+
   const appName = settings?.app_name || 'Frontstore';
-  const logoUrl = settings?.logo_url || 'https://frontstore.app/icon.png';
   const systemDomain = settings?.system_domain || 'frontstore.app';
+  const logoUrl = settings?.logo_url || `https://${systemDomain}/icon.png`;
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'WebApplication',
-    'name': appName,
-    'url': `https://${systemDomain}`,
-    'logo': logoUrl,
-    'description': 'Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa. Turn WhatsApp conversations into sales.',
-    'applicationCategory': 'BusinessApplication',
-    'operatingSystem': 'All',
-    'offers': {
-      '@type': 'Offer',
-      'price': '0',
-      'priceCurrency': 'USD'
-    }
+    '@type': 'WebSite',
+    name: `${appName} Marketplace`,
+    url: `https://${systemDomain}`,
+    logo: logoUrl,
+    description: `Discover products uploaded by businesses on ${appName}.`,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `https://${systemDomain}/?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
   };
 
   return (
@@ -91,7 +113,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HomePageClient initialSettings={settings} />
+      <MarketplaceHomeClient initialData={marketplaceData} initialSettings={settings} />
     </>
   );
 }

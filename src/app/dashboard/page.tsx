@@ -14,6 +14,7 @@ import {
   ArrowUp, ArrowDown, Facebook, Twitter, Music2, Eye, EyeOff, Key
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import SearchableSelect from '../../components/SearchableSelect';
 import ThemeToggle from '../../components/ThemeToggle';
 
@@ -302,6 +303,55 @@ export default function DashboardPage() {
     title: string;
     description: string;
   } | null>(null);
+
+  const [confirmationDialog, setConfirmationDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    confirmLabel: string;
+    cancelLabel: string;
+    onConfirm: () => Promise<void>;
+    loading: boolean;
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    confirmLabel: 'Confirm',
+    cancelLabel: 'Cancel',
+    onConfirm: async () => { },
+    loading: false,
+  });
+
+  const openConfirmationDialog = (
+    title: string,
+    message: string,
+    onConfirm: () => Promise<void>,
+    confirmLabel = 'Confirm',
+    cancelLabel = 'Cancel'
+  ) => {
+    setConfirmationDialog({
+      open: true,
+      title,
+      message,
+      confirmLabel,
+      cancelLabel,
+      onConfirm,
+      loading: false,
+    });
+  };
+
+  const closeConfirmationDialog = () => {
+    setConfirmationDialog((prev) => ({ ...prev, open: false, loading: false }));
+  };
+
+  const executeConfirmationDialog = async () => {
+    setConfirmationDialog((prev) => ({ ...prev, loading: true }));
+    try {
+      await confirmationDialog.onConfirm();
+    } finally {
+      closeConfirmationDialog();
+    }
+  };
 
   // Quick discount campaign modal
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
@@ -1209,22 +1259,29 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDeleteProduct = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product? This action is permanent.')) return;
-    try {
-      const res = await fetch(`${apiUrl}/v1/products/${productId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
-      if (res.ok) {
-        toast.success('Product removed from store.');
-        loadAllData(true);
-      } else {
-        throw new Error('Deletion failed.');
-      }
-    } catch {
-      toast.error('Could not delete product.');
-    }
+  const handleDeleteProduct = (productId: string) => {
+    openConfirmationDialog(
+      'Delete product',
+      'Are you sure you want to delete this product? This action is permanent.',
+      async () => {
+        try {
+          const res = await fetch(`${apiUrl}/v1/products/${productId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+          });
+          if (res.ok) {
+            toast.success('Product removed from store.');
+            loadAllData(true);
+          } else {
+            throw new Error('Deletion failed.');
+          }
+        } catch {
+          toast.error('Could not delete product.');
+        }
+      },
+      'Delete',
+      'Cancel'
+    );
   };
 
   // --- Order Management Status Updates ---
@@ -1630,30 +1687,35 @@ export default function DashboardPage() {
     }
   };
 
-  const handleRemoveCustomDomain = async () => {
-    if (!window.confirm('Are you sure you want to disconnect your custom domain? Your store will no longer be accessible via this domain.')) {
-      return;
-    }
-    try {
-      setCustomDomainSaving(true);
-      const res = await fetch(`${apiUrl}/v1/store/custom-domain`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
+  const handleRemoveCustomDomain = () => {
+    openConfirmationDialog(
+      'Remove custom domain',
+      'Are you sure you want to disconnect your custom domain? Your store will no longer be accessible via this domain.',
+      async () => {
+        try {
+          setCustomDomainSaving(true);
+          const res = await fetch(`${apiUrl}/v1/store/custom-domain`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+          });
 
-      const json = await res.json();
-      if (res.ok && json.data) {
-        toast.success(json.message || 'Custom domain removed.');
-        setStore(json.data);
-        localStorage.setItem('store', JSON.stringify(json.data));
-      } else {
-        throw new Error(json.message || 'Failed to remove custom domain.');
-      }
-    } catch (e: any) {
-      toast.error(e.message || 'Error removing custom domain.');
-    } finally {
-      setCustomDomainSaving(false);
-    }
+          const json = await res.json();
+          if (res.ok && json.data) {
+            toast.success(json.message || 'Custom domain removed.');
+            setStore(json.data);
+            localStorage.setItem('store', JSON.stringify(json.data));
+          } else {
+            throw new Error(json.message || 'Failed to remove custom domain.');
+          }
+        } catch (e: any) {
+          toast.error(e.message || 'Error removing custom domain.');
+        } finally {
+          setCustomDomainSaving(false);
+        }
+      },
+      'Remove',
+      'Cancel'
+    );
   };
 
   // --- Dev API endpoints config handler ---
@@ -2583,7 +2645,7 @@ export default function DashboardPage() {
                               >
                                 <Trash2 size={13} />
                               </button>
-</div>
+                            </div>
                           </div>
                         </div>
                       ))
@@ -3516,14 +3578,14 @@ export default function DashboardPage() {
                           <div>
                             <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Currency</label>
                             <SearchableSelect
-                                options={[
-                                  { value: 'NGN', label: 'NGN (₦)', icon: <span style={{ fontSize: 16 }}>🇳🇬</span> },
-                                  { value: 'GHS', label: 'GHS (₵)', icon: <span style={{ fontSize: 16 }}>🇬🇭</span> },
-                                  { value: 'KES', label: 'KES (KSh)', icon: <span style={{ fontSize: 16 }}>🇰🇪</span> },
-                                  { value: 'ZAR', label: 'ZAR (R)', icon: <span style={{ fontSize: 16 }}>🇿🇦</span> },
-                                  { value: 'USD', label: 'USD ($)', icon: <span style={{ fontSize: 16 }}>🇺🇸</span> },
-                                  { value: 'GBP', label: 'GBP (£)', icon: <span style={{ fontSize: 16 }}>🇬🇧</span> }
-                                ]}
+                              options={[
+                                { value: 'NGN', label: 'NGN (₦)', icon: <span style={{ fontSize: 16 }}>🇳🇬</span> },
+                                { value: 'GHS', label: 'GHS (₵)', icon: <span style={{ fontSize: 16 }}>🇬🇭</span> },
+                                { value: 'KES', label: 'KES (KSh)', icon: <span style={{ fontSize: 16 }}>🇰🇪</span> },
+                                { value: 'ZAR', label: 'ZAR (R)', icon: <span style={{ fontSize: 16 }}>🇿🇦</span> },
+                                { value: 'USD', label: 'USD ($)', icon: <span style={{ fontSize: 16 }}>🇺🇸</span> },
+                                { value: 'GBP', label: 'GBP (£)', icon: <span style={{ fontSize: 16 }}>🇬🇧</span> }
+                              ]}
                               value={setCurrency}
                               onChange={val => setSetCurrency(val)}
                               placeholder="Select Currency"
@@ -4340,10 +4402,16 @@ export default function DashboardPage() {
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        if (confirm(`Are you sure you want to remove "${link.title}"?`)) {
-                                          setCustomLinks(prev => prev.filter(l => l.id !== link.id));
-                                          toast.info('Link deleted locally.');
-                                        }
+                                        openConfirmationDialog(
+                                          'Remove link',
+                                          `Are you sure you want to remove "${link.title}"?`,
+                                          async () => {
+                                            setCustomLinks((prev) => prev.filter((l) => l.id !== link.id));
+                                            toast.info('Link deleted locally.');
+                                          },
+                                          'Remove',
+                                          'Cancel'
+                                        );
                                       }}
                                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}
                                       title="Delete link"
@@ -4773,7 +4841,7 @@ export default function DashboardPage() {
                   <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
                     Retarget your customers automatically. Send updates, discount codes, or custom promotional messages directly to your shoppers' WhatsApp inboxes with 98% open rates.
                   </p>
-                  
+
                   {/* Features List */}
                   <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -5013,7 +5081,7 @@ export default function DashboardPage() {
                           </div>
                         )}
                       </div>
- 
+
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
@@ -5040,7 +5108,7 @@ export default function DashboardPage() {
                           <span>Priority support &amp; instant feature updates</span>
                         </div>
                       </div>
- 
+
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginTop: 24 }}>
                         <button
                           type="button"
@@ -5077,7 +5145,7 @@ export default function DashboardPage() {
               {/* ── TAB 8: WALLET & PAYOUTS ── */}
               {activeTab === 'wallet' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
-                  
+
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
@@ -6506,6 +6574,17 @@ export default function DashboardPage() {
           }
         }
       `}</style>
+
+      <ConfirmDialog
+        open={confirmationDialog.open}
+        title={confirmationDialog.title}
+        description={confirmationDialog.message}
+        confirmLabel={confirmationDialog.confirmLabel}
+        cancelLabel={confirmationDialog.cancelLabel}
+        onConfirm={executeConfirmationDialog}
+        onCancel={closeConfirmationDialog}
+        loading={confirmationDialog.loading}
+      />
 
     </div>
   );
