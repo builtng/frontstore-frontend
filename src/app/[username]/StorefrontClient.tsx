@@ -1273,7 +1273,11 @@ export default function StorefrontClient({
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(
+    initialProductSlug && initialData?.products
+      ? initialData.products.find(item => item.slug === initialProductSlug) || null
+      : null
+  );
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [systemDomain, setSystemDomain] = useState(initialData?.system_domain || 'frontstore.app');
