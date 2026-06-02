@@ -1247,23 +1247,39 @@ function StoreFooter({ store, systemDomain = 'frontstore.app', appName = 'Fronts
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function StorefrontClient({ username, initialProductSlug }: { username: string; initialProductSlug?: string }) {
+export default function StorefrontClient({
+  username,
+  initialProductSlug,
+  initialData,
+}: {
+  username: string;
+  initialProductSlug?: string;
+  initialData?: {
+    store: Store;
+    categories?: Category[];
+    products?: Product[];
+    system_domain?: string;
+    store_disclaimer?: string;
+    app_name?: string;
+    logo_url?: string;
+  } | null;
+}) {
   const uname = username;
 
-  const [store, setStore] = useState<Store | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [store, setStore] = useState<Store | null>(initialData?.store || null);
+  const [categories, setCategories] = useState<Category[]>(initialData?.categories || []);
+  const [products, setProducts] = useState<Product[]>(initialData?.products || []);
+  const [loading, setLoading] = useState(!initialData || !initialData.store);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [systemDomain, setSystemDomain] = useState('frontstore.app');
-  const [storeDisclaimer, setStoreDisclaimer] = useState('');
-  const [appName, setAppName] = useState('Frontstore');
-  const [logoUrl, setLogoUrl] = useState('');
+  const [systemDomain, setSystemDomain] = useState(initialData?.system_domain || 'frontstore.app');
+  const [storeDisclaimer, setStoreDisclaimer] = useState(initialData?.store_disclaimer || '');
+  const [appName, setAppName] = useState(initialData?.app_name || 'Frontstore');
+  const [logoUrl, setLogoUrl] = useState(initialData?.logo_url || '');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [pendingRemoveItem, setPendingRemoveItem] = useState<string | null>(null);
   const [isClearCartConfirmOpen, setIsClearCartConfirmOpen] = useState(false);
@@ -1275,7 +1291,9 @@ export default function StorefrontClient({ username, initialProductSlug }: { use
     if (!uname) return;
     (async () => {
       try {
-        setLoading(true);
+        if (!store) {
+          setLoading(true);
+        }
         const res = await fetch(`${API_URL}/v1/public/store/${uname}`, { cache: 'no-store' });
         if (!res.ok) throw new Error('Store not found or currently inactive');
         const { data } = await res.json();
@@ -1287,7 +1305,9 @@ export default function StorefrontClient({ username, initialProductSlug }: { use
         if (data.app_name) setAppName(data.app_name);
         if (data.logo_url) setLogoUrl(data.logo_url);
       } catch (e: any) {
-        setError(e.message ?? 'Something went wrong');
+        if (!store) {
+          setError(e.message ?? 'Something went wrong');
+        }
       } finally {
         setLoading(false);
       }

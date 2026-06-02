@@ -15,6 +15,7 @@ import {
   Tag,
 } from 'lucide-react';
 import { PublicSiteNav, PublicSiteFooter } from '../components/PublicSiteChrome';
+import Logo from '../components/Logo';
 
 type StoreSummary = {
   id: string;
@@ -155,7 +156,9 @@ export default function MarketplaceHomeClient({
     const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
     const loadFreshData = async () => {
       try {
-        setLoading(true);
+        if (products.length === 0) {
+          setLoading(true);
+        }
         const res = await fetch(`${savedApiUrl}/v1/public/marketplace`);
         if (res.ok) {
           const json = await res.json();
@@ -186,6 +189,36 @@ export default function MarketplaceHomeClient({
   const topCategories = categories.slice(0, 8);
   const storesCount = stats?.stores_count || new Set(products.map((product) => product.store?.username).filter(Boolean)).size;
   const productsCount = stats?.products_count || products.length;
+
+  if (loading) {
+    return (
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'var(--bg)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        gap: 16
+      }}>
+        <Logo size={48} textColor="var(--primary)" />
+        <div className="spinner" style={{ width: 32, height: 32, border: '3px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%' }} />
+        <span style={{ color: 'var(--text-muted)', fontSize: 14, fontWeight: 600 }}>Loading marketplace...</span>
+        
+        <style jsx global>{`
+          .spinner {
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="marketplace-page">
@@ -228,9 +261,7 @@ export default function MarketplaceHomeClient({
         </section>
 
         <aside className="marketplace-featured" aria-label="Featured product">
-          {loading ? (
-            <FeaturedProductSkeleton />
-          ) : featuredProduct ? (
+          {featuredProduct ? (
             <a href={`/${featuredProduct.store?.username}/products/${featuredProduct.slug}`} className="marketplace-featured__card">
               <div className="marketplace-featured__image">
                 {featuredProduct.image_url ? (
@@ -298,13 +329,7 @@ export default function MarketplaceHomeClient({
           <p>{filteredProducts.length.toLocaleString()} product{filteredProducts.length === 1 ? '' : 's'} visible</p>
         </section>
 
-        {loading ? (
-          <section className="marketplace-grid">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <ProductCardSkeleton key={i} />
-            ))}
-          </section>
-        ) : filteredProducts.length > 0 ? (
+        {filteredProducts.length > 0 ? (
           <section className="marketplace-grid">
             {filteredProducts.map((product) => {
               const productUrl = product.store?.username ? `/${product.store.username}/products/${product.slug}` : '#';

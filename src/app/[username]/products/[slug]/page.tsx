@@ -159,7 +159,7 @@ export default async function ProductPage({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <StorefrontClient username={username} initialProductSlug={slug} />
+      <StorefrontClient username={username} initialProductSlug={slug} initialData={storeData} />
     </>
   );
 }
