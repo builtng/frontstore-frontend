@@ -38,6 +38,17 @@ const countries = [
   { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸' },
 ];
 
+const businessPersonas = [
+  { id: 'retail-groceries', name: 'Retail & Groceries', persona: 'Mama Tunde', summary: 'Foodstuffs, supermarkets, neighborhood shops, and everyday goods.', template: 'WhatsApp Native' },
+  { id: 'fashion-apparel', name: 'Fashion & Apparel', persona: 'Chidi', summary: 'Boutiques, thrift sellers, bespoke apparel, shoes, bags, and accessories.', template: 'Editorial' },
+  { id: 'food-vendor', name: 'Food Vendor', persona: 'Aisha', summary: 'Cloud kitchens, bakeries, restaurants, lunch bowls, and daily menus.', template: 'Flash Sale' },
+  { id: 'creator-digital', name: 'Creator & Digital Products', persona: 'Tobi', summary: 'E-books, courses, templates, music, PDFs, and instant downloads.', template: 'Digital Studio' },
+  { id: 'faith-community', name: 'Faith Community', persona: 'Brother Samuel', summary: 'Offerings, event registration, donations, books, and community programs.', template: 'WhatsApp Native' },
+  { id: 'school-education', name: 'School & Education', persona: 'Mrs. Okoro', summary: 'School fees, uniforms, books, events, and parent payments.', template: 'Luxe Market' },
+  { id: 'pharmacy-health', name: 'Pharmacy & Health', persona: 'Dr. Emeka', summary: 'Pharmacies, wellness shops, prescription pre-orders, and consultations.', template: 'Atelier' },
+  { id: 'beauty-service', name: 'Beauty & Services', persona: 'Sarah', summary: 'Stylists, salons, makeup artists, bookings, deposits, and beauty products.', template: 'Editorial' },
+];
+
 const parsePhoneNumber = (fullPhone: string) => {
   if (!fullPhone) return { country: countries[0], local: '' };
   const sortedCountries = [...countries].sort((a, b) => b.dialCode.length - a.dialCode.length);
@@ -66,6 +77,7 @@ function SignupFormContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState('retail-groceries');
   const [mounted, setMounted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
@@ -194,6 +206,7 @@ function SignupFormContent() {
           name,
           phone_number: normalizedPhone,
           country_dial_code: selectedCountry.dialCode,
+          business_persona: selectedPersona,
           password,
           email: email || undefined,
         }),
@@ -519,6 +532,45 @@ function SignupFormContent() {
               <Store size={16} />
             </div>
             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Store Information</h3>
+          </div>
+
+          {/* Business Type */}
+          <div>
+            <label
+              style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
+            >
+              Business Type
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
+              {businessPersonas.map(persona => {
+                const active = selectedPersona === persona.id;
+                return (
+                  <button
+                    key={persona.id}
+                    type="button"
+                    onClick={() => setSelectedPersona(persona.id)}
+                    className="clickable"
+                    style={{
+                      textAlign: 'left',
+                      border: active ? '1.5px solid var(--primary)' : '1px solid var(--border)',
+                      borderRadius: 'var(--r-lg)',
+                      background: active ? 'var(--primary-light)' : 'var(--surface)',
+                      padding: 12,
+                      boxShadow: active ? '0 12px 28px var(--primary-glow)' : 'var(--shadow-xs)',
+                    }}
+                  >
+                    <span style={{ display: 'block', fontSize: 10.5, color: active ? 'var(--primary)' : 'var(--text-faint)', fontWeight: 900, textTransform: 'uppercase', marginBottom: 4 }}>
+                      {persona.persona} · {persona.template}
+                    </span>
+                    <strong style={{ display: 'block', color: 'var(--text)', fontSize: 13.5, marginBottom: 4 }}>{persona.name}</strong>
+                    <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: 11.5, lineHeight: 1.4 }}>{persona.summary}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 8 }}>
+              We will activate the best default template and storefront copy for this business type. You can change everything later in your dashboard.
+            </span>
           </div>
 
           {/* Store Name */}
