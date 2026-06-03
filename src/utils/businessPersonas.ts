@@ -1,0 +1,138 @@
+export type BusinessPersona = {
+  id: string;
+  name: string;
+  persona: string;
+  summary: string;
+  template: string;
+  templateName: string;
+  catalogLabel: string;
+  categoryLabel: string;
+  highlight: string;
+  sectionEyebrow: string;
+  sectionTitle: string;
+  carouselEyebrow: string;
+  carouselTitle: string;
+};
+
+export const businessPersonas: BusinessPersona[] = [
+  {
+    id: 'retail-groceries',
+    name: 'Retail & Groceries',
+    persona: 'Mama Tunde',
+    summary: 'Bulk foodstuffs, neighborhood retail, supermarkets, and everyday goods.',
+    template: 'whatsapp-native',
+    templateName: 'WhatsApp Native',
+    catalogLabel: 'item',
+    categoryLabel: 'aisle',
+    highlight: 'Everyday essentials, easy WhatsApp ordering',
+    sectionEyebrow: 'Shop essentials',
+    sectionTitle: 'Fresh stock ready for pickup or delivery',
+    carouselEyebrow: 'Popular today',
+    carouselTitle: 'Fast-moving items customers ask for',
+  },
+  {
+    id: 'fashion-apparel',
+    name: 'Fashion & Apparel',
+    persona: 'Chidi',
+    summary: 'Boutiques, thrift sellers, bespoke apparel, shoes, bags, and accessories.',
+    template: 'editorial',
+    templateName: 'Editorial',
+    catalogLabel: 'look',
+    categoryLabel: 'collection',
+    highlight: 'Premium looks with direct chat checkout',
+    sectionEyebrow: 'New arrivals',
+    sectionTitle: 'Curated pieces for your next look',
+    carouselEyebrow: 'Featured fits',
+    carouselTitle: 'Statement pieces from the catalog',
+  },
+  {
+    id: 'food-vendor',
+    name: 'Food Vendor',
+    persona: 'Aisha',
+    summary: 'Cloud kitchens, bakeries, lunch bowls, restaurants, and daily menus.',
+    template: 'flash-sale',
+    templateName: 'Flash Sale',
+    catalogLabel: 'meal',
+    categoryLabel: 'menu section',
+    highlight: 'Lunch-rush ordering without scattered messages',
+    sectionEyebrow: 'Menu',
+    sectionTitle: 'Order fresh meals before the rush',
+    carouselEyebrow: 'Chef picks',
+    carouselTitle: 'Customer favorites ready to order',
+  },
+  {
+    id: 'creator-digital',
+    name: 'Creator & Digital Products',
+    persona: 'Tobi',
+    summary: 'E-books, courses, templates, music, PDFs, and instant downloads.',
+    template: 'digital-studio',
+    templateName: 'Digital Studio',
+    catalogLabel: 'digital product',
+    categoryLabel: 'library',
+    highlight: 'Instant digital delivery after payment',
+    sectionEyebrow: 'Digital library',
+    sectionTitle: 'Downloadable products built for growth',
+    carouselEyebrow: 'Best sellers',
+    carouselTitle: 'Digital products people keep buying',
+  },
+  {
+    id: 'faith-community',
+    name: 'Faith Community',
+    persona: 'Brother Samuel',
+    summary: 'Church offerings, event registration, donations, books, and community programs.',
+    template: 'whatsapp-native',
+    templateName: 'WhatsApp Native',
+    catalogLabel: 'offering',
+    categoryLabel: 'ministry',
+    highlight: 'Simple giving, events, and community payments',
+    sectionEyebrow: 'Community desk',
+    sectionTitle: 'Support, register, and give with ease',
+    carouselEyebrow: 'Open now',
+    carouselTitle: 'Current programs and giving options',
+  },
+  {
+    id: 'school-education',
+    name: 'School & Education',
+    persona: 'Mrs. Okoro',
+    summary: 'School fees, uniforms, books, events, lesson materials, and parent payments.',
+    template: 'luxe-market',
+    templateName: 'Luxe Market',
+    catalogLabel: 'school item',
+    categoryLabel: 'department',
+    highlight: 'Organized payments for parents and pupils',
+    sectionEyebrow: 'School payments',
+    sectionTitle: 'Fees, uniforms, books, and school essentials',
+    carouselEyebrow: 'Important',
+    carouselTitle: 'Priority payments and school items',
+  },
+  {
+    id: 'pharmacy-health',
+    name: 'Pharmacy & Health',
+    persona: 'Dr. Emeka',
+    summary: 'Community pharmacies, wellness shops, prescription pre-orders, and consultations.',
+    template: 'atelier',
+    templateName: 'Atelier',
+    catalogLabel: 'health item',
+    categoryLabel: 'care category',
+    highlight: 'Trusted pre-orders and health essentials',
+    sectionEyebrow: 'Health catalog',
+    sectionTitle: 'Wellness products and pharmacy essentials',
+    carouselEyebrow: 'Recommended',
+    carouselTitle: 'Frequently requested health items',
+  },
+  {
+    id: 'beauty-service',
+    name: 'Beauty & Services',
+    persona: 'Sarah',
+    summary: 'Stylists, makeup artists, salons, service bookings, deposits, and beauty products.',
+    template: 'editorial',
+    templateName: 'Editorial',
+    catalogLabel: 'service',
+    categoryLabel: 'service menu',
+    highlight: 'Premium bookings, deposits, and beauty sales',
+    sectionEyebrow: 'Services',
+    sectionTitle: 'Book your next beauty experience',
+    carouselEyebrow: 'Signature services',
+    carouselTitle: 'Popular bookings and beauty picks',
+  },
+];

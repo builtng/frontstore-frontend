@@ -17,6 +17,7 @@ import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import SearchableSelect from '../../components/SearchableSelect';
 import ThemeToggle from '../../components/ThemeToggle';
+import { businessPersonas } from '../../utils/businessPersonas';
 
 // --- Currency Configuration ---
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -227,121 +228,6 @@ const storeTemplates = [
   },
 ];
 
-const businessPersonas = [
-  {
-    id: 'retail-groceries',
-    name: 'Retail & Groceries',
-    persona: 'Mama Tunde',
-    summary: 'Bulk foodstuffs, neighborhood retail, supermarkets, and everyday goods.',
-    template: 'whatsapp-native',
-    catalogLabel: 'item',
-    categoryLabel: 'aisle',
-    highlight: 'Everyday essentials, easy WhatsApp ordering',
-    sectionEyebrow: 'Shop essentials',
-    sectionTitle: 'Fresh stock ready for pickup or delivery',
-    carouselEyebrow: 'Popular today',
-    carouselTitle: 'Fast-moving items customers ask for',
-  },
-  {
-    id: 'fashion-apparel',
-    name: 'Fashion & Apparel',
-    persona: 'Chidi',
-    summary: 'Boutiques, thrift sellers, bespoke apparel, shoes, bags, and accessories.',
-    template: 'editorial',
-    catalogLabel: 'look',
-    categoryLabel: 'collection',
-    highlight: 'Premium looks with direct chat checkout',
-    sectionEyebrow: 'New arrivals',
-    sectionTitle: 'Curated pieces for your next look',
-    carouselEyebrow: 'Featured fits',
-    carouselTitle: 'Statement pieces from the catalog',
-  },
-  {
-    id: 'food-vendor',
-    name: 'Food Vendor',
-    persona: 'Aisha',
-    summary: 'Cloud kitchens, bakeries, lunch bowls, restaurants, and daily menus.',
-    template: 'flash-sale',
-    catalogLabel: 'meal',
-    categoryLabel: 'menu section',
-    highlight: 'Lunch-rush ordering without scattered messages',
-    sectionEyebrow: 'Menu',
-    sectionTitle: 'Order fresh meals before the rush',
-    carouselEyebrow: 'Chef picks',
-    carouselTitle: 'Customer favorites ready to order',
-  },
-  {
-    id: 'creator-digital',
-    name: 'Creator & Digital Products',
-    persona: 'Tobi',
-    summary: 'E-books, courses, templates, music, PDFs, and instant downloads.',
-    template: 'digital-studio',
-    catalogLabel: 'digital product',
-    categoryLabel: 'library',
-    highlight: 'Instant digital delivery after payment',
-    sectionEyebrow: 'Digital library',
-    sectionTitle: 'Downloadable products built for growth',
-    carouselEyebrow: 'Best sellers',
-    carouselTitle: 'Digital products people keep buying',
-  },
-  {
-    id: 'faith-community',
-    name: 'Faith Community',
-    persona: 'Brother Samuel',
-    summary: 'Church offerings, event registration, donations, books, and community programs.',
-    template: 'whatsapp-native',
-    catalogLabel: 'offering',
-    categoryLabel: 'ministry',
-    highlight: 'Simple giving, events, and community payments',
-    sectionEyebrow: 'Community desk',
-    sectionTitle: 'Support, register, and give with ease',
-    carouselEyebrow: 'Open now',
-    carouselTitle: 'Current programs and giving options',
-  },
-  {
-    id: 'school-education',
-    name: 'School & Education',
-    persona: 'Mrs. Okoro',
-    summary: 'School fees, uniforms, books, events, lesson materials, and parent payments.',
-    template: 'luxe-market',
-    catalogLabel: 'school item',
-    categoryLabel: 'department',
-    highlight: 'Organized payments for parents and pupils',
-    sectionEyebrow: 'School payments',
-    sectionTitle: 'Fees, uniforms, books, and school essentials',
-    carouselEyebrow: 'Important',
-    carouselTitle: 'Priority payments and school items',
-  },
-  {
-    id: 'pharmacy-health',
-    name: 'Pharmacy & Health',
-    persona: 'Dr. Emeka',
-    summary: 'Community pharmacies, wellness shops, prescription pre-orders, and consultations.',
-    template: 'atelier',
-    catalogLabel: 'health item',
-    categoryLabel: 'care category',
-    highlight: 'Trusted pre-orders and health essentials',
-    sectionEyebrow: 'Health catalog',
-    sectionTitle: 'Wellness products and pharmacy essentials',
-    carouselEyebrow: 'Recommended',
-    carouselTitle: 'Frequently requested health items',
-  },
-  {
-    id: 'beauty-service',
-    name: 'Beauty & Services',
-    persona: 'Sarah',
-    summary: 'Stylists, makeup artists, salons, service bookings, deposits, and beauty products.',
-    template: 'editorial',
-    catalogLabel: 'service',
-    categoryLabel: 'service menu',
-    highlight: 'Premium bookings, deposits, and beauty sales',
-    sectionEyebrow: 'Services',
-    sectionTitle: 'Book your next beauty experience',
-    carouselEyebrow: 'Signature services',
-    carouselTitle: 'Popular bookings and beauty picks',
-  },
-];
-
 const parsePhoneNumber = (fullPhone: string) => {
   if (!fullPhone) return { country: countries[0], local: '' };
   const sortedCountries = [...countries].sort((a, b) => b.dialCode.length - a.dialCode.length);
@@ -484,6 +370,8 @@ export default function DashboardPage() {
     setFeaturedCarouselTitle(persona.carouselTitle);
     toast.success(`${persona.name} persona applied. Save settings to publish it.`);
   };
+
+  const getSelectedPersonaPreset = () => businessPersonas.find(item => item.id === selectedPersona);
 
   // Quick discount campaign modal
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
@@ -1533,6 +1421,7 @@ export default function DashboardPage() {
       };
       const normalizedPhone = normalizePhone(localWhatsapp, selectedCountry.dialCode);
       const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
+      const personaPreset = getSelectedPersonaPreset();
       const res = await fetch(`${apiUrl}/v1/store`, {
         method: 'PUT',
         headers: getAuthHeaders(),
@@ -1552,16 +1441,16 @@ export default function DashboardPage() {
           custom_links: customLinks,
           logo_url: logoUrl,
           primary_color: isPro ? primaryColor : (store?.primary_color || '#10b981'),
-          store_template: selectedTemplate,
+          store_template: personaPreset?.template || selectedTemplate,
           business_persona: selectedPersona || null,
-          catalog_label: catalogLabel || null,
-          category_label: categoryLabel || null,
-          template_highlight_label: templateHighlightLabel || null,
-          product_section_eyebrow: productSectionEyebrow || null,
-          product_section_title: productSectionTitle || null,
-          featured_carousel_enabled: featuredCarouselEnabled,
-          featured_carousel_eyebrow: featuredCarouselEyebrow || null,
-          featured_carousel_title: featuredCarouselTitle || null,
+          catalog_label: personaPreset?.catalogLabel || catalogLabel || null,
+          category_label: personaPreset?.categoryLabel || categoryLabel || null,
+          template_highlight_label: personaPreset?.highlight || templateHighlightLabel || null,
+          product_section_eyebrow: personaPreset?.sectionEyebrow || productSectionEyebrow || null,
+          product_section_title: personaPreset?.sectionTitle || productSectionTitle || null,
+          featured_carousel_enabled: personaPreset ? true : featuredCarouselEnabled,
+          featured_carousel_eyebrow: personaPreset?.carouselEyebrow || featuredCarouselEyebrow || null,
+          featured_carousel_title: personaPreset?.carouselTitle || featuredCarouselTitle || null,
           featured_product_ids: featuredProductIds.slice(0, 5),
         })
       });
@@ -1607,6 +1496,12 @@ export default function DashboardPage() {
 
   const handleTemplateActivate = async (templateId: string) => {
     if (templateSaving) return;
+    const personaPreset = getSelectedPersonaPreset();
+    if (personaPreset && personaPreset.template !== templateId) {
+      toast.warning(`${personaPreset.name} uses the ${personaPreset.templateName} template. Clear the persona first to activate a different template.`);
+      return;
+    }
+
     const previousTemplate = selectedTemplate;
     const templateName = storeTemplates.find(t => t.id === templateId)?.name || 'Storefront';
 
@@ -1631,6 +1526,7 @@ export default function DashboardPage() {
       setStore(json.data);
       localStorage.setItem('store', JSON.stringify(json.data));
       setSelectedTemplate(json.data.store_template || templateId);
+      setSelectedPersona(json.data.business_persona || '');
       toast.success(`${templateName} template activated. Refresh the public store to view it.`);
     } catch (e: any) {
       setSelectedTemplate(previousTemplate);
@@ -3141,6 +3037,8 @@ export default function DashboardPage() {
                       {storeTemplates.map(template => {
                         const active = selectedTemplate === template.id;
                         const saving = templateSaving === template.id;
+                        const personaPreset = getSelectedPersonaPreset();
+                        const lockedByPersona = !!personaPreset && personaPreset.template !== template.id;
                         return (
                           <div
                             key={template.id}
@@ -3178,19 +3076,24 @@ export default function DashboardPage() {
                                 </div>
                                 {active && (
                                   <span className="badge badge-primary" style={{ flexShrink: 0 }}>
-                                    <Check size={11} /> Active
+                                    <Check size={11} /> {personaPreset ? 'Persona template' : 'Active'}
                                   </span>
                                 )}
                               </div>
                               <p style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5, minHeight: 38 }}>{template.description}</p>
+                              {lockedByPersona && (
+                                <p style={{ fontSize: 11.5, color: 'var(--text-faint)', lineHeight: 1.45, margin: 0 }}>
+                                  Clear the active persona to use this template.
+                                </p>
+                              )}
                               <button
                                 type="button"
                                 onClick={() => handleTemplateActivate(template.id)}
-                                disabled={saving || (active && !templateSaving)}
+                                disabled={saving || lockedByPersona || (active && !templateSaving)}
                                 className={active ? 'btn btn-outline clickable' : 'btn btn-primary clickable'}
-                                style={{ width: '100%', borderRadius: 'var(--r-md)', fontWeight: 850 }}
+                                style={{ width: '100%', borderRadius: 'var(--r-md)', fontWeight: 850, opacity: lockedByPersona ? 0.62 : 1 }}
                               >
-                                {saving ? <><Loader2 size={16} className="spinner" /> Activating...</> : active ? 'Active Template' : 'Activate Template'}
+                                {saving ? <><Loader2 size={16} className="spinner" /> Activating...</> : lockedByPersona ? 'Locked by Persona' : active ? 'Active Template' : 'Activate Template'}
                               </button>
                             </div>
                           </div>

@@ -8,6 +8,7 @@ import {
   Share2, Store, AlertCircle, Eye, EyeOff, Loader2, ArrowRight, User, Phone, Check, ShieldCheck, Mail
 } from 'lucide-react';
 import { RESERVED_SUBDOMAINS } from '../../utils/reservedKeywords';
+import { businessPersonas } from '../../utils/businessPersonas';
 
 // ── Password strength helper ─────────────────────────────────────────────────
 
@@ -36,17 +37,6 @@ const countries = [
   { code: 'TZ', name: 'Tanzania', dialCode: '+255', flag: '🇹🇿' },
   { code: 'GB', name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧' },
   { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸' },
-];
-
-const businessPersonas = [
-  { id: 'retail-groceries', name: 'Retail & Groceries', persona: 'Mama Tunde', summary: 'Foodstuffs, supermarkets, neighborhood shops, and everyday goods.', template: 'WhatsApp Native' },
-  { id: 'fashion-apparel', name: 'Fashion & Apparel', persona: 'Chidi', summary: 'Boutiques, thrift sellers, bespoke apparel, shoes, bags, and accessories.', template: 'Editorial' },
-  { id: 'food-vendor', name: 'Food Vendor', persona: 'Aisha', summary: 'Cloud kitchens, bakeries, restaurants, lunch bowls, and daily menus.', template: 'Flash Sale' },
-  { id: 'creator-digital', name: 'Creator & Digital Products', persona: 'Tobi', summary: 'E-books, courses, templates, music, PDFs, and instant downloads.', template: 'Digital Studio' },
-  { id: 'faith-community', name: 'Faith Community', persona: 'Brother Samuel', summary: 'Offerings, event registration, donations, books, and community programs.', template: 'WhatsApp Native' },
-  { id: 'school-education', name: 'School & Education', persona: 'Mrs. Okoro', summary: 'School fees, uniforms, books, events, and parent payments.', template: 'Luxe Market' },
-  { id: 'pharmacy-health', name: 'Pharmacy & Health', persona: 'Dr. Emeka', summary: 'Pharmacies, wellness shops, prescription pre-orders, and consultations.', template: 'Atelier' },
-  { id: 'beauty-service', name: 'Beauty & Services', persona: 'Sarah', summary: 'Stylists, salons, makeup artists, bookings, deposits, and beauty products.', template: 'Editorial' },
 ];
 
 const parsePhoneNumber = (fullPhone: string) => {
@@ -560,7 +550,7 @@ function SignupFormContent() {
                     }}
                   >
                     <span style={{ display: 'block', fontSize: 10.5, color: active ? 'var(--primary)' : 'var(--text-faint)', fontWeight: 900, textTransform: 'uppercase', marginBottom: 4 }}>
-                      {persona.persona} · {persona.template}
+                      {persona.persona} · {persona.templateName}
                     </span>
                     <strong style={{ display: 'block', color: 'var(--text)', fontSize: 13.5, marginBottom: 4 }}>{persona.name}</strong>
                     <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: 11.5, lineHeight: 1.4 }}>{persona.summary}</span>
