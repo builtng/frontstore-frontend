@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const store = storeData.store;
   const systemDomain = storeData.system_domain || 'frontstore.app';
-  const appName = storeData.app_name || 'Frontstore';
+  const appName = storeData.app_name || 'Front Store';
   const symbol = currencySymbol(store.currency_code || 'NGN');
   const price = Number(product.price || 0).toLocaleString('en-NG', {
     minimumFractionDigits: 0,

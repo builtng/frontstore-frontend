@@ -1267,7 +1267,7 @@ function StoreHeader({
 
 // ─── Store Footer ─────────────────────────────────────────────────────────────
 
-function StoreFooter({ store, systemDomain = 'frontstore.app', appName = 'Frontstore' }: { store: Store; systemDomain?: string; appName?: string }) {
+function StoreFooter({ store, systemDomain = 'frontstore.app', appName = 'Front Store' }: { store: Store; systemDomain?: string; appName?: string }) {
   const templateId = getTemplateId(store);
   const template = STORE_TEMPLATES[templateId];
 
@@ -1339,7 +1339,7 @@ export default function StorefrontClient({
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [systemDomain, setSystemDomain] = useState(initialData?.system_domain || 'frontstore.app');
   const [storeDisclaimer, setStoreDisclaimer] = useState(initialData?.store_disclaimer || '');
-  const [appName, setAppName] = useState(initialData?.app_name || 'Frontstore');
+  const [appName, setAppName] = useState(initialData?.app_name || 'Front Store');
   const [logoUrl, setLogoUrl] = useState(initialData?.logo_url || '');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [pendingRemoveItem, setPendingRemoveItem] = useState<string | null>(null);
@@ -1495,7 +1495,7 @@ export default function StorefrontClient({
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Store Unavailable</h1>
         <p style={{ color: 'var(--text-muted)', marginBottom: 24, maxWidth: 300, lineHeight: 1.6 }}>{error ?? "We couldn't load this storefront. Please check the URL and try again."}</p>
         <a href="/" className="btn btn-primary" style={{ textDecoration: 'none', gap: 8 }}>
-          <ArrowRight size={16} /> Go to frontstore
+          <ArrowRight size={16} /> Go to {appName}
         </a>
       </div>
     );

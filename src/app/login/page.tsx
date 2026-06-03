@@ -48,7 +48,7 @@ const parsePhoneNumber = (fullPhone: string) => {
   return { country: countries[0], local: cleaned.replace(/^0+/, '') };
 };
 
-function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: boolean; merchantLoginUrl: string }) {
+function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminMode: boolean; merchantLoginUrl: string; appName: string }) {
   const router = useRouter();
 
   const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -62,6 +62,8 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   useEffect(() => {
     setMounted(true);
@@ -108,8 +110,6 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
     }
     setLoginIdentifier(value);
   };
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   // If already logged in, redirect appropriately
   useEffect(() => {
@@ -168,7 +168,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
         localStorage.setItem('store', JSON.stringify(json.data.store || null));
 
         const isAdmin = json.data.user?.is_admin === true || json.data.user?.is_admin === 1 || json.data.user?.is_admin === 'true' || json.data.user?.is_admin === '1';
-        toast.success(isAdmin ? 'Welcome, Administrator! 🛡️' : 'Welcome back to frontstore! 👋');
+        toast.success(isAdmin ? 'Welcome, Administrator! 🛡️' : `Welcome back to ${appName}! 👋`);
         router.push(isAdmin ? '/admin' : '/dashboard');
       } else {
         throw new Error('No authentication token received.');
@@ -194,7 +194,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', marginBottom: 12 }}
         >
           <Store size={28} style={{ color: 'var(--primary)', strokeWidth: 2.5 }} />
-          <span>frontstore</span>
+          <span>{appName}</span>
         </a>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em' }}>
           {isAdminMode ? 'Admin Log In' : 'Merchant Log In'}
@@ -493,6 +493,22 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl }: { isAdminMode: bool
 export default function LoginPage() {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [merchantLoginUrl, setMerchantLoginUrl] = useState('/login');
+  const [appName, setAppName] = useState('Front Store');
+
+  useEffect(() => {
+    const loadPublicSettings = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+        const res = await fetch(`${apiUrl}/v1/public/settings`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.data?.app_name) setAppName(json.data.app_name);
+      } catch {
+        // Keep the local fallback when settings cannot be loaded.
+      }
+    };
+    loadPublicSettings();
+  }, []);
 
   useEffect(() => {
     const hostname = window.location.hostname;
@@ -573,7 +589,7 @@ export default function LoginPage() {
             color: '#fff'
           }}>
             <Store size={26} style={{ strokeWidth: 2.5 }} />
-            <span>frontstore</span>
+            <span>{appName}</span>
           </div>
 
           <h2 style={{
@@ -664,7 +680,7 @@ export default function LoginPage() {
               <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading storefront dashboard login...</span>
             </div>
           }>
-            <LoginFormContent isAdminMode={isAdminMode} merchantLoginUrl={merchantLoginUrl} />
+            <LoginFormContent isAdminMode={isAdminMode} merchantLoginUrl={merchantLoginUrl} appName={appName} />
           </Suspense>
         </div>
       </div>

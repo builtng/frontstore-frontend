@@ -7,6 +7,7 @@ import ThemeToggle from './ThemeToggle';
 
 export function PublicSiteNav() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [appName, setAppName] = useState('Front Store');
 
   useEffect(() => {
     try {
@@ -16,6 +17,21 @@ export function PublicSiteNav() {
     } catch {
       setIsLoggedIn(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const loadPublicSettings = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+        const res = await fetch(`${apiUrl}/v1/public/settings`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.data?.app_name) setAppName(json.data.app_name);
+      } catch {
+        // Keep the local fallback when settings cannot be loaded.
+      }
+    };
+    loadPublicSettings();
   }, []);
 
   return (
@@ -30,7 +46,7 @@ export function PublicSiteNav() {
         }}
       >
         <a href="/" style={{ display: 'inline-flex' }}>
-          <Logo size={24} textColor="var(--primary)" />
+          <Logo size={24} textColor="var(--primary)" text={appName} />
         </a>
 
         <div className="public-site-nav__links" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -82,6 +98,7 @@ export function PublicSiteNav() {
 
 export function PublicSiteFooter() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [appName, setAppName] = useState('Front Store');
 
   useEffect(() => {
     try {
@@ -91,6 +108,21 @@ export function PublicSiteFooter() {
     } catch {
       setIsLoggedIn(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const loadPublicSettings = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+        const res = await fetch(`${apiUrl}/v1/public/settings`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.data?.app_name) setAppName(json.data.app_name);
+      } catch {
+        // Keep the local fallback when settings cannot be loaded.
+      }
+    };
+    loadPublicSettings();
   }, []);
 
   return (
@@ -106,10 +138,10 @@ export function PublicSiteFooter() {
       marginTop: 48
     }}>
       <a href="/" style={{ display: 'inline-flex' }}>
-        <Logo size={20} textColor="var(--primary)" />
+        <Logo size={20} textColor="var(--primary)" text={appName} />
       </a>
       <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-        © {new Date().getFullYear()} frontstore. Africa's #1 WhatsApp commerce platform.
+        © {new Date().getFullYear()} {appName}. Africa's #1 WhatsApp commerce platform.
       </p>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
         <a href="/" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Marketplace</a>

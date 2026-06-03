@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { store } = data;
   const systemDomain = data.system_domain || 'frontstore.app';
-  const appName = data.app_name || 'Frontstore';
+  const appName = data.app_name || 'Front Store';
   const title = `${store.store_name} | Shop on ${appName}`;
   const description = store.store_bio || `Shop directly from ${store.store_name} on WhatsApp. Browse products and place orders instantly.`;
   const logo = store.logo_url || data.logo_url || `https://${systemDomain}/icon.png`;
