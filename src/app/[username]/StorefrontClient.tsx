@@ -94,6 +94,16 @@ interface CreatedOrderReceipt {
   whatsapp_url: string;
 }
 
+interface CustomerProfileLookup {
+  name?: string | null;
+  phone_number?: string | null;
+  whatsapp_number?: string | null;
+  email?: string | null;
+  preferred_delivery_method?: 'delivery' | 'pickup' | 'digital' | null;
+  preferred_delivery_address?: string | null;
+  purchase_count?: number;
+}
+
 // ─── Currency ─────────────────────────────────────────────────────────────────
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -899,6 +909,8 @@ function CheckoutDrawer({
   const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup' | 'digital'>('delivery');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileMessage, setProfileMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const isAllDigital = cart.every(item => item.product.is_digital);
@@ -910,6 +922,58 @@ function CheckoutDrawer({
       setDeliveryMethod('delivery');
     }
   }, [isAllDigital, deliveryMethod]);
+
+  const applyCustomerProfile = useCallback((profile: CustomerProfileLookup, source: 'local' | 'network') => {
+    if (!profile) return;
+
+    if (profile.name && !customerName) setCustomerName(profile.name);
+    if (profile.email && !customerEmail) setCustomerEmail(profile.email);
+    if (profile.whatsapp_number && !customerWhatsapp) setCustomerWhatsapp(profile.whatsapp_number);
+    if (profile.preferred_delivery_address && !deliveryAddress) setDeliveryAddress(profile.preferred_delivery_address);
+    if (!isAllDigital && profile.preferred_delivery_method && profile.preferred_delivery_method !== 'digital') {
+      setDeliveryMethod(profile.preferred_delivery_method);
+    }
+
+    setProfileMessage(source === 'network'
+      ? 'Saved checkout details found. Review them before placing your order.'
+      : 'Using your saved checkout details from this device.');
+  }, [customerName, customerEmail, customerWhatsapp, deliveryAddress, isAllDigital]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('frontstore_customer_profile');
+      if (saved) applyCustomerProfile(JSON.parse(saved), 'local');
+    } catch { }
+  }, [applyCustomerProfile]);
+
+  useEffect(() => {
+    const phone = customerPhone.trim();
+    if (phone.replace(/\D/g, '').length < 8) return;
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        setProfileLoading(true);
+        const res = await fetch(`${API_URL}/v1/public/customers/profile?phone=${encodeURIComponent(phone)}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.data) applyCustomerProfile(json.data, 'network');
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          setProfileMessage('');
+        }
+      } finally {
+        setProfileLoading(false);
+      }
+    }, 450);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [API_URL, customerPhone, applyCustomerProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -945,6 +1009,17 @@ function CheckoutDrawer({
       if (!res.ok) {
         throw new Error(json.message || 'Failed to place order.');
       }
+
+      try {
+        localStorage.setItem('frontstore_customer_profile', JSON.stringify({
+          name: customerName,
+          phone_number: customerPhone,
+          whatsapp_number: customerWhatsapp || customerPhone,
+          email: customerEmail || null,
+          preferred_delivery_method: deliveryMethod,
+          preferred_delivery_address: deliveryMethod === 'delivery' ? deliveryAddress : null,
+        }));
+      } catch { }
 
       onOrderCreated(json.data);
     } catch (err: any) {
@@ -992,6 +1067,24 @@ function CheckoutDrawer({
             }}>
               <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
               <div>{storeDisclaimer}</div>
+            </div>
+          )}
+
+          {(profileMessage || profileLoading) && (
+            <div style={{
+              background: 'var(--primary-light)',
+              color: 'var(--primary)',
+              border: '1px solid var(--primary)',
+              borderRadius: 'var(--r-md)',
+              padding: '10px 12px',
+              fontSize: 12.5,
+              fontWeight: 700,
+              display: 'flex',
+              gap: 8,
+              alignItems: 'center',
+            }}>
+              {profileLoading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+              <span>{profileLoading ? 'Checking for saved checkout details...' : profileMessage}</span>
             </div>
           )}
 
