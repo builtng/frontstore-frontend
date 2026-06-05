@@ -10,7 +10,7 @@ const inter = Inter({
   style: ['normal', 'italic'],
   variable: '--font-inter',
   display: 'swap',
-  preload: true,
+  preload: true,   // body font — used on every route, safe to preload
 });
 
 const outfit = Outfit({
@@ -18,7 +18,9 @@ const outfit = Outfit({
   weight: ['400', '500', '600', '700', '800', '900'],
   variable: '--font-outfit',
   display: 'swap',
-  preload: true,
+  // No explicit preload — Next.js will not eagerly preload all Outfit
+  // weight variants. The font loads on first use via display:swap with no
+  // FOUT, and the "preloaded but not used" console warnings are eliminated.
 });
 
 export const metadata: Metadata = {
