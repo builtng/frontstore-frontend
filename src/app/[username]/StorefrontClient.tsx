@@ -903,7 +903,7 @@ function CartDrawer({
                 {cart.map(item => {
                   const subtotal = parseFloat(item.product.price) * item.quantity;
                   return (
-                    <div key={item.product.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+                    <div key={item.product.id || item.product.slug} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
                       <div style={{ width: 56, height: 56, borderRadius: 'var(--r-md)', background: 'var(--bg-2)', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
                         {item.product.image_urls?.[0]
                           ? <img src={item.product.image_urls[0]} alt={item.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -1367,7 +1367,7 @@ function StoreHeader({
             <div className="store-header__spotlight-products">
               {spotlightProducts.map((product, index) => (
                 <button
-                  key={product.id}
+                  key={product.id || product.slug || index}
                   type="button"
                   className="store-header__spotlight-card clickable"
                   onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
@@ -1437,7 +1437,7 @@ function StoreHeader({
               };
               return (
                 <a
-                  key={link.id}
+                  key={link.id || link.url || link.platform}
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1563,7 +1563,7 @@ function StoreReviewsDrawer({
                   : null;
 
                 return (
-                  <div key={review.id} style={{ background: 'var(--surface-2)', padding: '16px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div key={review.id || review.created_at} style={{ background: 'var(--surface-2)', padding: '16px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text)' }}>
                         {review.customer_name || 'Verified Buyer'}
@@ -1686,11 +1686,11 @@ export default function StorefrontClient({
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(
-    initialProductSlug && initialData?.products
-      ? initialData.products.find(item => item.slug === initialProductSlug) || null
-      : null
-  );
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(() => {
+    if (!initialProductSlug || !initialData?.products) return null;
+    const normalized = normalizeProducts(initialData.products);
+    return normalized.find(item => item.slug === initialProductSlug) || null;
+  });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [systemDomain, setSystemDomain] = useState(initialData?.system_domain || 'frontstore.app');
@@ -1947,7 +1947,7 @@ export default function StorefrontClient({
               </button>
               {categories.map(cat => (
                 <button
-                  key={cat.id}
+                  key={cat.id || cat.slug}
                   className={`category-chip clickable${selectedCategoryId === cat.id ? ' active' : ''}`}
                   onClick={() => setSelectedCategoryId(cat.id)} role="tab" id={`category-${cat.slug}`}
                 >
@@ -2004,7 +2004,7 @@ export default function StorefrontClient({
             <div className="product-grid stagger">
               {filteredProducts.map(product => (
                 <ProductCard
-                  key={product.id}
+                  key={product.id || product.slug}
                   product={product}
                   currencySymbol={currencySymbol}
                   onView={() => setSelectedProduct(product)}
