@@ -1124,7 +1124,7 @@ return (
                           <span>{order.customer_phone || order.customer_email}</span>
                         </td>
                         <td>
-                          <strong style={{ color: 'var(--primary)' }}>{currencySymbol}{Number(order.total_amount).toLocaleString()}</strong>
+                          <strong style={{ color: 'var(--primary)' }}>{currencySymbol}{Number(order.total_amount || 0).toLocaleString()}</strong>
                         </td>
                         <td>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

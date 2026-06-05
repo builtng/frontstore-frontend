@@ -117,8 +117,10 @@ function getCurrencySymbol(code: string): string {
   return CURRENCY_SYMBOLS[code] ?? `${code} `;
 }
 
-function fmt(amount: string | number, symbol: string): string {
-  const n = typeof amount === 'string' ? parseFloat(amount) : amount;
+function fmt(amount: string | number | null | undefined, symbol: string): string {
+  if (amount === null || amount === undefined) return `${symbol}0`;
+  const parsed = typeof amount === 'string' ? parseFloat(amount) : amount;
+  const n = isNaN(parsed) ? 0 : parsed;
   return `${symbol}${n.toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 

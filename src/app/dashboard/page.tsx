@@ -2040,7 +2040,8 @@ export default function DashboardPage() {
   }
 
   // Formatting currency
-  const formatVal = (val: number | string) => {
+  const formatVal = (val: number | string | null | undefined) => {
+    if (val === null || val === undefined) return '—';
     const num = typeof val === 'string' ? parseFloat(val) : val;
     return isNaN(num) ? '—' : num.toLocaleString();
   };
@@ -5368,7 +5369,7 @@ export default function DashboardPage() {
                             </span>
                             <div>
                               <span style={{ fontSize: 28, fontWeight: 900, color: 'var(--primary)', fontFamily: 'var(--font-heading)' }}>
-                                ₦{appliedCoupon.final_price.toLocaleString()}
+                                ₦{(appliedCoupon.final_price || 0).toLocaleString()}
                               </span>
                               <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
                                 {billingCycle === 'monthly' ? ' / month' : ' / year'}

@@ -426,7 +426,7 @@ export default function OrderTrackingPage() {
                 gap: '8px'
               }}
             >
-              {isInitializingPayment ? 'Initializing...' : `Pay Now ${currencySymbol}${parseFloat(order.total_amount).toLocaleString()}`}
+              {isInitializingPayment ? 'Initializing...' : `Pay Now ${currencySymbol}${parseFloat(order.total_amount || '0').toLocaleString()}`}
             </button>
           </div>
         )}
@@ -902,11 +902,11 @@ export default function OrderTrackingPage() {
                 <div>
                   <div style={{ fontWeight: 600 }}>{item.product_name}</div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    {item.quantity} x {currencySymbol}{parseFloat(item.product_price).toLocaleString()}
+                    {item.quantity} x {currencySymbol}{parseFloat(item.product_price || '0').toLocaleString()}
                   </div>
                 </div>
                 <span style={{ fontWeight: 700 }}>
-                  {currencySymbol}{(parseFloat(item.product_price) * item.quantity).toLocaleString()}
+                  {currencySymbol}{(parseFloat(item.product_price || '0') * item.quantity).toLocaleString()}
                 </span>
               </div>
             ))}
@@ -931,7 +931,7 @@ export default function OrderTrackingPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '17px', fontWeight: 800, borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
               <span>Total Paid/Due</span>
               <span style={{ color: 'var(--primary)' }}>
-                {currencySymbol}{parseFloat(order.total_amount).toLocaleString()}
+                {currencySymbol}{parseFloat(order.total_amount || '0').toLocaleString()}
               </span>
             </div>
           </div>
