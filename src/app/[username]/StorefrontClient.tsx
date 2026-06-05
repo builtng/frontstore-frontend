@@ -527,12 +527,18 @@ function ProductCard({
 // ─── Product Detail Drawer ────────────────────────────────────────────────────
 
 function ProductDetailDrawer({
-  product, store, currencySymbol, onClose, onAddToCart, onOrderNow,
+  product, store, currencySymbol, onClose, onAddToCart, onOrderNow, reviews,
 }: {
   product: Product; store: Store; currencySymbol: string;
   onClose: () => void; onAddToCart: (p: Product, q: number) => void;
   onOrderNow: (p: Product, q: number) => void;
+  reviews: any[];
 }) {
+  const productReviews = (reviews ?? []).filter((r: any) => r.product_id === product.id);
+  const avgProductRating = productReviews.length > 0
+    ? (productReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / productReviews.length).toFixed(1)
+    : null;
+
   const [qty, setQty] = useState(1);
   const [imgIdx, setImgIdx] = useState(0);
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
@@ -679,7 +685,26 @@ function ProductDetailDrawer({
         {/* Body */}
         <div className="product-detail__body">
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12, gap: 12 }}>
-            <h2 className="product-detail__title" style={{ flex: 1, marginBottom: 0 }}>{product.name}</h2>
+            <div style={{ flex: 1 }}>
+              <h2 className="product-detail__title" style={{ marginBottom: 0 }}>{product.name}</h2>
+              {avgProductRating && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                  <div style={{ display: 'flex', gap: 2 }}>
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star
+                        key={star}
+                        size={12}
+                        fill={star <= Math.round(Number(avgProductRating)) ? 'var(--primary)' : 'none'}
+                        stroke={star <= Math.round(Number(avgProductRating)) ? 'var(--primary)' : 'var(--text-faint)'}
+                      />
+                    ))}
+                  </div>
+                  <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--primary)' }}>
+                    {avgProductRating} / 5.0 ({productReviews.length} {productReviews.length === 1 ? 'review' : 'reviews'})
+                  </span>
+                </div>
+              )}
+            </div>
             <button className="drawer__close clickable" onClick={onClose} aria-label="Close">
               <X size={14} strokeWidth={2.5} />
             </button>
@@ -741,6 +766,45 @@ function ProductDetailDrawer({
               <Share2 size={13} /> Share Product
             </button>
           </div>
+
+          {/* Product Reviews List */}
+          {productReviews.length > 0 && (
+            <div style={{ marginBottom: 18, borderTop: '1px solid var(--border)', paddingTop: 14 }}>
+              <p className="product-detail__desc-label" style={{ marginBottom: 10 }}>Customer Reviews</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {productReviews.map((review: any) => (
+                  <div key={review.id} style={{ background: 'var(--surface-2)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, fontSize: '12.5px' }}>{review.customer_name || 'Verified Buyer'}</span>
+                      <div style={{ display: 'flex', gap: 2 }}>
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <Star 
+                            key={star} 
+                            size={10} 
+                            fill={star <= review.rating ? 'var(--primary)' : 'none'} 
+                            stroke={star <= review.rating ? 'var(--primary)' : 'var(--text-faint)'} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {review.comment && (
+                      <p style={{ fontSize: '13px', margin: 0, color: 'var(--text)', fontStyle: 'italic' }}>
+                        &ldquo;{review.comment}&rdquo;
+                      </p>
+                    )}
+                    {review.reply && (
+                      <div style={{ marginTop: '2px', paddingLeft: '8px', borderLeft: '1.5px solid var(--primary)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--primary)' }}>Seller Reply:</span>
+                        <p style={{ fontSize: '12px', margin: 0, color: 'var(--text-muted)' }}>
+                          {review.reply}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* CTA section */}
           {!isOutOfStock ? (
@@ -1173,12 +1237,18 @@ function StoreHeader({
   categoryCount,
   featuredProducts,
   currencySymbol,
+  avgRating,
+  reviewsCount,
+  onViewReviews,
 }: {
   store: Store;
   productCount: number;
   categoryCount: number;
   featuredProducts: Product[];
   currencySymbol: string;
+  avgRating: string | null;
+  reviewsCount: number;
+  onViewReviews: () => void;
 }) {
   const initial = store.store_name.charAt(0).toUpperCase();
   const template = STORE_TEMPLATES[getTemplateId(store)];
@@ -1243,6 +1313,30 @@ function StoreHeader({
             </div>
 
             {store.store_bio && <p className="store-header__bio">{store.store_bio}</p>}
+            {reviewsCount > 0 && avgRating && (
+              <button 
+                onClick={onViewReviews}
+                className="store-header__rating-btn clickable"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  background: 'rgba(245, 158, 11, 0.08)',
+                  color: '#d97706',
+                  border: '1px solid rgba(245, 158, 11, 0.25)',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--r-md)',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  marginTop: '8px',
+                  cursor: 'pointer',
+                  width: 'fit-content'
+                }}
+              >
+                <Star size={13} fill="#d97706" stroke="#d97706" />
+                <span>{avgRating} / 5.0 ({reviewsCount} {reviewsCount === 1 ? 'review' : 'reviews'})</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -1395,6 +1489,146 @@ function StoreFooter({ store, systemDomain = 'frontstore.app', appName = 'Front 
   );
 }
 
+// ─── Store Reviews Drawer ───────────────────────────────────────────────────
+
+function StoreReviewsDrawer({
+  reviews, store, currencySymbol, onClose, products
+}: {
+  reviews: any[]; store: Store; currencySymbol: string; onClose: () => void; products: Product[];
+}) {
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+    : null;
+
+  return (
+    <>
+      <div className="drawer-backdrop animate-backdrop" onClick={onClose} />
+      <div className="drawer animate-drawer" role="dialog" aria-modal="true" aria-label="Store reviews">
+        <div className="drawer__handle" />
+        <div className="drawer__header">
+          <span className="drawer__title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Star size={18} fill="var(--primary)" stroke="var(--primary)" /> Store Reviews
+          </span>
+          <button className="drawer__close clickable" onClick={onClose} aria-label="Close reviews">
+            <X size={14} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        <div style={{ padding: '20px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {avgRating && (
+            <div style={{
+              background: 'var(--surface-2)',
+              borderRadius: 'var(--r-md)',
+              border: '1px solid var(--border)',
+              padding: '16px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 6
+            }}>
+              <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text)' }}>
+                {avgRating} <span style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text-muted)' }}>/ 5.0</span>
+              </div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {[1, 2, 3, 4, 5].map(star => (
+                  <Star
+                    key={star}
+                    size={18}
+                    fill={star <= Math.round(Number(avgRating)) ? 'var(--primary)' : 'none'}
+                    stroke={star <= Math.round(Number(avgRating)) ? 'var(--primary)' : 'var(--text-faint)'}
+                  />
+                ))}
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                Based on {reviews.length} customer {reviews.length === 1 ? 'review' : 'reviews'}
+              </div>
+            </div>
+          )}
+
+          {reviews.length === 0 ? (
+            <div className="empty-state" style={{ padding: '40px 0' }}>
+              <div className="empty-state__icon"><Star size={44} strokeWidth={1} /></div>
+              <p className="empty-state__title">No reviews yet</p>
+              <p className="empty-state__body">Be one of the first buyers to leave feedback on this store!</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {reviews.map(review => {
+                const referencedProduct = review.product_id
+                  ? products.find(p => p.id === review.product_id)
+                  : null;
+
+                return (
+                  <div key={review.id} style={{ background: 'var(--surface-2)', padding: '16px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text)' }}>
+                        {review.customer_name || 'Verified Buyer'}
+                      </span>
+                      <div style={{ display: 'flex', gap: 2 }}>
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <Star
+                            key={star}
+                            size={11}
+                            fill={star <= review.rating ? 'var(--primary)' : 'none'}
+                            stroke={star <= review.rating ? 'var(--primary)' : 'var(--text-faint)'}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: 'var(--r-full)',
+                        background: review.product_id ? 'var(--bg)' : 'rgba(16, 185, 129, 0.08)',
+                        color: review.product_id ? 'var(--text-muted)' : 'var(--primary)',
+                        border: '1px solid var(--border)'
+                      }}>
+                        {review.product_id
+                          ? (referencedProduct ? `Product: ${referencedProduct.name}` : 'Product Review')
+                          : 'Store Experience'
+                        }
+                      </span>
+                    </div>
+
+                    {review.comment && (
+                      <p style={{ fontSize: '13px', margin: 0, color: 'var(--text)', fontStyle: 'italic', lineHeight: '1.4' }}>
+                        &ldquo;{review.comment}&rdquo;
+                      </p>
+                    )}
+
+                    {review.reply && (
+                      <div style={{
+                        marginTop: '4px',
+                        paddingLeft: '10px',
+                        borderLeft: '2px solid var(--primary)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        background: 'var(--bg)',
+                        padding: '8px 10px',
+                        borderRadius: '0 var(--r-md) var(--r-md) 0'
+                      }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)' }}>Seller Reply:</span>
+                        <p style={{ fontSize: '12.5px', margin: 0, color: 'var(--text-muted)', lineHeight: '1.4' }}>
+                          {review.reply}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function StorefrontClient({
@@ -1438,6 +1672,8 @@ export default function StorefrontClient({
   const [pendingRemoveItem, setPendingRemoveItem] = useState<string | null>(null);
   const [isClearCartConfirmOpen, setIsClearCartConfirmOpen] = useState(false);
   const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [isReviewsOpen, setIsReviewsOpen] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
@@ -1458,6 +1694,17 @@ export default function StorefrontClient({
         if (data.store_disclaimer) setStoreDisclaimer(data.store_disclaimer);
         if (data.app_name) setAppName(data.app_name);
         if (data.logo_url) setLogoUrl(data.logo_url);
+
+        // Fetch reviews in background
+        try {
+          const reviewsRes = await fetch(`${API_URL}/v1/public/store/${uname}/reviews`);
+          if (reviewsRes.ok) {
+            const reviewsJson = await reviewsRes.json();
+            setReviews(reviewsJson.data ?? []);
+          }
+        } catch (revError) {
+          console.error('Failed to fetch store reviews:', revError);
+        }
       } catch (e: any) {
         if (!store) {
           setError(e.message ?? 'Something went wrong');
@@ -1523,6 +1770,11 @@ export default function StorefrontClient({
 
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
   const cartTotal = cart.reduce((s, i) => s + parseFloat(i.product.price) * i.quantity, 0);
+
+  // Calculate average rating
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+    : null;
 
   const filteredProducts = products.filter(p => {
     const q = searchQuery.toLowerCase();
@@ -1599,7 +1851,16 @@ export default function StorefrontClient({
       <title>{`${store.store_name} — Shop on ${appName}`}</title>
       <div className={`public-store-page template-${templateId}`} data-template={templateId} style={{ ...pageStyle, paddingBottom: cartCount > 0 ? 90 : 32 }}>
 
-        <StoreHeader store={store} productCount={products.length} categoryCount={categories.length} featuredProducts={products} currencySymbol={currencySymbol} />
+        <StoreHeader
+          store={store}
+          productCount={products.length}
+          categoryCount={categories.length}
+          featuredProducts={products}
+          currencySymbol={currencySymbol}
+          avgRating={avgRating}
+          reviewsCount={reviews.length}
+          onViewReviews={() => setIsReviewsOpen(true)}
+        />
 
         {storeDisclaimer && (
           <div className="storefront-shell" style={{ marginTop: 12, marginBottom: 4 }}>
@@ -1754,6 +2015,17 @@ export default function StorefrontClient({
             product={selectedProduct} store={store} currencySymbol={currencySymbol}
             onClose={() => setSelectedProduct(null)} onAddToCart={addToCart}
             onOrderNow={startCheckoutForProduct}
+            reviews={reviews}
+          />
+        )}
+
+        {isReviewsOpen && store && (
+          <StoreReviewsDrawer
+            reviews={reviews}
+            store={store}
+            currencySymbol={currencySymbol}
+            onClose={() => setIsReviewsOpen(false)}
+            products={products}
           />
         )}
 

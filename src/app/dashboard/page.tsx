@@ -158,9 +158,9 @@ interface DashboardStats {
   };
 }
 
-type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach';
+type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'templates', 'settings', 'billing', 'wallet'];
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'templates', 'settings', 'billing', 'wallet', 'reviews'];
 
 const getDashboardTabFromUrl = (): DashboardTab => {
   if (typeof window === 'undefined') return 'overview';
@@ -260,10 +260,19 @@ export default function DashboardPage() {
 
   // --- Dashboard Data State ---
   const [activeTab, setActiveTab] = useState<DashboardTab>(getDashboardTabFromUrl);
+  
+  // Coupon state variables
+  const [couponCode, setCouponCode] = useState('');
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [submittingReplyId, setSubmittingReplyId] = useState<string | null>(null);
+  const [replyTexts, setReplyTexts] = useState<{ [reviewId: string]: string }>({});
 
   // Wallet and Payouts States
   const [walletBalances, setWalletBalances] = useState({
@@ -279,6 +288,9 @@ export default function DashboardPage() {
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [withdrawalSubmitting, setWithdrawalSubmitting] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [withdrawalOtpSent, setWithdrawalOtpSent] = useState(false);
+  const [withdrawalOtpCode, setWithdrawalOtpCode] = useState('');
+  const [withdrawalOtpLoading, setWithdrawalOtpLoading] = useState(false);
 
   // Loading states
   const [dataLoading, setDataLoading] = useState(false);
@@ -807,12 +819,13 @@ export default function DashboardPage() {
       if (!silent) setDataLoading(true);
       else setIsRefreshing(true);
 
-      const [statsRes, productsRes, ordersRes, categoriesRes, storeRes] = await Promise.all([
+      const [statsRes, productsRes, ordersRes, categoriesRes, storeRes, reviewsRes] = await Promise.all([
         fetch(`${apiUrl}/v1/orders/stats`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/products`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/orders`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/categories`, { headers: getAuthHeaders() }),
-        fetch(`${apiUrl}/v1/store`, { headers: getAuthHeaders() })
+        fetch(`${apiUrl}/v1/store`, { headers: getAuthHeaders() }),
+        fetch(`${apiUrl}/v1/store/reviews`, { headers: getAuthHeaders() })
       ]);
 
       const statsJson = await statsRes.json();
@@ -820,11 +833,13 @@ export default function DashboardPage() {
       const ordersJson = await ordersRes.json();
       const categoriesJson = await categoriesRes.json();
       const storeJson = await storeRes.json();
+      const reviewsJson = await reviewsRes.json();
 
       if (statsRes.ok) setStats(statsJson.data);
       if (productsRes.ok) setProducts(productsJson.data?.data || productsJson.data || []);
       if (ordersRes.ok) setOrders(ordersJson.data?.data || ordersJson.data || []);
       if (categoriesRes.ok) setCategories(categoriesJson.data || []);
+      if (reviewsRes.ok) setReviews(reviewsJson.data || []);
 
       if (storeRes.ok && storeJson.data) {
         const liveStore = storeJson.data;
@@ -912,11 +927,71 @@ export default function DashboardPage() {
     }
   };
 
+  const handleReplyReview = async (reviewId: string) => {
+    const text = replyTexts[reviewId];
+    if (!text || !text.trim()) {
+      toast.error('Reply content cannot be empty.');
+      return;
+    }
+
+    try {
+      setSubmittingReplyId(reviewId);
+      const res = await fetch(`${apiUrl}/v1/store/reviews/${reviewId}/reply`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reply: text }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to submit reply.');
+      }
+
+      toast.success('Reply submitted successfully!');
+      
+      // Update reviews list locally
+      setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, reply: text, replied_at: new Date().toISOString() } : r));
+      setReplyTexts(prev => {
+        const next = { ...prev };
+        delete next[reviewId];
+        return next;
+      });
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong.');
+    } finally {
+      setSubmittingReplyId(null);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated && activeTab === 'wallet') {
       fetchWalletData();
     }
   }, [isAuthenticated, activeTab]);
+
+  const handleSendWithdrawalOtp = async () => {
+    try {
+      setWithdrawalOtpLoading(true);
+      const res = await fetch(`${apiUrl}/v1/store/withdraw/send-otp`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setWithdrawalOtpSent(true);
+        toast.success(json.message || 'Verification code sent to your WhatsApp number.');
+      } else {
+        toast.error(json.message || 'Failed to send verification code.');
+      }
+    } catch {
+      toast.error('Network error sending verification code.');
+    } finally {
+      setWithdrawalOtpLoading(false);
+    }
+  };
 
   const handleRequestWithdrawal = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -929,17 +1004,30 @@ export default function DashboardPage() {
       toast.error('Amount exceeds your withdrawable balance.');
       return;
     }
+
+    if (!withdrawalOtpSent) {
+      await handleSendWithdrawalOtp();
+      return;
+    }
+
+    if (!withdrawalOtpCode || withdrawalOtpCode.trim().length !== 6) {
+      toast.warning('Please enter the 6-digit verification code.');
+      return;
+    }
+
     try {
       setWithdrawalSubmitting(true);
       const res = await fetch(`${apiUrl}/v1/store/withdraw`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ amount: amt })
+        body: JSON.stringify({ amount: amt, otp_code: withdrawalOtpCode.trim() })
       });
       const json = await res.json();
       if (res.ok) {
         toast.success(json.message || 'Withdrawal request submitted.');
         setWithdrawalAmount('');
+        setWithdrawalOtpCode('');
+        setWithdrawalOtpSent(false);
         setIsWithdrawModalOpen(false);
         fetchWalletData();
         loadAllData(true);
@@ -1537,14 +1625,6 @@ export default function DashboardPage() {
   };
 
   const handleGenerateDedicatedAccount = async () => {
-    if (!isPro) {
-      openUpgradePrompt(
-        'Dedicated virtual accounts require Pro',
-        'Pro merchants can generate a Paystack virtual account that buyers pay into directly. You can review plans before deciding.'
-      );
-      return;
-    }
-
     try {
       setIsGeneratingDedicatedAccount(true);
       const res = await fetch(`${apiUrl}/v1/payments/dedicated-account`, {
@@ -1650,6 +1730,37 @@ export default function DashboardPage() {
   };
 
 
+  // --- Coupon code validation & application ---
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    try {
+      setIsValidatingCoupon(true);
+      const targetPlan = billingCycle === 'monthly' ? 'pro_monthly' : 'pro_yearly';
+      const res = await fetch(`${apiUrl}/v1/payments/validate-coupon`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ code: couponCode.trim(), plan: targetPlan }),
+      });
+      const json = await res.json();
+      if (res.ok && json.data) {
+        setAppliedCoupon(json.data);
+        toast.success('Coupon applied successfully! 🎉');
+      } else {
+        throw new Error(json.message || 'Invalid coupon code.');
+      }
+    } catch (e: any) {
+      setAppliedCoupon(null);
+      toast.error(e.message || 'Could not validate coupon.');
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  useEffect(() => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+  }, [billingCycle]);
+
   // --- Upgrade Plan via Real Paystack Payment ---
   const handleUpgradePlan = async (targetPlan: 'free' | 'pro_monthly' | 'pro_yearly') => {
     if (targetPlan === 'free') {
@@ -1681,12 +1792,31 @@ export default function DashboardPage() {
       const res = await fetch(`${apiUrl}/v1/payments/initialize-subscription`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ plan: targetPlan, redirect_url: callbackUrl }),
+        body: JSON.stringify({
+          plan: targetPlan,
+          redirect_url: callbackUrl,
+          coupon_code: appliedCoupon ? appliedCoupon.code : null
+        }),
       });
       const json = await res.json();
-      if (res.ok && json.data?.authorization_url) {
-        // Redirect to Paystack hosted checkout
-        window.location.href = json.data.authorization_url;
+      if (res.ok) {
+        if (json.data?.direct_activation) {
+          // Direct upgrade via 100% discount coupon
+          toast.success(json.message || 'Plan upgraded to Pro successfully! 🎉');
+          setUser(json.data.user);
+          localStorage.setItem('user', JSON.stringify(json.data.user));
+          if (json.data.store) {
+            setStore(json.data.store);
+            localStorage.setItem('store', JSON.stringify(json.data.store));
+          }
+          setAppliedCoupon(null);
+          setCouponCode('');
+        } else if (json.data?.authorization_url) {
+          // Redirect to Paystack hosted checkout
+          window.location.href = json.data.authorization_url;
+        } else {
+          throw new Error('Upgrade response was successful but missing activation instructions.');
+        }
       } else {
         throw new Error(json.message || 'Could not start payment. Try again.');
       }
@@ -1942,6 +2072,7 @@ export default function DashboardPage() {
             { id: 'reach', label: 'Broadcast Messages', icon: <Megaphone size={18} />, badge: 'Pro' },
             { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
             { id: 'templates', label: 'Store Themes', icon: <Sparkles size={18} /> },
+            { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} />, badge: reviews.filter(r => !r.reply).length || undefined },
             { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
             { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
           ].map(item => {
@@ -4637,10 +4768,10 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
-                          Payment Accounts
+                          Withdrawal & Payout Bank Details
                         </h2>
                         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                          Bank transfer details buyers use to pay you. Account name must match your registered name or business name.
+                          Configure the bank account where your store earnings are paid. Customer payments will be made to your dedicated virtual account or via standard Paystack checkout.
                         </p>
                       </div>
                     </div>
@@ -4674,13 +4805,13 @@ export default function DashboardPage() {
                             </p>
                           ) : (
                             <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                              Pro merchants can generate a dedicated account buyers pay into through Paystack.
+                              Generate a dedicated virtual account that buyers pay into directly through Paystack.
                             </p>
                           )}
                         </div>
                         <button
                           type="button"
-                          className={isPro ? 'btn btn-primary clickable' : 'btn btn-outline clickable'}
+                          className="btn btn-primary clickable"
                           onClick={handleGenerateDedicatedAccount}
                           disabled={isGeneratingDedicatedAccount}
                           style={{ padding: '11px 16px', borderRadius: 'var(--r-lg)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
@@ -5020,7 +5151,7 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
-                          <span><strong>4% transaction fee</strong> per completed order</span>
+                          <span><strong>Zero transaction fees</strong> on completed orders</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
@@ -5162,13 +5293,31 @@ export default function DashboardPage() {
                       </div>
 
                       <div style={{ marginTop: 16, marginBottom: 20 }}>
-                        <span style={{ fontSize: 28, fontWeight: 900, color: '#d97706', fontFamily: 'var(--font-heading)' }}>
-                          {billingCycle === 'monthly' ? '₦1,500' : '₦15,000'}
-                        </span>
-                        <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
-                          {billingCycle === 'monthly' ? ' / month' : ' / year'}
-                        </span>
-                        {billingCycle === 'yearly' && (
+                        {appliedCoupon ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 600 }}>
+                              {billingCycle === 'monthly' ? '₦1,500' : '₦15,000'}
+                            </span>
+                            <div>
+                              <span style={{ fontSize: 28, fontWeight: 900, color: 'var(--primary)', fontFamily: 'var(--font-heading)' }}>
+                                ₦{appliedCoupon.final_price.toLocaleString()}
+                              </span>
+                              <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+                                {billingCycle === 'monthly' ? ' / month' : ' / year'}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <span style={{ fontSize: 28, fontWeight: 900, color: '#d97706', fontFamily: 'var(--font-heading)' }}>
+                              {billingCycle === 'monthly' ? '₦1,500' : '₦15,000'}
+                            </span>
+                            <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+                              {billingCycle === 'monthly' ? ' / month' : ' / year'}
+                            </span>
+                          </>
+                        )}
+                        {billingCycle === 'yearly' && !appliedCoupon && (
                           <div style={{ fontSize: 11.5, color: '#16a34a', fontWeight: 700, marginTop: 4 }}>
                             equivalent to ₦1,250 / month (billed annually)
                           </div>
@@ -5178,7 +5327,7 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
-                          <span><strong>1.5% transaction fee</strong> on sales</span>
+                          <span><strong>Zero transaction fees</strong> on sales</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
@@ -5202,6 +5351,70 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
+                      {/* Coupon input for non-pro users */}
+                      {!(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') && (
+                        <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                            Promo / Coupon Code
+                          </label>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <input
+                              type="text"
+                              placeholder="e.g. SAVE50"
+                              value={couponCode}
+                              onChange={(e) => {
+                                setCouponCode(e.target.value.toUpperCase());
+                                setAppliedCoupon(null);
+                              }}
+                              disabled={isValidatingCoupon || isInitializingPayment}
+                              style={{
+                                flex: 1,
+                                padding: '8px 10px',
+                                background: 'var(--bg-2)',
+                                border: '1.5px solid var(--border)',
+                                borderRadius: 'var(--r-sm)',
+                                color: 'var(--text)',
+                                textTransform: 'uppercase',
+                                fontSize: 12,
+                                fontWeight: 700,
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={handleApplyCoupon}
+                              disabled={!couponCode.trim() || isValidatingCoupon || isInitializingPayment}
+                              className="btn btn-outline"
+                              style={{
+                                padding: '8px 14px',
+                                fontSize: 12,
+                                fontWeight: 700,
+                                borderRadius: 'var(--r-sm)',
+                                border: '1.5px solid var(--primary)',
+                                color: 'var(--primary)',
+                                background: 'none',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {isValidatingCoupon ? <Loader2 size={13} className="spinner animate-spin" /> : 'Apply'}
+                            </button>
+                          </div>
+
+                          {appliedCoupon && (
+                            <div style={{ marginTop: 10, padding: '8px 10px', background: 'var(--primary-light)', borderRadius: 'var(--r-sm)', fontSize: 11.5, border: '1px solid var(--primary)', color: 'var(--text)' }}>
+                              <p style={{ color: 'var(--primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <Sparkles size={12} />
+                                Code Applied: {appliedCoupon.code}
+                              </p>
+                              <p style={{ color: 'var(--text-muted)', fontSize: 10.5, marginTop: 2 }}>
+                                Discount: {appliedCoupon.discount_type === 'percentage'
+                                  ? `${parseFloat(appliedCoupon.discount_value)}% Off`
+                                  : `₦${parseFloat(appliedCoupon.discount_value).toLocaleString()} Off`}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginTop: 24 }}>
                         <button
                           type="button"
@@ -5210,22 +5423,32 @@ export default function DashboardPage() {
                           className={`btn clickable`}
                           style={{
                             padding: 12,
-                            background: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'none',
-                            border: '1.5px solid #d97706',
-                            color: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') ? '#fff' : '#d97706',
+                            background: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') 
+                              ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' 
+                              : appliedCoupon && appliedCoupon.final_price === 0
+                                ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                                : 'none',
+                            border: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') 
+                              ? '1.5px solid #d97706' 
+                              : appliedCoupon && appliedCoupon.final_price === 0
+                                ? '1.5px solid #10b981'
+                                : '1.5px solid #d97706',
+                            color: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') || (appliedCoupon && appliedCoupon.final_price === 0) ? '#fff' : '#d97706',
                             fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13,
                             opacity: ((user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') || isInitializingPayment) ? 0.7 : 1,
                             display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center',
                           }}
                         >
-                          {isInitializingPayment ? <Loader2 size={14} className="spinner" /> : null}
+                          {isInitializingPayment ? <Loader2 size={14} className="spinner animate-spin" /> : null}
                           {(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly')
                             ? `✓ Active Plan (${user?.plan === 'pro_yearly' ? 'Yearly' : 'Monthly'})`
                             : isInitializingPayment
-                              ? 'Redirecting...'
-                              : billingCycle === 'monthly'
-                                ? 'Go Pro Monthly'
-                                : 'Go Pro Yearly'}
+                              ? 'Processing...'
+                              : appliedCoupon && appliedCoupon.final_price === 0
+                                ? 'Activate Plan Free'
+                                : billingCycle === 'monthly'
+                                  ? 'Go Pro Monthly'
+                                  : 'Go Pro Yearly'}
                         </button>
                       </div>
                     </div>
@@ -5471,6 +5694,149 @@ export default function DashboardPage() {
 
                 </div>
               )}
+
+              {/* ── TAB 11: REVIEWS MANAGER ── */}
+              {activeTab === 'reviews' && (
+                <div className="card animate-fade-in" style={{ padding: 24 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 20 }}>
+                    <div>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Customer Reviews</h2>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Manage and respond to feedback left for your store and products.</p>
+                    </div>
+                  </div>
+
+                  {reviews.length === 0 ? (
+                    <div className="empty-state" style={{ padding: '60px 0', textAlign: 'center' }}>
+                      <div className="empty-state__icon" style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-2)', color: 'var(--text-faint)', marginBottom: 16 }}>
+                        <Star size={28} strokeWidth={1.25} />
+                      </div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '6px', color: 'var(--text)' }}>No reviews yet</h3>
+                      <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', maxWidth: '320px', margin: '0 auto', lineHeight: 1.5 }}>
+                        Once verified buyers review their orders, their ratings and comments will appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      {reviews.map((review) => (
+                        <div key={review.id} style={{
+                          background: 'var(--surface-2)',
+                          borderRadius: 'var(--r-md)',
+                          border: '1px solid var(--border)',
+                          padding: '20px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 12
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ fontWeight: 800, fontSize: '14.5px' }}>{review.customer_name}</span>
+                              {review.order && (
+                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                  Order #{review.order.order_number}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', gap: 2 }}>
+                              {[1, 2, 3, 4, 5].map(star => (
+                                <Star
+                                  key={star}
+                                  size={13}
+                                  fill={star <= review.rating ? 'var(--primary)' : 'none'}
+                                  stroke={star <= review.rating ? 'var(--primary)' : 'var(--text-faint)'}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                            <span style={{
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              padding: '3px 8px',
+                              borderRadius: 'var(--r-full)',
+                              background: review.product_id ? 'var(--bg)' : 'rgba(16, 185, 129, 0.08)',
+                              color: review.product_id ? 'var(--text-muted)' : 'var(--primary)',
+                              border: '1px solid var(--border)'
+                            }}>
+                              {review.product_id 
+                                ? `Product: ${review.product?.name ?? 'Deleted Product'}`
+                                : 'Store Experience'
+                              }
+                            </span>
+                          </div>
+
+                          {review.comment && (
+                            <p style={{ fontSize: '13.5px', margin: 0, color: 'var(--text)', fontStyle: 'italic', background: 'var(--bg)', padding: '12px', borderRadius: 'var(--r-sm)', borderLeft: '3px solid var(--border-strong)', lineHeight: 1.4 }}>
+                              &ldquo;{review.comment}&rdquo;
+                            </p>
+                          )}
+
+                          {review.reply ? (
+                            <div style={{
+                              marginTop: '4px',
+                              padding: '12px 14px',
+                              background: 'var(--bg)',
+                              borderRadius: 'var(--r-sm)',
+                              borderLeft: '3px solid var(--primary)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 4
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '11.5px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Your Response</span>
+                                <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>
+                                  {new Date(review.replied_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p style={{ fontSize: '13px', margin: 0, color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                                {review.reply}
+                              </p>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                              <textarea
+                                placeholder="Type a response to this review..."
+                                value={replyTexts[review.id] ?? ''}
+                                onChange={(e) => setReplyTexts(prev => ({ ...prev, [review.id]: e.target.value }))}
+                                className="input-field"
+                                style={{
+                                  fontSize: '13px',
+                                  minHeight: '60px',
+                                  padding: '10px',
+                                  borderRadius: 'var(--r-md)',
+                                  resize: 'vertical',
+                                  background: 'var(--bg)',
+                                  border: '1px solid var(--border)'
+                                }}
+                              />
+                              <button
+                                onClick={() => handleReplyReview(review.id)}
+                                disabled={submittingReplyId === review.id}
+                                className="btn btn-primary clickable"
+                                style={{
+                                  alignSelf: 'flex-end',
+                                  padding: '8px 16px',
+                                  fontSize: '12.5px',
+                                  fontWeight: 700,
+                                  borderRadius: 'var(--r-md)',
+                                  backgroundColor: 'var(--primary)',
+                                  color: '#fff',
+                                  border: 'none',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 6
+                                }}
+                              >
+                                {submittingReplyId === review.id ? 'Submitting...' : 'Submit Response'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
 
@@ -5519,6 +5885,7 @@ export default function DashboardPage() {
                 { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
                 { id: 'templates', label: 'Store Themes', icon: <Sparkles size={18} /> },
+                { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} /> },
                 { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
                 { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
               ].map(item => (
@@ -5602,6 +5969,7 @@ export default function DashboardPage() {
                   <input
                     type="number"
                     required
+                    disabled={withdrawalOtpSent || withdrawalSubmitting || withdrawalOtpLoading}
                     placeholder="Enter amount"
                     value={withdrawalAmount}
                     onChange={e => setWithdrawalAmount(e.target.value)}
@@ -5611,32 +5979,80 @@ export default function DashboardPage() {
                     step="0.01"
                     max={walletBalances.withdrawable_balance}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setWithdrawalAmount(walletBalances.withdrawable_balance.toString())}
-                    style={{
-                      position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                      border: 'none', background: 'var(--primary-light)', color: 'var(--primary)',
-                      fontSize: 10.5, fontWeight: 800, padding: '4px 8px', borderRadius: 4, cursor: 'pointer'
-                    }}
-                  >
-                    Withdraw All
-                  </button>
+                  {!withdrawalOtpSent && (
+                    <button
+                      type="button"
+                      disabled={withdrawalSubmitting || withdrawalOtpLoading}
+                      onClick={() => setWithdrawalAmount(walletBalances.withdrawable_balance.toString())}
+                      style={{
+                        position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                        border: 'none', background: 'var(--primary-light)', color: 'var(--primary)',
+                        fontSize: 10.5, fontWeight: 800, padding: '4px 8px', borderRadius: 4, cursor: 'pointer'
+                      }}
+                    >
+                      Withdraw All
+                    </button>
+                  )}
                 </div>
                 <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 6, display: 'flex', justifyContent: 'space-between' }}>
                   <span>Withdrawable Balance: {getCurrencySymbol(store?.currency_code)}{formatVal(walletBalances.withdrawable_balance)}</span>
                 </div>
               </div>
 
+              {withdrawalOtpSent && (
+                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>
+                    WhatsApp OTP Code
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    required
+                    placeholder="6-digit code"
+                    value={withdrawalOtpCode}
+                    onChange={e => setWithdrawalOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="input-field"
+                    style={{ letterSpacing: '0.1em', fontWeight: 'bold' }}
+                  />
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+                    <span>Check your WhatsApp for the verification code.</span>
+                    <button
+                      type="button"
+                      onClick={handleSendWithdrawalOtp}
+                      disabled={withdrawalOtpLoading}
+                      style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, textDecoration: 'underline', padding: 0, cursor: 'pointer' }}
+                    >
+                      {withdrawalOtpLoading ? 'Resending...' : 'Resend Code'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
                 <button type="button" onClick={() => setIsWithdrawModalOpen(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
                 <button
                   type="submit"
-                  disabled={withdrawalSubmitting || !withdrawalAmount || parseFloat(withdrawalAmount) <= 0 || parseFloat(withdrawalAmount) > walletBalances.withdrawable_balance}
+                  disabled={
+                    withdrawalSubmitting || 
+                    withdrawalOtpLoading ||
+                    !withdrawalAmount || 
+                    parseFloat(withdrawalAmount) <= 0 || 
+                    parseFloat(withdrawalAmount) > walletBalances.withdrawable_balance ||
+                    (withdrawalOtpSent && (!withdrawalOtpCode || withdrawalOtpCode.trim().length !== 6))
+                  }
                   className="btn btn-primary clickable"
                   style={{ flex: 1, padding: 12 }}
                 >
-                  {withdrawalSubmitting ? <Loader2 size={16} className="spinner" style={{ margin: '0 auto' }} /> : 'Confirm Payout'}
+                  {withdrawalSubmitting ? (
+                    <Loader2 size={16} className="spinner" style={{ margin: '0 auto' }} />
+                  ) : withdrawalOtpLoading ? (
+                    'Sending Code...'
+                  ) : withdrawalOtpSent ? (
+                    'Verify & Request Payout'
+                  ) : (
+                    'Send OTP Verification'
+                  )}
                 </button>
               </div>
             </form>

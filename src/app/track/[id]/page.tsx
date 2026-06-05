@@ -3,12 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock } from 'lucide-react';
+import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock, Star } from 'lucide-react';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
 
 interface OrderItem {
   id: string;
+  product_id?: string;
   product_name: string;
   product_price: string;
   quantity: number;
@@ -40,6 +41,7 @@ interface Order {
   store: Store;
   items: OrderItem[];
   delivery_confirmed_at?: string | null;
+  reviews?: any[];
 }
 
 export default function OrderTrackingPage() {
@@ -56,6 +58,82 @@ export default function OrderTrackingPage() {
   const [isConfirmingDelivery, setIsConfirmingDelivery] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [deliveryConfirmationOpen, setDeliveryConfirmationOpen] = useState(false);
+
+  // Reviews States
+  const [submittingReviews, setSubmittingReviews] = useState(false);
+  const [productRatings, setProductRatings] = useState<{ [productId: string]: number }>({});
+  const [productComments, setProductComments] = useState<{ [productId: string]: string }>({});
+  const [storeRating, setStoreRating] = useState(5);
+  const [storeComment, setStoreComment] = useState('');
+  const [localReviewed, setLocalReviewed] = useState(false);
+
+  useEffect(() => {
+    if (order && order.items) {
+      const initialRatings: { [productId: string]: number } = {};
+      const initialComments: { [productId: string]: string } = {};
+      order.items.forEach(item => {
+        if (item.product_id) {
+          initialRatings[item.product_id] = 5;
+          initialComments[item.product_id] = '';
+        }
+      });
+      setProductRatings(initialRatings);
+      setProductComments(initialComments);
+    }
+  }, [order]);
+
+  const handleSubmitReviews = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !order) return;
+
+    try {
+      setSubmittingReviews(true);
+      const reviewsPayload: any[] = [];
+
+      // Add product reviews
+      order.items.forEach(item => {
+        if (item.product_id) {
+          reviewsPayload.push({
+            product_id: item.product_id,
+            rating: productRatings[item.product_id] ?? 5,
+            comment: productComments[item.product_id] ?? ''
+          });
+        }
+      });
+
+      // Add general store review
+      reviewsPayload.push({
+        product_id: null,
+        rating: storeRating,
+        comment: storeComment
+      });
+
+      const res = await fetch(`${API_URL}/v1/public/orders/${id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviews: reviewsPayload })
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to submit reviews.');
+      }
+
+      toast.success('Thank you! Your reviews have been submitted.');
+      setLocalReviewed(true);
+
+      // Reload order to fetch newly created reviews
+      const updatedRes = await fetch(`${API_URL}/v1/public/orders/${id}`);
+      if (updatedRes.ok) {
+        const updatedJson = await updatedRes.json();
+        setOrder(updatedJson.data);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong during review submission.');
+    } finally {
+      setSubmittingReviews(false);
+    }
+  };
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
@@ -227,6 +305,7 @@ export default function OrderTrackingPage() {
   const isCancelled = order.order_status === 'cancelled';
   const isConfirmed = order.order_status === 'confirmed';
   const isCompleted = order.order_status === 'completed';
+  const isDigitalOnly = order.items.length > 0 && order.items.every(item => item.product?.is_digital);
 
   // Progress indexes: Placed=1, Confirmed=2, Completed=3
   let activeStepIndex = 1;
@@ -353,10 +432,12 @@ export default function OrderTrackingPage() {
             gap: '16px'
           }}>
             <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              📦 Confirm Delivery Receipt
+              📦 {isDigitalOnly ? 'Confirm Download' : 'Confirm Delivery Receipt'}
             </h3>
             <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-              Once you have received your order items or the services have been rendered, click below to confirm receipt and release funds to the seller.
+              {isDigitalOnly 
+                ? 'Since you have downloaded or accessed your digital items, click below to confirm receipt and release funds to the seller.'
+                : 'Once you have received your order items or the services have been rendered, click below to confirm receipt and release funds to the seller.'}
             </p>
             <button
               onClick={handleConfirmDelivery}
@@ -378,7 +459,7 @@ export default function OrderTrackingPage() {
                 boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
               }}
             >
-              {isConfirmingDelivery ? 'Confirming...' : "Yes, I've Received My Order"}
+              {isConfirmingDelivery ? 'Confirming...' : (isDigitalOnly ? 'Confirm Download' : "Yes, I've Received My Order")}
             </button>
           </div>
         )}
@@ -398,7 +479,7 @@ export default function OrderTrackingPage() {
             justifyContent: 'center',
             gap: '8px'
           }}>
-            <Check size={16} strokeWidth={3} /> Delivery Confirmed & Funds Released.
+            <Check size={16} strokeWidth={3} /> {isDigitalOnly ? 'Download Confirmed & Funds Released.' : 'Delivery Confirmed & Funds Released.'}
           </div>
         )}
 
@@ -498,8 +579,8 @@ export default function OrderTrackingPage() {
                 </div>
               </div>
               <div>
-                <h4 style={{ fontSize: '15px', fontWeight: 700, color: activeStepIndex >= 3 ? 'var(--text)' : 'var(--text-muted)' }}>Ready / Handed Over</h4>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>Order completed and shipped or picked up.</p>
+                <h4 style={{ fontSize: '15px', fontWeight: 700, color: activeStepIndex >= 3 ? 'var(--text)' : 'var(--text-muted)' }}>{isDigitalOnly ? 'Access Provided' : 'Ready / Handed Over'}</h4>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>{isDigitalOnly ? 'Digital downloads unlocked and ready.' : 'Order completed and shipped or picked up.'}</p>
               </div>
             </div>
 
@@ -623,6 +704,149 @@ export default function OrderTrackingPage() {
           </div>
         )}
 
+        {/* Reviews Section */}
+        {order.payment_status === 'paid' && (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)', paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              ⭐ Reviews & Feedback
+            </h3>
+
+            {(order.reviews && order.reviews.length > 0) || localReviewed ? (
+              // Summary of Submitted Reviews
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0 }}>
+                  Thank you! Your verified feedback has been recorded:
+                </p>
+                {/* List submitted reviews */}
+                {((order.reviews && order.reviews.length > 0) ? order.reviews : []).map((review: any) => (
+                  <div key={review.id} style={{ background: 'var(--bg)', padding: '12px', borderRadius: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, fontSize: '13.5px' }}>
+                        {review.product_id ? (order.items.find(i => i.product_id === review.product_id)?.product_name ?? 'Product Review') : 'Overall Store Rating'}
+                      </span>
+                      <div style={{ display: 'flex', gap: 2 }}>
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <Star 
+                            key={star} 
+                            size={12} 
+                            fill={star <= review.rating ? 'var(--primary)' : 'none'} 
+                            stroke={star <= review.rating ? 'var(--primary)' : 'var(--text-faint)'} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {review.comment && (
+                      <p style={{ fontSize: '13px', margin: 0, color: 'var(--text)', fontStyle: 'italic' }}>
+                        &ldquo;{review.comment}&rdquo;
+                      </p>
+                    )}
+                    {review.reply && (
+                      <div style={{ marginTop: '4px', paddingLeft: '10px', borderLeft: '2px solid var(--primary)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)' }}>Seller Reply:</span>
+                        <p style={{ fontSize: '12.5px', margin: 0, color: 'var(--text-muted)' }}>
+                          {review.reply}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Review Submission Form
+              <form onSubmit={handleSubmitReviews} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0 }}>
+                  Share your experience with the seller and other shoppers:
+                </p>
+
+                {/* Star rating for products */}
+                {order.items.filter(item => item.product_id).map(item => (
+                  <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '12px', borderBottom: '1px solid var(--border)' }}>
+                    <span style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text)' }}>
+                      Rate product: {item.product_name}
+                    </span>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setProductRatings(prev => ({ ...prev, [item.product_id!]: star }))}
+                          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                        >
+                          <Star 
+                            size={20} 
+                            fill={star <= (productRatings[item.product_id!] ?? 5) ? 'var(--primary)' : 'none'} 
+                            stroke={star <= (productRatings[item.product_id!] ?? 5) ? 'var(--primary)' : 'var(--text-faint)'} 
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      placeholder="Write a comment about this product (optional)..."
+                      value={productComments[item.product_id!] ?? ''}
+                      onChange={e => setProductComments(prev => ({ ...prev, [item.product_id!]: e.target.value }))}
+                      className="input-field"
+                      style={{ fontSize: '13px', minHeight: '60px', padding: '8px 10px', resize: 'vertical' }}
+                    />
+                  </div>
+                ))}
+
+                {/* Overall Store Rating */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '4px' }}>
+                  <span style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text)' }}>
+                    Overall store experience with {order.store.store_name}
+                  </span>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setStoreRating(star)}
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                      >
+                        <Star 
+                          size={20} 
+                          fill={star <= storeRating ? 'var(--primary)' : 'none'} 
+                          stroke={star <= storeRating ? 'var(--primary)' : 'var(--text-faint)'} 
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    placeholder="Write a comment about your store experience (optional)..."
+                    value={storeComment}
+                    onChange={e => setStoreComment(e.target.value)}
+                    className="input-field"
+                    style={{ fontSize: '13px', minHeight: '60px', padding: '8px 10px', resize: 'vertical' }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingReviews}
+                  className="btn btn-primary clickable"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    backgroundColor: 'var(--primary)',
+                    color: '#fff',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    marginTop: '4px'
+                  }}
+                >
+                  {submittingReviews ? 'Submitting...' : 'Submit Verified Reviews'}
+                </button>
+              </form>
+            )}
+          </div>
+        )}
+
         {/* Delivery Details Card */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
@@ -732,8 +956,10 @@ export default function OrderTrackingPage() {
 
       <ConfirmDialog
         open={deliveryConfirmationOpen}
-        title="Confirm delivery"
-        description="Are you sure you have received your order? This will release funds to the seller and mark the order as completed. This action cannot be undone."
+        title={isDigitalOnly ? "Confirm download receipt" : "Confirm delivery"}
+        description={isDigitalOnly 
+          ? "Are you sure you have successfully downloaded or accessed your digital items? This will release funds to the seller and mark the order as completed. This action cannot be undone."
+          : "Are you sure you have received your order? This will release funds to the seller and mark the order as completed. This action cannot be undone."}
         confirmLabel="Yes, confirm"
         cancelLabel="Cancel"
         onConfirm={confirmDelivery}

@@ -79,7 +79,7 @@ export default function TermsPage() {
                 <div style={{ borderLeft: '3px solid var(--accent)', paddingLeft: 16 }}>
                   <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Payments & Escrow</h4>
                   <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    Natively handles digital payment collection (cards, bank transfers, mobile money) within your chat threads. Payouts are subject to escrow holds, merchant KYC validation, and transaction fees.
+                    Natively handles digital payment collection (cards, bank transfers, mobile money) within your chat threads. Payouts are subject to escrow holds, merchant KYC validation, and standard payment processing fees.
                   </p>
                 </div>
                 <div style={{ borderLeft: '3px solid var(--primary-dark)', paddingLeft: 16 }}>
@@ -115,7 +115,7 @@ export default function TermsPage() {
                   <strong>KYC Verification:</strong> To receive payouts, merchants must complete Know Your Customer (KYC) verification by providing valid business registration documents, national identification, or tax credentials as required by local regulators.
                 </li>
                 <li>
-                  <strong>Fees:</strong> We charge a transaction fee on payments processed through our platform, as specified in your dashboard. Processing fees are non-refundable in the event of customer returns or disputes.
+                  <strong>Fees:</strong> Frontstore charges zero platform transaction fees on payments. However, standard third-party payment processor processing fees (e.g., Paystack) may apply to transactions and are non-refundable in the event of customer returns or disputes.
                 </li>
               </ul>
             </section>
