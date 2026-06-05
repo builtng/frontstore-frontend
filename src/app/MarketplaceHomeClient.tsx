@@ -147,24 +147,30 @@ export default function MarketplaceHomeClient({
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
 
-  const [products, setProducts] = useState<MarketplaceProduct[]>(initialData.products || []);
-  const [categories, setCategories] = useState<CategorySummary[]>(initialData.categories || []);
-  const [stats, setStats] = useState(initialData.stats);
-  const [loading, setLoading] = useState(!initialData || !initialData.products || initialData.products.length === 0);
+  const [products, setProducts] = useState<MarketplaceProduct[]>(() => {
+    const prods = initialData?.products;
+    return Array.isArray(prods) ? prods : (prods ? Object.values(prods) : []);
+  });
+  const [categories, setCategories] = useState<CategorySummary[]>(() => {
+    const cats = initialData?.categories;
+    return Array.isArray(cats) ? cats : (cats ? Object.values(cats) : []);
+  });
+  const [stats, setStats] = useState(initialData?.stats);
+  const [loading, setLoading] = useState(!initialData || !initialData.products || !Array.isArray(initialData.products) || initialData.products.length === 0);
 
   useEffect(() => {
     const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
     const loadFreshData = async () => {
       try {
-        if (products.length === 0) {
+        if (!Array.isArray(products) || products.length === 0) {
           setLoading(true);
         }
         const res = await fetch(`${savedApiUrl}/v1/public/marketplace`);
         if (res.ok) {
           const json = await res.json();
           if (json.data) {
-            setProducts(json.data.products || []);
-            setCategories(json.data.categories || []);
+            setProducts(Array.isArray(json.data.products) ? json.data.products : (json.data.products ? Object.values(json.data.products) : []));
+            setCategories(Array.isArray(json.data.categories) ? json.data.categories : (json.data.categories ? Object.values(json.data.categories) : []));
             setStats(json.data.stats);
           }
         }

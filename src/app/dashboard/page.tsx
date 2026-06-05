@@ -252,7 +252,60 @@ export default function DashboardPage() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserInfo | null>(null);
   const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
-  const [store, setStore] = useState<StoreInfo | null>(null);
+
+  // State wrapper helper for functional & direct updates
+  const wrapSetter = <T,>(
+    internalSetter: React.Dispatch<React.SetStateAction<T>>,
+    normalizeFn: (val: T) => T
+  ) => {
+    return (valueOrFn: React.SetStateAction<T>) => {
+      if (typeof valueOrFn === 'function') {
+        internalSetter((prev) => normalizeFn((valueOrFn as Function)(prev)));
+      } else {
+        internalSetter(normalizeFn(valueOrFn));
+      }
+    };
+  };
+
+  const normalizeStore = (s: StoreInfo | null): StoreInfo | null => {
+    if (!s) return null;
+    return {
+      ...s,
+      custom_links: Array.isArray(s.custom_links)
+        ? s.custom_links
+        : (s.custom_links ? Object.values(s.custom_links) : []),
+      featured_product_ids: Array.isArray(s.featured_product_ids)
+        ? s.featured_product_ids
+        : (s.featured_product_ids ? Object.values(s.featured_product_ids) : []),
+    };
+  };
+
+  const normalizeProducts = (prods: Product[]): Product[] => {
+    const arr = Array.isArray(prods) ? prods : (prods ? Object.values(prods) : []);
+    return arr.map((p: any) => ({
+      ...p,
+      image_urls: Array.isArray(p.image_urls)
+        ? p.image_urls
+        : (p.image_urls ? Object.values(p.image_urls) : []),
+    }));
+  };
+
+  const normalizeCategories = (cats: Category[]): Category[] => {
+    return Array.isArray(cats) ? cats : (cats ? Object.values(cats) : []);
+  };
+
+  const normalizeOrders = (ords: Order[]): Order[] => {
+    return Array.isArray(ords) ? ords : (ords ? Object.values(ords) : []);
+  };
+
+  const normalizeReviews = (revs: any[]): any[] => {
+    return Array.isArray(revs) ? revs : (revs ? Object.values(revs) : []);
+  };
+
+  const [storeInternal, setStoreInternal] = useState<StoreInfo | null>(null);
+  const setStore = wrapSetter(setStoreInternal, normalizeStore);
+  const store = storeInternal;
+
   const [systemDomain, setSystemDomain] = useState('frontstore.app');
   const [apiUrl, setApiUrl] = useState('https://api.frontstore.app/api');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -267,10 +320,23 @@ export default function DashboardPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
+
+  const [productsInternal, setProductsInternal] = useState<Product[]>([]);
+  const setProducts = wrapSetter(setProductsInternal, normalizeProducts);
+  const products = productsInternal;
+
+  const [categoriesInternal, setCategoriesInternal] = useState<Category[]>([]);
+  const setCategories = wrapSetter(setCategoriesInternal, normalizeCategories);
+  const categories = categoriesInternal;
+
+  const [ordersInternal, setOrdersInternal] = useState<Order[]>([]);
+  const setOrders = wrapSetter(setOrdersInternal, normalizeOrders);
+  const orders = ordersInternal;
+
+  const [reviewsInternal, setReviewsInternal] = useState<any[]>([]);
+  const setReviews = wrapSetter(setReviewsInternal, normalizeReviews);
+  const reviews = reviewsInternal;
+
   const [submittingReplyId, setSubmittingReplyId] = useState<string | null>(null);
   const [replyTexts, setReplyTexts] = useState<{ [reviewId: string]: string }>({});
 
@@ -515,8 +581,9 @@ export default function DashboardPage() {
   const [aiCommand, setAiCommand] = useState('');
   const [aiResponseBubble, setAiResponseBubble] = useState<string | null>(null);
 
-  // --- WhatsApp Sales Inbox State ---
-  const [waOrders, setWaOrders] = useState<Order[]>([]);
+  const [waOrdersInternal, setWaOrdersInternal] = useState<Order[]>([]);
+  const setWaOrders = wrapSetter(setWaOrdersInternal, normalizeOrders);
+  const waOrders = waOrdersInternal;
   const [waLoading, setWaLoading] = useState(false);
   const [selectedWaOrder, setSelectedWaOrder] = useState<Order | null>(null);
   const [waSearch, setWaSearch] = useState('');

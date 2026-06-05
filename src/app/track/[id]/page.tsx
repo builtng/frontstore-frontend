@@ -48,7 +48,19 @@ export default function OrderTrackingPage() {
   const { id } = useParams();
 
   // Data State
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrderInternal] = useState<Order | null>(null);
+  const setOrder = (ordData: Order | null) => {
+    if (!ordData) {
+      setOrderInternal(null);
+      return;
+    }
+    const normalized = {
+      ...ordData,
+      items: Array.isArray(ordData.items) ? ordData.items : (ordData.items ? Object.values(ordData.items) : []),
+      reviews: Array.isArray(ordData.reviews) ? ordData.reviews : (ordData.reviews ? Object.values(ordData.reviews) : []),
+    };
+    setOrderInternal(normalized as Order);
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

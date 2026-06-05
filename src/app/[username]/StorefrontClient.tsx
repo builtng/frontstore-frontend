@@ -1651,9 +1651,35 @@ export default function StorefrontClient({
 }) {
   const uname = username;
 
-  const [store, setStore] = useState<Store | null>(initialData?.store || null);
-  const [categories, setCategories] = useState<Category[]>(initialData?.categories || []);
-  const [products, setProducts] = useState<Product[]>(initialData?.products || []);
+  const normalizeStore = (s: any): Store | null => {
+    if (!s) return null;
+    return {
+      ...s,
+      custom_links: Array.isArray(s.custom_links)
+        ? s.custom_links
+        : (s.custom_links ? Object.values(s.custom_links) : []),
+      featured_product_ids: Array.isArray(s.featured_product_ids)
+        ? s.featured_product_ids
+        : (s.featured_product_ids ? Object.values(s.featured_product_ids) : []),
+    };
+  };
+
+  const normalizeProducts = (prods: any): Product[] => {
+    const arr = Array.isArray(prods) ? prods : (prods ? Object.values(prods) : []);
+    return arr.map((p: any) => ({
+      ...p,
+      image_urls: Array.isArray(p.image_urls)
+        ? p.image_urls
+        : (p.image_urls ? Object.values(p.image_urls) : []),
+    }));
+  };
+
+  const [store, setStore] = useState<Store | null>(() => normalizeStore(initialData?.store));
+  const [categories, setCategories] = useState<Category[]>(() => {
+    const cats = initialData?.categories;
+    return Array.isArray(cats) ? cats : (cats ? Object.values(cats) : []);
+  });
+  const [products, setProducts] = useState<Product[]>(() => normalizeProducts(initialData?.products));
   const [loading, setLoading] = useState(!initialData || !initialData.store);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1688,9 +1714,9 @@ export default function StorefrontClient({
         const res = await fetch(`${API_URL}/v1/public/store/${uname}`, { cache: 'no-store' });
         if (!res.ok) throw new Error('Store not found or currently inactive');
         const { data } = await res.json();
-        setStore(data.store);
-        setCategories(data.categories ?? []);
-        setProducts(data.products ?? []);
+        setStore(normalizeStore(data.store));
+        setCategories(Array.isArray(data.categories) ? data.categories : (data.categories ? Object.values(data.categories) : []));
+        setProducts(normalizeProducts(data.products));
         if (data.system_domain) setSystemDomain(data.system_domain);
         if (data.store_disclaimer) setStoreDisclaimer(data.store_disclaimer);
         if (data.app_name) setAppName(data.app_name);
@@ -1701,7 +1727,7 @@ export default function StorefrontClient({
           const reviewsRes = await fetch(`${API_URL}/v1/public/store/${uname}/reviews`);
           if (reviewsRes.ok) {
             const reviewsJson = await reviewsRes.json();
-            setReviews(reviewsJson.data ?? []);
+            setReviews(Array.isArray(reviewsJson.data) ? reviewsJson.data : (reviewsJson.data ? Object.values(reviewsJson.data) : []));
           }
         } catch (revError) {
           console.error('Failed to fetch store reviews:', revError);
