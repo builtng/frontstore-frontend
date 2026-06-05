@@ -14,8 +14,8 @@ interface PageProps {
 }
 
 // Helper to slugify country names
-function getCountrySlug(country: string): string {
-  return country.toLowerCase().replace(/\s+/g, '-');
+function getCountrySlug(country?: string): string {
+  return (country || '').toLowerCase().replace(/\s+/g, '-');
 }
 
 // ── Static Pre-rendering Params ──────────────────────────────────────────────

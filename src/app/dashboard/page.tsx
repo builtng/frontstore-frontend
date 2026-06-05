@@ -1976,14 +1976,14 @@ export default function DashboardPage() {
     let itemSummary = '';
     if (order.items && order.items.length > 0) {
       order.items.forEach(item => {
-        const itemTotal = parseFloat(item.product_price as string) * item.quantity;
-        itemSummary += `- ${item.quantity}x ${item.product_name} (@ ${sym}${parseFloat(item.product_price as string).toLocaleString()}) - ${sym}${itemTotal.toLocaleString()}\n`;
+        const itemTotal = (parseFloat(item.product_price as string || '0') || 0) * item.quantity;
+        itemSummary += `- ${item.quantity}x ${item.product_name} (@ ${sym}${(parseFloat(item.product_price as string || '0') || 0).toLocaleString()}) - ${sym}${(itemTotal || 0).toLocaleString()}\n`;
       });
     } else {
-      itemSummary += `- 1x Digital Cart Purchase - ${sym}${parseFloat(order.total_amount as string).toLocaleString()}\n`;
+      itemSummary += `- 1x Digital Cart Purchase - ${sym}${(parseFloat(order.total_amount as string || '0') || 0).toLocaleString()}\n`;
     }
 
-    const total = `\nTOTAL PAID: ${sym}${parseFloat(order.total_amount as string).toLocaleString()}\nSTATUS: PAID & CONFIRMED\n`;
+    const total = `\nTOTAL PAID: ${sym}${(parseFloat(order.total_amount as string || '0') || 0).toLocaleString()}\nSTATUS: PAID & CONFIRMED\n`;
     const footer = `\nThank you for shopping with us!\nPowered by ${systemDomain}\n`;
 
     return `${divider}\n${storeHeader}${divider}\n${orderHeader}${customer}${divider}\nITEMS:\n${itemSummary}${divider}${total}${divider}${footer}${divider}`;
@@ -3026,7 +3026,7 @@ export default function DashboardPage() {
                                     <p style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2 }}>{new Date(o.created_at).toLocaleString()}</p>
                                   </div>
                                   <div style={{ textAlign: 'right' }}>
-                                    <span style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', fontFamily: 'var(--font-heading)' }}>{sym}{parseFloat(o.total_amount as string).toLocaleString()}</span>
+                                    <span style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', fontFamily: 'var(--font-heading)' }}>{sym}{(parseFloat(o.total_amount as string || '0') || 0).toLocaleString()}</span>
                                     <div style={{ display: 'flex', gap: 6, marginTop: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                                       <span className={`badge ${o.payment_status === 'paid' ? 'badge-primary' : o.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'}`} style={{ fontSize: 10 }}>{o.payment_status}</span>
                                       <span className={`badge ${o.order_status === 'completed' ? 'badge-primary' : o.order_status === 'cancelled' ? 'badge-danger' : o.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'}`} style={{ fontSize: 10 }}>{o.order_status}</span>
@@ -3061,9 +3061,9 @@ export default function DashboardPage() {
                                       <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--surface)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
                                         <div>
                                           <p style={{ fontSize: 13.5, fontWeight: 700 }}>{item.product_name}</p>
-                                          <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>Qty: {item.quantity} × {sym}{parseFloat(item.product_price as string).toLocaleString()}</p>
+                                          <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>Qty: {item.quantity} × {sym}{(parseFloat(item.product_price as string || '0') || 0).toLocaleString()}</p>
                                         </div>
-                                        <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--primary)' }}>{sym}{(parseFloat(item.product_price as string) * item.quantity).toLocaleString()}</span>
+                                        <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--primary)' }}>{sym}{((parseFloat(item.product_price as string || '0') || 0) * item.quantity).toLocaleString()}</span>
                                       </div>
                                     ))}
                                   </div>
@@ -5476,8 +5476,8 @@ export default function DashboardPage() {
                               </p>
                               <p style={{ color: 'var(--text-muted)', fontSize: 10.5, marginTop: 2 }}>
                                 Discount: {appliedCoupon.discount_type === 'percentage'
-                                  ? `${parseFloat(appliedCoupon.discount_value)}% Off`
-                                  : `₦${parseFloat(appliedCoupon.discount_value).toLocaleString()} Off`}
+                                  ? `${parseFloat(appliedCoupon.discount_value || '0') || 0}% Off`
+                                  : `₦${(parseFloat(appliedCoupon.discount_value || '0') || 0).toLocaleString()} Off`}
                               </p>
                             </div>
                           )}
@@ -6949,7 +6949,7 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', borderTop: '1px solid var(--border)', paddingTop: 14 }}>
                 <button
                   onClick={() => {
-                    const msg = `Hi ${selectedOrder.customer_name}! This is ${store?.store_name || 'frontstore merchant'} following up regarding your Order ${selectedOrder.order_number} totaling ${getCurrencySymbol(store?.currency_code)}${parseFloat(selectedOrder.total_amount as string).toLocaleString()}.`;
+                    const msg = `Hi ${selectedOrder.customer_name}! This is ${store?.store_name || 'frontstore merchant'} following up regarding your Order ${selectedOrder.order_number} totaling ${getCurrencySymbol(store?.currency_code)}${(parseFloat(selectedOrder.total_amount as string || '0') || 0).toLocaleString()}.`;
                     window.open(`https://wa.me/${(selectedOrder.customer_phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
                   }}
                   className="btn btn-outline clickable"

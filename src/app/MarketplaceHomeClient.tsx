@@ -238,8 +238,8 @@ export default function MarketplaceHomeClient({
         </section>
 
         <aside className="marketplace-featured" aria-label="Featured product">
-          {featuredProduct ? (
-            <a href={`/${featuredProduct.store?.username}/products/${featuredProduct.slug}`} className="marketplace-featured__card">
+          {featuredProduct && featuredProduct.store?.username ? (
+            <a href={`/${featuredProduct.store.username}/products/${featuredProduct.slug}`} className="marketplace-featured__card">
               <div className="marketplace-featured__image">
                 {featuredProduct.image_url ? (
                   <img src={featuredProduct.image_url} alt={featuredProduct.name} />
