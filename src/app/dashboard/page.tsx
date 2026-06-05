@@ -2903,22 +2903,22 @@ export default function DashboardPage() {
                 const sym = getCurrencySymbol(store?.currency_code);
                 const filtered = waOrders.filter(o =>
                   !waSearch ||
-                  o.customer_name.toLowerCase().includes(waSearch.toLowerCase()) ||
-                  o.customer_phone.includes(waSearch) ||
-                  o.order_number.toLowerCase().includes(waSearch.toLowerCase())
+                  (o.customer_name || '').toLowerCase().includes(waSearch.toLowerCase()) ||
+                  (o.customer_phone || '').includes(waSearch) ||
+                  (o.order_number || '').toLowerCase().includes(waSearch.toLowerCase())
                 );
                 const buildReplyMsg = (order: Order) => encodeURIComponent(
-                  `Hi ${order.customer_name}! This is ${store?.store_name || 'us'} 🛖\n\nRegarding your Order *#${order.order_number}* — ${sym}${parseFloat(order.total_amount as string).toLocaleString()}\n\nStatus: ${order.order_status.toUpperCase()} | Payment: ${order.payment_status.toUpperCase()}\n\nFeel free to reply with any questions!`
+                  `Hi ${order.customer_name}! This is ${store?.store_name || 'us'} 🛖\n\nRegarding your Order *#${order.order_number}* — ${sym}${parseFloat(order.total_amount as string || '0').toLocaleString()}\n\nStatus: ${(order.order_status || '').toUpperCase()} | Payment: ${(order.payment_status || '').toUpperCase()}\n\nFeel free to reply with any questions!`
                 );
                 const buildReceiptMsg = (order: Order) => {
                   const items = order.items?.map(i =>
-                    `- ${i.quantity}x ${i.product_name} @ ${sym}${parseFloat(i.product_price as string).toLocaleString()}`
-                  ).join('\n') || `- Order total: ${sym}${parseFloat(order.total_amount as string).toLocaleString()}`;
+                    `- ${i.quantity}x ${i.product_name} @ ${sym}${parseFloat(i.product_price as string || '0').toLocaleString()}`
+                  ).join('\n') || `- Order total: ${sym}${parseFloat(order.total_amount as string || '0').toLocaleString()}`;
                   return encodeURIComponent(
-                    `🧾 *RECEIPT — ${store?.store_name}*\n\nOrder: *#${order.order_number}*\nDate: ${new Date(order.created_at).toLocaleDateString()}\n\n${items}\n\n*TOTAL: ${sym}${parseFloat(order.total_amount as string).toLocaleString()}*\nStatus: ${order.payment_status.toUpperCase()}\n\nThank you for your purchase! 🎉`
+                    `🧾 *RECEIPT — ${store?.store_name}*\n\nOrder: *#${order.order_number}*\nDate: ${new Date(order.created_at).toLocaleDateString()}\n\n${items}\n\n*TOTAL: ${sym}${parseFloat(order.total_amount as string || '0').toLocaleString()}*\nStatus: ${(order.payment_status || '').toUpperCase()}\n\nThank you for your purchase! 🎉`
                   );
                 };
-                const cleanPhone = (p: string) => p.replace(/\D/g, '');
+                const cleanPhone = (p: string | null | undefined) => (p || '').replace(/\D/g, '');
                 return (
                   <div className="card animate-fade-in whatsapp-chat-shell" style={{ padding: 0, height: 'calc(100vh - 160px)', display: 'flex', overflow: 'hidden' }}>
                     {/* Left Panel — Contacts */}
@@ -2951,7 +2951,7 @@ export default function DashboardPage() {
                         ) : (
                           filtered.map(order => {
                             const isSelected = selectedWaOrder?.id === order.id;
-                            const initials = order.customer_name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase();
+                            const initials = (order.customer_name || 'Customer').split(' ').filter(Boolean).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase();
                             const isUnpaid = order.payment_status === 'unpaid';
                             return (
                               <div key={order.id} onClick={() => { setSelectedWaOrder(order); setActiveWaView('chat'); }} style={{ display: 'flex', gap: 10, padding: '10px 12px', borderRadius: 'var(--r-md)', cursor: 'pointer', background: isSelected ? 'var(--primary-light)' : 'transparent', border: isSelected ? '1px solid var(--primary)' : '1px solid transparent', transition: 'all 0.15s' }}>
@@ -2991,7 +2991,7 @@ export default function DashboardPage() {
                         const o = selectedWaOrder;
                         const phone = o.customer_whatsapp || o.customer_phone;
                         const waPhone = cleanPhone(phone);
-                        const initials = o.customer_name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase();
+                        const initials = (o.customer_name || 'Customer').split(' ').filter(Boolean).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase();
                         return (
                           <>
                             {/* Header */}
@@ -6950,7 +6950,7 @@ export default function DashboardPage() {
                 <button
                   onClick={() => {
                     const msg = `Hi ${selectedOrder.customer_name}! This is ${store?.store_name || 'frontstore merchant'} following up regarding your Order ${selectedOrder.order_number} totaling ${getCurrencySymbol(store?.currency_code)}${parseFloat(selectedOrder.total_amount as string).toLocaleString()}.`;
-                    window.open(`https://wa.me/${selectedOrder.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                    window.open(`https://wa.me/${(selectedOrder.customer_phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
                   }}
                   className="btn btn-outline clickable"
                   style={{ flex: 1, padding: 10, fontSize: 12, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}

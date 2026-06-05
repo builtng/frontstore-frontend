@@ -212,7 +212,7 @@ export default function StoresClient({ initialStores }: { initialStores: StoreIt
                   <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', gap: 8, color: 'var(--text-muted)' }}>
                       <a
-                        href={`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}`}
+                        href={`https://wa.me/${(store.whatsapp_phone || '').replace(/\D/g, '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ padding: 4 }}

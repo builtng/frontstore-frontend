@@ -148,8 +148,8 @@ function getTemplateId(store?: Store | null): StoreTemplateId {
 
 // ─── WhatsApp ─────────────────────────────────────────────────────────────────
 
-function buildWhatsAppUrl(phone: string, message: string): string {
-  const clean = phone.replace(/\D/g, '');
+function buildWhatsAppUrl(phone: string | null | undefined, message: string): string {
+  const clean = (phone || '').replace(/\D/g, '');
   return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
 }
 
