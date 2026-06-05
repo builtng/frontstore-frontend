@@ -12,6 +12,7 @@ import {
   Twitter
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
+import { PublicSiteNav } from '../../components/PublicSiteChrome';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1849,6 +1850,7 @@ export default function StorefrontClient({
   return (
     <>
       <title>{`${store.store_name} — Shop on ${appName}`}</title>
+      <PublicSiteNav />
       <div className={`public-store-page template-${templateId}`} data-template={templateId} style={{ ...pageStyle, paddingBottom: cartCount > 0 ? 90 : 32 }}>
 
         <StoreHeader
