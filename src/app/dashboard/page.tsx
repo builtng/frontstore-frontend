@@ -3817,29 +3817,6 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
-                        <div className="responsive-form-row">
-                          <div>
-                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Instagram Handle</label>
-                            <input
-                              type="text"
-                              value={setInstagram}
-                              onChange={e => setSetInstagram(e.target.value)}
-                              className="input-field"
-                              placeholder="username"
-                            />
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>TikTok Handle</label>
-                            <input
-                              type="text"
-                              value={setTiktok}
-                              onChange={e => setSetTiktok(e.target.value)}
-                              className="input-field"
-                              placeholder="username"
-                            />
-                          </div>
-                        </div>
-
                         {/* Storefront Branding & Colors */}
                         <div style={{
                           position: 'relative',
@@ -4394,6 +4371,30 @@ export default function DashboardPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 32 }} className="responsive-settings-grid">
                       {/* Left Side: Editor list */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                        {/* Social Handles Inputs (merged from general settings) */}
+                        <div className="responsive-form-row" style={{ gap: 16, background: 'var(--bg-2)', padding: 16, borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', marginBottom: 8 }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Instagram Handle</label>
+                            <input
+                              type="text"
+                              value={setInstagram}
+                              onChange={e => setSetInstagram(e.target.value)}
+                              className="input-field"
+                              placeholder="username"
+                            />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>TikTok Handle</label>
+                            <input
+                              type="text"
+                              value={setTiktok}
+                              onChange={e => setSetTiktok(e.target.value)}
+                              className="input-field"
+                              placeholder="username"
+                            />
+                          </div>
+                        </div>
 
                         {/* Inline Form to Add/Edit Link */}
                         {showLinkForm && (
