@@ -328,7 +328,7 @@ export default function MarketplaceHomeClient({
                     <a href={storeUrl} className="marketplace-product__store">
                       <span className="marketplace-product__avatar">
                         {product.store?.logo_url ? (
-                          <img src={product.store.logo_url} alt={product.store.store_name} />
+                          <img src={product.store.logo_url} alt={product.store.store_name || 'Store'} />
                         ) : (
                           <Building2 size={16} />
                         )}

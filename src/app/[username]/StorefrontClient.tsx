@@ -1251,7 +1251,7 @@ function StoreHeader({
   reviewsCount: number;
   onViewReviews: () => void;
 }) {
-  const initial = store.store_name.charAt(0).toUpperCase();
+  const initial = (store?.store_name || store?.username || '').charAt(0).toUpperCase() || 'S';
   const template = STORE_TEMPLATES[getTemplateId(store)];
   const selectedFeaturedIds = store.featured_product_ids ?? [];
   const spotlightProducts = store.featured_carousel_enabled === false

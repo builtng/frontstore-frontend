@@ -47,9 +47,9 @@ export default function StoresClient({ initialStores }: { initialStores: StoreIt
   }, []);
 
   const filteredStores = stores.filter(store =>
-    store.store_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (store.store_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (store.store_bio && store.store_bio.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    store.username.toLowerCase().includes(searchTerm.toLowerCase())
+    (store.username || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -177,14 +177,14 @@ export default function StoresClient({ initialStores }: { initialStores: StoreIt
                         overflow: 'hidden', flexShrink: 0
                       }}>
                         {store.logo_url ? (
-                          <img src={store.logo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={store.store_name} />
+                          <img src={store.logo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={store.store_name || store.username} />
                         ) : (
-                          store.store_name.charAt(0).toUpperCase()
+                          (store.store_name || store.username || '').charAt(0).toUpperCase() || 'S'
                         )}
                       </div>
                       <div>
                         <h4 style={{ fontSize: 15.5, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          {store.store_name} <ShieldCheck size={14} style={{ color: 'var(--primary)' }} />
+                          {store.store_name || store.username} <ShieldCheck size={14} style={{ color: 'var(--primary)' }} />
                         </h4>
                         <span style={{ fontSize: 11.5, color: 'var(--text-faint)', fontWeight: 600 }}>
                           @{store.username}

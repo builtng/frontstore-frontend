@@ -2081,10 +2081,10 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--bg-2)', padding: '10px 12px', borderRadius: 'var(--r-lg)', marginBottom: 24, border: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, fontFamily: 'var(--font-heading)' }}>
-                {store.store_name.charAt(0).toUpperCase()}
+                {(store.store_name || store.username || '').charAt(0).toUpperCase() || 'S'}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <p style={{ fontSize: 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{store.store_name}</p>
+                <p style={{ fontSize: 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{store.store_name || store.username}</p>
                 <span style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>@{store.username}</span>
               </div>
             </div>
@@ -4743,7 +4743,7 @@ export default function DashboardPage() {
                               {logoUrl ? (
                                 <img src={logoUrl} alt="Store logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               ) : (
-                                <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--primary)' }}>{setStoreName.charAt(0).toUpperCase() || 'A'}</span>
+                                <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--primary)' }}>{(setStoreName || '').charAt(0).toUpperCase() || 'A'}</span>
                               )}
                             </div>
 
