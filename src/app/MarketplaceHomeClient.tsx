@@ -77,13 +77,38 @@ const currencySymbols: Record<string, string> = {
 
 function formatPrice(value: string | number, currencyCode?: string) {
   const amount = typeof value === 'number' ? value : Number(value);
-  const symbol = currencySymbols[(currencyCode || 'NGN').toUpperCase()] || `${currencyCode || 'NGN'} `;
+  const normalizedCurrency = normalizeCurrencyCode(currencyCode);
+  const symbol = currencySymbols[normalizedCurrency] || `${normalizedCurrency} `;
 
   if (!Number.isFinite(amount)) return `${symbol}0`;
   return `${symbol}${amount.toLocaleString(undefined, {
     minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+function normalizeCurrencyCode(currencyCode?: string) {
+  const normalized = typeof currencyCode === 'string' ? currencyCode.trim().toUpperCase() : '';
+  if (!normalized || normalized === 'UNDEFINED' || normalized === 'NULL') return 'NGN';
+  return normalized;
+}
+
+function safePathSegment(value?: string | null) {
+  if (typeof value !== 'string') return '';
+  const segment = value.trim();
+  if (!segment || segment.toLowerCase() === 'undefined' || segment.toLowerCase() === 'null') return '';
+  return segment;
+}
+
+function getProductUrl(product: MarketplaceProduct) {
+  const username = safePathSegment(product.store?.username);
+  const slug = safePathSegment(product.slug);
+  return username && slug ? `/${username}/products/${slug}` : '#';
+}
+
+function getStoreUrl(store?: StoreSummary | null) {
+  const username = safePathSegment(store?.username);
+  return username ? `/${username}` : '#';
 }
 
 function productMatches(product: MarketplaceProduct, searchTerm: string, categorySlug: string) {
@@ -238,8 +263,8 @@ export default function MarketplaceHomeClient({
         </section>
 
         <aside className="marketplace-featured" aria-label="Featured product">
-          {featuredProduct && featuredProduct.store?.username ? (
-            <a href={`/${featuredProduct.store.username}/products/${featuredProduct.slug}`} className="marketplace-featured__card">
+          {featuredProduct && getProductUrl(featuredProduct) !== '#' ? (
+            <a href={getProductUrl(featuredProduct)} className="marketplace-featured__card">
               <div className="marketplace-featured__image">
                 {featuredProduct.image_url ? (
                   <img src={featuredProduct.image_url} alt={featuredProduct.name} />
@@ -309,8 +334,8 @@ export default function MarketplaceHomeClient({
         {filteredProducts.length > 0 ? (
           <section className="marketplace-grid">
             {filteredProducts.map((product) => {
-              const productUrl = product.store?.username ? `/${product.store.username}/products/${product.slug}` : '#';
-              const storeUrl = product.store?.username ? `/${product.store.username}` : '#';
+              const productUrl = getProductUrl(product);
+              const storeUrl = getStoreUrl(product.store);
               return (
                 <article key={product.id} className="marketplace-product card card-hover">
                   <a href={productUrl} className="marketplace-product__image">

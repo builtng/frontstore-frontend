@@ -38,6 +38,10 @@ async function getProductData(username: string, slug: string) {
 }
 
 function currencySymbol(code: string): string {
+  const normalizedCode = typeof code === 'string' ? code.trim().toUpperCase() : '';
+  if (!normalizedCode || normalizedCode === 'UNDEFINED' || normalizedCode === 'NULL') {
+    return '₦';
+  }
   return {
     NGN: '₦',
     GHS: 'GH₵',
@@ -45,7 +49,18 @@ function currencySymbol(code: string): string {
     ZAR: 'R',
     USD: '$',
     GBP: '£',
-  }[code] ?? `${code} `;
+  }[normalizedCode] ?? `${normalizedCode} `;
+}
+
+function safePathSegment(value: string | null | undefined): string {
+  if (typeof value !== 'string') return '';
+  const segment = value.trim();
+  if (!segment || segment.toLowerCase() === 'undefined' || segment.toLowerCase() === 'null') return '';
+  return segment;
+}
+
+function productPathUsername(storeUsername: string | null | undefined, routeUsername: string): string {
+  return safePathSegment(storeUsername) || safePathSegment(routeUsername);
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -74,7 +89,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = product.description
     || `Buy ${product.name} from ${store.store_name}. Order directly on WhatsApp.`;
   const image = product.image_urls?.[0] || store.logo_url || storeData.logo_url || `https://${systemDomain}/icon.png`;
-  const url = `https://${systemDomain}/${store.username}/products/${product.slug}`;
+  const productUsername = productPathUsername(store.username, username);
+  const url = `https://${systemDomain}/${productUsername}/products/${safePathSegment(product.slug) || slug}`;
 
   return {
     title,
@@ -124,7 +140,9 @@ export default async function ProductPage({ params }: PageProps) {
 
   const systemDomain = storeData?.system_domain || 'frontstore.app';
   const store = storeData?.store;
-  const productUrl = store && product ? `https://${systemDomain}/${store.username}/products/${product.slug}` : '';
+  const productUrl = store && product
+    ? `https://${systemDomain}/${productPathUsername(store.username, username)}/products/${safePathSegment(product.slug) || slug}`
+    : '';
   const jsonLd = store && product ? {
     '@context': 'https://schema.org',
     '@type': 'Product',

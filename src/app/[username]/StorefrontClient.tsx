@@ -114,7 +114,11 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 };
 
 function getCurrencySymbol(code: string): string {
-  return CURRENCY_SYMBOLS[code] ?? `${code} `;
+  const normalizedCode = typeof code === 'string' ? code.trim().toUpperCase() : '';
+  if (!normalizedCode || normalizedCode === 'UNDEFINED' || normalizedCode === 'NULL') {
+    return CURRENCY_SYMBOLS.NGN;
+  }
+  return CURRENCY_SYMBOLS[normalizedCode] ?? `${normalizedCode} `;
 }
 
 function fmt(amount: string | number | null | undefined, symbol: string): string {
@@ -156,6 +160,48 @@ function buildWhatsAppUrl(phone: string | null | undefined, message: string): st
 function isAiGeneratedImage(url?: string | null): boolean {
   if (!url) return false;
   return url.includes('/products/ai_') || url.includes('/ai_') || url.includes('products/ai_');
+}
+
+// ─── URL Helpers ──────────────────────────────────────────────────────────────
+
+/**
+ * Returns a safe product URL.
+ * Falls back to '#' if either slug is missing/undefined to prevent
+ * "/undefined/products/..." routing errors.
+ */
+function getProductUrl(
+  storeUsername: string | null | undefined,
+  productSlug: string | null | undefined,
+  fallbackUsername?: string | null,
+): string {
+  const username = safePathSegment(storeUsername) || safePathSegment(fallbackUsername);
+  const slug = safePathSegment(productSlug);
+  if (!username || !slug) {
+    return '#';
+  }
+  return `/${username}/products/${slug}`;
+}
+
+/**
+ * Returns a safe store URL.
+ * Falls back to '#' if the username is missing/undefined.
+ */
+function getStoreUrl(
+  storeUsername: string | null | undefined,
+  fallbackUsername?: string | null,
+): string {
+  const username = safePathSegment(storeUsername) || safePathSegment(fallbackUsername);
+  if (!username) {
+    return '#';
+  }
+  return `/${username}`;
+}
+
+function safePathSegment(value: string | null | undefined): string {
+  if (typeof value !== 'string') return '';
+  const segment = value.trim();
+  if (!segment || segment.toLowerCase() === 'undefined' || segment.toLowerCase() === 'null') return '';
+  return segment;
 }
 
 // ─── Confirmation Modal ───────────────────────────────────────────────────────
@@ -1255,7 +1301,7 @@ function StoreHeader({
 }) {
   const initial = (store?.store_name || store?.username || '').charAt(0).toUpperCase() || 'S';
   const template = STORE_TEMPLATES[getTemplateId(store)];
-  const selectedFeaturedIds = store.featured_product_ids ?? [];
+  const selectedFeaturedIds = Array.from(new Set(store.featured_product_ids ?? []));
   const spotlightProducts = store.featured_carousel_enabled === false
     ? []
     : (selectedFeaturedIds.length
@@ -1367,7 +1413,7 @@ function StoreHeader({
             <div className="store-header__spotlight-products">
               {spotlightProducts.map((product, index) => (
                 <button
-                  key={product.id || product.slug || index}
+                  key={product.id || product.slug}
                   type="button"
                   className="store-header__spotlight-card clickable"
                   onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
@@ -1657,6 +1703,10 @@ export default function StorefrontClient({
     if (!s) return null;
     return {
       ...s,
+      username: safePathSegment(s.username) || safePathSegment(uname),
+      currency_code: (typeof s.currency_code === 'string' && !['undefined', 'null', ''].includes(s.currency_code.trim().toLowerCase()))
+        ? s.currency_code.trim().toUpperCase()
+        : 'NGN',
       custom_links: Array.isArray(s.custom_links)
         ? s.custom_links
         : (s.custom_links ? Object.values(s.custom_links) : []),
@@ -1755,17 +1805,17 @@ export default function StorefrontClient({
   useEffect(() => {
     if (loading || !store) return;
     if (selectedProduct) {
-      const targetUrl = `/${store.username}/products/${selectedProduct.slug}`;
-      if (window.location.pathname !== targetUrl) {
+      const targetUrl = getProductUrl(store.username, selectedProduct.slug, uname);
+      if (targetUrl !== '#' && window.location.pathname !== targetUrl) {
         window.history.pushState({}, '', targetUrl);
       }
     } else {
-      const targetUrl = `/${store.username}`;
-      if (window.location.pathname !== targetUrl) {
+      const targetUrl = getStoreUrl(store.username, uname);
+      if (targetUrl !== '#' && window.location.pathname !== targetUrl) {
         window.history.pushState({}, '', targetUrl);
       }
     }
-  }, [selectedProduct, store, loading]);
+  }, [selectedProduct, store, loading, uname]);
 
   useEffect(() => {
     if (!uname) return;
@@ -1848,7 +1898,8 @@ export default function StorefrontClient({
   }, [uname]);
 
   const handleShareProduct = async (product: Product) => {
-    const productUrl = `${window.location.origin}/${store?.username || uname}/products/${product.slug}`;
+    const path = getProductUrl(store?.username, product.slug, uname);
+    const productUrl = path === '#' ? window.location.href : `${window.location.origin}${path}`;
     const shareText = `${product.name} — ${fmt(product.price, currencySymbol)}`;
     if (navigator.share) await navigator.share({ title: product.name, text: shareText, url: productUrl });
     else { navigator.clipboard.writeText(productUrl); toast.success('Product link copied!'); }
