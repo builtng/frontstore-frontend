@@ -1,21 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-// useParams imported removed for prop transition
-import { toast } from 'sonner';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
-  Search, X, ChevronLeft, ChevronRight, Share2, ShoppingCart,
-  Instagram, Music2, CheckCircle2, Star,
-  Minus, Plus, Trash2, Package, AlertCircle, ArrowRight,
-  Copy, Heart, Tag, Truck, MapPin, Eye, Zap, Loader2,
-  Download, ExternalLink, Shield, FileText, Globe, Facebook,
-  Twitter
-} from 'lucide-react';
-import { WhatsAppIcon } from '../../components/WhatsAppIcon';
-import { PublicSiteNav } from '../../components/PublicSiteChrome';
+  Share2, ChevronLeft, Star, ShieldCheck, Clock, MapPin, Sparkles,
+  Search, X, Plus, Minus, ShoppingBag, MessageCircle, BadgeCheck,
+  Store, Calendar, Check, Receipt, ChevronRight, Crown, Heart, Truck, Menu,
+  ExternalLink, Copy, CheckCircle2, Shield, AlertCircle
+} from "lucide-react";
+import { toast } from "sonner";
+import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
+// --- Types & Interfaces ---
 interface StoreLink {
   id: string;
   title: string;
@@ -36,27 +31,19 @@ interface Store {
   instagram_handle: string | null;
   tiktok_handle: string | null;
   twitter_handle?: string | null;
-  is_verified?: boolean;
+  is_verified?: boolean | number;
   custom_links?: StoreLink[] | null;
   primary_color?: string | null;
-  store_template?: StoreTemplateId | null;
-  is_pro?: boolean;
-  catalog_label?: string | null;
-  category_label?: string | null;
-  template_highlight_label?: string | null;
-  product_section_eyebrow?: string | null;
-  product_section_title?: string | null;
-  featured_carousel_enabled?: boolean;
-  featured_carousel_eyebrow?: string | null;
-  featured_carousel_title?: string | null;
-  featured_product_ids?: string[] | null;
+  store_template?: string | null;
+  is_pro?: boolean | number;
+  business_persona?: string | null;
+  location?: string | null;
 }
 
 interface Category {
   id: string;
   name: string;
   slug: string;
-  emoji?: string;
 }
 
 interface Product {
@@ -71,41 +58,54 @@ interface Product {
   stock_quantity?: number | null;
   category_id: string | null;
   is_digital?: boolean;
-  digital_file_url?: string | null;
-  digital_link?: string | null;
 }
 
 interface CartItem {
-  product: Product;
-  quantity: number;
-}
-
-interface CreatedOrder {
+  key: string;
   id: string;
-  order_number: string;
-  customer_name: string;
-  delivery_method: string;
-  total_amount: string;
-  payment_status: string;
-  order_status: string;
+  name: string;
+  price: number;
+  qty: number;
+  type: 'service' | 'product';
+  slot?: string;
+  duration?: number;
+  image_url?: string;
+  productRef: Product;
 }
 
 interface CreatedOrderReceipt {
-  order: CreatedOrder;
+  order: {
+    id: string;
+    order_number: string;
+    customer_name: string;
+    total_amount: number;
+    payment_status: string;
+    order_status: string;
+    delivery_method: string;
+    delivery_address: string;
+  };
   whatsapp_url: string;
 }
 
-interface CustomerProfileLookup {
-  name?: string | null;
-  phone_number?: string | null;
-  whatsapp_number?: string | null;
-  email?: string | null;
-  preferred_delivery_method?: 'delivery' | 'pickup' | 'digital' | null;
-  preferred_delivery_address?: string | null;
-  purchase_count?: number;
+interface StorefrontClientProps {
+  username: string;
+  initialProductSlug?: string;
+  initialData?: {
+    store: Store;
+    categories?: Category[];
+    products?: Product[];
+    system_domain?: string;
+    store_disclaimer?: string;
+    app_name?: string;
+    logo_url?: string;
+  } | null;
 }
 
-// ─── Currency ─────────────────────────────────────────────────────────────────
+// --- Helpers ---
+function normalizeApiUrl(url: string | undefined): string {
+  if (!url) return '';
+  return url.replace(/\/+$/, '');
+}
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   NGN: '₦', GHS: 'GH₵', KES: 'KSh', ZAR: 'R', UGX: 'USh',
@@ -128,1013 +128,367 @@ function fmt(amount: string | number | null | undefined, symbol: string): string
   return `${symbol}${n.toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
-function discountPercent(price: string, compare: string): number {
-  const p = parseFloat(price), c = parseFloat(compare);
-  if (c <= p) return 0;
-  return Math.round(((c - p) / c) * 100);
-}
-
-type StoreTemplateId = 'luxe-market' | 'editorial' | 'flash-sale' | 'atelier' | 'digital-studio' | 'whatsapp-native';
-
-const STORE_TEMPLATES: Record<StoreTemplateId, { name: string; tagline: string }> = {
-  'luxe-market': { name: 'Luxe Market', tagline: 'Premium boutique storefront' },
-  editorial: { name: 'Editorial', tagline: 'Magazine-style product storytelling' },
-  'flash-sale': { name: 'Flash Sale', tagline: 'High-conversion drops and promos' },
-  atelier: { name: 'Atelier', tagline: 'Minimal studio for crafted goods' },
-  'digital-studio': { name: 'Digital Studio', tagline: 'Software, files, services, and courses' },
-  'whatsapp-native': { name: 'WhatsApp Native', tagline: 'Chat-first commerce experience' },
+const CAT_THEME: Record<string, string[]> = {
+  Lashes: ["#b14a6e", "#d27695"],
+  Brows: ["#7c2f4d", "#a85273"],
+  Skincare: ["#b07d3a", "#d4a657"],
+  Aftercare: ["#9a6079", "#bd86a0"],
+  Gifting: ["#5e2a44", "#8a4567"],
 };
 
-function getTemplateId(store?: Store | null): StoreTemplateId {
-  const template = store?.store_template;
-  return template && template in STORE_TEMPLATES ? template as StoreTemplateId : 'luxe-market';
-}
-
-// ─── WhatsApp ─────────────────────────────────────────────────────────────────
-
-function buildWhatsAppUrl(phone: string | null | undefined, message: string): string {
-  const clean = (phone || '').replace(/\D/g, '');
-  return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
-}
-
-function isAiGeneratedImage(url?: string | null): boolean {
-  if (!url) return false;
-  return url.includes('/products/ai_') || url.includes('/ai_') || url.includes('products/ai_');
-}
-
-// ─── URL Helpers ──────────────────────────────────────────────────────────────
-
-/**
- * Returns a safe product URL.
- * Falls back to '#' if either slug is missing/undefined to prevent
- * "/undefined/products/..." routing errors.
- */
-function getProductUrl(
-  storeUsername: string | null | undefined,
-  productSlug: string | null | undefined,
-  fallbackUsername?: string | null,
-): string {
-  const username = safePathSegment(storeUsername) || safePathSegment(fallbackUsername);
-  const slug = safePathSegment(productSlug);
-  if (!username || !slug) {
-    return '#';
-  }
-  return `/${username}/products/${slug}`;
-}
-
-/**
- * Returns a safe store URL.
- * Falls back to '#' if the username is missing/undefined.
- */
-function getStoreUrl(
-  storeUsername: string | null | undefined,
-  fallbackUsername?: string | null,
-): string {
-  const username = safePathSegment(storeUsername) || safePathSegment(fallbackUsername);
-  if (!username) {
-    return '#';
-  }
-  return `/${username}`;
-}
-
-function safePathSegment(value: string | null | undefined): string {
-  if (typeof value !== 'string') return '';
-  const segment = value.trim();
-  if (!segment || segment.toLowerCase() === 'undefined' || segment.toLowerCase() === 'null') return '';
-  return segment;
-}
-
-function stableKey(prefix: string, parts: Array<string | number | null | undefined>, fallbackIndex: number): string {
-  const key = parts
-    .map(part => (part == null ? '' : String(part).trim()))
-    .filter(part => part && part.toLowerCase() !== 'undefined' && part.toLowerCase() !== 'null')
-    .join('-');
-  return key ? `${prefix}-${key}-${fallbackIndex}` : `${prefix}-${fallbackIndex}`;
-}
-
-function normalizeApiUrl(value?: string | null) {
-  const fallback = 'https://api.frontstore.app/api';
-  if (typeof value !== 'string') return fallback;
-  const url = value.trim();
-  if (!url || url.toLowerCase() === 'undefined' || url.toLowerCase() === 'null') return fallback;
-  return url.replace(/\/+$/, '');
-}
-
-function normalizeCurrencyCode(value: unknown, fallback = 'NGN') {
-  if (typeof value !== 'string') return fallback;
-  const code = value.trim().toUpperCase();
-  if (!code || code === 'UNDEFINED' || code === 'NULL') return fallback;
-  return code;
-}
-
-function safeText(value: unknown, fallback = '') {
-  if (typeof value !== 'string') return fallback;
-  const text = value.trim();
-  if (!text || text.toLowerCase() === 'undefined' || text.toLowerCase() === 'null') return fallback;
-  return text;
-}
-
-// ─── Confirmation Modal ───────────────────────────────────────────────────────
-
-function ConfirmationModal({
-  isOpen, title, message, confirmText, cancelText, onConfirm, onCancel
-}: {
-  isOpen: boolean; title: string; message: string; confirmText?: string; cancelText?: string;
-  onConfirm: () => void; onCancel: () => void;
-}) {
-  if (!isOpen) return null;
-  return (
-    <>
-      <div className="drawer-backdrop animate-backdrop" style={{ zIndex: 200 }} onClick={onCancel} />
-      <div className="card glass confirmation-modal" style={{
-        position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        zIndex: 210, width: 'calc(100% - 32px)', maxWidth: 400, padding: 24,
-        display: 'flex', flexDirection: 'column', gap: 16, borderRadius: 'var(--r-xl)',
-        boxShadow: 'var(--shadow-xl)', border: '1px solid var(--border)'
-      }}>
-        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 800, margin: 0, color: 'var(--text)' }}>{title}</h3>
-        <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>{message}</p>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
-          <button type="button" onClick={onCancel} className="btn btn-outline clickable" style={{ padding: '8px 16px', fontSize: 13, borderRadius: 'var(--r-md)' }}>
-            {cancelText ?? 'Cancel'}
-          </button>
-          <button type="button" onClick={onConfirm} className="btn btn-primary clickable" style={{ padding: '8px 16px', fontSize: 13, borderRadius: 'var(--r-md)', background: 'var(--danger)', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)', color: '#fff' }}>
-            {confirmText ?? 'Confirm'}
-          </button>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function OrderReceiptModal({
-  receipt, store, currencySymbol, onContinue, onClose
-}: {
-  receipt: CreatedOrderReceipt; store: Store; currencySymbol: string;
-  onContinue: () => void; onClose: () => void;
-}) {
-  const trackUrl = `/track/${receipt.order.id}`;
-  const [isPaying, setIsPaying] = useState(false);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
-
-  const copyTrackingLink = async () => {
-    const absoluteUrl = `${window.location.origin}${trackUrl}`;
-    await navigator.clipboard.writeText(absoluteUrl);
-    toast.success('Tracking link copied');
-  };
-
-  const handlePayNow = async () => {
-    try {
-      setIsPaying(true);
-      const res = await fetch(`${API_URL}/v1/public/orders/${receipt.order.id}/initialize-payment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.message || 'Failed to initialize payment.');
-      }
-      if (json.data && json.data.authorization_url) {
-        window.location.href = json.data.authorization_url;
-      } else {
-        throw new Error('Invalid payment response.');
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Payment initialization failed.');
-    } finally {
-      setIsPaying(false);
+function getCategoryTheme(catName: string) {
+  const normalized = catName.trim();
+  // Check exact match
+  for (const k of Object.keys(CAT_THEME)) {
+    if (normalized.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(normalized.toLowerCase())) {
+      return CAT_THEME[k];
     }
-  };
-
-  return (
-    <>
-      <div className="drawer-backdrop animate-backdrop" style={{ zIndex: 220 }} />
-      <div
-        className="card animate-scale-in"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Order receipt"
-        style={{
-          position: 'fixed',
-          inset: 'auto 16px 16px',
-          zIndex: 230,
-          maxWidth: 440,
-          margin: '0 auto',
-          padding: 20,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-          boxShadow: 'var(--shadow-xl)',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <div style={{
-              width: 44,
-              height: 44,
-              borderRadius: 'var(--r-md)',
-              background: 'var(--primary-light)',
-              color: 'var(--primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <CheckCircle2 size={22} />
-            </div>
-            <div>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 19, fontWeight: 800, margin: 0, color: 'var(--text)' }}>
-                Order created
-              </h3>
-              <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '3px 0 0' }}>
-                Receipt from {store.store_name}
-              </p>
-            </div>
-          </div>
-          <button className="drawer__close clickable" onClick={onClose} aria-label="Close receipt">
-            <X size={14} strokeWidth={2.5} />
-          </button>
-        </div>
-
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 14, background: 'var(--surface-2)', display: 'grid', gap: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Order ID</span>
-            <strong style={{ color: 'var(--text)', fontSize: 14 }}>#{receipt.order.order_number}</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Total</span>
-            <strong style={{ color: 'var(--primary)', fontSize: 15 }}>{fmt(receipt.order.total_amount, currencySymbol)}</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Delivery</span>
-            <strong style={{ color: 'var(--text)', fontSize: 14, textTransform: 'capitalize' }}>{receipt.order.delivery_method}</strong>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Status</span>
-            <span className="badge badge-accent">{receipt.order.order_status}</span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', color: 'var(--text-muted)', fontSize: 12.5, lineHeight: 1.45 }}>
-          <Shield size={16} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: 1 }} />
-          <span>Your tracking page is ready. Keep the link so you can confirm payment and order updates outside the WhatsApp chat.</span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px', gap: 10 }}>
-          <a href={trackUrl} className="btn btn-outline clickable" style={{ textDecoration: 'none', minWidth: 0 }}>
-            <ExternalLink size={16} /> View tracking page
-          </a>
-          <button type="button" onClick={copyTrackingLink} className="btn btn-outline clickable" aria-label="Copy tracking link" title="Copy tracking link" style={{ padding: 0 }}>
-            <Copy size={16} />
-          </button>
-        </div>
-
-        {receipt.order.payment_status === 'unpaid' && (
-          <button
-            type="button"
-            onClick={handlePayNow}
-            disabled={isPaying}
-            className="btn btn-primary clickable"
-            style={{
-              width: '100%',
-              padding: '14px 18px',
-              fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              backgroundColor: 'var(--primary)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-lg)',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
-            }}
-          >
-            {isPaying ? 'Initializing payment...' : `Pay Online Now (${fmt(receipt.order.total_amount, currencySymbol)})`}
-          </button>
-        )}
-
-        <button type="button" onClick={onContinue} className="btn btn-whatsapp clickable" style={{ width: '100%', padding: '15px 18px', fontWeight: 800 }}>
-          <WhatsAppIcon size={20} />
-          Continue on WhatsApp
-        </button>
-      </div>
-    </>
-  );
+  }
+  // Hash fallback
+  let hash = 0;
+  for (let i = 0; i < normalized.length; i++) {
+    hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const themes = Object.values(CAT_THEME);
+  return themes[Math.abs(hash) % themes.length];
 }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+// Classifier helper to determine if a product is a service
+function isProductService(product: Product, store: Store): boolean {
+  const catName = (product.category_id || '').toLowerCase();
+  const name = (product.name || '').toLowerCase();
+  if (name.includes('lashe') || name.includes('brow') || name.includes('lamination') || name.includes('tint') || name.includes('massage') || name.includes('treatment') || name.includes('facial') || name.includes('appointment') || name.includes('session') || name.includes('booking')) {
+    return true;
+  }
+  if (store.business_persona === 'beauty-service') {
+    if (name.includes('serum') || name.includes('cleanser') || name.includes('kit') || name.includes('oil') || name.includes('cream') || name.includes('shampoo') || name.includes('gel') || name.includes('brush') || name.includes('remover') || name.includes('foam')) {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
 
-function StoreSkeleton() {
+// Dynamic Media component that displays image or fallback gradient
+function Media({ cat, h, imgUrl }: { cat: string; h: number; imgUrl?: string }) {
+  if (imgUrl) {
+    return (
+      <div style={{ height: h, width: '100%', overflow: 'hidden', position: 'relative' }}>
+        <img src={imgUrl} alt={cat} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      </div>
+    );
+  }
+  const [a, b] = getCategoryTheme(cat);
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto' }}>
-      <div className="skeleton" style={{ width: '100%', height: 160, borderRadius: 0 }} />
-      <div style={{ padding: '0 20px 20px', position: 'relative' }}>
-        <div className="skeleton" style={{ width: 80, height: 80, borderRadius: 16, marginTop: -40, marginBottom: 12 }} />
-        <div className="skeleton" style={{ height: 22, width: '55%', marginBottom: 8 }} />
-        <div className="skeleton" style={{ height: 14, width: '80%', marginBottom: 6 }} />
-        <div className="skeleton" style={{ height: 14, width: '60%' }} />
-      </div>
-      <div style={{ padding: '12px 16px 8px', borderBottom: '1px solid var(--border)' }}>
-        <div className="skeleton" style={{ height: 40, borderRadius: 999 }} />
-      </div>
-      <div style={{ display: 'flex', gap: 8, padding: 16, overflow: 'hidden' }}>
-        {[80, 96, 72, 100].map((w, i) => (
-          <div key={i} className="skeleton" style={{ height: 34, width: w, borderRadius: 999, flexShrink: 0 }} />
-        ))}
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, padding: '0 16px 32px' }}>
-        {[...Array(6)].map((_, i) => (
-          <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div className="skeleton" style={{ width: '100%', paddingTop: '100%', borderRadius: 16 }} />
-            <div className="skeleton" style={{ height: 14, width: '80%' }} />
-            <div className="skeleton" style={{ height: 12, width: '45%' }} />
-          </div>
-        ))}
-      </div>
+    <div style={{ background: `linear-gradient(150deg,${a},${b})`, height: h, display: "grid", placeItems: "center", position: "relative", overflow: "hidden", width: '100%' }}>
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(255,255,255,.16) 1px,transparent 1px)", backgroundSize: "13px 13px" }} />
+      <Sparkles size={h > 130 ? 32 : 24} strokeWidth={1.3} color="rgba(255,255,255,.9)" style={{ position: "relative" }} />
     </div>
   );
 }
 
-// ─── Product Card ─────────────────────────────────────────────────────────────
+export default function StorefrontClient({
+  username,
+  initialProductSlug,
+  initialData,
+}: StorefrontClientProps) {
+  // --- Normalize Data ---
+  const store: Store = useMemo(() => {
+    const s = initialData?.store || {} as Store;
+    return {
+      ...s,
+      store_name: s.store_name || username || 'Store',
+      currency_code: s.currency_code || 'NGN',
+      whatsapp_phone: s.whatsapp_phone || '',
+      location: s.location || 'Lekki, Lagos',
+    };
+  }, [initialData, username]);
 
-function ProductCard({
-  product, currencySymbol, onView, onShare,
-}: {
-  product: Product; currencySymbol: string;
-  onView: () => void; onShare: () => void;
-}) {
-  const hasImage = product.image_urls && product.image_urls.length > 0;
-  const isOutOfStock = product.stock_status === 'out_of_stock';
-  const hasDiscount = product.compare_at_price && parseFloat(product.compare_at_price) > parseFloat(product.price);
-  const pct = hasDiscount ? discountPercent(product.price, product.compare_at_price!) : 0;
+  const categories: Category[] = useMemo(() => initialData?.categories || [], [initialData]);
+  const products: Product[] = useMemo(() => initialData?.products || [], [initialData]);
+  const systemDomain = initialData?.system_domain || 'frontstore.app';
+  const storeDisclaimer = initialData?.store_disclaimer || '';
+  const appName = initialData?.app_name || 'Frontstore';
 
-  return (
-    <div className="product-card animate-fade-in" onClick={onView} role="button" tabIndex={0} aria-label={`View ${product.name}`}>
+  // --- States ---
+  const [premium, setPremium] = useState<boolean>(() => !!(store.is_pro || store.primary_color));
+  const [query, setQuery] = useState("");
+  const [segment, setSegment] = useState<"all" | "service" | "product">("all");
+  const [activeCat, setActiveCat] = useState<string | null>(null);
+  
+  // Cart & Drawer States
+  const [bag, setBag] = useState<CartItem[]>([]);
+  const [bagOpen, setBagOpen] = useState(false);
+  const [booking, setBooking] = useState<Product | null>(null);
+  const [bDate, setBDate] = useState(0);
+  const [bTime, setBTime] = useState<number | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-      {/* Image */}
-      <div className="product-card__image-wrap">
-        {hasImage ? (
-          <img src={product.image_urls![0]} alt={product.name} loading="lazy" decoding="async" />
-        ) : (
-          <div className="product-card__placeholder">
-            <Package size={36} strokeWidth={1.2} />
-          </div>
-        )}
-
-        {/* Discount ribbon */}
-        {!isOutOfStock && pct >= 5 && (
-          <div className="sale-ribbon" style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Tag size={9} />
-            {pct}% OFF
-          </div>
-        )}
-
-        {/* Sold out overlay badge */}
-        {isOutOfStock && (
-          <div className="product-card__badge">
-            <span className="badge badge-danger" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <AlertCircle size={9} /> Sold Out
-            </span>
-          </div>
-        )}
-
-        {/* Digital badge */}
-        {product.is_digital && (
-          <div style={{
-            position: 'absolute',
-            bottom: 8,
-            left: 8,
-            zIndex: 3,
-            background: 'var(--primary)',
-            color: '#fff',
-            fontSize: 9,
-            fontWeight: 800,
-            padding: '3px 8px',
-            borderRadius: 'var(--r-sm)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-            boxShadow: '0 2px 4px rgba(16,185,129,0.2)'
-          }}>
-            <Download size={9} strokeWidth={2.5} />
-            Digital
-          </div>
-        )}
-
-        {/* AI Generated badge */}
-        {hasImage && isAiGeneratedImage(product.image_urls![0]) && (
-          <div style={{
-            position: 'absolute',
-            bottom: 8,
-            right: 8,
-            zIndex: 3,
-            background: 'rgba(15, 23, 42, 0.65)',
-            color: '#fff',
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
-            border: '1px solid rgba(255, 255, 255, 0.18)',
-            fontSize: 9,
-            fontWeight: 800,
-            padding: '3px 8px',
-            borderRadius: 'var(--r-sm)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-            boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-          }}>
-            <span>✨ AI Generated</span>
-          </div>
-        )}
-
-        {/* Share button */}
-        <button
-          className="product-card__share"
-          onClick={e => { e.stopPropagation(); onShare(); }}
-          aria-label="Share product"
-          title="Share"
-        >
-          <Share2 size={13} strokeWidth={2} />
-        </button>
-
-        {/* Sold out dim */}
-        {isOutOfStock && (
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(1px)' }} />
-        )}
-      </div>
-
-      {/* Body */}
-      <div className="product-card__body">
-        <h3 className="product-card__name">{product.name}</h3>
-
-        <div className="product-card__price-row">
-          <span className="product-card__price">{fmt(product.price, currencySymbol)}</span>
-          {hasDiscount && (
-            <span className="product-card__compare">{fmt(product.compare_at_price!, currencySymbol)}</span>
-          )}
-        </div>
-
-        {!isOutOfStock ? (
-          <button
-            className="product-card__buy"
-            onClick={e => { e.stopPropagation(); onView(); }}
-            id={`wa-buy-${product.id}`}
-            aria-label={`View ${product.name} details`}
-          >
-            <WhatsAppIcon size={12} />
-            Order on WhatsApp
-          </button>
-        ) : (
-          <div style={{
-            marginTop: 10, padding: '8px 10px', borderRadius: 'var(--r-md)',
-            background: 'var(--danger-light)', color: 'var(--danger)',
-            fontSize: 11, fontWeight: 700, textAlign: 'center',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-          }}>
-            <AlertCircle size={11} /> Out of Stock
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Product Detail Drawer ────────────────────────────────────────────────────
-
-function ProductDetailDrawer({
-  product, store, currencySymbol, onClose, onAddToCart, onOrderNow, reviews,
-}: {
-  product: Product; store: Store; currencySymbol: string;
-  onClose: () => void; onAddToCart: (p: Product, q: number) => void;
-  onOrderNow: (p: Product, q: number) => void;
-  reviews: any[];
-}) {
-  const productReviews = (reviews ?? []).filter((r: any) => r.product_id === product.id);
-  const avgProductRating = productReviews.length > 0
-    ? (productReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / productReviews.length).toFixed(1)
-    : null;
-
-  const [qty, setQty] = useState(1);
-  const [imgIdx, setImgIdx] = useState(0);
-  const [imageViewerOpen, setImageViewerOpen] = useState(false);
-  const images = product.image_urls ?? [];
-  const isOutOfStock = product.stock_status === 'out_of_stock';
-  const isLowStock = product.stock_status === 'low_stock' || (product.stock_quantity != null && product.stock_quantity <= 5 && product.stock_quantity > 0);
-  const hasDiscount = product.compare_at_price && parseFloat(product.compare_at_price) > parseFloat(product.price);
-  const pct = hasDiscount ? discountPercent(product.price, product.compare_at_price!) : 0;
-  const total = parseFloat(product.price) * qty;
-
-  const touchStartX = useRef(0);
-  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50 && images.length > 1) {
-      if (diff > 0) setImgIdx(i => Math.min(i + 1, images.length - 1));
-      else setImgIdx(i => Math.max(i - 1, 0));
-    }
-  };
-
-  const handleShare = async () => {
-    const url = window.location.href;
-    if (navigator.share) await navigator.share({ title: product.name, text: `${product.name} — ${fmt(product.price, currencySymbol)}`, url });
-    else { navigator.clipboard.writeText(url); }
-  };
-
-  return (
-    <>
-      <div className="drawer-backdrop animate-backdrop" onClick={onClose} />
-      <div className="drawer drawer--product-detail animate-drawer" role="dialog" aria-modal="true" aria-label={product.name}>
-        <div className="drawer__handle" />
-
-        {/* Carousel */}
-        {images.length > 0 ? (
-          <div className="product-detail__carousel" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-            <img src={images[imgIdx]} alt={`${product.name} - image ${imgIdx + 1}`} />
-            {/* <button
-              type="button"
-              className="product-detail__image-view clickable"
-              onClick={() => setImageViewerOpen(true)}
-              aria-label="View product image"
-            >
-              <Eye size={17} strokeWidth={2.4} />
-            </button> */}
-            {isAiGeneratedImage(images[imgIdx]) && (
-              <div style={{
-                position: 'absolute',
-                top: 12,
-                left: 12,
-                zIndex: 3,
-                background: 'rgba(15, 23, 42, 0.65)',
-                color: '#fff',
-                backdropFilter: 'blur(6px)',
-                WebkitBackdropFilter: 'blur(6px)',
-                border: '1px solid rgba(255, 255, 255, 0.18)',
-                fontSize: 9,
-                fontWeight: 800,
-                padding: '4px 10px',
-                borderRadius: 'var(--r-sm)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-              }}>
-                <span>✨ AI Generated Image</span>
-              </div>
-            )}
-            {images.length > 1 && (
-              <>
-                <div className="carousel-dots">
-                  {images.map((_, i) => (
-                    <button key={i} className={`carousel-dot${i === imgIdx ? ' active' : ''}`} onClick={() => setImgIdx(i)} aria-label={`Image ${i + 1}`} />
-                  ))}
-                </div>
-                {imgIdx > 0 && (
-                  <button onClick={() => setImgIdx(i => i - 1)} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }} aria-label="Previous">
-                    <ChevronLeft size={18} strokeWidth={2.5} />
-                  </button>
-                )}
-                {imgIdx < images.length - 1 && (
-                  <button onClick={() => setImgIdx(i => i + 1)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }} aria-label="Next">
-                    <ChevronRight size={18} strokeWidth={2.5} />
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        ) : (
-          <div style={{ height: 200, background: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Package size={56} strokeWidth={1} color="var(--text-faint)" />
-          </div>
-        )}
-
-        {imageViewerOpen && images.length > 0 && (
-          <div className="product-image-viewer animate-backdrop" role="dialog" aria-modal="true" aria-label={`${product.name} image viewer`} onClick={() => setImageViewerOpen(false)}>
-            <button
-              type="button"
-              className="product-image-viewer__close clickable"
-              onClick={() => setImageViewerOpen(false)}
-              aria-label="Close image viewer"
-            >
-              <X size={18} strokeWidth={2.5} />
-            </button>
-
-            {images.length > 1 && imgIdx > 0 && (
-              <button
-                type="button"
-                className="product-image-viewer__nav product-image-viewer__nav--prev clickable"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setImgIdx(i => Math.max(i - 1, 0));
-                }}
-                aria-label="Previous product image"
-              >
-                <ChevronLeft size={24} strokeWidth={2.5} />
-              </button>
-            )}
-
-            <div className="product-image-viewer__stage" onClick={(event) => event.stopPropagation()}>
-              <img src={images[imgIdx]} alt={`${product.name} - image ${imgIdx + 1}`} />
-              {images.length > 1 && (
-                <div className="product-image-viewer__count">{imgIdx + 1} / {images.length}</div>
-              )}
-            </div>
-
-            {images.length > 1 && imgIdx < images.length - 1 && (
-              <button
-                type="button"
-                className="product-image-viewer__nav product-image-viewer__nav--next clickable"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setImgIdx(i => Math.min(i + 1, images.length - 1));
-                }}
-                aria-label="Next product image"
-              >
-                <ChevronRight size={24} strokeWidth={2.5} />
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Body */}
-        <div className="product-detail__body">
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12, gap: 12 }}>
-            <div style={{ flex: 1 }}>
-              <h2 className="product-detail__title" style={{ marginBottom: 0 }}>{product.name}</h2>
-              {avgProductRating && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                  <div style={{ display: 'flex', gap: 2 }}>
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <Star
-                        key={star}
-                        size={12}
-                        fill={star <= Math.round(Number(avgProductRating)) ? 'var(--primary)' : 'none'}
-                        stroke={star <= Math.round(Number(avgProductRating)) ? 'var(--primary)' : 'var(--text-faint)'}
-                      />
-                    ))}
-                  </div>
-                  <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--primary)' }}>
-                    {avgProductRating} / 5.0 ({productReviews.length} {productReviews.length === 1 ? 'review' : 'reviews'})
-                  </span>
-                </div>
-              )}
-            </div>
-            <button className="drawer__close clickable" onClick={onClose} aria-label="Close">
-              <X size={14} strokeWidth={2.5} />
-            </button>
-          </div>
-
-          {/* Price */}
-          <div className="product-detail__price-row">
-            <span className="product-detail__price">{fmt(product.price, currencySymbol)}</span>
-            {hasDiscount && (
-              <>
-                <span className="product-detail__compare">{fmt(product.compare_at_price!, currencySymbol)}</span>
-                <span className="product-detail__discount-tag" style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                  <Tag size={9} />{pct}% OFF
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Stock */}
-          <div className={`product-detail__stock ${product.is_digital ? 'in-stock' : (isOutOfStock ? 'out-of-stock' : (isLowStock ? 'low-stock' : 'in-stock'))}`} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
-            <div className="product-detail__stock-dot" />
-            {product.is_digital
-              ? 'Instant Digital Download · Available Immediately'
-              : (isOutOfStock ? 'Out of Stock' : (isLowStock ? `Low Stock — Only ${product.stock_quantity ?? 'a few'} left` : 'In Stock · Ready to ship'))
-            }
-          </div>
-
-          {/* Description */}
-          {product.description && (
-            <div style={{ marginBottom: 18 }}>
-              <p className="product-detail__desc-label">About this product</p>
-              <p className="product-detail__desc">{product.description}</p>
-            </div>
-          )}
-
-          {/* AI generated image disclaimer */}
-          {images.some(url => isAiGeneratedImage(url)) && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 8,
-              padding: '10px 12px',
-              background: 'var(--surface-2)',
-              border: '1px dashed var(--border-strong)',
-              borderRadius: 'var(--r-md)',
-              marginBottom: 18,
-              fontSize: 12,
-              color: 'var(--text-muted)',
-              lineHeight: 1.4
-            }}>
-              <AlertCircle size={14} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: 1 }} />
-              <span>Note: One or more product images are AI-generated to showcase the item contextually.</span>
-            </div>
-          )}
-
-          {/* Share */}
-          <div style={{ marginBottom: 20 }}>
-            <button className="social-btn clickable" onClick={handleShare} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <Share2 size={13} /> Share Product
-            </button>
-          </div>
-
-          {/* Product Reviews List */}
-          {productReviews.length > 0 && (
-            <div style={{ marginBottom: 18, borderTop: '1px solid var(--border)', paddingTop: 14 }}>
-              <p className="product-detail__desc-label" style={{ marginBottom: 10 }}>Customer Reviews</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {productReviews.map((review: any, index: number) => (
-                  <div key={stableKey('product-review', [review.id, review.created_at, review.customer_name], index)} style={{ background: 'var(--surface-2)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 700, fontSize: '12.5px' }}>{review.customer_name || 'Verified Buyer'}</span>
-                      <div style={{ display: 'flex', gap: 2 }}>
-                        {[1, 2, 3, 4, 5].map(star => (
-                          <Star 
-                            key={star} 
-                            size={10} 
-                            fill={star <= review.rating ? 'var(--primary)' : 'none'} 
-                            stroke={star <= review.rating ? 'var(--primary)' : 'var(--text-faint)'} 
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    {review.comment && (
-                      <p style={{ fontSize: '13px', margin: 0, color: 'var(--text)', fontStyle: 'italic' }}>
-                        &ldquo;{review.comment}&rdquo;
-                      </p>
-                    )}
-                    {review.reply && (
-                      <div style={{ marginTop: '2px', paddingLeft: '8px', borderLeft: '1.5px solid var(--primary)', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--primary)' }}>Seller Reply:</span>
-                        <p style={{ fontSize: '12px', margin: 0, color: 'var(--text-muted)' }}>
-                          {review.reply}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* CTA section */}
-          {!isOutOfStock ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* Qty + subtotal */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <div className="qty-selector">
-                  <button className="qty-btn clickable" onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="Decrease">
-                    <Minus size={16} strokeWidth={2.5} />
-                  </button>
-                  <span className="qty-display">{qty}</span>
-                  <button className="qty-btn clickable" onClick={() => setQty(q => q + 1)} aria-label="Increase">
-                    <Plus size={16} strokeWidth={2.5} />
-                  </button>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 10, color: 'var(--text-faint)', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Subtotal</div>
-                  <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--text)', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}>{fmt(total, currencySymbol)}</div>
-                </div>
-              </div>
-
-              {/* WhatsApp primary CTA */}
-              <button
-                className="btn btn-whatsapp clickable"
-                style={{ width: '100%', padding: '15px 20px', fontSize: 15, borderRadius: 'var(--r-lg)', fontFamily: 'var(--font-heading)', fontWeight: 800, gap: 10 }}
-                onClick={() => onOrderNow(product, qty)}
-                id={`whatsapp-order-${product.id}`}
-              >
-                <WhatsAppIcon size={20} />
-                Buy Now — {fmt(total, currencySymbol)}
-              </button>
-
-              {/* Add to cart secondary */}
-              <button
-                className="btn btn-outline clickable"
-                style={{ width: '100%', padding: '13px', gap: 8 }}
-                onClick={() => { onAddToCart(product, qty); onClose(); }}
-                id={`add-cart-${product.id}`}
-              >
-                <ShoppingCart size={16} /> Add to Cart
-              </button>
-            </div>
-          ) : (
-            <div style={{ padding: 16, borderRadius: 'var(--r-lg)', background: 'var(--danger-light)', color: 'var(--danger)', textAlign: 'center', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-              <AlertCircle size={16} /> This item is currently unavailable
-            </div>
-          )}
-          <div style={{ height: 'max(16px, env(safe-area-inset-bottom))' }} />
-        </div>
-      </div>
-    </>
-  );
-}
-
-// ─── Cart Drawer ──────────────────────────────────────────────────────────────
-
-function CartDrawer({
-  cart, store, currencySymbol, cartTotal, onClose, onUpdateQty, onWhatsAppCheckout, onRemoveItem, onClearCart
-}: {
-  cart: CartItem[]; store: Store; currencySymbol: string; cartTotal: number;
-  onClose: () => void; onUpdateQty: (id: string, delta: number) => void; onWhatsAppCheckout: () => void;
-  onRemoveItem: (id: string) => void; onClearCart: () => void;
-}) {
-  return (
-    <>
-      <div className="drawer-backdrop animate-backdrop" onClick={onClose} />
-      <div className="drawer animate-drawer" role="dialog" aria-modal="true" aria-label="Shopping cart">
-        <div className="drawer__handle" />
-        <div className="drawer__header">
-          <span className="drawer__title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <ShoppingCart size={18} /> Cart ({cart.reduce((s, i) => s + i.quantity, 0)})
-          </span>
-          {cart.length > 0 && (
-            <button onClick={onClearCart} style={{ background: 'none', border: 'none', color: 'var(--danger)', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, marginRight: 'auto', marginLeft: 16 }} className="clickable">
-              <Trash2 size={12} /> Clear
-            </button>
-          )}
-          <button className="drawer__close clickable" onClick={onClose} aria-label="Close cart">
-            <X size={14} strokeWidth={2.5} />
-          </button>
-        </div>
-
-        <div style={{ padding: '12px 20px 0', flex: 1 }}>
-          {cart.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state__icon"><ShoppingCart size={44} strokeWidth={1} /></div>
-              <p className="empty-state__title">Your cart is empty</p>
-              <p className="empty-state__body">Browse the products and tap to add items to your cart.</p>
-            </div>
-          ) : (
-            <>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {cart.map((item, index) => {
-                  const subtotal = parseFloat(item.product.price) * item.quantity;
-                  return (
-                    <div key={stableKey('cart-item', [item.product.id, item.product.slug, item.product.name], index)} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
-                      <div style={{ width: 56, height: 56, borderRadius: 'var(--r-md)', background: 'var(--bg-2)', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
-                        {item.product.image_urls?.[0]
-                          ? <img src={item.product.image_urls[0]} alt={item.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Package size={22} strokeWidth={1.2} color="var(--text-faint)" /></div>
-                        }
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)', marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product.name}</p>
-                        <p style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{fmt(subtotal, currencySymbol)}</p>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', overflow: 'hidden', flexShrink: 0 }}>
-                        <button onClick={() => item.quantity === 1 ? onRemoveItem(item.product.id) : onUpdateQty(item.product.id, -1)} style={{ width: 32, height: 32, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.quantity === 1 ? 'var(--danger)' : 'var(--text)' }} className="clickable" aria-label="Remove one">
-                          {item.quantity === 1 ? <Trash2 size={13} strokeWidth={2} /> : <Minus size={14} strokeWidth={2.5} />}
-                        </button>
-                        <span style={{ minWidth: 28, textAlign: 'center', fontSize: 13, fontWeight: 700 }}>{item.quantity}</span>
-                        <button onClick={() => onUpdateQty(item.product.id, 1)} style={{ width: 32, height: 32, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="clickable" aria-label="Add one">
-                          <Plus size={14} strokeWidth={2.5} />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div style={{ padding: '14px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, color: 'var(--text-muted)' }}>
-                  <span>Items ({cart.reduce((s, i) => s + i.quantity, 0)})</span>
-                  <span>{fmt(cartTotal, currencySymbol)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 800, color: 'var(--text)', borderTop: '1px solid var(--border)', paddingTop: 10 }}>
-                  <span>Total</span>
-                  <span style={{ color: 'var(--primary)' }}>{fmt(cartTotal, currencySymbol)}</span>
-                </div>
-              </div>
-
-              <button
-                className="btn btn-whatsapp clickable"
-                style={{ width: '100%', padding: '15px 20px', fontSize: 15, borderRadius: 'var(--r-lg)', marginBottom: 10, fontFamily: 'var(--font-heading)', fontWeight: 800, gap: 10 }}
-                onClick={onWhatsAppCheckout}
-                id="whatsapp-checkout-btn"
-              >
-                <WhatsAppIcon size={20} />
-                Complete Order on WhatsApp
-              </button>
-              <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-faint)', marginBottom: 8 }}>
-                You'll be redirected to WhatsApp with your order pre-filled.
-              </p>
-            </>
-          )}
-        </div>
-        <div style={{ height: 'max(24px, env(safe-area-inset-bottom))' }} />
-      </div>
-    </>
-  );
-}
-
-// ─── Checkout Drawer ──────────────────────────────────────────────────────────
-
-function CheckoutDrawer({
-  cart, store, currencySymbol, cartTotal, onClose, onBack, onOrderCreated, API_URL, uname, storeDisclaimer
-}: {
-  cart: CartItem[]; store: Store; currencySymbol: string; cartTotal: number;
-  onClose: () => void; onBack: () => void; onOrderCreated: (receipt: CreatedOrderReceipt) => void;
-  API_URL: string; uname: string; storeDisclaimer: string;
-}) {
+  // Checkout Form States
+  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'details'>('cart');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
   const [customerWhatsapp, setCustomerWhatsapp] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup' | 'digital'>('delivery');
   const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [profileMessage, setProfileMessage] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
+  const [isPaying, setIsPaying] = useState(false);
 
-  const isAllDigital = cart.every(item => item.product.is_digital);
+  // Viewport scroll targets
+  const searchRef = useRef<HTMLDivElement>(null);
+  const reviewsRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
 
+  // Sync premium toggle to store details
   useEffect(() => {
-    if (isAllDigital) {
-      setDeliveryMethod('digital');
-    } else if (deliveryMethod === 'digital') {
-      setDeliveryMethod('delivery');
-    }
-  }, [isAllDigital, deliveryMethod]);
+    setPremium(!!(store.is_pro || store.primary_color));
+  }, [store]);
 
-  const applyCustomerProfile = useCallback((profile: CustomerProfileLookup, source: 'local' | 'network') => {
-    if (!profile) return;
+  // Toast Timer
+  useEffect(() => {
+    if (!toastMsg) return;
+    const t = setTimeout(() => setToastMsg(null), 1900);
+    return () => clearTimeout(t);
+  }, [toastMsg]);
 
-    if (profile.name && !customerName) setCustomerName(profile.name);
-    if (profile.email && !customerEmail) setCustomerEmail(profile.email);
-    if (profile.whatsapp_number && !customerWhatsapp) setCustomerWhatsapp(profile.whatsapp_number);
-    if (profile.preferred_delivery_address && !deliveryAddress) setDeliveryAddress(profile.preferred_delivery_address);
-    if (!isAllDigital && profile.preferred_delivery_method && profile.preferred_delivery_method !== 'digital') {
-      setDeliveryMethod(profile.preferred_delivery_method);
-    }
-
-    setProfileMessage(source === 'network'
-      ? 'Saved checkout details found. Review them before placing your order.'
-      : 'Using your saved checkout details from this device.');
-  }, [customerName, customerEmail, customerWhatsapp, deliveryAddress, isAllDigital]);
-
+  // Persistent Cart Loading
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('frontstore_customer_profile');
-      if (saved) applyCustomerProfile(JSON.parse(saved), 'local');
-    } catch { }
-  }, [applyCustomerProfile]);
-
-  useEffect(() => {
-    const phone = customerPhone.trim();
-    if (phone.replace(/\D/g, '').length < 8) return;
-
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      try {
-        setProfileLoading(true);
-        const res = await fetch(`${API_URL}/v1/public/customers/profile?phone=${encodeURIComponent(phone)}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) return;
-        const json = await res.json();
-        if (json.data) applyCustomerProfile(json.data, 'network');
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          setProfileMessage('');
-        }
-      } finally {
-        setProfileLoading(false);
+      const saved = localStorage.getItem(`frontstore_cart_${username}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setBag(parsed);
       }
-    }, 450);
+    } catch { }
+  }, [username]);
 
-    return () => {
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-  }, [API_URL, customerPhone, applyCustomerProfile]);
+  // Load Saved Client Profile
+  useEffect(() => {
+    try {
+      const savedProfile = localStorage.getItem('frontstore_customer_profile');
+      if (savedProfile) {
+        const parsed = JSON.parse(savedProfile);
+        if (parsed.name) setCustomerName(parsed.name);
+        if (parsed.phone_number) setCustomerPhone(parsed.phone_number);
+        if (parsed.whatsapp_number) setCustomerWhatsapp(parsed.whatsapp_number);
+        if (parsed.email) setCustomerEmail(parsed.email);
+        if (parsed.preferred_delivery_address) setDeliveryAddress(parsed.preferred_delivery_address);
+      }
+    } catch { }
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Update Cart LocalStorage helper
+  const saveCartToStorage = (newBag: CartItem[]) => {
+    try {
+      localStorage.setItem(`frontstore_cart_${username}`, JSON.stringify(newBag));
+    } catch { }
+  };
+
+  // Toast helper
+  const triggerToast = (msg: string) => {
+    setToastMsg(msg);
+  };
+
+  // Calendar dates lookup
+  const days = useMemo(() => {
+    const out = [];
+    for (let i = 0; i < 5; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      out.push({
+        label: i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-GB", { weekday: "short" }),
+        date: d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+        formatted: d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+      });
+    }
+    return out;
+  }, []);
+  const slots = ["10:00 AM", "12:30 PM", "03:00 PM", "05:30 PM"];
+
+  // Filter Categories present in active products
+  const activeCategories = useMemo(() => {
+    const ids = new Set(products.map(p => p.category_id).filter(Boolean));
+    return categories.filter(c => ids.has(c.id));
+  }, [categories, products]);
+
+  // Find signature treatment or first active product as featured
+  const pinnedProduct = useMemo(() => {
+    return products.find(p => p.stock_status === 'in_stock') || products[0] || null;
+  }, [products]);
+
+  // Browse filtering grid
+  const filteredProducts = useMemo(() => {
+    return products
+      .filter(p => p.id !== (pinnedProduct?.id || ''))
+      .filter(p => {
+        const isService = isProductService(p, store);
+        if (segment === "service") return isService;
+        if (segment === "product") return !isService;
+        return true;
+      })
+      .filter(p => !activeCat || p.category_id === activeCat)
+      .filter(p => {
+        if (!query.trim()) return true;
+        const q = query.toLowerCase();
+        return p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q);
+      });
+  }, [products, pinnedProduct, segment, activeCat, query, store]);
+
+  // Cart Counts & Calculations
+  const bagCount = bag.reduce((n, b) => n + b.qty, 0);
+  const bagTotal = bag.reduce((n, b) => n + b.qty * b.price, 0);
+  const currencySymbol = getCurrencySymbol(store.currency_code);
+
+  // Direct checkout link if direct navigation to product slug
+  useEffect(() => {
+    if (initialProductSlug && products.length > 0) {
+      const matched = products.find(p => p.slug === initialProductSlug);
+      if (matched) {
+        if (isProductService(matched, store)) {
+          setBooking(matched);
+        } else {
+          // Add product to bag and open checkout
+          const key = "p" + matched.id;
+          setBag(b => {
+            const ex = b.find(x => x.key === key);
+            let nextBag;
+            if (ex) {
+              nextBag = b.map(x => x.key === key ? { ...x, qty: x.qty + 1 } : x);
+            } else {
+              nextBag = [...b, {
+                key,
+                id: matched.id,
+                name: matched.name,
+                price: parseFloat(matched.price),
+                qty: 1,
+                type: "product",
+                productRef: matched
+              } as CartItem];
+            }
+            saveCartToStorage(nextBag);
+            return nextBag;
+          });
+          setCheckoutStep('details');
+          setBagOpen(true);
+        }
+      }
+    }
+  }, [initialProductSlug, products, store]);
+
+  // Cart operations
+  const addProduct = (it: Product) => {
+    const key = "p" + it.id;
+    setBag(b => {
+      const ex = b.find(x => x.key === key);
+      let nextBag;
+      if (ex) {
+        nextBag = b.map(x => x.key === key ? { ...x, qty: x.qty + 1 } : x);
+      } else {
+        nextBag = [...b, {
+          key,
+          id: it.id,
+          name: it.name,
+          price: parseFloat(it.price),
+          qty: 1,
+          type: "product",
+          productRef: it
+        } as CartItem];
+      }
+      saveCartToStorage(nextBag);
+      return nextBag;
+    });
+    triggerToast("Added to order");
+  };
+
+  const openBooking = (it: Product) => {
+    setBooking(it);
+    setBDate(0);
+    setBTime(null);
+  };
+
+  const confirmBooking = () => {
+    if (bTime === null || !booking) {
+      triggerToast("Pick a time slot");
+      return;
+    }
+    const d = days[bDate];
+    const key = `s${booking.id}-${d.date}-${bTime}`;
+    setBag(b => {
+      const nextBag = [...b, {
+        key,
+        id: booking.id,
+        name: booking.name,
+        price: parseFloat(booking.price),
+        qty: 1,
+        type: "service",
+        slot: `${d.label} ${d.date}, ${slots[bTime]}`,
+        duration: 90,
+        productRef: booking
+      } as CartItem];
+      saveCartToStorage(nextBag);
+      return nextBag;
+    });
+    setBooking(null);
+    triggerToast("Appointment added");
+  };
+
+  const changeQty = (key: string, d: number) => {
+    setBag(b => {
+      const nextBag = b.map(x => x.key === key ? { ...x, qty: Math.max(1, x.qty + d) } : x);
+      saveCartToStorage(nextBag);
+      return nextBag;
+    });
+  };
+
+  const removeItem = (key: string) => {
+    setBag(b => {
+      const nextBag = b.filter(x => x.key !== key);
+      saveCartToStorage(nextBag);
+      return nextBag;
+    });
+  };
+
+  const copyLink = () => {
+    const link = `${window.location.origin}/${store.username}`;
+    navigator.clipboard.writeText(link);
+    triggerToast("Store link copied");
+  };
+
+  const focusSearch = () => {
+    searchRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => searchRef.current?.querySelector("input")?.focus(), 350);
+  };
+
+  const scrollTo = (ref: React.RefObject<HTMLDivElement | null>) => {
+    ref.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // --- Order Submission ---
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName || !customerPhone || (deliveryMethod === 'delivery' && !isAllDigital && !deliveryAddress)) {
-      setError('Please fill in all required fields.');
+    if (!customerName || !customerPhone) {
+      setCheckoutError('Name and WhatsApp number are required.');
       return;
     }
 
+    setCheckoutLoading(true);
+    setCheckoutError(null);
+
+    const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
+
+    // Compile slots list for session-booking address details
+    const serviceItems = bag.filter(x => x.type === 'service');
+    let compiledAddress = deliveryAddress;
+    if (serviceItems.length > 0) {
+      const slotDetails = serviceItems.map(x => `${x.name} booking: ${x.slot}`).join(', ');
+      compiledAddress = `Booking details: ${slotDetails}` + (deliveryAddress ? ` | Session Location: ${deliveryAddress}` : '');
+    }
+
     try {
-      setLoading(true);
-      setError(null);
-
-      const items = cart.map(item => ({
-        product_id: item.product.id,
-        quantity: item.quantity
-      }));
-
-      const res = await fetch(`${API_URL}/v1/public/store/${uname}/orders`, {
+      const res = await fetch(`${API_URL}/v1/public/store/${store.username}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1142,17 +496,21 @@ function CheckoutDrawer({
           customer_phone: customerPhone,
           customer_email: customerEmail || undefined,
           customer_whatsapp: customerWhatsapp || customerPhone,
-          delivery_method: deliveryMethod,
-          delivery_address: deliveryMethod === 'delivery' ? deliveryAddress : undefined,
-          items
+          delivery_method: serviceItems.length > 0 ? (deliveryAddress ? 'delivery' : 'pickup') : deliveryMethod,
+          delivery_address: compiledAddress || 'None specified',
+          items: bag.map(item => ({
+            product_id: item.id,
+            quantity: item.qty
+          }))
         })
       });
 
       const json = await res.json();
       if (!res.ok) {
-        throw new Error(json.message || 'Failed to place order.');
+        throw new Error(json.message || 'Failed to submit order.');
       }
 
+      // Save customer profile for future checkout speedups
       try {
         localStorage.setItem('frontstore_customer_profile', JSON.stringify({
           name: customerName,
@@ -1164,1103 +522,1365 @@ function CheckoutDrawer({
         }));
       } catch { }
 
-      onOrderCreated(json.data);
+      // Clear local bag
+      setBag([]);
+      saveCartToStorage([]);
+      setOrderReceipt(json.data);
+      setBagOpen(false);
+      setCheckoutStep('cart');
+      triggerToast('Order placed successfully!');
     } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please try again.');
+      setCheckoutError(err.message || 'Something went wrong. Please try again.');
     } finally {
-      setLoading(false);
+      setCheckoutLoading(false);
     }
   };
 
-  return (
-    <>
-      <div className="drawer-backdrop animate-backdrop" onClick={onClose} />
-      <div className="drawer animate-drawer" role="dialog" aria-modal="true" aria-label="Checkout details">
-        <div className="drawer__handle" />
-        <div className="drawer__header">
-          <button className="clickable" onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700, fontSize: 13.5 }}>
-            <ChevronLeft size={16} /> Back to Cart
-          </button>
-          <span className="drawer__title">Checkout</span>
-          <button className="drawer__close clickable" onClick={onClose} aria-label="Close checkout">
-            <X size={14} strokeWidth={2.5} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} style={{ padding: '12px 20px 0', flex: 1, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto' }} className="no-scrollbar">
-          {error && (
-            <div style={{ background: 'var(--danger-light)', color: 'var(--danger)', borderRadius: 'var(--r-md)', padding: 12, fontSize: 13, fontWeight: 600 }}>
-              {error}
-            </div>
-          )}
-
-          {storeDisclaimer && (
-            <div style={{
-              background: 'rgba(245, 158, 11, 0.08)',
-              color: '#d97706',
-              borderRadius: 'var(--r-md)',
-              border: '1px solid rgba(245, 158, 11, 0.25)',
-              padding: '12px 16px',
-              fontSize: '13px',
-              fontWeight: 600,
-              display: 'flex',
-              gap: '10px',
-              alignItems: 'flex-start',
-              lineHeight: '1.4'
-            }}>
-              <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-              <div>{storeDisclaimer}</div>
-            </div>
-          )}
-
-          {(profileMessage || profileLoading) && (
-            <div style={{
-              background: 'var(--primary-light)',
-              color: 'var(--primary)',
-              border: '1px solid var(--primary)',
-              borderRadius: 'var(--r-md)',
-              padding: '10px 12px',
-              fontSize: 12.5,
-              fontWeight: 700,
-              display: 'flex',
-              gap: 8,
-              alignItems: 'center',
-            }}>
-              {profileLoading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-              <span>{profileLoading ? 'Checking for saved checkout details...' : profileMessage}</span>
-            </div>
-          )}
-
-          <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Full Name *</label>
-            <input type="text" required placeholder="e.g. Amina Bello" value={customerName} onChange={e => setCustomerName(e.target.value)} className="input-field" />
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Phone Number *</label>
-              <input type="tel" required placeholder="e.g. +234..." value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} className="input-field" />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>WhatsApp Number</label>
-              <input type="tel" placeholder="Defaults to phone" value={customerWhatsapp} onChange={e => setCustomerWhatsapp(e.target.value)} className="input-field" />
-            </div>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Email Address (Optional)</label>
-            <input type="email" placeholder="For order updates & tracking" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} className="input-field" />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Delivery Method *</label>
-            {!isAllDigital ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <button type="button" onClick={() => setDeliveryMethod('delivery')} style={{ padding: 12, borderRadius: 'var(--r-md)', border: deliveryMethod === 'delivery' ? '2px solid var(--primary)' : '1.5px solid var(--border)', background: deliveryMethod === 'delivery' ? 'var(--primary-light)' : 'transparent', color: deliveryMethod === 'delivery' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 700, cursor: 'pointer' }}>
-                  Delivery
-                </button>
-                <button type="button" onClick={() => setDeliveryMethod('pickup')} style={{ padding: 12, borderRadius: 'var(--r-md)', border: deliveryMethod === 'pickup' ? '2px solid var(--primary)' : '1.5px solid var(--border)', background: deliveryMethod === 'pickup' ? 'var(--primary-light)' : 'transparent', color: deliveryMethod === 'pickup' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 700, cursor: 'pointer' }}>
-                  Self-Pickup
-                </button>
-              </div>
-            ) : (
-              <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: '1px dashed var(--primary)', borderRadius: 'var(--r-md)', padding: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
-                <Shield size={16} style={{ flexShrink: 0 }} />
-                <span style={{ fontSize: 12.5, fontWeight: 600 }}>Digital delivery active: link/file will be unlocked instantly on checkout payment confirmation.</span>
-              </div>
-            )}
-          </div>
-
-          {deliveryMethod === 'delivery' && !isAllDigital && (
-            <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Delivery Address *</label>
-              <textarea required placeholder="Enter your full street address, city, and state" value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)} className="input-field" style={{ minHeight: 80, resize: 'vertical', fontFamily: 'inherit' }} />
-            </div>
-          )}
-
-          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginTop: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>
-              <span>Total Amount</span>
-              <span style={{ color: 'var(--primary)' }}>{fmt(cartTotal, currencySymbol)}</span>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn btn-whatsapp clickable"
-            style={{ width: '100%', padding: '15px 20px', fontSize: 15, borderRadius: 'var(--r-lg)', marginBottom: 12, fontFamily: 'var(--font-heading)', fontWeight: 800, gap: 10 }}
-            id="submit-checkout-btn"
-          >
-            {loading ? (
-              <Loader2 size={20} className="animate-spin" />
-            ) : (
-              <>
-                <WhatsAppIcon size={20} />
-                Complete Order & Chat on WhatsApp
-              </>
-            )}
-          </button>
-        </form>
-        <div style={{ height: 'max(24px, env(safe-area-inset-bottom))' }} />
-      </div>
-    </>
-  );
-}
-
-// ─── Store Header ─────────────────────────────────────────────────────────────
-
-function StoreHeader({
-  store,
-  productCount,
-  categoryCount,
-  featuredProducts,
-  currencySymbol,
-  avgRating,
-  reviewsCount,
-  onViewReviews,
-}: {
-  store: Store;
-  productCount: number;
-  categoryCount: number;
-  featuredProducts: Product[];
-  currencySymbol: string;
-  avgRating: string | null;
-  reviewsCount: number;
-  onViewReviews: () => void;
-}) {
-  const initial = (store?.store_name || store?.username || '').charAt(0).toUpperCase() || 'S';
-  const template = STORE_TEMPLATES[getTemplateId(store)];
-  const selectedFeaturedIds = Array.from(new Set(store.featured_product_ids ?? []));
-  const spotlightProducts = store.featured_carousel_enabled === false
-    ? []
-    : (selectedFeaturedIds.length
-      ? selectedFeaturedIds
-        .map(id => featuredProducts.find(product => product.id === id))
-        .filter((product): product is Product => Boolean(product))
-      : featuredProducts
-    ).slice(0, 5);
-  const catalogLabel = store.catalog_label || 'product';
-  const categoryLabel = store.category_label || 'collection';
-  const templateHighlight = store.is_pro
-    ? (store.template_highlight_label || template.tagline)
-    : template.name;
-  const featuredEyebrow = store.featured_carousel_eyebrow || 'Featured now';
-  const featuredTitle = store.featured_carousel_title || 'Fresh picks from the catalog';
-
-  const handleShare = async () => {
-    if (navigator.share) await navigator.share({ title: store.store_name, text: store.store_bio ?? `Check out my store!`, url: window.location.href });
-    else navigator.clipboard.writeText(window.location.href);
+  // Pay online now logic
+  const handlePayOnline = async () => {
+    if (!orderReceipt) return;
+    setIsPaying(true);
+    const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
+    try {
+      const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Payment initialization failed.');
+      }
+      if (json.data && json.data.authorization_url) {
+        window.location.href = json.data.authorization_url;
+      } else {
+        throw new Error('Secure payment link unavailable.');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to initialize payment.');
+    } finally {
+      setIsPaying(false);
+    }
   };
 
+  const activeCategoryName = useMemo(() => {
+    if (!activeCat) return '';
+    return categories.find(c => c.id === activeCat)?.name || '';
+  }, [activeCat, categories]);
+
   return (
-    <div className="store-header animate-fade-in">
-      <div className="store-header__media">
-        {store.banner_url
-          ? <img src={store.banner_url} alt={`${store.store_name} banner`} className="store-header__banner" />
-          : <div className="store-header__banner-placeholder" />
-        }
-        <div className="store-header__media-shade" />
-      </div>
+    <div className="fs-root" style={store.primary_color ? { '--brand': store.primary_color, '--brand-deep': store.primary_color } as React.CSSProperties : undefined}>
+      <style>{CSS}</style>
 
-      <div className="store-header__content">
-        <div className="store-header__brand-row">
-          <div className="store-header__avatar-wrap">
-            {store.logo_url
-              ? <img src={store.logo_url} alt={store.store_name} className="store-header__avatar" />
-              : <div className="store-header__avatar" suppressHydrationWarning>{initial}</div>
-            }
-            {store.is_verified && (
-              <div className="store-header__verified" title="Verified Store">
-                <CheckCircle2 size={12} strokeWidth={3} color="#fff" />
-              </div>
-            )}
+      {/* ── DESKTOP LAYOUT ── */}
+      <div className="fs-desktop">
+
+        {/* Sidebar */}
+        <aside className="fs-sidebar">
+          {/* Plan toggle */}
+          <div className="fs-plan">
+            <button className={premium ? "on" : ""} onClick={() => setPremium(true)}><Crown size={13} /> Premium</button>
+            <button className={!premium ? "on" : ""} onClick={() => setPremium(false)}><Store size={13} /> Basic</button>
           </div>
 
-          <div className="store-header__title-block">
-            <div className="store-header__eyebrow">
-              {store.is_pro ? <span>Premium merchant</span> : <span>Storefront</span>}
+          {/* Store identity */}
+          <div className="fs-sid-cover" style={store.banner_url ? { backgroundImage: `url(${store.banner_url})`, backgroundSize: 'cover' } : undefined} />
+          <div className="fs-sid-id">
+            {store.logo_url ? (
+              <img src={store.logo_url} alt="store logo" className="fs-sid-av" style={{ objectFit: 'cover' }} />
+            ) : (
+              <span className="fs-sid-av">{store.store_name[0].toUpperCase()}</span>
+            )}
+            <div>
+              <h2>{store.store_name} {store.is_verified ? <BadgeCheck size={16} className="fs-verif" /> : null}</h2>
+              <p className="fs-sid-meta"><MapPin size={11} /> {store.location}</p>
             </div>
+          </div>
 
-            <div className="store-header__name-row">
-              <h1 className="store-header__name">{store.store_name}</h1>
-              {store.is_verified && (
-                <span className="badge badge-verified store-header__verified-badge">
-                  <CheckCircle2 size={11} strokeWidth={3} /> Verified
-                </span>
-              )}
+          <button className="fs-sid-url" onClick={copyLink}>
+            frontstore.app/<b>{store.username}</b> <Share2 size={12} />
+          </button>
+
+          <div className="fs-sid-stats">
+            <div><Star size={13} fill="#c79a4b" color="#c79a4b" /> {store.is_verified ? "4.9" : "4.8"} <span>(212 reviews)</span></div>
+            <div><ShoppingBag size={12} /> 1,400+ orders</div>
+            <div><Clock size={12} /> replies in ~10 min</div>
+            <div><Clock size={12} /> Mon to Sat, 9am to 7pm</div>
+          </div>
+
+          <p className="fs-sid-bio">{store.store_bio || "Premium conversational commerce storefront."}</p>
+
+          <div className="fs-sid-trust"><ShieldCheck size={13} /> Payments secured by Frontstore</div>
+
+          {/* Nav links */}
+          <nav className="fs-sid-nav">
+            <button onClick={() => scrollTo(searchRef)}><Search size={15} /> Browse items</button>
+            <button onClick={() => scrollTo(reviewsRef)}><Star size={15} /> Reviews</button>
+            <button onClick={() => {
+              const msg = `Hi ${store.store_name}! I have a question about your shop items.`;
+              window.open(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+            }}><MessageCircle size={15} /> Chat with us</button>
+          </nav>
+
+          {/* Bag CTA */}
+          <button className="fs-sid-bag" onClick={() => { setCheckoutStep('cart'); setBagOpen(true); }}>
+            <ShoppingBag size={18} />
+            {bagCount > 0 ? `View order (${bagCount})` : "Your order"}
+            {bagCount > 0 && <span className="fs-sid-total">{fmt(bagTotal, currencySymbol)}</span>}
+          </button>
+        </aside>
+
+        {/* Main content */}
+        <main className="fs-main" ref={mainRef}>
+
+          {/* Top nav bar (desktop) */}
+          <header className="fs-topbar">
+            <div className="fs-topbar-left">
+              {!premium && <span className="fs-fs-logo">front<span>store</span></span>}
+              {premium && <span className="fs-premium-label"><Crown size={12} /> Premium Store</span>}
             </div>
-
-            {store.store_bio && <p className="store-header__bio">{store.store_bio}</p>}
-            {reviewsCount > 0 && avgRating && (
-              <button 
-                onClick={onViewReviews}
-                className="store-header__rating-btn clickable"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  background: 'rgba(245, 158, 11, 0.08)',
-                  color: '#d97706',
-                  border: '1px solid rgba(245, 158, 11, 0.25)',
-                  padding: '4px 10px',
-                  borderRadius: 'var(--r-md)',
-                  fontSize: '12.5px',
-                  fontWeight: 700,
-                  marginTop: '8px',
-                  cursor: 'pointer',
-                  width: 'fit-content'
-                }}
-              >
-                <Star size={13} fill="#d97706" stroke="#d97706" />
-                <span>{avgRating} / 5.0 ({reviewsCount} {reviewsCount === 1 ? 'review' : 'reviews'})</span>
+            <div className="fs-topbar-right">
+              <button className="fs-tb-btn" onClick={focusSearch} aria-label="Search items"><Search size={17} /></button>
+              <button className="fs-tb-btn" onClick={copyLink} aria-label="Copy store link"><Share2 size={17} /></button>
+              <button className="fs-tb-bag" onClick={() => { setCheckoutStep('cart'); setBagOpen(true); }}>
+                <ShoppingBag size={17} /> Order
+                {bagCount > 0 && <span className="fs-badge">{bagCount}</span>}
               </button>
-            )}
-          </div>
-        </div>
-
-        <div className="store-header__trust-row" aria-label="Store highlights">
-          <div className="store-header__trust-item">
-            <Package size={15} />
-            <span>{productCount} {catalogLabel}{productCount === 1 ? '' : 's'}</span>
-          </div>
-          <div className="store-header__trust-item">
-            <Tag size={15} />
-            <span>{categoryCount > 0 ? `${categoryCount} ${categoryLabel}${categoryCount === 1 ? '' : 's'}` : 'Fresh catalog'}</span>
-          </div>
-          <div className="store-header__trust-item">
-            <Shield size={15} />
-            <span>{templateHighlight}</span>
-          </div>
-        </div>
-
-        {spotlightProducts.length > 0 && (
-          <div className="store-header__spotlight" aria-label="Featured products">
-            <div className="store-header__spotlight-copy">
-              <span>{featuredEyebrow}</span>
-              <strong>{featuredTitle}</strong>
+              <button className="fs-tb-btn" onClick={() => {
+                const msg = `Hi ${store.store_name}!`;
+                window.open(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+              }} aria-label="Chat on WhatsApp"><MessageCircle size={17} /></button>
             </div>
-            <div className="store-header__spotlight-products">
-              {spotlightProducts.map((product, index) => (
-                <button
-                  key={stableKey('spotlight-product', [product.id, product.slug, product.name], index)}
-                  type="button"
-                  className="store-header__spotlight-card clickable"
-                  onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                  style={{ animationDelay: `${index * 70}ms` }}
-                >
-                  <span className="store-header__spotlight-image">
-                    {product.image_urls?.[0]
-                      ? <img src={product.image_urls[0]} alt={product.name} loading="eager" decoding="async" />
-                      : <Package size={22} strokeWidth={1.4} />
-                    }
-                  </span>
-                  <span className="store-header__spotlight-meta">
-                    <span>{product.name}</span>
-                    <strong>{fmt(product.price, currencySymbol)}</strong>
-                  </span>
-                </button>
+          </header>
+
+          {/* Hero cover */}
+          <section className="fs-hero">
+            <div className="fs-hero-art" style={store.primary_color ? { background: `linear-gradient(135deg, ${store.primary_color}, #000)` } : undefined}>
+              <div className="fs-hero-grain" />
+            </div>
+            <div className="fs-hero-content">
+              <span className="fs-hero-cat">Storefront Catalog</span>
+              <h1 className="fs-hero-name">{store.store_name}</h1>
+              <p className="fs-hero-bio">{store.store_bio || "Browse our items and place orders directly via WhatsApp chat."}</p>
+              <div className="fs-hero-actions">
+                <button className="fs-cta fs-book" onClick={focusSearch}><Calendar size={16} /> Book a treatment</button>
+                <button className="fs-cta fs-buy" onClick={focusSearch}><ShoppingBag size={16} /> Shop products</button>
+              </div>
+            </div>
+          </section>
+
+          {/* Pinned / featured signature treatment */}
+          {pinnedProduct && (
+            <section className="fs-featured">
+              <div className="fs-section-label"><Sparkles size={14} /> Signature Treatment</div>
+              <div className="fs-feat-card">
+                <div className="fs-feat-media">
+                  <Media cat={pinnedProduct.category_id || "Lashes"} h={220} imgUrl={pinnedProduct.image_urls?.[0]} />
+                </div>
+                <div className="fs-feat-body">
+                  <span className="fs-feat-badge">Most booked</span>
+                  <h3>{pinnedProduct.name}</h3>
+                  <p>{pinnedProduct.description || "Nourishing treatment custom mapped to your preferences."}</p>
+                  <div className="fs-feat-row">
+                    <span className="fs-price">{fmt(pinnedProduct.price, currencySymbol)}</span>
+                    {isProductService(pinnedProduct, store) ? (
+                      <span className="fs-dur"><Clock size={13} /> 90 min</span>
+                    ) : (
+                      <span className="fs-dur"><Truck size={13} /> Ready to ship</span>
+                    )}
+                  </div>
+                  {isProductService(pinnedProduct, store) ? (
+                    <button className="fs-cta fs-book fs-cta-full" onClick={() => openBooking(pinnedProduct)}><Calendar size={16} /> Book this treatment</button>
+                  ) : (
+                    <button className="fs-cta fs-buy fs-cta-full" onClick={() => addProduct(pinnedProduct)}><ShoppingBag size={16} /> Order this product</button>
+                  )}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Filters */}
+          <div className="fs-filters" ref={searchRef}>
+            <div className="fs-filter-top">
+              <div className="fs-searchwrap">
+                <Search size={16} className="fs-search-ic" />
+                <input placeholder="Search treatments & products…" value={query} onChange={e => setQuery(e.target.value)} />
+                {query && <button onClick={() => setQuery("")} aria-label="Clear query"><X size={14} /></button>}
+              </div>
+              <div className="fs-segs">
+                {(["all", "service", "product"] as const).map(k => (
+                  <button key={k} className={segment === k ? "on" : ""} onClick={() => setSegment(k)}>
+                    {k === "all" ? "All" : k === "service" ? "Services" : "Products"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="fs-cats">
+              <button className={!activeCat ? "on" : ""} onClick={() => setActiveCat(null)}>All</button>
+              {activeCategories.map(c => (
+                <button key={c.id} className={activeCat === c.id ? "on" : ""} onClick={() => setActiveCat(activeCat === c.id ? null : c.id)}>{c.name}</button>
               ))}
             </div>
           </div>
-        )}
 
-        <div className="store-header__socials">
-          <a
-            href={buildWhatsAppUrl(store.whatsapp_phone, `Hi ${store.store_name}!`)}
-            target="_blank" rel="noopener noreferrer"
-            className="social-btn social-btn--primary clickable"
-            id="store-whatsapp-link"
-          >
-            <WhatsAppIcon size={14} /> Chat on WhatsApp
-          </a>
-
-          {store.instagram_handle && (
-            <a href={`https://instagram.com/${store.instagram_handle}`} target="_blank" rel="noopener noreferrer"
-              className="social-btn clickable">
-              <Instagram size={13} strokeWidth={2} /> Instagram
-            </a>
-          )}
-
-          {store.tiktok_handle && (
-            <a href={`https://tiktok.com/@${store.tiktok_handle}`} target="_blank" rel="noopener noreferrer"
-              className="social-btn clickable">
-              <Music2 size={13} strokeWidth={2} /> TikTok
-            </a>
-          )}
-
-          <button className="social-btn clickable" onClick={handleShare} id="share-store-btn"
-          >
-            <Share2 size={13} strokeWidth={2} /> Share Store
-          </button>
-        </div>
-
-        {store.custom_links && store.custom_links.filter(l => l.is_active && l.platform !== 'whatsapp').length > 0 && (
-          <div className="store-header__links">
-            <p className="store-header__links-label">
-              Store Links & Socials
-            </p>
-            {store.custom_links.filter(l => l.is_active && l.platform !== 'whatsapp').map((link, index) => {
-              const IconComponent = () => {
-                switch (link.platform) {
-                  case 'whatsapp': return <WhatsAppIcon size={14} style={{ color: 'var(--wa-green)' }} />;
-                  case 'instagram': return <Instagram size={14} style={{ color: '#e1306c' }} />;
-                  case 'tiktok': return <Music2 size={14} style={{ color: '#00f2fe' }} />;
-                  case 'facebook': return <Facebook size={14} style={{ color: '#1877f2' }} />;
-                  case 'twitter': return <Twitter size={14} style={{ color: '#1da1f2' }} />;
-                  default: return <Globe size={14} />;
-                }
-              };
+          {/* Grid */}
+          <section className="fs-grid">
+            {filteredProducts.length === 0 && <p className="fs-empty">Nothing matches. Try a different search or category.</p>}
+            {filteredProducts.map((it, idx) => {
+              const isService = isProductService(it, store);
               return (
-                <a
-                  key={stableKey('store-link', [link.id, link.url, link.platform, link.title], index)}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="store-header__link clickable"
-                >
-                  <IconComponent />
-                  <span>{link.title}</span>
-                </a>
+                <article key={it.id} className="fs-card" style={{ animationDelay: `${idx * 35}ms` }}>
+                  <div className="fs-card-media">
+                    <Media cat={activeCategoryName || "Lashes"} h={150} imgUrl={it.image_urls?.[0]} />
+                    <span className={`fs-type ${isService ? 'service' : 'product'}`}>{isService ? "Service" : "Product"}</span>
+                    {it.compare_at_price && <span className="fs-pop"><Heart size={9} fill="#fff" color="#fff" /> Loved</span>}
+                  </div>
+                  <div className="fs-card-body">
+                    <h3>{it.name}</h3>
+                    <p className="fs-card-desc">{it.description || "Nourishing beauty collection essential."}</p>
+                    <div className="fs-card-foot">
+                      {isService ? (
+                        <span className="fs-line"><Clock size={12} /> 90 min</span>
+                      ) : (
+                        <span className={`fs-line ${it.stock_status === "low_stock" ? "low" : ""}`}><Truck size={12} /> {it.stock_status === "low_stock" ? "Low stock" : "In stock"}</span>
+                      )}
+                      <span className="fs-price">{fmt(it.price, currencySymbol)}</span>
+                    </div>
+                    {isService ? (
+                      <button className="fs-cta fs-book fs-cta-full" onClick={() => openBooking(it)}><Calendar size={14} /> Book now</button>
+                    ) : (
+                      <button className="fs-cta fs-buy fs-cta-full" onClick={() => addProduct(it)}><ShoppingBag size={14} /> Buy now</button>
+                    )}
+                  </div>
+                </article>
               );
             })}
+          </section>
+
+          {/* Reviews */}
+          <section className="fs-reviews" ref={reviewsRef}>
+            <div className="fs-section-label"><Star size={14} fill="#c79a4b" color="#c79a4b" /> Client Reviews</div>
+            <div className="fs-rev-head">
+              <span className="fs-rev-rating">4.9</span>
+              <div>
+                <div className="fs-rev-stars">{"★".repeat(5)}</div>
+                <span>212 verified reviews</span>
+              </div>
+            </div>
+            <div className="fs-rev-grid">
+              {[
+                { n: "Amara O.", t: "My lashes lasted six full weeks and the studio is so clean. Booking was effortless.", r: 5 },
+                { n: "Tobi A.", t: "Ordered the aftercare serum and it arrived next day in Lagos. Will reorder.", r: 5 },
+                { n: "Funmi B.", t: "The volume set is absolutely stunning. Worth every naira — I get compliments daily.", r: 5 },
+              ].map((rv, i) => (
+                <div className="fs-rev" key={i}>
+                  <div className="fs-rev-top">
+                    <span className="fs-rev-av">{rv.n[0]}</span>
+                    <div><b>{rv.n}</b><span className="fs-rev-stars-sm">{"★".repeat(rv.r)}</span></div>
+                  </div>
+                  <p>{rv.t}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Footer */}
+          <footer className="fs-foot">
+            <div className="fs-foot-inner">
+              <span className="fs-foot-brand">{store.store_name}</span>
+              {premium ? (
+                <span className="fs-foot-sec"><ShieldCheck size={13} /> Payments secured by Frontstore</span>
+              ) : (
+                <>
+                  <span className="fs-foot-sec"><ShieldCheck size={13} /> Secured by Frontstore</span>
+                  <button className="fs-foot-link" onClick={() => window.location.href = '/'}>Explore more stores <ChevronRight size={13} /></button>
+                </>
+              )}
+            </div>
+          </footer>
+        </main>
+      </div>
+
+      {/* ── MOBILE LAYOUT ── */}
+      <div className="fs-mobile">
+        <header className="fs-m-top">
+          {premium ? (
+            <div className="fs-m-brand">
+              {store.logo_url ? (
+                <img src={store.logo_url} alt="Logo" className="fs-m-av" style={{ objectFit: 'cover' }} />
+              ) : (
+                <span className="fs-m-av">{store.store_name[0].toUpperCase()}</span>
+              )}
+              <span className="fs-m-name">{store.store_name}</span>
+            </div>
+          ) : (
+            <>
+              <button className="fs-m-icn" onClick={() => window.location.href = '/'} aria-label="Go back"><ChevronLeft size={22} /></button>
+              <span className="fs-fs-logo">front<span>store</span></span>
+            </>
+          )}
+          <div className="fs-m-actions">
+            <button className="fs-m-icn" onClick={copyLink} aria-label="Share store link"><Share2 size={19} /></button>
+            <button className="fs-m-icn fs-m-bagbtn" onClick={() => { setCheckoutStep('cart'); setBagOpen(true); }} aria-label="View order bag">
+              <ShoppingBag size={20} />
+              {bagCount > 0 && <span className="fs-badge">{bagCount}</span>}
+            </button>
           </div>
+        </header>
+
+        <section className="fs-m-cover">
+          <div className="fs-m-cover-art" style={store.primary_color ? { background: `linear-gradient(135deg, ${store.primary_color}, #000)` } : undefined}>
+            <div className="fs-m-grain" />
+          </div>
+          <div className="fs-m-id">
+            {store.logo_url ? (
+              <img src={store.logo_url} alt="Logo" className="fs-m-avatar" style={{ objectFit: 'cover' }} />
+            ) : (
+              <span className="fs-m-avatar">{store.store_name[0].toUpperCase()}</span>
+            )}
+            <div>
+              <h1>{store.store_name} {store.is_verified ? <BadgeCheck size={17} className="fs-verif" /> : null}</h1>
+              <p className="fs-m-meta">Beauty & Services <span>•</span> <MapPin size={11} /> {store.location}</p>
+            </div>
+          </div>
+          <button className="fs-m-url" onClick={copyLink}><span>frontstore.app/<b>{store.username}</b></span><Share2 size={13} /></button>
+          <div className="fs-m-stats">
+            <span><Star size={13} fill="#c79a4b" color="#c79a4b" /> 4.9 <i>(212)</i></span>
+            <span><ShoppingBag size={12} /> 1,400+</span>
+            <span><Clock size={12} /> replies in ~10m</span>
+          </div>
+          <p className="fs-m-bio">{store.store_bio || "Premium conversational commerce storefront."}</p>
+          <div className="fs-m-hours"><Clock size={12} /> Mon to Sat, 9am to 7pm</div>
+          <div className="fs-m-trust"><ShieldCheck size={13} /> Secure payment and instant receipt, secured by Frontstore</div>
+        </section>
+
+        {pinnedProduct && (
+          <section className="fs-m-pinned">
+            <span className="fs-m-pin-flag"><Sparkles size={11} /> Signature treatment</span>
+            <div className="fs-m-pin-card">
+              <Media cat={pinnedProduct.category_id || "Lashes"} h={160} imgUrl={pinnedProduct.image_urls?.[0]} />
+              <div className="fs-m-pin-body">
+                <h3>{pinnedProduct.name}</h3>
+                <p>{pinnedProduct.description || "Nourishing beauty collection signature treatment."}</p>
+                <div className="fs-m-pin-foot">
+                  <span className="fs-price">{fmt(pinnedProduct.price, currencySymbol)}</span>
+                  {isProductService(pinnedProduct, store) ? (
+                    <span className="fs-dur"><Clock size={12} /> 90 min</span>
+                  ) : (
+                    <span className="fs-dur"><Truck size={12} /> Ready to ship</span>
+                  )}
+                </div>
+                {isProductService(pinnedProduct, store) ? (
+                  <button className="fs-cta fs-book fs-cta-full" onClick={() => openBooking(pinnedProduct)}><Calendar size={15} /> Book this treatment</button>
+                ) : (
+                  <button className="fs-cta fs-buy fs-cta-full" onClick={() => addProduct(pinnedProduct)}><ShoppingBag size={15} /> Order this product</button>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        <div className="fs-filters fs-m-filters" ref={searchRef}>
+          <div className="fs-searchwrap">
+            <Search size={16} className="fs-search-ic" />
+            <input placeholder="Search this store" value={query} onChange={e => setQuery(e.target.value)} />
+            {query && <button onClick={() => setQuery("")} aria-label="Clear query"><X size={14} /></button>}
+          </div>
+          <div className="fs-segs">
+            {(["all", "service", "product"] as const).map(k => (
+              <button key={k} className={segment === k ? "on" : ""} onClick={() => setSegment(k)}>
+                {k === "all" ? "All" : k === "service" ? "Services" : "Products"}
+              </button>
+            ))}
+          </div>
+          <div className="fs-cats">
+            <button className={!activeCat ? "on" : ""} onClick={() => setActiveCat(null)}>All</button>
+            {activeCategories.map(c => (
+              <button key={c.id} className={activeCat === c.id ? "on" : ""} onClick={() => setActiveCat(activeCat === c.id ? null : c.id)}>{c.name}</button>
+            ))}
+          </div>
+        </div>
+
+        <section className="fs-m-grid">
+          {filteredProducts.length === 0 && <p className="fs-empty">Nothing matches that yet.</p>}
+          {filteredProducts.map((it, idx) => {
+            const isService = isProductService(it, store);
+            return (
+              <article key={it.id} className="fs-card" style={{ animationDelay: `${idx * 40}ms` }}>
+                <div className="fs-card-media">
+                  <Media cat={activeCategoryName || "Lashes"} h={120} imgUrl={it.image_urls?.[0]} />
+                  <span className={`fs-type ${isService ? 'service' : 'product'}`}>{isService ? "Service" : "Product"}</span>
+                  {it.compare_at_price && <span className="fs-pop"><Heart size={9} fill="#fff" color="#fff" /> Loved</span>}
+                </div>
+                <div className="fs-card-body">
+                  <h3>{it.name}</h3>
+                  <div className="fs-card-foot">
+                    {isService ? (
+                      <span className="fs-line"><Clock size={11} /> 90 min</span>
+                    ) : (
+                      <span className={`fs-line ${it.stock_status === "low_stock" ? "low" : ""}`}><Truck size={11} /> {it.stock_status === "low_stock" ? "Low stock" : "In stock"}</span>
+                    )}
+                    <span className="fs-price">{fmt(it.price, currencySymbol)}</span>
+                  </div>
+                  {isService ? (
+                    <button className="fs-cta fs-book fs-cta-full" onClick={() => openBooking(it)}><Calendar size={13} /> Book</button>
+                  ) : (
+                    <button className="fs-cta fs-buy fs-cta-full" onClick={() => addProduct(it)}><ShoppingBag size={13} /> Buy</button>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </section>
+
+        <section className="fs-reviews fs-m-reviews" ref={reviewsRef}>
+          <div className="fs-section-label" style={{ padding: "0 0 10px" }}><Star size={13} fill="#c79a4b" color="#c79a4b" /> Reviews</div>
+          {[
+            { n: "Amara O.", t: "My lashes lasted six full weeks. Booking was effortless.", r: 5 },
+            { n: "Tobi A.", t: "Serum arrived next day in Lagos. Will reorder.", r: 5 },
+          ].map((rv, i) => (
+            <div className="fs-rev" key={i}>
+              <div className="fs-rev-top"><span className="fs-rev-av">{rv.n[0]}</span><div><b>{rv.n}</b><span className="fs-rev-stars-sm">{"★".repeat(rv.r)}</span></div></div>
+              <p>{rv.t}</p>
+            </div>
+          ))}
+        </section>
+
+        <footer className="fs-m-foot">
+          {premium ? (
+            <span className="fs-foot-sec"><ShieldCheck size={12} /> Payments secured by Frontstore</span>
+          ) : (
+            <>
+              <span className="fs-foot-sec"><ShieldCheck size={12} /> Secured by Frontstore</span>
+              <button className="fs-foot-link" onClick={() => window.location.href = '/'}>More stores <ChevronRight size={13} /></button>
+            </>
+          )}
+        </footer>
+        <div style={{ height: 78 }} />
+
+        {/* Mobile sticky bottom bar */}
+        <nav className="fs-m-bottom">
+          {premium ? (
+            <button className="fs-bn" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}><Store size={19} /><span>Shop</span></button>
+          ) : (
+            <button className="fs-bn" onClick={() => window.location.href = '/'}><Sparkles size={19} /><span>Market</span></button>
+          )}
+          <button className="fs-bn" onClick={focusSearch}><Search size={19} /><span>Search</span></button>
+          <button className="fs-bn-primary" onClick={() => { setCheckoutStep('cart'); setBagOpen(true); }} aria-label="Order bag checkout">
+            <ShoppingBag size={22} color="#fff" />
+            {bagCount > 0 && <span className="fs-badge" style={{ top: -2, right: -2, border: "2px solid var(--bg)" }}>{bagCount}</span>}
+          </button>
+          <button className="fs-bn" onClick={() => scrollTo(reviewsRef)}><Star size={19} /><span>Reviews</span></button>
+          <button className="fs-bn" onClick={() => {
+            const msg = `Hi ${store.store_name}!`;
+            window.open(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+          }}><MessageCircle size={19} /><span>Chat</span></button>
+        </nav>
+      </div>
+
+      {/* ── SHARED: Booking Sheet ── */}
+      <div className={`fs-scrim ${booking ? "show" : ""}`} onClick={() => setBooking(null)} />
+      <div className={`fs-sheet ${booking ? "open" : ""}`}>
+        {booking && (<>
+          <div className="fs-sheet-grab" />
+          <div className="fs-sheet-head">
+            <div><h3>{booking.name}</h3><span><Clock size={12} /> 90 min · {fmt(booking.price, currencySymbol)}</span></div>
+            <button className="fs-m-icn" onClick={() => setBooking(null)} aria-label="Close booking"><X size={20} /></button>
+          </div>
+          <p className="fs-sheet-lbl">Choose a day</p>
+          <div className="fs-daterow">
+            {days.map((d, i) => (
+              <button key={i} className={`fs-date ${bDate === i ? "on" : ""}`} onClick={() => setBDate(i)}>
+                <b>{d.label}</b><span>{d.date}</span>
+              </button>
+            ))}
+          </div>
+          <p className="fs-sheet-lbl">Choose a time</p>
+          <div className="fs-timerow">
+            {slots.map((s, i) => (
+              <button key={i} className={`fs-time ${bTime === i ? "on" : ""}`} onClick={() => setBTime(i)}>{s}</button>
+            ))}
+          </div>
+          <button className="fs-sheet-cta" onClick={confirmBooking}>Add appointment to order</button>
+          <span className="fs-sheet-note">Confirm and pay securely on the next step.</span>
+        </>)}
+      </div>
+
+      {/* ── SHARED: Bag/Cart Checkout Drawer ── */}
+      <div className={`fs-scrim ${bagOpen ? "show" : ""}`} onClick={() => setBagOpen(false)} />
+      <div className={`fs-sheet fs-bag ${bagOpen ? "open" : ""}`} style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+        <div className="fs-sheet-grab" />
+        <div className="fs-sheet-head">
+          {checkoutStep === 'details' ? (
+            <button className="fs-back" style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700 }} onClick={() => setCheckoutStep('cart')}>
+              <ChevronLeft size={16} /> Back to Bag
+            </button>
+          ) : (
+            <h3>Your order</h3>
+          )}
+          <button className="fs-m-icn" onClick={() => setBagOpen(false)} aria-label="Close drawer"><X size={20} /></button>
+        </div>
+
+        {checkoutStep === 'cart' ? (
+          bag.length === 0 ? (
+            <p className="fs-bag-empty">Your order is empty. Add a product or book a treatment to get started.</p>
+          ) : (
+            <>
+              <div className="fs-bag-list">
+                {bag.map(b => (
+                  <div className="fs-bag-item" key={b.key}>
+                    <div className="fs-bag-info">
+                      <b>{b.name}</b>
+                      {b.type === "service" ? <span><Calendar size={11} /> {b.slot}</span> : <span>Product</span>}
+                      <span className="fs-bag-price">{fmt(b.price, currencySymbol)}</span>
+                    </div>
+                    {b.type === "product" ? (
+                      <div className="fs-step">
+                        <button onClick={() => changeQty(b.key, -1)} aria-label="Decrease quantity"><Minus size={13} /></button>
+                        <span>{b.qty}</span>
+                        <button onClick={() => changeQty(b.key, 1)} aria-label="Increase quantity"><Plus size={13} /></button>
+                      </div>
+                    ) : (
+                      <button className="fs-rm" onClick={() => removeItem(b.key)} aria-label="Remove item"><X size={15} /></button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="fs-bag-total"><span>Total</span><b>{fmt(bagTotal, currencySymbol)}</b></div>
+              <button className="fs-pay" onClick={() => setCheckoutStep('details')}><ShieldCheck size={16} /> Pay securely {fmt(bagTotal, currencySymbol)}</button>
+              <span className="fs-pay-note"><Receipt size={11} /> You get an instant WhatsApp receipt. Secured by Frontstore.</span>
+            </>
+          )
+        ) : (
+          <form onSubmit={handleCheckoutSubmit} style={{ display: 'grid', gap: 14, paddingBottom: 24 }}>
+            {storeDisclaimer && (
+              <div style={{
+                background: 'rgba(245, 158, 11, 0.08)',
+                color: '#d97706',
+                borderRadius: 12,
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+                padding: '10px 14px',
+                fontSize: 12.5,
+                fontWeight: 600,
+                display: 'flex',
+                gap: 8,
+                alignItems: 'center',
+                lineHeight: 1.4
+              }}>
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                <div>{storeDisclaimer}</div>
+              </div>
+            )}
+
+            {checkoutError && (
+              <div style={{ background: '#fee2e2', color: '#b91c1c', borderRadius: 12, padding: 12, fontSize: 13, fontWeight: 600 }}>
+                {checkoutError}
+              </div>
+            )}
+
+            <div>
+              <label className="fs-opt-lbl">Your Name</label>
+              <input 
+                type="text" 
+                className="fs-input-field" 
+                required
+                placeholder="e.g. Joy Okafor" 
+                value={customerName}
+                onChange={e => setCustomerName(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="fs-opt-lbl">WhatsApp Number</label>
+              <input 
+                type="tel" 
+                className="fs-input-field" 
+                required
+                placeholder="e.g. +234 803 123 4567" 
+                value={customerPhone}
+                onChange={e => setCustomerPhone(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="fs-opt-lbl">Email Address (Optional)</label>
+              <input 
+                type="email" 
+                className="fs-input-field" 
+                placeholder="e.g. joy@example.com" 
+                value={customerEmail}
+                onChange={e => setCustomerEmail(e.target.value)}
+              />
+            </div>
+
+            {bag.some(x => x.type === 'service') ? (
+              <div>
+                <label className="fs-opt-lbl">Fulfillment / Session Location</label>
+                <div className="fs-sizes" style={{ marginBottom: 10 }}>
+                  <button 
+                    type="button" 
+                    className={`fs-size ${deliveryMethod === 'pickup' ? 'on' : ''}`}
+                    onClick={() => setDeliveryMethod('pickup')}
+                  >
+                    <b>Studio Session</b>
+                    <span>At our salon</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    className={`fs-size ${deliveryMethod === 'delivery' ? 'on' : ''}`}
+                    onClick={() => setDeliveryMethod('delivery')}
+                  >
+                    <b>Mobile Session</b>
+                    <span>We come to you</span>
+                  </button>
+                </div>
+                {deliveryMethod === 'delivery' && (
+                  <div>
+                    <label className="fs-opt-lbl">Your Address</label>
+                    <textarea 
+                      className="fs-input-field" 
+                      required
+                      placeholder="Enter your street address for the mobile service"
+                      value={deliveryAddress}
+                      onChange={e => setDeliveryAddress(e.target.value)}
+                      style={{ minHeight: 60, fontFamily: 'inherit', resize: 'vertical' }}
+                    />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>
+                <label className="fs-opt-lbl">Fulfillment Method</label>
+                <div className="fs-sizes" style={{ marginBottom: 10 }}>
+                  <button 
+                    type="button" 
+                    className={`fs-size ${deliveryMethod === 'delivery' ? 'on' : ''}`}
+                    onClick={() => setDeliveryMethod('delivery')}
+                  >
+                    <b>Door Delivery</b>
+                    <span>Ship to my address</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    className={`fs-size ${deliveryMethod === 'pickup' ? 'on' : ''}`}
+                    onClick={() => setDeliveryMethod('pickup')}
+                  >
+                    <b>Self-Pickup</b>
+                    <span>Collect at store</span>
+                  </button>
+                </div>
+                {deliveryMethod === 'delivery' && (
+                  <div>
+                    <label className="fs-opt-lbl">Shipping Address</label>
+                    <textarea 
+                      className="fs-input-field" 
+                      required
+                      placeholder="Enter your full home or office address"
+                      value={deliveryAddress}
+                      onChange={e => setDeliveryAddress(e.target.value)}
+                      style={{ minHeight: 60, fontFamily: 'inherit', resize: 'vertical' }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button 
+              type="submit" 
+              className="fs-pay" 
+              disabled={checkoutLoading}
+              style={{ marginTop: 8 }}
+            >
+              {checkoutLoading ? "Placing Order..." : `Place Order · ${fmt(bagTotal, currencySymbol)}`}
+            </button>
+          </form>
         )}
       </div>
+
+      {/* Order confirmation receipt modal */}
+      {orderReceipt && (
+        <>
+          <div className="drawer-backdrop animate-backdrop" style={{ zIndex: 220 }} />
+          <div
+            className="card animate-scale-in"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Order receipt"
+            style={{
+              position: 'fixed',
+              left: 16,
+              right: 16,
+              bottom: 16,
+              zIndex: 230,
+              maxWidth: 440,
+              margin: '0 auto',
+              padding: 20,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              backgroundColor: 'var(--surface)',
+              borderRadius: 20,
+              border: '1px solid var(--line)',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.15)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  background: 'var(--tint)',
+                  color: 'var(--brand)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  <CheckCircle2 size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontFamily: 'Fraunces', fontSize: 19, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>
+                    Order Created!
+                  </h3>
+                  <p style={{ fontSize: 13, color: 'var(--muted)', margin: '3px 0 0' }}>
+                    Receipt from {store.store_name}
+                  </p>
+                </div>
+              </div>
+              <button 
+                className="clickable" 
+                onClick={() => setOrderReceipt(null)} 
+                aria-label="Close receipt"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: 14, background: 'var(--bg)', display: 'grid', gap: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                <span style={{ color: 'var(--muted)', fontSize: 13 }}>Order Reference</span>
+                <strong style={{ color: 'var(--ink)', fontSize: 14 }}>#{orderReceipt.order.order_number}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                <span style={{ color: 'var(--muted)', fontSize: 13 }}>Total Amount</span>
+                <strong style={{ color: 'var(--brand)', fontSize: 15 }}>{fmt(orderReceipt.order.total_amount, currencySymbol)}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                <span style={{ color: 'var(--muted)', fontSize: 13 }}>Fulfillment</span>
+                <strong style={{ color: 'var(--ink)', fontSize: 14, textTransform: 'capitalize' }}>{orderReceipt.order.delivery_method}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                <span style={{ color: 'var(--muted)', fontSize: 13 }}>Status</span>
+                <span className="badge" style={{ backgroundColor: 'var(--tint)', color: 'var(--brand-deep)', fontSize: 11, padding: '3px 8px', borderRadius: 6, fontWeight: 700 }}>
+                  {orderReceipt.order.order_status}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', color: 'var(--muted)', fontSize: 12.5, lineHeight: 1.45 }}>
+              <Shield size={16} style={{ color: 'var(--brand)', flexShrink: 0, marginTop: 1 }} />
+              <span>Your tracking page is ready. Save the link to check updates and confirm payment outside WhatsApp.</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px', gap: 10 }}>
+              <a 
+                href={`/track/${orderReceipt.order.id}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="fs-msg-btn" 
+                style={{ textDecoration: 'none', margin: 0, padding: 10, display: 'flex', gap: 6 }}
+              >
+                <ExternalLink size={15} /> View tracking page
+              </a>
+              <button 
+                type="button" 
+                onClick={async () => {
+                  await navigator.clipboard.writeText(`${window.location.origin}/track/${orderReceipt.order.id}`);
+                  toast.success('Tracking link copied to clipboard!');
+                }} 
+                className="fs-msg-btn" 
+                aria-label="Copy tracking link" 
+                title="Copy tracking link" 
+                style={{ padding: 0, margin: 0 }}
+              >
+                <Copy size={15} />
+              </button>
+            </div>
+
+            {orderReceipt.order.payment_status === 'unpaid' && (
+              <button
+                type="button"
+                onClick={handlePayOnline}
+                disabled={isPaying}
+                style={{
+                  width: '100%',
+                  padding: '14px 18px',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  backgroundColor: 'var(--brand)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 14,
+                  cursor: 'pointer',
+                  boxShadow: '0 8px 24px rgba(177,74,110,.25)'
+                }}
+              >
+                {isPaying ? 'Initializing payment...' : `Pay Online Now (${fmt(orderReceipt.order.total_amount, currencySymbol)})`}
+              </button>
+            )}
+
+            <button 
+              type="button" 
+              onClick={() => {
+                window.open(orderReceipt.whatsapp_url, '_blank');
+                setOrderReceipt(null);
+              }} 
+              style={{
+                width: '100%',
+                padding: '14px 18px',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                backgroundColor: '#25D366',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 14,
+                cursor: 'pointer'
+              }}
+            >
+              <WhatsAppIcon size={18} />
+              Continue on WhatsApp
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Toast Alert popup */}
+      <div className={`fs-toast ${toastMsg ? "show" : ""}`}><Check size={14} /> {toastMsg}</div>
     </div>
   );
 }
 
-// ─── Store Footer ─────────────────────────────────────────────────────────────
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
 
-function StoreFooter({ store, systemDomain = 'frontstore.app', appName = 'Front Store' }: { store: Store; systemDomain?: string; appName?: string }) {
-  const templateId = getTemplateId(store);
-  const template = STORE_TEMPLATES[templateId];
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  return (
-    <footer className="store-footer">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 600 }}>
-        {(store.instagram_handle || store.tiktok_handle) && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {store.instagram_handle && (
-              <a href={`https://instagram.com/${store.instagram_handle}`} target="_blank" rel="noopener noreferrer"
-                className="social-btn clickable" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Instagram size={13} /> @{store.instagram_handle}
-              </a>
-            )}
-            {store.tiktok_handle && (
-              <a href={`https://tiktok.com/@${store.tiktok_handle}`} target="_blank" rel="noopener noreferrer"
-                className="social-btn clickable" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Music2 size={13} /> @{store.tiktok_handle}
-              </a>
-            )}
-          </div>
-        )}
+.fs-root {
+  --bg: #f8f1ee; --surface: #fffaf8; --ink: #2b1d2a; --muted: #8a7782;
+  --brand: #b14a6e; --brand-deep: #7c2f4d; --tint: #f6e4ea; --gold: #c79a4b;
+  --line: #ece0db; --radius: 16px;
+  --t-fast: 0.2s;
+  font-family: 'Hanken Grotesk', sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+.fs-root button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
-          <p style={{ fontSize: 11, color: 'var(--text-faint)' }}>
-            Powered by <a href="/" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>{appName}</a> · Africa&apos;s #1 WhatsApp Commerce Platform · Template: <strong>{template.name}</strong>
-          </p>
-          <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>© {new Date().getFullYear()} {store.store_name}. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
-  );
+@keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+/* ── show/hide by viewport ── */
+.fs-desktop { display: none; }
+.fs-mobile  { display: block; }
+@media (min-width: 768px) {
+  .fs-desktop { display: flex; }
+  .fs-mobile  { display: none; }
 }
 
-// ─── Store Reviews Drawer ───────────────────────────────────────────────────
-
-function StoreReviewsDrawer({
-  reviews, store, currencySymbol, onClose, products
-}: {
-  reviews: any[]; store: Store; currencySymbol: string; onClose: () => void; products: Product[];
-}) {
-  const avgRating = reviews.length > 0
-    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
-    : null;
-
-  return (
-    <>
-      <div className="drawer-backdrop animate-backdrop" onClick={onClose} />
-      <div className="drawer animate-drawer" role="dialog" aria-modal="true" aria-label="Store reviews">
-        <div className="drawer__handle" />
-        <div className="drawer__header">
-          <span className="drawer__title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Star size={18} fill="var(--primary)" stroke="var(--primary)" /> Store Reviews
-          </span>
-          <button className="drawer__close clickable" onClick={onClose} aria-label="Close reviews">
-            <X size={14} strokeWidth={2.5} />
-          </button>
-        </div>
-
-        <div style={{ padding: '20px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {avgRating && (
-            <div style={{
-              background: 'var(--surface-2)',
-              borderRadius: 'var(--r-md)',
-              border: '1px solid var(--border)',
-              padding: '16px',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 6
-            }}>
-              <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text)' }}>
-                {avgRating} <span style={{ fontSize: '16px', fontWeight: 500, color: 'var(--text-muted)' }}>/ 5.0</span>
-              </div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                {[1, 2, 3, 4, 5].map(star => (
-                  <Star
-                    key={star}
-                    size={18}
-                    fill={star <= Math.round(Number(avgRating)) ? 'var(--primary)' : 'none'}
-                    stroke={star <= Math.round(Number(avgRating)) ? 'var(--primary)' : 'var(--text-faint)'}
-                  />
-                ))}
-              </div>
-              <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
-                Based on {reviews.length} customer {reviews.length === 1 ? 'review' : 'reviews'}
-              </div>
-            </div>
-          )}
-
-          {reviews.length === 0 ? (
-            <div className="empty-state" style={{ padding: '40px 0' }}>
-              <div className="empty-state__icon"><Star size={44} strokeWidth={1} /></div>
-              <p className="empty-state__title">No reviews yet</p>
-              <p className="empty-state__body">Be one of the first buyers to leave feedback on this store!</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {reviews.map((review, index) => {
-                const referencedProduct = review.product_id
-                  ? products.find(p => p.id === review.product_id)
-                  : null;
-
-                return (
-                  <div key={stableKey('store-review', [review.id, review.created_at, review.customer_name, review.product_id], index)} style={{ background: 'var(--surface-2)', padding: '16px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text)' }}>
-                        {review.customer_name || 'Verified Buyer'}
-                      </span>
-                      <div style={{ display: 'flex', gap: 2 }}>
-                        {[1, 2, 3, 4, 5].map(star => (
-                          <Star
-                            key={star}
-                            size={11}
-                            fill={star <= review.rating ? 'var(--primary)' : 'none'}
-                            stroke={star <= review.rating ? 'var(--primary)' : 'var(--text-faint)'}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      <span style={{
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        padding: '2px 8px',
-                        borderRadius: 'var(--r-full)',
-                        background: review.product_id ? 'var(--bg)' : 'rgba(16, 185, 129, 0.08)',
-                        color: review.product_id ? 'var(--text-muted)' : 'var(--primary)',
-                        border: '1px solid var(--border)'
-                      }}>
-                        {review.product_id
-                          ? (referencedProduct ? `Product: ${referencedProduct.name}` : 'Product Review')
-                          : 'Store Experience'
-                        }
-                      </span>
-                    </div>
-
-                    {review.comment && (
-                      <p style={{ fontSize: '13px', margin: 0, color: 'var(--text)', fontStyle: 'italic', lineHeight: '1.4' }}>
-                        &ldquo;{review.comment}&rdquo;
-                      </p>
-                    )}
-
-                    {review.reply && (
-                      <div style={{
-                        marginTop: '4px',
-                        paddingLeft: '10px',
-                        borderLeft: '2px solid var(--primary)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '4px',
-                        background: 'var(--bg)',
-                        padding: '8px 10px',
-                        borderRadius: '0 var(--r-md) var(--r-md) 0'
-                      }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)' }}>Seller Reply:</span>
-                        <p style={{ fontSize: '12.5px', margin: 0, color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                          {review.reply}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    </>
-  );
+/* ══════════════════════════════
+   DESKTOP
+══════════════════════════════ */
+.fs-desktop {
+  min-height: 100vh;
+  align-items: flex-start;
+  background: var(--bg);
+  width: 100%;
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
-export default function StorefrontClient({
-  username,
-  initialProductSlug,
-  initialData,
-}: {
-  username: string;
-  initialProductSlug?: string;
-  initialData?: {
-    store: Store;
-    categories?: Category[];
-    products?: Product[];
-    system_domain?: string;
-    store_disclaimer?: string;
-    app_name?: string;
-    logo_url?: string;
-  } | null;
-}) {
-  const uname = username;
-
-  const normalizeStore = (s: any, fallbackStore?: Store | null): Store | null => {
-    if (!s) return null;
-    const fallbackCurrency = normalizeCurrencyCode(fallbackStore?.currency_code, 'NGN');
-    return {
-      ...s,
-      username: safePathSegment(s.username) || safePathSegment(fallbackStore?.username) || safePathSegment(uname),
-      store_name: safeText(s.store_name, safeText(fallbackStore?.store_name, safePathSegment(s.username) || safePathSegment(fallbackStore?.username) || safePathSegment(uname) || 'Store')),
-      currency_code: normalizeCurrencyCode(s.currency_code, fallbackCurrency),
-      custom_links: Array.isArray(s.custom_links)
-        ? s.custom_links
-        : (s.custom_links ? Object.values(s.custom_links) : []),
-      featured_product_ids: Array.isArray(s.featured_product_ids)
-        ? s.featured_product_ids
-        : (s.featured_product_ids ? Object.values(s.featured_product_ids) : []),
-    };
-  };
-
-  const normalizeProducts = (prods: any): Product[] => {
-    const arr = Array.isArray(prods) ? prods : (prods ? Object.values(prods) : []);
-    return arr
-      .map((p: any) => {
-        const imageUrls = Array.isArray(p?.image_urls)
-          ? p.image_urls
-          : (p?.image_urls ? Object.values(p.image_urls) : []);
-        const firstImage = safeText(p?.image_url);
-        const normalizedImages = imageUrls
-          .map((url: any) => safeText(url))
-          .filter(Boolean);
-        if (firstImage && !normalizedImages.includes(firstImage)) {
-          normalizedImages.unshift(firstImage);
-        }
-
-        return {
-          ...p,
-          id: safeText(p?.id, safeText(p?.slug, safeText(p?.name))),
-          name: safeText(p?.name, 'Untitled product'),
-          slug: safeText(p?.slug, safeText(p?.id)),
-          price: safeText(p?.price, '0'),
-          compare_at_price: safeText(p?.compare_at_price) || null,
-          description: safeText(p?.description) || null,
-          stock_status: safeText(p?.stock_status, 'in_stock'),
-          category_id: safeText(p?.category_id) || null,
-          image_urls: normalizedImages,
-        };
-      })
-      .filter((p: Product) => Boolean(p.id || p.slug || p.name !== 'Untitled product' || p.image_urls?.length));
-  };
-
-  const normalizeCategories = (cats: any): Category[] => {
-    const arr = Array.isArray(cats) ? cats : (cats ? Object.values(cats) : []);
-    return arr
-      .map((cat: any) => ({
-        ...cat,
-        id: safeText(cat?.id, safeText(cat?.slug, safeText(cat?.name))),
-        name: safeText(cat?.name),
-        slug: safeText(cat?.slug, safeText(cat?.id)),
-      }))
-      .filter((cat: Category) => Boolean(cat.id && cat.name));
-  };
-
-  const [store, setStore] = useState<Store | null>(() => normalizeStore(initialData?.store));
-  const [categories, setCategories] = useState<Category[]>(() => normalizeCategories(initialData?.categories));
-  const [products, setProducts] = useState<Product[]>(() => normalizeProducts(initialData?.products));
-  const [loading, setLoading] = useState(!initialData || !initialData.store);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState('all');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(() => {
-    if (!initialProductSlug || !initialData?.products) return null;
-    const normalized = normalizeProducts(initialData.products);
-    return normalized.find(item => item.slug === initialProductSlug) || null;
-  });
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [systemDomain, setSystemDomain] = useState(initialData?.system_domain || 'frontstore.app');
-  const [storeDisclaimer, setStoreDisclaimer] = useState(initialData?.store_disclaimer || '');
-  const [appName, setAppName] = useState(initialData?.app_name || 'Front Store');
-  const [logoUrl, setLogoUrl] = useState(initialData?.logo_url || '');
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [pendingRemoveItem, setPendingRemoveItem] = useState<string | null>(null);
-  const [isClearCartConfirmOpen, setIsClearCartConfirmOpen] = useState(false);
-  const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [isReviewsOpen, setIsReviewsOpen] = useState(false);
-
-  const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
-
-  useEffect(() => {
-    if (!uname) return;
-    (async () => {
-      const apiCandidates = Array.from(new Set([API_URL, 'https://api.frontstore.app/api']));
-      try {
-        if (!store) {
-          setLoading(true);
-        }
-        let data: any = null;
-        let apiUrlUsed = API_URL;
-        for (const apiUrl of apiCandidates) {
-          try {
-            const res = await fetch(`${apiUrl}/v1/public/store/${uname}`, { cache: 'no-store' });
-            if (!res.ok) continue;
-            const json = await res.json();
-            if (json.data?.store) {
-              data = json.data;
-              apiUrlUsed = apiUrl;
-              break;
-            }
-          } catch {
-            // Try the next candidate. A stale API must not overwrite the initial storefront.
-          }
-        }
-        if (!data) throw new Error('Store not found or currently inactive');
-
-        const normalizedStore = normalizeStore(data.store, store);
-        const normalizedCategories = normalizeCategories(data.categories);
-        const normalizedProducts = normalizeProducts(data.products);
-        if (normalizedStore) setStore(prev => normalizeStore(normalizedStore, prev || store));
-        if (normalizedCategories.length > 0 || categories.length === 0) setCategories(normalizedCategories);
-        if (normalizedProducts.length > 0 || products.length === 0) setProducts(normalizedProducts);
-        if (data.system_domain) setSystemDomain(data.system_domain);
-        if (data.store_disclaimer) setStoreDisclaimer(data.store_disclaimer);
-        if (data.app_name) setAppName(data.app_name);
-        if (data.logo_url) setLogoUrl(data.logo_url);
-
-        // Fetch reviews in background
-        try {
-          const reviewsRes = await fetch(`${apiUrlUsed}/v1/public/store/${uname}/reviews`);
-          if (reviewsRes.ok) {
-            const reviewsJson = await reviewsRes.json();
-            setReviews(Array.isArray(reviewsJson.data) ? reviewsJson.data : (reviewsJson.data ? Object.values(reviewsJson.data) : []));
-          }
-        } catch (revError) {
-          console.error('Failed to fetch store reviews:', revError);
-        }
-      } catch (e: any) {
-        if (!store) {
-          setError(e.message ?? 'Something went wrong');
-        }
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [uname]);
-
-  useEffect(() => {
-    if (!initialProductSlug || products.length === 0) return;
-    const product = products.find(item => item.slug === initialProductSlug);
-    if (product) {
-      setSelectedProduct(product);
-    }
-  }, [initialProductSlug, products]);
-
-  useEffect(() => {
-    if (loading || !store) return;
-    if (selectedProduct) {
-      const targetUrl = getProductUrl(store.username, selectedProduct.slug, uname);
-      if (targetUrl !== '#' && window.location.pathname !== targetUrl) {
-        window.history.pushState({}, '', targetUrl);
-      }
-    } else {
-      const targetUrl = getStoreUrl(store.username, uname);
-      if (targetUrl !== '#' && window.location.pathname !== targetUrl) {
-        window.history.pushState({}, '', targetUrl);
-      }
-    }
-  }, [selectedProduct, store, loading, uname]);
-
-  useEffect(() => {
-    if (!uname) return;
-    try { const s = localStorage.getItem(`frontstore_cart_${uname}`); if (s) setCart(JSON.parse(s)); } catch { }
-  }, [uname]);
-
-  const addToCart = useCallback((product: Product, qty: number) => {
-    setCart(prev => {
-      const idx = prev.findIndex(i => i.product.id === product.id);
-      const next = [...prev];
-      if (idx > -1) next[idx] = { ...next[idx], quantity: next[idx].quantity + qty };
-      else next.push({ product, quantity: qty });
-      try { localStorage.setItem(`frontstore_cart_${uname}`, JSON.stringify(next)); } catch { }
-      return next;
-    });
-    toast.success(`Added ${qty}× ${product.name}`);
-  }, [uname]);
-
-  const updateCartQty = useCallback((productId: string, delta: number) => {
-    setCart(prev => {
-      const idx = prev.findIndex(i => i.product.id === productId);
-      if (idx === -1) return prev;
-      const next = [...prev];
-      const newQty = next[idx].quantity + delta;
-      if (newQty <= 0) next.splice(idx, 1);
-      else next[idx] = { ...next[idx], quantity: newQty };
-      try { localStorage.setItem(`frontstore_cart_${uname}`, JSON.stringify(next)); } catch { }
-      return next;
-    });
-  }, [uname]);
-
-  const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
-  const cartTotal = cart.reduce((s, i) => s + parseFloat(i.product.price) * i.quantity, 0);
-
-  // Calculate average rating
-  const avgRating = reviews.length > 0
-    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
-    : null;
-
-  const filteredProducts = products.filter(p => {
-    const q = searchQuery.toLowerCase();
-    return (!q || p.name.toLowerCase().includes(q) || (p.description ?? '').toLowerCase().includes(q))
-      && (selectedCategoryId === 'all' || p.category_id === selectedCategoryId);
-  });
-
-  const currencySymbol = store ? getCurrencySymbol(store.currency_code) : '₦';
-  const templateId = getTemplateId(store);
-  const productSectionEyebrow = store?.product_section_eyebrow || 'Catalog';
-  const productSectionTitle = store?.product_section_title
-    || (products.length === 0
-      ? 'Catalog opening soon'
-      : templateId === 'flash-sale'
-        ? 'Limited offers'
-        : templateId === 'digital-studio'
-          ? 'Browse digital products'
-          : templateId === 'editorial'
-            ? 'Featured collection'
-            : 'Shop the collection');
-  const pageStyle = store?.is_pro && store.primary_color
-    ? ({ '--primary': store.primary_color } as React.CSSProperties)
-    : undefined;
-
-  const startCheckoutForProduct = useCallback((product: Product, quantity: number) => {
-    setCart(prev => {
-      const idx = prev.findIndex(item => item.product.id === product.id);
-      const next = [...prev];
-      if (idx > -1) {
-        next[idx] = { ...next[idx], quantity: next[idx].quantity + quantity };
-      } else {
-        next.push({ product, quantity });
-      }
-      try {
-        localStorage.setItem(`frontstore_cart_${uname}`, JSON.stringify(next));
-      } catch { }
-      return next;
-    });
-    setSelectedProduct(null);
-    setIsCartOpen(false);
-    setIsCheckoutOpen(true);
-  }, [uname]);
-
-  const handleShareProduct = async (product: Product) => {
-    const path = getProductUrl(store?.username, product.slug, uname);
-    const productUrl = path === '#' ? window.location.href : `${window.location.origin}${path}`;
-    const shareText = `${product.name} — ${fmt(product.price, currencySymbol)}`;
-    if (navigator.share) await navigator.share({ title: product.name, text: shareText, url: productUrl });
-    else { navigator.clipboard.writeText(productUrl); toast.success('Product link copied!'); }
-  };
-
-  const handleShareStore = async () => {
-    if (!store) return;
-    if (navigator.share) await navigator.share({ title: store.store_name, url: window.location.href });
-    else { navigator.clipboard.writeText(window.location.href); toast.success('Store link copied!'); }
-  };
-
-  if (loading) return <div style={{ minHeight: '100vh', background: 'var(--bg)' }}><StoreSkeleton /></div>;
-
-  if (error || !store) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24, textAlign: 'center', background: 'var(--bg)' }}>
-        <AlertCircle size={56} strokeWidth={1} color="var(--text-faint)" style={{ marginBottom: 16 }} />
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Store Unavailable</h1>
-        <p style={{ color: 'var(--text-muted)', marginBottom: 24, maxWidth: 300, lineHeight: 1.6 }}>{error ?? "We couldn't load this storefront. Please check the URL and try again."}</p>
-        <a href="/" className="btn btn-primary" style={{ textDecoration: 'none', gap: 8 }}>
-          <ArrowRight size={16} /> Go to {appName}
-        </a>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <PublicSiteNav />
-      <div className={`public-store-page template-${templateId}`} data-template={templateId} style={{ ...pageStyle, paddingBottom: cartCount > 0 ? 90 : 32 }}>
-
-        <StoreHeader
-          store={store}
-          productCount={products.length}
-          categoryCount={categories.length}
-          featuredProducts={products}
-          currencySymbol={currencySymbol}
-          avgRating={avgRating}
-          reviewsCount={reviews.length}
-          onViewReviews={() => setIsReviewsOpen(true)}
-        />
-
-        {storeDisclaimer && (
-          <div className="storefront-shell" style={{ marginTop: 12, marginBottom: 4 }}>
-            <div style={{
-              background: 'rgba(245, 158, 11, 0.08)',
-              color: '#d97706',
-              borderRadius: 'var(--r-md)',
-              border: '1px solid rgba(245, 158, 11, 0.25)',
-              padding: '12px 16px',
-              fontSize: '13px',
-              fontWeight: 600,
-              display: 'flex',
-              gap: '10px',
-              alignItems: 'center',
-              lineHeight: '1.4'
-            }}>
-              <AlertCircle size={18} style={{ flexShrink: 0 }} />
-              <div>{storeDisclaimer}</div>
-            </div>
-          </div>
-        )}
-
-        {/* Sticky search + categories */}
-        <div className="sticky-bar">
-          <div className="storefront-shell storefront-toolbar">
-            <div className="search-wrap">
-              <Search size={15} strokeWidth={2} className="search-icon" style={{ position: 'absolute', left: 14, color: 'var(--text-faint)', pointerEvents: 'none' }} />
-              <input
-                type="search"
-                className="search-input"
-                placeholder={`Search in ${store.store_name}...`}
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                id="product-search-input"
-                aria-label="Search products"
-                autoComplete="off"
-              />
-              {searchQuery && (
-                <button className="search-clear clickable" onClick={() => setSearchQuery('')} aria-label="Clear">
-                  <X size={10} strokeWidth={3} />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {categories.length > 0 && (
-            <div className="storefront-shell category-scroll no-scrollbar" role="tablist">
-              <button
-                className={`category-chip clickable${selectedCategoryId === 'all' ? ' active' : ''}`}
-                onClick={() => setSelectedCategoryId('all')} role="tab" id="category-all"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <Zap size={12} strokeWidth={2} /> All Products
-              </button>
-              {categories.map((cat, index) => (
-                <button
-                  key={stableKey('category', [cat.id, cat.slug, cat.name], index)}
-                  className={`category-chip clickable${selectedCategoryId === cat.id ? ' active' : ''}`}
-                  onClick={() => setSelectedCategoryId(cat.id)} role="tab" id={`category-${cat.slug}`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Product count */}
-        <div className="storefront-shell product-section-heading">
-          <div>
-            <p className="product-section-heading__eyebrow">{productSectionEyebrow}</p>
-            <h2>{productSectionTitle}</h2>
-          </div>
-          <p>
-            {products.length === 0 ? 'New products are being prepared' : filteredProducts.length === 0 ? 'No matching products' : `${filteredProducts.length} product${filteredProducts.length !== 1 ? 's' : ''}`}
-            {searchQuery && <span> for &ldquo;{searchQuery}&rdquo;</span>}
-          </p>
-        </div>
-
-        {/* Product grid */}
-        <main className="storefront-shell storefront-products" id="products-grid" aria-label="Products">
-          {filteredProducts.length === 0 ? (
-            <div className="storefront-empty animate-fade-in">
-              <div className="storefront-empty__visual" aria-hidden="true">
-                <div className="storefront-empty__shelf">
-                  {[0, 1, 2].map(i => (
-                    <span key={i} style={{ animationDelay: `${i * 90}ms` }}>
-                      <Package size={28} strokeWidth={1.25} />
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="storefront-empty__copy">
-                <span>{products.length === 0 ? 'Opening soon' : 'Filter results'}</span>
-                <h3>{products.length === 0 ? `${store.store_name} is preparing its first drop` : 'No products match this view'}</h3>
-                <p>{products.length === 0 ? 'The merchant has not published products yet. You can still chat with them directly on WhatsApp for availability and custom requests.' : 'Try a different search term or browse the full catalog.'}</p>
-                <div className="storefront-empty__actions">
-                  <button className="btn btn-outline clickable" onClick={handleShareStore}>
-                    <Share2 size={14} /> Share Store
-                  </button>
-                  {(searchQuery || selectedCategoryId !== 'all') && (
-                    <button className="btn btn-outline clickable"
-                      onClick={() => { setSearchQuery(''); setSelectedCategoryId('all'); }}>
-                      <X size={14} /> Clear filters
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="product-grid stagger">
-              {filteredProducts.map((product, index) => (
-                <ProductCard
-                  key={stableKey('product-card', [product.id, product.slug, product.name], index)}
-                  product={product}
-                  currencySymbol={currencySymbol}
-                  onView={() => setSelectedProduct(product)}
-                  onShare={() => handleShareProduct(product)}
-                />
-              ))}
-            </div>
-          )}
-        </main>
-
-        <StoreFooter store={store} systemDomain={systemDomain} appName={appName} />
-
-        {/* Cart FAB */}
-        {cartCount > 0 && (
-          <div className="cart-fab">
-            <button
-              className="btn btn-primary clickable"
-              style={{ width: '100%', padding: '15px 20px', borderRadius: 'var(--r-xl)', fontSize: 14.5, justifyContent: 'space-between', boxShadow: '0 8px 32px rgba(16, 185, 129, 0.35)' }}
-              onClick={() => setIsCartOpen(true)}
-              id="view-cart-btn"
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ background: 'rgba(255,255,255,0.22)', borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ShoppingCart size={15} strokeWidth={2.5} />
-                </div>
-                <span style={{ fontWeight: 700 }}>{cartCount} {cartCount === 1 ? 'item' : 'items'} in cart</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontWeight: 800 }}>{fmt(cartTotal, currencySymbol)}</span>
-                <ChevronRight size={16} strokeWidth={2.5} />
-              </div>
-            </button>
-          </div>
-        )}
-
-        {selectedProduct && (
-          <ProductDetailDrawer
-            product={selectedProduct} store={store} currencySymbol={currencySymbol}
-            onClose={() => setSelectedProduct(null)} onAddToCart={addToCart}
-            onOrderNow={startCheckoutForProduct}
-            reviews={reviews}
-          />
-        )}
-
-        {isReviewsOpen && store && (
-          <StoreReviewsDrawer
-            reviews={reviews}
-            store={store}
-            currencySymbol={currencySymbol}
-            onClose={() => setIsReviewsOpen(false)}
-            products={products}
-          />
-        )}
-
-        {isCartOpen && (
-          <CartDrawer
-            cart={cart} store={store} currencySymbol={currencySymbol} cartTotal={cartTotal}
-            onClose={() => setIsCartOpen(false)} onUpdateQty={updateCartQty}
-            onWhatsAppCheckout={() => { setIsCartOpen(false); setIsCheckoutOpen(true); }}
-            onRemoveItem={(id) => setPendingRemoveItem(id)}
-            onClearCart={() => setIsClearCartConfirmOpen(true)}
-          />
-        )}
-
-        {isCheckoutOpen && (
-          <CheckoutDrawer
-            cart={cart}
-            store={store}
-            currencySymbol={currencySymbol}
-            cartTotal={cartTotal}
-            onClose={() => setIsCheckoutOpen(false)}
-            onBack={() => { setIsCheckoutOpen(false); setIsCartOpen(true); }}
-            onOrderCreated={(receipt) => {
-              setOrderReceipt(receipt);
-              setCart([]);
-              try { localStorage.removeItem(`frontstore_cart_${uname}`); } catch { }
-              setIsCheckoutOpen(false);
-              toast.success('Order created. Tracking page is ready.');
-            }}
-            API_URL={API_URL}
-            uname={uname as string}
-            storeDisclaimer={storeDisclaimer}
-          />
-        )}
-
-        {orderReceipt && store && (
-          <OrderReceiptModal
-            receipt={orderReceipt}
-            store={store}
-            currencySymbol={currencySymbol}
-            onClose={() => setOrderReceipt(null)}
-            onContinue={() => {
-              window.open(orderReceipt.whatsapp_url, '_blank');
-              setOrderReceipt(null);
-            }}
-          />
-        )}
-
-        <ConfirmationModal
-          isOpen={!!pendingRemoveItem}
-          title="Remove Item?"
-          message={`Are you sure you want to remove "${cart.find(i => i.product.id === pendingRemoveItem)?.product.name}" from your cart?`}
-          confirmText="Remove"
-          onConfirm={() => {
-            if (pendingRemoveItem) {
-              updateCartQty(pendingRemoveItem, -1);
-              setPendingRemoveItem(null);
-              toast.info('Item removed from cart');
-            }
-          }}
-          onCancel={() => setPendingRemoveItem(null)}
-        />
-
-        <ConfirmationModal
-          isOpen={isClearCartConfirmOpen}
-          title="Clear Cart?"
-          message="Are you sure you want to remove all items from your cart?"
-          confirmText="Clear Cart"
-          onConfirm={() => {
-            setCart([]);
-            try { localStorage.removeItem(`frontstore_cart_${uname}`); } catch { }
-            setIsClearCartConfirmOpen(false);
-            toast.info('Cart cleared');
-          }}
-          onCancel={() => setIsClearCartConfirmOpen(false)}
-        />
-      </div>
-    </>
-  );
+/* Sidebar */
+.fs-sidebar {
+  width: 280px;
+  flex: 0 0 280px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  padding: 0 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  scrollbar-width: none;
 }
+.fs-sidebar::-webkit-scrollbar { display: none; }
+
+.fs-plan {
+  display: flex;
+  padding: 10px 12px;
+  gap: 6px;
+  background: #221019;
+}
+.fs-plan button {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center;
+  gap: 5px; padding: 7px 10px; border-radius: 8px;
+  font-size: 12px; font-weight: 600; color: #e7c9d5;
+  border: 1px dashed rgba(231,201,213,.4);
+}
+.fs-plan button.on { background: var(--brand); color: #fff; border-style: solid; border-color: var(--brand); }
+
+.fs-sid-cover {
+  height: 80px;
+  background: linear-gradient(135deg, #7c2f4d, #b14a6e 55%, #c79a4b);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.fs-sid-id {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 0 16px; position: relative;
+  min-width: 0;
+}
+.fs-sid-id > div { min-width: 0; width: 100%; margin-top: 10px; }
+.fs-sid-av {
+  width: 56px; height: 56px; border-radius: 16px;
+  background: linear-gradient(150deg, var(--brand), var(--brand-deep));
+  color: #fff; font-family: 'Fraunces', serif; font-weight: 700; font-size: 26px;
+  display: grid; place-items: center; border: 3px solid var(--surface); flex-shrink: 0;
+  margin-top: -28px;
+}
+.fs-sid-id h2 {
+  font-family: 'Fraunces', serif; font-weight: 700; font-size: 15px;
+  line-height: 1.25; display: flex; align-items: center; gap: 5px;
+  flex-wrap: wrap; word-break: break-word;
+}
+.fs-sid-meta { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 4px; margin-top: 3px; }
+.fs-verif { color: var(--brand); }
+
+.fs-sid-url {
+  display: flex; align-items: center; gap: 6px;
+  margin: 12px 16px 0; padding: 8px 12px;
+  background: var(--tint); border-radius: 10px;
+  font-size: 12px; color: var(--muted); cursor: pointer;
+  text-align: left;
+}
+.fs-sid-url b { color: var(--brand-deep); font-weight: 700; }
+.fs-sid-url svg { color: var(--brand); margin-left: auto; }
+
+.fs-sid-stats {
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 14px 16px 0; font-size: 12.5px; font-weight: 500;
+}
+.fs-sid-stats div { display: flex; align-items: center; gap: 6px; color: var(--ink); }
+.fs-sid-stats span { color: var(--muted); font-weight: 400; }
+
+.fs-sid-bio { font-size: 12.5px; line-height: 1.55; color: #5a4751; padding: 12px 16px 0; }
+
+.fs-sid-trust {
+  display: flex; align-items: center; gap: 6px;
+  margin: 14px 16px 0; padding: 10px 12px;
+  background: var(--tint); color: var(--brand-deep);
+  font-size: 11.5px; font-weight: 600; border-radius: 10px;
+}
+
+.fs-sid-nav {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 16px 10px 0;
+}
+.fs-sid-nav button {
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px 12px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  text-align: left;
+}
+.fs-sid-nav button:hover { background: var(--tint); color: var(--brand-deep); }
+
+.fs-sid-bag {
+  margin: auto 16px 0; padding: 13px 16px;
+  background: var(--brand); color: #fff;
+  border-radius: 13px; font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+}
+.fs-sid-bag:hover { background: var(--brand-deep); }
+.fs-sid-bag:active { transform: translateY(1px); }
+.fs-sid-total { margin-left: auto; font-size: 12px; font-weight: 600; opacity: .85; }
+
+/* Main area */
+.fs-main {
+  flex: 1; min-width: 0; overflow-y: auto;
+  height: 100vh; scrollbar-width: thin;
+}
+
+.fs-topbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 28px;
+  background: rgba(248,241,238,.9); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.fs-topbar-left { display: flex; align-items: center; gap: 10px; }
+.fs-topbar-right { display: flex; align-items: center; gap: 6px; }
+.fs-tb-btn {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: grid; place-items: center; color: var(--muted);
+}
+.fs-tb-btn:hover { background: var(--tint); color: var(--brand); }
+.fs-tb-bag {
+  display: flex; align-items: center; gap: 7px; position: relative;
+  padding: 9px 16px; border-radius: 11px;
+  background: var(--brand); color: #fff;
+  font-size: 13px; font-weight: 700;
+}
+.fs-tb-bag:hover { background: var(--brand-deep); }
+.fs-fs-logo { font-family: 'Fraunces', serif; font-weight: 700; font-size: 18px; }
+.fs-fs-logo span { color: var(--brand); }
+.fs-premium-label {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 700; color: var(--gold);
+  background: rgba(199,154,75,.12); padding: 5px 10px; border-radius: 8px;
+}
+
+/* Hero */
+.fs-hero {
+  position: relative; height: 260px; overflow: hidden;
+}
+.fs-hero-art {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #4a1a35, #7c2f4d 45%, #b14a6e 75%, #c79a4b);
+}
+.fs-hero-grain {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,.14) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+.fs-hero-content {
+  position: relative; z-index: 2;
+  padding: 36px 32px; color: #fff;
+  max-width: 600px;
+}
+.fs-hero-cat {
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+  opacity: .8; display: block; margin-bottom: 8px;
+}
+.fs-hero-name {
+  font-family: 'Fraunces', serif; font-weight: 700; font-size: 32px;
+  letter-spacing: -.02em; line-height: 1.1; margin-bottom: 10px;
+}
+.fs-hero-bio { font-size: 14px; opacity: .85; line-height: 1.5; margin-bottom: 20px; max-width: 460px; }
+.fs-hero-actions { display: flex; gap: 10px; }
+
+/* Featured */
+.fs-featured { padding: 28px 28px 8px; }
+.fs-section-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700; color: var(--gold);
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px;
+}
+.fs-feat-card {
+  display: flex; gap: 0; border-radius: 20px; overflow: hidden;
+  border: 1px solid var(--line); background: var(--surface);
+  box-shadow: 0 8px 24px rgba(43,29,42,.07);
+}
+.fs-feat-media { flex: 0 0 44%; }
+.fs-feat-body { flex: 1; padding: 22px 24px; display: flex; flex-direction: column; gap: 0; }
+.fs-feat-badge {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  background: var(--tint); color: var(--brand-deep);
+  padding: 4px 10px; border-radius: 8px; margin-bottom: 10px;
+  align-self: flex-start;
+}
+.fs-feat-body h3 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; letter-spacing: -.01em; }
+.fs-feat-body p { font-size: 13.5px; color: var(--muted); line-height: 1.55; margin-top: 8px; }
+.fs-feat-row { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+
+/* Filters */
+.fs-filters { padding: 20px 28px 12px; position: sticky; top: 62px; z-index: 20; background: rgba(248,241,238,.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.fs-filter-top { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
+.fs-searchwrap { flex: 1; position: relative; display: flex; align-items: center; }
+.fs-search-ic { position: absolute; left: 13px; color: var(--muted); }
+.fs-searchwrap input {
+  width: 100%; padding: 11px 38px; border-radius: 11px;
+  border: 1.5px solid var(--line); background: var(--surface);
+  font-size: 13.5px; font-family: inherit;
+}
+.fs-searchwrap input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--tint); }
+.fs-searchwrap > button { position: absolute; right: 11px; color: var(--muted); width: 24px; height: 24px; display: grid; place-items: center; }
+.fs-segs { display: flex; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; flex-shrink: 0; }
+.fs-segs button { padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.fs-segs button.on { background: var(--brand); color: #fff; }
+.fs-cats { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; }
+.fs-cats::-webkit-scrollbar { display: none; }
+.fs-cats button {
+  flex: 0 0 auto; font-size: 12px; font-weight: 600; padding: 6px 13px;
+  border-radius: 999px; background: var(--surface); border: 1px solid var(--line);
+}
+.fs-cats button.on { background: var(--brand-deep); color: #fff; border-color: var(--brand-deep); }
+
+/* Desktop grid — 3 cols */
+.fs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 20px 28px 10px;
+}
+@media (min-width: 1100px) { .fs-grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* Mobile grid — 2 cols */
+.fs-m-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; padding: 6px 16px 4px;
+}
+
+.fs-empty { grid-column: 1/-1; text-align: center; color: var(--muted); font-size: 13.5px; padding: 30px 0; }
+
+.fs-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 18px; overflow: hidden; animation: rise .45s both;
+  box-shadow: 0 4px 12px rgba(43,29,42,.05);
+  display: flex; flex-direction: column;
+}
+.fs-card:hover { box-shadow: 0 8px 24px rgba(43,29,42,.1); transform: translateY(-2px); transition: .2s; }
+.fs-card-media { position: relative; }
+.fs-type {
+  position: absolute; top: 8px; left: 8px; font-size: 10px; font-weight: 700;
+  padding: 3px 8px; border-radius: 7px; backdrop-filter: blur(4px);
+  z-index: 2;
+}
+.fs-type.service { background: rgba(255,255,255,.92); color: var(--brand-deep); }
+.fs-type.product { background: rgba(43,29,42,.78); color: #fff; }
+.fs-pop {
+  position: absolute; top: 8px; right: 8px; display: inline-flex; align-items: center; gap: 3px;
+  font-size: 9.5px; font-weight: 700; color: #fff; background: rgba(177,74,110,.85);
+  padding: 3px 7px; border-radius: 7px;
+  z-index: 2;
+}
+.fs-card-body { padding: 12px 13px 13px; flex: 1; display: flex; flex-direction: column; }
+.fs-card-body h3 { font-size: 13.5px; font-weight: 700; letter-spacing: -.01em; line-height: 1.25; }
+.fs-card-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 6px; flex: 1; }
+.fs-card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; gap: 6px; }
+.fs-line { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
+.fs-line.low { color: var(--brand); font-weight: 600; }
+.fs-price { font-family: 'Fraunces', serif; font-weight: 700; font-size: 17px; color: var(--brand-deep); }
+.fs-dur { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
+
+/* CTAs */
+.fs-cta {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 6px; font-size: 13px; font-weight: 700; padding: 9px 14px;
+  border-radius: 11px; color: #fff;
+}
+.fs-cta-full { width: 100%; margin-top: 11px; padding: 12px; border-radius: 12px; }
+.fs-cta:active { transform: translateY(1px); }
+.fs-buy { background: var(--brand-deep); box-shadow: 0 5px 14px rgba(124,47,77,.32); }
+.fs-buy:hover { filter: brightness(1.08); }
+.fs-book { background: var(--brand); box-shadow: 0 5px 14px rgba(177,74,110,.34); }
+.fs-book:hover { filter: brightness(1.08); }
+
+/* Reviews (desktop) */
+.fs-reviews { padding: 24px 28px 10px; }
+.fs-rev-head {
+  display: flex; align-items: center; gap: 16px; margin: 12px 0 20px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 16px; padding: 18px 20px;
+}
+.fs-rev-rating { font-family: 'Fraunces', serif; font-weight: 700; font-size: 42px; color: var(--brand-deep); line-height: 1; }
+.fs-rev-stars { color: var(--gold); font-size: 18px; letter-spacing: 2px; }
+.fs-rev-head span { font-size: 13px; color: var(--muted); }
+.fs-rev-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 900px) { .fs-rev-grid { grid-template-columns: 1fr 1fr; } }
+
+/* Reviews shared */
+.fs-rev { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.fs-rev-top { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.fs-rev-av {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--tint); color: var(--brand-deep);
+  font-weight: 700; display: grid; place-items: center; font-size: 14px;
+}
+.fs-rev-top b { font-size: 13.5px; display: block; }
+.fs-rev-stars-sm { color: var(--gold); font-size: 11px; display: block; margin-top: 1px; }
+.fs-rev p { font-size: 13px; color: #5a4751; line-height: 1.5; }
+
+/* Desktop footer */
+.fs-foot { border-top: 1px solid var(--line); margin-top: 16px; padding: 20px 28px; }
+.fs-foot-inner { display: flex; align-items: center; gap: 16px; }
+.fs-foot-brand { font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; }
+.fs-foot-sec { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--muted); margin-left: auto; }
+.fs-foot-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: var(--brand-deep); }
+
+/* Badge */
+.fs-badge {
+  position: absolute; top: 3px; right: 3px;
+  min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+  background: var(--brand); color: #fff;
+  font-size: 10px; font-weight: 700; display: grid; place-items: center;
+}
+
+/* ══════════════════════════════
+   MOBILE
+══════════════════════════════ */
+.fs-m-top {
+  position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; background: rgba(248,241,238,.88); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.fs-m-brand { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.fs-m-av {
+  width: 30px; height: 30px; border-radius: 9px;
+  background: linear-gradient(150deg, var(--brand), var(--brand-deep));
+  color: #fff; font-family: 'Fraunces', serif; font-weight: 700;
+  display: grid; place-items: center; font-size: 16px; flex: 0 0 auto;
+}
+.fs-m-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fs-m-actions { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+.fs-m-icn { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; position: relative; }
+.fs-m-icn:active { background: var(--tint); }
+.fs-m-bagbtn { position: relative; }
+
+.fs-m-cover { padding: 0 16px 16px; }
+.fs-m-cover-art { height: 110px; margin: 0 -16px; background: linear-gradient(135deg, #7c2f4d, #b14a6e 55%, #c79a4b); position: relative; overflow: hidden; }
+.fs-m-grain { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.16) 1px, transparent 1px); background-size: 13px 13px; }
+.fs-m-id { display: flex; align-items: flex-end; gap: 12px; margin-top: -30px; position: relative; }
+.fs-m-avatar {
+  width: 66px; height: 66px; border-radius: 18px;
+  background: linear-gradient(150deg, var(--brand), var(--brand-deep));
+  color: #fff; font-family: 'Fraunces', serif; font-weight: 700; font-size: 30px;
+  display: grid; place-items: center; border: 4px solid var(--bg); flex: 0 0 auto;
+}
+.fs-m-id h1 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 19px; letter-spacing: -.01em; display: flex; align-items: center; gap: 5px; line-height: 1.1; padding-bottom: 4px; }
+.fs-m-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; margin-top: 3px; }
+.fs-m-url { display: inline-flex; align-items: center; gap: 7px; margin-top: 12px; background: var(--surface); border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; font-size: 12.5px; color: var(--muted); }
+.fs-m-url b { color: var(--brand-deep); font-weight: 700; }
+.fs-m-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 12px; font-weight: 600; }
+.fs-m-stats span { display: inline-flex; align-items: center; gap: 4px; }
+.fs-m-stats i { color: var(--muted); font-style: normal; font-weight: 400; }
+.fs-m-bio { font-size: 13px; line-height: 1.55; color: #5a4751; margin-top: 12px; }
+.fs-m-hours { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; margin-top: 9px; }
+.fs-m-trust { display: flex; align-items: center; gap: 6px; margin-top: 12px; background: var(--tint); color: var(--brand-deep); font-size: 11.5px; font-weight: 600; padding: 9px 11px; border-radius: 10px; }
+
+.fs-m-pinned { padding: 4px 16px 4px; }
+.fs-m-pin-flag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.fs-m-pin-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+.fs-m-pin-body { padding: 13px 14px 14px; }
+.fs-m-pin-body h3 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px; }
+.fs-m-pin-body p { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-top: 5px; }
+.fs-m-pin-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+
+.fs-m-filters { position: sticky; top: 58px; z-index: 30; background: rgba(248,241,238,.92); backdrop-filter: blur(10px); padding: 12px 16px 9px; margin-top: 6px; }
+.fs-m-filters .fs-filter-top { display: none; }
+
+.fs-m-reviews { padding: 18px 16px 6px; }
+
+.fs-m-foot { padding: 16px 16px 20px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--line); margin-top: 8px; }
+
+.fs-m-bottom {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 45;
+  background: rgba(255,250,248,.94); backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 8px 8px 12px;
+}
+.fs-bn { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--muted); flex: 1; }
+.fs-bn span { line-height: 1; }
+.fs-bn:active { color: var(--brand); }
+.fs-bn-primary {
+  position: relative; width: 54px; height: 54px; border-radius: 50%;
+  background: linear-gradient(150deg, var(--brand), var(--brand-deep));
+  display: grid; place-items: center; margin-top: -24px;
+  box-shadow: 0 8px 20px rgba(177,74,110,.42); border: 4px solid var(--bg);
+}
+.fs-bn-primary:active { transform: scale(.95); }
+
+/* ── SHARED: Sheets / Overlays ── */
+.fs-scrim {
+  position: fixed; inset: 0; background: rgba(43,29,42,.5);
+  opacity: 0; pointer-events: none; transition: .25s; z-index: 80;
+}
+.fs-scrim.show { opacity: 1; pointer-events: auto; }
+.fs-sheet {
+  position: fixed; bottom: 0; left: 50%; transform: translate(-50%, 103%);
+  width: 100%; max-width: 540px; z-index: 90;
+  background: var(--surface); border-radius: 26px 26px 0 0;
+  padding: 8px 22px 28px; transition: transform .3s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 -10px 40px rgba(43,29,42,.18);
+}
+.fs-sheet.open { transform: translate(-50%, 0); }
+.fs-sheet-grab { width: 42px; height: 5px; border-radius: 3px; background: var(--line); margin: 6px auto 14px; }
+.fs-sheet-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.fs-sheet-head h3 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 19px; letter-spacing: -.01em; }
+.fs-sheet-head span { font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; }
+.fs-sheet-lbl { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 4px 0 9px; }
+.fs-daterow { display: flex; gap: 8px; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; margin-bottom: 14px; }
+.fs-daterow::-webkit-scrollbar { display: none; }
+.fs-date { flex: 0 0 auto; min-width: 64px; padding: 10px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg); text-align: center; display: flex; flex-direction: column; }
+.fs-date b { display: block; font-size: 13px; }
+.fs-date span { font-size: 11px; color: var(--muted); }
+.fs-date.on { border-color: var(--brand); background: var(--tint); }
+.fs-date.on b { color: var(--brand-deep); }
+.fs-timerow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px; }
+.fs-time { padding: 11px 0; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); font-size: 13px; font-weight: 600; text-align: center; }
+.fs-time.on { border-color: var(--brand); background: var(--tint); color: var(--brand-deep); }
+
+.fs-sheet-cta, .fs-pay {
+  width: 100%; padding: 14px; border-radius: 14px;
+  background: var(--brand); color: #fff;
+  font-size: 15px; font-weight: 700; border: none;
+  box-shadow: 0 8px 22px rgba(177, 74, 110, .4);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.fs-sheet-cta:hover, .fs-pay:hover { filter: brightness(1.05); }
+.fs-sheet-note, .fs-pay-note { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11.5px; color: var(--muted); margin-top: 12px; }
+
+/* Bag drawer specific list */
+.fs-bag-empty { text-align: center; color: var(--muted); font-size: 14px; padding: 36px 0; }
+.fs-bag-list { display: flex; flex-direction: column; gap: 12px; max-height: 280px; overflow-y: auto; margin-bottom: 14px; }
+.fs-bag-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.fs-bag-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.fs-bag-info b { font-size: 13.5px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fs-bag-info span { font-size: 11.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
+.fs-bag-price { font-size: 13.5px; font-weight: 700; color: var(--brand-deep); }
+.fs-step { display: flex; align-items: center; gap: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 5px 10px; }
+.fs-step button { width: 20px; height: 20px; display: grid; place-items: center; color: var(--brand-deep); }
+.fs-step span { font-weight: 700; font-size: 13px; min-width: 14px; text-align: center; }
+.fs-rm { width: 32px; height: 32px; display: grid; place-items: center; color: var(--muted); border-radius: 8px; }
+.fs-rm:active { background: var(--tint); color: var(--brand); }
+.fs-bag-total { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; font-weight: 700; padding: 8px 0 16px; border-top: 1px solid var(--line); }
+.fs-bag-total b { font-family: 'Fraunces', serif; font-size: 20px; color: var(--brand-deep); }
+
+/* Fields styling */
+.fs-input-field {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+.fs-input-field:focus {
+  border-color: var(--brand);
+  background: var(--surface);
+}
+
+/* Toast popup styling */
+.fs-toast {
+  position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%) translateY(10px); z-index: 100;
+  background: var(--ink); color: #fff; font-size: 13px; font-weight: 600; padding: 11px 16px;
+  border-radius: 12px; display: flex; align-items: center; gap: 7px; opacity: 0; pointer-events: none;
+  transition: .22s; box-shadow: 0 10px 28px rgba(43,29,42,.28);
+}
+.fs-toast svg { color: #7fdcae; }
+.fs-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+@media(min-width:768px) { .fs-toast { bottom: 24px; } }
+`;
