@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import StorefrontClient from '../../StorefrontClient';
+import StorefrontClientNoSsr from '../../StorefrontClientNoSsr';
 
 interface PageProps {
   params: Promise<{
@@ -59,6 +59,13 @@ function safePathSegment(value: string | null | undefined): string {
   return segment;
 }
 
+function safeText(value: unknown, fallback: string): string {
+  if (typeof value !== 'string') return fallback;
+  const text = value.trim();
+  if (!text || text.toLowerCase() === 'undefined' || text.toLowerCase() === 'null') return fallback;
+  return text;
+}
+
 function productPathUsername(storeUsername: string | null | undefined, routeUsername: string): string {
   return safePathSegment(storeUsername) || safePathSegment(routeUsername);
 }
@@ -79,27 +86,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const store = storeData.store;
   const systemDomain = storeData.system_domain || 'frontstore.app';
-  const appName = storeData.app_name || 'Front Store';
+  const appName = safeText(storeData.app_name, 'Front Store');
+  const productUsername = productPathUsername(store.username, username);
+  const storeName = safeText(store.store_name, productUsername || 'Store');
+  const productName = safeText(product.name, safePathSegment(slug) || 'Product');
   const symbol = currencySymbol(store.currency_code || 'NGN');
   const price = Number(product.price || 0).toLocaleString('en-NG', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
-  const title = `${product.name} - ${symbol}${price} at ${store.store_name}`;
-  const description = product.description
-    || `Buy ${product.name} from ${store.store_name}. Order directly on WhatsApp.`;
+  const title = `${productName} - ${symbol}${price} at ${storeName}`;
+  const description = safeText(product.description, `Buy ${productName} from ${storeName}. Order directly on WhatsApp.`);
   const image = product.image_urls?.[0] || store.logo_url || storeData.logo_url || `https://${systemDomain}/icon.png`;
-  const productUsername = productPathUsername(store.username, username);
   const url = `https://${systemDomain}/${productUsername}/products/${safePathSegment(product.slug) || slug}`;
 
   return {
     title,
     description,
     keywords: [
-      product.name,
-      store.store_name,
-      `${product.name} price`,
-      `buy ${product.name}`,
+      productName,
+      storeName,
+      `${productName} price`,
+      `buy ${productName}`,
       'WhatsApp order',
       'online store',
     ],
@@ -118,7 +126,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           url: image,
           width: 1200,
           height: 630,
-          alt: product.name,
+          alt: productName,
         },
       ],
     },
@@ -140,19 +148,22 @@ export default async function ProductPage({ params }: PageProps) {
 
   const systemDomain = storeData?.system_domain || 'frontstore.app';
   const store = storeData?.store;
+  const productUsername = store && product ? productPathUsername(store.username, username) : '';
+  const storeName = safeText(store?.store_name, productUsername || 'Store');
+  const productName = safeText(product?.name, safePathSegment(slug) || 'Product');
   const productUrl = store && product
-    ? `https://${systemDomain}/${productPathUsername(store.username, username)}/products/${safePathSegment(product.slug) || slug}`
+    ? `https://${systemDomain}/${productUsername}/products/${safePathSegment(product.slug) || slug}`
     : '';
   const jsonLd = store && product ? {
     '@context': 'https://schema.org',
     '@type': 'Product',
-    name: product.name,
-    description: product.description || undefined,
+    name: productName,
+    description: safeText(product.description, '') || undefined,
     image: product.image_urls || undefined,
     url: productUrl,
     brand: {
       '@type': 'Brand',
-      name: store.store_name,
+      name: storeName,
     },
     offers: {
       '@type': 'Offer',
@@ -164,7 +175,7 @@ export default async function ProductPage({ params }: PageProps) {
       url: productUrl,
       seller: {
         '@type': 'Store',
-        name: store.store_name,
+        name: storeName,
       },
     },
   } : null;
@@ -177,7 +188,7 @@ export default async function ProductPage({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <StorefrontClient username={username} initialProductSlug={slug} initialData={storeData} />
+      <StorefrontClientNoSsr username={username} initialProductSlug={slug} initialData={storeData} />
     </>
   );
 }

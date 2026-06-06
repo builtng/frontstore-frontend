@@ -204,6 +204,14 @@ function safePathSegment(value: string | null | undefined): string {
   return segment;
 }
 
+function stableKey(prefix: string, parts: Array<string | number | null | undefined>, fallbackIndex: number): string {
+  const key = parts
+    .map(part => (part == null ? '' : String(part).trim()))
+    .filter(part => part && part.toLowerCase() !== 'undefined' && part.toLowerCase() !== 'null')
+    .join('-');
+  return key ? `${prefix}-${key}-${fallbackIndex}` : `${prefix}-${fallbackIndex}`;
+}
+
 // ─── Confirmation Modal ───────────────────────────────────────────────────────
 
 function ConfirmationModal({
@@ -821,8 +829,8 @@ function ProductDetailDrawer({
             <div style={{ marginBottom: 18, borderTop: '1px solid var(--border)', paddingTop: 14 }}>
               <p className="product-detail__desc-label" style={{ marginBottom: 10 }}>Customer Reviews</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {productReviews.map((review: any) => (
-                  <div key={review.id} style={{ background: 'var(--surface-2)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {productReviews.map((review: any, index: number) => (
+                  <div key={stableKey('product-review', [review.id, review.created_at, review.customer_name], index)} style={{ background: 'var(--surface-2)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontWeight: 700, fontSize: '12.5px' }}>{review.customer_name || 'Verified Buyer'}</span>
                       <div style={{ display: 'flex', gap: 2 }}>
@@ -946,10 +954,10 @@ function CartDrawer({
           ) : (
             <>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {cart.map(item => {
+                {cart.map((item, index) => {
                   const subtotal = parseFloat(item.product.price) * item.quantity;
                   return (
-                    <div key={item.product.id || item.product.slug} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+                    <div key={stableKey('cart-item', [item.product.id, item.product.slug, item.product.name], index)} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
                       <div style={{ width: 56, height: 56, borderRadius: 'var(--r-md)', background: 'var(--bg-2)', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
                         {item.product.image_urls?.[0]
                           ? <img src={item.product.image_urls[0]} alt={item.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -1338,7 +1346,7 @@ function StoreHeader({
           <div className="store-header__avatar-wrap">
             {store.logo_url
               ? <img src={store.logo_url} alt={store.store_name} className="store-header__avatar" />
-              : <div className="store-header__avatar">{initial}</div>
+              : <div className="store-header__avatar" suppressHydrationWarning>{initial}</div>
             }
             {store.is_verified && (
               <div className="store-header__verified" title="Verified Store">
@@ -1413,7 +1421,7 @@ function StoreHeader({
             <div className="store-header__spotlight-products">
               {spotlightProducts.map((product, index) => (
                 <button
-                  key={product.id || product.slug}
+                  key={stableKey('spotlight-product', [product.id, product.slug, product.name], index)}
                   type="button"
                   className="store-header__spotlight-card clickable"
                   onClick={() => document.getElementById('products-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
@@ -1470,7 +1478,7 @@ function StoreHeader({
             <p className="store-header__links-label">
               Store Links & Socials
             </p>
-            {store.custom_links.filter(l => l.is_active && l.platform !== 'whatsapp').map(link => {
+            {store.custom_links.filter(l => l.is_active && l.platform !== 'whatsapp').map((link, index) => {
               const IconComponent = () => {
                 switch (link.platform) {
                   case 'whatsapp': return <WhatsAppIcon size={14} style={{ color: 'var(--wa-green)' }} />;
@@ -1483,7 +1491,7 @@ function StoreHeader({
               };
               return (
                 <a
-                  key={link.id || link.url || link.platform}
+                  key={stableKey('store-link', [link.id, link.url, link.platform, link.title], index)}
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1603,13 +1611,13 @@ function StoreReviewsDrawer({
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {reviews.map(review => {
+              {reviews.map((review, index) => {
                 const referencedProduct = review.product_id
                   ? products.find(p => p.id === review.product_id)
                   : null;
 
                 return (
-                  <div key={review.id || review.created_at} style={{ background: 'var(--surface-2)', padding: '16px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div key={stableKey('store-review', [review.id, review.created_at, review.customer_name, review.product_id], index)} style={{ background: 'var(--surface-2)', padding: '16px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text)' }}>
                         {review.customer_name || 'Verified Buyer'}
@@ -1928,7 +1936,6 @@ export default function StorefrontClient({
 
   return (
     <>
-      <title>{`${store.store_name} — Shop on ${appName}`}</title>
       <PublicSiteNav />
       <div className={`public-store-page template-${templateId}`} data-template={templateId} style={{ ...pageStyle, paddingBottom: cartCount > 0 ? 90 : 32 }}>
 
@@ -1996,9 +2003,9 @@ export default function StorefrontClient({
               >
                 <Zap size={12} strokeWidth={2} /> All Products
               </button>
-              {categories.map(cat => (
+              {categories.map((cat, index) => (
                 <button
-                  key={cat.id || cat.slug}
+                  key={stableKey('category', [cat.id, cat.slug, cat.name], index)}
                   className={`category-chip clickable${selectedCategoryId === cat.id ? ' active' : ''}`}
                   onClick={() => setSelectedCategoryId(cat.id)} role="tab" id={`category-${cat.slug}`}
                 >
@@ -2053,9 +2060,9 @@ export default function StorefrontClient({
             </div>
           ) : (
             <div className="product-grid stagger">
-              {filteredProducts.map(product => (
+              {filteredProducts.map((product, index) => (
                 <ProductCard
-                  key={product.id || product.slug}
+                  key={stableKey('product-card', [product.id, product.slug, product.name], index)}
                   product={product}
                   currencySymbol={currencySymbol}
                   onView={() => setSelectedProduct(product)}

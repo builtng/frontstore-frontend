@@ -272,6 +272,7 @@ export default function OrderTrackingPage() {
     if (code === 'KES') return 'KSh';
     if (code === 'ZAR') return 'R';
     if (code === 'USD') return '$';
+    if (code === 'GBP') return '£';
     return code + ' ';
   };
 

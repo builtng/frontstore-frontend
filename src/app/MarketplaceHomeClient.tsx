@@ -72,7 +72,7 @@ const currencySymbols: Record<string, string> = {
   KES: 'KES ',
   ZAR: 'R',
   USD: '$',
-  GBP: 'GBP ',
+  GBP: '£',
 };
 
 function formatPrice(value: string | number, currencyCode?: string) {

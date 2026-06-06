@@ -1108,7 +1108,18 @@ return (
                     const dateStr = new Date(order.created_at).toLocaleDateString(undefined, {
                       year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                     });
-                    const currencySymbol = order.store?.currency_code === 'NGN' ? '₦' : (order.store?.currency_code || '₦');
+                    const orderCurrencySymbols: Record<string, string> = {
+                      NGN: '₦',
+                      GHS: 'GH₵',
+                      KES: 'KSh',
+                      ZAR: 'R',
+                      USD: '$',
+                      GBP: '£',
+                    };
+                    const orderCurrencyCode = order.store?.currency_code?.toUpperCase();
+                    const currencySymbol = orderCurrencyCode
+                      ? (orderCurrencySymbols[orderCurrencyCode] || `${orderCurrencyCode} `)
+                      : '₦';
                     return (
                       <tr key={order.id}>
                         <td>

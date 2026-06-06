@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import StorefrontClient from './StorefrontClient';
+import StorefrontClientNoSsr from './StorefrontClientNoSsr';
 
 interface PageProps {
   params: Promise<{
@@ -23,6 +23,20 @@ async function getStoreData(username: string) {
   }
 }
 
+function safeText(value: unknown, fallback: string): string {
+  if (typeof value !== 'string') return fallback;
+  const text = value.trim();
+  if (!text || text.toLowerCase() === 'undefined' || text.toLowerCase() === 'null') return fallback;
+  return text;
+}
+
+function safePathSegment(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  const text = value.trim();
+  if (!text || text.toLowerCase() === 'undefined' || text.toLowerCase() === 'null') return '';
+  return text;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
   const data = await getStoreData(username);
@@ -36,16 +50,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { store } = data;
   const systemDomain = data.system_domain || 'frontstore.app';
-  const appName = data.app_name || 'Front Store';
-  const title = `${store.store_name} | Shop on ${appName}`;
-  const description = store.store_bio || `Shop directly from ${store.store_name} on WhatsApp. Browse products and place orders instantly.`;
+  const appName = safeText(data.app_name, 'Front Store');
+  const routeUsername = safePathSegment(username);
+  const storeUsername = safePathSegment(store.username) || routeUsername;
+  const storeName = safeText(store.store_name, storeUsername || 'Store');
+  const title = `${storeName} | Shop on ${appName}`;
+  const description = safeText(store.store_bio, `Shop directly from ${storeName} on WhatsApp. Browse products and place orders instantly.`);
   const logo = store.logo_url || data.logo_url || `https://${systemDomain}/icon.png`;
-  const url = `https://${systemDomain}/${store.username}`;
+  const url = `https://${systemDomain}/${storeUsername}`;
 
   return {
     title,
     description,
-    keywords: [store.store_name, 'WhatsApp commerce', 'WhatsApp storefront', `${appName.toLowerCase()} store`, 'online shop', 'conversational commerce'],
+    keywords: [storeName, 'WhatsApp commerce', 'WhatsApp storefront', `${appName.toLowerCase()} store`, 'online shop', 'conversational commerce'],
     alternates: {
       canonical: url,
     },
@@ -59,7 +76,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           url: logo,
           width: 500,
           height: 500,
-          alt: `${store.store_name} Logo`,
+          alt: `${storeName} Logo`,
         },
       ],
       type: 'website',
@@ -80,12 +97,15 @@ export default async function Page({ params }: PageProps) {
   
   // Inject Google Schema.org structured data (JSON-LD)
   const systemDomain = data?.system_domain || 'frontstore.app';
+  const routeUsername = safePathSegment(username);
+  const storeUsername = safePathSegment(data?.store?.username) || routeUsername;
+  const storeName = safeText(data?.store?.store_name, storeUsername || 'Store');
   const jsonLd = data && data.store ? {
     '@context': 'https://schema.org',
     '@type': 'Store',
-    'name': data.store.store_name,
-    'description': data.store.store_bio || undefined,
-    'url': `https://${systemDomain}/${data.store.username}`,
+    'name': storeName,
+    'description': safeText(data.store.store_bio, '') || undefined,
+    'url': `https://${systemDomain}/${storeUsername}`,
     'image': data.store.logo_url || undefined,
     'telephone': data.store.whatsapp_phone || undefined,
     'address': {
@@ -102,7 +122,7 @@ export default async function Page({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <StorefrontClient username={username} initialData={data} />
+      <StorefrontClientNoSsr username={username} initialData={data} />
     </>
   );
 }
