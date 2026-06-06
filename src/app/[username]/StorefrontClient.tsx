@@ -212,6 +212,21 @@ function stableKey(prefix: string, parts: Array<string | number | null | undefin
   return key ? `${prefix}-${key}-${fallbackIndex}` : `${prefix}-${fallbackIndex}`;
 }
 
+function normalizeApiUrl(value?: string | null) {
+  const fallback = 'https://api.frontstore.app/api';
+  if (typeof value !== 'string') return fallback;
+  const url = value.trim();
+  if (!url || url.toLowerCase() === 'undefined' || url.toLowerCase() === 'null') return fallback;
+  return url.replace(/\/+$/, '');
+}
+
+function normalizeCurrencyCode(value: unknown, fallback = 'NGN') {
+  if (typeof value !== 'string') return fallback;
+  const code = value.trim().toUpperCase();
+  if (!code || code === 'UNDEFINED' || code === 'NULL') return fallback;
+  return code;
+}
+
 // ─── Confirmation Modal ───────────────────────────────────────────────────────
 
 function ConfirmationModal({
@@ -1707,14 +1722,13 @@ export default function StorefrontClient({
 }) {
   const uname = username;
 
-  const normalizeStore = (s: any): Store | null => {
+  const normalizeStore = (s: any, fallbackStore?: Store | null): Store | null => {
     if (!s) return null;
+    const fallbackCurrency = normalizeCurrencyCode(fallbackStore?.currency_code, 'NGN');
     return {
       ...s,
-      username: safePathSegment(s.username) || safePathSegment(uname),
-      currency_code: (typeof s.currency_code === 'string' && !['undefined', 'null', ''].includes(s.currency_code.trim().toLowerCase()))
-        ? s.currency_code.trim().toUpperCase()
-        : 'NGN',
+      username: safePathSegment(s.username) || safePathSegment(fallbackStore?.username) || safePathSegment(uname),
+      currency_code: normalizeCurrencyCode(s.currency_code, fallbackCurrency),
       custom_links: Array.isArray(s.custom_links)
         ? s.custom_links
         : (s.custom_links ? Object.values(s.custom_links) : []),
@@ -1762,19 +1776,35 @@ export default function StorefrontClient({
   const [reviews, setReviews] = useState<any[]>([]);
   const [isReviewsOpen, setIsReviewsOpen] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
 
   useEffect(() => {
     if (!uname) return;
     (async () => {
+      const apiCandidates = Array.from(new Set([API_URL, 'https://api.frontstore.app/api']));
       try {
         if (!store) {
           setLoading(true);
         }
-        const res = await fetch(`${API_URL}/v1/public/store/${uname}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error('Store not found or currently inactive');
-        const { data } = await res.json();
-        setStore(normalizeStore(data.store));
+        let data: any = null;
+        let apiUrlUsed = API_URL;
+        for (const apiUrl of apiCandidates) {
+          try {
+            const res = await fetch(`${apiUrl}/v1/public/store/${uname}`, { cache: 'no-store' });
+            if (!res.ok) continue;
+            const json = await res.json();
+            if (json.data?.store) {
+              data = json.data;
+              apiUrlUsed = apiUrl;
+              break;
+            }
+          } catch {
+            // Try the next candidate. A stale API must not overwrite the initial storefront.
+          }
+        }
+        if (!data) throw new Error('Store not found or currently inactive');
+
+        setStore(prev => normalizeStore(data.store, prev || store));
         setCategories(Array.isArray(data.categories) ? data.categories : (data.categories ? Object.values(data.categories) : []));
         setProducts(normalizeProducts(data.products));
         if (data.system_domain) setSystemDomain(data.system_domain);
@@ -1784,7 +1814,7 @@ export default function StorefrontClient({
 
         // Fetch reviews in background
         try {
-          const reviewsRes = await fetch(`${API_URL}/v1/public/store/${uname}/reviews`);
+          const reviewsRes = await fetch(`${apiUrlUsed}/v1/public/store/${uname}/reviews`);
           if (reviewsRes.ok) {
             const reviewsJson = await reviewsRes.json();
             setReviews(Array.isArray(reviewsJson.data) ? reviewsJson.data : (reviewsJson.data ? Object.values(reviewsJson.data) : []));
