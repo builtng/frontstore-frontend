@@ -111,6 +111,14 @@ function getStoreUrl(store?: StoreSummary | null) {
   return username ? `/${username}` : '#';
 }
 
+function normalizeApiUrl(value?: string | null) {
+  const fallback = 'https://api.frontstore.app/api';
+  if (typeof value !== 'string') return fallback;
+  const url = value.trim();
+  if (!url || url.toLowerCase() === 'undefined' || url.toLowerCase() === 'null') return fallback;
+  return url.replace(/\/+$/, '');
+}
+
 function productMatches(product: MarketplaceProduct, searchTerm: string, categorySlug: string) {
   const search = searchTerm.trim().toLowerCase();
   const matchesCategory = categorySlug === 'all' || product.category?.slug === categorySlug;
@@ -184,23 +192,29 @@ export default function MarketplaceHomeClient({
   const [loading, setLoading] = useState(!initialData || !initialData.products || !Array.isArray(initialData.products) || initialData.products.length === 0);
 
   useEffect(() => {
-    const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
     const loadFreshData = async () => {
+      const savedApiUrl = normalizeApiUrl(localStorage.getItem('dev_api_url'));
+      const configuredApiUrl = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
+      const apiCandidates = Array.from(new Set([savedApiUrl, configuredApiUrl, 'https://api.frontstore.app/api']));
       try {
         if (!Array.isArray(products) || products.length === 0) {
           setLoading(true);
         }
-        const res = await fetch(`${savedApiUrl}/v1/public/marketplace`);
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data) {
-            setProducts(Array.isArray(json.data.products) ? json.data.products : (json.data.products ? Object.values(json.data.products) : []));
-            setCategories(Array.isArray(json.data.categories) ? json.data.categories : (json.data.categories ? Object.values(json.data.categories) : []));
-            setStats(json.data.stats);
+        for (const apiUrl of apiCandidates) {
+          try {
+            const res = await fetch(`${apiUrl}/v1/public/marketplace`);
+            if (!res.ok) continue;
+            const json = await res.json();
+            if (json.data) {
+              setProducts(Array.isArray(json.data.products) ? json.data.products : (json.data.products ? Object.values(json.data.products) : []));
+              setCategories(Array.isArray(json.data.categories) ? json.data.categories : (json.data.categories ? Object.values(json.data.categories) : []));
+              setStats(json.data.stats);
+              return;
+            }
+          } catch {
+            // Try the next candidate. A stale local dev API should not break the public marketplace.
           }
         }
-      } catch (err) {
-        console.error('Failed to fetch marketplace data on client:', err);
       } finally {
         setLoading(false);
       }
