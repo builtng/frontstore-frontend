@@ -227,6 +227,13 @@ function normalizeCurrencyCode(value: unknown, fallback = 'NGN') {
   return code;
 }
 
+function safeText(value: unknown, fallback = '') {
+  if (typeof value !== 'string') return fallback;
+  const text = value.trim();
+  if (!text || text.toLowerCase() === 'undefined' || text.toLowerCase() === 'null') return fallback;
+  return text;
+}
+
 // ─── Confirmation Modal ───────────────────────────────────────────────────────
 
 function ConfirmationModal({
@@ -1728,6 +1735,7 @@ export default function StorefrontClient({
     return {
       ...s,
       username: safePathSegment(s.username) || safePathSegment(fallbackStore?.username) || safePathSegment(uname),
+      store_name: safeText(s.store_name, safeText(fallbackStore?.store_name, safePathSegment(s.username) || safePathSegment(fallbackStore?.username) || safePathSegment(uname) || 'Store')),
       currency_code: normalizeCurrencyCode(s.currency_code, fallbackCurrency),
       custom_links: Array.isArray(s.custom_links)
         ? s.custom_links
@@ -1740,19 +1748,49 @@ export default function StorefrontClient({
 
   const normalizeProducts = (prods: any): Product[] => {
     const arr = Array.isArray(prods) ? prods : (prods ? Object.values(prods) : []);
-    return arr.map((p: any) => ({
-      ...p,
-      image_urls: Array.isArray(p.image_urls)
-        ? p.image_urls
-        : (p.image_urls ? Object.values(p.image_urls) : []),
-    }));
+    return arr
+      .map((p: any) => {
+        const imageUrls = Array.isArray(p?.image_urls)
+          ? p.image_urls
+          : (p?.image_urls ? Object.values(p.image_urls) : []);
+        const firstImage = safeText(p?.image_url);
+        const normalizedImages = imageUrls
+          .map((url: any) => safeText(url))
+          .filter(Boolean);
+        if (firstImage && !normalizedImages.includes(firstImage)) {
+          normalizedImages.unshift(firstImage);
+        }
+
+        return {
+          ...p,
+          id: safeText(p?.id, safeText(p?.slug, safeText(p?.name))),
+          name: safeText(p?.name, 'Untitled product'),
+          slug: safeText(p?.slug, safeText(p?.id)),
+          price: safeText(p?.price, '0'),
+          compare_at_price: safeText(p?.compare_at_price) || null,
+          description: safeText(p?.description) || null,
+          stock_status: safeText(p?.stock_status, 'in_stock'),
+          category_id: safeText(p?.category_id) || null,
+          image_urls: normalizedImages,
+        };
+      })
+      .filter((p: Product) => Boolean(p.id || p.slug || p.name !== 'Untitled product' || p.image_urls?.length));
+  };
+
+  const normalizeCategories = (cats: any): Category[] => {
+    const arr = Array.isArray(cats) ? cats : (cats ? Object.values(cats) : []);
+    return arr
+      .map((cat: any) => ({
+        ...cat,
+        id: safeText(cat?.id, safeText(cat?.slug, safeText(cat?.name))),
+        name: safeText(cat?.name),
+        slug: safeText(cat?.slug, safeText(cat?.id)),
+      }))
+      .filter((cat: Category) => Boolean(cat.id && cat.name));
   };
 
   const [store, setStore] = useState<Store | null>(() => normalizeStore(initialData?.store));
-  const [categories, setCategories] = useState<Category[]>(() => {
-    const cats = initialData?.categories;
-    return Array.isArray(cats) ? cats : (cats ? Object.values(cats) : []);
-  });
+  const [categories, setCategories] = useState<Category[]>(() => normalizeCategories(initialData?.categories));
   const [products, setProducts] = useState<Product[]>(() => normalizeProducts(initialData?.products));
   const [loading, setLoading] = useState(!initialData || !initialData.store);
   const [error, setError] = useState<string | null>(null);
@@ -1804,9 +1842,12 @@ export default function StorefrontClient({
         }
         if (!data) throw new Error('Store not found or currently inactive');
 
-        setStore(prev => normalizeStore(data.store, prev || store));
-        setCategories(Array.isArray(data.categories) ? data.categories : (data.categories ? Object.values(data.categories) : []));
-        setProducts(normalizeProducts(data.products));
+        const normalizedStore = normalizeStore(data.store, store);
+        const normalizedCategories = normalizeCategories(data.categories);
+        const normalizedProducts = normalizeProducts(data.products);
+        if (normalizedStore) setStore(prev => normalizeStore(normalizedStore, prev || store));
+        if (normalizedCategories.length > 0 || categories.length === 0) setCategories(normalizedCategories);
+        if (normalizedProducts.length > 0 || products.length === 0) setProducts(normalizedProducts);
         if (data.system_domain) setSystemDomain(data.system_domain);
         if (data.store_disclaimer) setStoreDisclaimer(data.store_disclaimer);
         if (data.app_name) setAppName(data.app_name);
