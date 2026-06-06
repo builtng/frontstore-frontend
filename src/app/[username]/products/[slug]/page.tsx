@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import StorefrontClientNoSsr from '../../StorefrontClientNoSsr';
+import ProductDetailClient from './ProductDetailClient';
 
 interface PageProps {
   params: Promise<{
@@ -146,15 +146,25 @@ export default async function ProductPage({ params }: PageProps) {
     getProductData(username, slug),
   ]);
 
-  const systemDomain = storeData?.system_domain || 'frontstore.app';
-  const store = storeData?.store;
-  const productUsername = store && product ? productPathUsername(store.username, username) : '';
-  const storeName = safeText(store?.store_name, productUsername || 'Store');
-  const productName = safeText(product?.name, safePathSegment(slug) || 'Product');
-  const productUrl = store && product
-    ? `https://${systemDomain}/${productUsername}/products/${safePathSegment(product.slug) || slug}`
-    : '';
-  const jsonLd = store && product ? {
+  if (!storeData?.store || !product) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24, textAlign: 'center', background: '#f8f1ee', fontFamily: 'system-ui, sans-serif' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: '#2b1d2a' }}>Product Not Found</h1>
+        <p style={{ color: '#8a7782', marginBottom: 24, maxWidth: 300, lineHeight: 1.6 }}>We couldn't locate the requested product. It may have been removed or set to draft mode.</p>
+        <a href={`/${username}`} style={{ textDecoration: 'none', background: '#b14a6e', color: '#fff', padding: '12px 24px', borderRadius: 12, fontWeight: 700 }}>
+          Go to Storefront
+        </a>
+      </div>
+    );
+  }
+
+  const systemDomain = storeData.system_domain || 'frontstore.app';
+  const store = storeData.store;
+  const productUsername = productPathUsername(store.username, username);
+  const storeName = safeText(store.store_name, productUsername || 'Store');
+  const productName = safeText(product.name, safePathSegment(slug) || 'Product');
+  const productUrl = `https://${systemDomain}/${productUsername}/products/${safePathSegment(product.slug) || slug}`;
+  const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: productName,
@@ -178,7 +188,7 @@ export default async function ProductPage({ params }: PageProps) {
         name: storeName,
       },
     },
-  } : null;
+  };
 
   return (
     <>
@@ -188,7 +198,13 @@ export default async function ProductPage({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <StorefrontClientNoSsr username={username} initialProductSlug={slug} initialData={storeData} />
+      <ProductDetailClient
+        initialProduct={product}
+        store={storeData.store}
+        allProducts={storeData.products || []}
+        systemDomain={systemDomain}
+        storeDisclaimer={storeData.store_disclaimer || ''}
+      />
     </>
   );
 }
