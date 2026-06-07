@@ -98,8 +98,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#10b981" },
-    { media: "(prefers-color-scheme: dark)",  color: "#059669" },
+    { media: "(prefers-color-scheme: light)", color: "#62109F" },
+    { media: "(prefers-color-scheme: dark)",  color: "#48097A" },
   ],
 };
 
@@ -118,8 +118,8 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                var theme = localStorage.getItem('frontstore-theme') || 'system';
-                if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                var theme = localStorage.getItem('frontstore-theme') || 'light';
+                if (theme === 'dark') {
                   document.documentElement.classList.add('dark');
                   document.documentElement.classList.remove('light');
                 } else {

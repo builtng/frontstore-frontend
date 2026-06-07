@@ -1928,9 +1928,9 @@ function AdminStyles() {
         --text-2: #e4e4e7;
         --text-muted: #a1a1aa;
         --text-faint: #71717a;
-        --primary: #8b5cf6; /* violet accent */
-        --primary-light: rgba(139, 92, 246, 0.12);
-        --primary-hover: #a78bfa;
+        --primary: #8100D1;
+        --primary-light: rgba(129, 0, 209, 0.12);
+        --primary-hover: #9b14f5;
         --danger: #ef4444;
         --danger-light: rgba(239, 68, 68, 0.12);
         --accent: #f59e0b;
@@ -1979,7 +1979,7 @@ function AdminStyles() {
         border-radius: 8px;
         color: var(--primary);
         background: var(--primary-light);
-        border: 1px solid rgba(139, 92, 246, 0.25);
+        border: 1px solid rgba(129, 0, 209, 0.25);
       }
 
       .admin-brand strong,
@@ -2212,7 +2212,7 @@ function AdminStyles() {
       .admin-metric--green > span {
         color: var(--primary);
         background: var(--primary-light);
-        border: 1px solid rgba(139, 92, 246, 0.2);
+        border: 1px solid rgba(129, 0, 209, 0.2);
       }
 
       .admin-metric p {
@@ -2384,7 +2384,7 @@ function AdminStyles() {
         cursor: pointer;
       }
       .admin-search button:hover {
-        background: rgba(139, 92, 246, 0.2);
+        background: rgba(129, 0, 209, 0.2);
         color: var(--primary-hover);
       }
 
@@ -2474,9 +2474,9 @@ function AdminStyles() {
       }
 
       .admin-chip--green {
-        color: #10b981;
-        background: rgba(16, 185, 129, 0.12);
-        border: 1px solid rgba(16, 185, 129, 0.2);
+        color: #8100D1;
+        background: rgba(129, 0, 209, 0.12);
+        border: 1px solid rgba(129, 0, 209, 0.2);
       }
 
       .admin-chip--gray {
@@ -2534,10 +2534,10 @@ function AdminStyles() {
         background: var(--primary-light);
         font-size: 12px;
         font-weight: 800;
-        border: 1px solid rgba(139, 92, 246, 0.2);
+        border: 1px solid rgba(129, 0, 209, 0.2);
       }
       .admin-action:hover {
-        background: rgba(139, 92, 246, 0.2);
+        background: rgba(129, 0, 209, 0.2);
         color: var(--primary-hover);
         transform: translateY(-1px);
       }
@@ -2841,7 +2841,7 @@ function AdminStyles() {
       .admin-chart-bar {
         width: 100%;
         border-radius: 6px 6px 0 0;
-        background: linear-gradient(180deg, var(--primary) 0%, rgba(139, 92, 246, 0.25) 100%);
+        background: linear-gradient(180deg, var(--primary) 0%, rgba(129, 0, 209, 0.25) 100%);
         position: relative;
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
@@ -2854,7 +2854,7 @@ function AdminStyles() {
       .admin-chart-bar-wrapper:hover .admin-chart-bar {
         transform: scaleY(1.05);
         filter: brightness(1.2);
-        box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+        box-shadow: 0 0 15px rgba(129, 0, 209, 0.4);
       }
       .admin-chart-bar-label {
         font-size: 11px;
@@ -2939,8 +2939,8 @@ function AdminStyles() {
         display: inline-block;
       }
       .admin-health-dot.online {
-        background: #10b981;
-        box-shadow: 0 0 8px #10b981;
+        background: #8100D1;
+        box-shadow: 0 0 8px #8100D1;
         animation: pulseDot 2s infinite;
       }
       @keyframes pulseDot {
@@ -2975,7 +2975,7 @@ function AdminStyles() {
       .admin-top-store-row:hover {
         transform: translateY(-2px);
         border-color: var(--primary);
-        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+        box-shadow: 0 4px 12px rgba(129, 0, 209, 0.15);
       }
       .admin-top-store-row strong {
         display: block;
@@ -3108,7 +3108,7 @@ function AdminStyles() {
       }
       .admin-balance-card strong {
         font-size: 22px;
-        color: #10b981;
+        color: #8100D1;
         font-family: var(--font-heading);
       }
       .admin-drawer__actions {

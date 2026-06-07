@@ -11,13 +11,14 @@ import {
   DollarSign, Calendar, MapPin, Receipt, Menu, X, ArrowUpRight,
   TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck,
-  ArrowUp, ArrowDown, Facebook, Twitter, Music2, Eye, EyeOff, Key
+  ArrowUp, ArrowDown, Facebook, Twitter, Music2, Eye, EyeOff, Key, Clock
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import SearchableSelect from '../../components/SearchableSelect';
 import ThemeToggle from '../../components/ThemeToggle';
 import { businessPersonas } from '../../utils/businessPersonas';
+import { getServiceFactPresets } from '../../utils/serviceFactPresets';
 
 // --- Currency Configuration ---
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -58,9 +59,12 @@ interface StoreInfo {
   currency_code: string;
   whatsapp_phone: string;
   username: string;
+  banner_url?: string | null;
+  location?: string | null;
   logo_url?: string | null;
   instagram_handle?: string | null;
   tiktok_handle?: string | null;
+  twitter_handle?: string | null;
   is_active?: boolean;
   bank_name?: string | null;
   bank_account_number?: string | null;
@@ -113,6 +117,9 @@ interface Product {
   is_digital?: boolean;
   digital_file_url?: string | null;
   digital_link?: string | null;
+  type?: 'product' | 'service' | null;
+  duration_minutes?: number | null;
+  service_facts?: string[] | null;
 }
 
 interface OrderItem {
@@ -189,14 +196,14 @@ const storeTemplates = [
     name: 'Luxe Market',
     tone: 'Premium boutique',
     description: 'Large cinematic header, polished trust row, balanced catalog cards.',
-    colors: ['#10b981', '#0f172a', '#f59e0b'],
+    colors: ['#8100D1', '#0f172a', '#f59e0b'],
   },
   {
     id: 'editorial',
     name: 'Editorial',
     tone: 'Magazine commerce',
     description: 'Story-led layout for fashion, beauty, food, and lifestyle brands.',
-    colors: ['#b42318', '#fbfaf7', '#0f766e'],
+    colors: ['#b42318', '#fbfaf7', '#8100D1'],
   },
   {
     id: 'flash-sale',
@@ -289,6 +296,14 @@ export default function DashboardPage() {
         : (p.image_urls ? Object.values(p.image_urls) : []),
     }));
   };
+
+  const normalizeUsernameInput = (value: string) => (
+    value
+      .toLowerCase()
+      .replace(/^@+/, '')
+      .replace(/[^a-z0-9_-]/g, '')
+      .slice(0, 40)
+  );
 
   const normalizeCategories = (cats: Category[]): Category[] => {
     return Array.isArray(cats) ? cats : (cats ? Object.values(cats) : []);
@@ -473,10 +488,18 @@ export default function DashboardPage() {
   const [prodDigitalFileUrl, setProdDigitalFileUrl] = useState('');
   const [prodDigitalLink, setProdDigitalLink] = useState('');
   const [prodDigitalUploading, setProdDigitalUploading] = useState(false);
+  // Service product states
+  const [prodType, setProdType] = useState<'product' | 'service'>('product');
+  const [prodDurationMinutes, setProdDurationMinutes] = useState('');
+  const [prodServiceFacts, setProdServiceFacts] = useState<string[]>([]);
+  const [prodCustomFact, setProdCustomFact] = useState('');
 
   // Settings Form
+  const [setStoreUsername, setSetStoreUsername] = useState('');
   const [setStoreName, setSetStoreName] = useState('');
   const [setStoreBio, setSetStoreBio] = useState('');
+  const [setStoreLocation, setSetStoreLocation] = useState('');
+  const [setBannerUrl, setSetBannerUrl] = useState('');
   const [localWhatsapp, setLocalWhatsapp] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
@@ -485,10 +508,12 @@ export default function DashboardPage() {
   const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
   const [setInstagram, setSetInstagram] = useState('');
   const [setTiktok, setSetTiktok] = useState('');
+  const [setTwitter, setSetTwitter] = useState('');
   const [setCurrency, setSetCurrency] = useState('NGN');
+  const [detectedMerchantLocation, setDetectedMerchantLocation] = useState<string | null>(null);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [customLinks, setCustomLinks] = useState<StoreLink[]>([]);
-  const [primaryColor, setPrimaryColor] = useState('#10b981');
+  const [primaryColor, setPrimaryColor] = useState('#8100D1');
   const [selectedTemplate, setSelectedTemplate] = useState('luxe-market');
   const [selectedPersona, setSelectedPersona] = useState('');
   const [catalogLabel, setCatalogLabel] = useState('product');
@@ -686,13 +711,17 @@ export default function DashboardPage() {
               const parsedStore = JSON.parse(storedStore);
               setStore(parsedStore);
               // Prefill settings form
+              setSetStoreUsername(parsedStore.username || '');
               setSetStoreName(parsedStore.store_name || '');
               setSetStoreBio(parsedStore.store_bio || '');
+              setSetStoreLocation(parsedStore.location || '');
+              setSetBannerUrl(parsedStore.banner_url || '');
               const parsedPhone = parsePhoneNumber(parsedStore.whatsapp_phone || '');
               setSelectedCountry(parsedPhone.country);
               setLocalWhatsapp(parsedPhone.local);
               setSetInstagram(parsedStore.instagram_handle || '');
               setSetTiktok(parsedStore.tiktok_handle || '');
+              setSetTwitter(parsedStore.twitter_handle || '');
               setSetCurrency(parsedStore.currency_code || 'NGN');
               setPaymentBankName(parsedStore.bank_name || '');
               setPaymentBankCode(parsedStore.paystack_bank_code || '');
@@ -703,7 +732,7 @@ export default function DashboardPage() {
               setNameMatchOk(parsedStore.bank_account_verified ? true : null);
               setLogoUrl(parsedStore.logo_url || null);
               setCustomLinks(parsedStore.custom_links || []);
-              setPrimaryColor(parsedStore.primary_color || '#10b981');
+              setPrimaryColor(parsedStore.primary_color || '#8100D1');
               setSelectedTemplate(parsedStore.store_template || 'luxe-market');
               setCatalogLabel(parsedStore.catalog_label || 'product');
               setCategoryLabel(parsedStore.category_label || 'collection');
@@ -735,6 +764,23 @@ export default function DashboardPage() {
     syncTabFromUrl();
     window.addEventListener('popstate', syncTabFromUrl);
     return () => window.removeEventListener('popstate', syncTabFromUrl);
+  }, []);
+
+  // Surface the merchant's own detected location as read-only context in Settings (helps them fill in Store Location accurately)
+  useEffect(() => {
+    const detectMerchantLocation = async () => {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (res.ok) {
+          const data = await res.json();
+          const parts = [data?.city, data?.country_name].filter(Boolean);
+          if (parts.length > 0) setDetectedMerchantLocation(parts.join(', '));
+        }
+      } catch (e) {
+        console.warn('Merchant location detection failed:', e);
+      }
+    };
+    detectMerchantLocation();
   }, []);
 
   // Close dropdown on click outside
@@ -916,13 +962,17 @@ export default function DashboardPage() {
           setSystemDomain(storeJson.system_domain);
           localStorage.setItem('system_domain', storeJson.system_domain);
         }
+        setSetStoreUsername(liveStore.username || '');
         setSetStoreName(liveStore.store_name || '');
         setSetStoreBio(liveStore.store_bio || '');
+        setSetStoreLocation(liveStore.location || '');
+        setSetBannerUrl(liveStore.banner_url || '');
         const parsedPhone = parsePhoneNumber(liveStore.whatsapp_phone || '');
         setSelectedCountry(parsedPhone.country);
         setLocalWhatsapp(parsedPhone.local);
         setSetInstagram(liveStore.instagram_handle || '');
         setSetTiktok(liveStore.tiktok_handle || '');
+        setSetTwitter(liveStore.twitter_handle || '');
         setSetCurrency(liveStore.currency_code || 'NGN');
         setPaymentBankName(liveStore.bank_name || '');
         setPaymentBankCode(liveStore.paystack_bank_code || '');
@@ -933,7 +983,7 @@ export default function DashboardPage() {
         setNameMatchOk(liveStore.bank_account_verified ? true : null);
         setLogoUrl(liveStore.logo_url || null);
         setCustomLinks(liveStore.custom_links || []);
-        setPrimaryColor(liveStore.primary_color || '#10b981');
+        setPrimaryColor(liveStore.primary_color || '#8100D1');
         setSelectedTemplate(liveStore.store_template || 'luxe-market');
         setSelectedPersona(liveStore.business_persona || '');
         setCatalogLabel(liveStore.catalog_label || 'product');
@@ -1241,6 +1291,10 @@ export default function DashboardPage() {
     setProdIsDigital(false);
     setProdDigitalFileUrl('');
     setProdDigitalLink('');
+    setProdType('product');
+    setProdDurationMinutes('');
+    setProdServiceFacts([]);
+    setProdCustomFact('');
     setIsAddProductOpen(true);
   };
 
@@ -1362,6 +1416,9 @@ export default function DashboardPage() {
         is_digital: prodIsDigital,
         digital_file_url: prodIsDigital ? (prodDigitalFileUrl || null) : null,
         digital_link: prodIsDigital ? (prodDigitalLink || null) : null,
+        type: prodType,
+        duration_minutes: prodType === 'service' && prodDurationMinutes ? parseInt(prodDurationMinutes, 10) : null,
+        service_facts: prodType === 'service' && prodServiceFacts.length > 0 ? prodServiceFacts : null,
       };
 
       const res = await fetch(`${apiUrl}/v1/products`, {
@@ -1397,6 +1454,10 @@ export default function DashboardPage() {
     setProdIsDigital(product.is_digital ?? false);
     setProdDigitalFileUrl(product.digital_file_url || '');
     setProdDigitalLink(product.digital_link || '');
+    setProdType(product.type === 'service' ? 'service' : 'product');
+    setProdDurationMinutes(product.duration_minutes ? String(product.duration_minutes) : '');
+    setProdServiceFacts(Array.isArray(product.service_facts) ? product.service_facts : []);
+    setProdCustomFact('');
     setIsEditProductOpen(true);
   };
 
@@ -1421,6 +1482,9 @@ export default function DashboardPage() {
         is_digital: prodIsDigital,
         digital_file_url: prodIsDigital ? (prodDigitalFileUrl || null) : null,
         digital_link: prodIsDigital ? (prodDigitalLink || null) : null,
+        type: prodType,
+        duration_minutes: prodType === 'service' && prodDurationMinutes ? parseInt(prodDurationMinutes, 10) : null,
+        service_facts: prodType === 'service' && prodServiceFacts.length > 0 ? prodServiceFacts : null,
       };
 
       const res = await fetch(`${apiUrl}/v1/products/${selectedProduct.id}`, {
@@ -1581,11 +1645,15 @@ export default function DashboardPage() {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({
+          username: setStoreUsername,
           store_name: setStoreName,
           store_bio: setStoreBio,
+          location: setStoreLocation || null,
+          banner_url: setBannerUrl || null,
           whatsapp_phone: normalizedPhone,
           instagram_handle: setInstagram,
           tiktok_handle: setTiktok,
+          twitter_handle: setTwitter,
           currency_code: setCurrency,
           bank_name: paymentBankName || null,
           bank_account_number: paymentAccountNumber || null,
@@ -1595,7 +1663,7 @@ export default function DashboardPage() {
           bank_account_verified: accountVerified,
           custom_links: customLinks,
           logo_url: logoUrl,
-          primary_color: isPro ? primaryColor : (store?.primary_color || '#10b981'),
+          primary_color: isPro ? primaryColor : (store?.primary_color || '#8100D1'),
           store_template: personaPreset?.template || selectedTemplate,
           business_persona: selectedPersona || null,
           catalog_label: personaPreset?.catalogLabel || catalogLabel || null,
@@ -1615,10 +1683,18 @@ export default function DashboardPage() {
         toast.success('Storefront settings updated! 🌟');
         setStore(json.data);
         localStorage.setItem('store', JSON.stringify(json.data));
+        setSetStoreUsername(json.data.username || '');
+        setSetStoreName(json.data.store_name || '');
+        setSetStoreBio(json.data.store_bio || '');
+        setSetStoreLocation(json.data.location || '');
+        setSetBannerUrl(json.data.banner_url || '');
         setLogoUrl(json.data.logo_url || null);
         const parsedPhone = parsePhoneNumber(json.data.whatsapp_phone || '');
         setSelectedCountry(parsedPhone.country);
         setLocalWhatsapp(parsedPhone.local);
+        setSetInstagram(json.data.instagram_handle || '');
+        setSetTiktok(json.data.tiktok_handle || '');
+        setSetTwitter(json.data.twitter_handle || '');
         setPaymentBankName(json.data.bank_name || '');
         setPaymentBankCode(json.data.paystack_bank_code || '');
         setPaymentAccountNumber(json.data.bank_account_number || '');
@@ -1627,7 +1703,7 @@ export default function DashboardPage() {
         setAccountVerified(!!json.data.bank_account_verified);
         setNameMatchOk(json.data.bank_account_verified ? true : null);
         setCustomLinks(json.data.custom_links || []);
-        setPrimaryColor(json.data.primary_color || '#10b981');
+        setPrimaryColor(json.data.primary_color || '#8100D1');
         setSelectedTemplate(json.data.store_template || 'luxe-market');
         setSelectedPersona(json.data.business_persona || '');
         setCatalogLabel(json.data.catalog_label || 'product');
@@ -1717,7 +1793,7 @@ export default function DashboardPage() {
 
   const handleTemplateColorSave = async () => {
     const isProUser = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
-    if (!isProUser && primaryColor !== '#10b981') {
+    if (!isProUser && primaryColor !== '#8100D1') {
       openUpgradePrompt(
         'Custom storefront colors require Pro',
         'Free stores use the default brand color. Upgrade to Pro when you want custom theme colors across your storefront.'
@@ -1740,7 +1816,7 @@ export default function DashboardPage() {
 
       setStore(json.data);
       localStorage.setItem('store', JSON.stringify(json.data));
-      setPrimaryColor(json.data.primary_color || '#10b981');
+      setPrimaryColor(json.data.primary_color || '#8100D1');
       toast.success('Template color updated.');
     } catch (e: any) {
       toast.error(e.message || 'Could not update template color.');
@@ -3319,7 +3395,7 @@ export default function DashboardPage() {
                           <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 9 }}>Fast palettes</label>
                           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                             {[
-                              { name: 'Frontstore', value: '#10b981' },
+                              { name: 'Frontstore', value: '#8100D1' },
                               { name: 'Ruby', value: '#e11d48' },
                               { name: 'Royal', value: '#4f46e5' },
                               { name: 'Ocean', value: '#0284c7' },
@@ -3365,7 +3441,7 @@ export default function DashboardPage() {
                             }}
                             className="input-field"
                             style={{ fontFamily: 'monospace', fontWeight: 800 }}
-                            placeholder="#10b981"
+                            placeholder="#8100D1"
                           />
                         </div>
 
@@ -3510,6 +3586,54 @@ export default function DashboardPage() {
                           />
                         </div>
 
+                        <div className="responsive-form-row">
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store URL Username</label>
+                            <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid var(--border)', borderRadius: 'var(--r-md)', background: 'var(--surface)', overflow: 'hidden' }}>
+                              <span style={{ padding: '0 12px', fontSize: 13, fontWeight: 750, color: 'var(--text-muted)', borderRight: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
+                                {systemDomain}/
+                              </span>
+                              <input
+                                type="text"
+                                required
+                                minLength={3}
+                                maxLength={40}
+                                value={setStoreUsername}
+                                onChange={e => setSetStoreUsername(normalizeUsernameInput(e.target.value))}
+                                placeholder="my-store"
+                                style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', padding: '13px 14px', background: 'transparent', color: 'var(--text)', fontSize: 14.5, fontWeight: 700 }}
+                              />
+                            </div>
+                            <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                              This controls your public store link. Use letters, numbers, hyphens, or underscores.
+                            </span>
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Location</label>
+                            <input
+                              type="text"
+                              value={setStoreLocation}
+                              onChange={e => setSetStoreLocation(e.target.value)}
+                              className="input-field"
+                              placeholder="e.g. Lekki, Lagos"
+                              maxLength={120}
+                            />
+                            {detectedMerchantLocation && detectedMerchantLocation !== setStoreLocation && (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>
+                                <MapPin size={12} style={{ flexShrink: 0 }} />
+                                Detected near {detectedMerchantLocation} —{' '}
+                                <button
+                                  type="button"
+                                  onClick={() => setSetStoreLocation(detectedMerchantLocation)}
+                                  style={{ background: 'none', border: 'none', padding: 0, color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', fontSize: 11 }}
+                                >
+                                  use this
+                                </button>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
                         <div>
                           <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Description (Bio)</label>
                           <textarea
@@ -3520,6 +3644,20 @@ export default function DashboardPage() {
                             className="input-field"
                             style={{ resize: 'vertical' }}
                           />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Banner Image URL</label>
+                          <input
+                            type="url"
+                            value={setBannerUrl}
+                            onChange={e => setSetBannerUrl(e.target.value)}
+                            className="input-field"
+                            placeholder="https://example.com/banner.jpg"
+                          />
+                          <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                            Optional. Leave blank to use the storefront theme gradient.
+                          </span>
                         </div>
 
                         <div style={{
@@ -3942,7 +4080,8 @@ export default function DashboardPage() {
                             <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Preset Color Palettes</label>
                             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                               {[
-                                { name: 'WhatsApp', value: '#10b981' },
+                                { name: 'Frontstore', value: '#8100D1' },
+                                { name: 'WhatsApp', value: '#25D366' },
                                 { name: 'Ocean', value: '#0284c7' },
                                 { name: 'Royal', value: '#4f46e5' },
                                 { name: 'Sunset', value: '#ea580c' },
@@ -4001,7 +4140,7 @@ export default function DashboardPage() {
                                   }}
                                   className="input-field"
                                   style={{ padding: '8px 10px', fontSize: 13, height: 38, fontFamily: 'monospace' }}
-                                  placeholder="#10b981"
+                                  placeholder="#8100D1"
                                 />
                               </div>
                             </div>
@@ -4297,7 +4436,7 @@ export default function DashboardPage() {
                             <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Linked Custom Domain</span>
                             <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--primary-dark)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                               {store.custom_domain}
-                              <span style={{ fontSize: 11, background: '#10b981', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
+                              <span style={{ fontSize: 11, background: '#8100D1', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
                             </h3>
                           </div>
                           <button
@@ -4441,7 +4580,7 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
                         {/* Social Handles Inputs (merged from general settings) */}
-                        <div className="responsive-form-row" style={{ gap: 16, background: 'var(--bg-2)', padding: 16, borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', marginBottom: 8 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, background: 'var(--bg-2)', padding: 16, borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', marginBottom: 8 }}>
                           <div>
                             <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Instagram Handle</label>
                             <input
@@ -4458,6 +4597,16 @@ export default function DashboardPage() {
                               type="text"
                               value={setTiktok}
                               onChange={e => setSetTiktok(e.target.value)}
+                              className="input-field"
+                              placeholder="username"
+                            />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Twitter / X Handle</label>
+                            <input
+                              type="text"
+                              value={setTwitter}
+                              onChange={e => setSetTwitter(e.target.value.replace(/^@+/, ''))}
                               className="input-field"
                               placeholder="username"
                             />
@@ -4773,6 +4922,11 @@ export default function DashboardPage() {
                                   <Zap size={11} />
                                 </div>
                               )}
+                              {setTwitter && (
+                                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#1da1f2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                                  <Twitter size={11} />
+                                </div>
+                              )}
                             </div>
 
                             {/* Linktree style Custom Links Stack */}
@@ -4829,9 +4983,9 @@ export default function DashboardPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
                       <div style={{
                         width: 44, height: 44, borderRadius: 'var(--r-md)',
-                        background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                        background: 'linear-gradient(135deg, #8100D1 0%, #5E0098 100%)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 4px 16px rgba(22,163,74,0.35)', flexShrink: 0
+                        boxShadow: '0 4px 16px rgba(129,0,209,0.35)', flexShrink: 0
                       }}>
                         <DollarSign size={22} color="#fff" />
                       </div>
@@ -4999,7 +5153,7 @@ export default function DashboardPage() {
                                 fontFamily: 'monospace',
                                 letterSpacing: '0.08em',
                                 fontSize: 15,
-                                borderColor: accountVerified ? '#16a34a' : undefined,
+                                borderColor: accountVerified ? '#8100D1' : undefined,
                               }}
                             />
                             {/* Right-side indicator */}
@@ -5007,7 +5161,7 @@ export default function DashboardPage() {
                               {isVerifying ? (
                                 <Loader2 size={15} className="spinner" style={{ color: 'var(--primary)' }} />
                               ) : accountVerified ? (
-                                <span style={{ color: '#16a34a', display: 'flex' }}><CheckCircle2 size={17} /></span>
+                                <span style={{ color: '#8100D1', display: 'flex' }}><CheckCircle2 size={17} /></span>
                               ) : paymentAccountNumber.length === 10 && paymentBankCode ? (
                                 <span style={{ color: 'var(--danger)', display: 'flex' }}><AlertCircle size={17} /></span>
                               ) : null}
@@ -5032,8 +5186,8 @@ export default function DashboardPage() {
                         <div style={{
                           padding: '16px 20px',
                           borderRadius: 'var(--r-lg)',
-                          border: `2px solid ${nameMatchOk === false ? 'var(--danger)' : '#16a34a'}`,
-                          background: nameMatchOk === false ? 'rgba(239,68,68,0.06)' : 'rgba(22,163,74,0.07)',
+                          border: `2px solid ${nameMatchOk === false ? 'var(--danger)' : '#8100D1'}`,
+                          background: nameMatchOk === false ? 'rgba(239,68,68,0.06)' : 'rgba(129,0,209,0.07)',
                           display: 'flex', flexDirection: 'column', gap: 6,
                           transition: 'all 0.3s'
                         }}>
@@ -5047,7 +5201,7 @@ export default function DashboardPage() {
                             {nameMatchOk === true && (
                               <span style={{
                                 display: 'inline-flex', alignItems: 'center', gap: 5,
-                                background: '#16a34a', color: '#fff',
+                                background: '#8100D1', color: '#fff',
                                 padding: '5px 12px', borderRadius: 'var(--r-full)',
                                 fontSize: 12, fontWeight: 800
                               }}>
@@ -5071,7 +5225,7 @@ export default function DashboardPage() {
                             </p>
                           )}
                           {nameMatchOk === true && (
-                            <p style={{ fontSize: 12, color: '#15803d', fontWeight: 600, marginTop: 2 }}>
+                            <p style={{ fontSize: 12, color: '#8100D1', fontWeight: 600, marginTop: 2 }}>
                               ✅ Account verified — name matches your profile. You can save.
                             </p>
                           )}
@@ -5349,8 +5503,8 @@ export default function DashboardPage() {
                         >
                           Yearly
                           <span style={{
-                            background: '#dcfce7',
-                            color: '#15803d',
+                            background: '#f3e0ff',
+                            color: '#5E0098',
                             fontSize: 9,
                             fontWeight: 900,
                             padding: '1px 5px',
@@ -5387,7 +5541,7 @@ export default function DashboardPage() {
                           </>
                         )}
                         {billingCycle === 'yearly' && !appliedCoupon && (
-                          <div style={{ fontSize: 11.5, color: '#16a34a', fontWeight: 700, marginTop: 4 }}>
+                          <div style={{ fontSize: 11.5, color: '#8100D1', fontWeight: 700, marginTop: 4 }}>
                             equivalent to ₦1,250 / month (billed annually)
                           </div>
                         )}
@@ -5495,12 +5649,12 @@ export default function DashboardPage() {
                             background: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') 
                               ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' 
                               : appliedCoupon && appliedCoupon.final_price === 0
-                                ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                                ? 'linear-gradient(135deg, #8100D1 0%, #5E0098 100%)'
                                 : 'none',
                             border: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') 
                               ? '1.5px solid #d97706' 
                               : appliedCoupon && appliedCoupon.final_price === 0
-                                ? '1.5px solid #10b981'
+                                ? '1.5px solid #8100D1'
                                 : '1.5px solid #d97706',
                             color: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') || (appliedCoupon && appliedCoupon.final_price === 0) ? '#fff' : '#d97706',
                             fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13,
@@ -5535,9 +5689,9 @@ export default function DashboardPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
                       width: 44, height: 44, borderRadius: 'var(--r-md)',
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      background: 'linear-gradient(135deg, #8100D1 0%, #5E0098 100%)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: '0 4px 16px rgba(16,185,129,0.3)', flexShrink: 0
+                      boxShadow: '0 4px 16px rgba(129, 0, 209, 0.3)', flexShrink: 0
                     }}>
                       <DollarSign size={22} color="#fff" />
                     </div>
@@ -6380,6 +6534,124 @@ export default function DashboardPage() {
                 )}
               </div>
 
+              {/* Service Settings */}
+              <div style={{
+                background: 'rgba(129, 0, 209, 0.04)',
+                border: '1.5px dashed rgba(129, 0, 209, 0.25)',
+                borderRadius: 'var(--r-md)',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12
+              }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={prodType === 'service'}
+                    onChange={e => setProdType(e.target.checked ? 'service' : 'product')}
+                    style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }}
+                  />
+                  <div>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>This is a Service</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Bookable services like appointments, sessions, or consultations.</span>
+                  </div>
+                </label>
+
+                {prodType === 'service' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(129, 0, 209, 0.15)', paddingTop: 14 }} className="animate-fade-in">
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                        Duration (Optional)
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="number"
+                          min={0}
+                          placeholder="e.g. 90"
+                          value={prodDurationMinutes}
+                          onChange={e => setProdDurationMinutes(e.target.value)}
+                          className="input-field"
+                          style={{ paddingLeft: 34 }}
+                        />
+                        <Clock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)' }} />
+                      </div>
+                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>How long this service typically takes, in minutes.</p>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                        Service Details (Optional)
+                      </label>
+                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 8 }}>
+                        Pick a few quick facts to show customers on this service&apos;s page{getSelectedPersonaPreset() ? ` — suggested for ${getSelectedPersonaPreset()?.name} stores` : ''}.
+                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {getServiceFactPresets(selectedPersona).map(preset => {
+                          const checked = prodServiceFacts.includes(preset.label);
+                          return (
+                            <label key={preset.label} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={e => {
+                                  if (e.target.checked) {
+                                    setProdServiceFacts(prev => [...prev, preset.label]);
+                                  } else {
+                                    setProdServiceFacts(prev => prev.filter(f => f !== preset.label));
+                                  }
+                                }}
+                                style={{ width: 16, height: 16, accentColor: 'var(--primary)', cursor: 'pointer' }}
+                              />
+                              <span style={{ fontSize: 12.5, color: 'var(--text)', fontWeight: 600 }}>{preset.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+
+                      {/* Custom facts the merchant typed in */}
+                      {prodServiceFacts.filter(f => !getServiceFactPresets(selectedPersona).some(p => p.label === f)).length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+                          {prodServiceFacts.filter(f => !getServiceFactPresets(selectedPersona).some(p => p.label === f)).map(fact => (
+                            <div key={fact} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: 'var(--bg-2)', borderRadius: 'var(--r-sm)', padding: '8px 10px' }}>
+                              <span style={{ fontSize: 12.5, color: 'var(--text)', fontWeight: 600 }}>{fact}</span>
+                              <button
+                                type="button"
+                                onClick={() => setProdServiceFacts(prev => prev.filter(f2 => f2 !== fact))}
+                                style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--danger)', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, flexShrink: 0 }}
+                                title="Remove"
+                              >✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                        <input
+                          type="text"
+                          placeholder="Write your own detail…"
+                          value={prodCustomFact}
+                          onChange={e => setProdCustomFact(e.target.value)}
+                          className="input-field"
+                          style={{ flex: 1 }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const text = prodCustomFact.trim();
+                            if (!text) return;
+                            if (prodServiceFacts.includes(text)) { setProdCustomFact(''); return; }
+                            setProdServiceFacts(prev => [...prev, text]);
+                            setProdCustomFact('');
+                          }}
+                          className="btn btn-secondary"
+                          style={{ flexShrink: 0 }}
+                        >Add</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
 
               {/* Multi-Image Upload Slots (up to 3) */}
               <div>
@@ -6711,6 +6983,124 @@ export default function DashboardPage() {
                       </p>
                     </div>
 
+                  </div>
+                )}
+              </div>
+
+              {/* Service Settings */}
+              <div style={{
+                background: 'rgba(129, 0, 209, 0.04)',
+                border: '1.5px dashed rgba(129, 0, 209, 0.25)',
+                borderRadius: 'var(--r-md)',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12
+              }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={prodType === 'service'}
+                    onChange={e => setProdType(e.target.checked ? 'service' : 'product')}
+                    style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }}
+                  />
+                  <div>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>This is a Service</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Bookable services like appointments, sessions, or consultations.</span>
+                  </div>
+                </label>
+
+                {prodType === 'service' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(129, 0, 209, 0.15)', paddingTop: 14 }} className="animate-fade-in">
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                        Duration (Optional)
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="number"
+                          min={0}
+                          placeholder="e.g. 90"
+                          value={prodDurationMinutes}
+                          onChange={e => setProdDurationMinutes(e.target.value)}
+                          className="input-field"
+                          style={{ paddingLeft: 34 }}
+                        />
+                        <Clock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)' }} />
+                      </div>
+                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>How long this service typically takes, in minutes.</p>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                        Service Details (Optional)
+                      </label>
+                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 8 }}>
+                        Pick a few quick facts to show customers on this service&apos;s page{getSelectedPersonaPreset() ? ` — suggested for ${getSelectedPersonaPreset()?.name} stores` : ''}.
+                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {getServiceFactPresets(selectedPersona).map(preset => {
+                          const checked = prodServiceFacts.includes(preset.label);
+                          return (
+                            <label key={preset.label} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={e => {
+                                  if (e.target.checked) {
+                                    setProdServiceFacts(prev => [...prev, preset.label]);
+                                  } else {
+                                    setProdServiceFacts(prev => prev.filter(f => f !== preset.label));
+                                  }
+                                }}
+                                style={{ width: 16, height: 16, accentColor: 'var(--primary)', cursor: 'pointer' }}
+                              />
+                              <span style={{ fontSize: 12.5, color: 'var(--text)', fontWeight: 600 }}>{preset.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+
+                      {/* Custom facts the merchant typed in */}
+                      {prodServiceFacts.filter(f => !getServiceFactPresets(selectedPersona).some(p => p.label === f)).length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+                          {prodServiceFacts.filter(f => !getServiceFactPresets(selectedPersona).some(p => p.label === f)).map(fact => (
+                            <div key={fact} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: 'var(--bg-2)', borderRadius: 'var(--r-sm)', padding: '8px 10px' }}>
+                              <span style={{ fontSize: 12.5, color: 'var(--text)', fontWeight: 600 }}>{fact}</span>
+                              <button
+                                type="button"
+                                onClick={() => setProdServiceFacts(prev => prev.filter(f2 => f2 !== fact))}
+                                style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--danger)', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, flexShrink: 0 }}
+                                title="Remove"
+                              >✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                        <input
+                          type="text"
+                          placeholder="Write your own detail…"
+                          value={prodCustomFact}
+                          onChange={e => setProdCustomFact(e.target.value)}
+                          className="input-field"
+                          style={{ flex: 1 }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const text = prodCustomFact.trim();
+                            if (!text) return;
+                            if (prodServiceFacts.includes(text)) { setProdCustomFact(''); return; }
+                            setProdServiceFacts(prev => [...prev, text]);
+                            setProdCustomFact('');
+                          }}
+                          className="btn btn-secondary"
+                          style={{ flexShrink: 0 }}
+                        >Add</button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

@@ -21,6 +21,18 @@ const nextConfig: NextConfig = {
 
   // ── Security & Caching HTTP Headers ────────────────────────────────────────
   async headers() {
+    const devOrigins = process.env.NODE_ENV === 'development'
+      ? " http://localhost:8000 http://127.0.0.1:8000 ws://localhost:* ws://127.0.0.1:*"
+      : "";
+    let envApiOrigin = "";
+    if (process.env.NEXT_PUBLIC_API_URL) {
+      try {
+        envApiOrigin = " " + new URL(process.env.NEXT_PUBLIC_API_URL).origin;
+      } catch (e) {
+        // Ignore invalid URL format
+      }
+    }
+
     return [
       {
         // Apply hardened headers to all routes
@@ -45,7 +57,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https: http:",
-              "connect-src 'self' https://api.frontstore.app https://*.supabase.co https://*.supabase.in https://api.paystack.co https://fonts.googleapis.com https://ipapi.co https://vercel.live wss://ws-us3.pusher.com wss://*.vercel.live",
+              `connect-src 'self' https://api.frontstore.app https://*.supabase.co https://*.supabase.in https://api.paystack.co https://fonts.googleapis.com https://ipapi.co https://vercel.live wss://ws-us3.pusher.com wss://*.vercel.live${devOrigins}${envApiOrigin}`,
               "frame-src https://checkout.paystack.com https://vercel.live",
               "object-src 'none'",
               "base-uri 'self'",

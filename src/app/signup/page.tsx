@@ -1026,6 +1026,13 @@ function SignupFormContent({ appName }: { appName: string }) {
           <a href="/privacy" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Privacy Policy</a>.
         </p>
 
+        <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
+          Just here to shop, not sell?{' '}
+          <a href="/buyer/register" style={{ color: 'var(--text-muted)', fontWeight: 700, textDecoration: 'underline' }}>
+            Create a buyer account
+          </a>
+        </p>
+
       </form>
     </div>
   );

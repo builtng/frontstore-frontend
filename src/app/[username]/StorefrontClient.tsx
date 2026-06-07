@@ -3,12 +3,15 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   Share2, ChevronLeft, Star, ShieldCheck, Clock, MapPin, Sparkles,
-  Search, X, Plus, Minus, ShoppingBag, MessageCircle, BadgeCheck,
+  Search, X, Plus, Minus, ShoppingBag, BadgeCheck,
   Store, Calendar, Check, Receipt, ChevronRight, Crown, Heart, Truck, Menu,
-  ExternalLink, Copy, CheckCircle2, Shield, AlertCircle
+  ExternalLink, Copy, CheckCircle2, Shield,
+  Instagram, Twitter, Music2, Link
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
+import { businessPersonas } from "../../utils/businessPersonas";
 
 // --- Types & Interfaces ---
 interface StoreLink {
@@ -38,6 +41,13 @@ interface Store {
   is_pro?: boolean | number;
   business_persona?: string | null;
   location?: string | null;
+  // Merchant-configurable stats
+  rating?: number | null;
+  review_count?: number | null;
+  total_orders?: number | string | null;
+  working_hours?: string | null;
+  // Computed server-side from WhatsApp chat response timestamps
+  reply_time_minutes?: number | null;
 }
 
 interface Category {
@@ -58,6 +68,9 @@ interface Product {
   stock_quantity?: number | null;
   category_id: string | null;
   is_digital?: boolean;
+  type?: 'service' | 'product';
+  duration_minutes?: number | null;
+  service_facts?: string[] | null;
 }
 
 interface CartItem {
@@ -71,6 +84,14 @@ interface CartItem {
   duration?: number;
   image_url?: string;
   productRef: Product;
+}
+
+interface Review {
+  id: string;
+  reviewer_name: string;
+  body: string;
+  rating: number;
+  created_at?: string;
 }
 
 interface CreatedOrderReceipt {
@@ -94,6 +115,7 @@ interface StorefrontClientProps {
     store: Store;
     categories?: Category[];
     products?: Product[];
+    reviews?: Review[];
     system_domain?: string;
     store_disclaimer?: string;
     app_name?: string;
@@ -129,11 +151,11 @@ function fmt(amount: string | number | null | undefined, symbol: string): string
 }
 
 const CAT_THEME: Record<string, string[]> = {
-  Lashes: ["#b14a6e", "#d27695"],
-  Brows: ["#7c2f4d", "#a85273"],
-  Skincare: ["#b07d3a", "#d4a657"],
-  Aftercare: ["#9a6079", "#bd86a0"],
-  Gifting: ["#5e2a44", "#8a4567"],
+  Lashes: ["#62109F", "#7d1bc7"],
+  Brows: ["#48097A", "#62109F"],
+  Skincare: ["#62109F", "#7d1bc7"],
+  Aftercare: ["#48097A", "#62109F"],
+  Gifting: ["#3d0066", "#48097A"],
 };
 
 function getCategoryTheme(catName: string) {
@@ -153,8 +175,72 @@ function getCategoryTheme(catName: string) {
   return themes[Math.abs(hash) % themes.length];
 }
 
+function formatReplyTime(minutes: number | null | undefined): string {
+  if (!minutes || minutes <= 0) return '~10 min';
+  if (minutes < 60) return `~${minutes} min`;
+  const hrs = Math.round(minutes / 60);
+  return `~${hrs} hr`;
+}
+
+function fmtDuration(minutes: number | null | undefined): string {
+  if (!minutes) return '';
+  if (minutes < 60) return `${minutes} min`;
+  const hrs = Math.round(minutes / 60 * 10) / 10;
+  return `~${hrs} hr`;
+}
+
+function formatOrderCount(orders: number | string | null | undefined): string {
+  if (!orders && orders !== 0) return '1,400+';
+  if (typeof orders === 'string') return orders;
+  if (orders >= 1000) return `${Math.floor(orders / 100) / 10}k+`;
+  return `${orders}+`;
+}
+
+type StoreTheme = React.CSSProperties & {
+  '--brand': string;
+  '--brand-deep': string;
+  '--tint': string;
+};
+
+const TEMPLATE_THEME: Record<string, StoreTheme> = {
+  'luxe-market': { '--brand': '#8100D1', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  editorial: { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'flash-sale': { '--brand': '#e11d48', '--brand-deep': '#190915', '--tint': '#ffe4e6' },
+  atelier: { '--brand': '#0e7490', '--brand-deep': '#27272a', '--tint': '#ecfeff' },
+  'digital-studio': { '--brand': '#2563eb', '--brand-deep': '#07152f', '--tint': '#dbeafe' },
+  'whatsapp-native': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
+};
+
+const PERSONA_THEME: Record<string, StoreTheme> = {
+  'beauty-service': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'fashion-apparel': { '--brand': '#7c2d12', '--brand-deep': '#431407', '--tint': '#ffedd5' },
+  'food-vendor': { '--brand': '#e11d48', '--brand-deep': '#7f1d1d', '--tint': '#ffe4e6' },
+  'creator-digital': { '--brand': '#2563eb', '--brand-deep': '#07152f', '--tint': '#dbeafe' },
+  'pharmacy-health': { '--brand': '#0e7490', '--brand-deep': '#164e63', '--tint': '#ecfeff' },
+  'retail-groceries': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
+  'faith-community': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
+  'school-education': { '--brand': '#8100D1', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+};
+
+function resolveStoreTheme(store: Pick<Store, 'primary_color' | 'business_persona' | 'store_template'>): StoreTheme {
+  if (store.primary_color) {
+    return {
+      '--brand': store.primary_color,
+      '--brand-deep': store.primary_color,
+      '--tint': `color-mix(in srgb, ${store.primary_color} 14%, white)`,
+    };
+  }
+
+  return PERSONA_THEME[store.business_persona || '']
+    || TEMPLATE_THEME[store.store_template || '']
+    || TEMPLATE_THEME['luxe-market'];
+}
+
 // Classifier helper to determine if a product is a service
 function isProductService(product: Product, store: Store): boolean {
+  if (product.type === 'service') return true;
+  if (product.type === 'product') return false;
+
   const catName = (product.category_id || '').toLowerCase();
   const name = (product.name || '').toLowerCase();
   if (name.includes('lashe') || name.includes('brow') || name.includes('lamination') || name.includes('tint') || name.includes('massage') || name.includes('treatment') || name.includes('facial') || name.includes('appointment') || name.includes('session') || name.includes('booking')) {
@@ -192,6 +278,8 @@ export default function StorefrontClient({
   initialProductSlug,
   initialData,
 }: StorefrontClientProps) {
+  const router = useRouter();
+
   // --- Normalize Data ---
   const store: Store = useMemo(() => {
     const s = initialData?.store || {} as Store;
@@ -200,7 +288,7 @@ export default function StorefrontClient({
       store_name: s.store_name || username || 'Store',
       currency_code: s.currency_code || 'NGN',
       whatsapp_phone: s.whatsapp_phone || '',
-      location: s.location || 'Lekki, Lagos',
+      location: s.location || 'Online store',
     };
   }, [initialData, username]);
 
@@ -209,9 +297,13 @@ export default function StorefrontClient({
   const systemDomain = initialData?.system_domain || 'frontstore.app';
   const storeDisclaimer = initialData?.store_disclaimer || '';
   const appName = initialData?.app_name || 'Frontstore';
+  const storeTheme = useMemo(() => resolveStoreTheme(store), [store]);
+
+  // --- Reviews ---
+  const [reviews, setReviews] = useState<Review[]>(initialData?.reviews || []);
 
   // --- States ---
-  const [premium, setPremium] = useState<boolean>(() => !!(store.is_pro || store.primary_color));
+  const premium = !!(store.is_pro || store.primary_color);
   const [query, setQuery] = useState("");
   const [segment, setSegment] = useState<"all" | "service" | "product">("all");
   const [activeCat, setActiveCat] = useState<string | null>(null);
@@ -238,14 +330,23 @@ export default function StorefrontClient({
   const [isPaying, setIsPaying] = useState(false);
 
   // Viewport scroll targets
-  const searchRef = useRef<HTMLDivElement>(null);
-  const reviewsRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);      // mobile
+  const reviewsRef = useRef<HTMLDivElement>(null);     // mobile
+  const desktopSearchRef = useRef<HTMLDivElement>(null);
+  const desktopReviewsRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
 
-  // Sync premium toggle to store details
+  // Fetch reviews from API if not provided in initial data
   useEffect(() => {
-    setPremium(!!(store.is_pro || store.primary_color));
-  }, [store]);
+    if (initialData?.reviews && initialData.reviews.length > 0) return;
+    const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
+    fetch(`${API_URL}/v1/public/store/${username}/reviews`)
+      .then(r => r.ok ? r.json() : null)
+      .then(json => {
+        if (json?.data && Array.isArray(json.data)) setReviews(json.data);
+      })
+      .catch(() => {});
+  }, [username]);
 
   // Toast Timer
   useEffect(() => {
@@ -425,7 +526,7 @@ export default function StorefrontClient({
         qty: 1,
         type: "service",
         slot: `${d.label} ${d.date}, ${slots[bTime]}`,
-        duration: 90,
+        duration: booking.duration_minutes ?? undefined,
         productRef: booking
       } as CartItem];
       saveCartToStorage(nextBag);
@@ -458,8 +559,10 @@ export default function StorefrontClient({
   };
 
   const focusSearch = () => {
-    searchRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    setTimeout(() => searchRef.current?.querySelector("input")?.focus(), 350);
+    const isDesktop = window.innerWidth >= 768;
+    const target = isDesktop ? desktopSearchRef.current : searchRef.current;
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => target?.querySelector("input")?.focus(), 350);
   };
 
   const scrollTo = (ref: React.RefObject<HTMLDivElement | null>) => {
@@ -568,20 +671,14 @@ export default function StorefrontClient({
   }, [activeCat, categories]);
 
   return (
-    <div className="fs-root" style={store.primary_color ? { '--brand': store.primary_color, '--brand-deep': store.primary_color } as React.CSSProperties : undefined}>
-      <style>{CSS}</style>
+    <div className="fs-root" style={storeTheme}>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {/* ── DESKTOP LAYOUT ── */}
       <div className="fs-desktop">
 
         {/* Sidebar */}
         <aside className="fs-sidebar">
-          {/* Plan toggle */}
-          <div className="fs-plan">
-            <button className={premium ? "on" : ""} onClick={() => setPremium(true)}><Crown size={13} /> Premium</button>
-            <button className={!premium ? "on" : ""} onClick={() => setPremium(false)}><Store size={13} /> Basic</button>
-          </div>
-
           {/* Store identity */}
           <div className="fs-sid-cover" style={store.banner_url ? { backgroundImage: `url(${store.banner_url})`, backgroundSize: 'cover' } : undefined} />
           <div className="fs-sid-id">
@@ -601,10 +698,10 @@ export default function StorefrontClient({
           </button>
 
           <div className="fs-sid-stats">
-            <div><Star size={13} fill="#c79a4b" color="#c79a4b" /> {store.is_verified ? "4.9" : "4.8"} <span>(212 reviews)</span></div>
-            <div><ShoppingBag size={12} /> 1,400+ orders</div>
-            <div><Clock size={12} /> replies in ~10 min</div>
-            <div><Clock size={12} /> Mon to Sat, 9am to 7pm</div>
+            <div><Star size={13} fill="#c79a4b" color="#c79a4b" /> {store.rating ?? (store.is_verified ? "4.9" : "4.8")} <span>({store.review_count ?? 0} reviews)</span></div>
+            <div><ShoppingBag size={12} /> {formatOrderCount(store.total_orders)} orders</div>
+            {store.reply_time_minutes != null && <div><Clock size={12} /> replies in {formatReplyTime(store.reply_time_minutes)}</div>}
+            {store.working_hours && <div><Clock size={12} /> {store.working_hours}</div>}
           </div>
 
           <p className="fs-sid-bio">{store.store_bio || "Premium conversational commerce storefront."}</p>
@@ -613,12 +710,12 @@ export default function StorefrontClient({
 
           {/* Nav links */}
           <nav className="fs-sid-nav">
-            <button onClick={() => scrollTo(searchRef)}><Search size={15} /> Browse items</button>
-            <button onClick={() => scrollTo(reviewsRef)}><Star size={15} /> Reviews</button>
+            <button onClick={() => scrollTo(desktopSearchRef)}><Search size={15} /> Browse items</button>
+            <button onClick={() => scrollTo(desktopReviewsRef)}><Star size={15} /> Reviews</button>
             <button onClick={() => {
               const msg = `Hi ${store.store_name}! I have a question about your shop items.`;
               window.open(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
-            }}><MessageCircle size={15} /> Chat with us</button>
+            }}><WhatsAppIcon size={15} /> Chat with us</button>
           </nav>
 
           {/* Bag CTA */}
@@ -641,29 +738,52 @@ export default function StorefrontClient({
             <div className="fs-topbar-right">
               <button className="fs-tb-btn" onClick={focusSearch} aria-label="Search items"><Search size={17} /></button>
               <button className="fs-tb-btn" onClick={copyLink} aria-label="Copy store link"><Share2 size={17} /></button>
-              <button className="fs-tb-bag" onClick={() => { setCheckoutStep('cart'); setBagOpen(true); }}>
-                <ShoppingBag size={17} /> Order
+              <button className="fs-tb-bag" onClick={() => { setCheckoutStep('cart'); setBagOpen(true); }} aria-label="View order">
+                <ShoppingBag size={17} />
                 {bagCount > 0 && <span className="fs-badge">{bagCount}</span>}
               </button>
               <button className="fs-tb-btn" onClick={() => {
                 const msg = `Hi ${store.store_name}!`;
                 window.open(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
-              }} aria-label="Chat on WhatsApp"><MessageCircle size={17} /></button>
+              }} aria-label="Chat on WhatsApp"><WhatsAppIcon size={17} /></button>
             </div>
           </header>
 
           {/* Hero cover */}
           <section className="fs-hero">
-            <div className="fs-hero-art" style={store.primary_color ? { background: `linear-gradient(135deg, ${store.primary_color}, #000)` } : undefined}>
+            <div className="fs-hero-art" style={{ background: `linear-gradient(135deg, ${storeTheme['--brand']}, ${storeTheme['--brand-deep']})` }}>
               <div className="fs-hero-grain" />
             </div>
             <div className="fs-hero-content">
               <span className="fs-hero-cat">Storefront Catalog</span>
               <h1 className="fs-hero-name">{store.store_name}</h1>
               <p className="fs-hero-bio">{store.store_bio || "Browse our items and place orders directly via WhatsApp chat."}</p>
-              <div className="fs-hero-actions">
-                <button className="fs-cta fs-book" onClick={focusSearch}><Calendar size={16} /> Book a treatment</button>
-                <button className="fs-cta fs-buy" onClick={focusSearch}><ShoppingBag size={16} /> Shop products</button>
+              <div className="fs-hero-socials">
+                {store.whatsapp_phone && (
+                  <a className="fs-social-link" href={`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                    <WhatsAppIcon size={20} />
+                  </a>
+                )}
+                {store.instagram_handle && (
+                  <a className="fs-social-link" href={`https://instagram.com/${store.instagram_handle.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <Instagram size={20} />
+                  </a>
+                )}
+                {store.tiktok_handle && (
+                  <a className="fs-social-link" href={`https://tiktok.com/@${store.tiktok_handle.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                    <Music2 size={20} />
+                  </a>
+                )}
+                {store.twitter_handle && (
+                  <a className="fs-social-link" href={`https://x.com/${store.twitter_handle.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="X / Twitter">
+                    <Twitter size={20} />
+                  </a>
+                )}
+                {store.custom_links?.filter(l => l.is_active).map(link => (
+                  <a key={link.id} className="fs-social-link" href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.title}>
+                    <Link size={20} />
+                  </a>
+                ))}
               </div>
             </div>
           </section>
@@ -683,7 +803,7 @@ export default function StorefrontClient({
                   <div className="fs-feat-row">
                     <span className="fs-price">{fmt(pinnedProduct.price, currencySymbol)}</span>
                     {isProductService(pinnedProduct, store) ? (
-                      <span className="fs-dur"><Clock size={13} /> 90 min</span>
+                      <span className="fs-dur"><Clock size={13} /> {fmtDuration(pinnedProduct.duration_minutes) || 'Service'}</span>
                     ) : (
                       <span className="fs-dur"><Truck size={13} /> Ready to ship</span>
                     )}
@@ -699,7 +819,7 @@ export default function StorefrontClient({
           )}
 
           {/* Filters */}
-          <div className="fs-filters" ref={searchRef}>
+          <div className="fs-filters" ref={desktopSearchRef}>
             <div className="fs-filter-top">
               <div className="fs-searchwrap">
                 <Search size={16} className="fs-search-ic" />
@@ -728,9 +848,9 @@ export default function StorefrontClient({
             {filteredProducts.map((it, idx) => {
               const isService = isProductService(it, store);
               return (
-                <article key={it.id} className="fs-card" style={{ animationDelay: `${idx * 35}ms` }}>
+                <article key={it.id} className="fs-card" style={{ animationDelay: `${idx * 35}ms` }} onClick={() => router.push(`/${username}/products/${it.slug}`)}>
                   <div className="fs-card-media">
-                    <Media cat={activeCategoryName || "Lashes"} h={150} imgUrl={it.image_urls?.[0]} />
+                    <Media cat={activeCategoryName || "Lashes"} h={118} imgUrl={it.image_urls?.[0]} />
                     <span className={`fs-type ${isService ? 'service' : 'product'}`}>{isService ? "Service" : "Product"}</span>
                     {it.compare_at_price && <span className="fs-pop"><Heart size={9} fill="#fff" color="#fff" /> Loved</span>}
                   </div>
@@ -739,16 +859,16 @@ export default function StorefrontClient({
                     <p className="fs-card-desc">{it.description || "Nourishing beauty collection essential."}</p>
                     <div className="fs-card-foot">
                       {isService ? (
-                        <span className="fs-line"><Clock size={12} /> 90 min</span>
+                        <span className="fs-line"><Clock size={12} /> {fmtDuration(it.duration_minutes) || 'Service'}</span>
                       ) : (
                         <span className={`fs-line ${it.stock_status === "low_stock" ? "low" : ""}`}><Truck size={12} /> {it.stock_status === "low_stock" ? "Low stock" : "In stock"}</span>
                       )}
                       <span className="fs-price">{fmt(it.price, currencySymbol)}</span>
                     </div>
                     {isService ? (
-                      <button className="fs-cta fs-book fs-cta-full" onClick={() => openBooking(it)}><Calendar size={14} /> Book now</button>
+                      <button className="fs-cta fs-book fs-cta-full" onClick={e => { e.stopPropagation(); openBooking(it); }}><Calendar size={14} /> Book</button>
                     ) : (
-                      <button className="fs-cta fs-buy fs-cta-full" onClick={() => addProduct(it)}><ShoppingBag size={14} /> Buy now</button>
+                      <button className="fs-cta fs-buy fs-cta-full" onClick={e => { e.stopPropagation(); addProduct(it); }}><ShoppingBag size={14} /> Buy</button>
                     )}
                   </div>
                 </article>
@@ -757,31 +877,29 @@ export default function StorefrontClient({
           </section>
 
           {/* Reviews */}
-          <section className="fs-reviews" ref={reviewsRef}>
+          {reviews.length > 0 && (
+          <section className="fs-reviews" ref={desktopReviewsRef}>
             <div className="fs-section-label"><Star size={14} fill="#c79a4b" color="#c79a4b" /> Client Reviews</div>
             <div className="fs-rev-head">
-              <span className="fs-rev-rating">4.9</span>
+              <span className="fs-rev-rating">{store.rating ?? (store.is_verified ? "4.9" : "4.8")}</span>
               <div>
                 <div className="fs-rev-stars">{"★".repeat(5)}</div>
-                <span>212 verified reviews</span>
+                <span>{reviews.length} verified review{reviews.length !== 1 ? 's' : ''}</span>
               </div>
             </div>
             <div className="fs-rev-grid">
-              {[
-                { n: "Amara O.", t: "My lashes lasted six full weeks and the studio is so clean. Booking was effortless.", r: 5 },
-                { n: "Tobi A.", t: "Ordered the aftercare serum and it arrived next day in Lagos. Will reorder.", r: 5 },
-                { n: "Funmi B.", t: "The volume set is absolutely stunning. Worth every naira — I get compliments daily.", r: 5 },
-              ].map((rv, i) => (
-                <div className="fs-rev" key={i}>
+              {reviews.map((rv) => (
+                <div className="fs-rev" key={rv.id}>
                   <div className="fs-rev-top">
-                    <span className="fs-rev-av">{rv.n[0]}</span>
-                    <div><b>{rv.n}</b><span className="fs-rev-stars-sm">{"★".repeat(rv.r)}</span></div>
+                    <span className="fs-rev-av">{rv.reviewer_name[0].toUpperCase()}</span>
+                    <div><b>{rv.reviewer_name}</b><span className="fs-rev-stars-sm">{"★".repeat(Math.max(1, Math.min(5, rv.rating)))}</span></div>
                   </div>
-                  <p>{rv.t}</p>
+                  <p>{rv.body}</p>
                 </div>
               ))}
             </div>
           </section>
+          )}
 
           {/* Footer */}
           <footer className="fs-foot">
@@ -828,28 +946,31 @@ export default function StorefrontClient({
         </header>
 
         <section className="fs-m-cover">
-          <div className="fs-m-cover-art" style={store.primary_color ? { background: `linear-gradient(135deg, ${store.primary_color}, #000)` } : undefined}>
+          <div className="fs-m-cover-art" style={{ background: `linear-gradient(135deg, ${storeTheme['--brand']}, ${storeTheme['--brand-deep']})` }}>
             <div className="fs-m-grain" />
-          </div>
-          <div className="fs-m-id">
-            {store.logo_url ? (
-              <img src={store.logo_url} alt="Logo" className="fs-m-avatar" style={{ objectFit: 'cover' }} />
-            ) : (
-              <span className="fs-m-avatar">{store.store_name[0].toUpperCase()}</span>
-            )}
-            <div>
-              <h1>{store.store_name} {store.is_verified ? <BadgeCheck size={17} className="fs-verif" /> : null}</h1>
-              <p className="fs-m-meta">Beauty & Services <span>•</span> <MapPin size={11} /> {store.location}</p>
+            <div className="fs-m-id-row">
+              {store.logo_url ? (
+                <img src={store.logo_url} alt="Logo" className="fs-m-avatar" style={{ objectFit: 'cover' }} />
+              ) : (
+                <span className="fs-m-avatar">{store.store_name[0].toUpperCase()}</span>
+              )}
+              <div className="fs-m-id-info">
+                <h1 className="fs-m-id-name">{store.store_name} {store.is_verified ? <BadgeCheck size={16} style={{ color: '#fff', verticalAlign: 'middle' }} /> : null}</h1>
+                <p className="fs-m-meta fs-m-meta-hero">
+                  {businessPersonas.find(p => p.id === store.business_persona)?.name ?? 'Online store'}
+                  {store.location && store.location !== 'Online store' && <><span> • </span><MapPin size={11} /> {store.location}</>}
+                </p>
+              </div>
             </div>
           </div>
           <button className="fs-m-url" onClick={copyLink}><span>frontstore.app/<b>{store.username}</b></span><Share2 size={13} /></button>
           <div className="fs-m-stats">
-            <span><Star size={13} fill="#c79a4b" color="#c79a4b" /> 4.9 <i>(212)</i></span>
-            <span><ShoppingBag size={12} /> 1,400+</span>
-            <span><Clock size={12} /> replies in ~10m</span>
+            <span><Star size={13} fill="#c79a4b" color="#c79a4b" /> {store.rating ?? (store.is_verified ? "4.9" : "4.8")} <i>({store.review_count ?? 0})</i></span>
+            <span><ShoppingBag size={12} /> {formatOrderCount(store.total_orders)}</span>
+            {store.reply_time_minutes != null && <span><Clock size={12} /> replies in {formatReplyTime(store.reply_time_minutes)}</span>}
           </div>
           <p className="fs-m-bio">{store.store_bio || "Premium conversational commerce storefront."}</p>
-          <div className="fs-m-hours"><Clock size={12} /> Mon to Sat, 9am to 7pm</div>
+          {store.working_hours && <div className="fs-m-hours"><Clock size={12} /> {store.working_hours}</div>}
           <div className="fs-m-trust"><ShieldCheck size={13} /> Secure payment and instant receipt, secured by Frontstore</div>
         </section>
 
@@ -864,7 +985,7 @@ export default function StorefrontClient({
                 <div className="fs-m-pin-foot">
                   <span className="fs-price">{fmt(pinnedProduct.price, currencySymbol)}</span>
                   {isProductService(pinnedProduct, store) ? (
-                    <span className="fs-dur"><Clock size={12} /> 90 min</span>
+                    <span className="fs-dur"><Clock size={12} /> {fmtDuration(pinnedProduct.duration_minutes) || 'Service'}</span>
                   ) : (
                     <span className="fs-dur"><Truck size={12} /> Ready to ship</span>
                   )}
@@ -905,9 +1026,9 @@ export default function StorefrontClient({
           {filteredProducts.map((it, idx) => {
             const isService = isProductService(it, store);
             return (
-              <article key={it.id} className="fs-card" style={{ animationDelay: `${idx * 40}ms` }}>
+              <article key={it.id} className="fs-card" style={{ animationDelay: `${idx * 40}ms` }} onClick={() => router.push(`/${username}/products/${it.slug}`)}>
                 <div className="fs-card-media">
-                  <Media cat={activeCategoryName || "Lashes"} h={120} imgUrl={it.image_urls?.[0]} />
+                  <Media cat={activeCategoryName || "Lashes"} h={96} imgUrl={it.image_urls?.[0]} />
                   <span className={`fs-type ${isService ? 'service' : 'product'}`}>{isService ? "Service" : "Product"}</span>
                   {it.compare_at_price && <span className="fs-pop"><Heart size={9} fill="#fff" color="#fff" /> Loved</span>}
                 </div>
@@ -915,16 +1036,16 @@ export default function StorefrontClient({
                   <h3>{it.name}</h3>
                   <div className="fs-card-foot">
                     {isService ? (
-                      <span className="fs-line"><Clock size={11} /> 90 min</span>
+                      <span className="fs-line"><Clock size={11} /> {fmtDuration(it.duration_minutes) || 'Service'}</span>
                     ) : (
                       <span className={`fs-line ${it.stock_status === "low_stock" ? "low" : ""}`}><Truck size={11} /> {it.stock_status === "low_stock" ? "Low stock" : "In stock"}</span>
                     )}
                     <span className="fs-price">{fmt(it.price, currencySymbol)}</span>
                   </div>
                   {isService ? (
-                    <button className="fs-cta fs-book fs-cta-full" onClick={() => openBooking(it)}><Calendar size={13} /> Book</button>
+                    <button className="fs-cta fs-book fs-cta-full" onClick={e => { e.stopPropagation(); openBooking(it); }}><Calendar size={13} /> Book</button>
                   ) : (
-                    <button className="fs-cta fs-buy fs-cta-full" onClick={() => addProduct(it)}><ShoppingBag size={13} /> Buy</button>
+                    <button className="fs-cta fs-buy fs-cta-full" onClick={e => { e.stopPropagation(); addProduct(it); }}><ShoppingBag size={13} /> Buy</button>
                   )}
                 </div>
               </article>
@@ -934,15 +1055,14 @@ export default function StorefrontClient({
 
         <section className="fs-reviews fs-m-reviews" ref={reviewsRef}>
           <div className="fs-section-label" style={{ padding: "0 0 10px" }}><Star size={13} fill="#c79a4b" color="#c79a4b" /> Reviews</div>
-          {[
-            { n: "Amara O.", t: "My lashes lasted six full weeks. Booking was effortless.", r: 5 },
-            { n: "Tobi A.", t: "Serum arrived next day in Lagos. Will reorder.", r: 5 },
-          ].map((rv, i) => (
-            <div className="fs-rev" key={i}>
-              <div className="fs-rev-top"><span className="fs-rev-av">{rv.n[0]}</span><div><b>{rv.n}</b><span className="fs-rev-stars-sm">{"★".repeat(rv.r)}</span></div></div>
-              <p>{rv.t}</p>
+          {reviews.length > 0 ? reviews.slice(0, 3).map((rv) => (
+            <div className="fs-rev" key={rv.id}>
+              <div className="fs-rev-top"><span className="fs-rev-av">{rv.reviewer_name[0].toUpperCase()}</span><div><b>{rv.reviewer_name}</b><span className="fs-rev-stars-sm">{"★".repeat(Math.max(1, Math.min(5, rv.rating)))}</span></div></div>
+              <p>{rv.body}</p>
             </div>
-          ))}
+          )) : (
+            <p className="fs-empty">No reviews yet.</p>
+          )}
         </section>
 
         <footer className="fs-m-foot">
@@ -962,10 +1082,10 @@ export default function StorefrontClient({
           {premium ? (
             <button className="fs-bn" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}><Store size={19} /><span>Shop</span></button>
           ) : (
-            <button className="fs-bn" onClick={() => window.location.href = '/'}><Sparkles size={19} /><span>Market</span></button>
+            <button className="fs-bn" onClick={() => window.location.href = '/'}><Store size={19} /><span>Home</span></button>
           )}
           <button className="fs-bn" onClick={focusSearch}><Search size={19} /><span>Search</span></button>
-          <button className="fs-bn-primary" onClick={() => { setCheckoutStep('cart'); setBagOpen(true); }} aria-label="Order bag checkout">
+          <button className="fs-bn-primary" onClick={() => { setCheckoutStep('cart'); setBagOpen(true); }} aria-label="Order bag checkout" style={{ background: `linear-gradient(150deg, ${storeTheme['--brand']}, ${storeTheme['--brand-deep']})` }}>
             <ShoppingBag size={22} color="#fff" />
             {bagCount > 0 && <span className="fs-badge" style={{ top: -2, right: -2, border: "2px solid var(--bg)" }}>{bagCount}</span>}
           </button>
@@ -973,7 +1093,7 @@ export default function StorefrontClient({
           <button className="fs-bn" onClick={() => {
             const msg = `Hi ${store.store_name}!`;
             window.open(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
-          }}><MessageCircle size={19} /><span>Chat</span></button>
+          }}><WhatsAppIcon size={19} /><span>Chat</span></button>
         </nav>
       </div>
 
@@ -983,7 +1103,7 @@ export default function StorefrontClient({
         {booking && (<>
           <div className="fs-sheet-grab" />
           <div className="fs-sheet-head">
-            <div><h3>{booking.name}</h3><span><Clock size={12} /> 90 min · {fmt(booking.price, currencySymbol)}</span></div>
+            <div><h3>{booking.name}</h3><span><Clock size={12} /> {fmtDuration(booking.duration_minutes) || 'Service'} · {fmt(booking.price, currencySymbol)}</span></div>
             <button className="fs-m-icn" onClick={() => setBooking(null)} aria-label="Close booking"><X size={20} /></button>
           </div>
           <p className="fs-sheet-lbl">Choose a day</p>
@@ -1000,7 +1120,9 @@ export default function StorefrontClient({
               <button key={i} className={`fs-time ${bTime === i ? "on" : ""}`} onClick={() => setBTime(i)}>{s}</button>
             ))}
           </div>
-          <button className="fs-sheet-cta" onClick={confirmBooking}>Add appointment to order</button>
+          <button className="fs-sheet-cta" onClick={confirmBooking} style={{ background: storeTheme['--brand'], color: '#fff' }}>
+            Confirm Date &amp; Proceed · {fmt(booking.price, currencySymbol)}
+          </button>
           <span className="fs-sheet-note">Confirm and pay securely on the next step.</span>
         </>)}
       </div>
@@ -1054,10 +1176,10 @@ export default function StorefrontClient({
           <form onSubmit={handleCheckoutSubmit} style={{ display: 'grid', gap: 14, paddingBottom: 24 }}>
             {storeDisclaimer && (
               <div style={{
-                background: 'rgba(245, 158, 11, 0.08)',
-                color: '#d97706',
+                background: 'var(--tint)',
+                color: 'var(--brand-deep)',
                 borderRadius: 12,
-                border: '1px solid rgba(245, 158, 11, 0.25)',
+                border: '1px solid color-mix(in srgb, var(--brand) 20%, transparent)',
                 padding: '10px 14px',
                 fontSize: 12.5,
                 fontWeight: 600,
@@ -1066,7 +1188,7 @@ export default function StorefrontClient({
                 alignItems: 'center',
                 lineHeight: 1.4
               }}>
-                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                <ShieldCheck size={16} style={{ flexShrink: 0, color: 'var(--brand)' }} />
                 <div>{storeDisclaimer}</div>
               </div>
             )}
@@ -1326,7 +1448,7 @@ export default function StorefrontClient({
                   border: 'none',
                   borderRadius: 14,
                   cursor: 'pointer',
-                  boxShadow: '0 8px 24px rgba(177,74,110,.25)'
+                  boxShadow: '0 4px 12px rgba(98,16,159,.16)'
                 }}
               >
                 {isPaying ? 'Initializing payment...' : `Pay Online Now (${fmt(orderReceipt.order.total_amount, currencySymbol)})`}
@@ -1374,7 +1496,7 @@ const CSS = `
 
 .fs-root {
   --bg: #f8f1ee; --surface: #fffaf8; --ink: #2b1d2a; --muted: #8a7782;
-  --brand: #b14a6e; --brand-deep: #7c2f4d; --tint: #f6e4ea; --gold: #c79a4b;
+  --brand: #62109F; --brand-deep: #48097A; --tint: #f0e0ff; --gold: #c79a4b;
   --line: #ece0db; --radius: 16px;
   --t-fast: 0.2s;
   font-family: 'Hanken Grotesk', sans-serif;
@@ -1439,7 +1561,7 @@ const CSS = `
 
 .fs-sid-cover {
   height: 80px;
-  background: linear-gradient(135deg, #7c2f4d, #b14a6e 55%, #c79a4b);
+  background: linear-gradient(135deg, var(--brand), var(--brand-deep));
   position: relative;
   flex-shrink: 0;
 }
@@ -1505,11 +1627,11 @@ const CSS = `
 
 .fs-sid-bag {
   margin: auto 16px 0; padding: 13px 16px;
-  background: var(--brand); color: #fff;
+  background: var(--brand); color: #fff !important;
   border-radius: 13px; font-size: 14px; font-weight: 700;
   display: flex; align-items: center; gap: 8px;
 }
-.fs-sid-bag:hover { background: var(--brand-deep); }
+.fs-sid-bag:hover { background: var(--brand-deep); color: #fff !important; }
 .fs-sid-bag:active { transform: translateY(1px); }
 .fs-sid-total { margin-left: auto; font-size: 12px; font-weight: 600; opacity: .85; }
 
@@ -1554,7 +1676,7 @@ const CSS = `
 }
 .fs-hero-art {
   position: absolute; inset: 0;
-  background: linear-gradient(135deg, #4a1a35, #7c2f4d 45%, #b14a6e 75%, #c79a4b);
+  background: linear-gradient(135deg, var(--brand), var(--brand-deep));
 }
 .fs-hero-grain {
   position: absolute; inset: 0;
@@ -1575,7 +1697,15 @@ const CSS = `
   letter-spacing: -.02em; line-height: 1.1; margin-bottom: 10px;
 }
 .fs-hero-bio { font-size: 14px; opacity: .85; line-height: 1.5; margin-bottom: 20px; max-width: 460px; }
-.fs-hero-actions { display: flex; gap: 10px; }
+.fs-hero-socials { display: flex; gap: 12px; align-items: center; margin-top: 4px; }
+.fs-social-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255,255,255,0.18); color: #fff;
+  transition: background .18s, transform .15s;
+  text-decoration: none;
+}
+.fs-social-link:hover { background: rgba(255,255,255,0.32); transform: scale(1.1); }
 
 /* Featured */
 .fs-featured { padding: 28px 28px 8px; }
@@ -1643,12 +1773,13 @@ const CSS = `
 
 .fs-card {
   background: var(--surface); border: 1px solid var(--line);
-  border-radius: 18px; overflow: hidden; animation: rise .45s both;
+  border-radius: 16px; overflow: hidden; animation: rise .45s both;
   box-shadow: 0 4px 12px rgba(43,29,42,.05);
-  display: flex; flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr;
 }
 .fs-card:hover { box-shadow: 0 8px 24px rgba(43,29,42,.1); transform: translateY(-2px); transition: .2s; }
-.fs-card-media { position: relative; }
+.fs-card-media { position: relative; overflow: hidden; }
 .fs-type {
   position: absolute; top: 8px; left: 8px; font-size: 10px; font-weight: 700;
   padding: 3px 8px; border-radius: 7px; backdrop-filter: blur(4px);
@@ -1658,14 +1789,22 @@ const CSS = `
 .fs-type.product { background: rgba(43,29,42,.78); color: #fff; }
 .fs-pop {
   position: absolute; top: 8px; right: 8px; display: inline-flex; align-items: center; gap: 3px;
-  font-size: 9.5px; font-weight: 700; color: #fff; background: rgba(177,74,110,.85);
+  font-size: 9.5px; font-weight: 700; color: #fff; background: rgba(129,0,209,.85);
   padding: 3px 7px; border-radius: 7px;
   z-index: 2;
 }
-.fs-card-body { padding: 12px 13px 13px; flex: 1; display: flex; flex-direction: column; }
-.fs-card-body h3 { font-size: 13.5px; font-weight: 700; letter-spacing: -.01em; line-height: 1.25; }
-.fs-card-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 6px; flex: 1; }
-.fs-card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; gap: 6px; }
+.fs-card-body { padding: 11px 12px 12px; min-height: 0; display: flex; flex-direction: column; }
+.fs-card-body h3 {
+  font-size: 13px; font-weight: 700; letter-spacing: -.01em; line-height: 1.25;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; min-height: 32px;
+}
+.fs-card-desc {
+  font-size: 11.5px; color: var(--muted); line-height: 1.45; margin-top: 5px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; min-height: 33px;
+}
+.fs-card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 9px; gap: 6px; }
 .fs-line { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
 .fs-line.low { color: var(--brand); font-weight: 600; }
 .fs-price { font-family: 'Fraunces', serif; font-weight: 700; font-size: 17px; color: var(--brand-deep); }
@@ -1677,12 +1816,22 @@ const CSS = `
   gap: 6px; font-size: 13px; font-weight: 700; padding: 9px 14px;
   border-radius: 11px; color: #fff;
 }
-.fs-cta-full { width: 100%; margin-top: 11px; padding: 12px; border-radius: 12px; }
+.fs-cta-full { width: 100%; margin-top: 10px; padding: 10px 12px; border-radius: 12px; }
 .fs-cta:active { transform: translateY(1px); }
-.fs-buy { background: var(--brand-deep); box-shadow: 0 5px 14px rgba(124,47,77,.32); }
+.fs-buy { background: var(--brand-deep); color: #fff; box-shadow: 0 3px 8px rgba(72,9,122,.16); }
 .fs-buy:hover { filter: brightness(1.08); }
-.fs-book { background: var(--brand); box-shadow: 0 5px 14px rgba(177,74,110,.34); }
+.fs-book { background: var(--brand); color: #fff; box-shadow: 0 3px 8px rgba(98,16,159,.16); }
 .fs-book:hover { filter: brightness(1.08); }
+
+@media (max-width: 767px) {
+  .fs-card-body { padding: 10px 10px 11px; }
+  .fs-card-body h3 { font-size: 12.5px; min-height: 31px; }
+  .fs-card-desc { display: none; }
+  .fs-card-foot { margin-top: 7px; align-items: flex-end; }
+  .fs-line { font-size: 10.5px; }
+  .fs-price { font-size: 15.5px; }
+  .fs-cta-full { margin-top: 9px; padding: 9px 10px; font-size: 12.5px; }
+}
 
 /* Reviews (desktop) */
 .fs-reviews { padding: 24px 28px 10px; }
@@ -1746,18 +1895,20 @@ const CSS = `
 .fs-m-bagbtn { position: relative; }
 
 .fs-m-cover { padding: 0 16px 16px; }
-.fs-m-cover-art { height: 110px; margin: 0 -16px; background: linear-gradient(135deg, #7c2f4d, #b14a6e 55%, #c79a4b); position: relative; overflow: hidden; }
-.fs-m-grain { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.16) 1px, transparent 1px); background-size: 13px 13px; }
-.fs-m-id { display: flex; align-items: flex-end; gap: 12px; margin-top: -30px; position: relative; }
+.fs-m-cover-art { height: 110px; margin: 0 -16px; background: linear-gradient(135deg, var(--brand), var(--brand-deep)); position: relative; overflow: visible; }
+.fs-m-grain { position: absolute; inset: 0; overflow: hidden; background-image: radial-gradient(rgba(255,255,255,.16) 1px, transparent 1px); background-size: 13px 13px; }
+.fs-m-id-row { position: absolute; bottom: -22px; left: 16px; right: 16px; display: flex; align-items: flex-start; gap: 12px; }
+.fs-m-id-info { padding-top: 6px; }
+.fs-m-id-name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 19px; letter-spacing: -.01em; color: #fff; display: flex; align-items: center; gap: 6px; line-height: 1.15; }
+.fs-m-meta-hero { color: rgba(255,255,255,.75) !important; margin-top: 4px; }
 .fs-m-avatar {
   width: 66px; height: 66px; border-radius: 18px;
   background: linear-gradient(150deg, var(--brand), var(--brand-deep));
   color: #fff; font-family: 'Fraunces', serif; font-weight: 700; font-size: 30px;
   display: grid; place-items: center; border: 4px solid var(--bg); flex: 0 0 auto;
 }
-.fs-m-id h1 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 19px; letter-spacing: -.01em; display: flex; align-items: center; gap: 5px; line-height: 1.1; padding-bottom: 4px; }
 .fs-m-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; margin-top: 3px; }
-.fs-m-url { display: inline-flex; align-items: center; gap: 7px; margin-top: 12px; background: var(--surface); border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; font-size: 12.5px; color: var(--muted); }
+.fs-m-url { display: inline-flex; align-items: center; gap: 7px; margin-top: 52px; background: var(--surface); border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; font-size: 12.5px; color: var(--muted); }
 .fs-m-url b { color: var(--brand-deep); font-weight: 700; }
 .fs-m-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 12px; font-weight: 600; }
 .fs-m-stats span { display: inline-flex; align-items: center; gap: 4px; }
@@ -1777,7 +1928,7 @@ const CSS = `
 .fs-m-filters { position: sticky; top: 58px; z-index: 30; background: rgba(248,241,238,.92); backdrop-filter: blur(10px); padding: 12px 16px 9px; margin-top: 6px; }
 .fs-m-filters .fs-filter-top { display: none; }
 
-.fs-m-reviews { padding: 18px 16px 6px; }
+.fs-m-reviews { padding: 18px 16px 6px; display: flex; flex-direction: column; gap: 10px; }
 
 .fs-m-foot { padding: 16px 16px 20px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--line); margin-top: 8px; }
 
@@ -1795,7 +1946,7 @@ const CSS = `
   position: relative; width: 54px; height: 54px; border-radius: 50%;
   background: linear-gradient(150deg, var(--brand), var(--brand-deep));
   display: grid; place-items: center; margin-top: -24px;
-  box-shadow: 0 8px 20px rgba(177,74,110,.42); border: 4px solid var(--bg);
+  box-shadow: 0 4px 12px rgba(72,9,122,.2); border: 4px solid var(--bg);
 }
 .fs-bn-primary:active { transform: scale(.95); }
 
@@ -1831,13 +1982,13 @@ const CSS = `
 
 .fs-sheet-cta, .fs-pay {
   width: 100%; padding: 14px; border-radius: 14px;
-  background: var(--brand); color: #fff;
+  background: var(--brand) !important; color: #fff !important;
   font-size: 15px; font-weight: 700; border: none;
-  box-shadow: 0 8px 22px rgba(177, 74, 110, .4);
+  box-shadow: 0 4px 12px rgba(98, 16, 159, .18);
   cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
-.fs-sheet-cta:hover, .fs-pay:hover { filter: brightness(1.05); }
+.fs-sheet-cta:hover, .fs-pay:hover { filter: brightness(1.05); background: var(--brand-deep) !important; color: #fff !important; }
 .fs-sheet-note, .fs-pay-note { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11.5px; color: var(--muted); margin-top: 12px; }
 
 /* Bag drawer specific list */

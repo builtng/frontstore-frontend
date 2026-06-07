@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 
 export default function ThemeToggle() {
@@ -9,24 +9,27 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem('frontstore-theme');
-    if (saved === 'dark') {
-      setIsDark(true);
-    } else if (saved === 'light') {
-      setIsDark(false);
+    const saved = localStorage.getItem('frontstore-theme') || 'light';
+    const dark = saved === 'dark';
+    setIsDark(dark);
+    // Ensure DOM class matches localStorage (safety net if inline script failed)
+    const root = document.documentElement;
+    if (dark) {
+      root.classList.add('dark');
+      root.classList.remove('light');
     } else {
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDark(systemDark);
+      root.classList.add('light');
+      root.classList.remove('dark');
     }
   }, []);
 
   const toggleTheme = () => {
     const nextDark = !isDark;
     setIsDark(nextDark);
-    const nextTheme = nextDark ? 'dark' : 'light';
-    localStorage.setItem('frontstore-theme', nextTheme);
+    localStorage.setItem('frontstore-theme', nextDark ? 'dark' : 'light');
 
     const root = document.documentElement;
+    root.classList.add('theme-switching');
     if (nextDark) {
       root.classList.add('dark');
       root.classList.remove('light');
@@ -34,6 +37,7 @@ export default function ThemeToggle() {
       root.classList.add('light');
       root.classList.remove('dark');
     }
+    setTimeout(() => root.classList.remove('theme-switching'), 300);
   };
 
   if (!mounted) {

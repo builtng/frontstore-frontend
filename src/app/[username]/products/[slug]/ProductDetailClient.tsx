@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft, Share2, ShoppingBag, Star, Clock, MapPin, ShieldCheck,
   Check, Calendar, Plus, Minus, BadgeCheck, ChevronRight, Sparkles,
-  Truck, RotateCcw, MessageCircle, X, Heart, Eye, Copy, ExternalLink, CheckCircle2, Shield, AlertCircle
+  Truck, RotateCcw, X, Heart, Copy, ExternalLink, CheckCircle2, Shield, AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
+import { WhatsAppIcon } from "../../../../components/WhatsAppIcon";
 
 // --- Types & Interfaces ---
 interface Category {
@@ -31,6 +32,9 @@ interface Product {
   digital_file_url?: string | null;
   digital_link?: string | null;
   category?: Category | null;
+  type?: 'service' | 'product';
+  duration_minutes?: number | null;
+  service_facts?: string[] | null;
 }
 
 interface Store {
@@ -44,6 +48,7 @@ interface Store {
   instagram_handle?: string | null;
   tiktok_handle?: string | null;
   business_persona?: string | null;
+  store_template?: string | null;
   primary_color?: string | null;
   is_pro?: boolean | number;
   is_verified?: boolean | number;
@@ -63,10 +68,32 @@ interface CreatedOrderReceipt {
   whatsapp_url: string;
 }
 
+interface Review {
+  id: string;
+  reviewer_name: string;
+  body: string;
+  rating: number;
+  created_at?: string;
+}
+
+interface ProductVariant {
+  label: string;
+  price: string;
+}
+
 interface ProductDetailClientProps {
-  initialProduct: Product;
-  store: Store;
+  initialProduct: Product & {
+    variants?: ProductVariant[] | null;
+    duration_minutes?: number | null;
+    rating?: number | null;
+    review_count?: number | null;
+  };
+  store: Store & {
+    rating?: number | null;
+    review_count?: number | null;
+  };
   allProducts: Product[];
+  reviews: Review[];
   systemDomain: string;
   storeDisclaimer: string;
 }
@@ -105,6 +132,9 @@ function discountPercent(price: string, compare: string): number {
 
 // Classifier helper to determine if a product is a service
 function isProductService(product: Product, store: Store): boolean {
+  if (product.type === 'service') return true;
+  if (product.type === 'product') return false;
+
   // If product belongs to a service category
   const catName = (product.category?.name || '').toLowerCase();
   if (catName.includes('lashes') || catName.includes('brows') || catName.includes('treatment') || catName.includes('session') || catName.includes('booking') || catName.includes('nails') || catName.includes('makeup') || catName.includes('service') || catName.includes('hair') || catName.includes('facial') || catName.includes('massage') || catName.includes('spa')) {
@@ -123,6 +153,46 @@ function isProductService(product: Product, store: Store): boolean {
     return true;
   }
   return false;
+}
+
+type StoreTheme = React.CSSProperties & {
+  '--brand': string;
+  '--brand-deep': string;
+  '--tint': string;
+};
+
+const TEMPLATE_THEME: Record<string, StoreTheme> = {
+  'luxe-market': { '--brand': '#8100D1', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  editorial: { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'flash-sale': { '--brand': '#e11d48', '--brand-deep': '#190915', '--tint': '#ffe4e6' },
+  atelier: { '--brand': '#0e7490', '--brand-deep': '#27272a', '--tint': '#ecfeff' },
+  'digital-studio': { '--brand': '#2563eb', '--brand-deep': '#07152f', '--tint': '#dbeafe' },
+  'whatsapp-native': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
+};
+
+const PERSONA_THEME: Record<string, StoreTheme> = {
+  'beauty-service': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'fashion-apparel': { '--brand': '#7c2d12', '--brand-deep': '#431407', '--tint': '#ffedd5' },
+  'food-vendor': { '--brand': '#e11d48', '--brand-deep': '#7f1d1d', '--tint': '#ffe4e6' },
+  'creator-digital': { '--brand': '#2563eb', '--brand-deep': '#07152f', '--tint': '#dbeafe' },
+  'pharmacy-health': { '--brand': '#0e7490', '--brand-deep': '#164e63', '--tint': '#ecfeff' },
+  'retail-groceries': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
+  'faith-community': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
+  'school-education': { '--brand': '#8100D1', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+};
+
+function resolveStoreTheme(store: Pick<Store, 'primary_color' | 'business_persona' | 'store_template'>): StoreTheme {
+  if (store.primary_color) {
+    return {
+      '--brand': store.primary_color,
+      '--brand-deep': store.primary_color,
+      '--tint': `color-mix(in srgb, ${store.primary_color} 14%, white)`,
+    };
+  }
+
+  return PERSONA_THEME[store.business_persona || '']
+    || TEMPLATE_THEME[store.store_template || '']
+    || TEMPLATE_THEME['luxe-market'];
 }
 
 // Simple hash-based gradients for products without images
@@ -148,7 +218,7 @@ export default function ProductDetailClient({
   initialProduct,
   store,
   allProducts,
-  systemDomain,
+  reviews,
   storeDisclaimer
 }: ProductDetailClientProps) {
   // Navigation & Page State
@@ -209,16 +279,14 @@ export default function ProductDetailClient({
   const grad = getGradForProduct(initialProduct.id);
   const [a, b] = grad;
 
-  // Mock sizes for products if not in DB
-  const productSizes = useMemo(() => {
-    const basePrice = parseFloat(initialProduct.price);
-    return [
-      { l: "Standard Size", price: basePrice },
-      { l: "Professional Pack", price: Math.round(basePrice * 1.6) }
-    ];
-  }, [initialProduct.price]);
+  const productVariants = useMemo(() => {
+    if (initialProduct.variants && initialProduct.variants.length > 0) {
+      return initialProduct.variants.map(v => ({ l: v.label, price: parseFloat(v.price) }));
+    }
+    return null;
+  }, [initialProduct.variants]);
 
-  const unitPrice = kind === 'product' ? productSizes[size].price : parseFloat(initialProduct.price);
+  const unitPrice = productVariants ? productVariants[size].price : parseFloat(initialProduct.price);
   const totalAmount = kind === 'product' ? unitPrice * qty : unitPrice;
 
   // Generate Booking Dates (Next 5 Days)
@@ -265,7 +333,7 @@ export default function ProductDetailClient({
   };
 
   // Submit checkout order to backend API
-  const handleCheckoutSubmit = async (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!checkoutName || !checkoutPhone) {
       setCheckoutError('Name and WhatsApp number are required.');
@@ -360,19 +428,13 @@ export default function ProductDetailClient({
 
   // Product Images Array
   const images = initialProduct.image_urls || [];
+  const storeTheme = useMemo(() => resolveStoreTheme(store), [store]);
 
   return (
-    <div className="fs-root" style={store.primary_color ? { '--brand': store.primary_color, '--brand-deep': store.primary_color } as React.CSSProperties : undefined}>
-      <style>{CSS}</style>
+    <div className="fs-root" style={storeTheme}>
+      <style suppressHydrationWarning>{CSS}</style>
 
-      {/* Developer/Testing preview toggle bar */}
-      <div className="fs-preview-bar">
-        <span>Page type template</span>
-        <div className="fs-preview-btns">
-          <button className={kind === "service" ? "on" : ""} onClick={() => { setKind("service"); setDeliveryMethod('pickup'); }}><Calendar size={13} /> Service</button>
-          <button className={kind === "product" ? "on" : ""} onClick={() => { setKind("product"); setDeliveryMethod(initialProduct.is_digital ? 'digital' : 'delivery'); }}><ShoppingBag size={13} /> Product</button>
-        </div>
-      </div>
+
 
       {/* Top Nav */}
       <header className="fs-nav">
@@ -455,7 +517,7 @@ export default function ProductDetailClient({
           {/* Left Column Details: About + Included/Delivery + Reviews */}
           <div className="fs-left-details">
             <section className="fs-sec">
-              <h2>{kind === "service" ? "About this treatment" : "About this product"}</h2>
+              <h2>{kind === "service" ? "About this service" : "About this product"}</h2>
               <p className="fs-desc" style={{ whiteSpace: 'pre-line' }}>{initialProduct.description || "No description provided."}</p>
             </section>
 
@@ -489,28 +551,25 @@ export default function ProductDetailClient({
             )}
 
             {/* Reviews Section */}
+            {reviews.length > 0 && (
             <section className="fs-sec">
               <h2>Client reviews</h2>
               <div className="fs-revgrid">
-                {[
-                  { n: "Amara O.", t: "Highly professional. The attention to detail is premium. Worth every single cent.", r: 5 },
-                  { n: "Ngozi E.", t: "Felt safe buying and checkout was extremely simple. Immediate receipt on WhatsApp.", r: 5 },
-                  { n: "Kemi A.", t: "Best seller around here. Communication is excellent and service/delivery is fast.", r: 5 },
-                  { n: "Tolu B.", t: "I've ordered multiple times now — never disappointed. Extremely reliable.", r: 5 },
-                ].map((rv, i) => (
-                  <div className="fs-rev" key={i}>
+                {reviews.map((rv) => (
+                  <div className="fs-rev" key={rv.id}>
                     <div className="fs-rev-top">
-                      <span className="fs-rev-av">{rv.n[0]}</span>
+                      <span className="fs-rev-av">{rv.reviewer_name[0]}</span>
                       <div>
-                        <b>{rv.n}</b>
-                        <span className="fs-stars">{"★".repeat(rv.r)}</span>
+                        <b>{rv.reviewer_name}</b>
+                        <span className="fs-stars">{"★".repeat(rv.rating)}</span>
                       </div>
                     </div>
-                    <p>{rv.t}</p>
+                    <p>{rv.body}</p>
                   </div>
                 ))}
               </div>
             </section>
+            )}
           </div>
         </div>
 
@@ -520,11 +579,13 @@ export default function ProductDetailClient({
             {/* Header info */}
             <p className="fs-cat">{initialProduct.category?.name || "General"}</p>
             <h1 className="fs-name">{initialProduct.name}</h1>
+            {(reviews.length > 0 || store.rating) && (
             <div className="fs-rating">
-              <Star size={13} fill="#c79a4b" color="#c79a4b" /> 
-              {store.is_verified ? " 4.9 " : " 4.8 "} 
-              <i>({initialProduct.views_count + 12} reviews)</i>
+              <Star size={13} fill="#c79a4b" color="#c79a4b" />
+              {store.rating ?? (store.is_verified ? "4.9" : "4.8")}
+              <i>({reviews.length > 0 ? reviews.length : (store.review_count ?? initialProduct.views_count)} reviews)</i>
             </div>
+            )}
             
             <div className="fs-price-row">
               <span className="fs-price">{fmt(unitPrice, currencySymbol)}</span>
@@ -536,27 +597,34 @@ export default function ProductDetailClient({
               {kind === "service" && <span className="fs-per" style={{ marginLeft: 6 }}>per session</span>}
             </div>
 
-            {/* Facts Panel for Service */}
-            {kind === "service" && (
+            {/* Facts Panel for Service — only shown when merchant has set real data */}
+            {kind === "service" && (initialProduct.duration_minutes || (initialProduct.service_facts && initialProduct.service_facts.length > 0)) ? (
               <div className="fs-facts">
-                <div className="fs-fact"><Clock size={16} /><span>Duration: ~1.5 hours</span></div>
-                <div className="fs-fact"><MapPin size={16} /><span>Studio session or mobile request</span></div>
-                <div className="fs-fact"><Calendar size={16} /><span>Next slots available this week</span></div>
+                {initialProduct.duration_minutes ? (
+                  <div className="fs-fact"><Clock size={16} /><span>Duration: ~{Math.round(initialProduct.duration_minutes / 60 * 10) / 10} hours</span></div>
+                ) : null}
+                {(initialProduct.service_facts || []).map((fact, idx) => (
+                  <div className="fs-fact" key={idx}><CheckCircle2 size={16} /><span>{fact}</span></div>
+                ))}
               </div>
-            )}
+            ) : null}
 
             {/* Product Options */}
             {kind === "product" && (
               <div className="fs-options">
-                <p className="fs-opt-lbl">Option Size</p>
-                <div className="fs-sizes">
-                  {productSizes.map((s, i) => (
-                    <button key={i} className={`fs-size ${size === i ? "on" : ""}`} onClick={() => setSize(i)}>
-                      <b>{s.l}</b>
-                      <span>{fmt(s.price, currencySymbol)}</span>
-                    </button>
-                  ))}
-                </div>
+                {productVariants && (
+                  <>
+                    <p className="fs-opt-lbl">Option</p>
+                    <div className="fs-sizes">
+                      {productVariants.map((v, i) => (
+                        <button key={i} className={`fs-size ${size === i ? "on" : ""}`} onClick={() => setSize(i)}>
+                          <b>{v.l}</b>
+                          <span>{fmt(v.price, currencySymbol)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
                 <div className="fs-qty-row">
                   <p className="fs-opt-lbl">Quantity</p>
                   <div className="fs-step">
@@ -574,18 +642,18 @@ export default function ProductDetailClient({
 
             {/* Main CTA */}
             {kind === "service" ? (
-              <button className="fs-cta book" onClick={() => setBooking(true)}>
+              <button className="fs-cta fs-panel-cta book" onClick={() => setBooking(true)}>
                 <Calendar size={18} /> Book Session <span className="fs-cta-price">{fmt(totalAmount, currencySymbol)}</span>
               </button>
             ) : (
-              <button className="fs-cta buy" onClick={() => setIsCheckoutOpen(true)}>
+              <button className="fs-cta fs-panel-cta buy" onClick={() => setIsCheckoutOpen(true)}>
                 <ShoppingBag size={18} /> Buy Now <span className="fs-cta-price">{fmt(totalAmount, currencySymbol)}</span>
               </button>
             )}
 
             {/* Inquire on WhatsApp */}
             <button className="fs-msg-btn" onClick={handleAskQuestion}>
-              <MessageCircle size={16} /> Ask a question about this item
+              <WhatsAppIcon size={16} /> Ask a question about this item
             </button>
 
             {/* Trust badge */}
@@ -652,7 +720,7 @@ export default function ProductDetailClient({
 
       {/* Mobile Sticky CTA Bar */}
       <div className="fs-mobile-bar">
-        <button className="fs-mob-msg" onClick={handleAskQuestion} aria-label="Message store"><MessageCircle size={19} /></button>
+        <button className="fs-mob-msg" onClick={handleAskQuestion} aria-label="Message store"><WhatsAppIcon size={19} /></button>
         {kind === "service" ? (
           <button className="fs-mob-cta book" onClick={() => setBooking(true)}>
             <Calendar size={17} /> Book now <span>{fmt(totalAmount, currencySymbol)}</span>
@@ -667,7 +735,7 @@ export default function ProductDetailClient({
       {/* Mobile details inline for mobile viewports */}
       <div className="fs-mobile-sections storefront-shell" style={{ display: 'none', padding: '0 18px 100px' }}>
         <section className="fs-sec">
-          <h2>{kind === "service" ? "About this treatment" : "About this product"}</h2>
+          <h2>{kind === "service" ? "About this service" : "About this product"}</h2>
           <p className="fs-desc">{initialProduct.description || "No description provided."}</p>
         </section>
         
@@ -700,27 +768,25 @@ export default function ProductDetailClient({
           </section>
         )}
 
+        {reviews.length > 0 && (
         <section className="fs-sec">
           <h2>Client reviews</h2>
           <div className="fs-revgrid">
-            {[
-              { n: "Amara O.", t: "Highly professional. The attention to detail is premium. Worth every single cent.", r: 5 },
-              { n: "Ngozi E.", t: "Felt safe buying and checkout was extremely simple. Immediate receipt on WhatsApp.", r: 5 },
-              { n: "Kemi A.", t: "Best seller around here. Communication is excellent and service/delivery is fast.", r: 5 },
-            ].map((rv, i) => (
-              <div className="fs-rev" key={i}>
+            {reviews.map((rv) => (
+              <div className="fs-rev" key={rv.id}>
                 <div className="fs-rev-top">
-                  <span className="fs-rev-av">{rv.n[0]}</span>
+                  <span className="fs-rev-av">{rv.reviewer_name[0]}</span>
                   <div>
-                    <b>{rv.n}</b>
-                    <span className="fs-stars">{"★".repeat(rv.r)}</span>
+                    <b>{rv.reviewer_name}</b>
+                    <span className="fs-stars">{"★".repeat(rv.rating)}</span>
                   </div>
                 </div>
-                <p>{rv.t}</p>
+                <p>{rv.body}</p>
               </div>
             ))}
           </div>
         </section>
+        )}
       </div>
 
       {/* Service booking selection sheet */}
@@ -730,7 +796,7 @@ export default function ProductDetailClient({
         <div className="fs-sheet-head">
           <div>
             <h3>Book Slot: {initialProduct.name}</h3>
-            <span><Clock size={13} /> ~1.5 hours · {fmt(initialProduct.price, currencySymbol)}</span>
+            <span><Clock size={13} /> {initialProduct.duration_minutes ? `~${Math.round(initialProduct.duration_minutes / 60 * 10) / 10} hours · ` : ''}{fmt(initialProduct.price, currencySymbol)}</span>
           </div>
           <button className="fs-icn" onClick={() => setBooking(false)} aria-label="Close sheet"><X size={20} /></button>
         </div>
@@ -1073,7 +1139,7 @@ export default function ProductDetailClient({
                   border: 'none',
                   borderRadius: 14,
                   cursor: 'pointer',
-                  boxShadow: '0 8px 24px rgba(177,74,110,.25)'
+                  boxShadow: '0 4px 12px rgba(98,16,159,.16)'
                 }}
               >
                 {isPaying ? 'Initializing payment...' : `Pay Online Now (${fmt(orderReceipt.order.total_amount, currencySymbol)})`}
@@ -1101,7 +1167,7 @@ export default function ProductDetailClient({
                 cursor: 'pointer'
               }}
             >
-              <MessageCircle size={18} />
+              <WhatsAppIcon size={18} />
               Continue on WhatsApp
             </button>
           </div>
@@ -1137,9 +1203,9 @@ const CSS = `
   --surface: #fffaf8;
   --ink: #2b1d2a;
   --muted: #8a7782;
-  --brand: #b14a6e;
-  --brand-deep: #7c2f4d;
-  --tint: #f6e4ea;
+  --brand: #62109F;
+  --brand-deep: #48097A;
+  --tint: #f0e0ff;
   --gold: #c79a4b;
   --line: #ece0db;
   font-family: 'Hanken Grotesk', sans-serif;
@@ -1377,6 +1443,7 @@ const CSS = `
   }
   .fs-mobile-sections {
     display: flex !important;
+    flex-direction: column;
   }
 }
 
@@ -1730,12 +1797,14 @@ const CSS = `
 
 .fs-cta.book {
   background: var(--brand);
-  box-shadow: 0 8px 24px rgba(177, 74, 110, .4);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(98, 16, 159, .18);
 }
 
 .fs-cta.buy {
   background: var(--brand-deep);
-  box-shadow: 0 8px 24px rgba(124, 47, 77, .4);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(72, 9, 122, .18);
 }
 
 .fs-cta:hover {
@@ -1752,6 +1821,12 @@ const CSS = `
   padding-left: 8px;
   margin-left: 6px;
   border-left: 1px solid rgba(255, 255, 255, .35);
+}
+
+@media(max-width:899px) {
+  .fs-panel-cta {
+    display: none;
+  }
 }
 
 .fs-msg-btn {
@@ -1983,12 +2058,14 @@ const CSS = `
 
 .fs-mob-cta.book {
   background: var(--brand);
-  box-shadow: 0 6px 18px rgba(177, 74, 110, .4);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(98, 16, 159, .18);
 }
 
 .fs-mob-cta.buy {
   background: var(--brand-deep);
-  box-shadow: 0 6px 18px rgba(124, 47, 77, .4);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(72, 9, 122, .18);
 }
 
 .fs-mob-cta span {
@@ -2151,7 +2228,7 @@ const CSS = `
   font-size: 15px;
   font-weight: 700;
   border: none;
-  box-shadow: 0 8px 22px rgba(177, 74, 110, .4);
+  box-shadow: 0 4px 12px rgba(98, 16, 159, .18);
   cursor: pointer;
   display: flex;
   align-items: center;

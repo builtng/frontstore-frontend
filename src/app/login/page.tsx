@@ -477,12 +477,20 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
             </a>
           </p>
         ) : (
-          <p style={{ textAlign: 'center', fontSize: 13.5, color: 'var(--text-muted)', marginTop: 8 }}>
-            Don't have a store yet?{' '}
-            <a href="/signup" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>
-              Create storefront
-            </a>
-          </p>
+          <>
+            <p style={{ textAlign: 'center', fontSize: 13.5, color: 'var(--text-muted)', marginTop: 8 }}>
+              Don't have a store yet?{' '}
+              <a href="/signup" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>
+                Create storefront
+              </a>
+            </p>
+            <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-faint)', marginTop: 4 }}>
+              Just here to shop?{' '}
+              <a href="/buyer/login" style={{ color: 'var(--text-muted)', fontWeight: 700, textDecoration: 'underline' }}>
+                Sign in as a buyer
+              </a>
+            </p>
+          </>
         )}
 
       </form>

@@ -1,1387 +1,1428 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import ThemeToggle from "../components/ThemeToggle";
 import {
-  ArrowRight,
-  BadgeCheck,
-  Bookmark,
-  Boxes,
-  Building2,
-  ChevronRight,
-  Clock,
-  Flame,
-  Grid3X3,
-  Heart,
-  HelpCircle,
-  MessageCircle,
-  Minus,
-  Plus,
-  Receipt,
-  Search,
-  ShieldCheck,
-  ShoppingBag,
-  Sparkles,
-  Star,
-  Store,
-  Tag,
-  Truck,
-  X,
-} from 'lucide-react';
-import { PublicSiteNav, PublicSiteFooter } from '../components/PublicSiteChrome';
+  Menu, X, Search, MapPin, ChevronDown, Heart, Star, ShieldCheck,
+  Receipt, Truck, Sparkles, Clock, Flame, Store, BadgeCheck,
+  ChevronRight, Home, LayoutGrid, User, Bookmark, ArrowRight,
+  MessageCircle, Plus, Minus, SlidersHorizontal, Package, Bell,
+  CreditCard, Settings, LogOut, ChevronLeft, TrendingUp,
+  ShoppingBag, Gift, Globe, Lock, HelpCircle, Edit3, Camera,
+  CheckCircle, AlertCircle, Trash2
+} from "lucide-react";
 
-/* ── Types ───────────────────────────────────────────────────────────── */
-type StoreSummary = {
-  id: string;
-  store_name: string;
-  store_bio?: string | null;
-  username: string;
-  logo_url?: string | null;
-  currency_code: string;
-  whatsapp_phone?: string | null;
-  instagram_handle?: string | null;
-  is_verified?: boolean;
+/* ─── TOKENS & REGIONS ───────────────────────────── */
+const MARKETS = [
+  { code:"NG", label:"Nigeria",      ccy:"NGN", symbol:"₦",   perNgn:1       },
+  { code:"GH", label:"Ghana",        ccy:"GHS", symbol:"GH₵", perNgn:0.0077  },
+  { code:"KE", label:"Kenya",        ccy:"KES", symbol:"KSh", perNgn:0.084   },
+  { code:"ZA", label:"South Africa", ccy:"ZAR", symbol:"R",   perNgn:0.0116  },
+  { code:"GB", label:"United Kingdom",ccy:"GBP", symbol:"£",  perNgn:0.00049 },
+  { code:"US", label:"United States",ccy:"USD", symbol:"$",   perNgn:0.00062 },
+];
+const ccyToNgn = { NGN:1, GHS:130, KES:11.9, ZAR:86, GBP:2040, USD:1610 };
+
+// Live exchange rates (NGN-based: liveRates[CCY] = units of CCY per 1 NGN), populated from a rates API on mount.
+// Falls back to the static estimates above (ccyToNgn / MARKETS[].perNgn) until they load or if the fetch fails.
+let liveRates: Record<string, number> | null = null;
+const ngnPerUnit = (ccy: string) => (liveRates?.[ccy] ? 1 / liveRates[ccy] : (ccyToNgn[ccy as keyof typeof ccyToNgn] || 1));
+const unitsPerNgn = (ccy: string) => liveRates?.[ccy] ?? (MARKETS.find(m => m.ccy === ccy)?.perNgn || 1);
+
+// Category styling tokens mapping
+const CATS_MAP: Record<string, { icon: any; from: string; to: string }> = {
+  "Fashion":           { icon:Store,      from:"#62109F", to:"#7d1bc7" },
+  "Apparel":           { icon:Store,      from:"#62109F", to:"#7d1bc7" },
+  "Footwear":          { icon:Store,      from:"#c2557a", to:"#e0789a" },
+  "Beauty & Cosmetics":{ icon:Sparkles,   from:"#c2557a", to:"#e0789a" },
+  "Gadgets":           { icon:LayoutGrid, from:"#2f6f9e", to:"#4f97c7" },
+  "Accessories":       { icon:LayoutGrid, from:"#2f6f9e", to:"#4f97c7" },
+  "Food":              { icon:Flame,      from:"#d98324", to:"#eaa64a" },
+  "Digital Products":  { icon:BadgeCheck, from:"#6a52b8", to:"#8b73d8" },
 };
 
-type CategorySummary = {
-  id: string;
-  name: string;
-  slug: string;
-  active_products_count?: number;
-};
-
-type MarketplaceProduct = {
-  id: string;
-  name: string;
-  slug: string;
-  price: string | number;
-  compare_at_price?: string | number | null;
-  description?: string | null;
-  image_url?: string | null;
-  stock_status?: string;
-  is_digital?: boolean;
-  views_count?: number;
-  is_sponsored?: boolean;
-  is_latest?: boolean;
-  category?: CategorySummary | null;
-  store?: StoreSummary | null;
-};
-
-type MarketplaceData = {
-  products: MarketplaceProduct[];
-  categories: CategorySummary[];
-  stores?: StoreSummary[];
-  stats?: {
-    products_count?: number;
-    stores_count?: number;
-  };
-};
-
-type Settings = {
-  app_name?: string;
-  logo_url?: string;
-  system_domain?: string;
-};
-
-/* ── Helpers ─────────────────────────────────────────────────────────── */
-const currencySymbols: Record<string, string> = {
-  NGN: '₦',
-  GHS: 'GH₵',
-  KES: 'KSh',
-  ZAR: 'R',
-  USD: '$',
-  GBP: '£',
-};
-
-function normalizeCurrencyCode(currencyCode?: string) {
-  const normalized = typeof currencyCode === 'string' ? currencyCode.trim().toUpperCase() : '';
-  if (!normalized || normalized === 'UNDEFINED' || normalized === 'NULL') return 'NGN';
-  return normalized;
-}
-
-function formatPrice(value: string | number, currencyCode?: string) {
-  const amount = typeof value === 'number' ? value : Number(value);
-  const normalizedCurrency = normalizeCurrencyCode(currencyCode);
-  const symbol = currencySymbols[normalizedCurrency] || `${normalizedCurrency} `;
-  if (!Number.isFinite(amount)) return `${symbol}0`;
-  return `${symbol}${amount.toLocaleString(undefined, {
-    minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
-
-function safePathSegment(value?: string | null) {
-  if (typeof value !== 'string') return '';
-  const segment = value.trim();
-  if (!segment || segment.toLowerCase() === 'undefined' || segment.toLowerCase() === 'null') return '';
-  return segment;
-}
-
-function getProductUrl(product: MarketplaceProduct) {
-  const username = safePathSegment(product.store?.username);
-  const slug = safePathSegment(product.slug);
-  return username && slug ? `/${username}/products/${slug}` : '#';
-}
-
-function getStoreUrl(store?: StoreSummary | null) {
-  const username = safePathSegment(store?.username);
-  return username ? `/${username}` : '#';
-}
-
-function normalizeApiUrl(value?: string | null) {
-  const fallback = 'https://api.frontstore.app/api';
-  if (typeof value !== 'string') return fallback;
-  const url = value.trim();
-  if (!url || url.toLowerCase() === 'undefined' || url.toLowerCase() === 'null') return fallback;
-  return url.replace(/\/+$/, '');
-}
-
-function productMatches(product: MarketplaceProduct, searchTerm: string, categorySlug: string) {
-  const search = searchTerm.trim().toLowerCase();
-  const matchesCategory = categorySlug === 'all' || product.category?.slug === categorySlug;
-  if (!matchesCategory) return false;
-  if (!search) return true;
-  return [product.name, product.description, product.category?.name, product.store?.store_name, product.store?.username]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(search));
-}
-
-/* ── Static content ──────────────────────────────────────────────────── */
 const FAQS = [
-  { q: 'Is it safe to pay on Frontstore?', a: 'Yes. You pay securely on the platform — not by sending money to a stranger. Every payment is logged and you get a receipt the moment it goes through.' },
-  { q: 'How do I receive what I buy?', a: 'After payment the store gets your order instantly and reaches out on WhatsApp to confirm delivery or pickup. You can follow the order status the whole way.' },
-  { q: 'What if my order does not arrive?', a: 'Your order is tracked from payment to delivery. If something goes wrong you have a clear record to raise it with the store, and protected stores carry a buyer safeguard.' },
-  { q: 'Can I buy from a store in another country?', a: 'Often yes for digital items, and for physical items where the store ships to you. Prices show in the store\'s own currency, with final charges in that currency.' },
+  { q:"Is it safe to pay on Frontstore?",         a:"Yes. You pay securely on the platform — not by sending money to a stranger. Every payment is logged and you get a receipt by WhatsApp the moment it goes through." },
+  { q:"How do I receive what I buy?",              a:"After payment the store gets your order instantly and reaches out on WhatsApp to confirm delivery or pickup. You can follow the order status the whole way." },
+  { q:"What if my order does not arrive?",         a:"Your order is tracked from payment to delivery. If something goes wrong you have a clear record to raise it with the store, and protected stores carry a buyer safeguard." },
+  { q:"Can I buy from a store in another country?",a:"Often yes for digital items, and for physical items where the store ships to you. Prices show in your local currency as a guide, while the final charge is in the store's own currency." },
 ];
 
-/* ── Skeleton atoms ──────────────────────────────────────────────────── */
-function Skeleton({ w, h, rounded }: { w?: number | string; h?: number | string; rounded?: boolean | number }) {
-  return (
-    <div
-      className="skeleton"
-      style={{
-        width: w,
-        height: h,
-        borderRadius: rounded === true ? 'var(--r-full)' : typeof rounded === 'number' ? rounded : 6,
-        flexShrink: 0,
-      }}
-    />
-  );
-}
+const STATUS_MAP = {
+  delivered:{ label:"Delivered",  color:"#62109F", bg:"#f0e0ff", Icon:CheckCircle },
+  transit:  { label:"In transit", color:"#2f6f9e", bg:"#ddeefa", Icon:Truck       },
+  pending:  { label:"Pending",    color:"#d98324", bg:"#fbecd1", Icon:Clock       },
+};
 
-function ProductCardSkeleton() {
+const fmt = (p: number, ccy: string, market: typeof MARKETS[0]) => {
+  const ngn = p * ngnPerUnit(ccy);
+  const t   = MARKETS.find(m => m.ccy === market.ccy) || MARKETS[0];
+  let val   = ngn * unitsPerNgn(t.ccy);
+  val = val >= 1000 ? Math.round(val) : Math.round(val * 100) / 100;
+  return `${t.symbol}${new Intl.NumberFormat("en-GB", { maximumFractionDigits: val >= 1000 ? 0 : 2 }).format(val)}`;
+};
+
+// Ranks items from the shopper's own market/currency ahead of others — used to surface nearby stores & products first
+const nearFirst = (market: typeof MARKETS[0], ccyA?: string, ccyB?: string) =>
+  Number(ccyB === market.ccy) - Number(ccyA === market.ccy);
+
+/* ─── SHARED UI ATOMS ────────────────────────────── */
+function Thumb({ cat, h = 148 }: { cat: string; h?: number }) {
+  const c = CATS_MAP[cat] || CATS_MAP.Fashion, Icon = c.icon;
   return (
-    <div className="mp-product-card" style={{ overflow: 'hidden' }}>
-      <div className="skeleton" style={{ aspectRatio: '1 / 1', width: '100%' }} />
-      <div className="mp-product-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <Skeleton h={16} w="80%" />
-        <Skeleton h={14} w="40%" />
-        <Skeleton h={12} w="100%" rounded={3} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-          <Skeleton w={34} h={34} rounded={99} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
-            <Skeleton h={10} w="30%" rounded={3} />
-            <Skeleton h={12} w="60%" rounded={3} />
-          </div>
-        </div>
-      </div>
+    <div style={{ background:`linear-gradient(150deg,${c.from},${c.to})`, height:h, position:"relative", display:"grid", placeItems:"center", overflow:"hidden" }}>
+      <div className="thumb-grain" />
+      <Icon size={h > 160 ? 42 : 30} strokeWidth={1.4} color="rgba(255,255,255,.9)" />
+      <span className="thumb-cat">{cat}</span>
     </div>
   );
 }
 
-/* ── Product card ────────────────────────────────────────────────────── */
-function ProductCard({ product, liked, onLike }: { product: MarketplaceProduct; liked: boolean; onLike: () => void }) {
-  const productUrl = getProductUrl(product);
-  const storeUrl = getStoreUrl(product.store);
-  const currency = normalizeCurrencyCode(product.store?.currency_code);
+function ProductCard({ p, market, liked, onLike }: { p: any; market: any; liked: boolean; onLike: () => void }) {
+  const priceNum = typeof p.price === 'number' ? p.price : Number(p.price) || 0;
+  const storeName = p.store?.store_name || "Oja Wear";
+  const storeLoc = p.store?.loc || "Lagos";
+  const isSponsored = p.is_sponsored || p.sponsored;
+  const productUrl = `/${p.store?.username}/products/${p.slug}`;
+  
   return (
-    <article className="mp-product-card card card-hover">
-      <a href={productUrl} className="mp-product-image" aria-label={product.name}>
-        {product.image_url ? (
-          <img src={product.image_url} alt={product.name} loading="lazy" />
-        ) : (
-          <ShoppingBag size={42} />
-        )}
-        {product.category?.name && <span className="mp-product-cat-tag">{product.category.name}</span>}
-        {product.is_sponsored && <span className="mp-product-sponsored-tag">Sponsored</span>}
+    <a href={productUrl} className="p-card" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ position:"relative" }}>
+        <Thumb cat={p.category?.name || p.cat} />
+        {isSponsored && <span className="tag tag-sp">Sponsored</span>}
         <button
-          className={`mp-like-btn${liked ? ' on' : ''}`}
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onLike(); }}
-          aria-label={liked ? 'Remove from saved' : 'Save product'}
+          className={`like-btn${liked ? " on" : ""}`}
+          onClick={e => { e.preventDefault(); e.stopPropagation(); onLike(); }}
+          aria-label="Save"
         >
-          <Heart size={14} fill={liked ? '#c2557a' : 'none'} color={liked ? '#c2557a' : 'currentColor'} />
+          <Heart size={14} fill={liked ? "#c2557a" : "none"} color={liked ? "#c2557a" : "#1d2b22"} />
         </button>
-      </a>
-      <div className="mp-product-body">
-        <a href={productUrl} className="mp-product-name">{product.name}</a>
-        <p className="mp-product-price">{formatPrice(product.price, currency)}</p>
-        {product.description && <p className="mp-product-desc">{product.description}</p>}
-        <a href={storeUrl} className="mp-product-store">
-          <span className="mp-product-avatar">
-            {product.store?.logo_url ? (
-              <img src={product.store.logo_url} alt={product.store.store_name || 'Store'} />
-            ) : (
-              <Building2 size={14} />
-            )}
-          </span>
-          <span className="mp-product-store-name">
-            {product.store?.store_name || 'Business'}
-            {product.store?.is_verified && <BadgeCheck size={13} />}
-          </span>
-        </a>
       </div>
-    </article>
-  );
-}
-
-/* ── Store card ──────────────────────────────────────────────────────── */
-function StoreCard({ store }: { store: StoreSummary }) {
-  const storeUrl = getStoreUrl(store);
-  const initial = (store.store_name || 'S')[0].toUpperCase();
-  return (
-    <a href={storeUrl} className="mp-store-card">
-      <span className="mp-store-avatar">
-        {store.logo_url ? <img src={store.logo_url} alt={store.store_name} /> : initial}
-      </span>
-      <div className="mp-store-info">
-        <span className="mp-store-name">
-          {store.store_name}
-          {store.is_verified && <BadgeCheck size={13} style={{ color: 'var(--primary)', flexShrink: 0 }} />}
-        </span>
-        {store.store_bio && <span className="mp-store-bio">{store.store_bio}</span>}
+      <div className="p-body">
+        <span className="p-name">{p.name}</span>
+        <div className="p-store">
+          <Store size={11} />
+          <span
+            onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${p.store?.username}`; }}
+            style={{ cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2 }}
+          >
+            {storeName}
+          </span>
+          <span className="dot">•</span>{storeLoc}
+        </div>
+        <div className="p-foot">
+          <div>
+            <span className="p-price">{fmt(priceNum, p.store?.currency_code || p.ccy || 'NGN', market)}</span>
+            {(p.store?.currency_code || p.ccy) !== market.ccy && <span className="approx">approx</span>}
+          </div>
+        </div>
       </div>
-      <ChevronRight size={15} className="mp-store-chevron" />
     </a>
   );
 }
 
-/* ── Section heading ─────────────────────────────────────────────────── */
-function SectionHead({ title, icon: Icon, right }: { title: string; icon?: React.ElementType; right?: React.ReactNode }) {
+function StoreCard({ s }: { s: any }) {
+  const meta = CATS_MAP[s.category?.name || s.cat] || CATS_MAP.Fashion;
+  const rating = s.rating || 4.8;
+  const items = s.items || 10;
+  const isVerified = s.is_verified || s.verified;
+  const isRising = s.rising;
+  const slug = s.username || s.slug || "";
+  
   return (
-    <div className="mp-sec-head">
-      <h2 className="mp-sec-title">
-        {Icon && <Icon size={18} className="mp-sec-icon" />}
-        {title}
-      </h2>
-      {right && <div className="mp-sec-right">{right}</div>}
+    <a className="store-card" href={`/${slug}`}>
+      <span className="store-av" style={{ background:`linear-gradient(150deg,${meta.from},${meta.to})` }}>{(s.store_name || s.name || 'S')[0]}</span>
+      <span className="store-name">
+        {s.store_name || s.name}
+        {isVerified && <BadgeCheck size={13} color="#62109F" fill="#f0e0ff" />}
+      </span>
+      <span className="store-meta">
+        <Star size={11} fill="#e8a33d" color="#e8a33d" />{rating}
+        <span className="dot">•</span>{items} items
+      </span>
+      {isRising && <span className="rising-tag">Rising</span>}
+      <span className="store-url">frontstore.app/{slug}</span>
+    </a>
+  );
+}
+
+function SectionHead({ title, icon: Icon, right }: { title: string; icon?: any; right?: React.ReactNode }) {
+  return (
+    <div className="sec-head">
+      <h2 className="sec-title">{Icon && <Icon size={17} className="sec-icon" />}{title}</h2>
+      {right}
     </div>
   );
 }
 
-/* ── Main component ──────────────────────────────────────────────────── */
-export default function MarketplaceHomeClient({
-  initialData,
-  initialSettings,
-}: {
-  initialData: MarketplaceData;
-  initialSettings?: Settings | null;
-}) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [openFaq, setOpenFaq] = useState<number>(-1);
-  const [liked, setLiked] = useState<Record<string, boolean>>({});
-
-  const [products, setProducts] = useState<MarketplaceProduct[]>(() => {
-    const prods = initialData?.products;
-    return Array.isArray(prods) ? prods : prods ? Object.values(prods) : [];
-  });
-  const [categories, setCategories] = useState<CategorySummary[]>(() => {
-    const cats = initialData?.categories;
-    return Array.isArray(cats) ? cats : cats ? Object.values(cats) : [];
-  });
-  const [stores, setStores] = useState<StoreSummary[]>(() => {
-    const st = initialData?.stores;
-    return Array.isArray(st) ? st : st ? Object.values(st) : [];
-  });
-  const [stats, setStats] = useState(initialData?.stats);
-  const [loading, setLoading] = useState(
-    !initialData || !initialData.products || !Array.isArray(initialData.products) || initialData.products.length === 0
+function EmptyState({ icon: Icon, title, sub, btnLabel, onBtn }: { icon: any; title: string; sub: string; btnLabel?: string; onBtn?: () => void }) {
+  return (
+    <div className="empty-state">
+      <Icon size={38} style={{ opacity:.2 }} />
+      <p>{title}</p>
+      <span>{sub}</span>
+      {btnLabel && <button className="es-btn" onClick={onBtn}>{btnLabel}</button>}
+    </div>
   );
+}
 
-  useEffect(() => {
-    const loadFreshData = async () => {
-      let savedApiUrl = '';
-      try { savedApiUrl = localStorage.getItem('dev_api_url') || ''; } catch { /* ignore */ }
-      const configuredApiUrl = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
-      const apiCandidates = Array.from(new Set([
-        normalizeApiUrl(savedApiUrl),
-        configuredApiUrl,
-        'https://api.frontstore.app/api',
-      ]));
-      try {
-        if (!Array.isArray(products) || products.length === 0) setLoading(true);
-        for (const apiUrl of apiCandidates) {
-          try {
-            const res = await fetch(`${apiUrl}/v1/public/marketplace`);
-            if (!res.ok) continue;
-            const json = await res.json();
-            if (json.data) {
-              const prods = json.data.products;
-              const cats  = json.data.categories;
-              const st    = json.data.stores;
-              setProducts(Array.isArray(prods) ? prods : prods ? Object.values(prods) : []);
-              setCategories(Array.isArray(cats) ? cats : cats ? Object.values(cats) : []);
-              if (st) setStores(Array.isArray(st) ? st : Object.values(st));
-              setStats(json.data.stats);
-              return;
-            }
-          } catch { /* try next */ }
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadFreshData();
-  }, []);
+/* ─── LAYOUT SHELL ───────────────────────────────── */
+function Shell({ tab, setTab, market, setMarket, onSearchTap, children }: { tab: string; setTab: (t: string) => void; market: any; setMarket: (m: any) => void; onSearchTap: () => void; children: React.ReactNode }) {
+  const [drawer, setDrawer]   = useState(false);
+  const [mktOpen, setMktOpen] = useState(false);
 
-  const appName = initialSettings?.app_name || 'Frontstore';
-  const systemDomain = initialSettings?.system_domain || 'frontstore.app';
-
-  const toggleLike = (id: string) => setLiked((s) => ({ ...s, [id]: !s[id] }));
-
-  const filteredProducts = useMemo(
-    () => products.filter((p) => productMatches(p, searchTerm, activeCategory)),
-    [activeCategory, products, searchTerm]
-  );
-
-  const sponsored   = useMemo(() => products.filter((p) => p.is_sponsored).slice(0, 4), [products]);
-  const trending    = useMemo(() => [...products].sort((a, b) => (b.views_count || 0) - (a.views_count || 0)).slice(0, 8), [products]);
-  const latestProds = useMemo(() => products.filter((p) => p.is_latest).slice(0, 8), [products]);
-  const topStores   = useMemo(() => stores.slice(0, 6), [stores]);
-
-  const topCategories  = categories.slice(0, 10);
-  const storesCount    = stats?.stores_count || new Set(products.map((p) => p.store?.username).filter(Boolean)).size;
-  const productsCount  = stats?.products_count || products.length;
-
-  const isSearchActive = searchTerm.trim().length > 0 || activeCategory !== 'all';
+  const NAV = [
+    { k:"home",    Icon:Home,        label:"Home"    },
+    { k:"browse",  Icon:LayoutGrid,  label:"Browse"  },
+    { k:"search",  Icon:Search,      label:"Search",  primary:true },
+    { k:"saved",   Icon:Bookmark,    label:"Saved"   },
+    { k:"account", Icon:User,        label:"Account" },
+  ];
 
   return (
-    <div className="mp-page">
-      <PublicSiteNav />
+    <div className="root">
+      {/* kente stripe */}
+      <div className="kente-stripe" />
 
-      {/* ─── HERO ─────────────────────────────────────────────────── */}
-      <header className="mp-hero">
-        <div className="mp-hero-glow" />
-        <div className="mp-hero-copy">
-          <p className="mp-eyebrow">Africa's marketplace for independent stores</p>
-          <h1 className="mp-hero-h1">
-            Buy straight from real stores<br />
-            <span className="mp-hero-gradient">you can trust.</span>
-          </h1>
-          <p className="mp-hero-sub">
-            Browse products from {productsCount > 0 ? `${productsCount.toLocaleString()}+` : 'thousands of'} independent sellers across{' '}
-            {storesCount > 0 ? `${storesCount.toLocaleString()}` : 'hundreds of'} stores. Pay safely, track every order.
-          </p>
+      {/* ── TOP NAV ── */}
+      <header className="top-nav">
+        <div className="nav-inner">
+          <button className="icon-btn hamburger" onClick={() => setDrawer(true)}><Menu size={21} /></button>
+          <button className="logo" onClick={() => setTab("home")}>front<span>store</span><i /></button>
 
-          {/* Search bar */}
-          <div className="mp-hero-search-wrap">
-            <Search size={17} className="mp-hs-icon" />
-            <input
-              className="mp-hero-search"
-              placeholder="Search products, stores, categories…"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              aria-label="Search the marketplace"
-            />
-            {searchTerm && (
-              <button className="mp-hs-clr" onClick={() => setSearchTerm('')} aria-label="Clear search">
-                <X size={15} />
+
+
+          <nav className="desk-links">
+            <button onClick={() => setTab("browse")}>Marketplace</button>
+            <button onClick={() => setTab("browse")}>Stores</button>
+            <button onClick={() => setTab("home")}>How it works</button>
+          </nav>
+
+          <div className="nav-right">
+            <div style={{ position:"relative" }}>
+              <button className="mkt-btn" onClick={() => setMktOpen(o => !o)}>
+                <MapPin size={13} />{market.symbol} {market.ccy}<ChevronDown size={13} />
               </button>
-            )}
+              {mktOpen && (
+                <div className="mkt-dropdown">
+                  <p className="mkt-dh">Shopping in</p>
+                  {MARKETS.map(m => (
+                    <button key={m.code} className={`mkt-opt${m.ccy === market.ccy ? " on" : ""}`}
+                      onClick={() => { setMarket(m); setMktOpen(false); }}>
+                      <span>{m.label}</span><span className="mkt-sym">{m.symbol} {m.ccy}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <ThemeToggle />
+            <button className="signin-btn" onClick={() => setTab("account")}>Sign in</button>
+            <button className="open-store-btn">Open store</button>
+          </div>
+        </div>
+      </header>
+
+      {/* ── DRAWER ── */}
+      <div className={`scrim${drawer ? " show" : ""}`} onClick={() => setDrawer(false)} />
+      <aside className={`fs-drawer${drawer ? " open" : ""}`}>
+        <div className="drawer-head">
+          <span className="logo sm">front<span>store</span><i /></span>
+          <button className="icon-btn" onClick={() => setDrawer(false)}><X size={20} /></button>
+        </div>
+        <nav className="drawer-nav">
+          {["Marketplace","Browse categories","Stores","How buying works","Help & safety"].map(l => (
+            <button key={l} className="drawer-link" onClick={() => setDrawer(false)}>{l}</button>
+          ))}
+        </nav>
+        <div className="drawer-sell">
+          <p>Got something to sell?</p>
+          <button className="ds-btn">Open your free store <ArrowRight size={14} /></button>
+          <span>frontstore.app/yourname</span>
+        </div>
+      </aside>
+
+      {/* ── PAGE ── */}
+      <main className="page-wrap">{children}</main>
+
+      {/* ── BOTTOM NAV (mobile) ── */}
+      <nav className="bottom-nav">
+        {NAV.map(({ k, Icon, label, primary }) => {
+          if (primary) return (
+            <button key={k} className="bn-primary" onClick={() => { setTab("browse"); onSearchTap(); }} aria-label="Search products">
+              <Icon size={22} color="#fff" />
+            </button>
+          );
+          return (
+            <button key={k} className={`bn-item${tab === k ? " on" : ""}`} onClick={() => setTab(k)}>
+              <Icon size={20} /><span>{label}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
+
+/* ─── PAGE: HOME ─────────────────────────────────── */
+interface PageHomeProps {
+  market: any;
+  liked: Record<string, boolean>;
+  toggleLike: (id: string) => void;
+  setTab: (t: string) => void;
+  products: any[];
+  categories: any[];
+  stores: any[];
+  setActiveCat: (cat: string) => void;
+  q: string;
+  setQ: (q: string) => void;
+}
+function PageHome({ market, liked, toggleLike, setTab, products, categories, stores, setActiveCat, q, setQ }: PageHomeProps) {
+  const [openFaq, setOpenFaq] = useState(0);
+
+  const filtered = useMemo(() => {
+    if (!q.trim()) return products;
+    const lq = q.toLowerCase();
+    return products.filter(p => 
+      (p.name || "").toLowerCase().includes(lq) || 
+      (p.store?.store_name || "").toLowerCase().includes(lq) || 
+      (p.category?.name || "").toLowerCase().includes(lq)
+    );
+  }, [q, products]);
+
+  const sponsored = filtered.filter(p => p.is_sponsored || p.sponsored);
+  // Fallback: if no explicitly sponsored products, pick top-viewed ones as featured — stores in the shopper's own market surface first
+  const featuredProducts = sponsored.length > 0
+    ? sponsored
+    : [...filtered].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || (b.views_count || 0) - (a.views_count || 0)).slice(0, 4);
+  const trending  = [...filtered].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || (b.views_count || 0) - (a.views_count || 0)).slice(0, 4);
+  const latest    = [...filtered].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()).slice(0, 6);
+  const nearbyStores = [...stores].sort((a, b) => nearFirst(market, a.currency_code, b.currency_code));
+
+  return (
+    <>
+      {/* HERO */}
+      <section className="hero">
+        <div className="hero-glow" />
+        <div className="hero-copy">
+          <p className="eyebrow">Africa's marketplace for everyday stores</p>
+          <h1 className="hero-h1">Buy straight from real stores you can trust.</h1>
+          <p className="hero-sub">Browse thousands of products from independent sellers, pay safely, and track every order.</p>
+
+          <div className="hero-search-wrap">
+            <Search size={17} className="hs-icon" />
+            <input className="hero-search" placeholder="Search products, stores, categories…"
+              value={q} onChange={e => setQ(e.target.value)} onFocus={() => setTab("browse")} />
+            {q && <button className="hs-clr" onClick={() => setQ("")}><X size={15} /></button>}
           </div>
 
-          {/* Quick category chips */}
-          {!isSearchActive && (
-            <div className="mp-chip-row" aria-label="Quick filters">
-              {topCategories.slice(0, 6).map((cat) => (
-                <button key={cat.id} className="mp-chip" onClick={() => setActiveCategory(cat.slug)}>
-                  {cat.name}
-                </button>
-              ))}
-              {loading && !categories.length && ['Fashion', 'Gadgets', 'Beauty', 'Food', 'Digital'].map((c) => (
-                <button key={c} className="mp-chip">{c}</button>
-              ))}
-            </div>
-          )}
+          <div className="chip-row">
+            {["Ankara","Phones","Skincare","Sneakers","Snacks","eBooks"].map(c => (
+              <button key={c} className="chip"
+                onClick={() => {
+                  const mappedSearch = c === "Ankara" ? "adire" : c === "Phones" ? "phone" : c.toLowerCase();
+                  setQ(mappedSearch);
+                  setTab("browse");
+                }}>
+                {c}
+              </button>
+            ))}
+          </div>
 
-          {/* Trust row */}
-          <div className="mp-trust-row">
+          <div className="trust-row">
             <span><ShieldCheck size={14} />Secure payment</span>
             <span><Receipt size={14} />Instant receipt</span>
             <span><Truck size={14} />Order tracking</span>
           </div>
         </div>
 
-        {/* Hero stats card */}
-        <div className="mp-hero-stats-card">
-          <div className="mp-hero-stat">
-            {loading ? <Skeleton h={32} w={80} /> : <strong>{productsCount.toLocaleString()}+</strong>}
-            <span>Products listed</span>
-          </div>
-          <div className="mp-hero-stat-divider" />
-          <div className="mp-hero-stat">
-            {loading ? <Skeleton h={32} w={60} /> : <strong>{storesCount.toLocaleString()}+</strong>}
-            <span>Active stores</span>
-          </div>
-          <div className="mp-hero-stat-divider" />
-          <div className="mp-hero-stat">
-            {loading ? <Skeleton h={32} w={50} /> : <strong>{categories.length || '—'}</strong>}
-            <span>Categories</span>
-          </div>
+        {/* decorative product grid — desktop only */}
+        <div className="hero-visual">
+          {[
+            { name:"Classic Set Lashes",   price:30,      ccy:"GBP", cat:"Beauty & Cosmetics" },
+            { name:"Ankara Two Piece Set", price:28000,   ccy:"NGN", cat:"Fashion"            },
+            { name:"iPhone 15 Pro",        price:1180,    ccy:"USD", cat:"Gadgets"            },
+            { name:"Shea Butter Glow Kit", price:15600,   ccy:"NGN", cat:"Beauty & Cosmetics" },
+          ].map((p, i) => {
+            const m = CATS_MAP[p.cat] || CATS_MAP.Fashion;
+            return (
+              <div key={i} className="hv-card"
+                style={{ background:`linear-gradient(150deg,${m.from},${m.to})`, animationDelay:`${i * 80}ms` }}>
+                <span className="hv-name">{p.name}</span>
+                <span className="hv-price">{fmt(p.price, p.ccy, market)}</span>
+              </div>
+            );
+          })}
         </div>
-      </header>
+      </section>
 
-      <main className="mp-main">
-        {/* ─── CATEGORY PILLS ──────────────────────────────────────── */}
-        {!isSearchActive && (
-          <section className="mp-sec mp-cat-sec" aria-label="Browse by category">
-            <SectionHead title="Browse by category" />
-            <div className="mp-cat-pills-row">
-              <button className={`mp-cat-pill${activeCategory === 'all' ? ' on' : ''}`} onClick={() => setActiveCategory('all')}>
-                <Grid3X3 size={13} />All
+      {/* CATEGORIES */}
+      <section className="sec">
+        <SectionHead title="Browse by category" />
+        <div className="cat-scroll">
+          {categories.map((cat: any) => {
+            const meta = CATS_MAP[cat.name] || CATS_MAP.Fashion;
+            const Icon = meta.icon;
+            const n    = products.filter(p => p.category?.id === cat.id).length;
+            return (
+              <button key={cat.id} className="cat-card" onClick={() => { setActiveCat(cat.name); setTab("browse"); }}>
+                <span className="cat-ic" style={{ background:`linear-gradient(150deg,${meta.from},${meta.to})` }}>
+                  <Icon size={21} color="#fff" strokeWidth={1.6} />
+                </span>
+                <span className="cat-name">{cat.name}</span>
+                <span className="cat-n">{n} items</span>
               </button>
-              {loading && !categories.length
-                ? Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} w={88} h={36} rounded={99} />)
-                : topCategories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      className={`mp-cat-pill${activeCategory === cat.slug ? ' on' : ''}`}
-                      onClick={() => setActiveCategory(cat.slug)}
-                    >
-                      <Tag size={12} />
-                      {cat.name}
-                      {typeof cat.active_products_count === 'number' && (
-                        <span className="mp-cat-count">{cat.active_products_count}</span>
-                      )}
-                    </button>
-                  ))
-              }
-            </div>
-          </section>
-        )}
+            );
+          })}
+        </div>
+      </section>
 
-        {/* ─── SEARCH RESULTS (when filtering) ────────────────────── */}
-        {isSearchActive && (
-          <section className="mp-sec">
-            <div className="mp-search-header">
-              <div>
-                <h2 className="mp-sec-title">
-                  {searchTerm ? `Results for "${searchTerm}"` : categories.find(c => c.slug === activeCategory)?.name || 'Products'}
-                </h2>
-                <p className="mp-result-count">{filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}</p>
-              </div>
-              <button className="mp-clear-btn" onClick={() => { setSearchTerm(''); setActiveCategory('all'); }}>
-                <X size={14} /> Clear filters
+      {/* FEATURED */}
+      {featuredProducts.length > 0 && (
+        <section className="sec">
+          <SectionHead
+            title="Featured today"
+            right={
+              sponsored.length > 0
+                ? <span className="sp-badge">Sponsored</span>
+                : <span className="sp-badge" style={{ background: 'var(--brand-tint)', color: 'var(--brand-dark)' }}>Editors' picks</span>
+            }
+          />
+          <div className="product-grid">
+            {featuredProducts.map(p => <ProductCard key={p.id} p={p} market={market} liked={!!liked[p.id]} onLike={() => toggleLike(p.id)} />)}
+          </div>
+        </section>
+      )}
+
+      {/* STORES */}
+      <section className="sec">
+        <SectionHead title="Stores worth following"
+          right={<button className="see-all" onClick={() => setTab("browse")}>All stores <ChevronRight size={14} /></button>} />
+        <div className="store-scroll">
+          {nearbyStores.map(s => <StoreCard key={s.id} s={s} />)}
+        </div>
+      </section>
+
+      {/* TRENDING */}
+      <section className="sec">
+        <SectionHead title="Trending now" icon={Flame} />
+        <div className="product-grid">
+          {trending.map(p => <ProductCard key={p.id} p={p} market={market} liked={!!liked[p.id]} onLike={() => toggleLike(p.id)} />)}
+        </div>
+      </section>
+
+      {/* LATEST */}
+      <section className="sec latest-band">
+        <SectionHead title="Just uploaded" icon={Clock} right={<span className="fresh-tag">Fresh from new sellers</span>} />
+        <div className="product-grid">
+          {latest.map(p => <ProductCard key={p.id} p={p} market={market} liked={!!liked[p.id]} onLike={() => toggleLike(p.id)} />)}
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="sec">
+        <SectionHead title="How buying works" />
+        <div className="steps-list">
+          {[
+            { Icon:Search,       t:"Find it",     d:"Browse stores or search for what you need."                           },
+            { Icon:ShieldCheck,  t:"Pay safely",  d:"Pay on Frontstore and get an instant receipt."                       },
+            { Icon:MessageCircle,t:"Get it",      d:"The store confirms on WhatsApp and you track delivery."               },
+          ].map(({ Icon, t, d }, i) => (
+            <div key={i} className="step-card">
+              <span className="step-num">{i + 1}</span>
+              <Icon size={18} className="step-ic" />
+              <h3>{t}</h3><p>{d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="sec">
+        <SectionHead title="Buying with confidence" />
+        <div className="faq-list">
+          {FAQS.map((f, i) => (
+            <div key={i} className={`faq-item${openFaq === i ? " open" : ""}`}>
+              <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? -1 : i)}>
+                <span>{f.q}</span>{openFaq === i ? <Minus size={17} /> : <Plus size={17} />}
               </button>
+              <div className="faq-body"><p>{f.a}</p></div>
             </div>
+          ))}
+        </div>
+      </section>
 
-            {/* Category pills still visible when filtering */}
-            <div className="mp-cat-pills-row" style={{ marginBottom: 24 }}>
-              <button className={`mp-cat-pill${activeCategory === 'all' ? ' on' : ''}`} onClick={() => setActiveCategory('all')}>
-                <Grid3X3 size={13} />All
-              </button>
-              {topCategories.map((cat) => (
-                <button
-                  key={cat.id}
-                  className={`mp-cat-pill${activeCategory === cat.slug ? ' on' : ''}`}
-                  onClick={() => setActiveCategory(cat.slug)}
-                >
-                  <Tag size={12} />{cat.name}
-                </button>
-              ))}
-            </div>
+      {/* SELL BAND */}
+      <section className="sell-band">
+        <div className="sell-inner">
+          <div className="sell-copy">
+            <h2>Selling something? Your store is two minutes away.</h2>
+            <p>Claim your link, add products, and share it anywhere. We handle payments and receipts.</p>
+            <button className="sell-cta">Open your free store <ArrowRight size={15} /></button>
+            <span className="sell-url">frontstore.app/yourname</span>
+          </div>
+          <div className="sell-blob" />
+        </div>
+      </section>
 
-            {filteredProducts.length > 0 ? (
-              <div className="mp-product-grid">
-                {filteredProducts.map((p) => (
-                  <ProductCard key={p.id} product={p} liked={!!liked[p.id]} onLike={() => toggleLike(p.id)} />
-                ))}
-              </div>
-            ) : (
-              <div className="mp-empty card">
-                <Search size={36} />
-                <h3>No products found</h3>
-                <p>Try a different keyword or browse a category below.</p>
-                <button className="btn btn-primary" onClick={() => { setSearchTerm(''); setActiveCategory('all'); }}>
-                  Clear filters <ArrowRight size={14} />
-                </button>
-              </div>
-            )}
-          </section>
-        )}
+      {/* FOOTER */}
+      <footer className="site-footer">
+        <div className="footer-top">
+          <span className="logo sm">front<span>store</span><i /></span>
+          <p className="footer-tag">Conversational commerce for Africa and beyond.</p>
+        </div>
+        <div className="footer-cols">
+          {[
+            { h:"Shop",    links:["Marketplace","Categories","Stores"]          },
+            { h:"Sell",    links:["For business","Pricing","Blog"]               },
+            { h:"Company", links:["About","Privacy","Terms"]                    },
+            { h:"Support", links:["Help centre","WhatsApp","Contact"]           },
+          ].map(({ h, links }) => (
+            <div key={h}><h4>{h}</h4>{links.map(l => <a key={l} href="#">{l}</a>)}</div>
+          ))}
+        </div>
+        <p className="footer-note">© 2026 Frontstore. All rights reserved.</p>
+      </footer>
+    </>
+  );
+}
 
-        {/* ─── Below: only shown when NOT filtering ──────────────── */}
-        {!isSearchActive && (
-          <>
-            {/* SPONSORED / FEATURED */}
-            {(loading || sponsored.length > 0) && (
-              <section className="mp-sec">
-                <SectionHead
-                  title="Featured today"
-                  right={<span className="mp-sp-badge"><Sparkles size={11} />Sponsored</span>}
-                />
-                <div className="mp-product-grid">
-                  {loading && !sponsored.length
-                    ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
-                    : sponsored.map((p) => (
-                        <ProductCard key={p.id} product={p} liked={!!liked[p.id]} onLike={() => toggleLike(p.id)} />
-                      ))
-                  }
-                </div>
-              </section>
-            )}
+/* ─── PAGE: BROWSE ───────────────────────────────── */
+interface PageBrowseProps {
+  market: any;
+  liked: Record<string, boolean>;
+  toggleLike: (id: string) => void;
+  products: any[];
+  categories: any[];
+  activeCat: string;
+  setActiveCat: (cat: string) => void;
+  q: string;
+  setQ: (q: string) => void;
+  focusSignal?: number;
+}
+function PageBrowse({ market, liked, toggleLike, products, categories, activeCat, setActiveCat, q, setQ, focusSignal }: PageBrowseProps) {
+  const [sortBy,    setSortBy]    = useState("popular");
+  const [showFilter,setShowFilter]= useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-            {/* STORES WORTH FOLLOWING */}
-            {(loading || topStores.length > 0) && (
-              <section className="mp-sec">
-                <SectionHead
-                  title="Stores worth following"
-                  right={
-                    <a href="/stores" className="mp-see-all">
-                      All stores <ChevronRight size={14} />
-                    </a>
-                  }
-                />
-                <div className="mp-store-grid">
-                  {loading && !topStores.length
-                    ? Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="mp-store-card" style={{ gap: 12 }}>
-                          <Skeleton w={46} h={46} rounded={99} />
-                          <div style={{ flex: 1 }}>
-                            <Skeleton h={14} w="60%" />
-                            <Skeleton h={11} w="40%" />
-                          </div>
-                        </div>
-                      ))
-                    : topStores.map((s) => <StoreCard key={s.id || s.username} store={s} />)
-                  }
-                </div>
-              </section>
-            )}
+  // Jump straight into the search box when the user taps the bottom-nav search shortcut
+  useEffect(() => {
+    if (focusSignal) searchInputRef.current?.focus();
+  }, [focusSignal]);
 
-            {/* TRENDING NOW */}
-            <section className="mp-sec">
-              <SectionHead title="Trending now" icon={Flame} />
-              <div className="mp-product-grid">
-                {loading && !trending.length
-                  ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
-                  : trending.slice(0, 8).map((p) => (
-                      <ProductCard key={p.id} product={p} liked={!!liked[p.id]} onLike={() => toggleLike(p.id)} />
-                    ))
-                }
-              </div>
-            </section>
+  const cats     = ["All", ...categories.map((c: any) => c.name)];
+  const filtered = useMemo(() => {
+    let r = products;
+    if (activeCat !== "All") r = r.filter(p => p.category?.name === activeCat);
+    if (q.trim())            r = r.filter(p => 
+      (p.name || "").toLowerCase().includes(q.toLowerCase()) || 
+      (p.store?.store_name || "").toLowerCase().includes(q.toLowerCase())
+    );
+    if (sortBy === "popular")    r = [...r].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || (b.views_count || 0) - (a.views_count || 0));
+    if (sortBy === "newest")     r = [...r].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime());
+    if (sortBy === "price_asc")  r = [...r].sort((a, b) => {
+      const pA = (typeof a.price === 'number' ? a.price : Number(a.price) || 0) * (ccyToNgn[a.store?.currency_code as keyof typeof ccyToNgn] || 1);
+      const pB = (typeof b.price === 'number' ? b.price : Number(b.price) || 0) * (ccyToNgn[b.store?.currency_code as keyof typeof ccyToNgn] || 1);
+      return pA - pB;
+    });
+    if (sortBy === "price_desc") r = [...r].sort((a, b) => {
+      const pA = (typeof a.price === 'number' ? a.price : Number(a.price) || 0) * (ccyToNgn[a.store?.currency_code as keyof typeof ccyToNgn] || 1);
+      const pB = (typeof b.price === 'number' ? b.price : Number(b.price) || 0) * (ccyToNgn[b.store?.currency_code as keyof typeof ccyToNgn] || 1);
+      return pB - pA;
+    });
+    return r;
+  }, [activeCat, sortBy, q, products, market]);
 
-            {/* JUST UPLOADED / LATEST */}
-            {(loading || latestProds.length > 0) && (
-              <section className="mp-sec mp-latest-band">
-                <SectionHead
-                  title="Just uploaded"
-                  icon={Clock}
-                  right={<span className="mp-fresh-tag">Fresh from new sellers</span>}
-                />
-                <div className="mp-product-grid">
-                  {loading && !latestProds.length
-                    ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
-                    : latestProds.map((p) => (
-                        <ProductCard key={p.id} product={p} liked={!!liked[p.id]} onLike={() => toggleLike(p.id)} />
-                      ))
-                  }
-                </div>
-              </section>
-            )}
+  return (
+    <>
+      <div className="page-header">
+        <h1 className="page-title">Browse</h1>
+        <p className="page-sub">Explore {products.length} products from independent stores.</p>
+      </div>
 
-            {/* HOW IT WORKS */}
-            <section className="mp-sec mp-hiw-sec">
-              <SectionHead title="How buying works" />
-              <div className="mp-steps-grid">
-                {[
-                  { Icon: Search,        t: 'Find it',    d: 'Browse stores or search for what you need.' },
-                  { Icon: ShieldCheck,   t: 'Pay safely', d: 'Pay on Frontstore and get an instant receipt.' },
-                  { Icon: MessageCircle, t: 'Get it',     d: 'The store confirms on WhatsApp and you track delivery.' },
-                ].map(({ Icon, t, d }, i) => (
-                  <div key={i} className="mp-step-card card">
-                    <span className="mp-step-num">{i + 1}</span>
-                    <span className="mp-step-ic"><Icon size={20} /></span>
-                    <h3>{t}</h3>
-                    <p>{d}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
+      {/* toolbar */}
+      <div className="toolbar">
+        <div style={{ position:"relative", flex:1 }}>
+          <Search size={15} style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", color:"var(--muted)" }} />
+          <input ref={searchInputRef} className="tb-search" placeholder="Search products…" value={q} onChange={e => setQ(e.target.value)} />
+          {q && <button style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", color:"var(--muted)" }} onClick={() => setQ("")}><X size={14} /></button>}
+        </div>
+        <button className={`filter-btn${showFilter ? " on" : ""}`} onClick={() => setShowFilter(s => !s)}>
+          <SlidersHorizontal size={15} />Filter
+        </button>
+      </div>
 
-            {/* FAQ */}
-            <section className="mp-sec">
-              <SectionHead title="Buying with confidence" icon={HelpCircle} />
-              <div className="mp-faq-list">
-                {FAQS.map((f, i) => (
-                  <div key={i} className={`mp-faq-item${openFaq === i ? ' open' : ''}`}>
-                    <button className="mp-faq-q" onClick={() => setOpenFaq(openFaq === i ? -1 : i)}>
-                      <span>{f.q}</span>
-                      {openFaq === i ? <Minus size={16} /> : <Plus size={16} />}
-                    </button>
-                    <div className="mp-faq-body">
-                      <p>{f.a}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* SELL BAND */}
-            <section className="mp-sell-band">
-              <div className="mp-sell-inner">
-                <div className="mp-sell-copy">
-                  <h2>Selling something? Your store is two minutes away.</h2>
-                  <p>Claim your link, add products, and share it anywhere. We handle payments and receipts.</p>
-                  <a href="/signup" className="btn btn-primary mp-sell-cta">
-                    Open your free store <ArrowRight size={15} />
-                  </a>
-                  <span className="mp-sell-url">{systemDomain}/yourname</span>
-                </div>
-                <div className="mp-sell-blob" aria-hidden="true" />
-              </div>
-            </section>
-          </>
-        )}
-      </main>
-
-      {/* ─── SAVED ITEMS NUDGE (when something liked) ─────────────── */}
-      {Object.values(liked).some(Boolean) && (
-        <div className="mp-saved-toast">
-          <Bookmark size={15} fill="currentColor" />
-          {Object.values(liked).filter(Boolean).length} item{Object.values(liked).filter(Boolean).length !== 1 ? 's' : ''} saved
-          <button onClick={() => setLiked({})}>Clear</button>
+      {/* filter panel */}
+      {showFilter && (
+        <div className="filter-panel">
+          <p className="fp-label">Sort by</p>
+          <div className="fp-pills">
+            {[["popular","Most popular"],["newest","Newest"],["price_asc","Price ↑"],["price_desc","Price ↓"]].map(([v, l]) => (
+              <button key={v} className={`fp-pill${sortBy === v ? " on" : ""}`} onClick={() => setSortBy(v)}>{l}</button>
+            ))}
+          </div>
         </div>
       )}
 
-      <PublicSiteFooter />
+      {/* category pills */}
+      <div className="cat-pills-row">
+        {cats.map(c => (
+          <button key={c} className={`cat-pill${activeCat === c ? " on" : ""}`} onClick={() => setActiveCat(c)}>
+            {c !== "All" && CATS_MAP[c] && React.createElement(CATS_MAP[c].icon, { size:12, strokeWidth:2 })}
+            {c}
+          </button>
+        ))}
+      </div>
 
-      {/* ─── Styles ───────────────────────────────────────────────── */}
-      <style jsx global>{`
-        /* ── Page shell ─────────────────────────────────── */
-        .mp-page {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          background: var(--bg);
-          color: var(--text);
-          overflow-x: hidden;
-        }
-        .mp-main {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 20px;
-          width: 100%;
-          flex: 1;
-        }
+      <p className="result-count">{filtered.length} product{filtered.length !== 1 ? "s" : ""}{activeCat !== "All" ? ` in ${activeCat}` : ""}</p>
 
-        /* ── Hero ────────────────────────────────────────── */
-        .mp-hero {
-          position: relative;
-          padding: clamp(52px, 9vw, 88px) 20px clamp(40px, 7vw, 72px);
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 40px;
-          overflow: hidden;
-          max-width: 1200px;
-          margin: 0 auto;
-          width: 100%;
-        }
-        @media (min-width: 860px) {
-          .mp-hero { flex-direction: row; align-items: center; gap: 48px; }
-          .mp-hero-copy { flex: 1; }
-        }
-        .mp-hero-glow {
-          position: absolute;
-          top: -80px; right: -60px;
-          width: 420px; height: 420px;
-          border-radius: 50%;
-          background: radial-gradient(circle, var(--primary-glow) 0%, transparent 65%);
-          pointer-events: none;
-        }
-        .mp-eyebrow {
-          font-size: 11.5px;
-          font-weight: 700;
-          color: var(--primary);
-          text-transform: uppercase;
-          letter-spacing: .08em;
-          margin-bottom: 10px;
-        }
-        .mp-hero-h1 {
-          font-family: var(--font-heading);
-          font-weight: 800;
-          font-size: clamp(28px, 5vw, 46px);
-          line-height: 1.08;
-          letter-spacing: -.03em;
-          margin-bottom: 14px;
-          color: var(--text);
-        }
-        .mp-hero-gradient {
-          background: linear-gradient(135deg, var(--primary), hsl(158,84%,39%));
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        .mp-hero-sub {
-          font-size: clamp(14px, 2vw, 16px);
-          color: var(--text-muted);
-          line-height: 1.6;
-          max-width: 520px;
-          margin-bottom: 22px;
-        }
-
-        /* Hero search */
-        .mp-hero-search-wrap {
-          position: relative;
-          max-width: 520px;
-          width: 100%;
-          margin-bottom: 16px;
-        }
-        .mp-hs-icon {
-          position: absolute;
-          left: 14px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: var(--text-muted);
-          pointer-events: none;
-        }
-        .mp-hero-search {
-          width: 100%;
-          padding: 15px 44px;
-          border-radius: var(--r-xl);
-          border: 1.5px solid var(--border);
-          background: var(--surface);
-          font-size: 15px;
-          font-family: inherit;
-          color: var(--text);
-          box-shadow: var(--shadow-lg);
-          transition: border-color .18s, box-shadow .18s;
-        }
-        .mp-hero-search:focus {
-          outline: none;
-          border-color: var(--primary);
-          box-shadow: 0 0 0 3px var(--primary-light);
-        }
-        .mp-hs-clr {
-          position: absolute;
-          right: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: var(--text-muted);
-          background: none;
-          border: none;
-          cursor: pointer;
-          display: grid;
-          place-items: center;
-          width: 26px; height: 26px;
-        }
-
-        /* Chips */
-        .mp-chip-row {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-bottom: 16px;
-        }
-        .mp-chip {
-          font-size: 12.5px;
-          font-weight: 600;
-          padding: 7px 14px;
-          border-radius: 999px;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          color: var(--text);
-          cursor: pointer;
-          transition: background .15s, border-color .15s, color .15s;
-          font-family: inherit;
-        }
-        .mp-chip:hover {
-          background: var(--primary-light);
-          border-color: var(--primary);
-          color: var(--primary-dark, var(--primary));
-        }
-
-        /* Trust row */
-        .mp-trust-row {
-          display: flex;
-          gap: 20px;
-          flex-wrap: wrap;
-        }
-        .mp-trust-row span {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          font-size: 12.5px;
-          font-weight: 600;
-          color: var(--primary);
-        }
-
-        /* Hero stats card */
-        .mp-hero-stats-card {
-          display: flex;
-          align-items: center;
-          gap: 0;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--r-2xl);
-          box-shadow: var(--shadow-xl);
-          padding: 28px 32px;
-          min-width: 260px;
-          flex-shrink: 0;
-        }
-        @media (min-width: 860px) {
-          .mp-hero-stats-card { flex-direction: column; gap: 0; min-width: 220px; }
-          .mp-hero-stat-divider { width: 60%; height: 1px !important; }
-        }
-        .mp-hero-stat {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-          padding: 12px 20px;
-          flex: 1;
-        }
-        .mp-hero-stat strong {
-          font-family: var(--font-heading);
-          font-size: 28px;
-          font-weight: 800;
-          color: var(--primary);
-        }
-        .mp-hero-stat span {
-          font-size: 11.5px;
-          font-weight: 600;
-          color: var(--text-muted);
-          white-space: nowrap;
-        }
-        .mp-hero-stat-divider {
-          width: 1px;
-          height: 36px;
-          background: var(--border);
-          flex-shrink: 0;
-        }
-
-        /* ── Sections ─────────────────────────────────────── */
-        .mp-sec {
-          padding: 36px 0 8px;
-        }
-        .mp-sec-head {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 18px;
-        }
-        .mp-sec-title {
-          font-family: var(--font-heading);
-          font-weight: 700;
-          font-size: clamp(18px, 3vw, 22px);
-          letter-spacing: -.02em;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          color: var(--text);
-        }
-        .mp-sec-icon { color: var(--accent, #e8a33d); }
-        .mp-sec-right { flex-shrink: 0; }
-        .mp-see-all {
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--primary);
-          text-decoration: none;
-          display: inline-flex;
-          align-items: center;
-          gap: 2px;
-        }
-        .mp-see-all:hover { opacity: .8; }
-        .mp-sp-badge {
-          font-size: 11px;
-          font-weight: 600;
-          color: var(--text-muted);
-          background: var(--surface-2, var(--surface));
-          border: 1px solid var(--border);
-          padding: 4px 10px;
-          border-radius: 8px;
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-        }
-        .mp-fresh-tag {
-          font-size: 11.5px;
-          font-weight: 600;
-          color: var(--primary);
-        }
-
-        /* Category pills row */
-        .mp-cat-sec { padding-top: 20px; }
-        .mp-cat-pills-row {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        .mp-cat-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          font-weight: 600;
-          padding: 8px 16px;
-          border-radius: 999px;
-          background: var(--surface);
-          border: 1.5px solid var(--border);
-          color: var(--text);
-          cursor: pointer;
-          font-family: inherit;
-          transition: background .15s, border-color .15s, color .15s;
-        }
-        .mp-cat-pill:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
-        .mp-cat-pill.on { background: var(--primary-light); border-color: var(--primary); color: var(--primary); font-weight: 700; }
-        .mp-cat-count {
-          font-size: 10px;
-          background: var(--primary);
-          color: #fff;
-          border-radius: 999px;
-          padding: 1px 6px;
-        }
-
-        /* ── Product grid ─────────────────────────────────── */
-        .mp-product-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 16px;
-        }
-        @media (min-width: 640px) { .mp-product-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); } }
-        @media (min-width: 900px) { .mp-product-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); } }
-
-        /* Product card */
-        .mp-product-card {
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-          border-radius: var(--r-lg, 14px);
-        }
-        .mp-product-image {
-          position: relative;
-          display: block;
-          aspect-ratio: 1 / 1;
-          background: var(--surface-2, var(--surface));
-          overflow: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--text-muted);
-          text-decoration: none;
-        }
-        .mp-product-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
-          transition: transform .3s;
-        }
-        .mp-product-card:hover .mp-product-image img { transform: scale(1.04); }
-        .mp-product-cat-tag {
-          position: absolute;
-          top: 10px;
-          left: 10px;
-          font-size: 10px;
-          font-weight: 700;
-          background: rgba(255,255,255,.88);
-          color: var(--text);
-          border-radius: 6px;
-          padding: 3px 8px;
-          backdrop-filter: blur(4px);
-        }
-        .mp-product-sponsored-tag {
-          position: absolute;
-          top: 10px;
-          right: 36px;
-          font-size: 10px;
-          font-weight: 700;
-          background: var(--accent, #e8a33d);
-          color: #fff;
-          border-radius: 6px;
-          padding: 3px 8px;
-        }
-        .mp-like-btn {
-          position: absolute;
-          top: 8px;
-          right: 8px;
-          width: 30px; height: 30px;
-          border-radius: 50%;
-          background: rgba(255,255,255,.88);
-          border: none;
-          cursor: pointer;
-          display: grid;
-          place-items: center;
-          color: var(--text);
-          backdrop-filter: blur(4px);
-          transition: transform .15s, background .15s;
-        }
-        .mp-like-btn:hover { transform: scale(1.1); }
-        .mp-like-btn.on { background: rgba(255,255,255,.95); }
-        .mp-product-body {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          padding: 14px;
-          flex: 1;
-        }
-        .mp-product-name {
-          font-size: 14px;
-          font-weight: 700;
-          color: var(--text);
-          text-decoration: none;
-          line-height: 1.3;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .mp-product-name:hover { color: var(--primary); }
-        .mp-product-price {
-          font-size: 16px;
-          font-weight: 800;
-          font-family: var(--font-heading);
-          color: var(--primary);
-          margin: 0;
-        }
-        .mp-product-desc {
-          font-size: 12px;
-          color: var(--text-muted);
-          line-height: 1.5;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          margin: 0;
-        }
-        .mp-product-store {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          text-decoration: none;
-          margin-top: 8px;
-          padding-top: 10px;
-          border-top: 1px solid var(--border);
-        }
-        .mp-product-avatar {
-          width: 30px; height: 30px;
-          border-radius: 50%;
-          background: var(--primary-light);
-          color: var(--primary);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-          flex-shrink: 0;
-          font-size: 13px;
-        }
-        .mp-product-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .mp-product-store-name {
-          font-size: 12px;
-          font-weight: 700;
-          color: var(--text);
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-        }
-        .mp-product-store-name svg { color: var(--primary); }
-
-        /* ── Store grid ───────────────────────────────────── */
-        .mp-store-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-          gap: 12px;
-        }
-        .mp-store-card {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          padding: 14px 16px;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--r-lg, 14px);
-          text-decoration: none;
-          color: var(--text);
-          transition: box-shadow .18s, border-color .18s, transform .18s;
-        }
-        .mp-store-card:hover {
-          box-shadow: var(--shadow-lg);
-          border-color: var(--primary);
-          transform: translateY(-2px);
-        }
-        .mp-store-avatar {
-          width: 46px; height: 46px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, var(--primary), hsl(158,84%,39%));
-          color: #fff;
-          font-size: 18px;
-          font-weight: 800;
-          font-family: var(--font-heading);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-          flex-shrink: 0;
-        }
-        .mp-store-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .mp-store-info { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
-        .mp-store-name {
-          font-size: 14px;
-          font-weight: 700;
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-        }
-        .mp-store-bio {
-          font-size: 12px;
-          color: var(--text-muted);
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .mp-store-chevron { color: var(--text-muted); flex-shrink: 0; }
-
-        /* ── How it works ─────────────────────────────────── */
-        .mp-hiw-sec {
-          background: var(--surface);
-          border-top: 1px solid var(--border);
-          border-bottom: 1px solid var(--border);
-          border-radius: var(--r-2xl);
-          padding: 36px 28px;
-          margin: 24px 0;
-        }
-        .mp-steps-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 16px;
-        }
-        .mp-step-card {
-          padding: 22px;
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .mp-step-num {
-          position: absolute;
-          top: 14px;
-          right: 14px;
-          font-family: var(--font-heading);
-          font-size: 42px;
-          font-weight: 900;
-          color: var(--primary-light);
-          line-height: 1;
-          user-select: none;
-        }
-        .mp-step-ic {
-          width: 44px; height: 44px;
-          border-radius: var(--r-md, 12px);
-          background: var(--primary-light);
-          color: var(--primary);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .mp-step-card h3 { font-size: 16px; font-weight: 700; }
-        .mp-step-card p  { font-size: 13px; color: var(--text-muted); line-height: 1.55; }
-
-        /* ── FAQ ──────────────────────────────────────────── */
-        .mp-faq-list { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); border-radius: var(--r-xl); overflow: hidden; }
-        .mp-faq-item { border-bottom: 1px solid var(--border); }
-        .mp-faq-item:last-child { border-bottom: none; }
-        .mp-faq-q {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 18px 20px;
-          font-size: 14.5px;
-          font-weight: 600;
-          color: var(--text);
-          background: var(--surface);
-          border: none;
-          cursor: pointer;
-          text-align: left;
-          font-family: inherit;
-          transition: background .15s;
-        }
-        .mp-faq-q:hover { background: var(--primary-light); }
-        .mp-faq-item.open .mp-faq-q { background: var(--primary-light); color: var(--primary); }
-        .mp-faq-body {
-          max-height: 0;
-          overflow: hidden;
-          transition: max-height .3s cubic-bezier(.4,0,.2,1);
-        }
-        .mp-faq-item.open .mp-faq-body { max-height: 300px; }
-        .mp-faq-body p {
-          padding: 0 20px 18px;
-          font-size: 14px;
-          color: var(--text-muted);
-          line-height: 1.65;
-          margin: 0;
-        }
-
-        /* ── Sell band ───────────────────────────────────── */
-        .mp-sell-band {
-          margin: 32px 0 48px;
-          border-radius: var(--r-2xl);
-          background: linear-gradient(135deg, var(--primary-dark, #085f3f) 0%, var(--primary) 60%, hsl(158,84%,39%) 100%);
-          overflow: hidden;
-          position: relative;
-        }
-        .mp-sell-inner {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 24px;
-          padding: clamp(32px, 6vw, 56px) clamp(24px, 5vw, 52px);
-          position: relative;
-          z-index: 1;
-        }
-        .mp-sell-copy {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          max-width: 560px;
-        }
-        .mp-sell-copy h2 {
-          font-family: var(--font-heading);
-          font-size: clamp(20px, 4vw, 30px);
-          font-weight: 800;
-          letter-spacing: -.02em;
-          color: #fff;
-          line-height: 1.2;
-        }
-        .mp-sell-copy p { font-size: 15px; color: rgba(255,255,255,.82); line-height: 1.55; }
-        .mp-sell-cta {
-          align-self: flex-start;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: #fff;
-          color: var(--primary);
-          padding: 13px 24px;
-          border-radius: var(--r-xl);
-          font-size: 14.5px;
-          font-weight: 700;
-          text-decoration: none;
-          box-shadow: 0 6px 24px rgba(0,0,0,.18);
-          transition: transform .15s, box-shadow .15s;
-        }
-        .mp-sell-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(0,0,0,.22); }
-        .mp-sell-url {
-          font-size: 12px;
-          color: rgba(255,255,255,.65);
-          font-weight: 600;
-        }
-        .mp-sell-blob {
-          position: absolute;
-          top: -40%;
-          right: -10%;
-          width: 360px; height: 360px;
-          border-radius: 50%;
-          background: rgba(255,255,255,.05);
-          pointer-events: none;
-        }
-
-        /* ── Search header (active filter) ──────────────── */
-        .mp-search-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 16px;
-          margin-bottom: 20px;
-        }
-        .mp-result-count { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-        .mp-clear-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--text-muted);
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--r-md, 10px);
-          padding: 8px 14px;
-          cursor: pointer;
-          font-family: inherit;
-          white-space: nowrap;
-          transition: border-color .15s, color .15s;
-          flex-shrink: 0;
-        }
-        .mp-clear-btn:hover { border-color: var(--primary); color: var(--primary); }
-
-        /* ── Empty state ─────────────────────────────────── */
-        .mp-empty {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
-          text-align: center;
-          padding: 56px 24px;
-          color: var(--text-muted);
-        }
-        .mp-empty svg { opacity: .2; }
-        .mp-empty h3 { font-size: 18px; font-weight: 700; color: var(--text); }
-        .mp-empty p  { font-size: 14px; }
-        .mp-empty .btn { margin-top: 8px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
-
-        /* ── Saved toast ─────────────────────────────────── */
-        .mp-saved-toast {
-          position: fixed;
-          bottom: 24px;
-          right: 20px;
-          z-index: 90;
-          background: var(--text);
-          color: var(--bg);
-          border-radius: var(--r-xl);
-          padding: 12px 18px;
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 13px;
-          font-weight: 600;
-          box-shadow: var(--shadow-xl);
-          animation: slide-up .22s ease;
-        }
-        .mp-saved-toast button {
-          background: none;
-          border: none;
-          color: var(--primary-light, #9de3c3);
-          cursor: pointer;
-          font-size: 12px;
-          font-weight: 700;
-          font-family: inherit;
-          padding: 0;
-        }
-        @keyframes slide-up {
-          from { opacity: 0; transform: translateY(12px); }
-          to   { opacity: 1; transform: none; }
-        }
-
-        /* ── Latest band ─────────────────────────────────── */
-        .mp-latest-band {
-          background: linear-gradient(180deg, transparent, var(--surface-2, var(--surface)));
-          border-radius: var(--r-2xl);
-          padding: 32px 24px;
-          margin: 8px 0;
-        }
-
-        /* ── Mobile overrides ────────────────────────────── */
-        @media (max-width: 640px) {
-          .mp-hero { padding-left: 16px; padding-right: 16px; }
-          .mp-main { padding: 0 14px; }
-          .mp-hero-stats-card { padding: 18px 20px; min-width: unset; width: 100%; }
-          .mp-hero-stat strong { font-size: 22px; }
-          .mp-sell-inner { flex-direction: column; }
-          .mp-sell-blob { display: none; }
-          .mp-product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-          .mp-store-grid { grid-template-columns: 1fr; }
-          .mp-steps-grid { grid-template-columns: 1fr; }
-        }
-      `}</style>
-    </div>
+      {filtered.length > 0
+        ? <div className="product-grid">{filtered.map(p => <ProductCard key={p.id} p={p} market={market} liked={!!liked[p.id]} onLike={() => toggleLike(p.id)} />)}</div>
+        : <EmptyState icon={Search} title="No products found" sub="Try a different search or category"
+            btnLabel="Clear filters" onBtn={() => { setQ(""); setActiveCat("All"); }} />
+      }
+    </>
   );
 }
+
+/* ─── PAGE: SAVED ────────────────────────────────── */
+interface PageSavedProps {
+  market: any;
+  liked: Record<string, boolean>;
+  toggleLike: (id: string) => void;
+  setTab: (t: string) => void;
+  products: any[];
+  stores: any[];
+}
+function PageSaved({ market, liked, toggleLike, setTab, products, stores }: PageSavedProps) {
+  const [activeTab, setActiveTab] = useState("items");
+  const saved = products.filter(p => liked[p.id]);
+
+  const COLLECTIONS = [
+    { name:"Wishlist",      n:saved.length, color:"#c2557a" },
+    { name:"Birthday ideas",n:3,             color:"#e8a33d" },
+    { name:"Work gear",     n:2,             color:"#2f6f9e" },
+  ];
+
+  const FOLLOWED = stores.slice(0, 3);
+
+  return (
+    <>
+      <div className="page-header">
+        <h1 className="page-title">Saved</h1>
+      </div>
+
+      {/* tabs */}
+      <div className="sv-tabs">
+        {[
+          { k:"items",       label:"Saved items",  badge:saved.length },
+          { k:"collections", label:"Collections"                      },
+          { k:"stores",      label:"Stores"                           },
+        ].map(({ k, label, badge }) => (
+          <button key={k} className={`sv-tab${activeTab === k ? " on" : ""}`} onClick={() => setActiveTab(k)}>
+            {label}
+            {badge !== undefined && <span className="sv-badge">{badge}</span>}
+          </button>
+        ))}
+      </div>
+
+      {/* saved items */}
+      {activeTab === "items" && (
+        saved.length > 0 ? (
+          <>
+            <p className="result-count">{saved.length} saved item{saved.length !== 1 ? "s" : ""}</p>
+            <div className="product-grid">
+              {saved.map(p => (
+                <div key={p.id} style={{ position:"relative" }}>
+                  <ProductCard p={p} market={market} liked={true} onLike={() => toggleLike(p.id)} />
+                  <button className="sv-remove" onClick={() => toggleLike(p.id)} title="Remove">
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <EmptyState icon={Bookmark} title="Nothing saved yet"
+            sub="Tap the heart on any product to save it here."
+            btnLabel="Browse products" onBtn={() => setTab("browse")} />
+        )
+      )}
+
+      {/* collections */}
+      {activeTab === "collections" && (
+        <div className="sv-collections">
+          {COLLECTIONS.map(col => (
+            <button key={col.name} className="sv-col-card">
+              <span className="sv-col-ic" style={{ background:col.color }}><Gift size={20} color="#fff" strokeWidth={1.5} /></span>
+              <div style={{ flex:1 }}>
+                <p className="sv-col-name">{col.name}</p>
+                <p className="sv-col-n">{col.n} items</p>
+              </div>
+              <ChevronRight size={15} style={{ color:"var(--muted)" }} />
+            </button>
+          ))}
+          <button className="sv-col-card sv-col-new">
+            <Plus size={20} style={{ color:"var(--brand)" }} />
+            <span style={{ color:"var(--brand)", fontWeight:700 }}>New collection</span>
+          </button>
+        </div>
+      )}
+
+      {/* followed stores */}
+      {activeTab === "stores" && (
+        <div className="sv-stores">
+          {FOLLOWED.map((s, i) => {
+            const meta = CATS_MAP[s.category?.name || s.cat] || CATS_MAP.Fashion;
+            return (
+              <div key={s.id} className="sv-store-row">
+                <span className="store-av" style={{ background:`linear-gradient(150deg,${meta.from},${meta.to})` }}>{(s.store_name || s.name || 'S')[0]}</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ fontWeight:700, fontSize:14 }}>{s.store_name || s.name}</p>
+                  <p style={{ fontSize:12, color:"var(--muted)", marginTop:2 }}>Following since May 2026</p>
+                </div>
+                <button className="sv-unfollow">Unfollow</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ─── PAGE: ACCOUNT ──────────────────────────────── */
+interface PageAccountProps {
+  market: any;
+  setMarket: (m: any) => void;
+  products: any[];
+}
+function PageAccount({ market, setMarket, products }: PageAccountProps) {
+  const [section, setSection] = useState("main"); // main | orders | settings
+  const [mktOpen, setMktOpen] = useState(false);
+  const [buyer, setBuyer] = useState<any | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('buyer_token');
+      const storedBuyer = localStorage.getItem('buyer');
+      setBuyer(token && storedBuyer ? JSON.parse(storedBuyer) : null);
+    } catch (e) {
+      console.error(e);
+      setBuyer(null);
+    } finally {
+      setAuthChecked(true);
+    }
+  }, []);
+
+  const handleSignOut = () => {
+    localStorage.removeItem('buyer_token');
+    localStorage.removeItem('buyer');
+    setBuyer(null);
+    setSection('main');
+  };
+
+  /* SIGN-IN GATE — the buyer account area requires a buyer session, not the merchant 'user'/'token' pair */
+  if (authChecked && !buyer) return (
+    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", padding:"64px 20px" }}>
+      <span style={{ width:56, height:56, borderRadius:"50%", background:"var(--brand-tint)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <User size={26} color="var(--brand)" />
+      </span>
+      <h1 className="page-title" style={{ marginTop:16 }}>Sign in to view your account</h1>
+      <p style={{ color:"var(--muted)", fontSize:13, maxWidth:280, marginTop:6 }}>
+        Track orders, save favourites, and check out faster once you're signed in.
+      </p>
+      <div style={{ display:"flex", gap:10, marginTop:20 }}>
+        <a href="/buyer/login" style={{ textDecoration:"none", background:"var(--brand)", color:"#fff", fontWeight:700, fontSize:13, padding:"11px 20px", borderRadius:11 }}>Sign in</a>
+        <a href="/buyer/register" style={{ textDecoration:"none", background:"var(--brand-tint)", color:"var(--brand-dark)", fontWeight:700, fontSize:13, padding:"11px 20px", borderRadius:11 }}>Create account</a>
+      </div>
+    </div>
+  );
+
+  const STATS = [
+    { Icon:ShoppingBag, label:"Orders",     val: String(buyer?.orders_count ?? 0),     color:"#62109F" },
+    { Icon:Heart,       label:"Saved",      val: String(buyer?.saved_count ?? 0),      color:"#c2557a" },
+    { Icon:Star,        label:"Reviews",    val: String(buyer?.reviews_count ?? 0),    color:"#e8a33d" },
+    { Icon:Package,     label:"In transit", val: String(buyer?.in_transit_count ?? 0), color:"#2f6f9e" },
+  ];
+
+  const ORDERS: { id:string; item:string; store:string; date:string; status:string; amount:number; ccy:string }[] =
+    Array.isArray(buyer?.recent_orders) ? buyer.recent_orders : [];
+
+  /* ORDER HISTORY */
+  if (section === "orders") return (
+    <>
+      <div className="sub-header">
+        <button className="back-btn" onClick={() => setSection("main")}><ChevronLeft size={20} /></button>
+        <h1 className="page-title">Order history</h1>
+      </div>
+      {ORDERS.length === 0
+        ? <EmptyState icon={Package} title="No orders yet" sub="Orders you place will show up here so you can track them." btnLabel="Start shopping" onBtn={() => setSection("main")} />
+        : (
+        <div className="orders-list">
+          {ORDERS.map(o => {
+            const st = STATUS_MAP[o.status as keyof typeof STATUS_MAP] || STATUS_MAP.delivered, StIc = st.Icon;
+            const amt = typeof o.amount === 'number' ? o.amount : Number(o.amount) || 0;
+            return (
+              <div key={o.id} className="order-card">
+                <div className="order-top">
+                  <div>
+                    <p className="order-name">{o.item}</p>
+                    <p className="order-meta">{o.store} · {o.date}</p>
+                  </div>
+                  <span className="order-amount">{fmt(amt, o.ccy, market)}</span>
+                </div>
+                <div className="order-bottom">
+                  <span className="status-pill" style={{ background:st.bg, color:st.color }}>
+                    <StIc size={12} />{st.label}
+                  </span>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <button className="o-btn">Details</button>
+                    {o.status === "delivered" && <button className="o-btn o-btn-primary">Review</button>}
+                  </div>
+                </div>
+                <p className="order-id">Order ID: {o.id}</p>
+              </div>
+            );
+          })}
+        </div>
+        )}
+    </>
+  );
+
+  /* SETTINGS */
+  if (section === "settings") return (
+    <>
+      <div className="sub-header">
+        <button className="back-btn" onClick={() => setSection("main")}><ChevronLeft size={20} /></button>
+        <h1 className="page-title">Settings</h1>
+      </div>
+
+      <div className="settings-block">
+        <p className="settings-group-label">Shopping market</p>
+        <button className="settings-row" onClick={() => setMktOpen(o => !o)}>
+          <MapPin size={15} style={{ color:"var(--brand)" }} />
+          <span>Currency &amp; region</span>
+          <span className="sr-val">{market.symbol} {market.ccy} <ChevronDown size={13} /></span>
+        </button>
+        {mktOpen && (
+          <div className="mkt-inline">
+            {MARKETS.map(m => (
+              <button key={m.code} className={`mkt-opt${m.ccy === market.ccy ? " on" : ""}`}
+                style={{ width:"100%" }} onClick={() => { setMarket(m); setMktOpen(false); }}>
+                <span>{m.label}</span><span className="mkt-sym">{m.symbol} {m.ccy}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="settings-block">
+        <p className="settings-group-label">Account</p>
+        {[
+          { Icon:Bell,       label:"Notifications",      val:"On"     },
+          { Icon:Lock,       label:"Password & security"              },
+          { Icon:CreditCard, label:"Payment methods"                  },
+          { Icon:Globe,      label:"Language",           val:"English"},
+        ].map(({ Icon, label, val }) => (
+          <button key={label} className="settings-row">
+            <Icon size={15} style={{ color:"var(--brand)" }} />
+            <span>{label}</span>
+            <span className="sr-val">{val || <ChevronRight size={14} style={{ color:"var(--muted)" }} />}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="settings-block">
+        <p className="settings-group-label">Support</p>
+        {[
+          { Icon:HelpCircle,   label:"Help centre"             },
+          { Icon:MessageCircle,label:"Chat on WhatsApp"        },
+          { Icon:AlertCircle,  label:"Report a problem"        },
+        ].map(({ Icon, label }) => (
+          <button key={label} className="settings-row">
+            <Icon size={15} style={{ color:"var(--brand)" }} />
+            <span>{label}</span>
+            <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
+          </button>
+        ))}
+      </div>
+
+      <button className="logout-btn" onClick={handleSignOut}><LogOut size={14} />Sign out</button>
+    </>
+  );
+
+  /* MAIN ACCOUNT DASHBOARD */
+  const finalProfileName = buyer?.name || "Shopper";
+  const finalProfileEmail = buyer?.email || buyer?.phone_number || "";
+  const isVerifiedBuyer = !!(buyer?.is_verified || buyer?.verified);
+  return (
+    <>
+      <div className="page-header" style={{ marginBottom:0 }}>
+        <h1 className="page-title">Account</h1>
+      </div>
+
+      {/* profile card */}
+      <div className="profile-card">
+        <div className="avatar-wrap">
+          <div className="avatar">{finalProfileName[0]}</div>
+          <button className="avatar-edit"><Camera size={12} color="#fff" /></button>
+        </div>
+        <div style={{ flex:1 }}>
+          <p className="ac-name">{finalProfileName}</p>
+          {finalProfileEmail && <p className="ac-email">{finalProfileEmail}</p>}
+          {isVerifiedBuyer && <span className="verified-badge"><BadgeCheck size={11} />Verified buyer</span>}
+        </div>
+        <button className="edit-btn" onClick={() => setSection("settings")}><Edit3 size={14} /></button>
+      </div>
+
+      {/* stats */}
+      <div className="ac-stats">
+        {STATS.map(({ Icon, label, val, color }) => (
+          <div key={label} className="ac-stat-card">
+            <span className="ac-stat-ic" style={{ background:`${color}18` }}><Icon size={18} color={color} /></span>
+            <span className="ac-stat-val">{val}</span>
+            <span className="ac-stat-label">{label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* recent orders */}
+      <div className="ac-block">
+        <div className="ac-block-head">
+          <h2>Recent orders</h2>
+          {ORDERS.length > 0 && <button className="see-all" onClick={() => setSection("orders")}>See all <ChevronRight size={13} /></button>}
+        </div>
+        {ORDERS.length === 0
+          ? <EmptyState icon={Package} title="No orders yet" sub="When you buy something, it'll show up here." />
+          : ORDERS.slice(0, 2).map(o => {
+          const st = STATUS_MAP[o.status as keyof typeof STATUS_MAP] || STATUS_MAP.delivered, StIc = st.Icon;
+          const amt = typeof o.amount === 'number' ? o.amount : Number(o.amount) || 0;
+          return (
+            <div key={o.id} className="mini-order">
+              <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0 }}>
+                <Thumb cat={products[0]?.category?.name || "Apparel"} h={52} />
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={{ fontWeight:700, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o.item}</p>
+                <p style={{ fontSize:11, color:"var(--muted)", marginTop:2 }}>{o.date}</p>
+                <span className="status-pill" style={{ background:st.bg, color:st.color, marginTop:5, display:"inline-flex" }}>
+                  <StIc size={11} />{st.label}
+                </span>
+              </div>
+              <span style={{ fontSize:13, fontWeight:700, color:"var(--brand-dark)", flexShrink:0 }}>{fmt(amt, o.ccy, market)}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* quick actions */}
+      <div className="ac-block">
+        <div className="ac-block-head"><h2>Quick actions</h2></div>
+        <div className="quick-actions">
+          {[
+            { Icon:Package,    label:"Track order",   color:"#2f6f9e" },
+            { Icon:CreditCard, label:"Payment",        color:"#62109F" },
+            { Icon:Bell,       label:"Alerts",         color:"#d98324" },
+            { Icon:Store,      label:"Open store",     color:"#6a52b8" },
+          ].map(({ Icon, label, color }) => (
+            <button key={label} className="qa-btn">
+              <span className="qa-ic" style={{ background:`${color}18` }}><Icon size={21} color={color} /></span>
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* menu */}
+      <div className="ac-block">
+        {[
+          { Icon:Settings,   label:"Account settings",    onClick:() => setSection("settings") },
+          { Icon:HelpCircle, label:"Help & support",       onClick:() => {}                    },
+          { Icon:TrendingUp, label:"Sell on Frontstore",   onClick:() => {}                    },
+        ].map(({ Icon, label, onClick }) => (
+          <button key={label} className="ac-menu-row" onClick={onClick}>
+            <span className="ac-menu-ic"><Icon size={16} color="var(--brand)" /></span>
+            <span>{label}</span>
+            <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
+          </button>
+        ))}
+        <button className="ac-menu-row" style={{ color:"#d0392b" }} onClick={handleSignOut}>
+          <span className="ac-menu-ic"><LogOut size={16} color="#d0392b" /></span>
+          <span>Sign out</span>
+        </button>
+      </div>
+    </>
+  );
+}
+
+/* ─── ROOT ───────────────────────────────────────── */
+export default function MarketplaceHomeClient({ initialData, initialSettings }: { initialData?: any; initialSettings?: any }) {
+  const [tab,    setTab]    = useState("home");
+  const [market, setMarket] = useState(MARKETS[0]);
+  const [liked,  setLiked]  = useState<Record<string, boolean>>({});
+  const toggleLike = (id: string) => setLiked(s => ({ ...s, [id]: !s[id] }));
+
+  // Auto-detect the shopper's market/currency from their location so items & prices show in their local context by default
+  useEffect(() => {
+    let cancelled = false;
+    const detectMarket = async () => {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (!res.ok) return;
+        const data = await res.json();
+        const found = MARKETS.find(m => m.code === data?.country_code);
+        if (found && !cancelled) setMarket(found);
+      } catch (e) {
+        console.warn('Location auto-detection failed, using default market:', e);
+      }
+    };
+    detectMarket();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Fetch live exchange rates so converted prices reflect real rates rather than the static estimates
+  const [, bumpRates] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    const loadRates = async () => {
+      try {
+        const res = await fetch('https://open.er-api.com/v6/latest/NGN');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.rates && !cancelled) {
+          liveRates = data.rates;
+          bumpRates(n => n + 1); // re-render so prices reformat with live rates
+        }
+      } catch (e) {
+        console.warn('Live exchange rates unavailable, using static estimates:', e);
+      }
+    };
+    loadRates();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Live database states
+  const [products, setProducts] = useState<any[]>(() => {
+    const prods = initialData?.products;
+    return Array.isArray(prods) ? prods : prods ? Object.values(prods) : [];
+  });
+  const [categories, setCategories] = useState<any[]>(() => {
+    const cats = initialData?.categories;
+    return Array.isArray(cats) ? cats : cats ? Object.values(cats) : [];
+  });
+  const [stores, setStores] = useState<any[]>(() => {
+    const st = initialData?.stores;
+    return Array.isArray(st) ? st : st ? Object.values(st) : [];
+  });
+
+  const [activeCat, setActiveCat] = useState("All");
+  const [q, setQ] = useState("");
+  const [searchFocusSignal, setSearchFocusSignal] = useState(0);
+
+  // Populate unique stores list based on products if stores list is empty from API
+  const finalStores = useMemo(() => {
+    if (stores.length > 0) return stores;
+    const storeMap = new Map();
+    products.forEach(p => {
+      if (p.store && p.store.id && !storeMap.has(p.store.id)) {
+        storeMap.set(p.store.id, p.store);
+      }
+    });
+    return Array.from(storeMap.values());
+  }, [stores, products]);
+
+  // Fetch live marketplace records on mount
+  useEffect(() => {
+    const fetchMarketplace = async () => {
+      const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+      try {
+        const res = await fetch(`${configuredApiUrl}/v1/public/marketplace`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data) {
+            const prods = json.data.products;
+            const cats = json.data.categories;
+            const st = json.data.stores;
+            setProducts(Array.isArray(prods) ? prods : prods ? Object.values(prods) : []);
+            setCategories(Array.isArray(cats) ? cats : cats ? Object.values(cats) : []);
+            setStores(Array.isArray(st) ? st : st ? Object.values(st) : []);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load live marketplace data:", err);
+      }
+    };
+    fetchMarketplace();
+  }, []);
+
+  const pages = {
+    home:    <PageHome    market={market} liked={liked} toggleLike={toggleLike} setTab={setTab} products={products} categories={categories} stores={finalStores} setActiveCat={setActiveCat} q={q} setQ={setQ} />,
+    browse:  <PageBrowse  market={market} liked={liked} toggleLike={toggleLike} products={products} categories={categories} activeCat={activeCat} setActiveCat={setActiveCat} q={q} setQ={setQ} focusSignal={searchFocusSignal} />,
+    saved:   <PageSaved   market={market} liked={liked} toggleLike={toggleLike} setTab={setTab} products={products} stores={finalStores} />,
+    account: <PageAccount market={market} setMarket={setMarket} products={products} />,
+  };
+
+  return (
+    <Shell tab={tab} setTab={setTab} market={market} setMarket={setMarket} onSearchTap={() => setSearchFocusSignal(s => s + 1)}>
+      {/* dangerouslySetInnerHTML prevents React from diffing style content during hydration, avoiding mismatches from browser extensions that modify <style> tags */}
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <div className="inner-wrap" key={tab}>
+        {pages[tab as keyof typeof pages] || pages.home}
+        <div style={{ height:80 }} />
+      </div>
+    </Shell>
+  );
+}
+
+/* ─── STYLES ─────────────────────────────────────── */
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+
+/* tokens */
+:root{
+  --bg:#f7f2e9; --surface:#fffdf8; --ink:#16261d; --muted:#6c7a70;
+  --brand:#62109F; --brand-dark:#48097A; --brand-tint:#f0e0ff;
+  --accent:#e8a33d; --accent-soft:#fbeccf; --line:#e9e1d2;
+  --nav-h:62px; --r:18px;
+}
+
+/* dark mode token overrides */
+:root.dark .root, .root:is(:root.dark *) { color-scheme: dark; }
+:root.dark {
+  --bg: hsl(240,14%,8%);
+  --surface: hsl(240,12%,11%);
+  --ink: hsl(210,30%,94%);
+  --muted: hsl(215,14%,52%);
+  --line: hsl(240,10%,18%);
+  --brand-tint: hsl(277,60%,12%);
+  --accent-soft: hsl(38,60%,12%);
+}
+@media(prefers-color-scheme:dark){
+  :root:not(.light) {
+    --bg: hsl(240,14%,8%);
+    --surface: hsl(240,12%,11%);
+    --ink: hsl(210,30%,94%);
+    --muted: hsl(215,14%,52%);
+    --line: hsl(240,10%,18%);
+    --brand-tint: hsl(277,60%,12%);
+    --accent-soft: hsl(38,60%,12%);
+  }
+}
+
+/* dark mode element overrides (fixed rgba nav backgrounds) */
+:root.dark .top-nav { background: rgba(14,12,22,.92) !important; }
+:root.dark .bottom-nav { background: rgba(14,12,22,.92) !important; }
+:root.dark .hero-search, :root.dark .nav-search { background: var(--surface) !important; color: var(--ink) !important; }
+:root.dark .fs-drawer { background: var(--surface) !important; }
+:root.dark .mkt-dropdown { background: var(--surface) !important; }
+
+/* reset */
+.root *{box-sizing:border-box;margin:0;padding:0;}
+.root button{font-family:inherit;cursor:pointer;border:none;background:none;}
+.root a{text-decoration:none;color:inherit;}
+.root{font-family:'Hanken Grotesk',sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* kente stripe */
+.kente-stripe{height:4px;background:repeating-linear-gradient(90deg,var(--brand) 0 22px,var(--accent) 22px 32px,#c2557a 32px 40px,var(--brand-dark) 40px 52px);}
+
+@keyframes rise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+@keyframes fade{from{opacity:0;}to{opacity:1;}}
+
+/* ── top nav ── */
+.top-nav{position:sticky;top:0;z-index:40;background:rgba(247,242,233,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+.nav-inner{display:flex;align-items:center;gap:12px;padding:0 18px;height:var(--nav-h);max-width:1280px;margin:0 auto;}
+.icon-btn{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;color:var(--ink);flex-shrink:0;}
+.hamburger{display:flex;}
+.logo{font-family:'Bricolage Grotesque';font-weight:800;font-size:21px;letter-spacing:-.02em;color:var(--ink);display:inline-flex;align-items:center;flex-shrink:0;}
+.logo span{color:var(--brand);}
+.logo i{width:6px;height:6px;border-radius:50%;background:var(--accent);margin-left:3px;margin-bottom:-8px;}
+.logo.sm{font-size:18px;}
+
+.nav-search-wrap{display:none;position:relative;flex:1;max-width:440px;}
+.nav-si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+.nav-search{width:100%;padding:10px 36px;border-radius:11px;border:1.5px solid var(--line);background:var(--surface);font-size:14px;font-family:inherit;}
+.nav-search:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-tint);}
+
+.desk-links{display:none;gap:2px;}
+.desk-links button{font-size:14px;font-weight:600;padding:8px 12px;border-radius:10px;color:var(--ink);}
+.desk-links button:hover{background:var(--brand-tint);color:var(--brand-dark);}
+
+.nav-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+.mkt-btn{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--brand-dark);background:var(--brand-tint);padding:8px 12px;border-radius:10px;}
+.signin-btn{font-size:13.5px;font-weight:600;padding:8px 6px;}
+.open-store-btn{display:none;font-size:13px;font-weight:700;background:var(--brand);color:#fff;padding:9px 15px;border-radius:11px;}
+.open-store-btn:hover{background:var(--brand-dark);}
+
+.mkt-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:230px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:8px;box-shadow:0 18px 36px rgba(20,38,29,.15);z-index:60;animation:rise .18s ease;}
+.mkt-dh{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:6px 8px;}
+.mkt-opt{width:100%;display:flex;justify-content:space-between;align-items:center;padding:9px 8px;border-radius:99px;font-size:13px;font-weight:500;}
+.mkt-opt:hover{background:var(--bg);}
+.mkt-opt.on{background:var(--brand-tint);color:var(--brand-dark);font-weight:700;}
+.mkt-sym{color:var(--muted);font-size:11.5px;}
+.mkt-inline{background:var(--bg);border-radius:10px;padding:6px;margin-top:4px;}
+
+/* ── drawer ── */
+.scrim{position:fixed;inset:0;background:rgba(16,38,29,.45);opacity:0;pointer-events:none;transition:.25s;z-index:60;}
+.scrim.show{opacity:1;pointer-events:auto;}
+.fs-drawer{position:fixed;top:0;left:0;height:100%;width:280px;max-width:84%;background:var(--surface);z-index:70;transform:translateX(-102%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;padding:16px;box-shadow:0 0 60px rgba(16,38,29,.2);}
+.fs-drawer.open{transform:none;}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.drawer-nav{display:flex;flex-direction:column;}
+.drawer-link{padding:14px 6px;font-size:15px;font-weight:600;border-bottom:1px solid var(--line);text-align:left;}
+.drawer-sell{margin-top:auto;background:var(--brand-tint);border-radius:16px;padding:16px;}
+.drawer-sell p{font-weight:700;font-size:14px;margin-bottom:10px;}
+.ds-btn{display:inline-flex;align-items:center;gap:6px;background:var(--brand);color:#fff;font-weight:700;font-size:13px;padding:10px 14px;border-radius:11px;}
+.drawer-sell span{display:block;margin-top:8px;font-size:11.5px;color:var(--brand-dark);font-weight:600;}
+
+/* ── page layout ── */
+.page-wrap{max-width:1280px;margin:0 auto;}
+.inner-wrap{padding:0 18px;animation:fade .22s ease;}
+
+/* page headings */
+.page-header{padding-top:28px;margin-bottom:20px;}
+.page-title{font-family:'Bricolage Grotesque';font-weight:800;font-size:28px;letter-spacing:-.02em;}
+.page-sub{font-size:14px;color:var(--muted);margin-top:4px;}
+.sub-header{display:flex;align-items:center;gap:10px;padding-top:24px;margin-bottom:22px;}
+.back-btn{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--surface);}
+
+/* section */
+.sec{padding:28px 0 6px;}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;}
+.sec-title{font-family:'Bricolage Grotesque';font-weight:700;font-size:21px;letter-spacing:-.02em;display:inline-flex;align-items:center;gap:7px;}
+.sec-icon{color:var(--accent);}
+.see-all{font-size:13px;font-weight:600;color:var(--brand-dark);display:inline-flex;align-items:center;gap:2px;}
+.see-all:hover{color:var(--brand);}
+.sp-badge{font-size:11px;color:var(--muted);font-weight:600;background:var(--accent-soft);padding:3px 9px;border-radius:8px;}
+.fresh-tag{font-size:11.5px;color:var(--brand-dark);font-weight:600;}
+.result-count{font-size:13px;color:var(--muted);margin-bottom:14px;}
+
+/* hero */
+.hero{position:relative;padding:44px 0 32px;display:flex;flex-direction:column;overflow:hidden;}
+.hero-glow{position:absolute;top:-100px;right:-60px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(15,174,114,.22),transparent 70%);pointer-events:none;}
+.hero-copy{position:relative;max-width:560px;}
+.hero-visual{display:none;}
+.eyebrow{font-size:12px;font-weight:700;color:var(--brand-dark);text-transform:uppercase;letter-spacing:.07em;}
+.hero-h1{font-family:'Bricolage Grotesque';font-weight:800;font-size:32px;line-height:1.06;letter-spacing:-.03em;margin:9px 0;}
+.hero-sub{font-size:14.5px;color:var(--muted);line-height:1.55;}
+.hero-search-wrap{position:relative;margin:17px 0 12px;}
+.hs-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);}
+.hero-search{width:100%;padding:14px 42px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);font-size:14px;font-family:inherit;box-shadow:0 5px 16px rgba(20,38,29,.05);}
+.hero-search:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-tint);}
+.hs-clr{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);width:26px;height:26px;display:grid;place-items:center;}
+.chip-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:5px;margin-top:14px;scrollbar-width:none;}
+.chip-row::-webkit-scrollbar{display:none;}
+.chip{flex:0 0 auto;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);}
+.chip:hover{background:var(--brand-tint);border-color:var(--brand);color:var(--brand-dark);}
+.trust-row{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;}
+.trust-row span{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--brand-dark);}
+
+/* hero visual */
+.hv-card{border-radius:16px;padding:17px 14px;display:flex;flex-direction:column;gap:7px;animation:rise .5s both;position:relative;overflow:hidden;}
+.hv-card::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='1' fill='rgba(255,255,255,.12)'/%3E%3C/svg%3E");}
+.hv-name{font-size:13px;font-weight:700;color:#fff;position:relative;}
+.hv-price{font-family:'Bricolage Grotesque';font-size:17px;font-weight:800;color:#fff;position:relative;}
+
+/* categories */
+.cat-scroll{display:flex;gap:11px;overflow-x:auto;padding-bottom:7px;scrollbar-width:none;}
+.cat-scroll::-webkit-scrollbar{display:none;}
+.cat-card{flex:0 0 auto;width:112px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 10px;display:flex;flex-direction:column;align-items:center;text-align:center;transition:transform .2s,border-color .2s,box-shadow .2s;gap:8px;}
+.cat-card:hover{transform:translateY(-2px);border-color:var(--brand);box-shadow:0 6px 16px rgba(16,38,29,.05);}
+.cat-ic{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;}
+.cat-name{font-size:13px;font-weight:700;color:var(--ink);margin-top:2px;}
+.cat-n{font-size:11px;color:var(--muted);}
+
+/* product grid */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-top:8px;}
+@media(min-width:768px){.product-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;}}
+
+/* product card */
+.p-card{display:flex;flex-direction:column;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);overflow:hidden;position:relative;transition:transform .2s,box-shadow .2s;height:100%;cursor:pointer;text-decoration:none;color:inherit;}
+.p-card:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(16,38,29,.08);}
+.thumb-grain{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.15) 0%,transparent 80%);pointer-events:none;}
+.thumb-cat{position:absolute;bottom:8px;left:10px;font-size:10px;font-weight:700;color:rgba(255,255,255,.95);text-transform:uppercase;letter-spacing:.05em;}
+.tag{position:absolute;top:10px;left:10px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;z-index:10;}
+.tag-sp{background:var(--accent);color:#fff;}
+.like-btn{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.88);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:10;transition:transform .15s;}
+.like-btn:hover{transform:scale(1.1);}
+.like-btn.on{background:rgba(255,255,255,.95);}
+.p-body{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1;}
+.p-name{font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.p-store{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);margin-top:2px;}
+.p-store svg{color:var(--brand);margin-right:1px;}
+.dot{margin:0 3px;opacity:.5;}
+.p-foot{display:flex;align-items:flex-end;margin-top:auto;padding-top:10px;}
+.p-price{font-family:'Bricolage Grotesque';font-size:16px;font-weight:800;color:var(--brand-dark);}
+.approx{font-size:10px;color:var(--muted);margin-left:3px;text-transform:uppercase;font-weight:600;}
+
+/* store cards */
+.store-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:7px;scrollbar-width:none;}
+.store-scroll::-webkit-scrollbar{display:none;}
+.store-card{flex:0 0 auto;width:190px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 14px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;transition:transform .2s,box-shadow .2s;}
+.store-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(16,38,29,.05);}
+.store-av{width:48px;height:48px;border-radius:50%;color:#fff;font-family:'Bricolage Grotesque';font-size:18px;font-weight:800;display:grid;place-items:center;margin-bottom:10px;}
+.store-name{font-size:14px;font-weight:700;color:var(--ink);display:inline-flex;align-items:center;gap:3px;margin-bottom:2px;}
+.store-meta{font-size:11.5px;color:var(--muted);display:inline-flex;align-items:center;gap:3px;}
+.rising-tag{position:absolute;top:10px;right:10px;font-size:9.5px;font-weight:700;color:var(--brand-dark);background:var(--brand-tint);padding:2px 7px;border-radius:6px;}
+.store-url{font-size:11px;color:var(--brand);font-weight:600;margin-top:10px;}
+
+/* latest band */
+.latest-band{background:linear-gradient(180deg,transparent,var(--surface));border-radius:24px;padding:28px 18px 18px;}
+
+/* steps list */
+.steps-list{display:grid;grid-template-columns:1fr;gap:14px;}
+@media(min-width:640px){.steps-list{grid-template-columns:repeat(3,1fr);gap:18px;}}
+.step-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;position:relative;display:flex;flex-direction:column;gap:8px;}
+.step-num{position:absolute;top:12px;right:14px;font-family:'Bricolage Grotesque';font-size:36px;font-weight:800;color:var(--brand-tint);line-height:1;opacity:.6;}
+.step-ic{width:38px;height:38px;border-radius:10px;background:var(--brand-tint);color:var(--brand-dark);display:grid;place-items:center;}
+.step-card h3{font-size:15.5px;font-weight:700;}
+.step-card p{font-size:13px;color:var(--muted);line-height:1.5;}
+
+/* faq list */
+.faq-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;}
+.faq-item{border-bottom:1px solid var(--line);background:var(--surface);}
+.faq-item:last-child{border-bottom:none;}
+.faq-q{width:100%;display:flex;justify-content:space-between;align-items:center;padding:16px 18px;font-size:14px;font-weight:700;color:var(--ink);text-align:left;}
+.faq-body{max-height:0;overflow:hidden;transition:max-height .25s ease-out;}
+.faq-item.open .faq-body{max-height:200px;}
+.faq-body p{padding:0 18px 16px;font-size:13.5px;color:var(--muted);line-height:1.6;}
+
+/* sell band */
+.sell-band{margin:36px 0 20px;border-radius:24px;background:linear-gradient(135deg,var(--brand-dark),var(--brand));color:#fff;overflow:hidden;position:relative;}
+.sell-inner{padding:32px 20px;position:relative;z-index:10;}
+@media(min-width:768px){.sell-inner{padding:48px 40px;}}
+.sell-copy{max-width:540px;display:flex;flex-direction:column;gap:10px;}
+.sell-copy h2{font-family:'Bricolage Grotesque';font-size:24px;font-weight:800;line-height:1.15;letter-spacing:-.02em;}
+@media(min-width:768px){.sell-copy h2{font-size:30px;}}
+.sell-copy p{font-size:14px;color:rgba(255,255,255,.85);line-height:1.55;}
+.sell-cta{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--brand-dark);font-weight:750;font-size:13.5px;padding:12px 20px;border-radius:11px;box-shadow:0 6px 20px rgba(0,0,0,.1);transition:transform .15s;}
+.sell-cta:hover{transform:translateY(-2px);}
+.sell-url{font-size:11.5px;color:rgba(255,255,255,.6);font-weight:600;}
+.sell-blob{position:absolute;top:-40%;right:-10%;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none;}
+
+/* footer */
+.site-footer{background:var(--surface);border-top:1px solid var(--line);padding:36px 18px 24px;margin-top:40px;}
+.footer-top{margin-bottom:24px;}
+.footer-tag{font-size:13.5px;color:var(--muted);margin-top:6px;}
+.footer-cols{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:32px;}
+@media(min-width:640px){.footer-cols{grid-template-columns:repeat(4,1fr);}}
+.footer-cols h4{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;}
+.footer-cols a{display:block;font-size:13px;color:var(--muted);padding:4px 0;}
+.footer-cols a:hover{color:var(--brand);}
+.footer-note{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;text-align:center;}
+
+/* toolbar */
+.toolbar{display:flex;gap:10px;margin-bottom:14px;padding-top:10px;}
+.tb-search{width:100%;padding:10px 12px 10px 36px;border-radius:11px;border:1.5px solid var(--line);background:var(--surface);font-size:14px;font-family:inherit;}
+.tb-search:focus{outline:none;border-color:var(--brand);}
+.filter-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink);border:1.5px solid var(--line);background:var(--surface);padding:10px 14px;border-radius:11px;cursor:pointer;}
+.filter-btn.on{border-color:var(--brand);color:var(--brand);background:var(--brand-tint);}
+
+/* filter panel */
+.filter-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px;animation:rise .2s ease;}
+.fp-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+.fp-pills{display:flex;flex-wrap:wrap;gap:6px;}
+.fp-pill{font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer;}
+.fp-pill.on{background:var(--brand-tint);border-color:var(--brand);color:var(--brand-dark);font-weight:700;}
+
+/* category pills */
+.cat-pills-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:5px;margin-bottom:14px;scrollbar-width:none;}
+.cat-pills-row::-webkit-scrollbar{display:none;}
+.cat-pill{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);cursor:pointer;}
+.cat-pill.on{background:var(--brand-tint);border-color:var(--brand);color:var(--brand-dark);font-weight:750;}
+
+/* empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:40px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);color:var(--muted);}
+.empty-state p{font-size:15px;font-weight:700;color:var(--ink);}
+.empty-state span{font-size:13px;}
+.es-btn{display:inline-flex;align-items:center;background:var(--brand);color:#fff;font-weight:700;font-size:12.5px;padding:8px 16px;border-radius:8px;margin-top:6px;}
+
+/* saved page */
+.sv-tabs{display:flex;border-bottom:1.5px solid var(--line);margin-bottom:16px;}
+.sv-tab{padding:10px 14px;font-size:14px;font-weight:600;color:var(--muted);position:relative;cursor:pointer;}
+.sv-tab.on{color:var(--brand-dark);font-weight:700;}
+.sv-tab.on::after{content:"";position:absolute;bottom:-1.5px;left:0;right:0;height:2px;background:var(--brand);}
+.sv-badge{font-size:10.5px;font-weight:700;background:var(--line);color:var(--ink);padding:1px 5px;border-radius:6px;margin-left:4px;}
+.sv-remove{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;z-index:20;color:#c0392b;}
+.sv-collections{display:grid;grid-template-columns:1fr;gap:10px;}
+@media(min-width:640px){.sv-collections{grid-template-columns:repeat(3,1fr);}}
+.sv-col-card{width:100%;display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);text-align:left;cursor:pointer;}
+.sv-col-ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;}
+.sv-col-name{font-size:14px;font-weight:700;color:var(--ink);}
+.sv-col-n{font-size:11.5px;color:var(--muted);margin-top:1px;}
+.sv-col-new{border-style:dashed;border-width:1.5px;justify-content:center;font-size:13.5px;}
+
+.sv-stores{display:flex;flex-direction:column;gap:10px;}
+.sv-store-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);}
+.sv-unfollow{font-size:11.5px;font-weight:700;color:var(--muted);border:1px solid var(--line);padding:5px 10px;border-radius:8px;}
+
+/* order history */
+.orders-list{display:flex;flex-direction:column;gap:12px;}
+.order-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;}
+.order-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.order-name{font-size:14.5px;font-weight:700;color:var(--ink);}
+.order-meta{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.order-amount{font-family:'Bricolage Grotesque';font-size:15.5px;font-weight:800;color:var(--brand-dark);}
+.order-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px dashed var(--line);}
+.status-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;}
+.o-btn{font-size:12px;font-weight:700;color:var(--ink);border:1px solid var(--line);padding:6px 12px;border-radius:8px;cursor:pointer;}
+.o-btn-primary{background:var(--brand);color:#fff;border-color:var(--brand);}
+.order-id{font-size:10.5px;color:var(--muted);margin-top:10px;text-align:right;}
+
+/* settings */
+.settings-block{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px;}
+.settings-group-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+.settings-row{width:100%;display:flex;align-items:center;gap:10px;padding:12px 6px;border-bottom:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--ink);text-align:left;}
+.settings-row:last-child{border-bottom:none;}
+.sr-val{margin-left:auto;color:var(--muted);font-size:12.5px;display:inline-flex;align-items:center;gap:4px;}
+.logout-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13.5px;font-weight:750;color:#c0392b;border:1.5px solid var(--line);background:var(--surface);padding:12px;border-radius:11px;margin-top:10px;}
+
+/* profile card */
+.profile-card{display:flex;align-items:center;gap:14px;padding:16px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px;}
+.avatar-wrap{position:relative;width:56px;height:56px;flex-shrink:0;}
+.avatar{width:100%;height:100%;border-radius:50%;background:var(--brand-tint);color:var(--brand-dark);font-family:'Bricolage Grotesque';font-size:24px;font-weight:800;display:grid;place-items:center;}
+.avatar-edit{position:absolute;bottom:0;right:0;width:18px;height:18px;border-radius:50%;background:var(--brand);display:grid;place-items:center;border:1.5px solid var(--surface);}
+.ac-name{font-size:16px;font-weight:700;color:var(--ink);}
+.ac-email{font-size:12.5px;color:var(--muted);margin-top:1px;}
+.verified-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--brand-dark);background:var(--brand-tint);padding:2px 6px;border-radius:5px;margin-top:4px;}
+.edit-btn{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--line);color:var(--muted);margin-left:auto;}
+
+/* stats */
+.ac-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.ac-stat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 4px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.ac-stat-ic{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;margin-bottom:6px;}
+.ac-stat-val{font-family:'Bricolage Grotesque';font-size:16px;font-weight:800;color:var(--ink);}
+.ac-stat-label{font-size:10.5px;color:var(--muted);margin-top:2px;}
+
+/* account blocks */
+.ac-block{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px;}
+.ac-block-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.ac-block-head h2{font-family:'Bricolage Grotesque';font-size:15px;font-weight:800;}
+.mini-order{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+.mini-order:last-child{border-bottom:none;}
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.qa-btn{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11.5px;font-weight:700;color:var(--ink);text-align:center;}
+.qa-ic{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;margin-bottom:2px;}
+
+.ac-menu-row{width:100%;display:flex;align-items:center;gap:10px;padding:12px 6px;border-bottom:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--ink);text-align:left;}
+.ac-menu-row:last-child{border-bottom:none;}
+.ac-menu-ic{width:24px;height:24px;border-radius:6px;background:var(--brand-tint);display:grid;place-items:center;}
+
+/* bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:58px;background:rgba(255,253,248,.92);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;z-index:50;padding-bottom:env(safe-area-inset-bottom);}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--muted);flex:1;height:100%;justify-content:center;}
+.bn-item.on{color:var(--brand-dark);font-weight:700;}
+.bn-primary{width:44px;height:44px;border-radius:50%;background:var(--brand) !important;display:grid;place-items:center;box-shadow:0 4px 12px rgba(98,16,159,.35);transform:translateY(-8px);flex-shrink:0;}
+
+@media(min-width:768px){
+  .bottom-nav{display:none;}
+  .hamburger{display:none !important;}
+  .nav-search-wrap{display:block;}
+  .desk-links{display:flex;}
+  .open-store-btn{display:block;}
+  .hero{flex-direction:row;align-items:center;justify-content:space-between;padding:60px 0 40px;}
+  .hero-copy{flex:1;}
+  .hero-visual{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;width:340px;flex-shrink:0;margin-left:40px;}
+  .hero-h1{font-size:46px;}
+}
+`;

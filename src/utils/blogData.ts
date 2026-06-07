@@ -51,7 +51,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "publishedAt": "2026-05-10",
     "updatedAt": "2026-05-28",
     "gradientFrom": "hsl(142, 71%, 45%)",
-    "gradientTo": "hsl(158, 84%, 39%)",
+    "gradientTo": "hsl(277, 100%, 41%)",
     "introduction": "Lagos is the fashion capital of West Africa, and fashion boutiques are booming. With over 20 million people in Lagos, reaching customers through physical stores can be incredibly expensive and slow. That is why smart boutiques are leveraging WhatsApp commerce. By setting up a digital catalog, you can share your store link in your Instagram bio, showcase your latest arrivals, and secure sales directly in your WhatsApp chat.",
     "sections": [
       {
@@ -727,7 +727,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
     "gradientFrom": "hsl(142, 71%, 45%)",
-    "gradientTo": "hsl(158, 84%, 39%)",
+    "gradientTo": "hsl(277, 100%, 41%)",
     "introduction": "In Nairobi, fashion is a powerful statement of expression, drawing heavy traffic to boutiques around Westlands and Kilimani. However, scaling a physical boutique is capital-intensive. Modern styling brands are utilizing digitized catalogs to showcase their latest looks, manage collections, and collect customer size preferences instantly, avoiding endless back-and-forth chat loops.",
     "sections": [
       {
@@ -919,7 +919,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
     "gradientFrom": "hsl(142, 71%, 45%)",
-    "gradientTo": "hsl(158, 84%, 39%)",
+    "gradientTo": "hsl(277, 100%, 41%)",
     "introduction": "In Accra, fashion is a powerful statement of expression, drawing heavy traffic to boutiques around East Legon and Osu. However, scaling a physical boutique is capital-intensive. Modern styling brands are utilizing digitized catalogs to showcase their latest looks, manage collections, and collect customer size preferences instantly, avoiding endless back-and-forth chat loops.",
     "sections": [
       {
@@ -1111,7 +1111,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
     "gradientFrom": "hsl(142, 71%, 45%)",
-    "gradientTo": "hsl(158, 84%, 39%)",
+    "gradientTo": "hsl(277, 100%, 41%)",
     "introduction": "In Johannesburg, fashion is a powerful statement of expression, drawing heavy traffic to boutiques around Sandton and Rosebank. However, scaling a physical boutique is capital-intensive. Modern styling brands are utilizing digitized catalogs to showcase their latest looks, manage collections, and collect customer size preferences instantly, avoiding endless back-and-forth chat loops.",
     "sections": [
       {
@@ -1495,7 +1495,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
     "gradientFrom": "hsl(142, 71%, 45%)",
-    "gradientTo": "hsl(158, 84%, 39%)",
+    "gradientTo": "hsl(277, 100%, 41%)",
     "introduction": "In Mombasa, fashion is a powerful statement of expression, drawing heavy traffic to boutiques around Nyali and Bamburi. However, scaling a physical boutique is capital-intensive. Modern styling brands are utilizing digitized catalogs to showcase their latest looks, manage collections, and collect customer size preferences instantly, avoiding endless back-and-forth chat loops.",
     "sections": [
       {
@@ -1687,7 +1687,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
     "gradientFrom": "hsl(142, 71%, 45%)",
-    "gradientTo": "hsl(158, 84%, 39%)",
+    "gradientTo": "hsl(277, 100%, 41%)",
     "introduction": "In Cape Town, fashion is a powerful statement of expression, drawing heavy traffic to boutiques around Woodstock and Green Point. However, scaling a physical boutique is capital-intensive. Modern styling brands are utilizing digitized catalogs to showcase their latest looks, manage collections, and collect customer size preferences instantly, avoiding endless back-and-forth chat loops.",
     "sections": [
       {
@@ -1879,7 +1879,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
     "gradientFrom": "hsl(142, 71%, 45%)",
-    "gradientTo": "hsl(158, 84%, 39%)",
+    "gradientTo": "hsl(277, 100%, 41%)",
     "introduction": "In Port Harcourt, fashion is a powerful statement of expression, drawing heavy traffic to boutiques around GRA and Peter Odili Road. However, scaling a physical boutique is capital-intensive. Modern styling brands are utilizing digitized catalogs to showcase their latest looks, manage collections, and collect customer size preferences instantly, avoiding endless back-and-forth chat loops.",
     "sections": [
       {
@@ -2071,7 +2071,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
     "gradientFrom": "hsl(142, 71%, 45%)",
-    "gradientTo": "hsl(158, 84%, 39%)",
+    "gradientTo": "hsl(277, 100%, 41%)",
     "introduction": "In Abuja, fashion is a powerful statement of expression, drawing heavy traffic to boutiques around Wuse II and Garki. However, scaling a physical boutique is capital-intensive. Modern styling brands are utilizing digitized catalogs to showcase their latest looks, manage collections, and collect customer size preferences instantly, avoiding endless back-and-forth chat loops.",
     "sections": [
       {
@@ -2263,7 +2263,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
     "gradientFrom": "hsl(142, 71%, 45%)",
-    "gradientTo": "hsl(158, 84%, 39%)",
+    "gradientTo": "hsl(277, 100%, 41%)",
     "introduction": "In Kumasi, fashion is a powerful statement of expression, drawing heavy traffic to boutiques around KNUST and Kejetia. However, scaling a physical boutique is capital-intensive. Modern styling brands are utilizing digitized catalogs to showcase their latest looks, manage collections, and collect customer size preferences instantly, avoiding endless back-and-forth chat loops.",
     "sections": [
       {

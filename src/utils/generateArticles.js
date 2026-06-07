@@ -22,7 +22,7 @@ const ORIGINAL_ARTICLES = [
     publishedAt: '2026-05-10',
     updatedAt: '2026-05-28',
     gradientFrom: 'hsl(142, 71%, 45%)',
-    gradientTo: 'hsl(158, 84%, 39%)',
+    gradientTo: 'hsl(277, 100%, 41%)',
     introduction: 'Lagos is the fashion capital of West Africa, and fashion boutiques are booming. With over 20 million people in Lagos, reaching customers through physical stores can be incredibly expensive and slow. That is why smart boutiques are leveraging WhatsApp commerce. By setting up a digital catalog, you can share your store link in your Instagram bio, showcase your latest arrivals, and secure sales directly in your WhatsApp chat.',
     sections: [
       {
@@ -523,7 +523,7 @@ const categories = ['Fashion', 'Beauty', 'Food', 'Electronics', 'Retail'];
 
 // Curated beautiful gradients to match categories and feel extremely premium
 const CATEGORY_GRADIENTS = {
-  Fashion: { from: 'hsl(142, 71%, 45%)', to: 'hsl(158, 84%, 39%)' },
+  Fashion: { from: 'hsl(290, 100%, 50%)', to: 'hsl(277, 100%, 41%)' },
   Beauty: { from: 'hsl(250, 84%, 60%)', to: 'hsl(270, 70%, 50%)' },
   Food: { from: 'hsl(38, 92%, 50%)', to: 'hsl(25, 90%, 45%)' },
   Electronics: { from: 'hsl(200, 98%, 45%)', to: 'hsl(185, 90%, 40%)' },
