@@ -83,6 +83,18 @@ interface Category {
   slug: string;
 }
 
+interface ProductInfo {
+  id: string;
+  name: string;
+  slug: string;
+  price: number | string;
+  image_url?: string | null;
+  is_sponsored: boolean;
+  sponsored_until?: string | null;
+  store?: { id: string; store_name: string; username: string } | null;
+  category?: { id: string; name: string } | null;
+}
+
 interface SystemSettings {
   app_name: string;
   logo_url: string;
@@ -101,7 +113,7 @@ interface SystemSettings {
   homepage_content: string;
 }
 
-type AdminTab = 'overview' | 'stores' | 'orders' | 'categories' | 'withdrawals' | 'verifications' | 'coupons' | 'settings';
+type AdminTab = 'overview' | 'stores' | 'products' | 'orders' | 'categories' | 'withdrawals' | 'verifications' | 'coupons' | 'settings';
 
 const defaultSettings: SystemSettings = {
   app_name: '',
@@ -124,6 +136,7 @@ const defaultSettings: SystemSettings = {
 const tabs: Array<{ id: AdminTab; label: string; icon: React.ReactNode }> = [
   { id: 'overview', label: 'Overview', icon: <BarChart3 size={17} /> },
   { id: 'stores', label: 'Stores', icon: <Store size={17} /> },
+  { id: 'products', label: 'Products', icon: <Package size={17} /> },
   { id: 'orders', label: 'Orders', icon: <ShoppingBag size={17} /> },
   { id: 'categories', label: 'Categories', icon: <Tag size={17} /> },
   { id: 'withdrawals', label: 'Payouts', icon: <DollarSign size={17} /> },
@@ -166,6 +179,13 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
+
+  const [products, setProducts] = useState<ProductInfo[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+  const [productsCurrentPage, setProductsCurrentPage] = useState(1);
+  const [productsLastPage, setProductsLastPage] = useState(1);
+  const [sponsoredOnly, setSponsoredOnly] = useState(false);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
@@ -337,6 +357,37 @@ export default function AdminPage() {
       if (error.message !== 'Session expired') toast.error(error.message);
     } finally {
       setStoresLoading(false);
+    }
+  };
+
+  const loadProducts = async (page = 1, search = '', sponsoredFilter = sponsoredOnly) => {
+    if (!token) return;
+    try {
+      setProductsLoading(true);
+      const url = `${apiUrl}/v1/admin/products?page=${page}&search=${encodeURIComponent(search)}${sponsoredFilter ? '&sponsored=1' : ''}`;
+      const res = await fetch(url, { headers: getHeaders() });
+      const json = await handleFetchResponse(res, 'Could not fetch products directory.');
+      setProducts(json.data?.data || []);
+      setProductsCurrentPage(json.data?.current_page || 1);
+      setProductsLastPage(json.data?.last_page || 1);
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
+  const handleToggleProductSponsor = async (product: ProductInfo) => {
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/products/${product.id}/toggle-sponsor`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+      });
+      const json = await handleFetchResponse(res, 'Failed to update sponsored placement.');
+      toast.success(json.message);
+      setProducts((items) => items.map((p) => (p.id === product.id ? { ...p, is_sponsored: json.data?.is_sponsored, sponsored_until: json.data?.sponsored_until } : p)));
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
     }
   };
 
@@ -595,6 +646,7 @@ export default function AdminPage() {
       loadStores(1, '');
     }
     if (activeTab === 'stores') loadStores(1, searchQuery);
+    if (activeTab === 'products') loadProducts(1, productSearchQuery, sponsoredOnly);
     if (activeTab === 'orders') loadOrders(1, ordersSearch);
     if (activeTab === 'categories') loadCategories();
     if (activeTab === 'settings') loadSettings();
@@ -1018,6 +1070,107 @@ return (
                 Page {currentPage} of {lastPage}
               </span>
               <button type="button" onClick={() => loadStores(currentPage + 1, searchQuery)} disabled={currentPage === lastPage}>
+                Next <ArrowRight size={15} />
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === 'products' && (
+        <section className="admin-section">
+          <div className="admin-section-heading">
+            <div>
+              <h2>Product directory</h2>
+              <p>Promote a product to "Featured today" / "Sponsored" placement once a merchant has paid for sponsored space.</p>
+            </div>
+            <form className="admin-search" onSubmit={(event) => { event.preventDefault(); loadProducts(1, productSearchQuery, sponsoredOnly); }}>
+              <Search size={16} />
+              <input value={productSearchQuery} onChange={(event) => setProductSearchQuery(event.target.value)} placeholder="Search products or stores" />
+              <button type="submit">Search</button>
+            </form>
+          </div>
+
+          <label className="admin-checkbox-row">
+            <input
+              type="checkbox"
+              checked={sponsoredOnly}
+              onChange={(event) => {
+                const checked = event.target.checked;
+                setSponsoredOnly(checked);
+                loadProducts(1, productSearchQuery, checked);
+              }}
+            />
+            Show sponsored products only
+          </label>
+
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Store</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Placement</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {productsLoading ? (
+                  <TableSkeleton rows={6} columns={6} />
+                ) : products.length ? (
+                  products.map((product) => (
+                    <tr key={product.id}>
+                      <td>
+                        <strong>{product.name}</strong>
+                        {product.store?.username && (
+                          <a href={`https://frontstore.app/${product.store.username}/products/${product.slug}`} target="_blank" rel="noreferrer">
+                            View product <ExternalLink size={12} />
+                          </a>
+                        )}
+                      </td>
+                      <td>
+                        <strong>{product.store?.store_name || 'Unknown store'}</strong>
+                        <span>@{product.store?.username || '—'}</span>
+                      </td>
+                      <td>{product.category?.name || '—'}</td>
+                      <td>{formatMoney(Number(product.price))}</td>
+                      <td>
+                        {product.is_sponsored ? (
+                          <StatusChip tone="green" label={product.sponsored_until ? `Sponsored until ${new Date(product.sponsored_until).toLocaleDateString()}` : 'Sponsored'} />
+                        ) : (
+                          <StatusChip tone="gray" label="Editors' picks" />
+                        )}
+                      </td>
+                      <td className="admin-table__actions">
+                        <button type="button" className={product.is_sponsored ? 'admin-action danger' : 'admin-action'} onClick={() => handleToggleProductSponsor(product)}>
+                          <Sparkles size={15} />
+                          {product.is_sponsored ? 'Remove from featured' : 'Promote to featured'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6}>
+                      <EmptyState label="No products match this search." />
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {productsLastPage > 1 && (
+            <div className="admin-pagination">
+              <button type="button" onClick={() => loadProducts(productsCurrentPage - 1, productSearchQuery, sponsoredOnly)} disabled={productsCurrentPage === 1}>
+                <ArrowLeft size={15} /> Previous
+              </button>
+              <span>
+                Page {productsCurrentPage} of {productsLastPage}
+              </span>
+              <button type="button" onClick={() => loadProducts(productsCurrentPage + 1, productSearchQuery, sponsoredOnly)} disabled={productsCurrentPage === productsLastPage}>
                 Next <ArrowRight size={15} />
               </button>
             </div>
@@ -2337,6 +2490,23 @@ function AdminStyles() {
 
       .admin-meter__fill--gray {
         background: var(--text-muted);
+      }
+
+      .admin-checkbox-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13.5px;
+        color: var(--text-muted);
+        margin: 14px 0 4px;
+        cursor: pointer;
+      }
+
+      .admin-checkbox-row input {
+        width: 15px;
+        height: 15px;
+        accent-color: var(--brand, #7c3aed);
+        cursor: pointer;
       }
 
       .admin-search {

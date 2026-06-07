@@ -190,10 +190,10 @@ function fmtDuration(minutes: number | null | undefined): string {
 }
 
 function formatOrderCount(orders: number | string | null | undefined): string {
-  if (!orders && orders !== 0) return '1,400+';
   if (typeof orders === 'string') return orders;
-  if (orders >= 1000) return `${Math.floor(orders / 100) / 10}k+`;
-  return `${orders}+`;
+  const n = orders ?? 0;
+  if (n >= 1000) return `${Math.floor(n / 100) / 10}k+`;
+  return `${n}+`;
 }
 
 type StoreTheme = React.CSSProperties & {
@@ -698,7 +698,11 @@ export default function StorefrontClient({
           </button>
 
           <div className="fs-sid-stats">
-            <div><Star size={13} fill="#c79a4b" color="#c79a4b" /> {store.rating ?? (store.is_verified ? "4.9" : "4.8")} <span>({store.review_count ?? 0} reviews)</span></div>
+            {store.rating != null ? (
+              <div><Star size={13} fill="#c79a4b" color="#c79a4b" /> {store.rating} <span>({store.review_count ?? 0} reviews)</span></div>
+            ) : (
+              <div><Sparkles size={13} /> New store</div>
+            )}
             <div><ShoppingBag size={12} /> {formatOrderCount(store.total_orders)} orders</div>
             {store.reply_time_minutes != null && <div><Clock size={12} /> replies in {formatReplyTime(store.reply_time_minutes)}</div>}
             {store.working_hours && <div><Clock size={12} /> {store.working_hours}</div>}
@@ -881,9 +885,9 @@ export default function StorefrontClient({
           <section className="fs-reviews" ref={desktopReviewsRef}>
             <div className="fs-section-label"><Star size={14} fill="#c79a4b" color="#c79a4b" /> Client Reviews</div>
             <div className="fs-rev-head">
-              <span className="fs-rev-rating">{store.rating ?? (store.is_verified ? "4.9" : "4.8")}</span>
+              <span className="fs-rev-rating">{(store.rating ?? (reviews.reduce((sum, rv) => sum + rv.rating, 0) / reviews.length)).toFixed(1)}</span>
               <div>
-                <div className="fs-rev-stars">{"★".repeat(5)}</div>
+                <div className="fs-rev-stars">{"★".repeat(Math.round(store.rating ?? (reviews.reduce((sum, rv) => sum + rv.rating, 0) / reviews.length)))}</div>
                 <span>{reviews.length} verified review{reviews.length !== 1 ? 's' : ''}</span>
               </div>
             </div>
@@ -965,7 +969,11 @@ export default function StorefrontClient({
           </div>
           <button className="fs-m-url" onClick={copyLink}><span>frontstore.app/<b>{store.username}</b></span><Share2 size={13} /></button>
           <div className="fs-m-stats">
-            <span><Star size={13} fill="#c79a4b" color="#c79a4b" /> {store.rating ?? (store.is_verified ? "4.9" : "4.8")} <i>({store.review_count ?? 0})</i></span>
+            {store.rating != null ? (
+              <span><Star size={13} fill="#c79a4b" color="#c79a4b" /> {store.rating} <i>({store.review_count ?? 0})</i></span>
+            ) : (
+              <span><Sparkles size={13} /> New store</span>
+            )}
             <span><ShoppingBag size={12} /> {formatOrderCount(store.total_orders)}</span>
             {store.reply_time_minutes != null && <span><Clock size={12} /> replies in {formatReplyTime(store.reply_time_minutes)}</span>}
           </div>
