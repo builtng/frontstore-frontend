@@ -7427,6 +7427,15 @@ export default function DashboardPage() {
           background: var(--bg-2);
         }
 
+        .chart-scroll-container {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+        .chart-scroll-container::-webkit-scrollbar {
+          display: none;
+        }
+
         @media (max-width: 1024px) {
           .responsive-chart-grid {
             grid-template-columns: 1fr !important;
