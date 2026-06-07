@@ -730,6 +730,16 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
     setSection('main');
   };
 
+  /* Routes a business owner to their dashboard if already signed in as a merchant, or to merchant login otherwise — separate session keys ('token'/'user') from the buyer session */
+  const handleMerchantEntry = () => {
+    try {
+      const merchantToken = localStorage.getItem('token');
+      window.location.href = merchantToken ? '/dashboard' : '/login';
+    } catch {
+      window.location.href = '/login';
+    }
+  };
+
   /* SIGN-IN GATE — the buyer account area requires a buyer session, not the merchant 'user'/'token' pair */
   if (authChecked && !buyer) return (
     <div style={{ display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", padding:"64px 20px" }}>
@@ -932,9 +942,9 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
             { Icon:Package,    label:"Track order",   color:"#2f6f9e" },
             { Icon:CreditCard, label:"Payment",        color:"#62109F" },
             { Icon:Bell,       label:"Alerts",         color:"#d98324" },
-            { Icon:Store,      label:"Open store",     color:"#6a52b8" },
-          ].map(({ Icon, label, color }) => (
-            <button key={label} className="qa-btn">
+            { Icon:Store,      label:"Open store",     color:"#6a52b8", onClick: handleMerchantEntry },
+          ].map(({ Icon, label, color, onClick }) => (
+            <button key={label} className="qa-btn" onClick={onClick}>
               <span className="qa-ic" style={{ background:`${color}18` }}><Icon size={21} color={color} /></span>
               <span>{label}</span>
             </button>
@@ -947,7 +957,7 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
         {[
           { Icon:Settings,   label:"Account settings",    onClick:() => setSection("settings") },
           { Icon:HelpCircle, label:"Help & support",       onClick:() => {}                    },
-          { Icon:TrendingUp, label:"Sell on Frontstore",   onClick:() => {}                    },
+          { Icon:TrendingUp, label:"Sell on Frontstore",   onClick: handleMerchantEntry         },
         ].map(({ Icon, label, onClick }) => (
           <button key={label} className="ac-menu-row" onClick={onClick}>
             <span className="ac-menu-ic"><Icon size={16} color="var(--brand)" /></span>
