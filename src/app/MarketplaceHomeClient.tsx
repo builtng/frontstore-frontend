@@ -1087,17 +1087,17 @@ export default function MarketplaceHomeClient({ initialData, initialSettings }: 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
 
-/* tokens */
-:root{
+/* tokens — scoped to .root (not :root) so they never leak onto other pages */
+.root{
   --bg:#f7f2e9; --surface:#fffdf8; --ink:#16261d; --muted:#6c7a70;
   --brand:#62109F; --brand-dark:#48097A; --brand-text:#48097A; --brand-tint:#f0e0ff;
   --accent:#e8a33d; --accent-soft:#fbeccf; --line:#e9e1d2;
   --nav-h:62px; --r:18px;
 }
 
-/* dark mode token overrides */
-:root.dark .root, .root:is(:root.dark *) { color-scheme: dark; }
-:root.dark {
+/* dark mode token overrides — driven by the shared .dark class on <html> */
+:root.dark .root {
+  color-scheme: dark;
   --bg: hsl(240,14%,8%);
   --surface: hsl(240,12%,11%);
   --ink: hsl(210,30%,94%);
@@ -1107,25 +1107,13 @@ const CSS = `
   --brand-text: hsl(273,70%,72%);
   --accent-soft: hsl(38,60%,12%);
 }
-@media(prefers-color-scheme:dark){
-  :root:not(.light) {
-    --bg: hsl(240,14%,8%);
-    --surface: hsl(240,12%,11%);
-    --ink: hsl(210,30%,94%);
-    --muted: hsl(215,14%,52%);
-    --line: hsl(240,10%,18%);
-    --brand-tint: hsl(277,60%,12%);
-    --brand-text: hsl(273,70%,72%);
-    --accent-soft: hsl(38,60%,12%);
-  }
-}
 
 /* dark mode element overrides (fixed rgba nav backgrounds) */
-:root.dark .top-nav { background: rgba(14,12,22,.92) !important; }
-:root.dark .bottom-nav { background: rgba(14,12,22,.92) !important; }
-:root.dark .hero-search, :root.dark .nav-search { background: var(--surface) !important; color: var(--ink) !important; }
-:root.dark .fs-drawer { background: var(--surface) !important; }
-:root.dark .mkt-dropdown { background: var(--surface) !important; }
+:root.dark .root .top-nav { background: rgba(14,12,22,.92) !important; }
+:root.dark .root .bottom-nav { background: rgba(14,12,22,.92) !important; }
+:root.dark .root .hero-search, :root.dark .root .nav-search { background: var(--surface) !important; color: var(--ink) !important; }
+:root.dark .root .fs-drawer { background: var(--surface) !important; }
+:root.dark .root .mkt-dropdown { background: var(--surface) !important; }
 
 /* reset */
 .root *{box-sizing:border-box;margin:0;padding:0;}

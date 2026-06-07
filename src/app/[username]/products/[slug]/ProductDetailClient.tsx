@@ -1199,15 +1199,15 @@ const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
 
 .fs-root {
-  --bg: #f8f1ee;
-  --surface: #fffaf8;
-  --ink: #2b1d2a;
-  --muted: #8a7782;
+  /* --bg/--surface inherit from the shared :root / :root.dark theme so dark mode applies here too;
+     --ink/--muted/--line alias the shared text/border tokens for the same reason */
+  --ink: var(--text);
+  --muted: var(--text-muted);
   --brand: #62109F;
   --brand-deep: #48097A;
   --tint: #f0e0ff;
   --gold: #c79a4b;
-  --line: #ece0db;
+  --line: var(--border);
   font-family: 'Hanken Grotesk', sans-serif;
   color: var(--ink);
   background: var(--bg);

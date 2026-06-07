@@ -1503,9 +1503,11 @@ const CSS = `
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 .fs-root {
-  --bg: #f8f1ee; --surface: #fffaf8; --ink: #2b1d2a; --muted: #8a7782;
+  /* --bg/--surface inherit from the shared :root / :root.dark theme so dark mode applies here too;
+     --ink/--muted/--line alias the shared text/border tokens for the same reason */
+  --ink: var(--text); --muted: var(--text-muted);
   --brand: #62109F; --brand-deep: #48097A; --tint: #f0e0ff; --gold: #c79a4b;
-  --line: #ece0db; --radius: 16px;
+  --line: var(--border); --radius: 16px;
   --t-fast: 0.2s;
   font-family: 'Hanken Grotesk', sans-serif;
   color: var(--ink);
