@@ -480,6 +480,9 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
         </div>
       </section>
 
+      {/* Spacer to push footer to the bottom and ensure minimum spacing */}
+      <div style={{ marginTop: 'auto', paddingTop: 40 }} />
+
       {/* FOOTER */}
       <footer className="site-footer">
         <div className="footer-inner">
@@ -1183,7 +1186,7 @@ const CSS = `
 .root *{box-sizing:border-box;margin:0;padding:0;}
 .root button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .root a{text-decoration:none;color:inherit;}
-.root{font-family:'Hanken Grotesk',sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+.root{font-family:'Hanken Grotesk',sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;display:flex;flex-direction:column;}
 
 
 @keyframes rise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
@@ -1243,8 +1246,8 @@ const CSS = `
 .drawer-sell span{display:block;margin-top:8px;font-size:11.5px;color:var(--brand-text);font-weight:600;}
 
 /* ── page layout ── */
-.page-wrap{max-width:1280px;margin:0 auto;}
-.inner-wrap{padding:0 18px;animation:fade .22s ease;}
+.page-wrap{max-width:1280px;margin:0 auto;width:100%;flex:1;display:flex;flex-direction:column;}
+.inner-wrap{padding:0 18px;animation:fade .22s ease;flex:1;display:flex;flex-direction:column;}
 
 /* page headings */
 .page-header{padding-top:28px;margin-bottom:20px;}
@@ -1373,7 +1376,7 @@ const CSS = `
 .sell-blob{position:absolute;top:-40%;right:-10%;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none;}
 
 /* footer */
-.site-footer{background:var(--surface);border-top:1px solid var(--line);margin-top:40px;margin-left:calc(-50vw + 50%);margin-right:calc(-50vw + 50%);padding:36px 0 24px;}
+.site-footer{background:var(--surface);border-top:1px solid var(--line);margin-left:calc(-50vw + 50%);margin-right:calc(-50vw + 50%);padding:36px 0 24px;}
 .footer-inner{max-width:1280px;margin:0 auto;padding:0 18px;}
 .footer-top{margin-bottom:24px;}
 .footer-tag{font-size:13.5px;color:var(--muted);margin-top:6px;}
