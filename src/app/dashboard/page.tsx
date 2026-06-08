@@ -196,14 +196,14 @@ const storeTemplates = [
     name: 'Luxe Market',
     tone: 'Premium boutique',
     description: 'Large cinematic header, polished trust row, balanced catalog cards.',
-    colors: ['#8100D1', '#0f172a', '#f59e0b'],
+    colors: ['#62109F', '#0f172a', '#f59e0b'],
   },
   {
     id: 'editorial',
     name: 'Editorial',
     tone: 'Magazine commerce',
     description: 'Story-led layout for fashion, beauty, food, and lifestyle brands.',
-    colors: ['#b42318', '#fbfaf7', '#8100D1'],
+    colors: ['#b42318', '#fbfaf7', '#62109F'],
   },
   {
     id: 'flash-sale',
@@ -503,6 +503,7 @@ export default function DashboardPage() {
   const [localWhatsapp, setLocalWhatsapp] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
+  const [bannerUploading, setBannerUploading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
@@ -513,7 +514,7 @@ export default function DashboardPage() {
   const [detectedMerchantLocation, setDetectedMerchantLocation] = useState<string | null>(null);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [customLinks, setCustomLinks] = useState<StoreLink[]>([]);
-  const [primaryColor, setPrimaryColor] = useState('#8100D1');
+  const [primaryColor, setPrimaryColor] = useState('#62109F');
   const [selectedTemplate, setSelectedTemplate] = useState('luxe-market');
   const [selectedPersona, setSelectedPersona] = useState('');
   const [catalogLabel, setCatalogLabel] = useState('product');
@@ -732,7 +733,7 @@ export default function DashboardPage() {
               setNameMatchOk(parsedStore.bank_account_verified ? true : null);
               setLogoUrl(parsedStore.logo_url || null);
               setCustomLinks(parsedStore.custom_links || []);
-              setPrimaryColor(parsedStore.primary_color || '#8100D1');
+              setPrimaryColor(parsedStore.primary_color || '#62109F');
               setSelectedTemplate(parsedStore.store_template || 'luxe-market');
               setCatalogLabel(parsedStore.catalog_label || 'product');
               setCategoryLabel(parsedStore.category_label || 'collection');
@@ -983,7 +984,7 @@ export default function DashboardPage() {
         setNameMatchOk(liveStore.bank_account_verified ? true : null);
         setLogoUrl(liveStore.logo_url || null);
         setCustomLinks(liveStore.custom_links || []);
-        setPrimaryColor(liveStore.primary_color || '#8100D1');
+        setPrimaryColor(liveStore.primary_color || '#62109F');
         setSelectedTemplate(liveStore.store_template || 'luxe-market');
         setSelectedPersona(liveStore.business_persona || '');
         setCatalogLabel(liveStore.catalog_label || 'product');
@@ -1663,7 +1664,7 @@ export default function DashboardPage() {
           bank_account_verified: accountVerified,
           custom_links: customLinks,
           logo_url: logoUrl,
-          primary_color: isPro ? primaryColor : (store?.primary_color || '#8100D1'),
+          primary_color: isPro ? primaryColor : (store?.primary_color || '#62109F'),
           store_template: personaPreset?.template || selectedTemplate,
           business_persona: selectedPersona || null,
           catalog_label: personaPreset?.catalogLabel || catalogLabel || null,
@@ -1703,7 +1704,7 @@ export default function DashboardPage() {
         setAccountVerified(!!json.data.bank_account_verified);
         setNameMatchOk(json.data.bank_account_verified ? true : null);
         setCustomLinks(json.data.custom_links || []);
-        setPrimaryColor(json.data.primary_color || '#8100D1');
+        setPrimaryColor(json.data.primary_color || '#62109F');
         setSelectedTemplate(json.data.store_template || 'luxe-market');
         setSelectedPersona(json.data.business_persona || '');
         setCatalogLabel(json.data.catalog_label || 'product');
@@ -1793,7 +1794,7 @@ export default function DashboardPage() {
 
   const handleTemplateColorSave = async () => {
     const isProUser = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
-    if (!isProUser && primaryColor !== '#8100D1') {
+    if (!isProUser && primaryColor !== '#62109F') {
       openUpgradePrompt(
         'Custom storefront colors require Pro',
         'Free stores use the default brand color. Upgrade to Pro when you want custom theme colors across your storefront.'
@@ -1816,7 +1817,7 @@ export default function DashboardPage() {
 
       setStore(json.data);
       localStorage.setItem('store', JSON.stringify(json.data));
-      setPrimaryColor(json.data.primary_color || '#8100D1');
+      setPrimaryColor(json.data.primary_color || '#62109F');
       toast.success('Template color updated.');
     } catch (e: any) {
       toast.error(e.message || 'Could not update template color.');
@@ -3395,7 +3396,7 @@ export default function DashboardPage() {
                           <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 9 }}>Fast palettes</label>
                           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                             {[
-                              { name: 'Frontstore', value: '#8100D1' },
+                              { name: 'Frontstore', value: '#62109F' },
                               { name: 'Ruby', value: '#e11d48' },
                               { name: 'Royal', value: '#4f46e5' },
                               { name: 'Ocean', value: '#0284c7' },
@@ -3441,7 +3442,7 @@ export default function DashboardPage() {
                             }}
                             className="input-field"
                             style={{ fontFamily: 'monospace', fontWeight: 800 }}
-                            placeholder="#8100D1"
+                            placeholder="#62109F"
                           />
                         </div>
 
@@ -3647,16 +3648,83 @@ export default function DashboardPage() {
                         </div>
 
                         <div>
-                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Banner Image URL</label>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Banner Image</label>
+
+                          {setBannerUrl && (
+                            <div style={{ position: 'relative', marginBottom: 10 }}>
+                              <img src={setBannerUrl} alt="Banner preview" style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', display: 'block' }} />
+                              <button
+                                type="button"
+                                onClick={() => setSetBannerUrl('')}
+                                style={{
+                                  position: 'absolute', top: 8, right: 8,
+                                  width: 26, height: 26, borderRadius: '50%',
+                                  background: 'var(--danger)', border: 'none',
+                                  color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  cursor: 'pointer', fontSize: 13, lineHeight: 1, boxShadow: 'var(--shadow-sm)'
+                                }}
+                                title="Remove banner"
+                              >✕</button>
+                            </div>
+                          )}
+
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button
+                              type="button"
+                              onClick={() => (document.getElementById('banner-upload-input') as HTMLInputElement)?.click()}
+                              disabled={bannerUploading}
+                              className="btn btn-outline clickable"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, padding: '9px 14px', opacity: bannerUploading ? 0.6 : 1 }}
+                            >
+                              {bannerUploading ? <Loader2 size={15} className="spinner" /> : <ImageIcon size={15} />}
+                              {bannerUploading ? 'Uploading…' : (setBannerUrl ? 'Replace banner' : 'Upload banner')}
+                            </button>
+                          </div>
                           <input
-                            type="url"
-                            value={setBannerUrl}
-                            onChange={e => setSetBannerUrl(e.target.value)}
-                            className="input-field"
-                            placeholder="https://example.com/banner.jpg"
+                            id="banner-upload-input"
+                            type="file"
+                            accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                            style={{ display: 'none' }}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              try {
+                                setBannerUploading(true);
+                                const formData = new FormData();
+                                formData.append('banner', file);
+                                const res = await fetch(`${apiUrl}/v1/store/upload-banner`, {
+                                  method: 'POST',
+                                  headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                                  body: formData
+                                });
+                                const json = await res.json();
+                                if (res.ok && json.url) {
+                                  setSetBannerUrl(json.url);
+                                  toast.success('Banner uploaded! 🖼️');
+                                } else {
+                                  throw new Error(json.message || 'Upload failed');
+                                }
+                              } catch (err: any) {
+                                toast.error(err.message || 'Banner upload error');
+                              } finally {
+                                setBannerUploading(false);
+                                e.target.value = '';
+                              }
+                            }}
                           />
+
+                          <div style={{ marginTop: 10 }}>
+                            <label style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', marginBottom: 5 }}>Or paste an image URL</label>
+                            <input
+                              type="url"
+                              value={setBannerUrl}
+                              onChange={e => setSetBannerUrl(e.target.value)}
+                              className="input-field"
+                              placeholder="https://example.com/banner.jpg"
+                            />
+                          </div>
                           <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-                            Optional. Leave blank to use the storefront theme gradient.
+                            Optional (JPG, PNG, WEBP · max 5MB). Leave blank to use the storefront theme gradient.
                           </span>
                         </div>
 
@@ -4080,7 +4148,7 @@ export default function DashboardPage() {
                             <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Preset Color Palettes</label>
                             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                               {[
-                                { name: 'Frontstore', value: '#8100D1' },
+                                { name: 'Frontstore', value: '#62109F' },
                                 { name: 'WhatsApp', value: '#25D366' },
                                 { name: 'Ocean', value: '#0284c7' },
                                 { name: 'Royal', value: '#4f46e5' },
@@ -4140,7 +4208,7 @@ export default function DashboardPage() {
                                   }}
                                   className="input-field"
                                   style={{ padding: '8px 10px', fontSize: 13, height: 38, fontFamily: 'monospace' }}
-                                  placeholder="#8100D1"
+                                  placeholder="#62109F"
                                 />
                               </div>
                             </div>
@@ -4436,7 +4504,7 @@ export default function DashboardPage() {
                             <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Linked Custom Domain</span>
                             <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--primary-dark)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                               {store.custom_domain}
-                              <span style={{ fontSize: 11, background: '#8100D1', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
+                              <span style={{ fontSize: 11, background: '#62109F', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
                             </h3>
                           </div>
                           <button
@@ -4983,9 +5051,9 @@ export default function DashboardPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
                       <div style={{
                         width: 44, height: 44, borderRadius: 'var(--r-md)',
-                        background: 'linear-gradient(135deg, #8100D1 0%, #5E0098 100%)',
+                        background: 'linear-gradient(135deg, #62109F 0%, #48097A 100%)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 4px 16px rgba(129,0,209,0.35)', flexShrink: 0
+                        boxShadow: '0 4px 16px rgba(98,16,159,0.35)', flexShrink: 0
                       }}>
                         <DollarSign size={22} color="#fff" />
                       </div>
@@ -5153,7 +5221,7 @@ export default function DashboardPage() {
                                 fontFamily: 'monospace',
                                 letterSpacing: '0.08em',
                                 fontSize: 15,
-                                borderColor: accountVerified ? '#8100D1' : undefined,
+                                borderColor: accountVerified ? '#62109F' : undefined,
                               }}
                             />
                             {/* Right-side indicator */}
@@ -5161,7 +5229,7 @@ export default function DashboardPage() {
                               {isVerifying ? (
                                 <Loader2 size={15} className="spinner" style={{ color: 'var(--primary)' }} />
                               ) : accountVerified ? (
-                                <span style={{ color: '#8100D1', display: 'flex' }}><CheckCircle2 size={17} /></span>
+                                <span style={{ color: '#62109F', display: 'flex' }}><CheckCircle2 size={17} /></span>
                               ) : paymentAccountNumber.length === 10 && paymentBankCode ? (
                                 <span style={{ color: 'var(--danger)', display: 'flex' }}><AlertCircle size={17} /></span>
                               ) : null}
@@ -5186,8 +5254,8 @@ export default function DashboardPage() {
                         <div style={{
                           padding: '16px 20px',
                           borderRadius: 'var(--r-lg)',
-                          border: `2px solid ${nameMatchOk === false ? 'var(--danger)' : '#8100D1'}`,
-                          background: nameMatchOk === false ? 'rgba(239,68,68,0.06)' : 'rgba(129,0,209,0.07)',
+                          border: `2px solid ${nameMatchOk === false ? 'var(--danger)' : '#62109F'}`,
+                          background: nameMatchOk === false ? 'rgba(239,68,68,0.06)' : 'rgba(98,16,159,0.07)',
                           display: 'flex', flexDirection: 'column', gap: 6,
                           transition: 'all 0.3s'
                         }}>
@@ -5201,7 +5269,7 @@ export default function DashboardPage() {
                             {nameMatchOk === true && (
                               <span style={{
                                 display: 'inline-flex', alignItems: 'center', gap: 5,
-                                background: '#8100D1', color: '#fff',
+                                background: '#62109F', color: '#fff',
                                 padding: '5px 12px', borderRadius: 'var(--r-full)',
                                 fontSize: 12, fontWeight: 800
                               }}>
@@ -5225,7 +5293,7 @@ export default function DashboardPage() {
                             </p>
                           )}
                           {nameMatchOk === true && (
-                            <p style={{ fontSize: 12, color: '#8100D1', fontWeight: 600, marginTop: 2 }}>
+                            <p style={{ fontSize: 12, color: '#62109F', fontWeight: 600, marginTop: 2 }}>
                               ✅ Account verified — name matches your profile. You can save.
                             </p>
                           )}
@@ -5504,7 +5572,7 @@ export default function DashboardPage() {
                           Yearly
                           <span style={{
                             background: '#f3e0ff',
-                            color: '#5E0098',
+                            color: '#48097A',
                             fontSize: 9,
                             fontWeight: 900,
                             padding: '1px 5px',
@@ -5541,7 +5609,7 @@ export default function DashboardPage() {
                           </>
                         )}
                         {billingCycle === 'yearly' && !appliedCoupon && (
-                          <div style={{ fontSize: 11.5, color: '#8100D1', fontWeight: 700, marginTop: 4 }}>
+                          <div style={{ fontSize: 11.5, color: '#62109F', fontWeight: 700, marginTop: 4 }}>
                             equivalent to ₦1,250 / month (billed annually)
                           </div>
                         )}
@@ -5649,12 +5717,12 @@ export default function DashboardPage() {
                             background: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') 
                               ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' 
                               : appliedCoupon && appliedCoupon.final_price === 0
-                                ? 'linear-gradient(135deg, #8100D1 0%, #5E0098 100%)'
+                                ? 'linear-gradient(135deg, #62109F 0%, #48097A 100%)'
                                 : 'none',
                             border: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') 
                               ? '1.5px solid #d97706' 
                               : appliedCoupon && appliedCoupon.final_price === 0
-                                ? '1.5px solid #8100D1'
+                                ? '1.5px solid #62109F'
                                 : '1.5px solid #d97706',
                             color: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') || (appliedCoupon && appliedCoupon.final_price === 0) ? '#fff' : '#d97706',
                             fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13,
@@ -5689,9 +5757,9 @@ export default function DashboardPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
                       width: 44, height: 44, borderRadius: 'var(--r-md)',
-                      background: 'linear-gradient(135deg, #8100D1 0%, #5E0098 100%)',
+                      background: 'linear-gradient(135deg, #62109F 0%, #48097A 100%)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: '0 4px 16px rgba(129, 0, 209, 0.3)', flexShrink: 0
+                      boxShadow: '0 4px 16px rgba(98, 16, 159, 0.3)', flexShrink: 0
                     }}>
                       <DollarSign size={22} color="#fff" />
                     </div>

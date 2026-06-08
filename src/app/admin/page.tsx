@@ -2081,9 +2081,9 @@ function AdminStyles() {
         --text-2: #e4e4e7;
         --text-muted: #a1a1aa;
         --text-faint: #71717a;
-        --primary: #8100D1;
-        --primary-light: rgba(129, 0, 209, 0.12);
-        --primary-hover: #9b14f5;
+        --primary: #62109F;
+        --primary-light: rgba(98, 16, 159, 0.12);
+        --primary-hover: #7b1fa2;
         --danger: #ef4444;
         --danger-light: rgba(239, 68, 68, 0.12);
         --accent: #f59e0b;
@@ -2644,9 +2644,9 @@ function AdminStyles() {
       }
 
       .admin-chip--green {
-        color: #8100D1;
-        background: rgba(129, 0, 209, 0.12);
-        border: 1px solid rgba(129, 0, 209, 0.2);
+        color: #62109F;
+        background: rgba(98, 16, 159, 0.12);
+        border: 1px solid rgba(98, 16, 159, 0.2);
       }
 
       .admin-chip--gray {
@@ -3109,8 +3109,8 @@ function AdminStyles() {
         display: inline-block;
       }
       .admin-health-dot.online {
-        background: #8100D1;
-        box-shadow: 0 0 8px #8100D1;
+        background: #62109F;
+        box-shadow: 0 0 8px #62109F;
         animation: pulseDot 2s infinite;
       }
       @keyframes pulseDot {
@@ -3278,7 +3278,7 @@ function AdminStyles() {
       }
       .admin-balance-card strong {
         font-size: 22px;
-        color: #8100D1;
+        color: #62109F;
         font-family: var(--font-heading);
       }
       .admin-drawer__actions {

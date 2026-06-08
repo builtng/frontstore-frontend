@@ -68,7 +68,7 @@ function SignupFormContent({ appName }: { appName: string }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [selectedPersona, setSelectedPersona] = useState('retail-groceries');
+  const [selectedPersona, setSelectedPersona] = useState('general-store');
   const [mounted, setMounted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);

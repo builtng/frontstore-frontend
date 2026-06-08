@@ -162,7 +162,7 @@ type StoreTheme = React.CSSProperties & {
 };
 
 const TEMPLATE_THEME: Record<string, StoreTheme> = {
-  'luxe-market': { '--brand': '#8100D1', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'luxe-market': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
   editorial: { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
   'flash-sale': { '--brand': '#e11d48', '--brand-deep': '#190915', '--tint': '#ffe4e6' },
   atelier: { '--brand': '#0e7490', '--brand-deep': '#27272a', '--tint': '#ecfeff' },
@@ -171,6 +171,7 @@ const TEMPLATE_THEME: Record<string, StoreTheme> = {
 };
 
 const PERSONA_THEME: Record<string, StoreTheme> = {
+  'general-store': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
   'beauty-service': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
   'fashion-apparel': { '--brand': '#7c2d12', '--brand-deep': '#431407', '--tint': '#ffedd5' },
   'food-vendor': { '--brand': '#e11d48', '--brand-deep': '#7f1d1d', '--tint': '#ffe4e6' },
@@ -178,7 +179,7 @@ const PERSONA_THEME: Record<string, StoreTheme> = {
   'pharmacy-health': { '--brand': '#0e7490', '--brand-deep': '#164e63', '--tint': '#ecfeff' },
   'retail-groceries': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
   'faith-community': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
-  'school-education': { '--brand': '#8100D1', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'school-education': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
 };
 
 function resolveStoreTheme(store: Pick<Store, 'primary_color' | 'business_persona' | 'store_template'>): StoreTheme {

@@ -203,7 +203,7 @@ type StoreTheme = React.CSSProperties & {
 };
 
 const TEMPLATE_THEME: Record<string, StoreTheme> = {
-  'luxe-market': { '--brand': '#8100D1', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'luxe-market': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
   editorial: { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
   'flash-sale': { '--brand': '#e11d48', '--brand-deep': '#190915', '--tint': '#ffe4e6' },
   atelier: { '--brand': '#0e7490', '--brand-deep': '#27272a', '--tint': '#ecfeff' },
@@ -212,6 +212,7 @@ const TEMPLATE_THEME: Record<string, StoreTheme> = {
 };
 
 const PERSONA_THEME: Record<string, StoreTheme> = {
+  'general-store': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
   'beauty-service': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
   'fashion-apparel': { '--brand': '#7c2d12', '--brand-deep': '#431407', '--tint': '#ffedd5' },
   'food-vendor': { '--brand': '#e11d48', '--brand-deep': '#7f1d1d', '--tint': '#ffe4e6' },
@@ -219,7 +220,7 @@ const PERSONA_THEME: Record<string, StoreTheme> = {
   'pharmacy-health': { '--brand': '#0e7490', '--brand-deep': '#164e63', '--tint': '#ecfeff' },
   'retail-groceries': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
   'faith-community': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
-  'school-education': { '--brand': '#8100D1', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'school-education': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
 };
 
 function resolveStoreTheme(store: Pick<Store, 'primary_color' | 'business_persona' | 'store_template'>): StoreTheme {
@@ -950,8 +951,15 @@ export default function StorefrontClient({
         </header>
 
         <section className="fs-m-cover">
-          <div className="fs-m-cover-art" style={{ background: `linear-gradient(135deg, ${storeTheme['--brand']}, ${storeTheme['--brand-deep']})` }}>
-            <div className="fs-m-grain" />
+          <div
+            className="fs-m-cover-art"
+            style={
+              store.banner_url
+                ? { backgroundImage: `linear-gradient(0deg, rgba(0,0,0,.38), rgba(0,0,0,.12)), url(${store.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                : { background: `linear-gradient(135deg, ${storeTheme['--brand']}, ${storeTheme['--brand-deep']})` }
+            }
+          >
+            {!store.banner_url && <div className="fs-m-grain" />}
             <div className="fs-m-id-row">
               {store.logo_url ? (
                 <img src={store.logo_url} alt="Logo" className="fs-m-avatar" style={{ objectFit: 'cover' }} />
@@ -1655,7 +1663,7 @@ const CSS = `
   position: sticky; top: 0; z-index: 30;
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 28px;
-  background: rgba(248,241,238,.9); backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
 .fs-topbar-left { display: flex; align-items: center; gap: 10px; }
@@ -1742,7 +1750,7 @@ const CSS = `
 .fs-feat-row { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
 
 /* Filters */
-.fs-filters { padding: 20px 28px 12px; position: sticky; top: 62px; z-index: 20; background: rgba(248,241,238,.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.fs-filters { padding: 20px 28px 12px; position: sticky; top: 62px; z-index: 20; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 .fs-filter-top { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
 .fs-searchwrap { flex: 1; position: relative; display: flex; align-items: center; }
 .fs-search-ic { position: absolute; left: 13px; color: var(--muted); }
@@ -1888,7 +1896,7 @@ const CSS = `
 ══════════════════════════════ */
 .fs-m-top {
   position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 8px;
-  padding: 10px 12px; background: rgba(248,241,238,.88); backdrop-filter: blur(12px);
+  padding: 10px 12px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
 .fs-m-brand { display: flex; align-items: center; gap: 9px; min-width: 0; }
@@ -1905,9 +1913,9 @@ const CSS = `
 .fs-m-bagbtn { position: relative; }
 
 .fs-m-cover { padding: 0 16px 16px; }
-.fs-m-cover-art { height: 110px; margin: 0 -16px; background: linear-gradient(135deg, var(--brand), var(--brand-deep)); position: relative; overflow: visible; }
+.fs-m-cover-art { height: 134px; margin: 0 -16px; background: linear-gradient(135deg, var(--brand), var(--brand-deep)); position: relative; overflow: visible; }
 .fs-m-grain { position: absolute; inset: 0; overflow: hidden; background-image: radial-gradient(rgba(255,255,255,.16) 1px, transparent 1px); background-size: 13px 13px; }
-.fs-m-id-row { position: absolute; bottom: -22px; left: 16px; right: 16px; display: flex; align-items: flex-start; gap: 12px; }
+.fs-m-id-row { position: absolute; bottom: -10px; left: 16px; right: 16px; display: flex; align-items: flex-start; gap: 12px; }
 .fs-m-id-info { padding-top: 6px; }
 .fs-m-id-name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 19px; letter-spacing: -.01em; color: #fff; display: flex; align-items: center; gap: 6px; line-height: 1.15; }
 .fs-m-meta-hero { color: rgba(255,255,255,.75) !important; margin-top: 4px; }
@@ -1918,7 +1926,7 @@ const CSS = `
   display: grid; place-items: center; border: 4px solid var(--bg); flex: 0 0 auto;
 }
 .fs-m-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; margin-top: 3px; }
-.fs-m-url { display: inline-flex; align-items: center; gap: 7px; margin-top: 52px; background: var(--surface); border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; font-size: 12.5px; color: var(--muted); }
+.fs-m-url { display: inline-flex; align-items: center; gap: 7px; margin-top: 40px; background: var(--surface); border: 1px solid var(--line); padding: 8px 12px; border-radius: 10px; font-size: 12.5px; color: var(--muted); }
 .fs-m-url b { color: var(--brand-deep); font-weight: 700; }
 .fs-m-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 12px; font-weight: 600; }
 .fs-m-stats span { display: inline-flex; align-items: center; gap: 4px; }
@@ -1935,7 +1943,7 @@ const CSS = `
 .fs-m-pin-body p { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-top: 5px; }
 .fs-m-pin-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
 
-.fs-m-filters { position: sticky; top: 58px; z-index: 30; background: rgba(248,241,238,.92); backdrop-filter: blur(10px); padding: 12px 16px 9px; margin-top: 6px; }
+.fs-m-filters { position: sticky; top: 58px; z-index: 30; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); padding: 12px 16px 9px; margin-top: 6px; }
 .fs-m-filters .fs-filter-top { display: none; }
 
 .fs-m-reviews { padding: 18px 16px 6px; display: flex; flex-direction: column; gap: 10px; }

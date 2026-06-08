@@ -16,6 +16,21 @@ export type BusinessPersona = {
 
 export const businessPersonas: BusinessPersona[] = [
   {
+    id: 'general-store',
+    name: 'General Store',
+    persona: 'Standard',
+    summary: 'Clean, modern storefront suitable for any business type – retail, products, or services.',
+    template: 'luxe-market',
+    templateName: 'Luxe Market',
+    catalogLabel: 'product',
+    categoryLabel: 'category',
+    highlight: 'Premium shopping experience with direct WhatsApp checkout',
+    sectionEyebrow: 'Featured items',
+    sectionTitle: 'Browse our full catalog',
+    carouselEyebrow: 'Trending now',
+    carouselTitle: 'Our best selling products',
+  },
+  {
     id: 'retail-groceries',
     name: 'Retail & Groceries',
     persona: 'Mama Tunde',

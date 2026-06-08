@@ -133,7 +133,12 @@
     --shadow-lg:  0 12px 24px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2);
     --shadow-xl:  0 24px 48px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.3);
 
-    --primary-light:  hsl(277, 100%, 10%);
+    /* Brand purple is too dark to read as text on dark surfaces — lighten it
+       (and let --primary-dark/--primary-hover/--primary-glow recompute from it)
+       so prices and purple labels stay legible, matching the lighter purple
+       look used on the storefront/home pages in dark mode. */
+    --primary:        hsl(280, 78%, 68%);
+    --primary-light:  hsl(277, 60%, 18%);
     --accent-light:   hsl(38, 92%, 10%);
     --danger-light:   hsl(0, 100%, 10%);
 
@@ -173,7 +178,8 @@
   --shadow-lg:  0 12px 24px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2);
   --shadow-xl:  0 24px 48px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.3);
 
-  --primary-light:  hsl(277, 100%, 10%);
+  --primary:        hsl(280, 78%, 68%);
+  --primary-light:  hsl(277, 60%, 18%);
   --accent-light:   hsl(38, 92%, 10%);
   --danger-light:   hsl(0, 100%, 10%);
 
@@ -2140,7 +2146,7 @@ svg.spinner {
 
 .public-store-page.template-editorial {
   --primary: #b42318;
-  --accent: #8100D1;
+  --accent: #62109F;
   --bg: #fbfaf7;
   --surface: #fffefd;
   --surface-2: #f7f1e9;
