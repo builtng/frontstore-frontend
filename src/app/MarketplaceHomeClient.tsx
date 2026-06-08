@@ -482,21 +482,23 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
 
       {/* FOOTER */}
       <footer className="site-footer">
-        <div className="footer-top">
-          <span className="logo sm">front<span>store</span><i /></span>
-          <p className="footer-tag">Conversational commerce for Africa and beyond.</p>
+        <div className="footer-inner">
+          <div className="footer-top">
+            <span className="logo sm">front<span>store</span><i /></span>
+            <p className="footer-tag">Conversational commerce for Africa and beyond.</p>
+          </div>
+          <div className="footer-cols">
+            {[
+              { h:"Shop",    links:["Marketplace","Categories","Stores"]          },
+              { h:"Sell",    links:["For business","Pricing","Blog"]               },
+              { h:"Company", links:["About","Privacy","Terms"]                    },
+              { h:"Support", links:["Help centre","WhatsApp","Contact"]           },
+            ].map(({ h, links }) => (
+              <div key={h}><h4>{h}</h4>{links.map(l => <a key={l} href="#">{l}</a>)}</div>
+            ))}
+          </div>
+          <p className="footer-note">© 2026 Frontstore. All rights reserved.</p>
         </div>
-        <div className="footer-cols">
-          {[
-            { h:"Shop",    links:["Marketplace","Categories","Stores"]          },
-            { h:"Sell",    links:["For business","Pricing","Blog"]               },
-            { h:"Company", links:["About","Privacy","Terms"]                    },
-            { h:"Support", links:["Help centre","WhatsApp","Contact"]           },
-          ].map(({ h, links }) => (
-            <div key={h}><h4>{h}</h4>{links.map(l => <a key={l} href="#">{l}</a>)}</div>
-          ))}
-        </div>
-        <p className="footer-note">© 2026 Frontstore. All rights reserved.</p>
       </footer>
     </>
   );
@@ -1137,7 +1139,7 @@ const CSS = `
 .root *{box-sizing:border-box;margin:0;padding:0;}
 .root button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .root a{text-decoration:none;color:inherit;}
-.root{font-family:'Hanken Grotesk',sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.root{font-family:'Hanken Grotesk',sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
 
 
 @keyframes rise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
@@ -1327,7 +1329,8 @@ const CSS = `
 .sell-blob{position:absolute;top:-40%;right:-10%;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none;}
 
 /* footer */
-.site-footer{background:var(--surface);border-top:1px solid var(--line);padding:36px 18px 24px;margin-top:40px;}
+.site-footer{background:var(--surface);border-top:1px solid var(--line);margin-top:40px;margin-left:calc(-50vw + 50%);margin-right:calc(-50vw + 50%);padding:36px 0 24px;}
+.footer-inner{max-width:1280px;margin:0 auto;padding:0 18px;}
 .footer-top{margin-bottom:24px;}
 .footer-tag{font-size:13.5px;color:var(--muted);margin-top:6px;}
 .footer-cols{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:32px;}
