@@ -946,7 +946,7 @@ export default function DashboardPage() {
     const refreshStripeStatus = async () => {
       try {
         const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
-        const res = await fetch(`${url}/v1/stripe/return`, {
+        const res = await fetch(`${url}/v1/payments/stripe/return`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         });
@@ -1958,7 +1958,7 @@ export default function DashboardPage() {
   const handleConnectStripe = async () => {
     try {
       setIsConnectingStripe(true);
-      const res = await fetch(`${apiUrl}/v1/stripe/connect`, {
+      const res = await fetch(`${apiUrl}/v1/payments/stripe/connect`, {
         method: 'GET',
         headers: getAuthHeaders(),
       });
@@ -1978,7 +1978,7 @@ export default function DashboardPage() {
   const handleOpenStripeDashboard = async () => {
     try {
       setIsLoadingStripeDashboard(true);
-      const res = await fetch(`${apiUrl}/v1/stripe/dashboard-link`, {
+      const res = await fetch(`${apiUrl}/v1/payments/stripe/dashboard-link`, {
         method: 'GET',
         headers: getAuthHeaders(),
       });
