@@ -6,11 +6,12 @@ import {
   Search, X, Plus, Minus, ShoppingBag, BadgeCheck,
   Store, Calendar, Check, Receipt, ChevronRight, Crown, Heart, Truck, Menu,
   ExternalLink, Copy, CheckCircle2, Shield,
-  Instagram, Twitter, Music2, Link
+  Link
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
+import { InstagramIcon, TikTokIcon, TwitterXIcon } from "../../components/SocialIcons";
 import { businessPersonas } from "../../utils/businessPersonas";
 
 // --- Types & Interfaces ---
@@ -771,17 +772,17 @@ export default function StorefrontClient({
                 )}
                 {store.instagram_handle && (
                   <a className="fs-social-link" href={`https://instagram.com/${store.instagram_handle.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                    <Instagram size={20} />
+                    <InstagramIcon size={20} />
                   </a>
                 )}
                 {store.tiktok_handle && (
                   <a className="fs-social-link" href={`https://tiktok.com/@${store.tiktok_handle.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
-                    <Music2 size={20} />
+                    <TikTokIcon size={20} />
                   </a>
                 )}
                 {store.twitter_handle && (
                   <a className="fs-social-link" href={`https://x.com/${store.twitter_handle.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="X / Twitter">
-                    <Twitter size={20} />
+                    <TwitterXIcon size={20} />
                   </a>
                 )}
                 {store.custom_links?.filter(l => l.is_active).map(link => (

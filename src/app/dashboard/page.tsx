@@ -11,9 +11,13 @@ import {
   DollarSign, Calendar, MapPin, Receipt, Menu, X, ArrowUpRight,
   TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck,
-  ArrowUp, ArrowDown, Facebook, Twitter, Music2, Eye, EyeOff, Key, Clock
+  ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
+import {
+  TikTokIcon, TwitterXIcon, FacebookIcon, YouTubeIcon,
+  LinkedInIcon, PinterestIcon, SnapchatIcon, InstagramIcon
+} from '../../components/SocialIcons';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import SearchableSelect from '../../components/SearchableSelect';
 import ThemeToggle from '../../components/ThemeToggle';
@@ -33,6 +37,16 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 const getCurrencySymbol = (code?: string): string => {
   if (!code) return CURRENCY_SYMBOLS['NGN'];
   return CURRENCY_SYMBOLS[code.toUpperCase()] ?? `${code} `;
+};
+
+// Orders may have been placed in a different currency than the store currently
+// operates in (e.g. the merchant switched currency after taking orders). The
+// backend converts these into `display_amount`/`display_currency` — fall back
+// to the raw amount when that's not present (e.g. cached/older order payloads).
+const getOrderDisplayAmount = (order: { total_amount: number | string; currency_code?: string | null; display_amount?: number | string; display_currency?: string | null }, storeCurrency?: string) => {
+  const amount = order.display_amount ?? order.total_amount;
+  const currency = order.display_currency ?? order.currency_code ?? storeCurrency;
+  return { symbol: getCurrencySymbol(currency || undefined), amount };
 };
 
 // --- Type Definitions ---
@@ -77,6 +91,11 @@ interface StoreInfo {
   paystack_dva_account_name?: string | null;
   paystack_dva_currency?: string | null;
   paystack_dva_active?: boolean;
+  payment_provider?: string | null;
+  stripe_account_id?: string | null;
+  stripe_onboarding_complete?: boolean;
+  stripe_charges_enabled?: boolean;
+  stripe_payouts_enabled?: boolean;
   custom_links?: StoreLink[] | null;
   custom_domain?: string | null;
   primary_color?: string | null;
@@ -138,6 +157,9 @@ interface Order {
   delivery_method?: string | null;
   delivery_address?: string | null;
   total_amount: number | string;
+  currency_code?: string | null;
+  display_amount?: number | string;
+  display_currency?: string | null;
   payment_status: string;
   order_status: string;
   created_at: string;
@@ -165,9 +187,27 @@ interface DashboardStats {
   };
 }
 
+interface BroadcastCampaign {
+  id: string;
+  audience: 'all' | 'repeat' | 'unpaid_whatsapp';
+  message: string;
+  status: 'queued' | 'sending' | 'completed' | 'failed';
+  recipients_count: number;
+  sent_count: number;
+  failed_count: number;
+  sent_at: string | null;
+  created_at: string;
+}
+
 type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'templates', 'settings', 'billing', 'wallet', 'reviews'];
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews'];
+
+const BROADCAST_AUDIENCES: Array<{ id: 'all' | 'repeat' | 'unpaid_whatsapp'; label: string; description: string }> = [
+  { id: 'all', label: 'All customers', description: 'Everyone who has ever placed an order with your store.' },
+  { id: 'repeat', label: 'Repeat buyers', description: 'Customers who have ordered from you more than once.' },
+  { id: 'unpaid_whatsapp', label: 'Unpaid WhatsApp orders', description: 'Customers with pending WhatsApp orders awaiting payment — great for retargeting.' },
+];
 
 const getDashboardTabFromUrl = (): DashboardTab => {
   if (typeof window === 'undefined') return 'overview';
@@ -602,6 +642,8 @@ export default function DashboardPage() {
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [isInitializingPayment, setIsInitializingPayment] = useState(false);
   const [isGeneratingDedicatedAccount, setIsGeneratingDedicatedAccount] = useState(false);
+  const [isConnectingStripe, setIsConnectingStripe] = useState(false);
+  const [isLoadingStripeDashboard, setIsLoadingStripeDashboard] = useState(false);
 
   // --- AI Command Bar State ---
   const [aiCommand, setAiCommand] = useState('');
@@ -611,6 +653,15 @@ export default function DashboardPage() {
   const setWaOrders = wrapSetter(setWaOrdersInternal, normalizeOrders);
   const waOrders = waOrdersInternal;
   const [waLoading, setWaLoading] = useState(false);
+
+  // --- Broadcast Messages (Pro automated WhatsApp campaigns) ---
+  const [broadcastCampaigns, setBroadcastCampaigns] = useState<BroadcastCampaign[]>([]);
+  const [broadcastLoading, setBroadcastLoading] = useState(false);
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [broadcastAudience, setBroadcastAudience] = useState<'all' | 'repeat' | 'unpaid_whatsapp'>('all');
+  const [broadcastAudiencePreview, setBroadcastAudiencePreview] = useState<{ audience: string; recipients_count: number } | null>(null);
+  const [broadcastPreviewLoading, setBroadcastPreviewLoading] = useState(false);
+  const [broadcastSending, setBroadcastSending] = useState(false);
   const [selectedWaOrder, setSelectedWaOrder] = useState<Order | null>(null);
   const [waSearch, setWaSearch] = useState('');
   const [activeWaView, setActiveWaView] = useState<'list' | 'chat'>('list');
@@ -875,6 +926,46 @@ export default function DashboardPage() {
     };
 
     verifyPayment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-refresh Stripe Connect status when merchant returns from onboarding
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const stripeReturn = params.get('stripe_return');
+    const stripeRefresh = params.get('stripe_refresh');
+    if (!stripeReturn && !stripeRefresh) return;
+
+    const cleanUrl = `${window.location.pathname}?page=settings`;
+    window.history.replaceState({ page: 'settings' }, '', cleanUrl);
+    setActiveTab('settings');
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const refreshStripeStatus = async () => {
+      try {
+        const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+        const res = await fetch(`${url}/v1/stripe/return`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json();
+        if (res.ok && json.data) {
+          setStore(json.data);
+          localStorage.setItem('store', JSON.stringify(json.data));
+          if (json.data.stripe_payouts_enabled) {
+            toast.success('🎉 Stripe account connected! Payouts are now enabled.');
+          } else if (stripeReturn) {
+            toast('Stripe onboarding saved — finish any remaining steps to enable payouts.');
+          }
+        }
+      } catch {
+        // Silent — merchant can retry from the dashboard
+      }
+    };
+
+    refreshStripeStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1601,6 +1692,78 @@ export default function DashboardPage() {
     }
   };
 
+  // --- Broadcast Messages: load campaign history ---
+  const loadBroadcastCampaigns = async () => {
+    if (!token) return;
+    setBroadcastLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/broadcasts`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok && json.data) {
+        setBroadcastCampaigns(json.data);
+      }
+    } catch (e) {
+      console.error('Failed to load broadcast campaigns:', e);
+    } finally {
+      setBroadcastLoading(false);
+    }
+  };
+
+  // --- Broadcast Messages: preview audience size for the selected segment ---
+  const loadBroadcastAudiencePreview = async (audience: 'all' | 'repeat' | 'unpaid_whatsapp') => {
+    if (!token) return;
+    setBroadcastPreviewLoading(true);
+    setBroadcastAudiencePreview(null);
+    try {
+      const res = await fetch(`${apiUrl}/v1/broadcasts/audience-preview?audience=${audience}`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok && json.data) {
+        setBroadcastAudiencePreview(json.data);
+      }
+    } catch (e) {
+      console.error('Failed to load audience preview:', e);
+    } finally {
+      setBroadcastPreviewLoading(false);
+    }
+  };
+
+  // --- Broadcast Messages: queue a campaign for sending ---
+  const handleSendBroadcast = async () => {
+    if (!token || !broadcastMessage.trim()) return;
+    setBroadcastSending(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/broadcasts`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ audience: broadcastAudience, message: broadcastMessage.trim() }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success(json.message || 'Broadcast campaign queued for sending.');
+        setBroadcastMessage('');
+        setBroadcastAudiencePreview(null);
+        loadBroadcastCampaigns();
+      } else {
+        toast.error(json.message || 'Could not queue this broadcast.');
+      }
+    } catch {
+      toast.error('Could not queue this broadcast. Please try again.');
+    } finally {
+      setBroadcastSending(false);
+    }
+  };
+
+  const confirmSendBroadcast = () => {
+    const recipients = broadcastAudiencePreview?.recipients_count;
+    openConfirmationDialog(
+      'Send broadcast campaign?',
+      `This message will be sent via WhatsApp to ${recipients ?? 'all matching'} customer${recipients === 1 ? '' : 's'} in the "${BROADCAST_AUDIENCES.find(a => a.id === broadcastAudience)?.label}" segment. This cannot be undone.`,
+      async () => { await handleSendBroadcast(); },
+      'Send Broadcast',
+      'Cancel'
+    );
+  };
+
 
   const moveLink = (index: number, direction: 'up' | 'down') => {
     const nextIndex = direction === 'up' ? index - 1 : index + 1;
@@ -1789,6 +1952,47 @@ export default function DashboardPage() {
       toast.error(e.message || 'Could not generate dedicated account.');
     } finally {
       setIsGeneratingDedicatedAccount(false);
+    }
+  };
+
+  const handleConnectStripe = async () => {
+    try {
+      setIsConnectingStripe(true);
+      const res = await fetch(`${apiUrl}/v1/stripe/connect`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.data?.onboarding_url) {
+        throw new Error(json.message || 'Could not start Stripe onboarding.');
+      }
+
+      window.location.href = json.data.onboarding_url;
+    } catch (e: any) {
+      toast.error(e.message || 'Could not start Stripe onboarding.');
+      setIsConnectingStripe(false);
+    }
+  };
+
+  const handleOpenStripeDashboard = async () => {
+    try {
+      setIsLoadingStripeDashboard(true);
+      const res = await fetch(`${apiUrl}/v1/stripe/dashboard-link`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.data?.url) {
+        throw new Error(json.message || 'Could not open Stripe dashboard.');
+      }
+
+      window.open(json.data.url, '_blank', 'noopener,noreferrer');
+    } catch (e: any) {
+      toast.error(e.message || 'Could not open Stripe dashboard.');
+    } finally {
+      setIsLoadingStripeDashboard(false);
     }
   };
 
@@ -2214,7 +2418,7 @@ export default function DashboardPage() {
             { id: 'products', label: 'My Products', icon: <Package size={18} /> },
             { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
             { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} />, badge: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
-            { id: 'reach', label: 'Broadcast Messages', icon: <Megaphone size={18} />, badge: 'Pro' },
+            { id: 'reach', label: 'Broadcast Messages', icon: <Megaphone size={18} />, badge: isPro ? undefined : 'Pro' },
             { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
             { id: 'templates', label: 'Store Themes', icon: <Sparkles size={18} /> },
             { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} />, badge: reviews.filter(r => !r.reply).length || undefined },
@@ -2719,7 +2923,7 @@ export default function DashboardPage() {
                                 {new Date(order.created_at).toLocaleDateString()}
                               </td>
                               <td style={{ padding: '16px 8px', fontWeight: 800 }}>
-                                {getCurrencySymbol(store?.currency_code)}{formatVal(order.total_amount)}
+                                {(() => { const d = getOrderDisplayAmount(order, store?.currency_code); return <>{d.symbol}{formatVal(d.amount)}</>; })()}
                               </td>
                               <td style={{ padding: '16px 8px' }}>
                                 <span className={`badge ${order.payment_status === 'paid' ? 'badge-primary' :
@@ -2819,7 +3023,7 @@ export default function DashboardPage() {
                               </span>
                             </div>
                             <span style={{ fontWeight: 800, fontSize: 14.5 }}>
-                              {getCurrencySymbol(store?.currency_code)}{formatVal(order.total_amount)}
+                              {(() => { const d = getOrderDisplayAmount(order, store?.currency_code); return <>{d.symbol}{formatVal(d.amount)}</>; })()}
                             </span>
                           </div>
 
@@ -3044,7 +3248,7 @@ export default function DashboardPage() {
                                   <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap', alignItems: 'center' }}>
                                     <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 'var(--r-full)', background: order.payment_status === 'paid' ? 'rgba(16,185,129,0.12)' : 'rgba(234,179,8,0.12)', color: order.payment_status === 'paid' ? 'var(--primary)' : '#d97706', textTransform: 'uppercase' }}>{order.payment_status}</span>
                                     <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 'var(--r-full)', background: 'var(--bg-2)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{order.order_status}</span>
-                                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--primary)', marginLeft: 'auto' }}>{sym}{formatVal(order.total_amount)}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--primary)', marginLeft: 'auto' }}>{(() => { const d = getOrderDisplayAmount(order, store?.currency_code); return <>{d.symbol}{formatVal(d.amount)}</>; })()}</span>
                                   </div>
                                 </div>
                               </div>
@@ -4439,7 +4643,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* ── CUSTOM DOMAIN CONFIGURATION CARD ── */}
+                  {/* ── CUSTOM DOMAIN CONFIGURATION CARD (temporarily disabled — DNS infra not ready yet) ── */}
+                  {false && (
                   <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24, position: 'relative', overflow: 'hidden' }}>
 
                     {/* Lock Overlay if Free */}
@@ -4503,7 +4708,7 @@ export default function DashboardPage() {
                           <div>
                             <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Linked Custom Domain</span>
                             <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--primary-dark)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-                              {store.custom_domain}
+                              {store?.custom_domain}
                               <span style={{ fontSize: 11, background: '#62109F', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
                             </h3>
                           </div>
@@ -4519,7 +4724,7 @@ export default function DashboardPage() {
                           </button>
                         </div>
                         <div style={{ borderTop: '1px solid rgba(16, 185, 129, 0.2)', paddingTop: 12, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
-                          ✨ Shoppers can now access your store directly at <a href={`https://${store.custom_domain}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, color: 'var(--primary-dark)', textDecoration: 'underline' }}>https://{store.custom_domain}</a>
+                          ✨ Shoppers can now access your store directly at <a href={`https://${store?.custom_domain}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, color: 'var(--primary-dark)', textDecoration: 'underline' }}>https://{store?.custom_domain}</a>
                         </div>
                       </div>
                     ) : (
@@ -4602,6 +4807,7 @@ export default function DashboardPage() {
                       </div>
                     )}
                   </div>
+                  )}
 
                   {/* ── CUSTOM LINKS / LINKTREE SECTION ── */}
                   <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24 }}>
@@ -4694,15 +4900,15 @@ export default function DashboardPage() {
                                 <SearchableSelect
                                   options={[
                                     { value: 'custom', label: 'Website / Custom', icon: <Globe size={14} /> },
-                                    { value: 'whatsapp', label: 'WhatsApp', icon: <WhatsAppIcon size={14} /> },
-                                    { value: 'instagram', label: 'Instagram', icon: <Camera size={14} /> },
-                                    { value: 'tiktok', label: 'TikTok', icon: <Zap size={14} /> },
-                                    { value: 'twitter', label: 'Twitter / X', icon: <Zap size={14} /> },
-                                    { value: 'facebook', label: 'Facebook', icon: <Globe size={14} /> },
-                                    { value: 'youtube', label: 'YouTube', icon: <Globe size={14} /> },
-                                    { value: 'linkedin', label: 'LinkedIn', icon: <Globe size={14} /> },
-                                    { value: 'pinterest', label: 'Pinterest', icon: <Globe size={14} /> },
-                                    { value: 'snapchat', label: 'Snapchat', icon: <Globe size={14} /> }
+                                    { value: 'whatsapp', label: 'WhatsApp', icon: <WhatsAppIcon size={14} style={{ color: 'var(--wa-green)' }} /> },
+                                    { value: 'instagram', label: 'Instagram', icon: <InstagramIcon size={14} style={{ color: '#e1306c' }} /> },
+                                    { value: 'tiktok', label: 'TikTok', icon: <TikTokIcon size={14} /> },
+                                    { value: 'twitter', label: 'Twitter / X', icon: <TwitterXIcon size={14} /> },
+                                    { value: 'facebook', label: 'Facebook', icon: <FacebookIcon size={14} style={{ color: '#1877f2' }} /> },
+                                    { value: 'youtube', label: 'YouTube', icon: <YouTubeIcon size={14} style={{ color: '#ff0000' }} /> },
+                                    { value: 'linkedin', label: 'LinkedIn', icon: <LinkedInIcon size={14} style={{ color: '#0a66c2' }} /> },
+                                    { value: 'pinterest', label: 'Pinterest', icon: <PinterestIcon size={14} style={{ color: '#e60023' }} /> },
+                                    { value: 'snapchat', label: 'Snapchat', icon: <SnapchatIcon size={14} style={{ color: '#fffc00' }} /> }
                                   ]}
                                   value={linkPlatform}
                                   onChange={val => setLinkPlatform(val)}
@@ -4808,10 +5014,14 @@ export default function DashboardPage() {
                               const IconComponent = () => {
                                 switch (link.platform) {
                                   case 'whatsapp': return <WhatsAppIcon size={14} style={{ color: 'var(--wa-green)' }} />;
-                                  case 'instagram': return <Camera size={14} style={{ color: '#e1306c' }} />;
-                                  case 'tiktok': return <Music2 size={14} style={{ color: '#00f2fe' }} />;
-                                  case 'facebook': return <Facebook size={14} style={{ color: '#1877f2' }} />;
-                                  case 'twitter': return <Twitter size={14} style={{ color: '#1da1f2' }} />;
+                                  case 'instagram': return <InstagramIcon size={14} style={{ color: '#e1306c' }} />;
+                                  case 'tiktok': return <TikTokIcon size={14} />;
+                                  case 'facebook': return <FacebookIcon size={14} style={{ color: '#1877f2' }} />;
+                                  case 'twitter': return <TwitterXIcon size={14} />;
+                                  case 'youtube': return <YouTubeIcon size={14} style={{ color: '#ff0000' }} />;
+                                  case 'linkedin': return <LinkedInIcon size={14} style={{ color: '#0a66c2' }} />;
+                                  case 'pinterest': return <PinterestIcon size={14} style={{ color: '#e60023' }} />;
+                                  case 'snapchat': return <SnapchatIcon size={14} style={{ color: '#fffc00' }} />;
                                   default: return <Globe size={14} />;
                                 }
                               };
@@ -4982,17 +5192,17 @@ export default function DashboardPage() {
                               )}
                               {setInstagram && (
                                 <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#e1306c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                                  <Camera size={11} />
+                                  <InstagramIcon size={11} />
                                 </div>
                               )}
                               {setTiktok && (
                                 <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                                  <Zap size={11} />
+                                  <TikTokIcon size={11} />
                                 </div>
                               )}
                               {setTwitter && (
-                                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#1da1f2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                                  <Twitter size={11} />
+                                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                                  <TwitterXIcon size={11} />
                                 </div>
                               )}
                             </div>
@@ -5023,10 +5233,14 @@ export default function DashboardPage() {
                                   }}
                                 >
                                   {link.platform === 'whatsapp' && <WhatsAppIcon size={11} style={{ color: 'var(--wa-green)' }} />}
-                                  {link.platform === 'instagram' && <Camera size={11} style={{ color: '#e1306c' }} />}
-                                  {link.platform === 'tiktok' && <Music2 size={11} style={{ color: '#00f2fe' }} />}
-                                  {link.platform === 'facebook' && <Facebook size={11} style={{ color: '#1877f2' }} />}
-                                  {link.platform === 'twitter' && <Twitter size={11} style={{ color: '#1da1f2' }} />}
+                                  {link.platform === 'instagram' && <InstagramIcon size={11} style={{ color: '#e1306c' }} />}
+                                  {link.platform === 'tiktok' && <TikTokIcon size={11} />}
+                                  {link.platform === 'facebook' && <FacebookIcon size={11} style={{ color: '#1877f2' }} />}
+                                  {link.platform === 'twitter' && <TwitterXIcon size={11} />}
+                                  {link.platform === 'youtube' && <YouTubeIcon size={11} style={{ color: '#ff0000' }} />}
+                                  {link.platform === 'linkedin' && <LinkedInIcon size={11} style={{ color: '#0a66c2' }} />}
+                                  {link.platform === 'pinterest' && <PinterestIcon size={11} style={{ color: '#e60023' }} />}
+                                  {link.platform === 'snapchat' && <SnapchatIcon size={11} style={{ color: '#fffc00' }} />}
                                   {link.platform === 'custom' && <Globe size={11} />}
                                   <span>{link.title}</span>
                                 </div>
@@ -5045,6 +5259,91 @@ export default function DashboardPage() {
                   </div>
 
                   {/* ── PAYMENT ACCOUNTS CARD ── */}
+                  {store?.payment_provider === 'stripe' ? (
+                  <div className="card" style={{ padding: 28 }}>
+
+                    {/* Card Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 'var(--r-md)',
+                        background: 'linear-gradient(135deg, #62109F 0%, #48097A 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 16px rgba(98,16,159,0.35)', flexShrink: 0
+                      }}>
+                        <DollarSign size={22} color="#fff" />
+                      </div>
+                      <div>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                          Withdrawal & Payout Account
+                        </h2>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                          Connect your Stripe account to receive checkout payments and payouts in {(store?.currency_code || 'USD').toUpperCase()}.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      padding: 18,
+                      borderRadius: 'var(--r-xl)',
+                      border: '1.5px solid var(--border)',
+                      background: store?.stripe_payouts_enabled
+                        ? 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(15,23,42,0.03))'
+                        : 'var(--surface-2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 16,
+                      flexWrap: 'wrap',
+                    }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          <span style={{ fontSize: 18 }}>💳</span>
+                          <strong style={{ fontSize: 14.5 }}>Stripe Connect account</strong>
+                          {store?.stripe_payouts_enabled && (
+                            <span className="badge badge-primary" style={{ fontSize: 10 }}>Active</span>
+                          )}
+                          {store?.stripe_account_id && !store?.stripe_payouts_enabled && (
+                            <span className="badge" style={{ fontSize: 10 }}>Onboarding incomplete</span>
+                          )}
+                        </div>
+                        {store?.stripe_account_id ? (
+                          <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
+                            {store.stripe_payouts_enabled
+                              ? 'Payouts are enabled — checkout payments will be deposited to your connected Stripe account.'
+                              : 'Account created — finish Stripe onboarding to enable charges and payouts.'}
+                          </p>
+                        ) : (
+                          <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                            Connect a Stripe Express account so buyers can check out and your earnings are paid out automatically.
+                          </p>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        {store?.stripe_payouts_enabled && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary clickable"
+                            onClick={handleOpenStripeDashboard}
+                            disabled={isLoadingStripeDashboard}
+                            style={{ padding: '11px 16px', borderRadius: 'var(--r-lg)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                          >
+                            {isLoadingStripeDashboard ? <><Loader2 size={15} className="spinner" /> Opening...</> : 'Open Stripe dashboard'}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="btn btn-primary clickable"
+                          onClick={handleConnectStripe}
+                          disabled={isConnectingStripe}
+                          style={{ padding: '11px 16px', borderRadius: 'var(--r-lg)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                        >
+                          {isConnectingStripe ? <><Loader2 size={15} className="spinner" /> Connecting...</> : store?.stripe_account_id ? 'Continue onboarding' : 'Connect Stripe'}
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                  ) : (
                   <div className="card" style={{ padding: 28 }}>
 
                     {/* Card Header */}
@@ -5341,12 +5640,13 @@ export default function DashboardPage() {
 
                     </div>
                   </div>
+                  )}
 
                 </div>
               )}
 
               {/* ── TAB: BROADCAST MESSAGES ── */}
-              {activeTab === 'reach' && (
+              {activeTab === 'reach' && !isPro && (
                 <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
                   <div style={{ background: 'rgba(255, 159, 67, 0.15)', color: '#FF9F43', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                     <Megaphone size={32} style={{ margin: 'auto' }} />
@@ -5385,6 +5685,145 @@ export default function DashboardPage() {
                   </button>
                 </div>
               )}
+
+              {activeTab === 'reach' && isPro && (() => {
+                if (broadcastCampaigns.length === 0 && !broadcastLoading) loadBroadcastCampaigns();
+
+                return (
+                  <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 760, margin: '0 auto' }}>
+
+                    {/* Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ background: 'rgba(255, 159, 67, 0.15)', color: '#FF9F43', width: 44, height: 44, borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Megaphone size={22} />
+                      </div>
+                      <div>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Broadcast Messages</h2>
+                        <p style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>Send automated WhatsApp campaigns to your customers — included in your Pro plan.</p>
+                      </div>
+                    </div>
+
+                    {/* Composer */}
+                    <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                          Choose your audience
+                        </label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+                          {BROADCAST_AUDIENCES.map(seg => (
+                            <button
+                              key={seg.id}
+                              type="button"
+                              onClick={() => { setBroadcastAudience(seg.id); loadBroadcastAudiencePreview(seg.id); }}
+                              className="clickable"
+                              style={{
+                                textAlign: 'left',
+                                padding: 14,
+                                borderRadius: 'var(--r-lg)',
+                                border: broadcastAudience === seg.id ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                background: broadcastAudience === seg.id ? 'var(--primary-light)' : 'var(--bg-2)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 4,
+                              }}
+                            >
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: broadcastAudience === seg.id ? 'var(--primary)' : 'var(--text)' }}>
+                                <Users size={14} /> {seg.label}
+                              </span>
+                              <span style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>{seg.description}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {broadcastPreviewLoading ? (
+                            <><Loader2 size={13} className="spinner" /> Calculating audience size...</>
+                          ) : broadcastAudiencePreview ? (
+                            <><Users size={13} style={{ color: 'var(--primary)' }} /> This will reach <strong style={{ color: 'var(--text)' }}>{broadcastAudiencePreview.recipients_count}</strong> customer{broadcastAudiencePreview.recipients_count === 1 ? '' : 's'}</>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                          Compose your message
+                        </label>
+                        <textarea
+                          value={broadcastMessage}
+                          onChange={e => setBroadcastMessage(e.target.value.slice(0, 1000))}
+                          placeholder={"e.g. Hi {name}! 🎉 Enjoy 15% off your next order this week only — reply to this message to claim your discount."}
+                          rows={5}
+                          style={{ width: '100%', padding: 14, borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', background: 'var(--bg-2)', color: 'var(--text)', fontSize: 13.5, fontFamily: 'inherit', lineHeight: 1.6, resize: 'vertical' }}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Tip: use <code>{'{name}'}</code> to personalize each message with the customer's name.</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-faint)', flexShrink: 0, marginLeft: 12 }}>{broadcastMessage.length}/1000</span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={confirmSendBroadcast}
+                        disabled={!broadcastMessage.trim() || broadcastMessage.trim().length < 5 || broadcastSending || !broadcastAudiencePreview?.recipients_count}
+                        className="btn btn-primary clickable"
+                        style={{ alignSelf: 'flex-start', padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800, opacity: (!broadcastMessage.trim() || broadcastMessage.trim().length < 5 || broadcastSending || !broadcastAudiencePreview?.recipients_count) ? 0.6 : 1 }}
+                      >
+                        {broadcastSending ? <><Loader2 size={16} className="spinner" /> Queuing...</> : <><Send size={16} /> Review &amp; Send Broadcast</>}
+                      </button>
+                    </div>
+
+                    {/* Campaign History */}
+                    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14.5, fontWeight: 900 }}>Campaign History</h3>
+                        <button onClick={loadBroadcastCampaigns} className="btn btn-ghost clickable" style={{ padding: 6, color: 'var(--primary)' }} title="Refresh"><RefreshCw size={14} /></button>
+                      </div>
+                      {broadcastLoading && broadcastCampaigns.length === 0 ? (
+                        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)' }}>
+                          <Loader2 size={22} className="spinner" style={{ margin: '0 auto 10px' }} />
+                          <p style={{ fontSize: 12.5 }}>Loading campaigns...</p>
+                        </div>
+                      ) : broadcastCampaigns.length === 0 ? (
+                        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)' }}>
+                          <Megaphone size={32} style={{ margin: '0 auto 10px', opacity: 0.5 }} />
+                          <p style={{ fontSize: 13, fontWeight: 700 }}>No campaigns sent yet.</p>
+                          <p style={{ fontSize: 11.5, marginTop: 4 }}>Compose your first broadcast above to start retargeting your customers.</p>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          {broadcastCampaigns.map(c => {
+                            const statusStyles: Record<string, { bg: string; color: string; label: string }> = {
+                              queued: { bg: 'rgba(99,102,241,0.12)', color: '#6366f1', label: 'Queued' },
+                              sending: { bg: 'rgba(245,158,11,0.12)', color: '#d97706', label: 'Sending' },
+                              completed: { bg: 'rgba(34,197,94,0.12)', color: '#16a34a', label: 'Completed' },
+                              failed: { bg: 'rgba(239,68,68,0.12)', color: '#ef4444', label: 'Failed' },
+                            };
+                            const st = statusStyles[c.status] || statusStyles.queued;
+                            const segLabel = BROADCAST_AUDIENCES.find(a => a.id === c.audience)?.label || c.audience;
+                            return (
+                              <div key={c.id} style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <span style={{ fontSize: 12.5, fontWeight: 800 }}>{segLabel}</span>
+                                    <span style={{ fontSize: 10.5, fontWeight: 800, padding: '3px 8px', borderRadius: 999, background: st.bg, color: st.color, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{st.label}</span>
+                                  </div>
+                                  <span style={{ fontSize: 11, color: 'var(--text-faint)', flexShrink: 0 }}>{new Date(c.created_at).toLocaleString()}</span>
+                                </div>
+                                <p style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{c.message}</p>
+                                <div style={{ display: 'flex', gap: 16, fontSize: 11.5, color: 'var(--text-muted)', fontWeight: 700 }}>
+                                  <span>{c.recipients_count} recipient{c.recipients_count === 1 ? '' : 's'}</span>
+                                  {c.status === 'completed' && <span style={{ color: '#16a34a' }}>{c.sent_count} sent</span>}
+                                  {c.status === 'completed' && c.failed_count > 0 && <span style={{ color: '#ef4444' }}>{c.failed_count} failed</span>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* ── TAB 7: PLANS & BILLING ── */}
               {activeTab === 'billing' && (
