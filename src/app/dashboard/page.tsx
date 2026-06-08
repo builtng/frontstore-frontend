@@ -5690,7 +5690,7 @@ export default function DashboardPage() {
                 if (broadcastCampaigns.length === 0 && !broadcastLoading) loadBroadcastCampaigns();
 
                 return (
-                  <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 760, margin: '0 auto' }}>
+                  <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
                     {/* Header */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -5703,123 +5703,125 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Composer */}
-                    <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                          Choose your audience
-                        </label>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
-                          {BROADCAST_AUDIENCES.map(seg => (
-                            <button
-                              key={seg.id}
-                              type="button"
-                              onClick={() => { setBroadcastAudience(seg.id); loadBroadcastAudiencePreview(seg.id); }}
-                              className="clickable"
-                              style={{
-                                textAlign: 'left',
-                                padding: 14,
-                                borderRadius: 'var(--r-lg)',
-                                border: broadcastAudience === seg.id ? '2px solid var(--primary)' : '1px solid var(--border)',
-                                background: broadcastAudience === seg.id ? 'var(--primary-light)' : 'var(--bg-2)',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 4,
-                              }}
-                            >
-                              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: broadcastAudience === seg.id ? 'var(--primary)' : 'var(--text)' }}>
-                                <Users size={14} /> {seg.label}
-                              </span>
-                              <span style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>{seg.description}</span>
-                            </button>
-                          ))}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid">
+                      {/* Composer */}
+                      <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, height: 'fit-content' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                            Choose your audience
+                          </label>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+                            {BROADCAST_AUDIENCES.map(seg => (
+                              <button
+                                key={seg.id}
+                                type="button"
+                                onClick={() => { setBroadcastAudience(seg.id); loadBroadcastAudiencePreview(seg.id); }}
+                                className="clickable"
+                                style={{
+                                  textAlign: 'left',
+                                  padding: 14,
+                                  borderRadius: 'var(--r-lg)',
+                                  border: broadcastAudience === seg.id ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                  background: broadcastAudience === seg.id ? 'var(--primary-light)' : 'var(--bg-2)',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 4,
+                                }}
+                              >
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: broadcastAudience === seg.id ? 'var(--primary)' : 'var(--text)' }}>
+                                  <Users size={14} /> {seg.label}
+                                </span>
+                                <span style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>{seg.description}</span>
+                              </button>
+                            ))}
+                          </div>
+                          <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {broadcastPreviewLoading ? (
+                              <><Loader2 size={13} className="spinner" /> Calculating audience size...</>
+                            ) : broadcastAudiencePreview ? (
+                              <><Users size={13} style={{ color: 'var(--primary)' }} /> This will reach <strong style={{ color: 'var(--text)' }}>{broadcastAudiencePreview.recipients_count}</strong> customer{broadcastAudiencePreview.recipients_count === 1 ? '' : 's'}</>
+                            ) : null}
+                          </div>
                         </div>
-                        <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                          {broadcastPreviewLoading ? (
-                            <><Loader2 size={13} className="spinner" /> Calculating audience size...</>
-                          ) : broadcastAudiencePreview ? (
-                            <><Users size={13} style={{ color: 'var(--primary)' }} /> This will reach <strong style={{ color: 'var(--text)' }}>{broadcastAudiencePreview.recipients_count}</strong> customer{broadcastAudiencePreview.recipients_count === 1 ? '' : 's'}</>
-                          ) : null}
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                            Compose your message
+                          </label>
+                          <textarea
+                            value={broadcastMessage}
+                            onChange={e => setBroadcastMessage(e.target.value.slice(0, 1000))}
+                            placeholder={"e.g. Hi {name}! 🎉 Enjoy 15% off your next order this week only — reply to this message to claim your discount."}
+                            rows={5}
+                            style={{ width: '100%', padding: 14, borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', background: 'var(--bg-2)', color: 'var(--text)', fontSize: 13.5, fontFamily: 'inherit', lineHeight: 1.6, resize: 'vertical' }}
+                          />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                            <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Tip: use <code>{'{name}'}</code> to personalize each message with the customer's name.</span>
+                            <span style={{ fontSize: 11, color: 'var(--text-faint)', flexShrink: 0, marginLeft: 12 }}>{broadcastMessage.length}/1000</span>
+                          </div>
                         </div>
+
+                        <button
+                          type="button"
+                          onClick={confirmSendBroadcast}
+                          disabled={!broadcastMessage.trim() || broadcastMessage.trim().length < 5 || broadcastSending || !broadcastAudiencePreview?.recipients_count}
+                          className="btn btn-primary clickable"
+                          style={{ alignSelf: 'flex-start', padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800, opacity: (!broadcastMessage.trim() || broadcastMessage.trim().length < 5 || broadcastSending || !broadcastAudiencePreview?.recipients_count) ? 0.6 : 1 }}
+                        >
+                          {broadcastSending ? <><Loader2 size={16} className="spinner" /> Queuing...</> : <><Send size={16} /> Review &amp; Send Broadcast</>}
+                        </button>
                       </div>
 
-                      <div>
-                        <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                          Compose your message
-                        </label>
-                        <textarea
-                          value={broadcastMessage}
-                          onChange={e => setBroadcastMessage(e.target.value.slice(0, 1000))}
-                          placeholder={"e.g. Hi {name}! 🎉 Enjoy 15% off your next order this week only — reply to this message to claim your discount."}
-                          rows={5}
-                          style={{ width: '100%', padding: 14, borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', background: 'var(--bg-2)', color: 'var(--text)', fontSize: 13.5, fontFamily: 'inherit', lineHeight: 1.6, resize: 'vertical' }}
-                        />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Tip: use <code>{'{name}'}</code> to personalize each message with the customer's name.</span>
-                          <span style={{ fontSize: 11, color: 'var(--text-faint)', flexShrink: 0, marginLeft: 12 }}>{broadcastMessage.length}/1000</span>
+                      {/* Campaign History */}
+                      <div className="card" style={{ padding: 0, overflow: 'hidden', height: 'fit-content' }}>
+                        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14.5, fontWeight: 900 }}>Campaign History</h3>
+                          <button onClick={loadBroadcastCampaigns} className="btn btn-ghost clickable" style={{ padding: 6, color: 'var(--primary)' }} title="Refresh"><RefreshCw size={14} /></button>
                         </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={confirmSendBroadcast}
-                        disabled={!broadcastMessage.trim() || broadcastMessage.trim().length < 5 || broadcastSending || !broadcastAudiencePreview?.recipients_count}
-                        className="btn btn-primary clickable"
-                        style={{ alignSelf: 'flex-start', padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800, opacity: (!broadcastMessage.trim() || broadcastMessage.trim().length < 5 || broadcastSending || !broadcastAudiencePreview?.recipients_count) ? 0.6 : 1 }}
-                      >
-                        {broadcastSending ? <><Loader2 size={16} className="spinner" /> Queuing...</> : <><Send size={16} /> Review &amp; Send Broadcast</>}
-                      </button>
-                    </div>
-
-                    {/* Campaign History */}
-                    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14.5, fontWeight: 900 }}>Campaign History</h3>
-                        <button onClick={loadBroadcastCampaigns} className="btn btn-ghost clickable" style={{ padding: 6, color: 'var(--primary)' }} title="Refresh"><RefreshCw size={14} /></button>
-                      </div>
-                      {broadcastLoading && broadcastCampaigns.length === 0 ? (
-                        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)' }}>
-                          <Loader2 size={22} className="spinner" style={{ margin: '0 auto 10px' }} />
-                          <p style={{ fontSize: 12.5 }}>Loading campaigns...</p>
-                        </div>
-                      ) : broadcastCampaigns.length === 0 ? (
-                        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)' }}>
-                          <Megaphone size={32} style={{ margin: '0 auto 10px', opacity: 0.5 }} />
-                          <p style={{ fontSize: 13, fontWeight: 700 }}>No campaigns sent yet.</p>
-                          <p style={{ fontSize: 11.5, marginTop: 4 }}>Compose your first broadcast above to start retargeting your customers.</p>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          {broadcastCampaigns.map(c => {
-                            const statusStyles: Record<string, { bg: string; color: string; label: string }> = {
-                              queued: { bg: 'rgba(99,102,241,0.12)', color: '#6366f1', label: 'Queued' },
-                              sending: { bg: 'rgba(245,158,11,0.12)', color: '#d97706', label: 'Sending' },
-                              completed: { bg: 'rgba(34,197,94,0.12)', color: '#16a34a', label: 'Completed' },
-                              failed: { bg: 'rgba(239,68,68,0.12)', color: '#ef4444', label: 'Failed' },
-                            };
-                            const st = statusStyles[c.status] || statusStyles.queued;
-                            const segLabel = BROADCAST_AUDIENCES.find(a => a.id === c.audience)?.label || c.audience;
-                            return (
-                              <div key={c.id} style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <span style={{ fontSize: 12.5, fontWeight: 800 }}>{segLabel}</span>
-                                    <span style={{ fontSize: 10.5, fontWeight: 800, padding: '3px 8px', borderRadius: 999, background: st.bg, color: st.color, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{st.label}</span>
+                        {broadcastLoading && broadcastCampaigns.length === 0 ? (
+                          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)' }}>
+                            <Loader2 size={22} className="spinner" style={{ margin: '0 auto 10px' }} />
+                            <p style={{ fontSize: 12.5 }}>Loading campaigns...</p>
+                          </div>
+                        ) : broadcastCampaigns.length === 0 ? (
+                          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)' }}>
+                            <Megaphone size={32} style={{ margin: '0 auto 10px', opacity: 0.5 }} />
+                            <p style={{ fontSize: 13, fontWeight: 700 }}>No campaigns sent yet.</p>
+                            <p style={{ fontSize: 11.5, marginTop: 4 }}>Compose your first broadcast above to start retargeting your customers.</p>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            {broadcastCampaigns.map(c => {
+                              const statusStyles: Record<string, { bg: string; color: string; label: string }> = {
+                                queued: { bg: 'rgba(99,102,241,0.12)', color: '#6366f1', label: 'Queued' },
+                                sending: { bg: 'rgba(245,158,11,0.12)', color: '#d97706', label: 'Sending' },
+                                completed: { bg: 'rgba(34,197,94,0.12)', color: '#16a34a', label: 'Completed' },
+                                failed: { bg: 'rgba(239,68,68,0.12)', color: '#ef4444', label: 'Failed' },
+                              };
+                              const st = statusStyles[c.status] || statusStyles.queued;
+                              const segLabel = BROADCAST_AUDIENCES.find(a => a.id === c.audience)?.label || c.audience;
+                              return (
+                                <div key={c.id} style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                      <span style={{ fontSize: 12.5, fontWeight: 800 }}>{segLabel}</span>
+                                      <span style={{ fontSize: 10.5, fontWeight: 800, padding: '3px 8px', borderRadius: 999, background: st.bg, color: st.color, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{st.label}</span>
+                                    </div>
+                                    <span style={{ fontSize: 11, color: 'var(--text-faint)', flexShrink: 0 }}>{new Date(c.created_at).toLocaleString()}</span>
                                   </div>
-                                  <span style={{ fontSize: 11, color: 'var(--text-faint)', flexShrink: 0 }}>{new Date(c.created_at).toLocaleString()}</span>
+                                  <p style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{c.message}</p>
+                                  <div style={{ display: 'flex', gap: 16, fontSize: 11.5, color: 'var(--text-muted)', fontWeight: 700 }}>
+                                    <span>{c.recipients_count} recipient{c.recipients_count === 1 ? '' : 's'}</span>
+                                    {c.status === 'completed' && <span style={{ color: '#16a34a' }}>{c.sent_count} sent</span>}
+                                    {c.status === 'completed' && c.failed_count > 0 && <span style={{ color: '#ef4444' }}>{c.failed_count} failed</span>}
+                                  </div>
                                 </div>
-                                <p style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{c.message}</p>
-                                <div style={{ display: 'flex', gap: 16, fontSize: 11.5, color: 'var(--text-muted)', fontWeight: 700 }}>
-                                  <span>{c.recipients_count} recipient{c.recipients_count === 1 ? '' : 's'}</span>
-                                  {c.status === 'completed' && <span style={{ color: '#16a34a' }}>{c.sent_count} sent</span>}
-                                  {c.status === 'completed' && c.failed_count > 0 && <span style={{ color: '#ef4444' }}>{c.failed_count} failed</span>}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
