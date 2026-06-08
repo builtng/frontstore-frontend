@@ -488,15 +488,59 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
             <p className="footer-tag">Conversational commerce for Africa and beyond.</p>
           </div>
           <div className="footer-cols">
-            {[
-              { h:"Shop",    links:["Marketplace","Categories","Stores"]          },
-              { h:"Sell",    links:["For business","Pricing","Blog"]               },
-              { h:"Company", links:["About","Privacy","Terms"]                    },
-              { h:"Support", links:["Help centre","WhatsApp","Contact"]           },
-            ].map(({ h, links }) => (
-              <div key={h}><h4>{h}</h4>{links.map(l => <a key={l} href="#">{l}</a>)}</div>
+            {(
+              [
+                {
+                  h: "Shop",
+                  links: [
+                    { label: "Marketplace", href: "/", onClick: (e: React.MouseEvent) => { e.preventDefault(); setTab("browse"); } },
+                    { label: "Categories", href: "/", onClick: (e: React.MouseEvent) => { e.preventDefault(); setTab("browse"); } },
+                    { label: "Stores", href: "/stores" }
+                  ]
+                },
+                {
+                  h: "Sell",
+                  links: [
+                    { label: "For business", href: "/business" },
+                    { label: "Pricing", href: "/business#pricing" },
+                    { label: "Blog", href: "/blog" }
+                  ]
+                },
+                {
+                  h: "Company",
+                  links: [
+                    { label: "About", href: "/business#about" },
+                    { label: "Privacy", href: "/privacy" },
+                    { label: "Terms", href: "/terms" }
+                  ]
+                },
+                {
+                  h: "Support",
+                  links: [
+                    { label: "Help centre", href: "/docs" },
+                    { label: "WhatsApp", href: "https://wa.me/2348030000000", target: "_blank", rel: "noopener noreferrer" },
+                    { label: "Contact", href: "mailto:support@frontstore.app" }
+                  ]
+                }
+              ] as { h: string; links: { label: string; href: string; onClick?: (e: React.MouseEvent) => void; target?: string; rel?: string; }[] }[]
+            ).map(({ h, links }) => (
+              <div key={h}>
+                <h4>{h}</h4>
+                {links.map(link => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    onClick={link.onClick}
+                    target={link.target}
+                    rel={link.rel}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
             ))}
           </div>
+
           <p className="footer-note">© 2026 Frontstore. All rights reserved.</p>
         </div>
       </footer>
