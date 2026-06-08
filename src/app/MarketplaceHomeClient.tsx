@@ -73,6 +73,7 @@ function Thumb({ cat, h = 148, image }: { cat: string; h?: number; image?: strin
     return (
       <div style={{ height:h, position:"relative", overflow:"hidden" }}>
         <img src={image} alt={cat} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+        <div className="thumb-shade" />
         <span className="thumb-cat">{cat}</span>
       </div>
     );
@@ -131,12 +132,12 @@ function ProductCard({ p, market, liked, onLike }: { p: any; market: any; liked:
 
 function StoreCard({ s }: { s: any }) {
   const meta = CATS_MAP[s.category?.name || s.cat] || CATS_MAP.Fashion;
-  const rating = s.rating || 4.8;
-  const items = s.items || 10;
+  const rating = typeof s.rating === 'number' ? s.rating : null;
+  const items = s.items ?? s.items_count ?? 0;
   const isVerified = s.is_verified || s.verified;
   const isRising = s.rising;
   const slug = s.username || s.slug || "";
-  
+
   return (
     <a className="store-card" href={`/${slug}`}>
       <span className="store-av" style={{ background:`linear-gradient(150deg,${meta.from},${meta.to})` }}>{(s.store_name || s.name || 'S')[0]}</span>
@@ -145,8 +146,8 @@ function StoreCard({ s }: { s: any }) {
         {isVerified && <BadgeCheck size={13} color="#62109F" fill="#f0e0ff" />}
       </span>
       <span className="store-meta">
-        <Star size={11} fill="#e8a33d" color="#e8a33d" />{rating}
-        <span className="dot">•</span>{items} items
+        {rating !== null && <><Star size={11} fill="#e8a33d" color="#e8a33d" />{rating}<span className="dot">•</span></>}
+        {items} item{items === 1 ? '' : 's'}
       </span>
       {isRising && <span className="rising-tag">Rising</span>}
       <span className="store-url">frontstore.app/{slug}</span>
@@ -179,6 +180,15 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children }: { tab:
   const [drawer, setDrawer]   = useState(false);
   const [mktOpen, setMktOpen] = useState(false);
 
+  const goToMerchantArea = () => {
+    try {
+      const merchantToken = localStorage.getItem('token');
+      window.location.href = merchantToken ? '/dashboard' : '/login';
+    } catch {
+      window.location.href = '/login';
+    }
+  };
+
   const NAV = [
     { k:"home",    Icon:Home,        label:"Home"    },
     { k:"browse",  Icon:LayoutGrid,  label:"Browse"  },
@@ -189,9 +199,6 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children }: { tab:
 
   return (
     <div className="root">
-      {/* kente stripe */}
-      <div className="kente-stripe" />
-
       {/* ── TOP NAV ── */}
       <header className="top-nav">
         <div className="nav-inner">
@@ -225,7 +232,7 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children }: { tab:
             </div>
             <ThemeToggle />
             <button className="signin-btn" onClick={() => setTab("account")}>Sign in</button>
-            <button className="open-store-btn">Open store</button>
+            <button className="open-store-btn" onClick={goToMerchantArea}>Open store</button>
           </div>
         </div>
       </header>
@@ -304,7 +311,8 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
     : [...filtered].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || (b.views_count || 0) - (a.views_count || 0)).slice(0, 4);
   const trending  = [...filtered].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || (b.views_count || 0) - (a.views_count || 0)).slice(0, 4);
   const latest    = [...filtered].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()).slice(0, 6);
-  const nearbyStores = [...stores].sort((a, b) => nearFirst(market, a.currency_code, b.currency_code));
+  // Surface stores from the shopper's own market first, then rank by real traffic (page views)
+  const nearbyStores = [...stores].sort((a, b) => nearFirst(market, a.currency_code, b.currency_code) || (b.traffic || 0) - (a.traffic || 0));
 
   return (
     <>
@@ -1131,8 +1139,6 @@ const CSS = `
 .root a{text-decoration:none;color:inherit;}
 .root{font-family:'Hanken Grotesk',sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased;}
 
-/* kente stripe */
-.kente-stripe{height:4px;background:repeating-linear-gradient(90deg,var(--brand) 0 22px,var(--accent) 22px 32px,#c2557a 32px 40px,var(--brand-dark) 40px 52px);}
 
 @keyframes rise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
 @keyframes fade{from{opacity:0;}to{opacity:1;}}
@@ -1255,7 +1261,8 @@ const CSS = `
 .p-card{display:flex;flex-direction:column;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);overflow:hidden;position:relative;transition:transform .2s,box-shadow .2s;height:100%;cursor:pointer;text-decoration:none;color:inherit;}
 .p-card:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(16,38,29,.08);}
 .thumb-grain{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.15) 0%,transparent 80%);pointer-events:none;}
-.thumb-cat{position:absolute;bottom:8px;left:10px;font-size:10px;font-weight:700;color:rgba(255,255,255,.95);text-transform:uppercase;letter-spacing:.05em;}
+.thumb-cat{position:absolute;bottom:8px;left:10px;font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.05em;background:rgba(15,23,20,.55);backdrop-filter:blur(3px);padding:3px 8px;border-radius:6px;max-width:calc(100% - 20px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.thumb-shade{position:absolute;left:0;right:0;bottom:0;height:46%;background:linear-gradient(to top,rgba(0,0,0,.35),transparent);pointer-events:none;}
 .tag{position:absolute;top:10px;left:10px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;z-index:10;}
 .tag-sp{background:var(--accent);color:#fff;}
 .like-btn{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.88);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:10;transition:transform .15s;}
