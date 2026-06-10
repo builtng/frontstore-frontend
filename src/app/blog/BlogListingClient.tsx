@@ -121,7 +121,7 @@ export default function BlogListingClient() {
           >
             Grow Your Business on{' '}
             <span style={{
-              background: 'linear-gradient(135deg, hsl(290, 100%, 50%), hsl(277, 100%, 41%))',
+              background: 'linear-gradient(135deg, hsl(142, 70%, 49%), hsl(168, 76%, 36%))',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}>

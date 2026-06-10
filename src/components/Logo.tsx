@@ -35,9 +35,9 @@ export default function Logo({
       >
         <defs>
           <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="hsl(290, 100%, 50%)" />
-            <stop offset="50%" stopColor="hsl(277, 100%, 41%)" />
-            <stop offset="100%" stopColor="hsl(255, 80%, 35%)" />
+            <stop offset="0%" stopColor="hsl(141, 71%, 60%)" />
+            <stop offset="50%" stopColor="hsl(142, 70%, 49%)" />
+            <stop offset="100%" stopColor="hsl(168, 76%, 36%)" />
           </linearGradient>
         </defs>
 
@@ -72,9 +72,9 @@ export default function Logo({
           fill="white"
           opacity="0.95"
         />
-        <circle cx="86" cy="123" r="5" fill="hsl(277, 100%, 41%)" />
-        <circle cx="104" cy="123" r="5" fill="hsl(277, 100%, 41%)" />
-        <circle cx="122" cy="123" r="5" fill="hsl(277, 100%, 41%)" />
+        <circle cx="86" cy="123" r="5" fill="hsl(168, 76%, 36%)" />
+        <circle cx="104" cy="123" r="5" fill="hsl(168, 76%, 36%)" />
+        <circle cx="122" cy="123" r="5" fill="hsl(168, 76%, 36%)" />
       </svg>
 
       {/* Brand Text */}

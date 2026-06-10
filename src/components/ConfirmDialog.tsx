@@ -106,7 +106,7 @@ export default function ConfirmDialog({
                         style={{
                             appearance: 'none',
                             border: 'none',
-                            background: 'var(--primary, #62109F)',
+                            background: 'var(--primary, #25D366)',
                             color: '#fff',
                             borderRadius: 12,
                             padding: '12px 18px',

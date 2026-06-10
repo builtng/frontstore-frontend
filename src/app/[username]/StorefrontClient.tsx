@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
+import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { InstagramIcon, TikTokIcon, TwitterXIcon } from "../../components/SocialIcons";
 import { businessPersonas } from "../../utils/businessPersonas";
 
@@ -152,11 +153,11 @@ function fmt(amount: string | number | null | undefined, symbol: string): string
 }
 
 const CAT_THEME: Record<string, string[]> = {
-  Lashes: ["#62109F", "#7d1bc7"],
-  Brows: ["#48097A", "#62109F"],
-  Skincare: ["#62109F", "#7d1bc7"],
-  Aftercare: ["#48097A", "#62109F"],
-  Gifting: ["#3d0066", "#48097A"],
+  Lashes: ["#25D366", "#4ADE80"],
+  Brows: ["#128c7e", "#25D366"],
+  Skincare: ["#25D366", "#4ADE80"],
+  Aftercare: ["#128c7e", "#25D366"],
+  Gifting: ["#075e54", "#128c7e"],
 };
 
 function getCategoryTheme(catName: string) {
@@ -204,8 +205,8 @@ type StoreTheme = React.CSSProperties & {
 };
 
 const TEMPLATE_THEME: Record<string, StoreTheme> = {
-  'luxe-market': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
-  editorial: { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'luxe-market': { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
+  editorial: { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
   'flash-sale': { '--brand': '#e11d48', '--brand-deep': '#190915', '--tint': '#ffe4e6' },
   atelier: { '--brand': '#0e7490', '--brand-deep': '#27272a', '--tint': '#ecfeff' },
   'digital-studio': { '--brand': '#2563eb', '--brand-deep': '#07152f', '--tint': '#dbeafe' },
@@ -213,15 +214,15 @@ const TEMPLATE_THEME: Record<string, StoreTheme> = {
 };
 
 const PERSONA_THEME: Record<string, StoreTheme> = {
-  'general-store': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
-  'beauty-service': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'general-store': { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
+  'beauty-service': { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
   'fashion-apparel': { '--brand': '#7c2d12', '--brand-deep': '#431407', '--tint': '#ffedd5' },
   'food-vendor': { '--brand': '#e11d48', '--brand-deep': '#7f1d1d', '--tint': '#ffe4e6' },
   'creator-digital': { '--brand': '#2563eb', '--brand-deep': '#07152f', '--tint': '#dbeafe' },
   'pharmacy-health': { '--brand': '#0e7490', '--brand-deep': '#164e63', '--tint': '#ecfeff' },
   'retail-groceries': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
   'faith-community': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
-  'school-education': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'school-education': { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
 };
 
 function resolveStoreTheme(store: Pick<Store, 'primary_color' | 'business_persona' | 'store_template'>): StoreTheme {
@@ -330,6 +331,12 @@ export default function StorefrontClient({
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
   const [isPaying, setIsPaying] = useState(false);
+
+  // Pending WhatsApp deep-link awaiting disclaimer confirmation
+  const [pendingWaUrl, setPendingWaUrl] = useState<string | null>(null);
+  const openWhatsAppChat = (message: string) => {
+    setPendingWaUrl(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`);
+  };
 
   // Viewport scroll targets
   const searchRef = useRef<HTMLDivElement>(null);      // mobile
@@ -676,6 +683,13 @@ export default function StorefrontClient({
     <div className="fs-root" style={storeTheme}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
+      <WhatsAppDisclaimerModal
+        open={!!pendingWaUrl}
+        storeName={store.store_name}
+        onConfirm={() => { window.open(pendingWaUrl!, '_blank'); setPendingWaUrl(null); }}
+        onCancel={() => setPendingWaUrl(null)}
+      />
+
       {/* ── DESKTOP LAYOUT ── */}
       <div className="fs-desktop">
 
@@ -719,8 +733,7 @@ export default function StorefrontClient({
             <button onClick={() => scrollTo(desktopSearchRef)}><Search size={15} /> Browse items</button>
             <button onClick={() => scrollTo(desktopReviewsRef)}><Star size={15} /> Reviews</button>
             <button onClick={() => {
-              const msg = `Hi ${store.store_name}! I have a question about your shop items.`;
-              window.open(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+              openWhatsAppChat(`Hi ${store.store_name}! I have a question about your shop items.`);
             }}><WhatsAppIcon size={15} /> Chat with us</button>
           </nav>
 
@@ -749,8 +762,7 @@ export default function StorefrontClient({
                 {bagCount > 0 && <span className="fs-badge">{bagCount}</span>}
               </button>
               <button className="fs-tb-btn" onClick={() => {
-                const msg = `Hi ${store.store_name}!`;
-                window.open(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                openWhatsAppChat(`Hi ${store.store_name}!`);
               }} aria-label="Chat on WhatsApp"><WhatsAppIcon size={17} /></button>
             </div>
           </header>
@@ -766,9 +778,9 @@ export default function StorefrontClient({
               <p className="fs-hero-bio">{store.store_bio || "Browse our items and place orders directly via WhatsApp chat."}</p>
               <div className="fs-hero-socials">
                 {store.whatsapp_phone && (
-                  <a className="fs-social-link" href={`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+                  <button type="button" className="fs-social-link" onClick={() => openWhatsAppChat(`Hi ${store.store_name}!`)} aria-label="WhatsApp">
                     <WhatsAppIcon size={20} />
-                  </a>
+                  </button>
                 )}
                 {store.instagram_handle && (
                   <a className="fs-social-link" href={`https://instagram.com/${store.instagram_handle.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
@@ -1108,8 +1120,7 @@ export default function StorefrontClient({
           </button>
           <button className="fs-bn" onClick={() => scrollTo(reviewsRef)}><Star size={19} /><span>Reviews</span></button>
           <button className="fs-bn" onClick={() => {
-            const msg = `Hi ${store.store_name}!`;
-            window.open(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+            openWhatsAppChat(`Hi ${store.store_name}!`);
           }}><WhatsAppIcon size={19} /><span>Chat</span></button>
         </nav>
       </div>
@@ -1465,7 +1476,7 @@ export default function StorefrontClient({
                   border: 'none',
                   borderRadius: 14,
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(98,16,159,.16)'
+                  boxShadow: '0 4px 12px rgba(37, 211, 102, .16)'
                 }}
               >
                 {isPaying ? 'Initializing payment...' : `Pay Online Now (${fmt(orderReceipt.order.total_amount, currencySymbol)})`}
@@ -1515,7 +1526,7 @@ const CSS = `
   /* --bg/--surface inherit from the shared :root / :root.dark theme so dark mode applies here too;
      --ink/--muted/--line alias the shared text/border tokens for the same reason */
   --ink: var(--text); --muted: var(--text-muted);
-  --brand: #62109F; --brand-deep: #48097A; --tint: #f0e0ff; --gold: #c79a4b;
+  --brand: #25D366; --brand-deep: #128c7e; --tint: #dcf8c6; --gold: #c79a4b;
   --line: var(--border); --radius: 16px;
   --t-fast: 0.2s;
   font-family: 'Hanken Grotesk', sans-serif;
@@ -1723,6 +1734,7 @@ const CSS = `
   background: rgba(255,255,255,0.18); color: #fff;
   transition: background .18s, transform .15s;
   text-decoration: none;
+  border: none; cursor: pointer; appearance: none;
 }
 .fs-social-link:hover { background: rgba(255,255,255,0.32); transform: scale(1.1); }
 
@@ -1837,9 +1849,9 @@ const CSS = `
 }
 .fs-cta-full { width: 100%; margin-top: 10px; padding: 10px 12px; border-radius: 12px; }
 .fs-cta:active { transform: translateY(1px); }
-.fs-buy { background: var(--brand-deep); color: #fff; box-shadow: 0 3px 8px rgba(72,9,122,.16); }
+.fs-buy { background: var(--brand-deep); color: #fff; box-shadow: 0 3px 8px rgba(18, 140, 126, .16); }
 .fs-buy:hover { filter: brightness(1.08); }
-.fs-book { background: var(--brand); color: #fff; box-shadow: 0 3px 8px rgba(98,16,159,.16); }
+.fs-book { background: var(--brand); color: #fff; box-shadow: 0 3px 8px rgba(37, 211, 102, .16); }
 .fs-book:hover { filter: brightness(1.08); }
 
 @media (max-width: 767px) {
@@ -1953,7 +1965,7 @@ const CSS = `
 
 .fs-m-bottom {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 45;
-  background: rgba(255,250,248,.94); backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(14px);
   border-top: 1px solid var(--line);
   display: flex; align-items: center; justify-content: space-around;
   padding: 8px 8px 12px;
@@ -1965,7 +1977,7 @@ const CSS = `
   position: relative; width: 54px; height: 54px; border-radius: 50%;
   background: linear-gradient(150deg, var(--brand), var(--brand-deep));
   display: grid; place-items: center; margin-top: -24px;
-  box-shadow: 0 4px 12px rgba(72,9,122,.2); border: 4px solid var(--bg);
+  box-shadow: 0 4px 12px rgba(18, 140, 126, .2); border: 4px solid var(--bg);
 }
 .fs-bn-primary:active { transform: scale(.95); }
 
@@ -2003,7 +2015,7 @@ const CSS = `
   width: 100%; padding: 14px; border-radius: 14px;
   background: var(--brand) !important; color: #fff !important;
   font-size: 15px; font-weight: 700; border: none;
-  box-shadow: 0 4px 12px rgba(98, 16, 159, .18);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, .18);
   cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }

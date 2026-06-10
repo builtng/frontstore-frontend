@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { WhatsAppIcon } from "../../../../components/WhatsAppIcon";
+import WhatsAppDisclaimerModal from "../../../../components/WhatsAppDisclaimerModal";
 
 // --- Types & Interfaces ---
 interface Category {
@@ -52,6 +53,8 @@ interface Store {
   primary_color?: string | null;
   is_pro?: boolean | number;
   is_verified?: boolean | number;
+  delivery_info?: string | null;
+  return_policy?: string | null;
 }
 
 interface CreatedOrderReceipt {
@@ -162,8 +165,8 @@ type StoreTheme = React.CSSProperties & {
 };
 
 const TEMPLATE_THEME: Record<string, StoreTheme> = {
-  'luxe-market': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
-  editorial: { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'luxe-market': { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
+  editorial: { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
   'flash-sale': { '--brand': '#e11d48', '--brand-deep': '#190915', '--tint': '#ffe4e6' },
   atelier: { '--brand': '#0e7490', '--brand-deep': '#27272a', '--tint': '#ecfeff' },
   'digital-studio': { '--brand': '#2563eb', '--brand-deep': '#07152f', '--tint': '#dbeafe' },
@@ -171,15 +174,15 @@ const TEMPLATE_THEME: Record<string, StoreTheme> = {
 };
 
 const PERSONA_THEME: Record<string, StoreTheme> = {
-  'general-store': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
-  'beauty-service': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'general-store': { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
+  'beauty-service': { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
   'fashion-apparel': { '--brand': '#7c2d12', '--brand-deep': '#431407', '--tint': '#ffedd5' },
   'food-vendor': { '--brand': '#e11d48', '--brand-deep': '#7f1d1d', '--tint': '#ffe4e6' },
   'creator-digital': { '--brand': '#2563eb', '--brand-deep': '#07152f', '--tint': '#dbeafe' },
   'pharmacy-health': { '--brand': '#0e7490', '--brand-deep': '#164e63', '--tint': '#ecfeff' },
   'retail-groceries': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
   'faith-community': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
-  'school-education': { '--brand': '#62109F', '--brand-deep': '#48097A', '--tint': '#f0e0ff' },
+  'school-education': { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
 };
 
 function resolveStoreTheme(store: Pick<Store, 'primary_color' | 'business_persona' | 'store_template'>): StoreTheme {
@@ -248,6 +251,9 @@ export default function ProductDetailClient({
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
   const [isPaying, setIsPaying] = useState(false);
+
+  // Pending WhatsApp deep-link awaiting disclaimer confirmation
+  const [pendingWaUrl, setPendingWaUrl] = useState<string | null>(null);
 
   // Pre-populate client profile details
   useEffect(() => {
@@ -318,7 +324,7 @@ export default function ProductDetailClient({
     const shareText = `Hi ${store.store_name}, I have a question about the ${kind === 'service' ? 'service' : 'product'} "${initialProduct.name}":`;
     const shareUrl = `${window.location.origin}/${store.username}/products/${initialProduct.slug}`;
     const fullMsg = `${shareText}\n${shareUrl}`;
-    window.open(`https://wa.me/${store.whatsapp_phone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(fullMsg)}`, '_blank');
+    setPendingWaUrl(`https://wa.me/${store.whatsapp_phone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(fullMsg)}`);
   };
 
   // Copy product link to clipboard
@@ -435,7 +441,12 @@ export default function ProductDetailClient({
     <div className="fs-root" style={storeTheme}>
       <style suppressHydrationWarning>{CSS}</style>
 
-
+      <WhatsAppDisclaimerModal
+        open={!!pendingWaUrl}
+        storeName={store.store_name}
+        onConfirm={() => { window.open(pendingWaUrl!, '_blank'); setPendingWaUrl(null); }}
+        onCancel={() => setPendingWaUrl(null)}
+      />
 
       {/* Top Nav */}
       <header className="fs-nav">
@@ -536,15 +547,15 @@ export default function ProductDetailClient({
                   <div>
                     <Truck size={17} />
                     <div>
-                      <b>Delivery in 1–3 business days</b>
-                      <span>Local rates apply. Nationwide shipping available at checkout.</span>
+                      <b>Delivery</b>
+                      <span>{store.delivery_info || "Delivery in 1–3 business days. Local rates apply, nationwide shipping available at checkout."}</span>
                     </div>
                   </div>
                   <div>
                     <RotateCcw size={17} />
                     <div>
-                      <b>Secure Returns</b>
-                      <span>Return unopened, unused items within 7 days. Secured by Frontstore.</span>
+                      <b>Returns</b>
+                      <span>{store.return_policy || "Return unopened, unused items within 7 days. Secured by Frontstore."}</span>
                     </div>
                   </div>
                 </div>
@@ -641,21 +652,21 @@ export default function ProductDetailClient({
               </div>
             )}
 
-            {/* Main CTA */}
-            {kind === "service" ? (
-              <button className="fs-cta fs-panel-cta book" onClick={() => setBooking(true)}>
-                <Calendar size={18} /> Book Session <span className="fs-cta-price">{fmt(totalAmount, currencySymbol)}</span>
+            {/* Main CTA — Buy/Book on top, Ask a question below (desktop panel only) */}
+            <div className="fs-cta-row">
+              {kind === "service" ? (
+                <button className="fs-cta fs-panel-cta book" onClick={() => setBooking(true)}>
+                  <Calendar size={18} /> Book Now <span className="fs-cta-price">{fmt(totalAmount, currencySymbol)}</span>
+                </button>
+              ) : (
+                <button className="fs-cta fs-panel-cta buy" onClick={() => setIsCheckoutOpen(true)}>
+                  <ShoppingBag size={18} /> Buy Now <span className="fs-cta-price">{fmt(totalAmount, currencySymbol)}</span>
+                </button>
+              )}
+              <button className="fs-msg-btn" onClick={handleAskQuestion}>
+                <WhatsAppIcon size={16} /> Ask a question
               </button>
-            ) : (
-              <button className="fs-cta fs-panel-cta buy" onClick={() => setIsCheckoutOpen(true)}>
-                <ShoppingBag size={18} /> Buy Now <span className="fs-cta-price">{fmt(totalAmount, currencySymbol)}</span>
-              </button>
-            )}
-
-            {/* Inquire on WhatsApp */}
-            <button className="fs-msg-btn" onClick={handleAskQuestion}>
-              <WhatsAppIcon size={16} /> Ask a question about this item
-            </button>
+            </div>
 
             {/* Trust badge */}
             <div className="fs-trust"><ShieldCheck size={14} /> Secured by Frontstore · Instant receipt</div>
@@ -721,14 +732,16 @@ export default function ProductDetailClient({
 
       {/* Mobile Sticky CTA Bar */}
       <div className="fs-mobile-bar">
-        <button className="fs-mob-msg" onClick={handleAskQuestion} aria-label="Message store"><WhatsAppIcon size={19} /></button>
+        <button className="fs-mob-msg" onClick={handleAskQuestion}>
+          <WhatsAppIcon size={17} /> Ask a question
+        </button>
         {kind === "service" ? (
           <button className="fs-mob-cta book" onClick={() => setBooking(true)}>
-            <Calendar size={17} /> Book now <span>{fmt(totalAmount, currencySymbol)}</span>
+            <Calendar size={17} /> Book Now <span>{fmt(totalAmount, currencySymbol)}</span>
           </button>
         ) : (
           <button className="fs-mob-cta buy" onClick={() => setIsCheckoutOpen(true)}>
-            <ShoppingBag size={17} /> Buy now <span>{fmt(totalAmount, currencySymbol)}</span>
+            <ShoppingBag size={17} /> Buy Now <span>{fmt(totalAmount, currencySymbol)}</span>
           </button>
         )}
       </div>
@@ -754,15 +767,15 @@ export default function ProductDetailClient({
               <div>
                 <Truck size={17} />
                 <div>
-                  <b>Lagos delivery in 1–2 days</b>
-                  <span>Nationwide shipping available at checkout</span>
+                  <b>Delivery</b>
+                  <span>{store.delivery_info || "Delivery in 1–3 business days. Local rates apply, nationwide shipping available at checkout."}</span>
                 </div>
               </div>
               <div>
                 <RotateCcw size={17} />
                 <div>
-                  <b>7-day returns</b>
-                  <span>Unopened items, secured by Frontstore</span>
+                  <b>Returns</b>
+                  <span>{store.return_policy || "Return unopened, unused items within 7 days. Secured by Frontstore."}</span>
                 </div>
               </div>
             </div>
@@ -1140,7 +1153,7 @@ export default function ProductDetailClient({
                   border: 'none',
                   borderRadius: 14,
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(98,16,159,.16)'
+                  boxShadow: '0 4px 12px rgba(37, 211, 102, .16)'
                 }}
               >
                 {isPaying ? 'Initializing payment...' : `Pay Online Now (${fmt(orderReceipt.order.total_amount, currencySymbol)})`}
@@ -1204,9 +1217,9 @@ const CSS = `
      --ink/--muted/--line alias the shared text/border tokens for the same reason */
   --ink: var(--text);
   --muted: var(--text-muted);
-  --brand: #62109F;
-  --brand-deep: #48097A;
-  --tint: #f0e0ff;
+  --brand: #25D366;
+  --brand-deep: #128c7e;
+  --tint: #dcf8c6;
   --gold: #c79a4b;
   --line: var(--border);
   font-family: 'Hanken Grotesk', sans-serif;
@@ -1269,7 +1282,7 @@ const CSS = `
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(248, 241, 238, .9);
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
@@ -1781,9 +1794,16 @@ const CSS = `
 }
 
 /* CTA */
-.fs-cta {
-  width: 100%;
+.fs-cta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 18px;
+}
+
+.fs-cta {
+  flex: 1;
+  width: 100%;
   padding: 15px;
   border-radius: 14px;
   color: #fff;
@@ -1799,13 +1819,13 @@ const CSS = `
 .fs-cta.book {
   background: var(--brand);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(98, 16, 159, .18);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, .18);
 }
 
 .fs-cta.buy {
   background: var(--brand-deep);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(72, 9, 122, .18);
+  box-shadow: 0 4px 12px rgba(18, 140, 126, .18);
 }
 
 .fs-cta:hover {
@@ -1828,11 +1848,14 @@ const CSS = `
   .fs-panel-cta {
     display: none;
   }
+  .fs-cta-row {
+    display: none;
+  }
 }
 
 .fs-msg-btn {
+  flex: 1;
   width: 100%;
-  margin-top: 10px;
   padding: 13px;
   border-radius: 13px;
   border: 1.5px solid var(--line);
@@ -1844,6 +1867,11 @@ const CSS = `
   align-items: center;
   justify-content: center;
   gap: 7px;
+  white-space: nowrap;
+}
+
+.fs-root .fs-msg-btn {
+  color: var(--brand);
 }
 
 .fs-msg-btn:hover {
@@ -2021,7 +2049,7 @@ const CSS = `
   align-items: center;
   gap: 10px;
   padding: 12px 16px 18px;
-  background: rgba(255, 250, 248, .95);
+  background: var(--surface);
   backdrop-filter: blur(14px);
   border-top: 1px solid var(--line);
 }
@@ -2033,15 +2061,23 @@ const CSS = `
 }
 
 .fs-mob-msg {
-  width: 50px;
+  flex: 1;
   height: 50px;
-  flex: 0 0 auto;
   border-radius: 13px;
   border: 1.5px solid var(--line);
   background: var(--surface);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 13.5px;
+  font-weight: 700;
   color: var(--brand-deep);
+  white-space: nowrap;
+}
+
+.fs-root .fs-mob-msg {
+  color: var(--brand);
 }
 
 .fs-mob-cta {
@@ -2060,13 +2096,13 @@ const CSS = `
 .fs-mob-cta.book {
   background: var(--brand);
   color: #fff;
-  box-shadow: 0 3px 10px rgba(98, 16, 159, .18);
+  box-shadow: 0 3px 10px rgba(37, 211, 102, .18);
 }
 
 .fs-mob-cta.buy {
   background: var(--brand-deep);
   color: #fff;
-  box-shadow: 0 3px 10px rgba(72, 9, 122, .18);
+  box-shadow: 0 3px 10px rgba(18, 140, 126, .18);
 }
 
 .fs-mob-cta span {
@@ -2229,7 +2265,7 @@ const CSS = `
   font-size: 15px;
   font-weight: 700;
   border: none;
-  box-shadow: 0 4px 12px rgba(98, 16, 159, .18);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, .18);
   cursor: pointer;
   display: flex;
   align-items: center;

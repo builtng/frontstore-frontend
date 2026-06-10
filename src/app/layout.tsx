@@ -98,8 +98,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#62109F" },
-    { media: "(prefers-color-scheme: dark)",  color: "#48097A" },
+    { media: "(prefers-color-scheme: light)", color: "#25D366" },
+    { media: "(prefers-color-scheme: dark)",  color: "#128C7E" },
   ],
 };
 
@@ -118,14 +118,15 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                var theme = localStorage.getItem('frontstore-theme') || 'light';
+                var theme = localStorage.getItem('frontstore-theme');
                 if (theme === 'dark') {
                   document.documentElement.classList.add('dark');
                   document.documentElement.classList.remove('light');
-                } else {
+                } else if (theme === 'light') {
                   document.documentElement.classList.add('light');
                   document.documentElement.classList.remove('dark');
                 }
+                // No stored preference → let CSS media query follow system preference
               } catch (e) {}
             `
           }}

@@ -31,8 +31,8 @@ const unitsPerNgn = (ccy: string) => liveRates?.[ccy] ?? (MARKETS.find(m => m.cc
 
 // Category styling tokens mapping
 const CATS_MAP: Record<string, { icon: any; from: string; to: string }> = {
-  "Fashion":           { icon:Store,      from:"#62109F", to:"#7d1bc7" },
-  "Apparel":           { icon:Store,      from:"#62109F", to:"#7d1bc7" },
+  "Fashion":           { icon:Store,      from:"#25D366", to:"#4ADE80" },
+  "Apparel":           { icon:Store,      from:"#25D366", to:"#4ADE80" },
   "Footwear":          { icon:Store,      from:"#c2557a", to:"#e0789a" },
   "Beauty & Cosmetics":{ icon:Sparkles,   from:"#c2557a", to:"#e0789a" },
   "Gadgets":           { icon:LayoutGrid, from:"#2f6f9e", to:"#4f97c7" },
@@ -49,7 +49,7 @@ const FAQS = [
 ];
 
 const STATUS_MAP = {
-  delivered:{ label:"Delivered",  color:"#62109F", bg:"#f0e0ff", Icon:CheckCircle },
+  delivered:{ label:"Delivered",  color:"#25D366", bg:"#dcfce7", Icon:CheckCircle },
   transit:  { label:"In transit", color:"#2f6f9e", bg:"#ddeefa", Icon:Truck       },
   pending:  { label:"Pending",    color:"#d98324", bg:"#fbecd1", Icon:Clock       },
 };
@@ -90,7 +90,7 @@ function Thumb({ cat, h = 148, image }: { cat: string; h?: number; image?: strin
 function ProductCard({ p, market, liked, onLike }: { p: any; market: any; liked: boolean; onLike: () => void }) {
   const priceNum = typeof p.price === 'number' ? p.price : Number(p.price) || 0;
   const storeName = p.store?.store_name || "Oja Wear";
-  const storeLoc = p.store?.loc || "Lagos";
+  const storeLoc = p.store?.location;
   const isSponsored = p.is_sponsored || p.sponsored;
   const productUrl = `/${p.store?.username}/products/${p.slug}`;
   
@@ -117,7 +117,7 @@ function ProductCard({ p, market, liked, onLike }: { p: any; market: any; liked:
           >
             {storeName}
           </span>
-          <span className="dot">•</span>{storeLoc}
+          {storeLoc && <><span className="dot">•</span>{storeLoc}</>}
         </div>
         <div className="p-foot">
           <div>
@@ -143,12 +143,13 @@ function StoreCard({ s }: { s: any }) {
       <span className="store-av" style={{ background:`linear-gradient(150deg,${meta.from},${meta.to})` }}>{(s.store_name || s.name || 'S')[0]}</span>
       <span className="store-name">
         {s.store_name || s.name}
-        {isVerified && <BadgeCheck size={13} color="#62109F" fill="#f0e0ff" />}
+        {isVerified && <BadgeCheck size={13} color="#25D366" fill="#dcfce7" />}
       </span>
       <span className="store-meta">
         {rating !== null && <><Star size={11} fill="#e8a33d" color="#e8a33d" />{rating}<span className="dot">•</span></>}
         {items} item{items === 1 ? '' : 's'}
       </span>
+      {s.location && <span className="store-loc"><MapPin size={11} />{s.location}</span>}
       {isRising && <span className="rising-tag">Rising</span>}
       <span className="store-url">frontstore.app/{slug}</span>
     </a>
@@ -313,6 +314,12 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
   const latest    = [...filtered].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()).slice(0, 6);
   // Surface stores from the shopper's own market first, then rank by real traffic (page views)
   const nearbyStores = [...stores].sort((a, b) => nearFirst(market, a.currency_code, b.currency_code) || (b.traffic || 0) - (a.traffic || 0));
+  // Sellers and listings actually based in the shopper's detected country
+  const nearYouStores = stores.filter(s => s.currency_code === market.ccy);
+  const nearYouProducts = [...filtered]
+    .filter(p => p.store?.currency_code === market.ccy)
+    .sort((a, b) => (b.views_count || 0) - (a.views_count || 0))
+    .slice(0, 4);
 
   return (
     <>
@@ -406,6 +413,24 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
           <div className="featured-scroll">
             {featuredProducts.map(p => <div className="featured-item" key={p.id}><ProductCard p={p} market={market} liked={!!liked[p.id]} onLike={() => toggleLike(p.id)} /></div>)}
           </div>
+        </section>
+      )}
+
+      {/* NEAR YOU */}
+      {(nearYouStores.length > 0 || nearYouProducts.length > 0) && (
+        <section className="sec near-you-sec">
+          <SectionHead title={`Near you in ${market.label}`} icon={MapPin}
+            right={<button className="see-all" onClick={() => setTab("browse")}>See all <ChevronRight size={14} /></button>} />
+          {nearYouStores.length > 0 && (
+            <div className="store-scroll">
+              {nearYouStores.slice(0, 8).map(s => <StoreCard key={s.id} s={s} />)}
+            </div>
+          )}
+          {nearYouProducts.length > 0 && (
+            <div className="product-grid" style={{ marginTop: nearYouStores.length > 0 ? 16 : 8 }}>
+              {nearYouProducts.map(p => <ProductCard key={p.id} p={p} market={market} liked={!!liked[p.id]} onLike={() => toggleLike(p.id)} />)}
+            </div>
+          )}
         </section>
       )}
 
@@ -815,7 +840,7 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
   );
 
   const STATS = [
-    { Icon:ShoppingBag, label:"Orders",     val: String(buyer?.orders_count ?? 0),     color:"#62109F" },
+    { Icon:ShoppingBag, label:"Orders",     val: String(buyer?.orders_count ?? 0),     color:"#25D366" },
     { Icon:Heart,       label:"Saved",      val: String(buyer?.saved_count ?? 0),      color:"#c2557a" },
     { Icon:Star,        label:"Reviews",    val: String(buyer?.reviews_count ?? 0),    color:"#e8a33d" },
     { Icon:Package,     label:"In transit", val: String(buyer?.in_transit_count ?? 0), color:"#2f6f9e" },
@@ -997,7 +1022,7 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
         <div className="quick-actions">
           {[
             { Icon:Package,    label:"Track order",   color:"#2f6f9e" },
-            { Icon:CreditCard, label:"Payment",        color:"#62109F" },
+            { Icon:CreditCard, label:"Payment",        color:"#25D366" },
             { Icon:Bell,       label:"Alerts",         color:"#d98324" },
             { Icon:Store,      label:"Open store",     color:"#6a52b8", onClick: handleMerchantEntry },
           ].map(({ Icon, label, color, onClick }) => (
@@ -1157,7 +1182,7 @@ const CSS = `
 /* tokens — scoped to .root (not :root) so they never leak onto other pages */
 .root{
   --bg:#f7f2e9; --surface:#fffdf8; --ink:#16261d; --muted:#6c7a70;
-  --brand:#62109F; --brand-dark:#48097A; --brand-text:#48097A; --brand-tint:#f0e0ff;
+  --brand:#25D366; --brand-dark:#128C7E; --brand-text:#128C7E; --brand-tint:#dcfce7;
   --accent:#e8a33d; --accent-soft:#fbeccf; --line:#e9e1d2;
   --nav-h:62px; --r:18px;
 }
@@ -1170,8 +1195,8 @@ const CSS = `
   --ink: hsl(210,30%,94%);
   --muted: hsl(215,14%,52%);
   --line: hsl(240,10%,18%);
-  --brand-tint: hsl(277,60%,12%);
-  --brand-text: hsl(273,70%,72%);
+  --brand-tint: hsl(150,50%,12%);
+  --brand-text: hsl(145,65%,60%);
   --accent-soft: hsl(38,60%,12%);
 }
 
@@ -1338,6 +1363,8 @@ const CSS = `
 .store-av{width:48px;height:48px;border-radius:50%;color:#fff;font-family:'Bricolage Grotesque';font-size:18px;font-weight:800;display:grid;place-items:center;margin-bottom:10px;}
 .store-name{font-size:14px;font-weight:700;color:var(--ink);display:inline-flex;align-items:center;gap:3px;margin-bottom:2px;}
 .store-meta{font-size:11.5px;color:var(--muted);display:inline-flex;align-items:center;gap:3px;}
+.store-loc{font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:3px;margin-top:3px;}
+.store-loc svg{color:var(--brand-text);flex-shrink:0;}
 .rising-tag{position:absolute;top:10px;right:10px;font-size:9.5px;font-weight:700;color:var(--brand-text);background:var(--brand-tint);padding:2px 7px;border-radius:6px;}
 .store-url{font-size:11px;color:var(--brand);font-weight:600;margin-top:10px;}
 
@@ -1488,7 +1515,7 @@ const CSS = `
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:58px;background:rgba(255,253,248,.92);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;z-index:50;padding-bottom:env(safe-area-inset-bottom);}
 .bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--muted);flex:1;height:100%;justify-content:center;}
 .bn-item.on{color:var(--brand-text);font-weight:700;}
-.bn-primary{width:44px;height:44px;border-radius:50%;background:var(--brand) !important;display:grid;place-items:center;box-shadow:0 4px 12px rgba(98,16,159,.35);transform:translateY(-8px);flex-shrink:0;}
+.bn-primary{width:44px;height:44px;border-radius:50%;background:var(--brand) !important;display:grid;place-items:center;box-shadow:0 4px 12px rgba(37,211,102,.35);transform:translateY(-8px);flex-shrink:0;}
 
 @media(min-width:768px){
   .bottom-nav{display:none;}

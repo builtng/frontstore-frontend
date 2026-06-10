@@ -84,6 +84,8 @@ interface StoreInfo {
   bank_account_number?: string | null;
   bank_account_name?: string | null;
   payment_instructions?: string | null;
+  delivery_info?: string | null;
+  return_policy?: string | null;
   paystack_bank_code?: string | null;
   bank_account_verified?: boolean;
   paystack_dva_bank_name?: string | null;
@@ -236,14 +238,14 @@ const storeTemplates = [
     name: 'Luxe Market',
     tone: 'Premium boutique',
     description: 'Large cinematic header, polished trust row, balanced catalog cards.',
-    colors: ['#62109F', '#0f172a', '#f59e0b'],
+    colors: ['#25D366', '#0f172a', '#f59e0b'],
   },
   {
     id: 'editorial',
     name: 'Editorial',
     tone: 'Magazine commerce',
     description: 'Story-led layout for fashion, beauty, food, and lifestyle brands.',
-    colors: ['#b42318', '#fbfaf7', '#62109F'],
+    colors: ['#b42318', '#fbfaf7', '#25D366'],
   },
   {
     id: 'flash-sale',
@@ -539,6 +541,8 @@ export default function DashboardPage() {
   const [setStoreName, setSetStoreName] = useState('');
   const [setStoreBio, setSetStoreBio] = useState('');
   const [setStoreLocation, setSetStoreLocation] = useState('');
+  const [deliveryInfo, setDeliveryInfo] = useState('');
+  const [returnPolicy, setReturnPolicy] = useState('');
   const [setBannerUrl, setSetBannerUrl] = useState('');
   const [localWhatsapp, setLocalWhatsapp] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -554,7 +558,7 @@ export default function DashboardPage() {
   const [detectedMerchantLocation, setDetectedMerchantLocation] = useState<string | null>(null);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [customLinks, setCustomLinks] = useState<StoreLink[]>([]);
-  const [primaryColor, setPrimaryColor] = useState('#62109F');
+  const [primaryColor, setPrimaryColor] = useState('#25D366');
   const [selectedTemplate, setSelectedTemplate] = useState('luxe-market');
   const [selectedPersona, setSelectedPersona] = useState('');
   const [catalogLabel, setCatalogLabel] = useState('product');
@@ -767,6 +771,8 @@ export default function DashboardPage() {
               setSetStoreName(parsedStore.store_name || '');
               setSetStoreBio(parsedStore.store_bio || '');
               setSetStoreLocation(parsedStore.location || '');
+              setDeliveryInfo(parsedStore.delivery_info || '');
+              setReturnPolicy(parsedStore.return_policy || '');
               setSetBannerUrl(parsedStore.banner_url || '');
               const parsedPhone = parsePhoneNumber(parsedStore.whatsapp_phone || '');
               setSelectedCountry(parsedPhone.country);
@@ -784,7 +790,7 @@ export default function DashboardPage() {
               setNameMatchOk(parsedStore.bank_account_verified ? true : null);
               setLogoUrl(parsedStore.logo_url || null);
               setCustomLinks(parsedStore.custom_links || []);
-              setPrimaryColor(parsedStore.primary_color || '#62109F');
+              setPrimaryColor(parsedStore.primary_color || '#25D366');
               setSelectedTemplate(parsedStore.store_template || 'luxe-market');
               setCatalogLabel(parsedStore.catalog_label || 'product');
               setCategoryLabel(parsedStore.category_label || 'collection');
@@ -1058,6 +1064,8 @@ export default function DashboardPage() {
         setSetStoreName(liveStore.store_name || '');
         setSetStoreBio(liveStore.store_bio || '');
         setSetStoreLocation(liveStore.location || '');
+        setDeliveryInfo(liveStore.delivery_info || '');
+        setReturnPolicy(liveStore.return_policy || '');
         setSetBannerUrl(liveStore.banner_url || '');
         const parsedPhone = parsePhoneNumber(liveStore.whatsapp_phone || '');
         setSelectedCountry(parsedPhone.country);
@@ -1075,7 +1083,7 @@ export default function DashboardPage() {
         setNameMatchOk(liveStore.bank_account_verified ? true : null);
         setLogoUrl(liveStore.logo_url || null);
         setCustomLinks(liveStore.custom_links || []);
-        setPrimaryColor(liveStore.primary_color || '#62109F');
+        setPrimaryColor(liveStore.primary_color || '#25D366');
         setSelectedTemplate(liveStore.store_template || 'luxe-market');
         setSelectedPersona(liveStore.business_persona || '');
         setCatalogLabel(liveStore.catalog_label || 'product');
@@ -1823,11 +1831,13 @@ export default function DashboardPage() {
           bank_account_number: paymentAccountNumber || null,
           bank_account_name: paymentAccountName || null,
           payment_instructions: paymentInstructions || null,
+          delivery_info: deliveryInfo || null,
+          return_policy: returnPolicy || null,
           paystack_bank_code: paymentBankCode || null,
           bank_account_verified: accountVerified,
           custom_links: customLinks,
           logo_url: logoUrl,
-          primary_color: isPro ? primaryColor : (store?.primary_color || '#62109F'),
+          primary_color: isPro ? primaryColor : (store?.primary_color || '#25D366'),
           store_template: personaPreset?.template || selectedTemplate,
           business_persona: selectedPersona || null,
           catalog_label: personaPreset?.catalogLabel || catalogLabel || null,
@@ -1851,6 +1861,8 @@ export default function DashboardPage() {
         setSetStoreName(json.data.store_name || '');
         setSetStoreBio(json.data.store_bio || '');
         setSetStoreLocation(json.data.location || '');
+        setDeliveryInfo(json.data.delivery_info || '');
+        setReturnPolicy(json.data.return_policy || '');
         setSetBannerUrl(json.data.banner_url || '');
         setLogoUrl(json.data.logo_url || null);
         const parsedPhone = parsePhoneNumber(json.data.whatsapp_phone || '');
@@ -1867,7 +1879,7 @@ export default function DashboardPage() {
         setAccountVerified(!!json.data.bank_account_verified);
         setNameMatchOk(json.data.bank_account_verified ? true : null);
         setCustomLinks(json.data.custom_links || []);
-        setPrimaryColor(json.data.primary_color || '#62109F');
+        setPrimaryColor(json.data.primary_color || '#25D366');
         setSelectedTemplate(json.data.store_template || 'luxe-market');
         setSelectedPersona(json.data.business_persona || '');
         setCatalogLabel(json.data.catalog_label || 'product');
@@ -1998,7 +2010,7 @@ export default function DashboardPage() {
 
   const handleTemplateColorSave = async () => {
     const isProUser = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
-    if (!isProUser && primaryColor !== '#62109F') {
+    if (!isProUser && primaryColor !== '#25D366') {
       openUpgradePrompt(
         'Custom storefront colors require Pro',
         'Free stores use the default brand color. Upgrade to Pro when you want custom theme colors across your storefront.'
@@ -2021,7 +2033,7 @@ export default function DashboardPage() {
 
       setStore(json.data);
       localStorage.setItem('store', JSON.stringify(json.data));
-      setPrimaryColor(json.data.primary_color || '#62109F');
+      setPrimaryColor(json.data.primary_color || '#25D366');
       toast.success('Template color updated.');
     } catch (e: any) {
       toast.error(e.message || 'Could not update template color.');
@@ -3600,7 +3612,7 @@ export default function DashboardPage() {
                           <label style={{ display: 'block', fontSize: 11, fontWeight: 900, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 9 }}>Fast palettes</label>
                           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                             {[
-                              { name: 'Frontstore', value: '#62109F' },
+                              { name: 'Frontstore', value: '#25D366' },
                               { name: 'Ruby', value: '#e11d48' },
                               { name: 'Royal', value: '#4f46e5' },
                               { name: 'Ocean', value: '#0284c7' },
@@ -3646,7 +3658,7 @@ export default function DashboardPage() {
                             }}
                             className="input-field"
                             style={{ fontFamily: 'monospace', fontWeight: 800 }}
-                            placeholder="#62109F"
+                            placeholder="#25D366"
                           />
                         </div>
 
@@ -3848,6 +3860,34 @@ export default function DashboardPage() {
                             placeholder="Brief description of your shop..."
                             className="input-field"
                             style={{ resize: 'vertical' }}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 4 }}>Delivery Info</label>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Shown on every product page under "Delivery &amp; returns". Leave blank to use the default.</p>
+                          <textarea
+                            rows={2}
+                            value={deliveryInfo}
+                            onChange={e => setDeliveryInfo(e.target.value)}
+                            placeholder="e.g. Delivery in 1–3 business days. Local rates apply, nationwide shipping available at checkout."
+                            className="input-field"
+                            style={{ resize: 'vertical' }}
+                            maxLength={300}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 4 }}>Return Policy</label>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Shown on every product page under "Delivery &amp; returns". Leave blank to use the default.</p>
+                          <textarea
+                            rows={2}
+                            value={returnPolicy}
+                            onChange={e => setReturnPolicy(e.target.value)}
+                            placeholder="e.g. Return unopened, unused items within 7 days. Secured by Frontstore."
+                            className="input-field"
+                            style={{ resize: 'vertical' }}
+                            maxLength={300}
                           />
                         </div>
 
@@ -4352,8 +4392,7 @@ export default function DashboardPage() {
                             <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Preset Color Palettes</label>
                             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                               {[
-                                { name: 'Frontstore', value: '#62109F' },
-                                { name: 'WhatsApp', value: '#25D366' },
+                                { name: 'Frontstore', value: '#25D366' },
                                 { name: 'Ocean', value: '#0284c7' },
                                 { name: 'Royal', value: '#4f46e5' },
                                 { name: 'Sunset', value: '#ea580c' },
@@ -4412,7 +4451,7 @@ export default function DashboardPage() {
                                   }}
                                   className="input-field"
                                   style={{ padding: '8px 10px', fontSize: 13, height: 38, fontFamily: 'monospace' }}
-                                  placeholder="#62109F"
+                                  placeholder="#25D366"
                                 />
                               </div>
                             </div>
@@ -4709,7 +4748,7 @@ export default function DashboardPage() {
                             <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Linked Custom Domain</span>
                             <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--primary-dark)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                               {store?.custom_domain}
-                              <span style={{ fontSize: 11, background: '#62109F', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
+                              <span style={{ fontSize: 11, background: '#25D366', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
                             </h3>
                           </div>
                           <button
@@ -5266,9 +5305,9 @@ export default function DashboardPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
                       <div style={{
                         width: 44, height: 44, borderRadius: 'var(--r-md)',
-                        background: 'linear-gradient(135deg, #62109F 0%, #48097A 100%)',
+                        background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 4px 16px rgba(98,16,159,0.35)', flexShrink: 0
+                        boxShadow: '0 4px 16px rgba(37, 211, 102, 0.35)', flexShrink: 0
                       }}>
                         <DollarSign size={22} color="#fff" />
                       </div>
@@ -5350,9 +5389,9 @@ export default function DashboardPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
                       <div style={{
                         width: 44, height: 44, borderRadius: 'var(--r-md)',
-                        background: 'linear-gradient(135deg, #62109F 0%, #48097A 100%)',
+                        background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 4px 16px rgba(98,16,159,0.35)', flexShrink: 0
+                        boxShadow: '0 4px 16px rgba(37, 211, 102, 0.35)', flexShrink: 0
                       }}>
                         <DollarSign size={22} color="#fff" />
                       </div>
@@ -5520,7 +5559,7 @@ export default function DashboardPage() {
                                 fontFamily: 'monospace',
                                 letterSpacing: '0.08em',
                                 fontSize: 15,
-                                borderColor: accountVerified ? '#62109F' : undefined,
+                                borderColor: accountVerified ? '#25D366' : undefined,
                               }}
                             />
                             {/* Right-side indicator */}
@@ -5528,7 +5567,7 @@ export default function DashboardPage() {
                               {isVerifying ? (
                                 <Loader2 size={15} className="spinner" style={{ color: 'var(--primary)' }} />
                               ) : accountVerified ? (
-                                <span style={{ color: '#62109F', display: 'flex' }}><CheckCircle2 size={17} /></span>
+                                <span style={{ color: '#25D366', display: 'flex' }}><CheckCircle2 size={17} /></span>
                               ) : paymentAccountNumber.length === 10 && paymentBankCode ? (
                                 <span style={{ color: 'var(--danger)', display: 'flex' }}><AlertCircle size={17} /></span>
                               ) : null}
@@ -5553,8 +5592,8 @@ export default function DashboardPage() {
                         <div style={{
                           padding: '16px 20px',
                           borderRadius: 'var(--r-lg)',
-                          border: `2px solid ${nameMatchOk === false ? 'var(--danger)' : '#62109F'}`,
-                          background: nameMatchOk === false ? 'rgba(239,68,68,0.06)' : 'rgba(98,16,159,0.07)',
+                          border: `2px solid ${nameMatchOk === false ? 'var(--danger)' : '#25D366'}`,
+                          background: nameMatchOk === false ? 'rgba(239,68,68,0.06)' : 'rgba(37, 211, 102, 0.07)',
                           display: 'flex', flexDirection: 'column', gap: 6,
                           transition: 'all 0.3s'
                         }}>
@@ -5568,7 +5607,7 @@ export default function DashboardPage() {
                             {nameMatchOk === true && (
                               <span style={{
                                 display: 'inline-flex', alignItems: 'center', gap: 5,
-                                background: '#62109F', color: '#fff',
+                                background: '#25D366', color: '#fff',
                                 padding: '5px 12px', borderRadius: 'var(--r-full)',
                                 fontSize: 12, fontWeight: 800
                               }}>
@@ -5592,7 +5631,7 @@ export default function DashboardPage() {
                             </p>
                           )}
                           {nameMatchOk === true && (
-                            <p style={{ fontSize: 12, color: '#62109F', fontWeight: 600, marginTop: 2 }}>
+                            <p style={{ fontSize: 12, color: '#25D366', fontWeight: 600, marginTop: 2 }}>
                               ✅ Account verified — name matches your profile. You can save.
                             </p>
                           )}
@@ -6012,8 +6051,8 @@ export default function DashboardPage() {
                         >
                           Yearly
                           <span style={{
-                            background: '#f3e0ff',
-                            color: '#48097A',
+                            background: '#dcfce7',
+                            color: '#128C7E',
                             fontSize: 9,
                             fontWeight: 900,
                             padding: '1px 5px',
@@ -6050,7 +6089,7 @@ export default function DashboardPage() {
                           </>
                         )}
                         {billingCycle === 'yearly' && !appliedCoupon && (
-                          <div style={{ fontSize: 11.5, color: '#62109F', fontWeight: 700, marginTop: 4 }}>
+                          <div style={{ fontSize: 11.5, color: '#25D366', fontWeight: 700, marginTop: 4 }}>
                             equivalent to ₦1,250 / month (billed annually)
                           </div>
                         )}
@@ -6158,12 +6197,12 @@ export default function DashboardPage() {
                             background: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') 
                               ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' 
                               : appliedCoupon && appliedCoupon.final_price === 0
-                                ? 'linear-gradient(135deg, #62109F 0%, #48097A 100%)'
+                                ? 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)'
                                 : 'none',
                             border: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') 
                               ? '1.5px solid #d97706' 
                               : appliedCoupon && appliedCoupon.final_price === 0
-                                ? '1.5px solid #62109F'
+                                ? '1.5px solid #25D366'
                                 : '1.5px solid #d97706',
                             color: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') || (appliedCoupon && appliedCoupon.final_price === 0) ? '#fff' : '#d97706',
                             fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13,
@@ -6198,9 +6237,9 @@ export default function DashboardPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
                       width: 44, height: 44, borderRadius: 'var(--r-md)',
-                      background: 'linear-gradient(135deg, #62109F 0%, #48097A 100%)',
+                      background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: '0 4px 16px rgba(98, 16, 159, 0.3)', flexShrink: 0
+                      boxShadow: '0 4px 16px rgba(37, 211, 102, 0.3)', flexShrink: 0
                     }}>
                       <DollarSign size={22} color="#fff" />
                     </div>

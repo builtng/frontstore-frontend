@@ -214,7 +214,7 @@ export default function MerchantDocsPage() {
                 We provide professionally styled templates that alter the vibe of your store with one click:
               </p>
               <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'var(--text-2)' }}>
-                <li><strong>Luxe Market:</strong> Deep purples and cinematic headers, ideal for premium boutique brands.</li>
+                <li><strong>Luxe Market:</strong> Rich greens and cinematic headers, ideal for premium boutique brands.</li>
                 <li><strong>Editorial:</strong> Newspaper styling, story-focused layout suitable for luxury clothing and designs.</li>
                 <li><strong>Flash Sale:</strong> High-energy red and amber deals theme built for drops and promotional campaigns.</li>
                 <li><strong>WhatsApp Native:</strong> Matches WhatsApp's interface style to increase trust for chat-accustomed shoppers.</li>
