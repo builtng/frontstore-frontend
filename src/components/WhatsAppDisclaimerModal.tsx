@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { WhatsAppIcon } from './WhatsAppIcon';
 
@@ -17,6 +17,13 @@ export default function WhatsAppDisclaimerModal({
     onConfirm,
     onCancel,
 }: WhatsAppDisclaimerModalProps) {
+    const [acknowledged, setAcknowledged] = useState(false);
+
+    // Reset checkbox whenever the modal opens
+    useEffect(() => {
+        if (open) setAcknowledged(false);
+    }, [open]);
+
     if (!open) {
         return null;
     }
@@ -105,7 +112,51 @@ export default function WhatsAppDisclaimerModal({
                     </ul>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 22, flexWrap: 'wrap' }}>
+                <label
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        marginTop: 20,
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                    }}
+                >
+                    {/* Hidden native checkbox for accessibility */}
+                    <input
+                        type="checkbox"
+                        checked={acknowledged}
+                        onChange={e => setAcknowledged(e.target.checked)}
+                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+                    />
+                    {/* Custom checkbox box */}
+                    <span
+                        aria-hidden="true"
+                        style={{
+                            flexShrink: 0,
+                            width: 22,
+                            height: 22,
+                            borderRadius: 7,
+                            border: acknowledged ? '2px solid #25D366' : '2px solid rgba(15, 23, 42, 0.2)',
+                            background: acknowledged ? '#25D366' : 'transparent',
+                            display: 'grid',
+                            placeItems: 'center',
+                            transition: 'background 0.15s, border-color 0.15s',
+                            boxShadow: acknowledged ? '0 0 0 3px rgba(37, 211, 102, 0.18)' : 'none',
+                        }}
+                    >
+                        {acknowledged && (
+                            <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
+                                <path d="M1 4L4.5 7.5L11 1" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        )}
+                    </span>
+                    <span style={{ fontSize: 13.5, color: 'var(--text, #111827)', lineHeight: 1.5, fontWeight: 500 }}>
+                        I have read and I understand the risks
+                    </span>
+                </label>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
                     <button
                         type="button"
                         onClick={onCancel}
@@ -125,20 +176,22 @@ export default function WhatsAppDisclaimerModal({
                     <button
                         type="button"
                         onClick={onConfirm}
+                        disabled={!acknowledged}
                         style={{
                             appearance: 'none',
                             border: 'none',
-                            background: 'var(--wa-green, #25D366)',
-                            color: '#fff',
+                            background: acknowledged ? 'var(--wa-green, #25D366)' : 'rgba(15, 23, 42, 0.12)',
+                            color: acknowledged ? '#fff' : 'var(--text-muted, #94a3b8)',
                             borderRadius: 12,
                             padding: '12px 18px',
-                            cursor: 'pointer',
+                            cursor: acknowledged ? 'pointer' : 'not-allowed',
                             minWidth: 168,
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: 8,
                             fontWeight: 700,
+                            transition: 'background 0.15s, color 0.15s',
                         }}
                     >
                         <WhatsAppIcon size={16} />

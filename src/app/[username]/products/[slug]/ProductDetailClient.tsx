@@ -36,6 +36,8 @@ interface Product {
   type?: 'service' | 'product';
   duration_minutes?: number | null;
   service_facts?: string[] | null;
+  mobile_fee?: number | string | null;
+  mobile_fee_label?: string | null;
 }
 
 interface Store {
@@ -294,7 +296,11 @@ export default function ProductDetailClient({
   }, [initialProduct.variants]);
 
   const unitPrice = productVariants ? productVariants[size].price : parseFloat(initialProduct.price);
-  const totalAmount = kind === 'product' ? unitPrice * qty : unitPrice;
+  const mobileFeeAmount = kind === 'service' && deliveryMethod === 'delivery' && initialProduct.mobile_fee
+    ? parseFloat(String(initialProduct.mobile_fee))
+    : 0;
+  const mobileFeeLabel = initialProduct.mobile_fee_label || 'Mobile Service Fee';
+  const totalAmount = kind === 'product' ? unitPrice * qty : unitPrice + mobileFeeAmount;
 
   // Generate Booking Dates (Next 5 Days)
   const days = useMemo(() => {
@@ -591,11 +597,11 @@ export default function ProductDetailClient({
             {/* Header info */}
             <p className="fs-cat">{initialProduct.category?.name || "General"}</p>
             <h1 className="fs-name">{initialProduct.name}</h1>
-            {(reviews.length > 0 || store.rating) && (
+            {(store.rating != null || reviews.length > 0) && (
             <div className="fs-rating">
               <Star size={13} fill="#c79a4b" color="#c79a4b" />
-              {store.rating ?? (store.is_verified ? "4.9" : "4.8")}
-              <i>({reviews.length > 0 ? reviews.length : (store.review_count ?? initialProduct.views_count)} reviews)</i>
+              {store.rating != null ? store.rating : (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)}
+              <i>({reviews.length > 0 ? reviews.length : (store.review_count ?? 0)} reviews)</i>
             </div>
             )}
             
@@ -680,7 +686,7 @@ export default function ProductDetailClient({
               )}
               <div className="fs-store-info">
                 <b>{store.store_name} {store.is_verified ? <BadgeCheck size={13} className="fs-verif" /> : null}</b>
-                <span><Star size={11} fill="#c79a4b" color="#c79a4b" /> 4.9 · {allProducts.length} items</span>
+                <span>{store.rating != null ? <><Star size={11} fill="#c79a4b" color="#c79a4b" /> {store.rating} · </> : ''}{allProducts.length} items</span>
               </div>
               <button className="fs-store-go" onClick={() => window.location.href = `/${store.username}`}>
                 Store <ChevronRight size={14} />
@@ -737,11 +743,11 @@ export default function ProductDetailClient({
         </button>
         {kind === "service" ? (
           <button className="fs-mob-cta book" onClick={() => setBooking(true)}>
-            <Calendar size={17} /> Book Now <span>{fmt(totalAmount, currencySymbol)}</span>
+            <Calendar size={17} /> Book Now
           </button>
         ) : (
           <button className="fs-mob-cta buy" onClick={() => setIsCheckoutOpen(true)}>
-            <ShoppingBag size={17} /> Buy Now <span>{fmt(totalAmount, currencySymbol)}</span>
+            <ShoppingBag size={17} /> Buy Now
           </button>
         )}
       </div>
@@ -949,11 +955,17 @@ export default function ProductDetailClient({
               </div>
               {deliveryMethod === 'delivery' && (
                 <div>
+                  {mobileFeeAmount > 0 && (
+                    <div style={{ background: 'var(--tint)', border: '1px solid var(--brand)', borderRadius: 10, padding: '8px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 12.5, color: 'var(--brand-deep)', fontWeight: 600 }}>+ {mobileFeeLabel}</span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--brand-deep)' }}>{fmt(mobileFeeAmount, currencySymbol)}</span>
+                    </div>
+                  )}
                   <label className="fs-opt-lbl">Your Address</label>
-                  <textarea 
-                    className="fs-input-field" 
+                  <textarea
+                    className="fs-input-field"
                     required
-                    placeholder="Enter your street address for the makeup/lashes session"
+                    placeholder="Enter your street address for the mobile session"
                     value={deliveryAddress}
                     onChange={e => setDeliveryAddress(e.target.value)}
                     style={{ minHeight: 60, fontFamily: 'inherit', resize: 'vertical' }}
@@ -1012,9 +1024,25 @@ export default function ProductDetailClient({
             </div>
           )}
 
-          <button 
-            type="submit" 
-            className="fs-sheet-cta" 
+          {kind === 'service' && mobileFeeAmount > 0 && deliveryMethod === 'delivery' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '8px 12px', background: 'var(--tint)', borderRadius: 10, fontSize: 12.5, color: 'var(--brand-deep)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Service</span>
+                <span>{fmt(unitPrice, currencySymbol)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
+                <span>{mobileFeeLabel}</span>
+                <span>{fmt(mobileFeeAmount, currencySymbol)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, borderTop: '1px solid var(--brand)', paddingTop: 4 }}>
+                <span>Total</span>
+                <span>{fmt(totalAmount, currencySymbol)}</span>
+              </div>
+            </div>
+          )}
+          <button
+            type="submit"
+            className="fs-sheet-cta"
             disabled={checkoutLoading}
             style={{ marginTop: 8 }}
           >
@@ -1160,12 +1188,12 @@ export default function ProductDetailClient({
               </button>
             )}
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => {
-                window.open(orderReceipt.whatsapp_url, '_blank');
+                setPendingWaUrl(orderReceipt.whatsapp_url);
                 setOrderReceipt(null);
-              }} 
+              }}
               style={{
                 width: '100%',
                 padding: '14px 18px',

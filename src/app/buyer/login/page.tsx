@@ -36,7 +36,7 @@ export default function BuyerLoginPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('buyer_token')) {
-      router.push('/');
+      router.push('/?tab=account');
     }
   }, [router]);
 
@@ -72,7 +72,7 @@ export default function BuyerLoginPage() {
         localStorage.setItem('buyer_token', json.data.token);
         localStorage.setItem('buyer', JSON.stringify(json.data.buyer));
         toast.success(`Welcome back, ${json.data.buyer?.name || 'shopper'}! 👋`);
-        router.push('/');
+        router.push('/?tab=account');
       } else {
         throw new Error('No authentication token received.');
       }

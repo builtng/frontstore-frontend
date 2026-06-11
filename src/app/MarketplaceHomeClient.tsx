@@ -9,7 +9,7 @@ import {
   MessageCircle, Plus, Minus, SlidersHorizontal, Package, Bell,
   CreditCard, Settings, LogOut, ChevronLeft, TrendingUp,
   ShoppingBag, Gift, Globe, Lock, HelpCircle, Edit3, Camera,
-  CheckCircle, AlertCircle, Trash2
+  CheckCircle, AlertCircle, Trash2, Loader2
 } from "lucide-react";
 
 /* ─── TOKENS & REGIONS ───────────────────────────── */
@@ -48,10 +48,15 @@ const FAQS = [
   { q:"Can I buy from a store in another country?",a:"Often yes for digital items, and for physical items where the store ships to you. Prices show in your local currency as a guide, while the final charge is in the store's own currency." },
 ];
 
-const STATUS_MAP = {
-  delivered:{ label:"Delivered",  color:"#25D366", bg:"#dcfce7", Icon:CheckCircle },
-  transit:  { label:"In transit", color:"#2f6f9e", bg:"#ddeefa", Icon:Truck       },
-  pending:  { label:"Pending",    color:"#d98324", bg:"#fbecd1", Icon:Clock       },
+const STATUS_MAP: Record<string, { label:string; color:string; bg:string; Icon:any }> = {
+  pending:    { label:"Pending",    color:"#d98324", bg:"#fbecd1", Icon:Clock        },
+  confirmed:  { label:"Confirmed",  color:"#2f6f9e", bg:"#ddeefa", Icon:CheckCircle  },
+  processing: { label:"Processing", color:"#2f6f9e", bg:"#ddeefa", Icon:Truck        },
+  completed:  { label:"Delivered",  color:"#25D366", bg:"#dcfce7", Icon:CheckCircle  },
+  cancelled:  { label:"Cancelled",  color:"#c0392b", bg:"#fde8e8", Icon:AlertCircle  },
+  // legacy aliases
+  delivered:  { label:"Delivered",  color:"#25D366", bg:"#dcfce7", Icon:CheckCircle  },
+  transit:    { label:"In transit", color:"#2f6f9e", bg:"#ddeefa", Icon:Truck        },
 };
 
 const fmt = (p: number, ccy: string, market: typeof MARKETS[0]) => {
@@ -787,28 +792,57 @@ interface PageAccountProps {
   products: any[];
 }
 function PageAccount({ market, setMarket, products }: PageAccountProps) {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   const [section, setSection] = useState("main"); // main | orders | settings
   const [mktOpen, setMktOpen] = useState(false);
   const [buyer, setBuyer] = useState<any | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [orderStats, setOrderStats] = useState({ total: 0, pending: 0, confirmed: 0, completed: 0, in_transit: 0 });
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
   useEffect(() => {
     try {
       const token = localStorage.getItem('buyer_token');
       const storedBuyer = localStorage.getItem('buyer');
-      setBuyer(token && storedBuyer ? JSON.parse(storedBuyer) : null);
+      const parsed = token && storedBuyer ? JSON.parse(storedBuyer) : null;
+      setBuyer(parsed);
+      if (token && parsed) {
+        setOrdersLoading(true);
+        fetch(`${API_URL}/v1/buyer/auth/orders`, {
+          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+        })
+          .then(r => r.ok ? r.json() : null)
+          .then(json => {
+            if (json?.data) {
+              setOrders(Array.isArray(json.data.orders) ? json.data.orders : []);
+              if (json.data.stats) setOrderStats(json.data.stats);
+            }
+          })
+          .catch(() => {})
+          .finally(() => setOrdersLoading(false));
+      }
     } catch (e) {
       console.error(e);
       setBuyer(null);
     } finally {
       setAuthChecked(true);
     }
-  }, []);
+  }, [API_URL]);
 
   const handleSignOut = () => {
+    const token = localStorage.getItem('buyer_token');
+    if (token) {
+      fetch(`${API_URL}/v1/buyer/auth/logout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+      }).catch(() => {});
+    }
     localStorage.removeItem('buyer_token');
     localStorage.removeItem('buyer');
     setBuyer(null);
+    setOrders([]);
+    setOrderStats({ total: 0, pending: 0, confirmed: 0, completed: 0, in_transit: 0 });
     setSection('main');
   };
 
@@ -840,14 +874,24 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
   );
 
   const STATS = [
-    { Icon:ShoppingBag, label:"Orders",     val: String(buyer?.orders_count ?? 0),     color:"#25D366" },
-    { Icon:Heart,       label:"Saved",      val: String(buyer?.saved_count ?? 0),      color:"#c2557a" },
-    { Icon:Star,        label:"Reviews",    val: String(buyer?.reviews_count ?? 0),    color:"#e8a33d" },
-    { Icon:Package,     label:"In transit", val: String(buyer?.in_transit_count ?? 0), color:"#2f6f9e" },
+    { Icon:ShoppingBag, label:"Orders",     val: String(orderStats.total),      color:"#25D366" },
+    { Icon:Heart,       label:"Saved",      val: String(buyer?.saved_count ?? 0), color:"#c2557a" },
+    { Icon:Star,        label:"Reviews",    val: String(buyer?.reviews_count ?? 0), color:"#e8a33d" },
+    { Icon:Package,     label:"In transit", val: String(orderStats.in_transit), color:"#2f6f9e" },
   ];
 
-  const ORDERS: { id:string; item:string; store:string; date:string; status:string; amount:number; ccy:string }[] =
-    Array.isArray(buyer?.recent_orders) ? buyer.recent_orders : [];
+  // Normalise API order shape → display shape
+  const ORDERS = orders.map(o => ({
+    id: o.id,
+    order_number: o.order_number,
+    item: o.items?.[0]?.product_name ?? 'Order',
+    store: o.store?.store_name ?? '',
+    date: o.created_at ? new Date(o.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '',
+    status: o.order_status ?? 'pending',
+    amount: Number(o.total_amount) || 0,
+    ccy: o.store?.currency_code ?? o.currency_code ?? 'NGN',
+    items_count: Array.isArray(o.items) ? o.items.length : 1,
+  }));
 
   /* ORDER HISTORY */
   if (section === "orders") return (
@@ -856,32 +900,35 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
         <button className="back-btn" onClick={() => setSection("main")}><ChevronLeft size={20} /></button>
         <h1 className="page-title">Order history</h1>
       </div>
-      {ORDERS.length === 0
+      {ordersLoading ? (
+        <div style={{ display:"flex", justifyContent:"center", padding:"40px 0" }}>
+          <Loader2 size={28} className="animate-spin" style={{ color:"var(--brand)", opacity:.6 }} />
+        </div>
+      ) : ORDERS.length === 0
         ? <EmptyState icon={Package} title="No orders yet" sub="Orders you place will show up here so you can track them." btnLabel="Start shopping" onBtn={() => setSection("main")} />
         : (
         <div className="orders-list">
           {ORDERS.map(o => {
-            const st = STATUS_MAP[o.status as keyof typeof STATUS_MAP] || STATUS_MAP.delivered, StIc = st.Icon;
-            const amt = typeof o.amount === 'number' ? o.amount : Number(o.amount) || 0;
+            const st = STATUS_MAP[o.status as keyof typeof STATUS_MAP] || STATUS_MAP.pending, StIc = st.Icon;
             return (
               <div key={o.id} className="order-card">
                 <div className="order-top">
                   <div>
-                    <p className="order-name">{o.item}</p>
+                    <p className="order-name">{o.item}{o.items_count > 1 ? ` +${o.items_count - 1} more` : ''}</p>
                     <p className="order-meta">{o.store} · {o.date}</p>
                   </div>
-                  <span className="order-amount">{fmt(amt, o.ccy, market)}</span>
+                  <span className="order-amount">{fmt(o.amount, o.ccy, market)}</span>
                 </div>
                 <div className="order-bottom">
                   <span className="status-pill" style={{ background:st.bg, color:st.color }}>
                     <StIc size={12} />{st.label}
                   </span>
                   <div style={{ display:"flex", gap:8 }}>
-                    <button className="o-btn">Details</button>
-                    {o.status === "delivered" && <button className="o-btn o-btn-primary">Review</button>}
+                    <a href={`/track/${o.id}`} className="o-btn" style={{ textDecoration:"none" }}>Track</a>
+                    {o.status === "completed" && <button className="o-btn o-btn-primary">Review</button>}
                   </div>
                 </div>
-                <p className="order-id">Order ID: {o.id}</p>
+                <p className="order-id">{o.order_number || `Order: ${o.id.slice(0,8)}`}</p>
               </div>
             );
           })}
@@ -993,11 +1040,14 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
           <h2>Recent orders</h2>
           {ORDERS.length > 0 && <button className="see-all" onClick={() => setSection("orders")}>See all <ChevronRight size={13} /></button>}
         </div>
-        {ORDERS.length === 0
+        {ordersLoading ? (
+          <div style={{ display:"flex", justifyContent:"center", padding:"20px 0" }}>
+            <Loader2 size={22} className="animate-spin" style={{ color:"var(--brand)", opacity:.5 }} />
+          </div>
+        ) : ORDERS.length === 0
           ? <EmptyState icon={Package} title="No orders yet" sub="When you buy something, it'll show up here." />
           : ORDERS.slice(0, 2).map(o => {
-          const st = STATUS_MAP[o.status as keyof typeof STATUS_MAP] || STATUS_MAP.delivered, StIc = st.Icon;
-          const amt = typeof o.amount === 'number' ? o.amount : Number(o.amount) || 0;
+          const st = STATUS_MAP[o.status as keyof typeof STATUS_MAP] || STATUS_MAP.pending, StIc = st.Icon;
           return (
             <div key={o.id} className="mini-order">
               <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0 }}>
@@ -1005,12 +1055,12 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={{ fontWeight:700, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o.item}</p>
-                <p style={{ fontSize:11, color:"var(--muted)", marginTop:2 }}>{o.date}</p>
+                <p style={{ fontSize:11, color:"var(--muted)", marginTop:2 }}>{o.store} · {o.date}</p>
                 <span className="status-pill" style={{ background:st.bg, color:st.color, marginTop:5, display:"inline-flex" }}>
                   <StIc size={11} />{st.label}
                 </span>
               </div>
-              <span style={{ fontSize:13, fontWeight:700, color:"var(--brand-text)", flexShrink:0 }}>{fmt(amt, o.ccy, market)}</span>
+              <span style={{ fontSize:13, fontWeight:700, color:"var(--brand-text)", flexShrink:0 }}>{fmt(o.amount, o.ccy, market)}</span>
             </div>
           );
         })}
@@ -1058,7 +1108,11 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
 
 /* ─── ROOT ───────────────────────────────────────── */
 export default function MarketplaceHomeClient({ initialData, initialSettings }: { initialData?: any; initialSettings?: any }) {
-  const [tab,    setTab]    = useState("home");
+  const [tab,    setTab]    = useState<string>(() => {
+    if (typeof window === 'undefined') return 'home';
+    const p = new URLSearchParams(window.location.search).get('tab');
+    return ['home','browse','saved','account'].includes(p as string) ? (p as string) : 'home';
+  });
   const [market, setMarket] = useState(MARKETS[0]);
   const [liked,  setLiked]  = useState<Record<string, boolean>>({});
   const toggleLike = (id: string) => setLiked(s => ({ ...s, [id]: !s[id] }));

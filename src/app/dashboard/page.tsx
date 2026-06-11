@@ -141,6 +141,8 @@ interface Product {
   type?: 'product' | 'service' | null;
   duration_minutes?: number | null;
   service_facts?: string[] | null;
+  mobile_fee?: number | string | null;
+  mobile_fee_label?: string | null;
 }
 
 interface OrderItem {
@@ -534,6 +536,8 @@ export default function DashboardPage() {
   const [prodType, setProdType] = useState<'product' | 'service'>('product');
   const [prodDurationMinutes, setProdDurationMinutes] = useState('');
   const [prodServiceFacts, setProdServiceFacts] = useState<string[]>([]);
+  const [prodMobileFee, setProdMobileFee] = useState('');
+  const [prodMobileFeeLabel, setProdMobileFeeLabel] = useState('');
   const [prodCustomFact, setProdCustomFact] = useState('');
 
   // Settings Form
@@ -1519,6 +1523,8 @@ export default function DashboardPage() {
         type: prodType,
         duration_minutes: prodType === 'service' && prodDurationMinutes ? parseInt(prodDurationMinutes, 10) : null,
         service_facts: prodType === 'service' && prodServiceFacts.length > 0 ? prodServiceFacts : null,
+        mobile_fee: prodType === 'service' && prodMobileFee ? parseFloat(prodMobileFee) : null,
+        mobile_fee_label: prodType === 'service' && prodMobileFeeLabel ? prodMobileFeeLabel.trim() : null,
       };
 
       const res = await fetch(`${apiUrl}/v1/products`, {
@@ -1557,6 +1563,8 @@ export default function DashboardPage() {
     setProdType(product.type === 'service' ? 'service' : 'product');
     setProdDurationMinutes(product.duration_minutes ? String(product.duration_minutes) : '');
     setProdServiceFacts(Array.isArray(product.service_facts) ? product.service_facts : []);
+    setProdMobileFee(product.mobile_fee != null ? String(product.mobile_fee) : '');
+    setProdMobileFeeLabel(product.mobile_fee_label || '');
     setProdCustomFact('');
     setIsEditProductOpen(true);
   };
@@ -1585,6 +1593,8 @@ export default function DashboardPage() {
         type: prodType,
         duration_minutes: prodType === 'service' && prodDurationMinutes ? parseInt(prodDurationMinutes, 10) : null,
         service_facts: prodType === 'service' && prodServiceFacts.length > 0 ? prodServiceFacts : null,
+        mobile_fee: prodType === 'service' && prodMobileFee ? parseFloat(prodMobileFee) : null,
+        mobile_fee_label: prodType === 'service' && prodMobileFeeLabel ? prodMobileFeeLabel.trim() : null,
       };
 
       const res = await fetch(`${apiUrl}/v1/products/${selectedProduct.id}`, {
@@ -7196,6 +7206,32 @@ export default function DashboardPage() {
                         >Add</button>
                       </div>
                     </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                        Mobile Service Fee (Optional)
+                      </label>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <input
+                          type="number"
+                          min={0}
+                          placeholder="e.g. 2000"
+                          value={prodMobileFee}
+                          onChange={e => setProdMobileFee(e.target.value)}
+                          className="input-field"
+                          style={{ flex: 1 }}
+                        />
+                        <input
+                          type="text"
+                          placeholder='Label, e.g. "Bike Fee"'
+                          value={prodMobileFeeLabel}
+                          onChange={e => setProdMobileFeeLabel(e.target.value)}
+                          className="input-field"
+                          style={{ flex: 1 }}
+                        />
+                      </div>
+                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>Extra charge added when a customer selects Mobile Session. Give it a name so they know what it covers (e.g. &ldquo;Bike Fee&rdquo;, &ldquo;Travel Fee&rdquo;).</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -7648,6 +7684,32 @@ export default function DashboardPage() {
                           style={{ flexShrink: 0 }}
                         >Add</button>
                       </div>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                        Mobile Service Fee (Optional)
+                      </label>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <input
+                          type="number"
+                          min={0}
+                          placeholder="e.g. 2000"
+                          value={prodMobileFee}
+                          onChange={e => setProdMobileFee(e.target.value)}
+                          className="input-field"
+                          style={{ flex: 1 }}
+                        />
+                        <input
+                          type="text"
+                          placeholder='Label, e.g. "Bike Fee"'
+                          value={prodMobileFeeLabel}
+                          onChange={e => setProdMobileFeeLabel(e.target.value)}
+                          className="input-field"
+                          style={{ flex: 1 }}
+                        />
+                      </div>
+                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>Extra charge added when a customer selects Mobile Session. Give it a name so they know what it covers (e.g. &ldquo;Bike Fee&rdquo;, &ldquo;Travel Fee&rdquo;).</p>
                     </div>
                   </div>
                 )}

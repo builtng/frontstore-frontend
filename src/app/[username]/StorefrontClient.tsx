@@ -432,7 +432,7 @@ export default function StorefrontClient({
   // Browse filtering grid
   const filteredProducts = useMemo(() => {
     return products
-      .filter(p => p.id !== (pinnedProduct?.id || ''))
+      .filter(p => segment !== "all" || p.id !== (pinnedProduct?.id || ''))
       .filter(p => {
         const isService = isProductService(p, store);
         if (segment === "service") return isService;
@@ -1483,12 +1483,12 @@ export default function StorefrontClient({
               </button>
             )}
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => {
-                window.open(orderReceipt.whatsapp_url, '_blank');
+                setPendingWaUrl(orderReceipt.whatsapp_url);
                 setOrderReceipt(null);
-              }} 
+              }}
               style={{
                 width: '100%',
                 padding: '14px 18px',

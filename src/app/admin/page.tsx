@@ -283,9 +283,9 @@ export default function AdminPage() {
     setApiUrl(savedApiUrl);
 
     const redirectToLogin = () => {
-      router.replace('/login');
+      router.replace('/admin/login');
       setTimeout(() => {
-        if (window.location.pathname !== '/login') window.location.replace('/login');
+        if (window.location.pathname !== '/admin/login') window.location.replace('/admin/login');
       }, 800);
     };
 
@@ -320,7 +320,7 @@ export default function AdminPage() {
     if (res.status === 401) {
       toast.error('Session expired. Please log in again.');
       localStorage.clear();
-      router.push('/login');
+      router.push('/admin/login');
       throw new Error('Session expired');
     }
 
@@ -783,7 +783,7 @@ export default function AdminPage() {
 
 const handleLogout = () => {
   localStorage.clear();
-  router.push('/login');
+  router.push('/admin/login');
 };
 
 if (isAuthChecking || !isAuthenticated) {
