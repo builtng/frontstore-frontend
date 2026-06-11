@@ -8,7 +8,7 @@ import {
   ChevronRight, Home, LayoutGrid, User, Bookmark, ArrowRight,
   MessageCircle, Plus, Minus, SlidersHorizontal, Package, Bell,
   CreditCard, Settings, LogOut, ChevronLeft, TrendingUp,
-  ShoppingBag, Gift, Globe, Lock, HelpCircle, Edit3, Camera,
+  ShoppingBag, Globe, Lock, HelpCircle, Edit3, Camera,
   CheckCircle, AlertCircle, Trash2, Loader2
 } from "lucide-react";
 
@@ -686,100 +686,32 @@ interface PageSavedProps {
   toggleLike: (id: string) => void;
   setTab: (t: string) => void;
   products: any[];
-  stores: any[];
 }
-function PageSaved({ market, liked, toggleLike, setTab, products, stores }: PageSavedProps) {
-  const [activeTab, setActiveTab] = useState("items");
+function PageSaved({ market, liked, toggleLike, setTab, products }: PageSavedProps) {
   const saved = products.filter(p => liked[p.id]);
-
-  const COLLECTIONS = [
-    { name:"Wishlist",      n:saved.length, color:"#c2557a" },
-    { name:"Birthday ideas",n:3,             color:"#e8a33d" },
-    { name:"Work gear",     n:2,             color:"#2f6f9e" },
-  ];
-
-  const FOLLOWED = stores.slice(0, 3);
 
   return (
     <>
       <div className="page-header">
         <h1 className="page-title">Saved</h1>
+        {saved.length > 0 && <p className="page-sub">{saved.length} saved item{saved.length !== 1 ? "s" : ""}</p>}
       </div>
 
-      {/* tabs */}
-      <div className="sv-tabs">
-        {[
-          { k:"items",       label:"Saved items",  badge:saved.length },
-          { k:"collections", label:"Collections"                      },
-          { k:"stores",      label:"Stores"                           },
-        ].map(({ k, label, badge }) => (
-          <button key={k} className={`sv-tab${activeTab === k ? " on" : ""}`} onClick={() => setActiveTab(k)}>
-            {label}
-            {badge !== undefined && <span className="sv-badge">{badge}</span>}
-          </button>
-        ))}
-      </div>
-
-      {/* saved items */}
-      {activeTab === "items" && (
-        saved.length > 0 ? (
-          <>
-            <p className="result-count">{saved.length} saved item{saved.length !== 1 ? "s" : ""}</p>
-            <div className="product-grid">
-              {saved.map(p => (
-                <div key={p.id} style={{ position:"relative" }}>
-                  <ProductCard p={p} market={market} liked={true} onLike={() => toggleLike(p.id)} />
-                  <button className="sv-remove" onClick={() => toggleLike(p.id)} title="Remove">
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-              ))}
+      {saved.length > 0 ? (
+        <div className="product-grid">
+          {saved.map(p => (
+            <div key={p.id} style={{ position:"relative" }}>
+              <ProductCard p={p} market={market} liked={true} onLike={() => toggleLike(p.id)} />
+              <button className="sv-remove" onClick={() => toggleLike(p.id)} title="Remove">
+                <Trash2 size={12} />
+              </button>
             </div>
-          </>
-        ) : (
-          <EmptyState icon={Bookmark} title="Nothing saved yet"
-            sub="Tap the heart on any product to save it here."
-            btnLabel="Browse products" onBtn={() => setTab("browse")} />
-        )
-      )}
-
-      {/* collections */}
-      {activeTab === "collections" && (
-        <div className="sv-collections">
-          {COLLECTIONS.map(col => (
-            <button key={col.name} className="sv-col-card">
-              <span className="sv-col-ic" style={{ background:col.color }}><Gift size={20} color="#fff" strokeWidth={1.5} /></span>
-              <div style={{ flex:1 }}>
-                <p className="sv-col-name">{col.name}</p>
-                <p className="sv-col-n">{col.n} items</p>
-              </div>
-              <ChevronRight size={15} style={{ color:"var(--muted)" }} />
-            </button>
           ))}
-          <button className="sv-col-card sv-col-new">
-            <Plus size={20} style={{ color:"var(--brand)" }} />
-            <span style={{ color:"var(--brand)", fontWeight:700 }}>New collection</span>
-          </button>
         </div>
-      )}
-
-      {/* followed stores */}
-      {activeTab === "stores" && (
-        <div className="sv-stores">
-          {FOLLOWED.map((s, i) => {
-            const meta = CATS_MAP[s.category?.name || s.cat] || CATS_MAP.Fashion;
-            return (
-              <div key={s.id} className="sv-store-row">
-                <span className="store-av" style={{ background:`linear-gradient(150deg,${meta.from},${meta.to})` }}>{(s.store_name || s.name || 'S')[0]}</span>
-                <div style={{ flex:1 }}>
-                  <p style={{ fontWeight:700, fontSize:14 }}>{s.store_name || s.name}</p>
-                  <p style={{ fontSize:12, color:"var(--muted)", marginTop:2 }}>Following since May 2026</p>
-                </div>
-                <button className="sv-unfollow">Unfollow</button>
-              </div>
-            );
-          })}
-        </div>
+      ) : (
+        <EmptyState icon={Bookmark} title="Nothing saved yet"
+          sub="Tap the heart on any product to save it here."
+          btnLabel="Browse products" onBtn={() => setTab("browse")} />
       )}
     </>
   );
@@ -790,15 +722,16 @@ interface PageAccountProps {
   market: any;
   setMarket: (m: any) => void;
   products: any[];
+  liked: Record<string, boolean>;
 }
-function PageAccount({ market, setMarket, products }: PageAccountProps) {
+function PageAccount({ market, setMarket, products, liked }: PageAccountProps) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   const [section, setSection] = useState("main"); // main | orders | settings
   const [mktOpen, setMktOpen] = useState(false);
   const [buyer, setBuyer] = useState<any | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
-  const [orderStats, setOrderStats] = useState({ total: 0, pending: 0, confirmed: 0, completed: 0, in_transit: 0 });
+  const [orderStats, setOrderStats] = useState({ total: 0, pending: 0, confirmed: 0, completed: 0, in_transit: 0, reviews_count: 0 });
   const [ordersLoading, setOrdersLoading] = useState(false);
 
   useEffect(() => {
@@ -816,7 +749,7 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
           .then(json => {
             if (json?.data) {
               setOrders(Array.isArray(json.data.orders) ? json.data.orders : []);
-              if (json.data.stats) setOrderStats(json.data.stats);
+              if (json.data.stats) setOrderStats(s => ({ ...s, ...json.data.stats }));
             }
           })
           .catch(() => {})
@@ -842,7 +775,7 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
     localStorage.removeItem('buyer');
     setBuyer(null);
     setOrders([]);
-    setOrderStats({ total: 0, pending: 0, confirmed: 0, completed: 0, in_transit: 0 });
+    setOrderStats({ total: 0, pending: 0, confirmed: 0, completed: 0, in_transit: 0, reviews_count: 0 });
     setSection('main');
   };
 
@@ -873,11 +806,12 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
     </div>
   );
 
+  const savedCount = Object.values(liked).filter(Boolean).length;
   const STATS = [
-    { Icon:ShoppingBag, label:"Orders",     val: String(orderStats.total),      color:"#25D366" },
-    { Icon:Heart,       label:"Saved",      val: String(buyer?.saved_count ?? 0), color:"#c2557a" },
-    { Icon:Star,        label:"Reviews",    val: String(buyer?.reviews_count ?? 0), color:"#e8a33d" },
-    { Icon:Package,     label:"In transit", val: String(orderStats.in_transit), color:"#2f6f9e" },
+    { Icon:ShoppingBag, label:"Orders",     val: String(orderStats.total),          color:"#25D366" },
+    { Icon:Heart,       label:"Saved",      val: String(savedCount),                color:"#c2557a" },
+    { Icon:Star,        label:"Reviews",    val: String(orderStats.reviews_count),  color:"#e8a33d" },
+    { Icon:Package,     label:"In transit", val: String(orderStats.in_transit),     color:"#2f6f9e" },
   ];
 
   // Normalise API order shape → display shape
@@ -1050,8 +984,8 @@ function PageAccount({ market, setMarket, products }: PageAccountProps) {
           const st = STATUS_MAP[o.status as keyof typeof STATUS_MAP] || STATUS_MAP.pending, StIc = st.Icon;
           return (
             <div key={o.id} className="mini-order">
-              <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0 }}>
-                <Thumb cat={products[0]?.category?.name || "Apparel"} h={52} />
+              <div style={{ width:52, height:52, borderRadius:10, flexShrink:0, background:"var(--brand-tint)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <Package size={22} color="var(--brand-text)" strokeWidth={1.5} />
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 <p style={{ fontWeight:700, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o.item}</p>
@@ -1213,8 +1147,8 @@ export default function MarketplaceHomeClient({ initialData, initialSettings }: 
   const pages = {
     home:    <PageHome    market={market} liked={liked} toggleLike={toggleLike} setTab={setTab} products={products} categories={categories} stores={finalStores} setActiveCat={setActiveCat} q={q} setQ={setQ} />,
     browse:  <PageBrowse  market={market} liked={liked} toggleLike={toggleLike} products={products} categories={categories} activeCat={activeCat} setActiveCat={setActiveCat} q={q} setQ={setQ} focusSignal={searchFocusSignal} />,
-    saved:   <PageSaved   market={market} liked={liked} toggleLike={toggleLike} setTab={setTab} products={products} stores={finalStores} />,
-    account: <PageAccount market={market} setMarket={setMarket} products={products} />,
+    saved:   <PageSaved   market={market} liked={liked} toggleLike={toggleLike} setTab={setTab} products={products} />,
+    account: <PageAccount market={market} setMarket={setMarket} products={products} liked={liked} />,
   };
 
   return (
