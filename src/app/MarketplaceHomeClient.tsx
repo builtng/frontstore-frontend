@@ -731,13 +731,16 @@ interface PageAccountProps {
 }
 function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buyerAuthChecked }: PageAccountProps) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
-  const [section, setSection] = useState("main"); // main | orders | settings | password | payment-methods | help
+  const [section, setSection] = useState("main"); // main | orders | settings | password | payment-methods | help | edit-profile
   const [mktOpen, setMktOpen] = useState(false);
   const [notifOn, setNotifOn] = useState(true);
   const [language, setLanguage] = useState("English");
   const [langOpen, setLangOpen] = useState(false);
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
   const [pwMsg, setPwMsg] = useState('');
+  const [profileForm, setProfileForm] = useState({ name: '', email: '' });
+  const [profileMsg, setProfileMsg] = useState('');
+  const [profileSaving, setProfileSaving] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [orderStats, setOrderStats] = useState({ total: 0, pending: 0, confirmed: 0, completed: 0, in_transit: 0, reviews_count: 0 });
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -803,6 +806,33 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
       if (res.ok) setPwForm({ current: '', next: '', confirm: '' });
     } catch {
       setPwMsg('Something went wrong. Please try again.');
+    }
+  };
+
+  const handleProfileSave = async () => {
+    if (!profileForm.name.trim()) { setProfileMsg('Name is required.'); return; }
+    const token = localStorage.getItem('buyer_token');
+    if (!token) return;
+    setProfileSaving(true);
+    try {
+      const res = await fetch(`${API_URL}/v1/buyer/auth/profile`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ name: profileForm.name.trim(), email: profileForm.email.trim() || null }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setProfileMsg('Profile updated successfully.');
+        const updated = json?.data ? { ...buyer, ...json.data } : { ...buyer, ...profileForm };
+        setBuyer(updated);
+        localStorage.setItem('buyer', JSON.stringify(updated));
+      } else {
+        setProfileMsg(json?.message || 'Failed to update profile.');
+      }
+    } catch {
+      setProfileMsg('Something went wrong. Please try again.');
+    } finally {
+      setProfileSaving(false);
     }
   };
 
@@ -975,6 +1005,47 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
     </>
   );
 
+  /* EDIT PROFILE */
+  if (section === "edit-profile") return (
+    <>
+      <div className="sub-header">
+        <button className="back-btn" onClick={() => { setSection("main"); setProfileMsg(''); }}><ChevronLeft size={20} /></button>
+        <h1 className="page-title">Edit profile</h1>
+      </div>
+      <div className="settings-block">
+        <p className="settings-group-label">Your details</p>
+        <div style={{ display:"flex", flexDirection:"column", gap:10, padding:"6px 0" }}>
+          <input
+            type="text"
+            placeholder="Full name"
+            value={profileForm.name}
+            onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))}
+            className="pw-input"
+          />
+          <input
+            type="email"
+            placeholder="Email address"
+            value={profileForm.email}
+            onChange={e => setProfileForm(f => ({ ...f, email: e.target.value }))}
+            className="pw-input"
+          />
+          <input
+            type="text"
+            value={buyer?.phone_number || ''}
+            disabled
+            className="pw-input"
+            style={{ opacity:.6, cursor:"not-allowed" }}
+          />
+          <p style={{ fontSize:11.5, color:"var(--muted)", margin:"-4px 0 0" }}>Phone number can&apos;t be changed here. Contact support if you need to update it.</p>
+          {profileMsg && <p style={{ fontSize:12.5, color: profileMsg.includes('success') ? "var(--brand-text)" : "#c0392b", fontWeight:600 }}>{profileMsg}</p>}
+          <button className="es-btn" style={{ marginTop:4, justifyContent:"center", padding:"12px 0" }} onClick={handleProfileSave} disabled={profileSaving}>
+            {profileSaving ? <Loader2 size={16} className="animate-spin" /> : "Save changes"}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
   /* PASSWORD & SECURITY */
   if (section === "password") return (
     <>
@@ -1078,7 +1149,7 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
           {finalProfileEmail && <p className="ac-email">{finalProfileEmail}</p>}
           {isVerifiedBuyer && <span className="verified-badge"><BadgeCheck size={11} />Verified buyer</span>}
         </div>
-        <button className="edit-btn" onClick={() => setSection("settings")}><Edit3 size={14} /></button>
+        <button className="edit-btn" onClick={() => { setProfileForm({ name: buyer?.name || '', email: buyer?.email || '' }); setProfileMsg(''); setSection("edit-profile"); }}><Edit3 size={14} /></button>
       </div>
 
       {/* stats */}
