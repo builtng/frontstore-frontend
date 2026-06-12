@@ -182,7 +182,7 @@ function EmptyState({ icon: Icon, title, sub, btnLabel, onBtn }: { icon: any; ti
 }
 
 /* ─── LAYOUT SHELL ───────────────────────────────── */
-function Shell({ tab, setTab, market, setMarket, onSearchTap, children }: { tab: string; setTab: (t: string) => void; market: any; setMarket: (m: any) => void; onSearchTap: () => void; children: React.ReactNode }) {
+function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer }: { tab: string; setTab: (t: string) => void; market: any; setMarket: (m: any) => void; onSearchTap: () => void; children: React.ReactNode; buyer?: any | null }) {
   const [drawer, setDrawer]   = useState(false);
   const [mktOpen, setMktOpen] = useState(false);
 
@@ -237,7 +237,9 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children }: { tab:
               )}
             </div>
             <ThemeToggle />
-            <button className="signin-btn" onClick={() => setTab("account")}>Sign in</button>
+            {buyer
+              ? <button className="signin-btn nav-acct-btn" onClick={() => setTab("account")}><User size={14} />{(buyer.name || 'Account').split(' ')[0]}</button>
+              : <button className="signin-btn" onClick={() => setTab("account")}>Sign in</button>}
             <button className="open-store-btn" onClick={goToMerchantArea}>Open store</button>
           </div>
         </div>
@@ -723,45 +725,41 @@ interface PageAccountProps {
   setMarket: (m: any) => void;
   products: any[];
   liked: Record<string, boolean>;
+  buyer: any | null;
+  setBuyer: (b: any | null) => void;
+  buyerAuthChecked: boolean;
 }
-function PageAccount({ market, setMarket, products, liked }: PageAccountProps) {
+function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buyerAuthChecked }: PageAccountProps) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
-  const [section, setSection] = useState("main"); // main | orders | settings
+  const [section, setSection] = useState("main"); // main | orders | settings | password | payment-methods | help
   const [mktOpen, setMktOpen] = useState(false);
-  const [buyer, setBuyer] = useState<any | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const [notifOn, setNotifOn] = useState(true);
+  const [language, setLanguage] = useState("English");
+  const [langOpen, setLangOpen] = useState(false);
+  const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
+  const [pwMsg, setPwMsg] = useState('');
   const [orders, setOrders] = useState<any[]>([]);
   const [orderStats, setOrderStats] = useState({ total: 0, pending: 0, confirmed: 0, completed: 0, in_transit: 0, reviews_count: 0 });
   const [ordersLoading, setOrdersLoading] = useState(false);
 
   useEffect(() => {
-    try {
-      const token = localStorage.getItem('buyer_token');
-      const storedBuyer = localStorage.getItem('buyer');
-      const parsed = token && storedBuyer ? JSON.parse(storedBuyer) : null;
-      setBuyer(parsed);
-      if (token && parsed) {
-        setOrdersLoading(true);
-        fetch(`${API_URL}/v1/buyer/auth/orders`, {
-          headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-        })
-          .then(r => r.ok ? r.json() : null)
-          .then(json => {
-            if (json?.data) {
-              setOrders(Array.isArray(json.data.orders) ? json.data.orders : []);
-              if (json.data.stats) setOrderStats(s => ({ ...s, ...json.data.stats }));
-            }
-          })
-          .catch(() => {})
-          .finally(() => setOrdersLoading(false));
-      }
-    } catch (e) {
-      console.error(e);
-      setBuyer(null);
-    } finally {
-      setAuthChecked(true);
-    }
-  }, [API_URL]);
+    if (!buyer) return;
+    const token = localStorage.getItem('buyer_token');
+    if (!token) return;
+    setOrdersLoading(true);
+    fetch(`${API_URL}/v1/buyer/auth/orders`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(json => {
+        if (json?.data) {
+          setOrders(Array.isArray(json.data.orders) ? json.data.orders : []);
+          if (json.data.stats) setOrderStats(s => ({ ...s, ...json.data.stats }));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setOrdersLoading(false));
+  }, [buyer, API_URL]);
 
   const handleSignOut = () => {
     const token = localStorage.getItem('buyer_token');
@@ -789,8 +787,27 @@ function PageAccount({ market, setMarket, products, liked }: PageAccountProps) {
     }
   };
 
+  const handlePwChange = async () => {
+    if (!pwForm.current || !pwForm.next) { setPwMsg('Please fill in all fields.'); return; }
+    if (pwForm.next !== pwForm.confirm) { setPwMsg('New passwords do not match.'); return; }
+    const token = localStorage.getItem('buyer_token');
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/v1/buyer/auth/password`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ current_password: pwForm.current, password: pwForm.next, password_confirmation: pwForm.confirm }),
+      });
+      const json = await res.json();
+      setPwMsg(res.ok ? 'Password updated successfully.' : (json?.message || 'Failed to update password.'));
+      if (res.ok) setPwForm({ current: '', next: '', confirm: '' });
+    } catch {
+      setPwMsg('Something went wrong. Please try again.');
+    }
+  };
+
   /* SIGN-IN GATE — the buyer account area requires a buyer session, not the merchant 'user'/'token' pair */
-  if (authChecked && !buyer) return (
+  if (buyerAuthChecked && !buyer) return (
     <div style={{ display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", padding:"64px 20px" }}>
       <span style={{ width:56, height:56, borderRadius:"50%", background:"var(--brand-tint)", display:"flex", alignItems:"center", justifyContent:"center" }}>
         <User size={26} color="var(--brand)" />
@@ -900,36 +917,143 @@ function PageAccount({ market, setMarket, products, liked }: PageAccountProps) {
 
       <div className="settings-block">
         <p className="settings-group-label">Account</p>
-        {[
-          { Icon:Bell,       label:"Notifications",      val:"On"     },
-          { Icon:Lock,       label:"Password & security"              },
-          { Icon:CreditCard, label:"Payment methods"                  },
-          { Icon:Globe,      label:"Language",           val:"English"},
-        ].map(({ Icon, label, val }) => (
-          <button key={label} className="settings-row">
-            <Icon size={15} style={{ color:"var(--brand)" }} />
-            <span>{label}</span>
-            <span className="sr-val">{val || <ChevronRight size={14} style={{ color:"var(--muted)" }} />}</span>
-          </button>
-        ))}
+        <div className="settings-row">
+          <Bell size={15} style={{ color:"var(--brand)" }} />
+          <span>Notifications</span>
+          <label className="toggle-switch" style={{ marginLeft:"auto" }}>
+            <input type="checkbox" checked={notifOn} onChange={e => setNotifOn(e.target.checked)} />
+            <span className="toggle-slider" />
+          </label>
+        </div>
+        <button className="settings-row" onClick={() => setSection("password")}>
+          <Lock size={15} style={{ color:"var(--brand)" }} />
+          <span>Password &amp; security</span>
+          <span className="sr-val"><ChevronRight size={14} style={{ color:"var(--muted)" }} /></span>
+        </button>
+        <button className="settings-row" onClick={() => setSection("payment-methods")}>
+          <CreditCard size={15} style={{ color:"var(--brand)" }} />
+          <span>Payment methods</span>
+          <span className="sr-val"><ChevronRight size={14} style={{ color:"var(--muted)" }} /></span>
+        </button>
+        <button className="settings-row" onClick={() => setLangOpen(o => !o)}>
+          <Globe size={15} style={{ color:"var(--brand)" }} />
+          <span>Language</span>
+          <span className="sr-val">{language} <ChevronDown size={13} /></span>
+        </button>
+        {langOpen && (
+          <div className="mkt-inline" style={{ marginTop:4 }}>
+            {["English","French","Arabic","Portuguese","Swahili"].map(l => (
+              <button key={l} className={`mkt-opt${language === l ? " on" : ""}`}
+                style={{ width:"100%" }} onClick={() => { setLanguage(l); setLangOpen(false); }}>
+                <span>{l}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="settings-block">
         <p className="settings-group-label">Support</p>
-        {[
-          { Icon:HelpCircle,   label:"Help centre"             },
-          { Icon:MessageCircle,label:"Chat on WhatsApp"        },
-          { Icon:AlertCircle,  label:"Report a problem"        },
-        ].map(({ Icon, label }) => (
-          <button key={label} className="settings-row">
-            <Icon size={15} style={{ color:"var(--brand)" }} />
-            <span>{label}</span>
-            <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
-          </button>
-        ))}
+        <button className="settings-row" onClick={() => setSection("help")}>
+          <HelpCircle size={15} style={{ color:"var(--brand)" }} />
+          <span>Help centre</span>
+          <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
+        </button>
+        <button className="settings-row" onClick={() => window.open('https://wa.me/2348030000000', '_blank')}>
+          <MessageCircle size={15} style={{ color:"var(--brand)" }} />
+          <span>Chat on WhatsApp</span>
+          <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
+        </button>
+        <button className="settings-row" onClick={() => window.open('mailto:support@frontstore.app')}>
+          <AlertCircle size={15} style={{ color:"var(--brand)" }} />
+          <span>Report a problem</span>
+          <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
+        </button>
       </div>
 
       <button className="logout-btn" onClick={handleSignOut}><LogOut size={14} />Sign out</button>
+    </>
+  );
+
+  /* PASSWORD & SECURITY */
+  if (section === "password") return (
+    <>
+      <div className="sub-header">
+        <button className="back-btn" onClick={() => { setSection("settings"); setPwMsg(''); }}><ChevronLeft size={20} /></button>
+        <h1 className="page-title">Password &amp; security</h1>
+      </div>
+      <div className="settings-block">
+        <p className="settings-group-label">Change password</p>
+        <div style={{ display:"flex", flexDirection:"column", gap:10, padding:"6px 0" }}>
+          <input
+            type="password"
+            placeholder="Current password"
+            value={pwForm.current}
+            onChange={e => setPwForm(f => ({ ...f, current: e.target.value }))}
+            className="pw-input"
+          />
+          <input
+            type="password"
+            placeholder="New password"
+            value={pwForm.next}
+            onChange={e => setPwForm(f => ({ ...f, next: e.target.value }))}
+            className="pw-input"
+          />
+          <input
+            type="password"
+            placeholder="Confirm new password"
+            value={pwForm.confirm}
+            onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))}
+            className="pw-input"
+          />
+          {pwMsg && <p style={{ fontSize:12.5, color: pwMsg.includes('success') ? "var(--brand-text)" : "#c0392b", fontWeight:600 }}>{pwMsg}</p>}
+          <button className="es-btn" style={{ marginTop:4, justifyContent:"center", padding:"12px 0" }} onClick={handlePwChange}>
+            Update password
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
+  /* PAYMENT METHODS */
+  if (section === "payment-methods") return (
+    <>
+      <div className="sub-header">
+        <button className="back-btn" onClick={() => setSection("settings")}><ChevronLeft size={20} /></button>
+        <h1 className="page-title">Payment methods</h1>
+      </div>
+      <EmptyState icon={CreditCard} title="No payment methods saved"
+        sub="Add a card or bank account to check out faster next time." />
+      <button className="add-pm-btn">
+        <Plus size={16} />Add payment method
+      </button>
+    </>
+  );
+
+  /* HELP & SUPPORT */
+  if (section === "help") return (
+    <>
+      <div className="sub-header">
+        <button className="back-btn" onClick={() => setSection("main")}><ChevronLeft size={20} /></button>
+        <h1 className="page-title">Help &amp; support</h1>
+      </div>
+      <div className="settings-block">
+        <button className="settings-row" onClick={() => window.open('/docs', '_blank')}>
+          <HelpCircle size={15} style={{ color:"var(--brand)" }} />
+          <span>Help centre</span>
+          <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
+        </button>
+        <button className="settings-row" onClick={() => window.open('https://wa.me/2348030000000', '_blank')}>
+          <MessageCircle size={15} style={{ color:"var(--brand)" }} />
+          <span>Chat on WhatsApp</span>
+          <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
+        </button>
+        <button className="settings-row" onClick={() => window.open('mailto:support@frontstore.app')}>
+          <AlertCircle size={15} style={{ color:"var(--brand)" }} />
+          <span>Report a problem</span>
+          <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
+        </button>
+      </div>
     </>
   );
 
@@ -1005,9 +1129,9 @@ function PageAccount({ market, setMarket, products, liked }: PageAccountProps) {
         <div className="ac-block-head"><h2>Quick actions</h2></div>
         <div className="quick-actions">
           {[
-            { Icon:Package,    label:"Track order",   color:"#2f6f9e" },
-            { Icon:CreditCard, label:"Payment",        color:"#25D366" },
-            { Icon:Bell,       label:"Alerts",         color:"#d98324" },
+            { Icon:Package,    label:"Track order",   color:"#2f6f9e", onClick: () => setSection("orders") },
+            { Icon:CreditCard, label:"Payment",        color:"#25D366", onClick: () => setSection("payment-methods") },
+            { Icon:Bell,       label:"Alerts",         color:"#d98324", onClick: () => setSection("settings") },
             { Icon:Store,      label:"Open store",     color:"#6a52b8", onClick: handleMerchantEntry },
           ].map(({ Icon, label, color, onClick }) => (
             <button key={label} className="qa-btn" onClick={onClick}>
@@ -1022,7 +1146,7 @@ function PageAccount({ market, setMarket, products, liked }: PageAccountProps) {
       <div className="ac-block">
         {[
           { Icon:Settings,   label:"Account settings",    onClick:() => setSection("settings") },
-          { Icon:HelpCircle, label:"Help & support",       onClick:() => {}                    },
+          { Icon:HelpCircle, label:"Help & support",       onClick:() => setSection("help")    },
           { Icon:TrendingUp, label:"Sell on Frontstore",   onClick: handleMerchantEntry         },
         ].map(({ Icon, label, onClick }) => (
           <button key={label} className="ac-menu-row" onClick={onClick}>
@@ -1050,6 +1174,21 @@ export default function MarketplaceHomeClient({ initialData, initialSettings }: 
   const [market, setMarket] = useState(MARKETS[0]);
   const [liked,  setLiked]  = useState<Record<string, boolean>>({});
   const toggleLike = (id: string) => setLiked(s => ({ ...s, [id]: !s[id] }));
+
+  // Buyer session — read once on mount and re-checked whenever the Account tab is opened,
+  // so the header reflects sign-in state right away (incl. returning from /buyer/login).
+  const [buyer, setBuyer] = useState<any | null>(null);
+  const [buyerAuthChecked, setBuyerAuthChecked] = useState(false);
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('buyer_token');
+      const stored = localStorage.getItem('buyer');
+      setBuyer(token && stored ? JSON.parse(stored) : null);
+    } catch {
+      setBuyer(null);
+    }
+    setBuyerAuthChecked(true);
+  }, [tab]);
 
   // Auto-detect the shopper's market/currency from their location so items & prices show in their local context by default
   useEffect(() => {
@@ -1148,11 +1287,11 @@ export default function MarketplaceHomeClient({ initialData, initialSettings }: 
     home:    <PageHome    market={market} liked={liked} toggleLike={toggleLike} setTab={setTab} products={products} categories={categories} stores={finalStores} setActiveCat={setActiveCat} q={q} setQ={setQ} />,
     browse:  <PageBrowse  market={market} liked={liked} toggleLike={toggleLike} products={products} categories={categories} activeCat={activeCat} setActiveCat={setActiveCat} q={q} setQ={setQ} focusSignal={searchFocusSignal} />,
     saved:   <PageSaved   market={market} liked={liked} toggleLike={toggleLike} setTab={setTab} products={products} />,
-    account: <PageAccount market={market} setMarket={setMarket} products={products} liked={liked} />,
+    account: <PageAccount market={market} setMarket={setMarket} products={products} liked={liked} buyer={buyer} setBuyer={setBuyer} buyerAuthChecked={buyerAuthChecked} />,
   };
 
   return (
-    <Shell tab={tab} setTab={setTab} market={market} setMarket={setMarket} onSearchTap={() => setSearchFocusSignal(s => s + 1)}>
+    <Shell tab={tab} setTab={setTab} market={market} setMarket={setMarket} onSearchTap={() => setSearchFocusSignal(s => s + 1)} buyer={buyer}>
       {/* dangerouslySetInnerHTML prevents React from diffing style content during hydration, avoiding mismatches from browser extensions that modify <style> tags */}
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="inner-wrap" key={tab}>
@@ -1227,6 +1366,7 @@ const CSS = `
 .nav-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
 .mkt-btn{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--brand-text);background:var(--brand-tint);padding:8px 12px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
 .signin-btn{font-size:13.5px;font-weight:600;padding:8px 6px;white-space:nowrap;flex-shrink:0;}
+.nav-acct-btn{display:inline-flex;align-items:center;gap:6px;color:var(--brand-text);background:var(--brand-tint);padding:8px 12px;border-radius:10px;}
 .open-store-btn{display:none;font-size:13px;font-weight:700;background:var(--brand) !important;color:#fff !important;padding:9px 15px;border-radius:11px;white-space:nowrap;flex-shrink:0;}
 .open-store-btn:hover{background:var(--brand-dark) !important;}
 
@@ -1467,6 +1607,22 @@ const CSS = `
 .settings-row:last-child{border-bottom:none;}
 .sr-val{margin-left:auto;color:var(--muted);font-size:12.5px;display:inline-flex;align-items:center;gap:4px;}
 .logout-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13.5px;font-weight:750;color:#c0392b;border:1.5px solid var(--line);background:var(--surface);padding:12px;border-radius:11px;margin-top:10px;}
+
+/* toggle switch */
+.toggle-switch{position:relative;display:inline-block;width:40px;height:23px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-slider{position:absolute;inset:0;background:var(--line);border-radius:24px;transition:.2s;cursor:pointer;}
+.toggle-slider::before{content:"";position:absolute;height:17px;width:17px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;}
+.toggle-switch input:checked + .toggle-slider{background:var(--brand);}
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(17px);}
+
+/* password form inputs */
+.pw-input{width:100%;padding:12px 14px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);font-size:13.5px;font-family:inherit;color:var(--ink);}
+.pw-input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-tint);}
+
+/* add payment method */
+.add-pm-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--brand-text);border:1.5px dashed var(--line);background:none;padding:13px;border-radius:var(--r);margin-top:14px;}
+.add-pm-btn:hover{border-color:var(--brand);background:var(--brand-tint);}
 
 /* profile card */
 .profile-card{display:flex;align-items:center;gap:14px;padding:16px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px;}
