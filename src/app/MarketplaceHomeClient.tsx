@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import ThemeToggle from "../components/ThemeToggle";
 import {
   Menu, X, Search, MapPin, ChevronDown, Heart, Star, ShieldCheck,
-  Receipt, Truck, Sparkles, Clock, Flame, Store, BadgeCheck,
+  Receipt, Truck, Clock, Flame, Store, BadgeCheck,
   ChevronRight, Home, LayoutGrid, User, Bookmark, ArrowRight,
   MessageCircle, Plus, Minus, SlidersHorizontal, Package, Bell,
   CreditCard, Settings, LogOut, ChevronLeft, TrendingUp,
@@ -34,7 +34,7 @@ const CATS_MAP: Record<string, { icon: any; from: string; to: string }> = {
   "Fashion":           { icon:Store,      from:"#25D366", to:"#4ADE80" },
   "Apparel":           { icon:Store,      from:"#25D366", to:"#4ADE80" },
   "Footwear":          { icon:Store,      from:"#c2557a", to:"#e0789a" },
-  "Beauty & Cosmetics":{ icon:Sparkles,   from:"#c2557a", to:"#e0789a" },
+  "Beauty & Cosmetics":{ icon:Heart,      from:"#c2557a", to:"#e0789a" },
   "Gadgets":           { icon:LayoutGrid, from:"#2f6f9e", to:"#4f97c7" },
   "Accessories":       { icon:LayoutGrid, from:"#2f6f9e", to:"#4f97c7" },
   "Food":              { icon:Flame,      from:"#d98324", to:"#eaa64a" },

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import MarketplaceHomeClient from './MarketplaceHomeClient';
+import WaitlistStorefront from './[username]/WaitlistStorefront';
 
 async function getPublicSettings() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
@@ -113,7 +113,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <MarketplaceHomeClient initialData={marketplaceData} initialSettings={settings} />
+      <WaitlistStorefront systemDomain={systemDomain} appName={appName} />
     </>
   );
 }

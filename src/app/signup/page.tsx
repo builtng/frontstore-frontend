@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  Sparkles, Globe, Copy, CheckCircle2, Smartphone, Lock, Lightbulb,
+  Globe, Copy, CheckCircle2, Smartphone, Lock, Lightbulb,
   Share2, Store, AlertCircle, Eye, EyeOff, Loader2, ArrowRight, User, Phone, Check, ShieldCheck, Mail
 } from 'lucide-react';
 import SearchableSelect from '../../components/SearchableSelect';
@@ -272,7 +272,7 @@ function SignupFormContent({ appName }: { appName: string }) {
             marginBottom: 20,
             boxShadow: '0 0 20px rgba(16, 185, 129, 0.2)'
           }}>
-            <Sparkles size={40} className="pulse" />
+            <CheckCircle2 size={40} className="pulse" />
           </div>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em' }}>
             Store Created Successfully!
@@ -433,7 +433,7 @@ function SignupFormContent({ appName }: { appName: string }) {
             className="btn btn-primary clickable"
             style={{ padding: '16px', fontSize: 15, textDecoration: 'none', borderRadius: 'var(--r-lg)', fontFamily: 'var(--font-heading)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
           >
-            <Sparkles size={18} /> Go to Web Dashboard
+            <ArrowRight size={18} /> Go to Web Dashboard
           </a>
           <a
             href={successData.storeUrl}

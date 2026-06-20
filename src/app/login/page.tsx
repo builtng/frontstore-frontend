@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  Sparkles, Globe, Store, Lock, Eye, EyeOff, Loader2, ArrowRight, Check, LogIn, Mail
+  Globe, Store, Lock, Eye, EyeOff, Loader2, ArrowRight, Check, LogIn, Mail
 } from 'lucide-react';
 
 const countries = [

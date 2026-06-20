@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
+
 /* Fonts are loaded via next/font in layout.tsx — no @import needed here */
 
 /* ================================================================
@@ -2025,6 +2027,15 @@ svg.spinner {
   }
 }
 
+/* Dashboard modals — always solid, never transparent regardless of .glass mixin */
+.responsive-modal-container {
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25), 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
 /* Responsive bottom sheet modals for mobile screens */
 @media (max-width: 640px) {
   .responsive-modal-container {
@@ -4022,3 +4033,465 @@ svg.spinner {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* ================================================================
+   FILE UPLOAD COMPONENT
+   Premium drag-and-drop upload widget (FileUpload.tsx)
+   ================================================================ */
+
+/* ── Shared spinner ── */
+.fu-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--primary);
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+.fu-spinner--primary { border-top-color: var(--primary); }
+.fu-spinner--white   { border-color: rgba(255,255,255,0.3); border-top-color: #fff; }
+
+/* ── Status messages ── */
+.fu-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  animation: fadeIn var(--t-fast) var(--ease) both;
+}
+.fu-msg--error   { background: var(--danger-light);  color: var(--danger);  }
+.fu-msg--success { background: var(--primary-light); color: var(--primary); }
+
+/* ── Remove button ── */
+.fu-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--danger);
+  cursor: pointer;
+  transition: opacity var(--t-fast) var(--ease);
+}
+.fu-remove-btn:hover { opacity: 0.75; }
+
+/* ── Progress bar ── */
+.fu-bar-wrap {
+  height: 3px;
+  border-radius: var(--r-full);
+  background: var(--border);
+  overflow: hidden;
+  margin-top: 8px;
+}
+.fu-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 70%, #fff));
+  border-radius: var(--r-full);
+  transition: width 300ms var(--ease);
+}
+
+/* ── Progress ring ── */
+.fu-progress-ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+}
+.fu-progress-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.fu-progress-ring circle {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.fu-progress-ring circle:first-child { stroke: var(--border); }
+.fu-progress-ring__fill {
+  stroke: var(--primary) !important;
+  stroke-dasharray: 113;
+  transition: stroke-dashoffset 300ms var(--ease);
+}
+.fu-progress-ring__label {
+  position: absolute;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* ════════════════════════════════════════════════
+   DEFAULT DROP ZONE
+════════════════════════════════════════════════ */
+.fu-zone-wrap { width: 100%; }
+
+.fu-zone {
+  width: 100%;
+  min-height: 130px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--bg-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  transition:
+    border-color var(--t-fast) var(--ease),
+    background   var(--t-fast) var(--ease),
+    box-shadow   var(--t-normal) var(--ease);
+  outline: none;
+}
+
+.fu-zone:hover:not(.fu-zone--uploading) {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 4px var(--primary-glow);
+}
+
+.fu-zone--drag {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 4px var(--primary-glow);
+  transform: scale(1.01);
+}
+
+.fu-zone--uploading {
+  cursor: default;
+  border-style: solid;
+  border-color: var(--primary);
+}
+
+.fu-zone--has-preview {
+  min-height: 160px;
+  border-style: solid;
+  border-color: var(--border);
+  background: var(--surface);
+  padding: 0;
+}
+
+/* ── Empty state ── */
+.fu-zone__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.fu-zone__icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform  var(--t-normal) var(--ease-spring),
+    background var(--t-fast)   var(--ease),
+    color      var(--t-fast)   var(--ease),
+    border-color var(--t-fast) var(--ease);
+}
+
+.fu-zone:hover .fu-zone__icon-wrap,
+.fu-zone--drag .fu-zone__icon-wrap,
+.fu-zone__icon-wrap--drag {
+  transform: translateY(-4px) scale(1.08);
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.fu-zone__label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.fu-zone__hint {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  font-weight: 500;
+}
+
+/* ── Image preview ── */
+.fu-zone__preview-wrap {
+  width: 100%;
+  height: 160px;
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--r-lg) - 2px);
+}
+.fu-zone__preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--t-slow) var(--ease);
+}
+.fu-zone:hover .fu-zone__preview {
+  transform: scale(1.04);
+}
+.fu-zone__preview-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity var(--t-normal) var(--ease);
+  border-radius: calc(var(--r-lg) - 2px);
+}
+.fu-zone:hover .fu-zone__preview-overlay { opacity: 1; }
+
+/* ── Non-image file preview ── */
+.fu-zone__file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px;
+  pointer-events: none;
+}
+.fu-zone__file-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-md);
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid color-mix(in srgb, var(--primary) 25%, transparent);
+}
+.fu-zone__file-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+.fu-zone__file-hint {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/* ── Uploading state ── */
+.fu-zone__uploading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  pointer-events: none;
+}
+.fu-zone__uploading-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  animation: pulse-opacity 1.2s ease-in-out infinite;
+}
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* ════════════════════════════════════════════════
+   AVATAR VARIANT (circular logo upload)
+════════════════════════════════════════════════ */
+.fu-avatar { display: inline-block; }
+
+.fu-avatar__ring {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  border: 2.5px dashed var(--primary);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  box-shadow: var(--shadow-md);
+  transition:
+    transform    var(--t-normal) var(--ease-spring),
+    box-shadow   var(--t-normal) var(--ease),
+    border-style var(--t-fast)   var(--ease);
+}
+.fu-avatar__ring:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 4px var(--primary-glow), var(--shadow-md);
+}
+.fu-avatar__ring--drag {
+  border-style: solid;
+  box-shadow: 0 0 0 5px var(--primary-glow);
+}
+
+.fu-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fu-avatar__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+}
+
+.fu-avatar__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fu-avatar__remove {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: 2px solid var(--surface);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease-spring), background var(--t-fast) var(--ease);
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+}
+.fu-avatar__remove:hover {
+  transform: scale(1.2);
+  background: color-mix(in srgb, var(--danger) 80%, black);
+}
+
+/* ════════════════════════════════════════════════
+   TILE VARIANT (80×80 image grid slot)
+════════════════════════════════════════════════ */
+.fu-tile {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--r-md);
+  flex-shrink: 0;
+  border: 2px dashed var(--border-strong);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--bg-2);
+  color: var(--text-muted);
+  transition:
+    border-color var(--t-fast)   var(--ease),
+    background   var(--t-fast)   var(--ease),
+    transform    var(--t-normal) var(--ease-spring),
+    color        var(--t-fast)   var(--ease),
+    box-shadow   var(--t-normal) var(--ease);
+  outline: none;
+}
+.fu-tile:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.fu-tile--drag {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+  transform: scale(1.08);
+}
+.fu-tile:active { transform: scale(0.95); }
+
+.fu-tile__label {
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Uploaded image thumbnail (sibling .fu-tile-img) ── */
+.fu-tile-img {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 0 0 transparent;
+  transition: box-shadow var(--t-fast) var(--ease);
+}
+.fu-tile-img:hover { box-shadow: 0 0 0 3px var(--primary-glow); }
+.fu-tile-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--t-normal) var(--ease);
+}
+.fu-tile-img:hover img { transform: scale(1.08); }
+.fu-tile-img__remove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: 1.5px solid var(--surface);
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: transform var(--t-fast) var(--ease-spring);
+  padding: 0;
+}
+.fu-tile-img__remove:hover { transform: scale(1.25); }
+

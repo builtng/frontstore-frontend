@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft, Share2, ShoppingBag, Star, Clock, MapPin, ShieldCheck,
-  Check, Calendar, Plus, Minus, BadgeCheck, ChevronRight, Sparkles,
+  Check, Calendar, Plus, Minus, BadgeCheck, ChevronRight, Camera,
   Truck, RotateCcw, X, Heart, Copy, ExternalLink, CheckCircle2, Shield, AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
@@ -185,7 +185,19 @@ const PERSONA_THEME: Record<string, StoreTheme> = {
   'retail-groceries': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
   'faith-community': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
   'school-education': { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
+  'thrift-store': { '--brand': '#8b5e3c', '--brand-deep': '#2f241b', '--tint': '#f1e8dd' },
 };
+
+function normalizeTemplateKey(value: string | null | undefined): string {
+  return (value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[_\s]+/g, '-')
+    .replace(/[^a-z0-9-]+/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
 
 function resolveStoreTheme(store: Pick<Store, 'primary_color' | 'business_persona' | 'store_template'>): StoreTheme {
   if (store.primary_color) {
@@ -196,8 +208,8 @@ function resolveStoreTheme(store: Pick<Store, 'primary_color' | 'business_person
     };
   }
 
-  return PERSONA_THEME[store.business_persona || '']
-    || TEMPLATE_THEME[store.store_template || '']
+  return PERSONA_THEME[normalizeTemplateKey(store.business_persona)]
+    || TEMPLATE_THEME[normalizeTemplateKey(store.store_template)]
     || TEMPLATE_THEME['luxe-market'];
 }
 
@@ -496,7 +508,7 @@ export default function ProductDetailClient({
             ) : (
               <div className="fs-hero" style={{ background: `linear-gradient(${140 + slide * 12}deg, ${a}, ${b})` }}>
                 <div className="fs-grain" />
-                <Sparkles size={60} strokeWidth={1.1} color="rgba(255,255,255,.9)" />
+                <Camera size={60} strokeWidth={1.1} color="rgba(255,255,255,.9)" />
                 <span className="fs-type-badge">{kind === "service" ? "Service" : "Product"}</span>
                 {initialProduct.compare_at_price && (
                   <span className="fs-tag">
@@ -716,7 +728,7 @@ export default function ProductDetailClient({
                       {r.image_urls?.[0] ? (
                         <img src={r.image_urls[0]} alt={r.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
-                        <Sparkles size={22} color="rgba(255,255,255,.9)" />
+                        <Camera size={22} color="rgba(255,255,255,.9)" />
                       )}
                     </span>
                     <div className="fs-more-body">

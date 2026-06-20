@@ -7,10 +7,10 @@ import {
   Calendar, 
   CreditCard, 
   ShieldCheck, 
-  Bot, 
+  MessageSquare, 
   FileText,
   ChevronRight,
-  Sparkles,
+  Zap,
   MapPin,
   Clock,
   Eye,
@@ -34,7 +34,7 @@ export default function BuyerDocsPage() {
     { id: 'booking', title: '3. Booking Services', icon: <Calendar size={16} /> },
     { id: 'paying', title: '4. Flexible Payments', icon: <CreditCard size={16} /> },
     { id: 'escrow', title: '5. Buyer Protection', icon: <ShieldCheck size={16} /> },
-    { id: 'aura', title: '6. WhatsApp Aura AI', icon: <Bot size={16} /> },
+    { id: 'aura', title: '6. WhatsApp Aura AI', icon: <MessageSquare size={16} /> },
     { id: 'tracking', title: '7. Order Invoices', icon: <FileText size={16} /> },
   ];
 
@@ -167,7 +167,7 @@ export default function BuyerDocsPage() {
                 display: 'flex',
                 gap: 12
               }}>
-                <Sparkles size={20} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: 2 }} />
+                <Zap size={20} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: 2 }} />
                 <div>
                   <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Saved Customer Profiles</h4>
                   <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
@@ -261,7 +261,7 @@ export default function BuyerDocsPage() {
             {/* WhatsApp Aura AI */}
             <section id="aura" className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <h2 className="font-heading" style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Bot size={22} style={{ color: 'var(--primary)' }} /> 6. Shopping via WhatsApp with Aura AI
+                <MessageSquare size={22} style={{ color: 'var(--primary)' }} /> 6. Shopping via WhatsApp with Aura AI
               </h2>
               <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 When you click to chat on WhatsApp with a Frontstore merchant, you may be greeted by **Aura AI**. Aura acts as a helper directly in the thread:

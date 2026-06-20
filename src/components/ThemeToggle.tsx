@@ -9,10 +9,12 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem('frontstore-theme') || 'light';
+    const isDashboard = typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard');
+    const defaultTheme = isDashboard ? 'dark' : 'light';
+    const saved = localStorage.getItem('frontstore-theme') || defaultTheme;
     const dark = saved === 'dark';
     setIsDark(dark);
-    // Ensure DOM class matches localStorage (safety net if inline script failed)
+    // Ensure DOM class matches localStorage
     const root = document.documentElement;
     if (dark) {
       root.classList.add('dark');
@@ -20,6 +22,10 @@ export default function ThemeToggle() {
     } else {
       root.classList.add('light');
       root.classList.remove('dark');
+    }
+    // Eagerly set default in localStorage if not set yet
+    if (typeof window !== 'undefined' && !localStorage.getItem('frontstore-theme')) {
+      localStorage.setItem('frontstore-theme', defaultTheme);
     }
   }, []);
 

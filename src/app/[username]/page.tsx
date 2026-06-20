@@ -41,10 +41,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { username } = await params;
   const data = await getStoreData(username);
   
-  if (!data || !data.store) {
+  if (!data || !data.store || data.store.store_template === 'coming-soon' || data.store.store_template === 'waitlist') {
+    const rawName = safeText(data?.store?.store_name || username, 'Store');
+    const storeName = rawName.includes('-') || rawName.includes('_') || rawName === rawName.toLowerCase()
+      ? rawName.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      : rawName;
+    const appName = safeText(data?.app_name, 'Frontstore');
     return {
-      title: 'Store Not Found',
-      description: 'The requested storefront could not be located.',
+      title: `${storeName} | Launching Soon`,
+      description: `Get ready for ${storeName} on ${appName}. Browse and order products directly inside WhatsApp coming soon.`,
     };
   }
 
@@ -53,7 +58,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const appName = safeText(data.app_name, 'Front Store');
   const routeUsername = safePathSegment(username);
   const storeUsername = safePathSegment(store.username) || routeUsername;
-  const storeName = safeText(store.store_name, storeUsername || 'Store');
+  const rawStoreName = safeText(store.store_name, storeUsername || 'Store');
+  const storeName = rawStoreName.includes('-') || rawStoreName.includes('_') || rawStoreName === rawStoreName.toLowerCase()
+    ? rawStoreName.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    : rawStoreName;
   const title = `${storeName} | Shop on ${appName}`;
   const description = safeText(store.store_bio, `Shop directly from ${storeName} on WhatsApp. Browse products and place orders instantly.`);
   const logo = store.logo_url || data.logo_url || `https://${systemDomain}/icon.png`;
@@ -99,7 +107,10 @@ export default async function Page({ params }: PageProps) {
   const systemDomain = data?.system_domain || 'frontstore.app';
   const routeUsername = safePathSegment(username);
   const storeUsername = safePathSegment(data?.store?.username) || routeUsername;
-  const storeName = safeText(data?.store?.store_name, storeUsername || 'Store');
+  const rawStoreName = safeText(data?.store?.store_name, storeUsername || 'Store');
+  const storeName = rawStoreName.includes('-') || rawStoreName.includes('_') || rawStoreName === rawStoreName.toLowerCase()
+    ? rawStoreName.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    : rawStoreName;
   const jsonLd = data && data.store ? {
     '@context': 'https://schema.org',
     '@type': 'Store',

@@ -11,8 +11,7 @@ import {
   AlertTriangle, 
   ArrowLeft,
   CreditCard,
-  Bot,
-  Sparkles
+  Layers
 } from 'lucide-react';
 import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
 
@@ -64,7 +63,7 @@ export default function TermsPage() {
 
             <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Sparkles size={20} style={{ color: 'var(--primary)' }} /> 2. The Frontstore Product Suite
+                <Layers size={20} style={{ color: 'var(--primary)' }} /> 2. The Frontstore Product Suite
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 Our infrastructure consists of the following products, and your usage is subject to the rules designated for each:
@@ -122,7 +121,7 @@ export default function TermsPage() {
 
             <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Bot size={20} style={{ color: 'var(--primary)' }} /> 4. AI Assistant Usage & Responsibility
+                <MessageSquare size={20} style={{ color: 'var(--primary)' }} /> 4. AI Assistant Usage & Responsibility
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 Our AI Assistant uses artificial intelligence and large language models to assist merchants in generating product descriptions and interacting with shoppers.

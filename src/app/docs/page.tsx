@@ -6,7 +6,7 @@ import {
   Store, 
   ShoppingBag, 
   BookOpen, 
-  Sparkles, 
+  Layers, 
   ShieldCheck, 
   MessageSquare,
   TrendingUp,
@@ -163,7 +163,7 @@ export default function DocsLandingPage() {
             gap: 24 
           }}>
             <div style={{ display: 'flex', gap: 14 }}>
-              <div style={{ color: 'var(--primary)', flexShrink: 0 }}><Sparkles size={20} /></div>
+              <div style={{ color: 'var(--primary)', flexShrink: 0 }}><Layers size={20} /></div>
               <div>
                 <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4, color: 'var(--text)' }}>Frontstore Flow</h4>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>Configure interactive products and time-based slots for booking with premium custom templates.</p>

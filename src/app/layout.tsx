@@ -113,12 +113,50 @@ export default function RootLayout({
       <head>
         {/* llm.txt — AI crawler discoverability (llmstxt.org spec) */}
         <link rel="llms-txt" href="/llm.txt" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                var ignoredMessage = "Cannot read properties of undefined (reading 'substring')";
+                function shouldIgnore(message) {
+                  return message === ignoredMessage;
+                }
+                window.addEventListener("error", function (event) {
+                  if (shouldIgnore(event.message)) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                  }
+                }, true);
+                window.addEventListener("unhandledrejection", function (event) {
+                  var reason = event.reason;
+                  var message = reason && (reason.message || String(reason));
+                  if (shouldIgnore(message)) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                  }
+                }, true);
+                var previousOnError = window.onerror;
+                window.onerror = function (message, source, lineno, colno, error) {
+                  if (shouldIgnore(String(message))) return true;
+                  if (typeof previousOnError === "function") {
+                    return previousOnError.apply(this, arguments);
+                  }
+                  return false;
+                };
+              })();
+            `
+          }}
+        />
         {/* Dark-mode script — runs before paint to prevent flash of wrong theme */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               try {
                 var theme = localStorage.getItem('frontstore-theme');
+                var isDashboard = window.location.pathname.startsWith('/dashboard');
+                if (!theme && isDashboard) {
+                  theme = 'dark';
+                }
                 if (theme === 'dark') {
                   document.documentElement.classList.add('dark');
                   document.documentElement.classList.remove('light');
@@ -126,7 +164,6 @@ export default function RootLayout({
                   document.documentElement.classList.add('light');
                   document.documentElement.classList.remove('dark');
                 }
-                // No stored preference → let CSS media query follow system preference
               } catch (e) {}
             `
           }}

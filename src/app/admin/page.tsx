@@ -28,7 +28,6 @@ import {
   Settings,
   Shield,
   ShoppingBag,
-  Sparkles,
   Smartphone,
   Store,
   Tag,
@@ -113,7 +112,7 @@ interface SystemSettings {
   homepage_content: string;
 }
 
-type AdminTab = 'overview' | 'stores' | 'products' | 'orders' | 'categories' | 'withdrawals' | 'verifications' | 'coupons' | 'settings';
+type AdminTab = 'overview' | 'stores' | 'products' | 'orders' | 'categories' | 'withdrawals' | 'verifications' | 'coupons' | 'waitlist' | 'settings';
 
 const defaultSettings: SystemSettings = {
   app_name: '',
@@ -142,6 +141,7 @@ const tabs: Array<{ id: AdminTab; label: string; icon: React.ReactNode }> = [
   { id: 'withdrawals', label: 'Payouts', icon: <DollarSign size={17} /> },
   { id: 'verifications', label: 'Verifications', icon: <Shield size={17} /> },
   { id: 'coupons', label: 'Coupons', icon: <Tag size={17} /> },
+  { id: 'waitlist', label: 'Waitlist', icon: <Users size={17} /> },
   { id: 'settings', label: 'Settings', icon: <Settings size={17} /> },
 ];
 
@@ -208,6 +208,11 @@ export default function AdminPage() {
   const [ordersSearch, setOrdersSearch] = useState('');
   const [ordersPage, setOrdersPage] = useState(1);
   const [ordersLastPage, setOrdersLastPage] = useState(1);
+
+  const [waitlist, setWaitlist] = useState<any[]>([]);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [waitlistLaunchingId, setWaitlistLaunchingId] = useState<string | null>(null);
+  const [waitlistLaunchingAll, setWaitlistLaunchingAll] = useState(false);
 
   const [coupons, setCoupons] = useState<any[]>([]);
   const [couponsLoading, setCouponsLoading] = useState(false);
@@ -653,8 +658,62 @@ export default function AdminPage() {
     if (activeTab === 'withdrawals') loadWithdrawals();
     if (activeTab === 'verifications') loadVerifications();
     if (activeTab === 'coupons') loadCoupons();
+    if (activeTab === 'waitlist') loadWaitlist();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, token, isAdmin]);
+
+  // ── Waitlist ──────────────────────────────────────────────────────
+  const loadWaitlist = async () => {
+    setWaitlistLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/waitlist`, { headers: getHeaders() });
+      const json = await res.json();
+      // API returns paginated result: json.data.data or flat json.data
+      const entries = json.data?.data ?? json.data ?? [];
+      setWaitlist(Array.isArray(entries) ? entries : []);
+    } catch {
+      toast.error('Failed to load waitlist.');
+    } finally {
+      setWaitlistLoading(false);
+    }
+  };
+
+  const handleLaunchStore = async (entryId: string) => {
+    setWaitlistLaunchingId(entryId);
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/waitlist/${entryId}/launch`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Launch failed');
+      toast.success(json.message || 'Store launched! Merchant received their link.');
+      loadWaitlist();
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to launch store.');
+    } finally {
+      setWaitlistLaunchingId(null);
+    }
+  };
+
+  const handleLaunchAll = async () => {
+    setWaitlistLaunchingAll(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/waitlist/launch-all`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Launch All failed');
+      toast.success(json.message || 'All pending stores launched!');
+      loadWaitlist();
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to launch all stores.');
+    } finally {
+      setWaitlistLaunchingAll(false);
+    }
+  };
+  // ─────────────────────────────────────────────────────────────────
 
   const handleToggleStoreStatus = async (storeId: string) => {
     try {
@@ -1145,7 +1204,7 @@ return (
                       </td>
                       <td className="admin-table__actions">
                         <button type="button" className={product.is_sponsored ? 'admin-action danger' : 'admin-action'} onClick={() => handleToggleProductSponsor(product)}>
-                          <Sparkles size={15} />
+                          <TrendingUp size={15} />
                           {product.is_sponsored ? 'Remove from featured' : 'Promote to featured'}
                         </button>
                       </td>
@@ -1329,6 +1388,127 @@ return (
         </section>
       )}
 
+      {activeTab === 'waitlist' && (
+        <section className="admin-section">
+          <div className="admin-section-heading">
+            <div>
+              <h2>Waitlist</h2>
+              <p>Merchants who signed up and are waiting to go live. Click <strong>Launch</strong> to send them their store link via WhatsApp.</p>
+            </div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <button
+                type="button"
+                className="admin-btn admin-btn--sm"
+                onClick={loadWaitlist}
+                disabled={waitlistLoading}
+                style={{ gap: 6 }}
+              >
+                <RefreshCw size={14} className={waitlistLoading ? 'spin' : ''} />
+                Refresh
+              </button>
+              <button
+                type="button"
+                className="admin-btn admin-btn--primary admin-btn--sm"
+                onClick={handleLaunchAll}
+                disabled={waitlistLaunchingAll || waitlist.filter(e => e.status === 'pending').length === 0}
+                style={{ gap: 6 }}
+              >
+                {waitlistLaunchingAll ? <Loader2 size={14} className="spin" /> : <Power size={14} />}
+                {waitlistLaunchingAll ? 'Launching all…' : `Launch All Pending (${waitlist.filter(e => e.status === 'pending').length})`}
+              </button>
+            </div>
+          </div>
+
+          {waitlistLoading ? (
+            <div className="admin-empty">
+              <Loader2 size={28} className="spin" />
+              <p>Loading waitlist…</p>
+            </div>
+          ) : waitlist.length === 0 ? (
+            <div className="admin-empty">
+              <Users size={36} style={{ opacity: 0.3 }} />
+              <p>No waitlist entries yet.</p>
+            </div>
+          ) : (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Store / Username</th>
+                    <th>Category</th>
+                    <th>City</th>
+                    <th>Signed up</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {waitlist.map((entry: any) => (
+                    <tr key={entry.id}>
+                      <td style={{ fontWeight: 600 }}>{entry.name || '—'}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: 13 }}>{entry.phone || entry.phone_number}</td>
+                      <td>
+                        <span style={{ fontWeight: 600 }}>{entry.store_name || '—'}</span>
+                        {entry.username && (
+                          <span style={{ display: 'block', fontSize: 11, color: 'var(--text-muted)' }}>@{entry.username}</span>
+                        )}
+                      </td>
+                      <td>{entry.business_category || '—'}</td>
+                      <td>{entry.city || '—'}</td>
+                      <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                        {entry.created_at ? new Date(entry.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                      </td>
+                      <td>
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '2px 10px',
+                          borderRadius: 20,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          letterSpacing: '0.04em',
+                          background: entry.status === 'launched'
+                            ? 'rgba(34,197,94,0.13)'
+                            : entry.status === 'pending'
+                            ? 'rgba(234,179,8,0.13)'
+                            : 'rgba(148,163,184,0.13)',
+                          color: entry.status === 'launched'
+                            ? '#16a34a'
+                            : entry.status === 'pending'
+                            ? '#b45309'
+                            : 'var(--text-muted)',
+                        }}>
+                          {entry.status === 'launched' ? '✓ Launched' : entry.status === 'pending' ? '⏳ Pending' : entry.status}
+                        </span>
+                      </td>
+                      <td>
+                        {entry.status === 'pending' ? (
+                          <button
+                            type="button"
+                            className="admin-btn admin-btn--primary admin-btn--sm"
+                            onClick={() => handleLaunchStore(entry.id)}
+                            disabled={waitlistLaunchingId === entry.id}
+                            style={{ gap: 5, minWidth: 90 }}
+                          >
+                            {waitlistLaunchingId === entry.id
+                              ? <Loader2 size={13} className="spin" />
+                              : <Power size={13} />}
+                            {waitlistLaunchingId === entry.id ? 'Sending…' : 'Launch'}
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Already launched</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
+
       {activeTab === 'settings' && (
         <section className="admin-section admin-section--narrow">
           <div className="admin-section-heading">
@@ -1382,7 +1562,7 @@ return (
                 <Field label="TikTok" value={settings.social_tiktok} onChange={(value) => setSettings({ ...settings, social_tiktok: value })} />
               </SettingsGroup>
 
-              <SettingsGroup icon={<Sparkles size={17} />} title="Homepage content">
+              <SettingsGroup icon={<LayoutDashboard size={17} />} title="Homepage content">
                 <TextAreaField
                   label="Homepage content JSON"
                   value={settings.homepage_content}

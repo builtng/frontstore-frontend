@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Sparkles, Zap, Link, BarChart3, Globe,
+  Zap, Link, BarChart3, Globe,
   Store, Star, ArrowRight, User, MessageCircle,
-  CreditCard, Users, Brain, Megaphone, TrendingUp, Check, X
+  CreditCard, Users, Brain, Megaphone, TrendingUp, Check, X,
+  PenTool, Play
 } from 'lucide-react';
 import { WhatsAppIcon } from '../components/WhatsAppIcon';
 import Logo from '../components/Logo';
@@ -224,7 +225,7 @@ const getFeatureIcon = (title: string, color: string) => {
     case 'WhatsApp-Native Checkout':
       return <WhatsAppIcon size={22} color={color} />;
     case 'AI-Powered Listings':
-      return <Sparkles size={22} color={color} />;
+      return <PenTool size={22} color={color} />;
     case 'Ultra-Fast Loading':
       return <Zap size={22} color={color} />;
     case 'Shareable Store Links':
@@ -1147,7 +1148,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 marginBottom: 16
               }}>
-                <Sparkles size={24} />
+                <Play size={24} />
               </div>
               <h3 className="text-title" style={{ marginBottom: 6 }}>Book a Live Demo</h3>
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>

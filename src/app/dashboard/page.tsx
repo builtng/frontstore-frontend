@@ -4,13 +4,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  Sparkles, Zap, Link, BarChart3, Globe,
+  Zap, Link, BarChart3, Globe, Palette, Search,
   Store, Star, ArrowRight, CheckCircle2, User, LogOut,
   Package, ShoppingBag, Settings, Share2, Copy, Plus, Tag,
   Trash2, Edit2, AlertCircle, Check, Loader2, Phone, Megaphone,
   DollarSign, Calendar, MapPin, Receipt, Menu, X, ArrowUpRight,
   TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
-  Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck,
+  Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck, BookOpen,
   ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
@@ -20,6 +20,7 @@ import {
 } from '../../components/SocialIcons';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import SearchableSelect from '../../components/SearchableSelect';
+import FileUpload from '../../components/FileUpload';
 import ThemeToggle from '../../components/ThemeToggle';
 import { businessPersonas } from '../../utils/businessPersonas';
 import { getServiceFactPresets } from '../../utils/serviceFactPresets';
@@ -116,6 +117,8 @@ interface StoreInfo {
   verification_status?: string | null;
   verification_document_type?: string | null;
   verification_document_url?: string | null;
+  working_hours?: Record<string, { open: string; close: string; enabled: boolean }> | null;
+  booking_capacity_per_day?: number | null;
 }
 
 interface Category {
@@ -143,6 +146,7 @@ interface Product {
   service_facts?: string[] | null;
   mobile_fee?: number | string | null;
   mobile_fee_label?: string | null;
+  tags?: string[] | null;
 }
 
 interface OrderItem {
@@ -203,9 +207,9 @@ interface BroadcastCampaign {
   created_at: string;
 }
 
-type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews';
+type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews'];
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings'];
 
 const BROADCAST_AUDIENCES: Array<{ id: 'all' | 'repeat' | 'unpaid_whatsapp'; label: string; description: string }> = [
   { id: 'all', label: 'All customers', description: 'Everyone who has ever placed an order with your store.' },
@@ -524,6 +528,9 @@ export default function DashboardPage() {
   const [prodStock, setProdStock] = useState('in_stock');
   const [prodImageUrls, setProdImageUrls] = useState<string[]>([]);
   const [prodImageUploading, setProdImageUploading] = useState(false);
+  const [prodTags, setProdTags] = useState<string[]>([]);
+  const [prodTagInput, setProdTagInput] = useState('');
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiImageGenerating, setAiImageGenerating] = useState(false);
   const [productPublishing, setProductPublishing] = useState(false);
@@ -565,6 +572,47 @@ export default function DashboardPage() {
   const [primaryColor, setPrimaryColor] = useState('#25D366');
   const [selectedTemplate, setSelectedTemplate] = useState('luxe-market');
   const [selectedPersona, setSelectedPersona] = useState('');
+  
+  // Storefront custom sections and reply time
+  const [storefrontSections, setStorefrontSections] = useState<string[]>(['reviews', 'replies_approximation', 'products', 'services', 'portfolio', 'about', 'faq', 'contact', 'blog']);
+  const [replyTimeMinutes, setReplyTimeMinutes] = useState<number | ''>('');
+
+  // Availability / Booking settings
+  const DEFAULT_WORKING_HOURS: Record<string, { open: string; close: string; enabled: boolean }> = {
+    monday:    { open: '09:00', close: '17:00', enabled: true },
+    tuesday:   { open: '09:00', close: '17:00', enabled: true },
+    wednesday: { open: '09:00', close: '17:00', enabled: true },
+    thursday:  { open: '09:00', close: '17:00', enabled: true },
+    friday:    { open: '09:00', close: '17:00', enabled: true },
+    saturday:  { open: '10:00', close: '14:00', enabled: false },
+    sunday:    { open: '10:00', close: '14:00', enabled: false },
+  };
+  const DAYS_OF_WEEK = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+  const DAY_LABELS: Record<string,string> = { monday:'Mon',tuesday:'Tue',wednesday:'Wed',thursday:'Thu',friday:'Fri',saturday:'Sat',sunday:'Sun' };
+  const [workingHours, setWorkingHours] = useState<Record<string, { open: string; close: string; enabled: boolean }>>(DEFAULT_WORKING_HOURS);
+  const [bookingCapacityPerDay, setBookingCapacityPerDay] = useState<number | ''>(10);
+  const [availabilitySaving, setAvailabilitySaving] = useState(false);
+
+  // Bookings list
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingActionId, setBookingActionId] = useState<string | null>(null);
+
+  // Blog posts management states
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [blogLoading, setBlogLoading] = useState(false);
+  const [blogSubmitting, setBlogSubmitting] = useState(false);
+  const [blogTitle, setBlogTitle] = useState('');
+  const [blogCategory, setBlogCategory] = useState('');
+  const [blogReadTime, setBlogReadTime] = useState('');
+  const [blogExcerpt, setBlogExcerpt] = useState('');
+  const [blogBody, setBlogBody] = useState('');
+  const [blogImageUrl, setBlogImageUrl] = useState('');
+  const [showBlogForm, setShowBlogForm] = useState(false);
+  const [blogImageMode, setBlogImageMode] = useState<'url' | 'upload'>('url');
+  const [blogImageUploading, setBlogImageUploading] = useState(false);
+  const [sendingReceiptId, setSendingReceiptId] = useState<string | null>(null);
+
   const [catalogLabel, setCatalogLabel] = useState('product');
   const [categoryLabel, setCategoryLabel] = useState('collection');
   const [templateHighlightLabel, setTemplateHighlightLabel] = useState('');
@@ -774,6 +822,12 @@ export default function DashboardPage() {
               setSetStoreUsername(parsedStore.username || '');
               setSetStoreName(parsedStore.store_name || '');
               setSetStoreBio(parsedStore.store_bio || '');
+              if (parsedStore.working_hours && typeof parsedStore.working_hours === 'object') {
+                setWorkingHours({ ...DEFAULT_WORKING_HOURS, ...parsedStore.working_hours });
+              }
+              if (parsedStore.booking_capacity_per_day != null) {
+                setBookingCapacityPerDay(Number(parsedStore.booking_capacity_per_day));
+              }
               setSetStoreLocation(parsedStore.location || '');
               setDeliveryInfo(parsedStore.delivery_info || '');
               setReturnPolicy(parsedStore.return_policy || '');
@@ -1034,13 +1088,14 @@ export default function DashboardPage() {
       if (!silent) setDataLoading(true);
       else setIsRefreshing(true);
 
-      const [statsRes, productsRes, ordersRes, categoriesRes, storeRes, reviewsRes] = await Promise.all([
+      const [statsRes, productsRes, ordersRes, categoriesRes, storeRes, reviewsRes, blogRes] = await Promise.all([
         fetch(`${apiUrl}/v1/orders/stats`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/products`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/orders`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/categories`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/store`, { headers: getAuthHeaders() }),
-        fetch(`${apiUrl}/v1/store/reviews`, { headers: getAuthHeaders() })
+        fetch(`${apiUrl}/v1/store/reviews`, { headers: getAuthHeaders() }),
+        fetch(`${apiUrl}/v1/blog`, { headers: getAuthHeaders() })
       ]);
 
       const statsJson = await statsRes.json();
@@ -1049,12 +1104,14 @@ export default function DashboardPage() {
       const categoriesJson = await categoriesRes.json();
       const storeJson = await storeRes.json();
       const reviewsJson = await reviewsRes.json();
+      const blogJson = await blogRes.json();
 
       if (statsRes.ok) setStats(statsJson.data);
       if (productsRes.ok) setProducts(productsJson.data?.data || productsJson.data || []);
       if (ordersRes.ok) setOrders(ordersJson.data?.data || ordersJson.data || []);
       if (categoriesRes.ok) setCategories(categoriesJson.data || []);
       if (reviewsRes.ok) setReviews(reviewsJson.data || []);
+      if (blogRes.ok) setBlogPosts(blogJson.data || []);
 
       if (storeRes.ok && storeJson.data) {
         const liveStore = storeJson.data;
@@ -1069,6 +1126,12 @@ export default function DashboardPage() {
         setSetStoreBio(liveStore.store_bio || '');
         setSetStoreLocation(liveStore.location || '');
         setDeliveryInfo(liveStore.delivery_info || '');
+        if (liveStore.working_hours && typeof liveStore.working_hours === 'object') {
+          setWorkingHours({ ...DEFAULT_WORKING_HOURS, ...liveStore.working_hours });
+        }
+        if (liveStore.booking_capacity_per_day != null) {
+          setBookingCapacityPerDay(Number(liveStore.booking_capacity_per_day));
+        }
         setReturnPolicy(liveStore.return_policy || '');
         setSetBannerUrl(liveStore.banner_url || '');
         const parsedPhone = parsePhoneNumber(liveStore.whatsapp_phone || '');
@@ -1099,6 +1162,8 @@ export default function DashboardPage() {
         setFeaturedCarouselEyebrow(liveStore.featured_carousel_eyebrow || 'Featured now');
         setFeaturedCarouselTitle(liveStore.featured_carousel_title || 'Fresh picks from the catalog');
         setFeaturedProductIds((liveStore.featured_product_ids || []).slice(0, 5));
+        setStorefrontSections(liveStore.storefront_sections || ['reviews', 'replies_approximation', 'products', 'services', 'portfolio', 'about', 'faq', 'contact', 'blog']);
+        setReplyTimeMinutes(liveStore.reply_time_minutes !== null && liveStore.reply_time_minutes !== undefined ? liveStore.reply_time_minutes : '');
       }
 
     } catch (e) {
@@ -1186,6 +1251,132 @@ export default function DashboardPage() {
       setSubmittingReplyId(null);
     }
   };
+
+  const handleCreateBlogPost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!blogTitle.trim()) {
+      toast.error('Please enter a title.');
+      return;
+    }
+    if (!blogCategory.trim()) {
+      toast.error('Please enter a category.');
+      return;
+    }
+
+    try {
+      setBlogSubmitting(true);
+      const paragraphs = blogBody.split('\n').filter(p => p.trim() !== '').map(p => ({ p: p.trim() }));
+      
+      const payload = {
+        title: blogTitle.trim(),
+        category: blogCategory.trim(),
+        read_time: blogReadTime.trim() || '5 min read',
+        excerpt: blogExcerpt.trim() || blogBody.substring(0, 150) + '...',
+        body: paragraphs,
+        image_url: blogImageUrl.trim() || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=800&q=80',
+        published_at: new Date().toISOString()
+      };
+
+      const res = await fetch(`${apiUrl}/v1/blog`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to create blog post.');
+      }
+
+      toast.success('Blog post created successfully!');
+      setBlogPosts(prev => [json.data, ...prev]);
+      
+      // Reset form states
+      setBlogTitle('');
+      setBlogCategory('');
+      setBlogReadTime('');
+      setBlogExcerpt('');
+      setBlogBody('');
+      setBlogImageUrl('');
+      setShowBlogForm(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong.');
+    } finally {
+      setBlogSubmitting(false);
+    }
+  };
+
+  const handleUploadBlogImage = async (file: File) => {
+    setBlogImageUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch(`${apiUrl}/v1/blog/upload-image`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: formData,
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Upload failed.');
+      setBlogImageUrl(json.url);
+      toast.success('Image uploaded successfully! 📸');
+    } catch (err: any) {
+      toast.error(err.message || 'Image upload failed.');
+    } finally {
+      setBlogImageUploading(false);
+    }
+  };
+
+  const handleSendReceipt = async (orderId: string, phone: string) => {
+    setSendingReceiptId(orderId);
+    try {
+      const res = await fetch(`${apiUrl}/v1/orders/${orderId}/send-receipt`, {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Failed to send receipt.');
+      toast.success('📄 Receipt PDF sent to customer via WhatsApp!');
+      if (json.pdf_url) {
+        window.open(json.pdf_url, '_blank');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Could not send receipt.');
+    } finally {
+      setSendingReceiptId(null);
+    }
+  };
+
+  const handleDeleteBlogPost = (id: number | string) => {
+    openConfirmationDialog(
+      'Delete Blog Post',
+      'Are you sure you want to delete this blog post? This action cannot be undone.',
+      async () => {
+        try {
+          const res = await fetch(`${apiUrl}/v1/blog/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+          });
+          const json = await res.json();
+          if (!res.ok) {
+            throw new Error(json.message || 'Failed to delete blog post.');
+          }
+          toast.success('Blog post deleted successfully.');
+          setBlogPosts(prev => prev.filter(p => p.id !== id));
+          closeConfirmationDialog();
+        } catch (err: any) {
+          toast.error(err.message || 'Something went wrong.');
+        }
+      },
+      'Delete',
+      'Cancel'
+    );
+  };
+
 
   useEffect(() => {
     if (isAuthenticated && activeTab === 'wallet') {
@@ -1392,6 +1583,9 @@ export default function DashboardPage() {
     setProdDesc('');
     setProdStock('in_stock');
     setProdImageUrls([]);
+    setProdTags([]);
+    setProdTagInput('');
+    setAiAnalyzing(false);
     setProdIsDigital(false);
     setProdDigitalFileUrl('');
     setProdDigitalLink('');
@@ -1445,6 +1639,42 @@ export default function DashboardPage() {
       toast.info('Loaded visual fallback description outline.');
     } finally {
       setAiGenerating(false);
+    }
+  };
+
+  const handleAutoAnalyzeImage = async (file: File) => {
+    if (!isPro) return; // Pro-only feature
+    try {
+      setAiAnalyzing(true);
+      // Convert file to base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch(`${apiUrl}/v1/ai/generate-description`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          image_base64: base64,
+          image_mime: file.type,
+        })
+      });
+      const json = await res.json();
+      if (res.ok && json.data) {
+        const data = json.data;
+        if (data.name) setProdName(data.name);
+        if (data.description) setProdDesc(data.description);
+        if (data.recommended_price) setProdPrice(String(data.recommended_price));
+        if (Array.isArray(data.tags) && data.tags.length > 0) setProdTags(data.tags.slice(0, 10));
+        toast.success('AI analyzed your photo! Fields pre-filled ✨');
+      }
+    } catch (err) {
+      // Fail silently — the image was already uploaded successfully
+      console.warn('AI image analysis failed (non-blocking):', err);
+    } finally {
+      setAiAnalyzing(false);
     }
   };
 
@@ -1525,6 +1755,7 @@ export default function DashboardPage() {
         service_facts: prodType === 'service' && prodServiceFacts.length > 0 ? prodServiceFacts : null,
         mobile_fee: prodType === 'service' && prodMobileFee ? parseFloat(prodMobileFee) : null,
         mobile_fee_label: prodType === 'service' && prodMobileFeeLabel ? prodMobileFeeLabel.trim() : null,
+        tags: prodTags.length > 0 ? prodTags : null,
       };
 
       const res = await fetch(`${apiUrl}/v1/products`, {
@@ -1566,6 +1797,9 @@ export default function DashboardPage() {
     setProdMobileFee(product.mobile_fee != null ? String(product.mobile_fee) : '');
     setProdMobileFeeLabel(product.mobile_fee_label || '');
     setProdCustomFact('');
+    setProdTags(Array.isArray(product.tags) ? product.tags : []);
+    setProdTagInput('');
+    setAiAnalyzing(false);
     setIsEditProductOpen(true);
   };
 
@@ -1595,6 +1829,7 @@ export default function DashboardPage() {
         service_facts: prodType === 'service' && prodServiceFacts.length > 0 ? prodServiceFacts : null,
         mobile_fee: prodType === 'service' && prodMobileFee ? parseFloat(prodMobileFee) : null,
         mobile_fee_label: prodType === 'service' && prodMobileFeeLabel ? prodMobileFeeLabel.trim() : null,
+        tags: prodTags.length > 0 ? prodTags : null,
       };
 
       const res = await fetch(`${apiUrl}/v1/products/${selectedProduct.id}`, {
@@ -1859,6 +2094,8 @@ export default function DashboardPage() {
           featured_carousel_eyebrow: personaPreset?.carouselEyebrow || featuredCarouselEyebrow || null,
           featured_carousel_title: personaPreset?.carouselTitle || featuredCarouselTitle || null,
           featured_product_ids: featuredProductIds.slice(0, 5),
+          storefront_sections: storefrontSections,
+          reply_time_minutes: replyTimeMinutes !== '' ? Number(replyTimeMinutes) : null,
         })
       });
 
@@ -1901,6 +2138,8 @@ export default function DashboardPage() {
         setFeaturedCarouselEyebrow(json.data.featured_carousel_eyebrow || 'Featured now');
         setFeaturedCarouselTitle(json.data.featured_carousel_title || 'Fresh picks from the catalog');
         setFeaturedProductIds((json.data.featured_product_ids || []).slice(0, 5));
+        setStorefrontSections(json.data.storefront_sections || ['reviews', 'replies_approximation', 'products', 'services', 'portfolio', 'about', 'faq', 'contact', 'blog']);
+        setReplyTimeMinutes(json.data.reply_time_minutes !== null && json.data.reply_time_minutes !== undefined ? json.data.reply_time_minutes : '');
       } else {
         throw new Error(json.message || 'Store settings update failed.');
       }
@@ -2407,7 +2646,7 @@ export default function DashboardPage() {
                 alignItems: 'center',
                 gap: 4
               }}>
-                {(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') ? <Sparkles size={8} /> : null}
+                {(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') ? <Zap size={8} /> : null}
                 {user?.plan === 'pro_monthly' ? 'Pro Monthly' : user?.plan === 'pro_yearly' ? 'Pro Yearly' : 'Free Tier'}
               </span>
               {(!user?.plan || user?.plan === 'free') && (
@@ -2442,9 +2681,12 @@ export default function DashboardPage() {
             { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} />, badge: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
             { id: 'reach', label: 'Broadcast Messages', icon: <Megaphone size={18} />, badge: isPro ? undefined : 'Pro' },
             { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
-            { id: 'templates', label: 'Store Themes', icon: <Sparkles size={18} /> },
+            { id: 'templates', label: 'Store Themes', icon: <Palette size={18} /> },
             { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} />, badge: reviews.filter(r => !r.reply).length || undefined },
-            { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
+            { id: 'blog', label: 'Blog Posts', icon: <BookOpen size={18} /> },
+            { id: 'availability', label: 'Availability', icon: <Clock size={18} /> },
+            { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} />, badge: bookings.filter((b: any) => b.status === 'pending').length || undefined },
+            { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
             { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
           ].map(item => {
             const active = activeTab === item.id;
@@ -2560,7 +2802,7 @@ export default function DashboardPage() {
                 color: 'var(--text)'
               }}
             />
-            <Sparkles size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
 
             {aiResponseBubble && (
               <div className="card glass animate-scale-in" style={{ position: 'absolute', top: '115%', left: 0, right: 0, padding: 12, fontSize: 13, fontWeight: 600, border: '1px solid var(--primary)', zIndex: 50, color: 'var(--text)' }}>
@@ -2852,9 +3094,9 @@ export default function DashboardPage() {
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                           <div style={{ background: 'var(--primary-light)', padding: 8, borderRadius: 'var(--r-md)', color: 'var(--primary)' }}>
-                            <Sparkles size={20} />
+                            <TrendingUp size={20} />
                           </div>
-                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>AI Business Coach</h3>
+                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Business Insights</h3>
                         </div>
 
                         <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20 }}>
@@ -3311,9 +3553,19 @@ export default function DashboardPage() {
                                 <a href={`https://wa.me/${waPhone}?text=${buildReplyMsg(o)}`} target="_blank" rel="noreferrer" className="btn clickable" style={{ padding: '7px 14px', fontSize: 12, borderRadius: 'var(--r-sm)', background: '#25d366', color: '#fff', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
                                   <WhatsAppIcon size={14} color="#fff" /> Reply on WhatsApp
                                 </a>
-                                <a href={`https://wa.me/${waPhone}?text=${buildReceiptMsg(o)}`} target="_blank" rel="noreferrer" className="btn btn-outline clickable" style={{ padding: '7px 14px', fontSize: 12, borderRadius: 'var(--r-sm)', display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
-                                  <Receipt size={13} /> Send Receipt
-                                </a>
+                                <button
+                                  onClick={() => handleSendReceipt(o.id, o.customer_whatsapp || o.customer_phone || '')}
+                                  disabled={sendingReceiptId === o.id}
+                                  className="btn btn-outline clickable"
+                                  style={{ padding: '7px 14px', fontSize: 12, borderRadius: 'var(--r-sm)', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                                  title="Generate PDF receipt & send to customer via WhatsApp"
+                                >
+                                  {sendingReceiptId === o.id ? (
+                                    <><Loader2 size={13} className="spinner" /> Sending...</>
+                                  ) : (
+                                    <><Receipt size={13} /> Send Receipt PDF</>
+                                  )}
+                                </button>
                               </div>
                             </div>
 
@@ -3512,16 +3764,16 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* ── TAB 6: SETTINGS & DEVELOPER OVERRIDES ── */}
+              {/* ── TAB: STOREFRONT DESIGN (color only) ── */}
               {activeTab === 'templates' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }} className="animate-fade-in">
-                  <div className="card" style={{ padding: 24, overflow: 'hidden', position: 'relative' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 22 }}>
+                  <div className="card" style={{ padding: 24 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 18 }}>
                       <div>
                         <p style={{ fontSize: 11, fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Storefront design</p>
-                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 26, fontWeight: 950, margin: 0, letterSpacing: '-0.02em' }}>Templates</h2>
-                        <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, maxWidth: 680, marginTop: 8 }}>
-                          Choose the public storefront design customers see when they visit your store. Activation is instant after selection.
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 26, fontWeight: 950, margin: 0, letterSpacing: '-0.02em' }}>Store Color</h2>
+                        <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.55, maxWidth: 640, marginTop: 8 }}>
+                          Customize your storefront brand color — it controls buttons, highlights, catalog accents, and customer-facing styling.
                         </p>
                       </div>
                       <a
@@ -3535,86 +3787,24 @@ export default function DashboardPage() {
                       </a>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
-                      {storeTemplates.map(template => {
-                        const active = selectedTemplate === template.id;
-                        const saving = templateSaving === template.id;
-                        const personaPreset = getSelectedPersonaPreset();
-                        const lockedByPersona = !!personaPreset && personaPreset.template !== template.id;
-                        return (
-                          <div
-                            key={template.id}
-                            className="card"
-                            style={{
-                              border: active ? '2px solid var(--primary)' : '1px solid var(--border)',
-                              borderRadius: 'var(--r-xl)',
-                              overflow: 'hidden',
-                              background: active ? 'var(--primary-light)' : 'var(--surface)',
-                              boxShadow: active ? '0 16px 34px var(--primary-glow)' : 'var(--shadow-sm)',
-                            }}
-                          >
-                            <div style={{
-                              height: 140,
-                              background: `linear-gradient(135deg, ${template.colors[0]} 0%, ${template.colors[1]} 56%, ${template.colors[2]} 100%)`,
-                              position: 'relative',
-                              overflow: 'hidden'
-                            }}>
-                              <div style={{ position: 'absolute', inset: 14, border: '1px solid rgba(255,255,255,0.28)', borderRadius: 14 }} />
-                              <div style={{ position: 'absolute', left: 22, bottom: 26, width: '52%', height: 12, borderRadius: 999, background: 'rgba(255,255,255,0.9)' }} />
-                              <div style={{ position: 'absolute', left: 22, bottom: 48, width: '34%', height: 10, borderRadius: 999, background: 'rgba(255,255,255,0.45)' }} />
-                              <div style={{ position: 'absolute', right: 22, top: 22, width: 42, height: 42, borderRadius: template.id === 'atelier' ? 8 : 16, background: 'rgba(255,255,255,0.78)' }} />
-                              <div style={{ position: 'absolute', right: 22, bottom: 22, display: 'grid', gridTemplateColumns: 'repeat(2, 28px)', gap: 7 }}>
-                                {[0, 1, 2, 3].map(i => (
-                                  <span key={i} style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.32)' }} />
-                                ))}
-                              </div>
-                            </div>
-
-                            <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
-                                <div>
-                                  <h3 style={{ fontSize: 16, fontWeight: 950, color: 'var(--text)', margin: 0 }}>{template.name}</h3>
-                                  <p style={{ fontSize: 12, fontWeight: 850, color: active ? 'var(--primary)' : 'var(--text-2)', marginTop: 3 }}>{template.tone}</p>
-                                </div>
-                                {active && (
-                                  <span className="badge badge-primary" style={{ flexShrink: 0 }}>
-                                    <Check size={11} /> {personaPreset ? 'Persona template' : 'Active'}
-                                  </span>
-                                )}
-                              </div>
-                              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5, minHeight: 38 }}>{template.description}</p>
-                              {lockedByPersona && (
-                                <p style={{ fontSize: 11.5, color: 'var(--text-faint)', lineHeight: 1.45, margin: 0 }}>
-                                  Clear the active persona to use this template.
-                                </p>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => handleTemplateActivate(template.id)}
-                                disabled={saving || lockedByPersona || (active && !templateSaving)}
-                                className={active ? 'btn btn-outline clickable' : 'btn btn-primary clickable'}
-                                style={{ width: '100%', borderRadius: 'var(--r-md)', fontWeight: 850, opacity: lockedByPersona ? 0.62 : 1 }}
-                              >
-                                {saving ? <><Loader2 size={16} className="spinner" /> Activating...</> : lockedByPersona ? 'Locked by Persona' : active ? 'Active Template' : 'Activate Template'}
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="card" style={{ padding: 24 }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 18 }}>
-                      <div>
-                        <p style={{ fontSize: 11, fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Template colors</p>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 950, margin: 0 }}>Customize active storefront color</h3>
-                        <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.55, maxWidth: 640, marginTop: 6 }}>
-                          This color controls your active template buttons, highlights, catalog accents, and customer-facing storefront styling.
+                    {/* Persona template lock notice */}
+                    {getSelectedPersonaPreset() && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '12px 16px',
+                        borderRadius: 'var(--r-md)',
+                        background: 'var(--primary-light)',
+                        border: '1px solid var(--primary)',
+                        marginBottom: 18,
+                      }}>
+                        <Check size={16} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                        <p style={{ fontSize: 13, color: 'var(--text)', margin: 0, fontWeight: 700 }}>
+                          Your storefront template is set to <strong>{getSelectedPersonaPreset()?.name}</strong> — perfectly matched to your store type. Only your brand color is customizable.
                         </p>
                       </div>
-                      {!isPro && <span className="badge badge-accent" style={{ flexShrink: 0 }}>Pro feature</span>}
-                    </div>
+                    )}
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'stretch' }} className="responsive-settings-grid">
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -3717,91 +3907,18 @@ export default function DashboardPage() {
 
               {activeTab === 'settings' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid">
+                  <form onSubmit={handleSettingsSave} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }} className="responsive-settings-grid">
 
-                    {/* Shop Details updating form */}
-                    <div className="card" style={{ padding: 24 }}>
-                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 900, marginBottom: 16 }}>Storefront Configuration</h2>
+                      {/* Left Column Card: Store Details & Info */}
+                      <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <FileText size={18} color="var(--primary)" /> Store Profile & Info
+                        </h3>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
+                          Configure your public details, bio, WhatsApp contact, currency, and policies.
+                        </p>
 
-                      <form onSubmit={handleSettingsSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-                        {/* ── Logo Upload ── */}
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '16px 0', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
-                          <label style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', alignSelf: 'flex-start' }}>Store Logo</label>
-                          <div style={{ position: 'relative', display: 'inline-block' }}>
-                            <div
-                              style={{
-                                width: 90, height: 90, borderRadius: '50%',
-                                background: logoUrl ? 'transparent' : 'var(--primary-light)',
-                                border: '2.5px dashed var(--primary)',
-                                overflow: 'hidden',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                cursor: 'pointer', position: 'relative',
-                                boxShadow: 'var(--shadow-md)'
-                              }}
-                              onClick={() => (document.getElementById('logo-upload-input') as HTMLInputElement)?.click()}
-                              title="Click to upload logo"
-                            >
-                              {logoUploading ? (
-                                <Loader2 size={24} className="spinner" style={{ color: 'var(--primary)' }} />
-                              ) : logoUrl ? (
-                                <img src={logoUrl} alt="Store logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                                  <Camera size={24} style={{ color: 'var(--primary)' }} />
-                                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase' }}>Upload</span>
-                                </div>
-                              )}
-                            </div>
-                            {logoUrl && !logoUploading && (
-                              <button
-                                type="button"
-                                onClick={() => setLogoUrl(null)}
-                                style={{
-                                  position: 'absolute', top: -4, right: -4,
-                                  width: 22, height: 22, borderRadius: '50%',
-                                  background: 'var(--danger)', border: 'none',
-                                  color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  cursor: 'pointer', fontSize: 12, lineHeight: 1, boxShadow: 'var(--shadow-sm)'
-                                }}
-                                title="Remove logo"
-                              >✕</button>
-                            )}
-                          </div>
-                          <input
-                            id="logo-upload-input"
-                            type="file"
-                            accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                            style={{ display: 'none' }}
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              try {
-                                setLogoUploading(true);
-                                const formData = new FormData();
-                                formData.append('logo', file);
-                                const res = await fetch(`${apiUrl}/v1/store/upload-logo`, {
-                                  method: 'POST',
-                                  headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                                  body: formData
-                                });
-                                const json = await res.json();
-                                if (res.ok && json.url) {
-                                  setLogoUrl(json.url);
-                                  toast.success('Logo uploaded! 🎨');
-                                } else {
-                                  throw new Error(json.message || 'Upload failed');
-                                }
-                              } catch (err: any) {
-                                toast.error(err.message || 'Logo upload error');
-                              } finally {
-                                setLogoUploading(false);
-                                e.target.value = '';
-                              }
-                            }}
-                          />
-                          <p style={{ fontSize: 11, color: 'var(--text-faint)', textAlign: 'center' }}>Click the circle to upload a logo<br />(JPG, PNG, WEBP · max 5MB)</p>
-                        </div>
                         <div>
                           <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Name</label>
                           <input
@@ -3871,342 +3988,6 @@ export default function DashboardPage() {
                             className="input-field"
                             style={{ resize: 'vertical' }}
                           />
-                        </div>
-
-                        <div>
-                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 4 }}>Delivery Info</label>
-                          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Shown on every product page under "Delivery &amp; returns". Leave blank to use the default.</p>
-                          <textarea
-                            rows={2}
-                            value={deliveryInfo}
-                            onChange={e => setDeliveryInfo(e.target.value)}
-                            placeholder="e.g. Delivery in 1–3 business days. Local rates apply, nationwide shipping available at checkout."
-                            className="input-field"
-                            style={{ resize: 'vertical' }}
-                            maxLength={300}
-                          />
-                        </div>
-
-                        <div>
-                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 4 }}>Return Policy</label>
-                          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Shown on every product page under "Delivery &amp; returns". Leave blank to use the default.</p>
-                          <textarea
-                            rows={2}
-                            value={returnPolicy}
-                            onChange={e => setReturnPolicy(e.target.value)}
-                            placeholder="e.g. Return unopened, unused items within 7 days. Secured by Frontstore."
-                            className="input-field"
-                            style={{ resize: 'vertical' }}
-                            maxLength={300}
-                          />
-                        </div>
-
-                        <div>
-                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Banner Image</label>
-
-                          {setBannerUrl && (
-                            <div style={{ position: 'relative', marginBottom: 10 }}>
-                              <img src={setBannerUrl} alt="Banner preview" style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', display: 'block' }} />
-                              <button
-                                type="button"
-                                onClick={() => setSetBannerUrl('')}
-                                style={{
-                                  position: 'absolute', top: 8, right: 8,
-                                  width: 26, height: 26, borderRadius: '50%',
-                                  background: 'var(--danger)', border: 'none',
-                                  color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  cursor: 'pointer', fontSize: 13, lineHeight: 1, boxShadow: 'var(--shadow-sm)'
-                                }}
-                                title="Remove banner"
-                              >✕</button>
-                            </div>
-                          )}
-
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <button
-                              type="button"
-                              onClick={() => (document.getElementById('banner-upload-input') as HTMLInputElement)?.click()}
-                              disabled={bannerUploading}
-                              className="btn btn-outline clickable"
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12.5, padding: '9px 14px', opacity: bannerUploading ? 0.6 : 1 }}
-                            >
-                              {bannerUploading ? <Loader2 size={15} className="spinner" /> : <ImageIcon size={15} />}
-                              {bannerUploading ? 'Uploading…' : (setBannerUrl ? 'Replace banner' : 'Upload banner')}
-                            </button>
-                          </div>
-                          <input
-                            id="banner-upload-input"
-                            type="file"
-                            accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                            style={{ display: 'none' }}
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              try {
-                                setBannerUploading(true);
-                                const formData = new FormData();
-                                formData.append('banner', file);
-                                const res = await fetch(`${apiUrl}/v1/store/upload-banner`, {
-                                  method: 'POST',
-                                  headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                                  body: formData
-                                });
-                                const json = await res.json();
-                                if (res.ok && json.url) {
-                                  setSetBannerUrl(json.url);
-                                  toast.success('Banner uploaded! 🖼️');
-                                } else {
-                                  throw new Error(json.message || 'Upload failed');
-                                }
-                              } catch (err: any) {
-                                toast.error(err.message || 'Banner upload error');
-                              } finally {
-                                setBannerUploading(false);
-                                e.target.value = '';
-                              }
-                            }}
-                          />
-
-                          <div style={{ marginTop: 10 }}>
-                            <label style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', marginBottom: 5 }}>Or paste an image URL</label>
-                            <input
-                              type="url"
-                              value={setBannerUrl}
-                              onChange={e => setSetBannerUrl(e.target.value)}
-                              className="input-field"
-                              placeholder="https://example.com/banner.jpg"
-                            />
-                          </div>
-                          <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-                            Optional (JPG, PNG, WEBP · max 5MB). Leave blank to use the storefront theme gradient.
-                          </span>
-                        </div>
-
-                        <div style={{
-                          border: '1.5px solid var(--border)',
-                          borderRadius: 'var(--r-xl)',
-                          padding: 18,
-                          background: 'var(--bg-2)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 16
-                        }}>
-                          <div>
-                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0 }}>Storefront Writing</h3>
-                            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.45 }}>
-                              Control the words customers see on your public storefront. Free stores always show the active template name.
-                            </p>
-                          </div>
-
-                          <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>Business Persona</label>
-                              {selectedPersona && (
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedPersona('')}
-                                  className="clickable"
-                                  style={{ border: 'none', background: 'transparent', color: 'var(--text-faint)', fontSize: 11, fontWeight: 800 }}
-                                >
-                                  Clear
-                                </button>
-                              )}
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10 }}>
-                              {businessPersonas.map(persona => {
-                                const active = selectedPersona === persona.id;
-                                return (
-                                  <button
-                                    key={persona.id}
-                                    type="button"
-                                    onClick={() => applyPersonaPreset(persona.id)}
-                                    className="clickable"
-                                    style={{
-                                      textAlign: 'left',
-                                      border: active ? '1.5px solid var(--primary)' : '1px solid var(--border)',
-                                      borderRadius: 'var(--r-lg)',
-                                      background: active ? 'var(--primary-light)' : 'var(--surface)',
-                                      padding: 12,
-                                      boxShadow: active ? '0 12px 28px var(--primary-glow)' : 'var(--shadow-xs)'
-                                    }}
-                                  >
-                                    <span style={{ display: 'block', fontSize: 10.5, color: active ? 'var(--primary)' : 'var(--text-faint)', fontWeight: 900, textTransform: 'uppercase', marginBottom: 4 }}>
-                                      {persona.persona}
-                                    </span>
-                                    <strong style={{ display: 'block', color: 'var(--text)', fontSize: 13.5, marginBottom: 4 }}>{persona.name}</strong>
-                                    <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: 11.5, lineHeight: 1.4 }}>{persona.summary}</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8, lineHeight: 1.45 }}>
-                              Persona presets apply the recommended theme, catalog labels, section titles, and featured carousel copy. Save settings to publish.
-                            </p>
-                          </div>
-
-                          <div className="responsive-form-row">
-                            <div>
-                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Product Count Label</label>
-                              <input
-                                type="text"
-                                value={catalogLabel}
-                                onChange={e => setCatalogLabel(e.target.value)}
-                                className="input-field"
-                                placeholder="product"
-                                maxLength={80}
-                              />
-                            </div>
-                            <div>
-                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Category Count Label</label>
-                              <input
-                                type="text"
-                                value={categoryLabel}
-                                onChange={e => setCategoryLabel(e.target.value)}
-                                className="input-field"
-                                placeholder="collection"
-                                maxLength={80}
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Template Highlight Text</label>
-                            <input
-                              type="text"
-                              value={templateHighlightLabel}
-                              onChange={e => setTemplateHighlightLabel(e.target.value)}
-                              className="input-field"
-                              placeholder="High-conversion drops and promos"
-                              maxLength={120}
-                              disabled={!isPro}
-                            />
-                            {!isPro && (
-                              <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-                                Free stores show the active template name here.
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="responsive-form-row">
-                            <div>
-                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Catalog Eyebrow</label>
-                              <input
-                                type="text"
-                                value={productSectionEyebrow}
-                                onChange={e => setProductSectionEyebrow(e.target.value)}
-                                className="input-field"
-                                placeholder="Catalog"
-                                maxLength={80}
-                              />
-                            </div>
-                            <div>
-                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Catalog Section Title</label>
-                              <input
-                                type="text"
-                                value={productSectionTitle}
-                                onChange={e => setProductSectionTitle(e.target.value)}
-                                className="input-field"
-                                placeholder="Limited offers"
-                                maxLength={120}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div style={{
-                          border: '1.5px solid var(--border)',
-                          borderRadius: 'var(--r-xl)',
-                          padding: 18,
-                          background: 'var(--surface)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 16
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
-                            <div>
-                              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0 }}>Top Products Carousel</h3>
-                              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.45 }}>
-                                Show a polished carousel at the top of the store. Select up to 5 products.
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => setFeaturedCarouselEnabled(v => !v)}
-                              className={featuredCarouselEnabled ? 'btn btn-primary clickable' : 'btn btn-outline clickable'}
-                              style={{ flexShrink: 0, padding: '8px 12px', borderRadius: 'var(--r-md)', fontSize: 12, fontWeight: 850 }}
-                            >
-                              {featuredCarouselEnabled ? 'Enabled' : 'Disabled'}
-                            </button>
-                          </div>
-
-                          <div className="responsive-form-row">
-                            <div>
-                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Carousel Eyebrow</label>
-                              <input
-                                type="text"
-                                value={featuredCarouselEyebrow}
-                                onChange={e => setFeaturedCarouselEyebrow(e.target.value)}
-                                className="input-field"
-                                placeholder="Featured now"
-                                maxLength={80}
-                              />
-                            </div>
-                            <div>
-                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Carousel Title</label>
-                              <input
-                                type="text"
-                                value={featuredCarouselTitle}
-                                onChange={e => setFeaturedCarouselTitle(e.target.value)}
-                                className="input-field"
-                                placeholder="Fresh picks from the catalog"
-                                maxLength={120}
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>Featured Products</label>
-                              <span style={{ fontSize: 11, color: 'var(--text-faint)', fontWeight: 750 }}>{featuredProductIds.length}/5 selected</span>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
-                              {products.slice(0, 20).map(product => {
-                                const active = featuredProductIds.includes(product.id);
-                                return (
-                                  <button
-                                    key={product.id}
-                                    type="button"
-                                    onClick={() => toggleFeaturedProduct(product.id)}
-                                    className="clickable"
-                                    style={{
-                                      display: 'grid',
-                                      gridTemplateColumns: '42px minmax(0, 1fr)',
-                                      gap: 10,
-                                      alignItems: 'center',
-                                      textAlign: 'left',
-                                      padding: 10,
-                                      borderRadius: 'var(--r-md)',
-                                      border: active ? '2px solid var(--primary)' : '1px solid var(--border)',
-                                      background: active ? 'var(--primary-light)' : 'var(--surface)',
-                                      color: 'var(--text)',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    <span style={{ width: 42, height: 42, borderRadius: 10, overflow: 'hidden', background: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                      {product.image_urls?.[0]
-                                        ? <img src={product.image_urls[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        : <Package size={18} color="var(--text-faint)" />
-                                      }
-                                    </span>
-                                    <span style={{ minWidth: 0 }}>
-                                      <strong style={{ display: 'block', fontSize: 12.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</strong>
-                                      <span style={{ fontSize: 11, color: active ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 800 }}>{active ? 'Featured' : 'Tap to feature'}</span>
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
                         </div>
 
                         <div className="responsive-form-row">
@@ -4345,6 +4126,245 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 4 }}>Delivery Info</label>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Shown on every product page under "Delivery &amp; returns". Leave blank to use the default.</p>
+                          <textarea
+                            rows={2}
+                            value={deliveryInfo}
+                            onChange={e => setDeliveryInfo(e.target.value)}
+                            placeholder="e.g. Delivery in 1–3 business days. Local rates apply, nationwide shipping available at checkout."
+                            className="input-field"
+                            style={{ resize: 'vertical' }}
+                            maxLength={300}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 4 }}>Return Policy</label>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Shown on every product page under "Delivery &amp; returns". Leave blank to use the default.</p>
+                          <textarea
+                            rows={2}
+                            value={returnPolicy}
+                            onChange={e => setReturnPolicy(e.target.value)}
+                            placeholder="e.g. Return unopened, unused items within 7 days. Secured by Frontstore."
+                            className="input-field"
+                            style={{ resize: 'vertical' }}
+                            maxLength={300}
+                          />
+                        </div>
+
+                        {/* ── Storefront Writing (moved here from right column) ── */}
+                        <div style={{
+                          border: '1.5px solid var(--border)',
+                          borderRadius: 'var(--r-xl)',
+                          padding: 18,
+                          background: 'var(--bg-2)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 16,
+                          marginTop: 4
+                        }}>
+                          <div>
+                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0 }}>✍️ Storefront Writing</h3>
+                            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.45 }}>
+                              Control the words customers see on your public storefront. Free stores always show the active template name.
+                            </p>
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Business Persona</label>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 12,
+                              padding: '12px 16px',
+                              borderRadius: 'var(--r-md)',
+                              background: 'var(--bg-3)',
+                              border: '1px solid var(--border)',
+                            }}>
+                              <span style={{ fontSize: 20 }}>💼</span>
+                              <div>
+                                <strong style={{ display: 'block', fontSize: 14, color: 'var(--text)' }}>
+                                  {businessPersonas.find(p => p.id === selectedPersona)?.name || 'Custom / Unassigned'}
+                                </strong>
+                                <span style={{ display: 'block', fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                                  {businessPersonas.find(p => p.id === selectedPersona)?.summary || 'Custom storefront setup'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="responsive-form-row">
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Product Count Label</label>
+                              <input
+                                type="text"
+                                value={catalogLabel}
+                                onChange={e => setCatalogLabel(e.target.value)}
+                                className="input-field"
+                                placeholder="product"
+                                maxLength={80}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Category Count Label</label>
+                              <input
+                                type="text"
+                                value={categoryLabel}
+                                onChange={e => setCategoryLabel(e.target.value)}
+                                className="input-field"
+                                placeholder="collection"
+                                maxLength={80}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Template Highlight Text</label>
+                            <input
+                              type="text"
+                              value={templateHighlightLabel}
+                              onChange={e => setTemplateHighlightLabel(e.target.value)}
+                              className="input-field"
+                              placeholder="High-conversion drops and promos"
+                              maxLength={120}
+                              disabled={!isPro}
+                            />
+                            {!isPro && (
+                              <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                                Free stores show the active template name here.
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="responsive-form-row">
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Catalog Eyebrow</label>
+                              <input
+                                type="text"
+                                value={productSectionEyebrow}
+                                onChange={e => setProductSectionEyebrow(e.target.value)}
+                                className="input-field"
+                                placeholder="Catalog"
+                                maxLength={80}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Catalog Section Title</label>
+                              <input
+                                type="text"
+                                value={productSectionTitle}
+                                onChange={e => setProductSectionTitle(e.target.value)}
+                                className="input-field"
+                                placeholder="Limited offers"
+                                maxLength={120}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* Right Column Card: Design & Customization */}
+                      <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Palette size={18} color="var(--primary)" /> Brand & Storefront Design
+                        </h3>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
+                          Customize your store theme, logo, banner, writing style, and visible sections.
+                        </p>
+
+                        {/* ── Logo Upload ── */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '16px 0', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
+                          <label style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', alignSelf: 'flex-start' }}>Store Logo</label>
+                          <FileUpload
+                            variant="avatar"
+                            accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                            previewUrl={logoUrl}
+                            uploading={logoUploading}
+                            onRemove={() => setLogoUrl(null)}
+                            inputId="logo-upload-input"
+                            maxSize={5 * 1024 * 1024}
+                            onFile={async (file) => {
+                              try {
+                                setLogoUploading(true);
+                                const formData = new FormData();
+                                formData.append('logo', file);
+                                const res = await fetch(`${apiUrl}/v1/store/upload-logo`, {
+                                  method: 'POST',
+                                  headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                                  body: formData
+                                });
+                                const json = await res.json();
+                                if (res.ok && json.url) {
+                                  setLogoUrl(json.url);
+                                  toast.success('Logo uploaded! 🎨');
+                                } else {
+                                  throw new Error(json.message || 'Upload failed');
+                                }
+                              } catch (err: any) {
+                                toast.error(err.message || 'Logo upload error');
+                              } finally {
+                                setLogoUploading(false);
+                              }
+                            }}
+                          />
+                          <p style={{ fontSize: 11, color: 'var(--text-faint)', textAlign: 'center' }}>Click or drop to upload a logo<br />(JPG, PNG, WEBP · max 5MB)</p>
+                        </div>
+
+                        {/* ── Banner Upload ── */}
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Banner Image</label>
+                          <FileUpload
+                            variant="default"
+                            accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                            label="Drop banner image here or click to upload"
+                            hint="JPG, PNG, WEBP · max 5MB · Recommended 1200×400"
+                            previewUrl={setBannerUrl || undefined}
+                            uploading={bannerUploading}
+                            onRemove={() => setSetBannerUrl('')}
+                            inputId="banner-upload-input"
+                            maxSize={5 * 1024 * 1024}
+                            onFile={async (file) => {
+                              try {
+                                setBannerUploading(true);
+                                const formData = new FormData();
+                                formData.append('banner', file);
+                                const res = await fetch(`${apiUrl}/v1/store/upload-banner`, {
+                                  method: 'POST',
+                                  headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                                  body: formData
+                                });
+                                const json = await res.json();
+                                if (res.ok && json.url) {
+                                  setSetBannerUrl(json.url);
+                                  toast.success('Banner uploaded! 🖼️');
+                                } else {
+                                  throw new Error(json.message || 'Upload failed');
+                                }
+                              } catch (err: any) {
+                                toast.error(err.message || 'Banner upload error');
+                              } finally {
+                                setBannerUploading(false);
+                              }
+                            }}
+                          />
+                          <div style={{ marginTop: 10 }}>
+                            <label style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', marginBottom: 5 }}>Or paste an image URL</label>
+                            <input
+                              type="url"
+                              value={setBannerUrl}
+                              onChange={e => setSetBannerUrl(e.target.value)}
+                              className="input-field"
+                              placeholder="https://example.com/banner.jpg"
+                            />
+                          </div>
+                          <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                            Optional. Leave blank to use the storefront theme gradient.
+                          </span>
+                        </div>
+
                         {/* Storefront Branding & Colors */}
                         <div style={{
                           position: 'relative',
@@ -4352,7 +4372,6 @@ export default function DashboardPage() {
                           borderRadius: 'var(--r-xl)',
                           padding: 20,
                           background: 'var(--bg-2)',
-                          marginTop: 16,
                           overflow: 'hidden'
                         }}>
                           {/* Lock Overlay if Free */}
@@ -4394,10 +4413,10 @@ export default function DashboardPage() {
                             🎨 Storefront Branding & Colors
                           </h3>
                           <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.4 }}>
-                            Customize the primary color of your storefront buttons, badges, highlights, and icons.
+                            Customize the primary color of your storefront buttons, highlights, and icons.
                           </p>
 
-                          {/* Preset Swatches */}
+                          {/* Preset Palettes */}
                           <div style={{ marginBottom: 16 }}>
                             <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Preset Color Palettes</label>
                             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -4431,7 +4450,7 @@ export default function DashboardPage() {
                             </div>
                           </div>
 
-                          {/* Custom Picker & Live Preview Grid */}
+                          {/* Custom Color Selector */}
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'center' }} className="responsive-settings-grid">
                             <div>
                               <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Custom Primary Color</label>
@@ -4466,7 +4485,6 @@ export default function DashboardPage() {
                               </div>
                             </div>
 
-                            {/* Live Preview UI Widget */}
                             <div style={{
                               background: 'var(--surface)',
                               border: '1px solid var(--border)',
@@ -4478,8 +4496,6 @@ export default function DashboardPage() {
                               boxShadow: 'var(--shadow-sm)'
                             }}>
                               <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Live Preview</span>
-
-                              {/* Sample primary button */}
                               <button type="button" style={{
                                 background: primaryColor,
                                 color: '#fff',
@@ -4493,8 +4509,6 @@ export default function DashboardPage() {
                               }}>
                                 Buy Now
                               </button>
-
-                              {/* Sample Chat bubble */}
                               <div style={{
                                 alignSelf: 'flex-end',
                                 background: primaryColor,
@@ -4511,18 +4525,306 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
+                        {/* Navigation & Section Display */}
+                        <div style={{
+                          border: '1.5px solid var(--border)',
+                          borderRadius: 'var(--r-xl)',
+                          padding: 18,
+                          background: 'var(--surface)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 16
+                        }}>
+                          <div>
+                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0 }}>Storefront Navigation & Display</h3>
+                            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.45 }}>
+                              Select which tabs and features are enabled on your storefront. Disabled sections will be completely hidden.
+                            </p>
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+                            {[
+                              { id: 'products', label: 'Products / Catalog' },
+                              { id: 'services', label: 'Services' },
+                              { id: 'portfolio', label: 'Portfolio / Gallery' },
+                              { id: 'reviews', label: 'Customer Reviews' },
+                              { id: 'blog', label: 'Blog Posts' },
+                              { id: 'about', label: 'About Page' },
+                              { id: 'faq', label: 'FAQ Page' },
+                              { id: 'contact', label: 'Contact Details' },
+                              { id: 'replies_approximation', label: 'Replies Approximation' },
+                            ].map(sec => {
+                              const isEnabled = storefrontSections.includes(sec.id);
+                              return (
+                                <label key={sec.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, cursor: 'pointer', userSelect: 'none' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={isEnabled}
+                                    onChange={() => {
+                                      if (isEnabled) {
+                                        setStorefrontSections(prev => prev.filter(x => x !== sec.id));
+                                      } else {
+                                        setStorefrontSections(prev => [...prev, sec.id]);
+                                      }
+                                    }}
+                                    style={{ width: 16, height: 16, cursor: 'pointer' }}
+                                  />
+                                  <span>{sec.label}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+
+                          {storefrontSections.includes('replies_approximation') && (
+                            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginTop: 4 }}>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                                Average Reply Time (minutes)
+                              </label>
+                              <input
+                                type="number"
+                                value={replyTimeMinutes}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setReplyTimeMinutes(val === '' ? '' : Math.max(0, parseInt(val)));
+                                }}
+                                className="input-field"
+                                placeholder="e.g. 10 (Leave blank or 0 to hide)"
+                                style={{ maxWidth: 200 }}
+                              />
+                              <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                                Show customers how fast you typically respond. Hidden if left blank.
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Storefront Writing — moved to left column */}
+
+                        {/* Top Products Carousel */}
+                        <div style={{
+                          border: '1.5px solid var(--border)',
+                          borderRadius: 'var(--r-xl)',
+                          padding: 18,
+                          background: 'var(--surface)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 16
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
+                            <div>
+                              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0 }}>Top Products Carousel</h3>
+                              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.45 }}>
+                                Show a polished carousel at the top of the store. Select up to 5 products.
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setFeaturedCarouselEnabled(v => !v)}
+                              className={featuredCarouselEnabled ? 'btn btn-primary clickable' : 'btn btn-outline clickable'}
+                              style={{ flexShrink: 0, padding: '8px 12px', borderRadius: 'var(--r-md)', fontSize: 12, fontWeight: 850 }}
+                            >
+                              {featuredCarouselEnabled ? 'Enabled' : 'Disabled'}
+                            </button>
+                          </div>
+
+                          <div className="responsive-form-row">
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Carousel Eyebrow</label>
+                              <input
+                                type="text"
+                                value={featuredCarouselEyebrow}
+                                onChange={e => setFeaturedCarouselEyebrow(e.target.value)}
+                                className="input-field"
+                                placeholder="Featured now"
+                                maxLength={80}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Carousel Title</label>
+                              <input
+                                type="text"
+                                value={featuredCarouselTitle}
+                                onChange={e => setFeaturedCarouselTitle(e.target.value)}
+                                className="input-field"
+                                placeholder="Fresh picks from the catalog"
+                                maxLength={120}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>Featured Products</label>
+                              <span style={{ fontSize: 11, color: 'var(--text-faint)', fontWeight: 750 }}>{featuredProductIds.length}/5 selected</span>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+                              {products.slice(0, 20).map(product => {
+                                const active = featuredProductIds.includes(product.id);
+                                return (
+                                  <button
+                                    key={product.id}
+                                    type="button"
+                                    onClick={() => toggleFeaturedProduct(product.id)}
+                                    className="clickable"
+                                    style={{
+                                      display: 'grid',
+                                      gridTemplateColumns: '42px minmax(0, 1fr)',
+                                      gap: 10,
+                                      alignItems: 'center',
+                                      textAlign: 'left',
+                                      padding: 10,
+                                      borderRadius: 'var(--r-md)',
+                                      border: active ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                      background: active ? 'var(--primary-light)' : 'var(--surface)',
+                                      color: 'var(--text)',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    <span style={{ width: 42, height: 42, borderRadius: 10, overflow: 'hidden', background: 'var(--bg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      {product.image_urls?.[0]
+                                        ? <img src={product.image_urls[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        : <Package size={18} color="var(--text-faint)" />
+                                      }
+                                    </span>
+                                    <span style={{ minWidth: 0 }}>
+                                      <strong style={{ display: 'block', fontSize: 12.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</strong>
+                                      <span style={{ fontSize: 11, color: active ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 800 }}>{active ? 'Featured' : 'Tap to feature'}</span>
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                    {/* Submit Bar */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                      <button
+                        type="submit"
+                        disabled={settingsSaving}
+                        className="btn btn-primary clickable"
+                        style={{ padding: '14px 28px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}
+                      >
+                        {settingsSaving ? <><Loader2 size={16} className="spinner" /> Saving...</> : 'Save Configuration Changes'}
+                      </button>
+                    </div>
+
+                  </form>
+
+                  {/* SECOND ROW: Security & Context */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid">
+                    
+                    {/* Change Password Card */}
+                    <div className="card" style={{ padding: 20 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                        <div style={{ background: 'var(--primary-light)', padding: 5, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
+                          <Key size={14} />
+                        </div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Update Password</h3>
+                      </div>
+                      <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {/* Current Password */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Current Password</label>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type={showCpCurrent ? 'text' : 'password'}
+                              value={cpCurrent}
+                              onChange={e => setCpCurrent(e.target.value)}
+                              className="input-field"
+                              placeholder="••••••••"
+                              style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCpCurrent(!showCpCurrent)}
+                              style={{
+                                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                                background: 'none', border: 'none', color: 'var(--text-muted)',
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                              }}
+                            >
+                              {showCpCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* New Password */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>New Password</label>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type={showCpNew ? 'text' : 'password'}
+                              value={cpNew}
+                              onChange={e => setCpNew(e.target.value)}
+                              className="input-field"
+                              placeholder="Min 6 characters"
+                              style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCpNew(!showCpNew)}
+                              style={{
+                                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                                background: 'none', border: 'none', color: 'var(--text-muted)',
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                              }}
+                            >
+                              {showCpNew ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Confirm New Password</label>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type={showCpConfirm ? 'text' : 'password'}
+                              value={cpConfirm}
+                              onChange={e => setCpConfirm(e.target.value)}
+                              className="input-field"
+                              placeholder="Confirm new password"
+                              style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCpConfirm(!showCpConfirm)}
+                              style={{
+                                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                                background: 'none', border: 'none', color: 'var(--text-muted)',
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                              }}
+                            >
+                              {showCpConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          </div>
+                        </div>
+
                         <button
                           type="submit"
-                          disabled={settingsSaving}
+                          disabled={cpSaving}
                           className="btn btn-primary clickable"
-                          style={{ padding: '14px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 10 }}
+                          style={{
+                            width: '100%', padding: '10px', fontSize: 12.5, borderRadius: 'var(--r-md)',
+                            fontWeight: 800, marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                          }}
                         >
-                          {settingsSaving ? <><Loader2 size={16} className="spinner" /> Saving...</> : 'Save Configuration Changes'}
+                          {cpSaving ? (
+                            <>
+                              <Loader2 size={14} className="spinner" />
+                              Updating...
+                            </>
+                          ) : 'Update Password'}
                         </button>
                       </form>
                     </div>
 
-                    {/* Settings Side Panels (Identity, Developer Overrides) */}
+                    {/* Identity & Developer contexts */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                       {/* Identity Info Panel */}
@@ -4550,146 +4852,9 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* Change Password Card */}
-                      <div className="card" style={{ padding: 20 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-                          <div style={{ background: 'var(--primary-light)', padding: 5, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
-                            <Key size={14} />
-                          </div>
-                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Update Password</h3>
-                        </div>
-                        <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                          {/* Current Password */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                            <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Current Password</label>
-                            <div style={{ position: 'relative' }}>
-                              <input
-                                type={showCpCurrent ? 'text' : 'password'}
-                                value={cpCurrent}
-                                onChange={e => setCpCurrent(e.target.value)}
-                                className="input-field"
-                                placeholder="••••••••"
-                                style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowCpCurrent(!showCpCurrent)}
-                                style={{
-                                  position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                                  background: 'none', border: 'none', color: 'var(--text-muted)',
-                                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                }}
-                              >
-                                {showCpCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* New Password */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                            <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>New Password</label>
-                            <div style={{ position: 'relative' }}>
-                              <input
-                                type={showCpNew ? 'text' : 'password'}
-                                value={cpNew}
-                                onChange={e => setCpNew(e.target.value)}
-                                className="input-field"
-                                placeholder="Min 6 characters"
-                                style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowCpNew(!showCpNew)}
-                                style={{
-                                  position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                                  background: 'none', border: 'none', color: 'var(--text-muted)',
-                                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                }}
-                              >
-                                {showCpNew ? <EyeOff size={16} /> : <Eye size={16} />}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Confirm Password */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                            <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Confirm New Password</label>
-                            <div style={{ position: 'relative' }}>
-                              <input
-                                type={showCpConfirm ? 'text' : 'password'}
-                                value={cpConfirm}
-                                onChange={e => setCpConfirm(e.target.value)}
-                                className="input-field"
-                                placeholder="Confirm new password"
-                                style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowCpConfirm(!showCpConfirm)}
-                                style={{
-                                  position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                                  background: 'none', border: 'none', color: 'var(--text-muted)',
-                                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                }}
-                              >
-                                {showCpConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                              </button>
-                            </div>
-                          </div>
-
-                          <button
-                            type="submit"
-                            disabled={cpSaving}
-                            className="btn btn-primary clickable"
-                            style={{
-                              width: '100%', padding: '10px', fontSize: 12.5, borderRadius: 'var(--r-md)',
-                              fontWeight: 800, marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
-                            }}
-                          >
-                            {cpSaving ? (
-                              <>
-                                <Loader2 size={14} className="spinner" />
-                                Updating...
-                              </>
-                            ) : 'Update Password'}
-                          </button>
-                        </form>
-                      </div>
-
-
-                      {/* Developer settings URL override */}
-                      {isDev && (
-                        <div className="card" style={{ padding: 20 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                            <div style={{ background: 'var(--danger-light)', padding: 4, borderRadius: 'var(--r-sm)', color: 'var(--danger)' }}>
-                              <Settings size={14} />
-                            </div>
-                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14.5, fontWeight: 800 }}>Developer Overrides</h3>
-                          </div>
-                          <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 14 }}>
-                            Change the backend API endpoint address. (Default port is 8000). Useful for connecting local network devices.
-                          </p>
-
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            <input
-                              type="text"
-                              value={devApiInput}
-                              onChange={e => setDevApiInput(e.target.value)}
-                              className="input-field"
-                              style={{ padding: '8px 12px', fontSize: 13, height: 38 }}
-                            />
-                            <button
-                              onClick={handleSaveDevApi}
-                              className="btn btn-outline clickable"
-                              style={{ width: '100%', padding: '8px', fontSize: 12, borderRadius: 'var(--r-md)', fontWeight: 700 }}
-                            >
-                              Sync Host Address
-                            </button>
-                          </div>
-                        </div>
-                      )}
 
                     </div>
+
                   </div>
 
                   {/* ── CUSTOM DOMAIN CONFIGURATION CARD (temporarily disabled — DNS infra not ready yet) ── */}
@@ -6002,7 +6167,7 @@ export default function DashboardPage() {
                           fontSize: 10, fontWeight: 900, padding: '4px 10px',
                           borderRadius: 'var(--r-full)', textTransform: 'uppercase', letterSpacing: '0.05em',
                           display: 'flex', alignItems: 'center', gap: 4
-                        }}><Sparkles size={8} /> Active Pro ({user?.plan === 'pro_yearly' ? 'Yearly' : 'Monthly'})</span>
+                        }}><Zap size={8} /> Active Pro ({user?.plan === 'pro_yearly' ? 'Yearly' : 'Monthly'})</span>
                       )}
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -6183,7 +6348,7 @@ export default function DashboardPage() {
                           {appliedCoupon && (
                             <div style={{ marginTop: 10, padding: '8px 10px', background: 'var(--primary-light)', borderRadius: 'var(--r-sm)', fontSize: 11.5, border: '1px solid var(--primary)', color: 'var(--text)' }}>
                               <p style={{ color: 'var(--primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                <Sparkles size={12} />
+                                <Tag size={12} />
                                 Code Applied: {appliedCoupon.code}
                               </p>
                               <p style={{ color: 'var(--text-muted)', fontSize: 10.5, marginTop: 2 }}>
@@ -6375,35 +6540,29 @@ export default function DashboardPage() {
                                 />
                               </div>
 
+                              {verificationDocType === 'business_registration' && (
+                                <div style={{ display: 'flex', gap: 12, background: '#fffbeb', padding: '12px 14px', borderRadius: 'var(--r-md)', border: '1px solid #fcd34d' }}>
+                                  <AlertCircle size={18} style={{ color: '#d97706', flexShrink: 0, marginTop: 1 }} />
+                                  <p style={{ fontSize: 12.5, color: '#92400e', lineHeight: 1.55, margin: 0 }}>
+                                    <strong>CAC is primarily for Nigerians.</strong> If you are not based in Nigeria, please select <strong>International Passport (IP)</strong> as your verification document instead.
+                                  </p>
+                                </div>
+                              )}
+
+
                               <div>
                                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Upload Document File (Image/PDF)</label>
-                                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                                  <input
-                                    type="file"
-                                    accept="image/*,application/pdf"
-                                    onChange={async e => {
-                                      const file = e.target.files?.[0];
-                                      if (file) await handleUploadVerificationDoc(file);
-                                    }}
-                                    style={{ display: 'none' }}
-                                    id="verification-file-input"
-                                  />
-                                  <label
-                                    htmlFor="verification-file-input"
-                                    className="btn btn-outline clickable"
-                                    style={{
-                                      padding: '12px 20px', borderRadius: 'var(--r-md)', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer'
-                                    }}
-                                  >
-                                    {verificationUploading ? <Loader2 size={16} className="spinner" /> : <Camera size={16} />}
-                                    {verificationDocUrl ? 'Change Document File' : 'Choose Document File'}
-                                  </label>
-                                  {verificationDocUrl && (
-                                    <span style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                      <CheckCircle2 size={14} /> Document Uploaded
-                                    </span>
-                                  )}
-                                </div>
+                                <FileUpload
+                                  variant="default"
+                                  accept="image/*,application/pdf"
+                                  label="Drop your document here or click to upload"
+                                  hint="JPG, PNG, or PDF accepted"
+                                  previewUrl={verificationDocUrl || undefined}
+                                  uploading={verificationUploading}
+                                  success={verificationDocUrl ? 'Document uploaded successfully' : undefined}
+                                  inputId="verification-file-input"
+                                  onFile={async (file) => { await handleUploadVerificationDoc(file); }}
+                                />
                               </div>
 
                               <button
@@ -6618,6 +6777,415 @@ export default function DashboardPage() {
                   )}
                 </div>
               )}
+
+              {/* ── TAB 12: BLOG MANAGER ── */}
+              {activeTab === 'blog' && (
+                <div className="card animate-fade-in" style={{ padding: 24 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+                    <div>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Blog Posts</h2>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Manage blog posts and search engine optimization (pSEO) articles for your storefront.</p>
+                    </div>
+                    <button
+                      onClick={() => setShowBlogForm(true)}
+                      className="btn btn-primary clickable"
+                      style={{
+                        padding: '10px 20px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        borderRadius: 'var(--r-md)',
+                        backgroundColor: 'var(--primary)',
+                        color: '#fff',
+                        border: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6
+                      }}
+                    >
+                      <Plus size={16} /> New Post
+                    </button>
+                  </div>
+
+                  {blogPosts.length === 0 ? (
+                    <div className="empty-state" style={{ padding: '60px 0', textAlign: 'center' }}>
+                      <div className="empty-state__icon" style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-2)', color: 'var(--text-faint)', marginBottom: 16 }}>
+                        <BookOpen size={28} strokeWidth={1.25} />
+                      </div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '6px', color: 'var(--text)' }}>No blog posts yet</h3>
+                      <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', maxWidth: '320px', margin: '0 auto', lineHeight: 1.5 }}>
+                        Create articles or tutorials to engage your storefront visitors and improve search ranking.
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      {blogPosts.map((post) => (
+                        <div key={post.id} style={{
+                          background: 'var(--surface-2)',
+                          borderRadius: 'var(--r-md)',
+                          border: '1px solid var(--border)',
+                          padding: '20px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 12
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                                <span style={{
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  textTransform: 'uppercase',
+                                  color: 'var(--primary)',
+                                  background: 'rgba(var(--primary-rgb), 0.08)',
+                                  padding: '2px 8px',
+                                  borderRadius: 'var(--r-full)',
+                                  border: '1px solid var(--border)'
+                                }}>
+                                  {post.category}
+                                </span>
+                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                  {post.read_time || '5 min read'}
+                                </span>
+                                {post.is_pseo ? (
+                                  <span style={{
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    color: 'var(--accent)',
+                                    background: 'rgba(var(--accent-rgb), 0.08)',
+                                    padding: '2px 8px',
+                                    borderRadius: 'var(--r-full)',
+                                    border: '1px solid var(--border)'
+                                  }}>
+                                    Seeded pSEO
+                                  </span>
+                                ) : null}
+                              </div>
+                              <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '4px 0 6px', color: 'var(--text)' }}>{post.title}</h3>
+                              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>{post.excerpt}</p>
+                              <div style={{ fontSize: '12px', color: 'var(--text-faint)', marginTop: 8 }}>
+                                By <b style={{ color: 'var(--text-muted)' }}>{post.is_pseo ? 'Front Store Team' : (store?.store_name || 'My Store')}</b>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteBlogPost(post.id)}
+                              className="btn btn-outline clickable"
+                              style={{
+                                color: 'var(--danger)',
+                                borderColor: 'rgba(239, 68, 68, 0.2)',
+                                background: 'none',
+                                padding: '8px 12px',
+                                fontSize: '12px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                borderRadius: 'var(--r-md)'
+                              }}
+                            >
+                              <Trash2 size={14} /> Delete
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB 13: AVAILABILITY ── */}
+              {activeTab === 'availability' && (
+                <div className="card animate-fade-in" style={{ padding: 28 }}>
+                  <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 24 }}>
+                    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Clock size={20} style={{ color: 'var(--primary)' }} /> Availability & Booking Settings
+                    </h2>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>Set your weekly working hours and how many bookings you accept per day.</p>
+                  </div>
+
+                  {/* Weekly Schedule Builder */}
+                  <div style={{ marginBottom: 32 }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-2)', letterSpacing: 0.6, marginBottom: 14 }}>Weekly Schedule</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {DAYS_OF_WEEK.map(day => {
+                        const slot = workingHours[day] || { open: '09:00', close: '17:00', enabled: false };
+                        return (
+                          <div key={day} style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 14,
+                            background: slot.enabled ? 'var(--surface-2)' : 'transparent',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--r-md)',
+                            padding: '12px 16px',
+                            transition: 'background 0.2s'
+                          }}>
+                            {/* Toggle */}
+                            <button
+                              type="button"
+                              onClick={() => setWorkingHours(prev => ({ ...prev, [day]: { ...prev[day], enabled: !slot.enabled } }))}
+                              style={{
+                                flexShrink: 0,
+                                width: 40,
+                                height: 22,
+                                borderRadius: 11,
+                                border: 'none',
+                                background: slot.enabled ? 'var(--primary)' : 'var(--border)',
+                                position: 'relative',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s'
+                              }}
+                              aria-label={`Toggle ${day}`}
+                            >
+                              <span style={{
+                                position: 'absolute',
+                                top: 3,
+                                left: slot.enabled ? 20 : 3,
+                                width: 16,
+                                height: 16,
+                                borderRadius: '50%',
+                                background: '#fff',
+                                transition: 'left 0.2s',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                              }} />
+                            </button>
+
+                            {/* Day label */}
+                            <span style={{ width: 42, fontSize: 13, fontWeight: 700, color: slot.enabled ? 'var(--text)' : 'var(--text-faint)' }}>
+                              {DAY_LABELS[day]}
+                            </span>
+
+                            {slot.enabled ? (
+                              <>
+                                <input
+                                  type="time"
+                                  value={slot.open}
+                                  onChange={e => setWorkingHours(prev => ({ ...prev, [day]: { ...prev[day], open: e.target.value } }))}
+                                  className="input-field"
+                                  style={{ width: 120, fontSize: 13, padding: '6px 10px' }}
+                                />
+                                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>to</span>
+                                <input
+                                  type="time"
+                                  value={slot.close}
+                                  onChange={e => setWorkingHours(prev => ({ ...prev, [day]: { ...prev[day], close: e.target.value } }))}
+                                  className="input-field"
+                                  style={{ width: 120, fontSize: 13, padding: '6px 10px' }}
+                                />
+                              </>
+                            ) : (
+                              <span style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic' }}>Closed</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Daily Booking Cap */}
+                  <div style={{ marginBottom: 32 }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-2)', letterSpacing: 0.6, marginBottom: 6 }}>Daily Booking Capacity</h3>
+                    <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
+                      Maximum number of bookings you can accept on any single day. Once this limit is reached, that day becomes unavailable.
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <input
+                        type="number"
+                        min={1}
+                        max={500}
+                        value={bookingCapacityPerDay}
+                        onChange={e => setBookingCapacityPerDay(e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value) || 1))}
+                        className="input-field"
+                        style={{ width: 120, fontSize: 14 }}
+                        placeholder="e.g. 10"
+                      />
+                      <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>bookings / day</span>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <button
+                    onClick={async () => {
+                      if (!token) return;
+                      try {
+                        setAvailabilitySaving(true);
+                        const res = await fetch(`${apiUrl}/v1/store`, {
+                          method: 'PUT',
+                          headers: getAuthHeaders(),
+                          body: JSON.stringify({
+                            working_hours: workingHours,
+                            booking_capacity_per_day: Number(bookingCapacityPerDay) || 10,
+                          }),
+                        });
+                        const json = await res.json();
+                        if (!res.ok) throw new Error(json.message || 'Save failed.');
+                        if (json.data) {
+                          setStore(json.data);
+                          localStorage.setItem('store', JSON.stringify(json.data));
+                        }
+                        toast.success('Availability settings saved!');
+                      } catch (err: any) {
+                        toast.error(err.message || 'Could not save availability.');
+                      } finally {
+                        setAvailabilitySaving(false);
+                      }
+                    }}
+                    disabled={availabilitySaving}
+                    className="btn btn-primary clickable"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 28px', fontSize: 14, fontWeight: 700 }}
+                  >
+                    {availabilitySaving ? <Loader2 size={16} className="spin" /> : <Check size={16} />}
+                    {availabilitySaving ? 'Saving…' : 'Save Availability'}
+                  </button>
+                </div>
+              )}
+
+              {/* ── TAB 14: BOOKINGS ── */}
+              {activeTab === 'bookings' && (
+                <div className="card animate-fade-in" style={{ padding: 28 }}>
+                  <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                    <div>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Calendar size={20} style={{ color: 'var(--primary)' }} /> Bookings
+                      </h2>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>All service bookings made by customers on your storefront.</p>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (!token) return;
+                        try {
+                          setBookingsLoading(true);
+                          const res = await fetch(`${apiUrl}/v1/bookings`, { headers: getAuthHeaders() });
+                          const json = await res.json();
+                          if (res.ok) setBookings(json.data?.data || json.data || []);
+                          else toast.error(json.message || 'Failed to load bookings.');
+                        } catch { toast.error('Network error.'); }
+                        finally { setBookingsLoading(false); }
+                      }}
+                      className="btn btn-outline clickable"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, padding: '9px 18px' }}
+                    >
+                      <RefreshCw size={14} /> Refresh
+                    </button>
+                  </div>
+
+                  {bookingsLoading ? (
+                    <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+                      <Loader2 size={28} className="spin" style={{ marginBottom: 12 }} />
+                      <p style={{ fontSize: 13 }}>Loading bookings…</p>
+                    </div>
+                  ) : bookings.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                      <div style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-2)', color: 'var(--text-faint)', marginBottom: 16 }}>
+                        <Calendar size={28} strokeWidth={1.25} />
+                      </div>
+                      <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>No bookings yet</h3>
+                      <p style={{ fontSize: 13.5, color: 'var(--text-muted)', maxWidth: 300, margin: '0 auto', lineHeight: 1.5 }}>
+                        Customers who book your services will appear here. Click Refresh to load.
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {bookings.map((booking: any) => {
+                        const isPending  = booking.status === 'pending';
+                        const isConfirmed = booking.status === 'confirmed';
+                        const isCancelled = booking.status === 'cancelled';
+                        const statusColor = isPending ? '#f59e0b' : isConfirmed ? 'var(--primary)' : 'var(--text-faint)';
+                        const statusBg   = isPending ? 'rgba(245,158,11,0.1)' : isConfirmed ? 'var(--primary-light)' : 'var(--surface-2)';
+
+                        return (
+                          <div key={booking.id} style={{
+                            background: 'var(--surface-2)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--r-md)',
+                            padding: '16px 20px',
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 12,
+                            alignItems: 'flex-start',
+                            justifyContent: 'space-between'
+                          }}>
+                            <div style={{ flex: 1, minWidth: 200 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 'var(--r-full)', background: statusBg, color: statusColor, border: `1px solid ${statusColor}22` }}>
+                                  {(booking.status || 'pending').toUpperCase()}
+                                </span>
+                                <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>#{booking.id?.slice(0, 8) || '—'}</span>
+                              </div>
+                              <p style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text)', margin: '2px 0' }}>
+                                {booking.customer_name || 'Customer'}
+                              </p>
+                              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0 }}>
+                                {booking.service_name || booking.product_name || 'Service'}
+                              </p>
+                              <p style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 4 }}>
+                                <Calendar size={11} style={{ display: 'inline', marginRight: 4 }} />
+                                {booking.booking_date ? new Date(booking.booking_date).toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric' }) : '—'}
+                                {booking.start_time ? `  ·  ${booking.start_time}` : ''}
+                                {booking.end_time   ? ` – ${booking.end_time}` : ''}
+                              </p>
+                              {booking.customer_phone && (
+                                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                                  <Phone size={11} style={{ display: 'inline', marginRight: 4 }} />{booking.customer_phone}
+                                </p>
+                              )}
+                            </div>
+
+                            {!isCancelled && (
+                              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                                {isPending && (
+                                  <button
+                                    disabled={bookingActionId === booking.id}
+                                    onClick={async () => {
+                                      try {
+                                        setBookingActionId(booking.id);
+                                        const res = await fetch(`${apiUrl}/v1/bookings/${booking.id}/confirm`, {
+                                          method: 'POST',
+                                          headers: getAuthHeaders()
+                                        });
+                                        const json = await res.json();
+                                        if (!res.ok) throw new Error(json.message || 'Failed.');
+                                        setBookings(prev => prev.map((b: any) => b.id === booking.id ? { ...b, status: 'confirmed' } : b));
+                                        toast.success('Booking confirmed!');
+                                      } catch (err: any) { toast.error(err.message); }
+                                      finally { setBookingActionId(null); }
+                                    }}
+                                    className="btn btn-primary clickable"
+                                    style={{ fontSize: 12, fontWeight: 700, padding: '8px 14px', display: 'inline-flex', alignItems: 'center', gap: 5 }}
+                                  >
+                                    {bookingActionId === booking.id ? <Loader2 size={12} className="spin" /> : <CheckCircle2 size={12} />}
+                                    Confirm
+                                  </button>
+                                )}
+                                <button
+                                  disabled={bookingActionId === booking.id}
+                                  onClick={async () => {
+                                    try {
+                                      setBookingActionId(booking.id);
+                                      const res = await fetch(`${apiUrl}/v1/bookings/${booking.id}/cancel`, {
+                                        method: 'POST',
+                                        headers: getAuthHeaders()
+                                      });
+                                      const json = await res.json();
+                                      if (!res.ok) throw new Error(json.message || 'Failed.');
+                                      setBookings(prev => prev.map((b: any) => b.id === booking.id ? { ...b, status: 'cancelled' } : b));
+                                      toast.success('Booking cancelled.');
+                                    } catch (err: any) { toast.error(err.message); }
+                                    finally { setBookingActionId(null); }
+                                  }}
+                                  className="btn btn-outline clickable"
+                                  style={{ fontSize: 12, fontWeight: 700, padding: '8px 14px', color: 'var(--danger)', borderColor: 'rgba(239,68,68,0.25)', display: 'inline-flex', alignItems: 'center', gap: 5 }}
+                                >
+                                  {bookingActionId === booking.id ? <Loader2 size={12} className="spin" /> : <X size={12} />}
+                                  Cancel
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
 
@@ -6665,9 +7233,12 @@ export default function DashboardPage() {
                 { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
                 { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
-                { id: 'templates', label: 'Store Themes', icon: <Sparkles size={18} /> },
+                { id: 'templates', label: 'Store Themes', icon: <Palette size={18} /> },
                 { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} /> },
-                { id: 'settings', label: isDev ? 'Settings & Dev' : 'Settings', icon: <Settings size={18} /> },
+                { id: 'blog', label: 'Blog Posts', icon: <BookOpen size={18} /> },
+                { id: 'availability', label: 'Availability', icon: <Clock size={18} /> },
+                { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} /> },
+                { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
                 { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
               ].map(item => (
                 <button
@@ -6719,7 +7290,7 @@ export default function DashboardPage() {
       {isWithdrawModalOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
           <div onClick={() => setIsWithdrawModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
-          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 440, padding: 24, zIndex: 10 }}>
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 600, padding: 28, zIndex: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <DollarSign size={18} style={{ color: 'var(--primary)' }} /> Request Payout Withdrawal
@@ -6845,7 +7416,7 @@ export default function DashboardPage() {
       {isDiscountModalOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
           <div onClick={() => setIsDiscountModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
-          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 440, padding: 24, zIndex: 10 }}>
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 600, padding: 28, zIndex: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Zap size={18} style={{ color: 'var(--accent)' }} /> Create Flash Campaign
@@ -6882,11 +7453,185 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* ── MODAL: CREATE BLOG POST ── */}
+      {showBlogForm && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setShowBlogForm(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 680, maxHeight: '90vh', display: 'flex', flexDirection: 'column', padding: 28, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexShrink: 0 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <BookOpen size={18} style={{ color: 'var(--primary)' }} /> Create New Blog Post
+              </h3>
+              <button onClick={() => setShowBlogForm(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
+            </div>
+
+            <form onSubmit={handleCreateBlogPost} style={{ display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', flex: 1, paddingRight: 4, marginBottom: 20 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 5 Skincare Routine Mistakes to Avoid"
+                  value={blogTitle}
+                  onChange={e => setBlogTitle(e.target.value)}
+                  className="input-field"
+                  style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 10, fontSize: 13 }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Category</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Skincare"
+                    value={blogCategory}
+                    onChange={e => setBlogCategory(e.target.value)}
+                    className="input-field"
+                    style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 10, fontSize: 13 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Read Time</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 4 min read"
+                    value={blogReadTime}
+                    onChange={e => setBlogReadTime(e.target.value)}
+                    className="input-field"
+                    style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 10, fontSize: 13 }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Excerpt (Short Summary)</label>
+                <textarea
+                  placeholder="Brief teaser of what the post is about..."
+                  value={blogExcerpt}
+                  onChange={e => setBlogExcerpt(e.target.value)}
+                  className="input-field"
+                  style={{ width: '100%', minHeight: 60, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 10, fontSize: 13, resize: 'vertical' }}
+                />
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Cover Image (Optional)</label>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button
+                      type="button"
+                      onClick={() => setBlogImageMode('url')}
+                      className={`btn clickable`}
+                      style={{ padding: '4px 10px', fontSize: 11, borderRadius: 'var(--r-sm)', background: blogImageMode === 'url' ? 'var(--primary)' : 'var(--surface)', color: blogImageMode === 'url' ? '#fff' : 'var(--text-muted)', fontWeight: 700, border: '1px solid var(--border)' }}
+                    >
+                      🔗 URL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBlogImageMode('upload')}
+                      className={`btn clickable`}
+                      style={{ padding: '4px 10px', fontSize: 11, borderRadius: 'var(--r-sm)', background: blogImageMode === 'upload' ? 'var(--primary)' : 'var(--surface)', color: blogImageMode === 'upload' ? '#fff' : 'var(--text-muted)', fontWeight: 700, border: '1px solid var(--border)' }}
+                    >
+                      📁 Upload
+                    </button>
+                  </div>
+                </div>
+
+                {blogImageMode === 'url' ? (
+                  <input
+                    type="text"
+                    placeholder="https://images.unsplash.com/..."
+                    value={blogImageUrl}
+                    onChange={e => setBlogImageUrl(e.target.value)}
+                    className="input-field"
+                    style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 10, fontSize: 13 }}
+                  />
+                ) : (
+                  <div>
+                    <label
+                      htmlFor="blog-image-upload"
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        padding: '24px 16px',
+                        border: '2px dashed var(--border)',
+                        borderRadius: 'var(--r-md)',
+                        cursor: blogImageUploading ? 'not-allowed' : 'pointer',
+                        background: 'var(--bg)',
+                        transition: 'border-color 0.2s',
+                        opacity: blogImageUploading ? 0.7 : 1,
+                      }}
+                    >
+                      {blogImageUploading ? (
+                        <><Loader2 size={20} className="spinner" style={{ color: 'var(--primary)' }} /><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Uploading...</span></>
+                      ) : blogImageUrl && blogImageMode === 'upload' ? (
+                        <>
+                          <img src={blogImageUrl} alt="Preview" style={{ width: '100%', maxHeight: 120, objectFit: 'cover', borderRadius: 'var(--r-sm)' }} />
+                          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Click to replace</span>
+                        </>
+                      ) : (
+                        <>
+                          <span style={{ fontSize: 24 }}>🖼️</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)' }}>Click to upload cover image</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>JPG, PNG, WebP — max 5MB</span>
+                        </>
+                      )}
+                    </label>
+                    <input
+                      id="blog-image-upload"
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      disabled={blogImageUploading}
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadBlogImage(file);
+                        e.target.value = '';
+                      }}
+                    />
+                    {blogImageUrl && blogImageMode === 'upload' && (
+                      <button type="button" onClick={() => setBlogImageUrl('')} style={{ marginTop: 6, fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>
+                        Remove image
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Body Paragraphs</label>
+                <textarea
+                  required
+                  placeholder="Write your article paragraphs here. Use a blank line (press Enter twice) to start a new paragraph."
+                  value={blogBody}
+                  onChange={e => setBlogBody(e.target.value)}
+                  className="input-field"
+                  style={{ width: '100%', minHeight: 180, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 10, fontSize: 13, resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 8, flexShrink: 0 }}>
+                <button type="button" onClick={() => setShowBlogForm(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
+                <button type="submit" disabled={blogSubmitting} className="btn btn-primary clickable" style={{ flex: 1, padding: 12 }}>
+                  {blogSubmitting ? 'Publishing...' : 'Publish Post'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ── MODAL: ADD PRODUCT OVERLAY ── */}
       {isAddProductOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
           <div onClick={() => setIsAddProductOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
-          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 540, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 680, padding: 28, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create Store Product</h3>
@@ -6991,80 +7736,37 @@ export default function DashboardPage() {
                       <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
                         Digital File (Optional, max 20MB)
                       </label>
-                      {prodDigitalFileUrl ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-2)', padding: '10px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
-                          <FileText size={18} color="var(--primary)" />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {prodDigitalFileUrl.split('/').pop()}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setProdDigitalFileUrl('')}
-                            className="btn btn-outline"
-                            style={{ padding: '4px 10px', fontSize: 10, color: 'var(--danger)', borderColor: 'var(--danger)', borderRadius: 'var(--r-sm)' }}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ) : (
-                        <label
-                          style={{
-                            border: '2px dashed var(--border)',
-                            borderRadius: 'var(--r-md)',
-                            padding: '16px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 6,
-                            cursor: prodDigitalUploading ? 'not-allowed' : 'pointer',
-                            background: 'var(--bg-2)',
-                            color: 'var(--text-muted)',
-                            opacity: prodDigitalUploading ? 0.6 : 1,
-                            transition: 'all var(--t-fast)'
-                          }}
-                        >
-                          {prodDigitalUploading ? (
-                            <Loader2 size={20} className="spinner" />
-                          ) : (
-                            <>
-                              <Download size={20} />
-                              <span style={{ fontSize: 12, fontWeight: 700 }}>Upload Product File</span>
-                            </>
-                          )}
-                          <input
-                            type="file"
-                            style={{ display: 'none' }}
-                            disabled={prodDigitalUploading}
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              try {
-                                setProdDigitalUploading(true);
-                                const fd = new FormData();
-                                fd.append('file', file);
-                                const res = await fetch(`${apiUrl}/v1/products/upload-file`, {
-                                  method: 'POST',
-                                  headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                                  body: fd
-                                });
-                                const json = await res.json();
-                                if (res.ok && json.url) {
-                                  setProdDigitalFileUrl(json.url);
-                                  toast.success('Digital file uploaded successfully! 📁');
-                                } else throw new Error(json.message || 'File upload failed');
-                              } catch (err: any) {
-                                toast.error(err.message || 'File upload error');
-                              } finally {
-                                setProdDigitalUploading(false);
-                                e.target.value = '';
-                              }
-                            }}
-                          />
-                        </label>
-                      )}
+                      <FileUpload
+                        variant="default"
+                        accept="*"
+                        label="Upload Product File"
+                        hint="eBooks, courses, templates, music, PDFs, etc. (max 20MB)"
+                        previewUrl={prodDigitalFileUrl || undefined}
+                        uploading={prodDigitalUploading}
+                        onRemove={() => setProdDigitalFileUrl('')}
+                        maxSize={20 * 1024 * 1024}
+                        onFile={async (file) => {
+                          try {
+                            setProdDigitalUploading(true);
+                            const fd = new FormData();
+                            fd.append('file', file);
+                            const res = await fetch(`${apiUrl}/v1/products/upload-file`, {
+                              method: 'POST',
+                              headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                              body: fd
+                            });
+                            const json = await res.json();
+                            if (res.ok && json.url) {
+                              setProdDigitalFileUrl(json.url);
+                              toast.success('Digital file uploaded successfully! 📁');
+                            } else throw new Error(json.message || 'File upload failed');
+                          } catch (err: any) {
+                            toast.error(err.message || 'File upload error');
+                          } finally {
+                            setProdDigitalUploading(false);
+                          }
+                        }}
+                      />
                     </div>
 
                     {/* External Link */}
@@ -7244,59 +7946,48 @@ export default function DashboardPage() {
                 </label>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {prodImageUrls.map((url, idx) => (
-                    <div key={idx} style={{ width: 80, height: 80, borderRadius: 'var(--r-md)', overflow: 'hidden', flexShrink: 0, position: 'relative', border: '2px solid var(--primary)' }}>
-                      <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={`Product image ${idx + 1}`} />
+                    <div key={idx} className="fu-tile-img">
+                      <img src={url} alt={`Product image ${idx + 1}`} />
                       <button
                         type="button"
                         onClick={() => setProdImageUrls(prev => prev.filter((_, i) => i !== idx))}
-                        style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', background: 'var(--danger)', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                        className="fu-tile-img__remove"
                         title="Remove image"
                       >✕</button>
                     </div>
                   ))}
                   {prodImageUrls.length < 3 && (
-                    <label
-                      style={{
-                        width: 80, height: 80, borderRadius: 'var(--r-md)', flexShrink: 0,
-                        border: '2px dashed var(--border)', display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', justifyContent: 'center', gap: 4,
-                        cursor: prodImageUploading ? 'not-allowed' : 'pointer',
-                        background: 'var(--bg-2)', color: 'var(--text-muted)', opacity: prodImageUploading ? 0.6 : 1,
-                        transition: 'all var(--t-fast)'
+                    <FileUpload
+                      variant="tile"
+                      accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                      uploading={prodImageUploading}
+                      disabled={prodImageUploading}
+                      onFile={async (file) => {
+                        try {
+                          setProdImageUploading(true);
+                          const fd = new FormData();
+                          fd.append('image', file);
+                          const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                            body: fd
+                          });
+                          const json = await res.json();
+                          if (res.ok && json.url) {
+                            const isFirstImage = prodImageUrls.length === 0;
+                            setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
+                            toast.success('Image uploaded! 📸');
+                            if (isFirstImage && isPro) {
+                              handleAutoAnalyzeImage(file);
+                            }
+                          } else throw new Error(json.message || 'Upload failed');
+                        } catch (err: any) {
+                          toast.error(err.message || 'Image upload error');
+                        } finally {
+                          setProdImageUploading(false);
+                        }
                       }}
-                    >
-                      {prodImageUploading ? <Loader2 size={18} className="spinner" /> : <><ImageIcon size={18} /><span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>Upload</span></>}
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                        style={{ display: 'none' }}
-                        disabled={prodImageUploading}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          try {
-                            setProdImageUploading(true);
-                            const fd = new FormData();
-                            fd.append('image', file);
-                            const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
-                              method: 'POST',
-                              headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                              body: fd
-                            });
-                            const json = await res.json();
-                            if (res.ok && json.url) {
-                              setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
-                              toast.success('Image uploaded! 📸');
-                            } else throw new Error(json.message || 'Upload failed');
-                          } catch (err: any) {
-                            toast.error(err.message || 'Image upload error');
-                          } finally {
-                            setProdImageUploading(false);
-                            e.target.value = '';
-                          }
-                        }}
-                      />
-                    </label>
+                    />
                   )}
                   {prodImageUrls.length < 3 && (
                     <button
@@ -7313,7 +8004,7 @@ export default function DashboardPage() {
                       }}
                       title="Generate AI Image"
                     >
-                      {aiImageGenerating ? <Loader2 size={18} className="spinner" /> : <><Sparkles size={18} /><span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>AI Gen</span></>}
+                      {aiImageGenerating ? <Loader2 size={18} className="spinner" /> : <><ImageIcon size={18} /><span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>AI Gen</span></>}
                     </button>
                   )}
                 </div>
@@ -7334,7 +8025,7 @@ export default function DashboardPage() {
                       display: 'inline-flex', alignItems: 'center', gap: 4
                     }}
                   >
-                    {aiGenerating ? <><Loader2 size={11} className="spinner" /> Generating...</> : <><Sparkles size={11} /> AI Auto-Write</>}
+                    {aiGenerating ? <><Loader2 size={11} className="spinner" /> Generating...</> : <><Edit2 size={11} /> AI Auto-Write</>}
                     {(user?.plan === 'free' || !user?.plan) && (
                       <span style={{ fontSize: 8, fontWeight: 900, background: '#d97706', color: '#fff', padding: '1px 4px', borderRadius: 2 }}>PRO</span>
                     )}
@@ -7349,6 +8040,55 @@ export default function DashboardPage() {
                   className="input-field"
                   style={{ resize: 'vertical' }}
                 />
+                {aiAnalyzing && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, padding: '8px 12px', borderRadius: 'var(--r-sm)', background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.2)' }}>
+                    <Loader2 size={13} className="spinner" style={{ color: '#d97706' }} />
+                    <span style={{ fontSize: 11.5, color: '#d97706', fontWeight: 600 }}>AI is analyzing your photo and pre-filling product details...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Tags editor */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>Product Tags</label>
+                  {isPro && (
+                    <span style={{ fontSize: 9, fontWeight: 900, background: 'linear-gradient(135deg,#d97706,#f59e0b)', color: '#fff', padding: '2px 6px', borderRadius: 3 }}>AI-SUGGESTED</span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                  {prodTags.map((tag, i) => (
+                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 20, background: 'rgba(217,119,6,0.1)', border: '1px solid rgba(217,119,6,0.35)', fontSize: 12, fontWeight: 600, color: '#d97706' }}>
+                      {tag}
+                      <button type="button" onClick={() => setProdTags(prev => prev.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#d97706', lineHeight: 1, display: 'flex', alignItems: 'center' }} aria-label={`Remove tag ${tag}`}>
+                        <X size={11} />
+                      </button>
+                    </span>
+                  ))}
+                  {prodTags.length === 0 && !aiAnalyzing && (
+                    <span style={{ fontSize: 11, color: 'var(--text-faint)', fontStyle: 'italic' }}>{isPro ? 'Upload a photo and AI will suggest tags automatically.' : 'Add up to 10 tags to help buyers find your product.'}</span>
+                  )}
+                </div>
+                {prodTags.length < 10 && (
+                  <input
+                    type="text"
+                    placeholder="Type a tag and press Enter..."
+                    value={prodTagInput}
+                    onChange={e => setProdTagInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const t = prodTagInput.trim();
+                        if (t && !prodTags.includes(t) && prodTags.length < 10) {
+                          setProdTags(prev => [...prev, t]);
+                          setProdTagInput('');
+                        }
+                      }
+                    }}
+                    className="input-field"
+                    style={{ fontSize: 13 }}
+                  />
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
@@ -7367,7 +8107,7 @@ export default function DashboardPage() {
       {isEditProductOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
           <div onClick={() => setIsEditProductOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
-          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 540, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 680, padding: 28, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Edit Product Settings</h3>
@@ -7470,80 +8210,37 @@ export default function DashboardPage() {
                       <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
                         Digital File (Optional, max 20MB)
                       </label>
-                      {prodDigitalFileUrl ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-2)', padding: '10px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
-                          <FileText size={18} color="var(--primary)" />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {prodDigitalFileUrl.split('/').pop()}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setProdDigitalFileUrl('')}
-                            className="btn btn-outline"
-                            style={{ padding: '4px 10px', fontSize: 10, color: 'var(--danger)', borderColor: 'var(--danger)', borderRadius: 'var(--r-sm)' }}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ) : (
-                        <label
-                          style={{
-                            border: '2px dashed var(--border)',
-                            borderRadius: 'var(--r-md)',
-                            padding: '16px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 6,
-                            cursor: prodDigitalUploading ? 'not-allowed' : 'pointer',
-                            background: 'var(--bg-2)',
-                            color: 'var(--text-muted)',
-                            opacity: prodDigitalUploading ? 0.6 : 1,
-                            transition: 'all var(--t-fast)'
-                          }}
-                        >
-                          {prodDigitalUploading ? (
-                            <Loader2 size={20} className="spinner" />
-                          ) : (
-                            <>
-                              <Download size={20} />
-                              <span style={{ fontSize: 12, fontWeight: 700 }}>Upload Product File</span>
-                            </>
-                          )}
-                          <input
-                            type="file"
-                            style={{ display: 'none' }}
-                            disabled={prodDigitalUploading}
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              try {
-                                setProdDigitalUploading(true);
-                                const fd = new FormData();
-                                fd.append('file', file);
-                                const res = await fetch(`${apiUrl}/v1/products/upload-file`, {
-                                  method: 'POST',
-                                  headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                                  body: fd
-                                });
-                                const json = await res.json();
-                                if (res.ok && json.url) {
-                                  setProdDigitalFileUrl(json.url);
-                                  toast.success('Digital file uploaded successfully! 📁');
-                                } else throw new Error(json.message || 'File upload failed');
-                              } catch (err: any) {
-                                toast.error(err.message || 'File upload error');
-                              } finally {
-                                setProdDigitalUploading(false);
-                                e.target.value = '';
-                              }
-                            }}
-                          />
-                        </label>
-                      )}
+                      <FileUpload
+                        variant="default"
+                        accept="*"
+                        label="Upload Product File"
+                        hint="eBooks, courses, templates, music, PDFs, etc. (max 20MB)"
+                        previewUrl={prodDigitalFileUrl || undefined}
+                        uploading={prodDigitalUploading}
+                        onRemove={() => setProdDigitalFileUrl('')}
+                        maxSize={20 * 1024 * 1024}
+                        onFile={async (file) => {
+                          try {
+                            setProdDigitalUploading(true);
+                            const fd = new FormData();
+                            fd.append('file', file);
+                            const res = await fetch(`${apiUrl}/v1/products/upload-file`, {
+                              method: 'POST',
+                              headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                              body: fd
+                            });
+                            const json = await res.json();
+                            if (res.ok && json.url) {
+                              setProdDigitalFileUrl(json.url);
+                              toast.success('Digital file uploaded successfully! 📁');
+                            } else throw new Error(json.message || 'File upload failed');
+                          } catch (err: any) {
+                            toast.error(err.message || 'File upload error');
+                          } finally {
+                            setProdDigitalUploading(false);
+                          }
+                        }}
+                      />
                     </div>
 
                     {/* External Link */}
@@ -7723,59 +8420,48 @@ export default function DashboardPage() {
                 </label>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {prodImageUrls.map((url, idx) => (
-                    <div key={idx} style={{ width: 80, height: 80, borderRadius: 'var(--r-md)', overflow: 'hidden', flexShrink: 0, position: 'relative', border: '2px solid var(--primary)' }}>
-                      <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={`Product image ${idx + 1}`} />
+                    <div key={idx} className="fu-tile-img">
+                      <img src={url} alt={`Product image ${idx + 1}`} />
                       <button
                         type="button"
                         onClick={() => setProdImageUrls(prev => prev.filter((_, i) => i !== idx))}
-                        style={{ position: 'absolute', top: 3, right: 3, width: 20, height: 20, borderRadius: '50%', background: 'var(--danger)', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                        className="fu-tile-img__remove"
                         title="Remove image"
                       >✕</button>
                     </div>
                   ))}
                   {prodImageUrls.length < 3 && (
-                    <label
-                      style={{
-                        width: 80, height: 80, borderRadius: 'var(--r-md)', flexShrink: 0,
-                        border: '2px dashed var(--border)', display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', justifyContent: 'center', gap: 4,
-                        cursor: prodImageUploading ? 'not-allowed' : 'pointer',
-                        background: 'var(--bg-2)', color: 'var(--text-muted)', opacity: prodImageUploading ? 0.6 : 1,
-                        transition: 'all var(--t-fast)'
+                    <FileUpload
+                      variant="tile"
+                      accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                      uploading={prodImageUploading}
+                      disabled={prodImageUploading}
+                      onFile={async (file) => {
+                        try {
+                          setProdImageUploading(true);
+                          const fd = new FormData();
+                          fd.append('image', file);
+                          const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                            body: fd
+                          });
+                          const json = await res.json();
+                          if (res.ok && json.url) {
+                            const isFirstImage = prodImageUrls.length === 0;
+                            setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
+                            toast.success('Image uploaded! 📸');
+                            if (isFirstImage && isPro) {
+                              handleAutoAnalyzeImage(file);
+                            }
+                          } else throw new Error(json.message || 'Upload failed');
+                        } catch (err: any) {
+                          toast.error(err.message || 'Image upload error');
+                        } finally {
+                          setProdImageUploading(false);
+                        }
                       }}
-                    >
-                      {prodImageUploading ? <Loader2 size={18} className="spinner" /> : <><ImageIcon size={18} /><span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>Upload</span></>}
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                        style={{ display: 'none' }}
-                        disabled={prodImageUploading}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          try {
-                            setProdImageUploading(true);
-                            const fd = new FormData();
-                            fd.append('image', file);
-                            const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
-                              method: 'POST',
-                              headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                              body: fd
-                            });
-                            const json = await res.json();
-                            if (res.ok && json.url) {
-                              setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
-                              toast.success('Image uploaded! 📸');
-                            } else throw new Error(json.message || 'Upload failed');
-                          } catch (err: any) {
-                            toast.error(err.message || 'Image upload error');
-                          } finally {
-                            setProdImageUploading(false);
-                            e.target.value = '';
-                          }
-                        }}
-                      />
-                    </label>
+                    />
                   )}
                   {prodImageUrls.length < 3 && (
                     <button
@@ -7792,7 +8478,7 @@ export default function DashboardPage() {
                       }}
                       title="Generate AI Image"
                     >
-                      {aiImageGenerating ? <Loader2 size={18} className="spinner" /> : <><Sparkles size={18} /><span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>AI Gen</span></>}
+                      {aiImageGenerating ? <Loader2 size={18} className="spinner" /> : <><ImageIcon size={18} /><span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>AI Gen</span></>}
                     </button>
                   )}
                 </div>
@@ -7813,7 +8499,7 @@ export default function DashboardPage() {
                       display: 'inline-flex', alignItems: 'center', gap: 4
                     }}
                   >
-                    {aiGenerating ? <><Loader2 size={11} className="spinner" /> Generating...</> : <><Sparkles size={11} /> AI Auto-Write</>}
+                    {aiGenerating ? <><Loader2 size={11} className="spinner" /> Generating...</> : <><Edit2 size={11} /> AI Auto-Write</>}
                     {(user?.plan === 'free' || !user?.plan) && (
                       <span style={{ fontSize: 8, fontWeight: 900, background: '#d97706', color: '#fff', padding: '1px 4px', borderRadius: 2 }}>PRO</span>
                     )}
@@ -7828,6 +8514,55 @@ export default function DashboardPage() {
                   className="input-field"
                   style={{ resize: 'vertical' }}
                 />
+                {aiAnalyzing && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, padding: '8px 12px', borderRadius: 'var(--r-sm)', background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.2)' }}>
+                    <Loader2 size={13} className="spinner" style={{ color: '#d97706' }} />
+                    <span style={{ fontSize: 11.5, color: '#d97706', fontWeight: 600 }}>AI is analyzing your photo and pre-filling product details...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Tags editor */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>Product Tags</label>
+                  {isPro && (
+                    <span style={{ fontSize: 9, fontWeight: 900, background: 'linear-gradient(135deg,#d97706,#f59e0b)', color: '#fff', padding: '2px 6px', borderRadius: 3 }}>AI-SUGGESTED</span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                  {prodTags.map((tag, i) => (
+                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 20, background: 'rgba(217,119,6,0.1)', border: '1px solid rgba(217,119,6,0.35)', fontSize: 12, fontWeight: 600, color: '#d97706' }}>
+                      {tag}
+                      <button type="button" onClick={() => setProdTags(prev => prev.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#d97706', lineHeight: 1, display: 'flex', alignItems: 'center' }} aria-label={`Remove tag ${tag}`}>
+                        <X size={11} />
+                      </button>
+                    </span>
+                  ))}
+                  {prodTags.length === 0 && !aiAnalyzing && (
+                    <span style={{ fontSize: 11, color: 'var(--text-faint)', fontStyle: 'italic' }}>{isPro ? 'Upload a photo and AI will suggest tags automatically.' : 'Add up to 10 tags to help buyers find your product.'}</span>
+                  )}
+                </div>
+                {prodTags.length < 10 && (
+                  <input
+                    type="text"
+                    placeholder="Type a tag and press Enter..."
+                    value={prodTagInput}
+                    onChange={e => setProdTagInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const t = prodTagInput.trim();
+                        if (t && !prodTags.includes(t) && prodTags.length < 10) {
+                          setProdTags(prev => [...prev, t]);
+                          setProdTagInput('');
+                        }
+                      }
+                    }}
+                    className="input-field"
+                    style={{ fontSize: 13 }}
+                  />
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
@@ -7891,7 +8626,7 @@ export default function DashboardPage() {
       {isOrderDetailsOpen && selectedOrder && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
           <div onClick={() => setIsOrderDetailsOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
-          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 500, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 680, padding: 28, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Inspect Order {selectedOrder.order_number}</h3>
@@ -7980,7 +8715,7 @@ export default function DashboardPage() {
       {isReceiptOpen && receiptOrder && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
           <div onClick={() => setIsReceiptOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
-          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 420, padding: 24, zIndex: 10 }}>
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 600, padding: 28, zIndex: 10 }}>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>

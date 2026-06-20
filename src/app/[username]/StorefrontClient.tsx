@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
-  Share2, ChevronLeft, Star, ShieldCheck, Clock, MapPin, Sparkles,
+  Share2, ChevronLeft, Star, ShieldCheck, Clock, MapPin, Camera,
   Search, X, Plus, Minus, ShoppingBag, BadgeCheck,
   Store, Calendar, Check, Receipt, ChevronRight, Crown, Heart, Truck, Menu,
   ExternalLink, Copy, CheckCircle2, Shield,
-  Link
+  Link, Megaphone
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -14,6 +14,12 @@ import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { InstagramIcon, TikTokIcon, TwitterXIcon } from "../../components/SocialIcons";
 import { businessPersonas } from "../../utils/businessPersonas";
+import BeautyStorefront from "./BeautyStorefront";
+import FashionStorefront from "./FashionStorefront";
+import RestaurantStorefront from "./RestaurantStorefront";
+import TechStorefront from "./TechStorefront";
+import ThriftStorefront from "./ThriftStorefront";
+import ComingSoonStorefront from "./ComingSoonStorefront";
 
 // --- Types & Interfaces ---
 interface StoreLink {
@@ -48,6 +54,10 @@ interface Store {
   review_count?: number | null;
   total_orders?: number | string | null;
   working_hours?: string | null;
+  announcement_title?: string | null;
+  announcement_body?: string | null;
+  announcement_cta_label?: string | null;
+  announcement_cta_page?: string | null;
   // Computed server-side from WhatsApp chat response timestamps
   reply_time_minutes?: number | null;
 }
@@ -118,6 +128,9 @@ interface StorefrontClientProps {
     categories?: Category[];
     products?: Product[];
     reviews?: Review[];
+    faqs?: any[];
+    portfolio?: any[];
+    blog?: any[];
     system_domain?: string;
     store_disclaimer?: string;
     app_name?: string;
@@ -223,7 +236,19 @@ const PERSONA_THEME: Record<string, StoreTheme> = {
   'retail-groceries': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
   'faith-community': { '--brand': '#128c7e', '--brand-deep': '#075e54', '--tint': '#dcf8c6' },
   'school-education': { '--brand': '#25D366', '--brand-deep': '#128c7e', '--tint': '#dcf8c6' },
+  'thrift-store': { '--brand': '#8b5e3c', '--brand-deep': '#2f241b', '--tint': '#f1e8dd' },
 };
+
+function normalizeTemplateKey(value: string | null | undefined): string {
+  return (value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[_\s]+/g, '-')
+    .replace(/[^a-z0-9-]+/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
 
 function resolveStoreTheme(store: Pick<Store, 'primary_color' | 'business_persona' | 'store_template'>): StoreTheme {
   if (store.primary_color) {
@@ -234,8 +259,8 @@ function resolveStoreTheme(store: Pick<Store, 'primary_color' | 'business_person
     };
   }
 
-  return PERSONA_THEME[store.business_persona || '']
-    || TEMPLATE_THEME[store.store_template || '']
+  return PERSONA_THEME[normalizeTemplateKey(store.business_persona)]
+    || TEMPLATE_THEME[normalizeTemplateKey(store.store_template)]
     || TEMPLATE_THEME['luxe-market'];
 }
 
@@ -271,7 +296,7 @@ function Media({ cat, h, imgUrl }: { cat: string; h: number; imgUrl?: string }) 
   return (
     <div style={{ background: `linear-gradient(150deg,${a},${b})`, height: h, display: "grid", placeItems: "center", position: "relative", overflow: "hidden", width: '100%' }}>
       <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(255,255,255,.16) 1px,transparent 1px)", backgroundSize: "13px 13px" }} />
-      <Sparkles size={h > 130 ? 32 : 24} strokeWidth={1.3} color="rgba(255,255,255,.9)" style={{ position: "relative" }} />
+      <Camera size={h > 130 ? 32 : 24} strokeWidth={1.3} color="rgba(255,255,255,.9)" style={{ position: "relative" }} />
     </div>
   );
 }
@@ -281,14 +306,39 @@ export default function StorefrontClient({
   initialProductSlug,
   initialData,
 }: StorefrontClientProps) {
+  // ⚠️ React Hooks Rule: isComingSoon must be computed from props only (before any hooks)
+  // so we can safely call all hooks every render regardless of the condition.
+  const isComingSoon = !initialData || !initialData.store
+    || (initialData.store as Store).store_template === 'coming-soon'
+    || (initialData.store as Store).store_template === 'waitlist';
+
   const router = useRouter();
 
   // --- Normalize Data ---
   const store: Store = useMemo(() => {
-    const s = initialData?.store || {} as Store;
+    let s = initialData?.store || {} as Store;
+
+    // Load waitlist settings from localStorage if database record is missing
+    if (!s.store_name && typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem(`waitlist_store:${username}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          s = { ...s, ...parsed };
+        }
+      } catch (e) {
+        console.error("Error loading cached waitlist store:", e);
+      }
+    }
+
+    const rawName = s.store_name || username || 'Store';
+    const formattedName = rawName.includes('-') || rawName.includes('_') || rawName === rawName.toLowerCase()
+      ? rawName.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      : rawName;
     return {
       ...s,
-      store_name: s.store_name || username || 'Store',
+      username: s.username || username,
+      store_name: formattedName,
       currency_code: s.currency_code || 'NGN',
       whatsapp_phone: s.whatsapp_phone || '',
       location: s.location || 'Online store',
@@ -305,11 +355,17 @@ export default function StorefrontClient({
   // --- Reviews ---
   const [reviews, setReviews] = useState<Review[]>(initialData?.reviews || []);
 
+  const faqs = useMemo(() => initialData?.faqs || [], [initialData]);
+  const portfolio = useMemo(() => initialData?.portfolio || [], [initialData]);
+  const blog = useMemo(() => initialData?.blog || [], [initialData]);
+
+  // --- All hooks must run before any conditional return ---
   // --- States ---
   const premium = !!(store.is_pro || store.primary_color);
   const [query, setQuery] = useState("");
   const [segment, setSegment] = useState<"all" | "service" | "product">("all");
   const [activeCat, setActiveCat] = useState<string | null>(null);
+  const [annOff, setAnnOff] = useState(false);
   
   // Cart & Drawer States
   const [bag, setBag] = useState<CartItem[]>([]);
@@ -330,6 +386,7 @@ export default function StorefrontClient({
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
+  const receipt = orderReceipt;
   const [isPaying, setIsPaying] = useState(false);
 
   // Pending WhatsApp deep-link awaiting disclaimer confirmation
@@ -337,6 +394,13 @@ export default function StorefrontClient({
   const openWhatsAppChat = (message: string) => {
     setPendingWaUrl(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`);
   };
+  const announcement = !annOff && (store.announcement_title || store.announcement_body) && (
+    <div className="fs-ann">
+      <Megaphone size={16} />
+      <p><b>{store.announcement_title || "Announcement"}</b>{store.announcement_body ? ` ${store.announcement_body}` : ""}</p>
+      <button onClick={() => setAnnOff(true)} aria-label="Dismiss announcement"><X size={15} /></button>
+    </div>
+  );
 
   // Viewport scroll targets
   const searchRef = useRef<HTMLDivElement>(null);      // mobile
@@ -679,6 +743,84 @@ export default function StorefrontClient({
     return categories.find(c => c.id === activeCat)?.name || '';
   }, [activeCat, categories]);
 
+  // --- Conditional renders (AFTER all hooks) ---
+  // Pre-launch / Waitlist: show ComingSoon page
+  if (isComingSoon) {
+    return (
+      <ComingSoonStorefront
+        username={username}
+        store={store}
+        systemDomain={systemDomain}
+        appName={appName}
+      />
+    );
+  }
+
+  // ── Persona-based storefront dispatch ──────────────────────────────────────
+  // Each business persona maps to a dedicated storefront template.
+
+  const sharedTemplateProps = {
+    username,
+    store,
+    categories,
+    products,
+    reviews,
+    faqs,
+    portfolio,
+    blog,
+    systemDomain,
+    storeDisclaimer,
+    appName,
+  };
+
+  // Thrift / vintage
+  const personaKey = normalizeTemplateKey(store.business_persona);
+  const templateKey = normalizeTemplateKey(store.store_template);
+
+  const thriftPersonas = [
+    'thrift-store', 'thrift', 'vintage', 'secondhand', 'second-hand', 'preloved', 'pre-loved', 'consignment',
+    'thrift-preloved', 'thrift-and-preloved', 'thrift-and-vintage', 'thrift-and-preloved-fashion',
+    'thrift-vintage', 'vintage-store', 'preloved-fashion'
+  ];
+  if (thriftPersonas.includes(personaKey) || thriftPersonas.includes(templateKey)) {
+    return <ThriftStorefront {...sharedTemplateProps} />;
+  }
+
+  // Tech
+  const techPersonas = [
+    'tech-store', 'electronics', 'gadgets', 'computers', 'phones', 'tech',
+    'Gadgets and repairs', 'gadgets-and-repairs', 'gadgets and repairs'
+  ];
+  if (techPersonas.map(normalizeTemplateKey).includes(personaKey) || ['tech', 'tech-store'].includes(templateKey)) {
+    return <TechStorefront {...sharedTemplateProps} />;
+  }
+
+  // Fashion
+  const fashionPersonas = [
+    'fashion', 'fashion-store', 'fashion-apparel', 'clothing', 'streetwear', 'accessories',
+    'Fashion and Clothing', 'fashion and clothing', 'fashion-clothing', 'fashion-and-clothing'
+  ];
+  if (fashionPersonas.map(normalizeTemplateKey).includes(personaKey) || ['fashion', 'fashion-store'].includes(templateKey)) {
+    return <FashionStorefront {...sharedTemplateProps} />;
+  }
+
+  // Restaurant / food
+  const restaurantPersonas = [
+    'restaurant', 'food', 'food-delivery', 'cafeteria', 'bakery', 'fast-food', 'catering', 'cafe', 'food-vendor',
+    'Restaurant and bars', 'restaurant-bars', 'restaurant and bars', 'restaurant-and-bars'
+  ];
+  if (restaurantPersonas.map(normalizeTemplateKey).includes(personaKey) || ['restaurant', 'food-vendor'].includes(templateKey)) {
+    return <RestaurantStorefront {...sharedTemplateProps} />;
+  }
+
+  // Beauty / editorial
+  const beautyPersonas = [
+    'beauty-service', 'barber-shop', 'Beauty and hair', 'beauty-and-hair', 'beauty and hair', 'beauty-hair'
+  ];
+  if (beautyPersonas.map(normalizeTemplateKey).includes(personaKey) || ['editorial', 'beauty'].includes(templateKey)) {
+    return <BeautyStorefront {...sharedTemplateProps} />;
+  }
+
   return (
     <div className="fs-root" style={storeTheme}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
@@ -699,7 +841,7 @@ export default function StorefrontClient({
           <div className="fs-sid-cover" style={store.banner_url ? { backgroundImage: `url(${store.banner_url})`, backgroundSize: 'cover' } : undefined} />
           <div className="fs-sid-id">
             {store.logo_url ? (
-              <img src={store.logo_url} alt="store logo" className="fs-sid-av" style={{ objectFit: 'cover' }} />
+              <img src={store.logo_url || undefined} alt="store logo" className="fs-sid-av" style={{ objectFit: 'cover' }} />
             ) : (
               <span className="fs-sid-av">{store.store_name[0].toUpperCase()}</span>
             )}
@@ -717,7 +859,7 @@ export default function StorefrontClient({
             {store.rating != null ? (
               <div><Star size={13} fill="#c79a4b" color="#c79a4b" /> {store.rating} <span>({store.review_count ?? 0} reviews)</span></div>
             ) : (
-              <div><Sparkles size={13} /> New store</div>
+              <div><Store size={13} /> New store</div>
             )}
             <div><ShoppingBag size={12} /> {formatOrderCount(store.total_orders)} orders</div>
             {store.reply_time_minutes != null && <div><Clock size={12} /> replies in {formatReplyTime(store.reply_time_minutes)}</div>}
@@ -783,17 +925,17 @@ export default function StorefrontClient({
                   </button>
                 )}
                 {store.instagram_handle && (
-                  <a className="fs-social-link" href={`https://instagram.com/${store.instagram_handle.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                  <a className="fs-social-link" href={`https://instagram.com/${(store.instagram_handle || '').replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                     <InstagramIcon size={20} />
                   </a>
                 )}
                 {store.tiktok_handle && (
-                  <a className="fs-social-link" href={`https://tiktok.com/@${store.tiktok_handle.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                  <a className="fs-social-link" href={`https://tiktok.com/@${(store.tiktok_handle || '').replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
                     <TikTokIcon size={20} />
                   </a>
                 )}
                 {store.twitter_handle && (
-                  <a className="fs-social-link" href={`https://x.com/${store.twitter_handle.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="X / Twitter">
+                  <a className="fs-social-link" href={`https://x.com/${(store.twitter_handle || '').replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="X / Twitter">
                     <TwitterXIcon size={20} />
                   </a>
                 )}
@@ -806,10 +948,12 @@ export default function StorefrontClient({
             </div>
           </section>
 
+          {announcement}
+
           {/* Pinned / featured signature treatment */}
           {pinnedProduct && (
             <section className="fs-featured">
-              <div className="fs-section-label"><Sparkles size={14} /> Signature Treatment</div>
+              <div className="fs-section-label"><Crown size={14} /> Signature Treatment</div>
               <div className="fs-feat-card">
                 <div className="fs-feat-media">
                   <Media cat={pinnedProduct.category_id || "Lashes"} h={220} imgUrl={pinnedProduct.image_urls?.[0]} />
@@ -942,7 +1086,7 @@ export default function StorefrontClient({
           {premium ? (
             <div className="fs-m-brand">
               {store.logo_url ? (
-                <img src={store.logo_url} alt="Logo" className="fs-m-av" style={{ objectFit: 'cover' }} />
+                <img src={store.logo_url || undefined} alt="Logo" className="fs-m-av" style={{ objectFit: 'cover' }} />
               ) : (
                 <span className="fs-m-av">{store.store_name[0].toUpperCase()}</span>
               )}
@@ -975,7 +1119,7 @@ export default function StorefrontClient({
             {!store.banner_url && <div className="fs-m-grain" />}
             <div className="fs-m-id-row">
               {store.logo_url ? (
-                <img src={store.logo_url} alt="Logo" className="fs-m-avatar" style={{ objectFit: 'cover' }} />
+                <img src={store.logo_url || undefined} alt="Logo" className="fs-m-avatar" style={{ objectFit: 'cover' }} />
               ) : (
                 <span className="fs-m-avatar">{store.store_name[0].toUpperCase()}</span>
               )}
@@ -993,7 +1137,7 @@ export default function StorefrontClient({
             {store.rating != null ? (
               <span><Star size={13} fill="#c79a4b" color="#c79a4b" /> {store.rating} <i>({store.review_count ?? 0})</i></span>
             ) : (
-              <span><Sparkles size={13} /> New store</span>
+              <span><Store size={13} /> New store</span>
             )}
             <span><ShoppingBag size={12} /> {formatOrderCount(store.total_orders)}</span>
             {store.reply_time_minutes != null && <span><Clock size={12} /> replies in {formatReplyTime(store.reply_time_minutes)}</span>}
@@ -1003,9 +1147,11 @@ export default function StorefrontClient({
           <div className="fs-m-trust"><ShieldCheck size={13} /> Secure payment and instant receipt, secured by Frontstore</div>
         </section>
 
+        {announcement}
+
         {pinnedProduct && (
           <section className="fs-m-pinned">
-            <span className="fs-m-pin-flag"><Sparkles size={11} /> Signature treatment</span>
+            <span className="fs-m-pin-flag"><Crown size={11} /> Signature treatment</span>
             <div className="fs-m-pin-card">
               <Media cat={pinnedProduct.category_id || "Lashes"} h={160} imgUrl={pinnedProduct.image_urls?.[0]} />
               <div className="fs-m-pin-body">
@@ -1128,31 +1274,36 @@ export default function StorefrontClient({
       {/* ── SHARED: Booking Sheet ── */}
       <div className={`fs-scrim ${booking ? "show" : ""}`} onClick={() => setBooking(null)} />
       <div className={`fs-sheet ${booking ? "open" : ""}`}>
-        {booking && (<>
-          <div className="fs-sheet-grab" />
-          <div className="fs-sheet-head">
-            <div><h3>{booking.name}</h3><span><Clock size={12} /> {fmtDuration(booking.duration_minutes) || 'Service'} · {fmt(booking.price, currencySymbol)}</span></div>
-            <button className="fs-m-icn" onClick={() => setBooking(null)} aria-label="Close booking"><X size={20} /></button>
-          </div>
-          <p className="fs-sheet-lbl">Choose a day</p>
-          <div className="fs-daterow">
-            {days.map((d, i) => (
-              <button key={i} className={`fs-date ${bDate === i ? "on" : ""}`} onClick={() => setBDate(i)}>
-                <b>{d.label}</b><span>{d.date}</span>
+        {booking ? (() => {
+          const b = booking!;
+          return (
+            <>
+              <div className="fs-sheet-grab" />
+              <div className="fs-sheet-head">
+                <div><h3>{b.name}</h3><span><Clock size={12} /> {fmtDuration(b.duration_minutes) || 'Service'} · {fmt(b.price, currencySymbol)}</span></div>
+                <button className="fs-m-icn" onClick={() => setBooking(null)} aria-label="Close booking"><X size={20} /></button>
+              </div>
+              <p className="fs-sheet-lbl">Choose a day</p>
+              <div className="fs-daterow">
+                {days.map((d, i) => (
+                  <button key={i} className={`fs-date ${bDate === i ? "on" : ""}`} onClick={() => setBDate(i)}>
+                    <b>{d.label}</b><span>{d.date}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="fs-sheet-lbl">Choose a time</p>
+              <div className="fs-timerow">
+                {slots.map((s, i) => (
+                  <button key={i} className={`fs-time ${bTime === i ? "on" : ""}`} onClick={() => setBTime(i)}>{s}</button>
+                ))}
+              </div>
+              <button className="fs-sheet-cta" onClick={confirmBooking} style={{ background: storeTheme['--brand'], color: '#fff' }}>
+                Confirm Date &amp; Proceed · {fmt(b.price, currencySymbol)}
               </button>
-            ))}
-          </div>
-          <p className="fs-sheet-lbl">Choose a time</p>
-          <div className="fs-timerow">
-            {slots.map((s, i) => (
-              <button key={i} className={`fs-time ${bTime === i ? "on" : ""}`} onClick={() => setBTime(i)}>{s}</button>
-            ))}
-          </div>
-          <button className="fs-sheet-cta" onClick={confirmBooking} style={{ background: storeTheme['--brand'], color: '#fff' }}>
-            Confirm Date &amp; Proceed · {fmt(booking.price, currencySymbol)}
-          </button>
-          <span className="fs-sheet-note">Confirm and pay securely on the next step.</span>
-        </>)}
+              <span className="fs-sheet-note">Confirm and pay securely on the next step.</span>
+            </>
+          );
+        })() : null}
       </div>
 
       {/* ── SHARED: Bag/Cart Checkout Drawer ── */}
@@ -1347,122 +1498,150 @@ export default function StorefrontClient({
       </div>
 
       {/* Order confirmation receipt modal */}
-      {orderReceipt && (
-        <>
-          <div className="drawer-backdrop animate-backdrop" style={{ zIndex: 220 }} />
-          <div
-            className="card animate-scale-in"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Order receipt"
-            style={{
-              position: 'fixed',
-              left: 16,
-              right: 16,
-              bottom: 16,
-              zIndex: 230,
-              maxWidth: 440,
-              margin: '0 auto',
-              padding: 20,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-              backgroundColor: 'var(--surface)',
-              borderRadius: 20,
-              border: '1px solid var(--line)',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.15)'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
-                  background: 'var(--tint)',
-                  color: 'var(--brand)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
-                  <CheckCircle2 size={22} />
+      {receipt ? (() => {
+        const r = receipt!;
+        return (
+          <>
+            <div className="drawer-backdrop animate-backdrop" style={{ zIndex: 220 }} />
+            <div
+              className="card animate-scale-in"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Order receipt"
+              style={{
+                position: 'fixed',
+                left: 16,
+                right: 16,
+                bottom: 16,
+                zIndex: 230,
+                maxWidth: 440,
+                margin: '0 auto',
+                padding: 20,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+                backgroundColor: 'var(--surface)',
+                borderRadius: 20,
+                border: '1px solid var(--line)',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.15)'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: 'var(--tint)',
+                    color: 'var(--brand)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <CheckCircle2 size={22} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontFamily: 'Fraunces', fontSize: 19, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>
+                      Order Created!
+                    </h3>
+                    <p style={{ fontSize: 13, color: 'var(--muted)', margin: '3px 0 0' }}>
+                      Receipt from {store.store_name}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 style={{ fontFamily: 'Fraunces', fontSize: 19, fontWeight: 800, margin: 0, color: 'var(--ink)' }}>
-                    Order Created!
-                  </h3>
-                  <p style={{ fontSize: 13, color: 'var(--muted)', margin: '3px 0 0' }}>
-                    Receipt from {store.store_name}
-                  </p>
+                <button 
+                  className="clickable" 
+                  onClick={() => setOrderReceipt(null)} 
+                  aria-label="Close receipt"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)' }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: 14, background: 'var(--bg)', display: 'grid', gap: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <span style={{ color: 'var(--muted)', fontSize: 13 }}>Order Reference</span>
+                  <strong style={{ color: 'var(--ink)', fontSize: 14 }}>#{r.order.order_number}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <span style={{ color: 'var(--muted)', fontSize: 13 }}>Total Amount</span>
+                  <strong style={{ color: 'var(--brand)', fontSize: 15 }}>{fmt(r.order.total_amount, currencySymbol)}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <span style={{ color: 'var(--muted)', fontSize: 13 }}>Fulfillment</span>
+                  <strong style={{ color: 'var(--ink)', fontSize: 14, textTransform: 'capitalize' }}>{r.order.delivery_method}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <span style={{ color: 'var(--muted)', fontSize: 13 }}>Status</span>
+                  <span className="badge" style={{ backgroundColor: 'var(--tint)', color: 'var(--brand-deep)', fontSize: 11, padding: '3px 8px', borderRadius: 6, fontWeight: 700 }}>
+                    {r.order.order_status}
+                  </span>
                 </div>
               </div>
-              <button 
-                className="clickable" 
-                onClick={() => setOrderReceipt(null)} 
-                aria-label="Close receipt"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
 
-            <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: 14, background: 'var(--bg)', display: 'grid', gap: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                <span style={{ color: 'var(--muted)', fontSize: 13 }}>Order Reference</span>
-                <strong style={{ color: 'var(--ink)', fontSize: 14 }}>#{orderReceipt.order.order_number}</strong>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', color: 'var(--muted)', fontSize: 12.5, lineHeight: 1.45 }}>
+                <Shield size={16} style={{ color: 'var(--brand)', flexShrink: 0, marginTop: 1 }} />
+                <span>Your tracking page is ready. Save the link to check updates and confirm payment outside WhatsApp.</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                <span style={{ color: 'var(--muted)', fontSize: 13 }}>Total Amount</span>
-                <strong style={{ color: 'var(--brand)', fontSize: 15 }}>{fmt(orderReceipt.order.total_amount, currencySymbol)}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                <span style={{ color: 'var(--muted)', fontSize: 13 }}>Fulfillment</span>
-                <strong style={{ color: 'var(--ink)', fontSize: 14, textTransform: 'capitalize' }}>{orderReceipt.order.delivery_method}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                <span style={{ color: 'var(--muted)', fontSize: 13 }}>Status</span>
-                <span className="badge" style={{ backgroundColor: 'var(--tint)', color: 'var(--brand-deep)', fontSize: 11, padding: '3px 8px', borderRadius: 6, fontWeight: 700 }}>
-                  {orderReceipt.order.order_status}
-                </span>
-              </div>
-            </div>
 
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', color: 'var(--muted)', fontSize: 12.5, lineHeight: 1.45 }}>
-              <Shield size={16} style={{ color: 'var(--brand)', flexShrink: 0, marginTop: 1 }} />
-              <span>Your tracking page is ready. Save the link to check updates and confirm payment outside WhatsApp.</span>
-            </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px', gap: 10 }}>
+                <a 
+                  href={`/track/${r.order.id}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="fs-msg-btn" 
+                  style={{ textDecoration: 'none', margin: 0, padding: 10, display: 'flex', gap: 6 }}
+                >
+                  <ExternalLink size={15} /> View tracking page
+                </a>
+                <button 
+                  type="button" 
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(`${window.location.origin}/track/${r.order.id}`);
+                    toast.success('Tracking link copied to clipboard!');
+                  }} 
+                  className="fs-msg-btn" 
+                  aria-label="Copy tracking link" 
+                  title="Copy tracking link" 
+                  style={{ padding: 0, margin: 0 }}
+                >
+                  <Copy size={15} />
+                </button>
+              </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px', gap: 10 }}>
-              <a 
-                href={`/track/${orderReceipt.order.id}`} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="fs-msg-btn" 
-                style={{ textDecoration: 'none', margin: 0, padding: 10, display: 'flex', gap: 6 }}
-              >
-                <ExternalLink size={15} /> View tracking page
-              </a>
-              <button 
-                type="button" 
-                onClick={async () => {
-                  await navigator.clipboard.writeText(`${window.location.origin}/track/${orderReceipt.order.id}`);
-                  toast.success('Tracking link copied to clipboard!');
-                }} 
-                className="fs-msg-btn" 
-                aria-label="Copy tracking link" 
-                title="Copy tracking link" 
-                style={{ padding: 0, margin: 0 }}
-              >
-                <Copy size={15} />
-              </button>
-            </div>
+              {r.order.payment_status === 'unpaid' && (
+                <button
+                  type="button"
+                  onClick={handlePayOnline}
+                  disabled={isPaying}
+                  style={{
+                    width: '100%',
+                    padding: '14px 18px',
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    backgroundColor: 'var(--brand)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 14,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(37, 211, 102, .16)'
+                  }}
+                >
+                  {isPaying ? 'Initializing payment...' : `Pay Online Now (${fmt(r.order.total_amount, currencySymbol)})`}
+                </button>
+              )}
 
-            {orderReceipt.order.payment_status === 'unpaid' && (
               <button
                 type="button"
-                onClick={handlePayOnline}
-                disabled={isPaying}
+                onClick={() => {
+                  setPendingWaUrl(r.whatsapp_url);
+                  setOrderReceipt(null);
+                }}
                 style={{
                   width: '100%',
                   padding: '14px 18px',
@@ -1471,45 +1650,20 @@ export default function StorefrontClient({
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 8,
-                  backgroundColor: 'var(--brand)',
+                  backgroundColor: '#25D366',
                   color: '#fff',
                   border: 'none',
                   borderRadius: 14,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(37, 211, 102, .16)'
+                  cursor: 'pointer'
                 }}
               >
-                {isPaying ? 'Initializing payment...' : `Pay Online Now (${fmt(orderReceipt.order.total_amount, currencySymbol)})`}
+                <WhatsAppIcon size={18} />
+                Continue on WhatsApp
               </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => {
-                setPendingWaUrl(orderReceipt.whatsapp_url);
-                setOrderReceipt(null);
-              }}
-              style={{
-                width: '100%',
-                padding: '14px 18px',
-                fontWeight: 800,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                backgroundColor: '#25D366',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 14,
-                cursor: 'pointer'
-              }}
-            >
-              <WhatsAppIcon size={18} />
-              Continue on WhatsApp
-            </button>
-          </div>
-        </>
-      )}
+            </div>
+          </>
+        );
+      })() : null}
 
       {/* Toast Alert popup */}
       <div className={`fs-toast ${toastMsg ? "show" : ""}`}><Check size={14} /> {toastMsg}</div>
@@ -1737,6 +1891,15 @@ const CSS = `
   border: none; cursor: pointer; appearance: none;
 }
 .fs-social-link:hover { background: rgba(255,255,255,0.32); transform: scale(1.1); }
+.fs-ann {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin: 18px 28px 0; padding: 12px 13px;
+  border-radius: 14px; background: #fbf2e3; border: 1px solid #ecd9bf; color: #7a5a36;
+}
+.fs-ann svg:first-child { color: var(--gold); flex: 0 0 auto; margin-top: 1px; }
+.fs-ann p { flex: 1; font-size: 13px; line-height: 1.5; margin: 0; }
+.fs-ann b { color: var(--brand-deep); margin-right: 5px; }
+.fs-ann button { flex: 0 0 auto; color: #b39064; display: grid; place-items: center; }
 
 /* Featured */
 .fs-featured { padding: 28px 28px 8px; }
@@ -1947,6 +2110,7 @@ const CSS = `
 .fs-m-bio { font-size: 13px; line-height: 1.55; color: #5a4751; margin-top: 12px; }
 .fs-m-hours { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; margin-top: 9px; }
 .fs-m-trust { display: flex; align-items: center; gap: 6px; margin-top: 12px; background: var(--tint); color: var(--brand-deep); font-size: 11.5px; font-weight: 600; padding: 9px 11px; border-radius: 10px; }
+.fs-mobile .fs-ann { margin: 10px 16px 6px; }
 
 .fs-m-pinned { padding: 4px 16px 4px; }
 .fs-m-pin-flag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }

@@ -7,7 +7,7 @@ import {
   Settings, 
   Package, 
   CreditCard, 
-  Bot, 
+  MessageSquare, 
   TrendingUp, 
   Megaphone,
   CheckCircle2,
@@ -34,7 +34,7 @@ export default function MerchantDocsPage() {
     { id: 'onboarding', title: '2. Onboarding', icon: <Settings size={16} /> },
     { id: 'flow', title: '3. Frontstore Flow', icon: <Package size={16} /> },
     { id: 'pay', title: '4. Frontstore Pay', icon: <CreditCard size={16} /> },
-    { id: 'aura', title: '5. Frontstore Aura (AI)', icon: <Bot size={16} /> },
+    { id: 'aura', title: '5. Frontstore Aura (AI)', icon: <MessageSquare size={16} /> },
     { id: 'pulse', title: '6. Frontstore Pulse', icon: <TrendingUp size={16} /> },
     { id: 'reach', title: '7. Frontstore Reach', icon: <Megaphone size={16} /> },
   ];
@@ -273,7 +273,7 @@ export default function MerchantDocsPage() {
             {/* Frontstore Aura */}
             <section id="aura" className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <h2 className="font-heading" style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Bot size={22} style={{ color: 'var(--primary)' }} /> 5. Frontstore Aura (WhatsApp AI)
+                <MessageSquare size={22} style={{ color: 'var(--primary)' }} /> 5. Frontstore Aura (WhatsApp AI)
               </h2>
               <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 **Frontstore Aura** is an AI sales agent that acts on your behalf 24/7 inside WhatsApp. By scanning QR verification or hooking up the API, Aura handles customer chats autonomously.

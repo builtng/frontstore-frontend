@@ -10,7 +10,6 @@ import {
   MessageSquare, 
   AlertTriangle, 
   ArrowLeft,
-  Bot,
   Database,
   Eye
 } from 'lucide-react';
@@ -102,7 +101,7 @@ export default function PrivacyPage() {
 
             <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Bot size={20} style={{ color: 'var(--primary)' }} /> 3. Processing Data with Artificial Intelligence
+                <MessageSquare size={20} style={{ color: 'var(--primary)' }} /> 3. Processing Data with Artificial Intelligence
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 Frontstore integrates state-of-the-art AI technology to generate catalog descriptions and run our AI chat assistant. Data handling for AI features follows strict protocols:
