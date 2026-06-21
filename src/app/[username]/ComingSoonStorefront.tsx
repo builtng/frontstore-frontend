@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
+import SearchableSelect from "../../components/SearchableSelect";
 
 interface Store {
   id: string;
@@ -91,6 +92,10 @@ export default function ComingSoonStorefront({
   appName,
 }: ComingSoonStorefrontProps) {
   const dial = useMemo(() => geo(), []);
+  const codeOptions = useMemo(() => CODES.map(([k, v]) => ({
+    value: v,
+    label: `${k} (${v})`,
+  })), []);
   const [name, setName] = useState("");
   const [code, setCode] = useState(dial);
   const [phone, setPhone] = useState("");
@@ -254,8 +259,15 @@ export default function ComingSoonStorefront({
                 <h2 className="cs-m-h">Be first through the door</h2>
                 <p className="cs-m-p">Leave your details and we will message you on WhatsApp the moment {storeName} opens.</p>
                 <input autoFocus className="cs-input cs-name-in" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") notify(); }} placeholder="Your name" />
-                <div className="cs-phone">
-                  <select className="cs-code" value={code} onChange={(e) => setCode(e.target.value)} aria-label="Country code">{CODES.map(([k, v]) => <option key={k} value={v}>{k} {v}</option>)}</select>
+                <div className="cs-phone" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <SearchableSelect
+                    options={codeOptions}
+                    value={code}
+                    onChange={setCode}
+                    placeholder=""
+                    searchPlaceholder="Search code..."
+                    style={{ width: '120px', flexShrink: 0 }}
+                  />
                   <input className="cs-input" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))} onKeyDown={(e) => { if (e.key === "Enter") notify(); }} placeholder="801 234 5678" inputMode="numeric" />
                 </div>
                 <button className="cs-cta full" disabled={!valid} onClick={notify}><Bell s={16} c="#0b141a" /> Notify me on WhatsApp</button>
@@ -289,6 +301,19 @@ const css = `
   --bg:#0b141a; --panel:#111b21; --raise:#1d2a33; --field:#1a242c;
   --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
   --text:#e9edef; --muted:#8696a0; --green:#25d366;
+  --surface:var(--field);
+  --border:var(--line2);
+  --primary:var(--green);
+  --r-md:12px;
+  --r-lg:16px;
+  --bg-2:var(--raise);
+  --text-muted:var(--muted);
+  --text-faint:rgba(255,255,255,.3);
+  --primary-light:rgba(37,211,102,.12);
+  --primary-glow:rgba(37,211,102,.2);
+  --t-fast:0.15s;
+  --ease:ease;
+  --shadow-lg:0 16px 40px -16px rgba(0,0,0,.6);
   font-family:'Hanken Grotesk',system-ui,sans-serif; color:var(--text);
   background:var(--bg); min-height:100vh; width:100%; position:relative; overflow-x:hidden;
   display:flex; flex-direction:column; -webkit-font-smoothing:antialiased;

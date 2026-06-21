@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import SearchableSelect from "../../components/SearchableSelect";
 
 interface WaitlistStorefrontProps {
   systemDomain: string;
@@ -115,6 +116,10 @@ export default function WaitlistStorefront({
   appName,
 }: WaitlistStorefrontProps) {
   const G = useMemo(() => geo(), []);
+  const codeOptions = useMemo(() => CODES.map(([k, v]) => ({
+    value: v,
+    label: `${k} (${v})`,
+  })), []);
 
   const [intent, setIntent] = useState<"sell" | "buy" | null>(null);
   const [idx, setIdx] = useState(0);
@@ -479,8 +484,15 @@ export default function WaitlistStorefront({
                 <>
                   <h2 className="fw-q">Your WhatsApp number.</h2>
                   <p className="fw-help">{intent === "sell" ? "Your confirmation comes here, and so will your orders." : "We will only message you about shops worth your time."}</p>
-                  <div className="fw-phone">
-                    <select className="fw-code" value={code} onChange={(e) => setCode(e.target.value)} aria-label="Country code">{CODES.map(([k, v]) => <option key={k} value={v}>{k} {v}</option>)}</select>
+                  <div className="fw-phone" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <SearchableSelect
+                      options={codeOptions}
+                      value={code}
+                      onChange={setCode}
+                      placeholder=""
+                      searchPlaceholder="Search code..."
+                      style={{ width: '120px', flexShrink: 0 }}
+                    />
                     <input autoFocus className="fw-input" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))} onKeyDown={onEnter} placeholder="801 234 5678" inputMode="numeric" />
                   </div>
                 </>
@@ -556,6 +568,19 @@ const css = `
   --bg:#0b141a; --panel:#111b21; --raise:#1d2a33; --field:#1a242c;
   --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
   --text:#e9edef; --muted:#8696a0; --green:#25d366; --bad:#f0726a; --amber:#d8b25a;
+  --surface:var(--field);
+  --border:var(--line2);
+  --primary:var(--green);
+  --r-md:13px;
+  --r-lg:16px;
+  --bg-2:var(--raise);
+  --text-muted:var(--muted);
+  --text-faint:rgba(255,255,255,.3);
+  --primary-light:rgba(37,211,102,.12);
+  --primary-glow:rgba(37,211,102,.2);
+  --t-fast:0.15s;
+  --ease:ease;
+  --shadow-lg:0 16px 40px -16px rgba(0,0,0,.6);
   color:var(--text);
   background:var(--bg); min-height:100vh; width:100%; position:relative; overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
