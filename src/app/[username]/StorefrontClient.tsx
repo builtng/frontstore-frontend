@@ -20,6 +20,15 @@ import RestaurantStorefront from "./RestaurantStorefront";
 import TechStorefront from "./TechStorefront";
 import ThriftStorefront from "./ThriftStorefront";
 import ComingSoonStorefront from "./ComingSoonStorefront";
+import FoodStorefront from "./FoodStorefront";
+import CleaningStorefront from "./CleaningStorefront";
+import CreatorStorefront from "./CreatorStorefront";
+import EventsStorefront from "./EventsStorefront";
+import LaundryStorefront from "./LaundryStorefront";
+import PhotographerStorefront from "./PhotographerStorefront";
+import WhatsAppTVStorefront from "./WhatsAppTVStorefront";
+import AgentStorefront from "./AgentStorefront";
+
 
 // --- Types & Interfaces ---
 interface StoreLink {
@@ -809,8 +818,50 @@ export default function StorefrontClient({
     'restaurant', 'food', 'food-delivery', 'cafeteria', 'bakery', 'fast-food', 'catering', 'cafe', 'food-vendor',
     'Restaurant and bars', 'restaurant-bars', 'restaurant and bars', 'restaurant-and-bars'
   ];
-  if (restaurantPersonas.map(normalizeTemplateKey).includes(personaKey) || ['restaurant', 'food-vendor'].includes(templateKey)) {
-    return <RestaurantStorefront {...sharedTemplateProps} />;
+  if (restaurantPersonas.map(normalizeTemplateKey).includes(personaKey) || ['restaurant', 'food-vendor', 'flash-sale'].includes(templateKey)) {
+    return <FoodStorefront {...sharedTemplateProps} />;
+  }
+
+  // Cleaning
+  const cleaningPersonas = ['cleaning-service', 'cleaning', 'laundry-cleaning'];
+  if (cleaningPersonas.map(normalizeTemplateKey).includes(personaKey) || ['cleaning-service'].includes(templateKey)) {
+    return <CleaningStorefront {...sharedTemplateProps} />;
+  }
+
+  // Creator / Digital
+  const creatorPersonas = ['creator-digital', 'digital-products', 'creator', 'downloads', 'ebooks'];
+  if (creatorPersonas.map(normalizeTemplateKey).includes(personaKey) || ['creator-digital', 'digital-studio'].includes(templateKey)) {
+    return <CreatorStorefront {...sharedTemplateProps} />;
+  }
+
+  // Events
+  const eventsPersonas = ['event-services', 'events', 'planning', 'wedding-planner', 'consultation'];
+  if (eventsPersonas.map(normalizeTemplateKey).includes(personaKey) || ['event-services'].includes(templateKey)) {
+    return <EventsStorefront {...sharedTemplateProps} />;
+  }
+
+  // Laundry
+  const laundryPersonas = ['laundry', 'laundry-service', 'dry-cleaning'];
+  if (laundryPersonas.map(normalizeTemplateKey).includes(personaKey) || ['laundry', 'laundry-service'].includes(templateKey)) {
+    return <LaundryStorefront {...sharedTemplateProps} />;
+  }
+
+  // Photographer
+  const photographerPersonas = ['photographer', 'photography', 'videography', 'photographer-service'];
+  if (photographerPersonas.map(normalizeTemplateKey).includes(personaKey) || ['photographer', 'photographer-service'].includes(templateKey)) {
+    return <PhotographerStorefront {...sharedTemplateProps} />;
+  }
+
+  // WhatsApp TV / Advertising
+  const whatsappTvPersonas = ['whatsapp-tv', 'advertising', 'promo', 'shoutout'];
+  if (whatsappTvPersonas.map(normalizeTemplateKey).includes(personaKey) || ['whatsapp-tv'].includes(templateKey)) {
+    return <WhatsAppTVStorefront {...sharedTemplateProps} />;
+  }
+
+  // Agent / real estate
+  const agentPersonas = ['agent', 'agency', 'consulting', 'estate-agent', 'real-estate'];
+  if (agentPersonas.map(normalizeTemplateKey).includes(personaKey) || ['agent', 'estate-agent'].includes(templateKey)) {
+    return <AgentStorefront {...sharedTemplateProps} />;
   }
 
   // Beauty / editorial
@@ -820,6 +871,7 @@ export default function StorefrontClient({
   if (beautyPersonas.map(normalizeTemplateKey).includes(personaKey) || ['editorial', 'beauty'].includes(templateKey)) {
     return <BeautyStorefront {...sharedTemplateProps} />;
   }
+
 
   return (
     <div className="fs-root" style={storeTheme}>
