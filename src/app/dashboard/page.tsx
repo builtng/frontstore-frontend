@@ -11,8 +11,9 @@ import {
   DollarSign, Calendar, MapPin, Receipt, Menu, X, ArrowUpRight,
   TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck, BookOpen,
-  ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users
+  ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer
 } from 'lucide-react';
+import QRCodeSVG from 'react-qr-code';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import {
   TikTokIcon, TwitterXIcon, FacebookIcon, YouTubeIcon,
@@ -573,6 +574,8 @@ export default function DashboardPage() {
   const [selectedTemplate, setSelectedTemplate] = useState('luxe-market');
   const [selectedPersona, setSelectedPersona] = useState('');
   
+  const [showQrModal, setShowQrModal] = useState(false);
+
   // Storefront custom sections and reply time
   const [storefrontSections, setStorefrontSections] = useState<string[]>(['reviews', 'replies_approximation', 'products', 'services', 'portfolio', 'about', 'faq', 'contact', 'blog']);
   const [replyTimeMinutes, setReplyTimeMinutes] = useState<number | ''>('');
@@ -2681,6 +2684,7 @@ export default function DashboardPage() {
             { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} />, badge: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
             { id: 'reach', label: 'Broadcast Messages', icon: <Megaphone size={18} />, badge: isPro ? undefined : 'Pro' },
             { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
+            { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} /> },
             { id: 'templates', label: 'Store Themes', icon: <Palette size={18} /> },
             { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} />, badge: reviews.filter(r => !r.reply).length || undefined },
             { id: 'blog', label: 'Blog Posts', icon: <BookOpen size={18} /> },
@@ -2693,7 +2697,7 @@ export default function DashboardPage() {
             return (
               <button
                 key={item.id}
-                onClick={() => navigateDashboardTab(item.id as DashboardTab)}
+                onClick={() => item.id === 'qr' ? setShowQrModal(true) : navigateDashboardTab(item.id as DashboardTab)}
                 className="clickable"
                 style={{
                   display: 'flex',
@@ -7233,6 +7237,7 @@ export default function DashboardPage() {
                 { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
                 { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
+                { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} /> },
                 { id: 'templates', label: 'Store Themes', icon: <Palette size={18} /> },
                 { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} /> },
                 { id: 'blog', label: 'Blog Posts', icon: <BookOpen size={18} /> },
@@ -7244,6 +7249,7 @@ export default function DashboardPage() {
                 <button
                   key={item.id}
                   onClick={() => {
+                    if (item.id === 'qr') { setShowQrModal(true); setIsMobileMenuOpen(false); return; }
                     navigateDashboardTab(item.id as DashboardTab);
                     setIsMobileMenuOpen(false);
                   }}
@@ -8907,6 +8913,169 @@ export default function DashboardPage() {
         onCancel={closeConfirmationDialog}
         loading={confirmationDialog.loading}
       />
+
+      {/* ── QR CODE MODAL ── */}
+      {showQrModal && (() => {
+        const qrUrl = store?.custom_domain
+          ? `https://${store.custom_domain}`
+          : `https://${systemDomain}/${store?.username}`;
+
+        const downloadQR = () => {
+          const svg = document.getElementById('merchant-qr-svg');
+          if (!svg) return;
+          const serialized = new XMLSerializer().serializeToString(svg);
+          const canvas = document.createElement('canvas');
+          canvas.width = 400;
+          canvas.height = 400;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+          const qrImg = new Image();
+          qrImg.onload = () => {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 400, 400);
+            ctx.drawImage(qrImg, 0, 0, 400, 400);
+            // Overlay FrontStore logo in center
+            const logo = new Image();
+            logo.onload = () => {
+              const logoSize = 80;
+              const x = (400 - logoSize) / 2;
+              const y = (400 - logoSize) / 2;
+              ctx.fillStyle = '#ffffff';
+              ctx.beginPath();
+              ctx.roundRect(x - 4, y - 4, logoSize + 8, logoSize + 8, 14);
+              ctx.fill();
+              ctx.drawImage(logo, x, y, logoSize, logoSize);
+              const link = document.createElement('a');
+              link.download = `${store?.username ?? 'store'}-qrcode.png`;
+              link.href = canvas.toDataURL('image/png');
+              link.click();
+            };
+            logo.src = '/icon.png';
+          };
+          qrImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(serialized)));
+        };
+
+        const printQR = () => {
+          const svg = document.getElementById('merchant-qr-svg');
+          if (!svg) return;
+          const serialized = new XMLSerializer().serializeToString(svg);
+          const b64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(serialized)));
+          const win = window.open('', '_blank');
+          if (!win) return;
+          win.document.write(`
+            <html><head><title>QR Code — ${store?.store_name ?? 'My Store'}</title>
+            <style>
+              body { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: sans-serif; background: #fff; }
+              h2 { color: #62109F; margin-bottom: 6px; font-size: 22px; }
+              p { color: #666; margin-bottom: 24px; font-size: 14px; }
+              img { width: 260px; height: 260px; }
+              span { color: #62109F; font-size: 13px; margin-top: 16px; font-weight: 600; }
+            </style></head>
+            <body>
+              <h2>${store?.store_name ?? 'My Store'}</h2>
+              <p>Scan to visit our store</p>
+              <img src="${b64}" />
+              <span>${qrUrl}</span>
+              <script>window.onload = () => { window.print(); window.close(); }<\/script>
+            </body></html>
+          `);
+          win.document.close();
+        };
+
+        return (
+          <div
+            onClick={() => setShowQrModal(false)}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+              zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 24,
+            }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'var(--card)', borderRadius: 'var(--r-xl)',
+                padding: 32, width: '100%', maxWidth: 400,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
+                boxShadow: '0 24px 60px rgba(0,0,0,0.35)',
+              }}
+            >
+              {/* Header */}
+              <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 'var(--r-md)', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <QrCode size={20} color="var(--primary)" />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 17, color: 'var(--text)', letterSpacing: -0.3 }}>Store QR Code</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>Customers scan to open your store</div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowQrModal(false)}
+                  style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'var(--surface)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <X size={16} color="var(--text-muted)" />
+                </button>
+              </div>
+
+              {/* QR Code */}
+              <div style={{ background: '#fff', padding: 20, borderRadius: 'var(--r-lg)', boxShadow: '0 2px 20px rgba(98,16,159,0.12)', position: 'relative', display: 'inline-flex' }}>
+                <QRCodeSVG
+                  id="merchant-qr-svg"
+                  value={qrUrl}
+                  size={220}
+                  fgColor="#62109F"
+                  bgColor="#ffffff"
+                  level="H"
+                />
+                {/* FrontStore logo centred over QR */}
+                <div style={{
+                  position: 'absolute', top: '50%', left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: 52, height: 52, borderRadius: 12,
+                  background: '#fff', padding: 3,
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
+                  overflow: 'hidden',
+                }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/icon.png" alt="FrontStore" style={{ width: 46, height: 46, borderRadius: 9, display: 'block' }} />
+                </div>
+              </div>
+
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)', letterSpacing: 0.2 }}>{qrUrl}</span>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 12, width: '100%' }}>
+                <button
+                  onClick={downloadQR}
+                  className="btn clickable"
+                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 8px', borderRadius: 'var(--r-lg)', background: 'var(--primary-light)', border: 'none', cursor: 'pointer' }}
+                >
+                  <Download size={20} color="var(--primary)" />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)' }}>Download</span>
+                </button>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(qrUrl); toast.success('Store link copied!'); }}
+                  className="btn clickable"
+                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 8px', borderRadius: 'var(--r-lg)', background: 'var(--primary-light)', border: 'none', cursor: 'pointer' }}
+                >
+                  <Copy size={20} color="var(--primary)" />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)' }}>Copy Link</span>
+                </button>
+                <button
+                  onClick={printQR}
+                  className="btn clickable"
+                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 8px', borderRadius: 'var(--r-lg)', background: 'var(--primary-light)', border: 'none', cursor: 'pointer' }}
+                >
+                  <Printer size={20} color="var(--primary)" />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)' }}>Print</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );
