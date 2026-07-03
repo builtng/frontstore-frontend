@@ -327,6 +327,13 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             How it works
           </a>
           <a
+            href="/marketplace"
+            className="btn btn-ghost home-nav-link"
+            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
+          >
+            Marketplace
+          </a>
+          <a
             href="/blog"
             className="btn btn-ghost home-nav-link"
             style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
@@ -1104,6 +1111,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           <a href="/" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Home</a>
           <a href="#about" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>About</a>
           <a href="#how-it-works" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>How it works</a>
+          <a href="/marketplace" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Marketplace</a>
           <a href="/blog" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Blog</a>
           <a href={isLoggedIn ? '/dashboard' : '/signup'} style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>{isLoggedIn ? 'Dashboard' : 'Sign up'}</a>
           <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>

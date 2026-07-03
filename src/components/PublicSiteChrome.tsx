@@ -53,7 +53,7 @@ export function PublicSiteNav() {
 
         <div className="public-site-nav__links" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <ThemeToggle />
-          <a href="/" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Marketplace</a>
+          <a href="/marketplace" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Marketplace</a>
           <a href="/stores" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Stores</a>
           <a href="/business" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>For Business</a>
           <a href="/blog" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Blog</a>
@@ -149,7 +149,7 @@ export function PublicSiteFooter() {
         © {new Date().getFullYear()} {appName}. Africa's #1 WhatsApp commerce platform.
       </p>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <a href="/" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Marketplace</a>
+        <a href="/marketplace" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Marketplace</a>
         <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Stores</a>
         <a href="/business" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>For Business</a>
         <a href="/blog" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Blog</a>

@@ -181,6 +181,7 @@ interface AdminContextProps {
   getHeaders: () => Record<string, string>;
   handleFetchResponse: (res: Response, defaultError: string) => Promise<any>;
   handleLogout: () => void;
+  login: (token: string, user: any, store?: any) => void;
   settings: SystemSettings;
   setSettings: React.Dispatch<React.SetStateAction<SystemSettings>>;
   settingsLoading: boolean;
@@ -277,6 +278,23 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     } finally {
       closeConfirmationDialog();
     }
+  };
+
+  const login = (newToken: string, newUser: any, newStore: any = null) => {
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user', JSON.stringify(newUser));
+    localStorage.setItem('store', JSON.stringify(newStore));
+
+    const userIsAdmin =
+      newUser?.is_admin === true ||
+      newUser?.is_admin === 1 ||
+      newUser?.is_admin === 'true' ||
+      newUser?.is_admin === '1';
+
+    setAdminEmail(newUser?.email || newUser?.phone_number || 'admin@frontstore.app');
+    setToken(newToken);
+    setIsAuthenticated(true);
+    setIsAdmin(userIsAdmin);
   };
 
   const handleLogout = () => {
@@ -482,6 +500,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         getHeaders,
         handleFetchResponse,
         handleLogout,
+        login,
         settings,
         setSettings,
         settingsLoading,

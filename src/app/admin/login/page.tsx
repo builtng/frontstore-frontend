@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useAdmin } from '../AdminContext';
 import {
   Shield, Lock, Eye, EyeOff, Loader2, ArrowRight, Mail, LogIn,
 } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { login } = useAdmin();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -82,9 +84,7 @@ export default function AdminLoginPage() {
         throw new Error('This account does not have administrator permissions.');
       }
 
-      localStorage.setItem('token', json.data.token);
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('store', JSON.stringify(json.data.store || null));
+      login(json.data.token, user, json.data.store || null);
 
       toast.success('Welcome, Administrator!');
       router.push('/admin');
