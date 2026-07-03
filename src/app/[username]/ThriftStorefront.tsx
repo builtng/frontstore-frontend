@@ -873,8 +873,9 @@ export default function ThriftStorefront({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'Payment initialization failed.');
-      if (json.data && json.data.authorization_url) {
-        window.location.href = json.data.authorization_url;
+      const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         throw new Error('Payment link is currently unavailable.');
       }
@@ -1096,7 +1097,7 @@ export default function ThriftStorefront({
     <div className="ps-about-grid">
       <div><b>{store.total_orders ?? 0}</b><span>orders delivered</span></div>
       <div><b>{(store.rating ?? 0.0).toFixed(1)}</b><span>average rating</span></div>
-      <div><b>{store.since ? `${new Date().getFullYear() - parseInt(store.since)} yrs` : "0 yrs"}</b><span>in practice</span></div>
+      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
       <span className="ab-follow-h">Follow the store</span>
@@ -1461,7 +1462,7 @@ export default function ThriftStorefront({
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo">frontstore<span>.app</span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1756,7 +1757,7 @@ export default function ThriftStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1859,7 +1860,7 @@ export default function ThriftStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {store.store_name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -2307,7 +2308,7 @@ export default function ThriftStorefront({
                       <div className="ps-about-grid ab-stats">
                         <div><b>{store.total_orders ?? 0}</b><span>orders delivered</span></div>
                         <div><b>{(store.rating ?? 0.0).toFixed(1)}</b><span>average rating</span></div>
-                        <div><b>{store.since ? `${new Date().getFullYear() - parseInt(store.since)} yrs` : "0 yrs"}</b><span>in practice</span></div>
+                        {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
                       </div>
                     </div>
 

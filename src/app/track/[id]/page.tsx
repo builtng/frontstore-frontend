@@ -177,8 +177,18 @@ export default function OrderTrackingPage() {
 
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('reference');
+    const sessionId = params.get('session_id');
+    const transactionId = params.get('transaction_id');
 
-    if (ref) {
+    const verifyBody = ref
+      ? { reference: ref }
+      : sessionId
+      ? { session_id: sessionId, provider: 'stripe' }
+      : transactionId
+      ? { transaction_id: transactionId, provider: 'flutterwave' }
+      : null;
+
+    if (verifyBody) {
       const verifyPaymentReference = async () => {
         try {
           setVerifyingPayment(true);
@@ -186,7 +196,7 @@ export default function OrderTrackingPage() {
           const res = await fetch(`${API_URL}/v1/public/orders/${id}/verify-payment`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reference: ref })
+            body: JSON.stringify(verifyBody)
           });
           const json = await res.json();
           if (!res.ok) {

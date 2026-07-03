@@ -149,26 +149,17 @@ interface LaundryStorefrontProps {
 }
 
 const MOCK_STORE = {
-  name: "Crisp Laundry", initial: "C", slug: "crisp",
+  name: "", initial: "", slug: "",
   primaryCta: "book",
-  category: "Laundry & Dry Cleaning", location: "Lekki, Lagos",
-  rating: 4.9, reviews: 214, orders: "2.3k", reply: "~10 min",
-  bio: "Pickup and delivery laundry and dry cleaning across Lagos. We treat every order with care and get it back to you fresh, pressed and on time.",
-  address: "12 Admiralty Way, Lekki Phase 1, Lagos",
-  phone: "+234 803 222 0145",
-  email: "hello@crisp.app",
-  socials: { instagram: "@crisplaundry", tiktok: "@crisp.laundry" },
+  category: "", location: "",
+  rating: undefined as number | undefined, reviews: 0, orders: 0, reply: "",
+  bio: "",
+  address: "",
+  phone: "",
+  email: "",
+  socials: { instagram: "", tiktok: "" },
 };
-const MOCK_SERVICES = [
-  { id: "s1", name: "Wash & Fold", price: 6000, dur: "48 hr turnaround", durMin: 48, cat: "Everyday", popular: true, desc: "Everyday clothes washed, dried and neatly folded, charged by the bag." },
-  { id: "s2", name: "Dry Cleaning", price: 3500, dur: "48 hr turnaround", durMin: 48, cat: "Premium", popular: true, desc: "Professional dry cleaning for suits, dresses and delicate fabrics, priced per item." },
-  { id: "s3", name: "Ironing & Pressing", price: 4000, dur: "24 hr turnaround", durMin: 24, cat: "Everyday", desc: "Crisp, professionally pressed clothes without the wash, charged per bag or item." },
-  { id: "s4", name: "Duvets & Bedding", price: 5000, dur: "72 hr turnaround", durMin: 72, cat: "Home", desc: "Duvets, blankets and bed linen freshened and cleaned, priced per piece." },
-  { id: "s5", name: "Curtains & Drapes", price: 8000, dur: "72 hr turnaround", durMin: 72, cat: "Home", desc: "Curtains cleaned and returned pressed and ready to hang, priced per panel." },
-  { id: "s6", name: "Sneaker & Shoe Care", price: 7000, dur: "72 hr turnaround", durMin: 72, cat: "Premium", popular: true, desc: "Trainers and shoes deep cleaned, deodorised and restored, priced per pair." },
-  { id: "s7", name: "Stain Removal & Repair", price: 5000, dur: "48 to 72 hrs", durMin: 60, cat: "Premium", desc: "Targeted stain treatment and minor repairs for the pieces worth saving." },
-  { id: "s8", name: "Weekly Laundry Plan", price: 20000, dur: "Weekly pickup", durMin: 48, cat: "Plans", popular: true, desc: "A set amount of laundry collected and returned every week, on a schedule that suits you." },
-];
+const MOCK_SERVICES: any[] = [];
 const MOCK_SERVICE_INFO = {
   s1: { includes: ["Washed by colour and fabric type", "Dried at the right setting for the load", "Neatly folded and packed", "Light everyday stains pre-treated", "Socks and pairs kept together", "Free pickup and delivery in zone"] },
   s2: { includes: ["Solvent cleaning suited to the fabric", "Suits, dresses, agbada and delicates", "Spot treatment before cleaning", "Pressed and returned on hangers", "Buttons and trims checked", "Free pickup and delivery in zone"] },
@@ -179,22 +170,8 @@ const MOCK_SERVICE_INFO = {
   s7: { includes: ["Targeted treatment for tough stains", "Honest call on what will lift", "Minor repairs, hems and buttons", "Fabric safe methods throughout", "A second look before we return it", "Free pickup and delivery in zone"] },
   s8: { includes: ["A set laundry allowance each week", "Same pickup day and window", "Wash, fold and light pressing", "Priority turnaround on your orders", "Easy to pause or adjust", "Free pickup and delivery every week"] },
 };
-const MOCK_PRODUCTS = [
-  { id: "p1", name: "Eco Laundry Detergent", price: 5500, cat: "Care", popular: true, desc: "Plant based detergent that lifts everyday stains and rinses clean." },
-  { id: "p2", name: "Fabric Softener", price: 4500, cat: "Care", desc: "Leaves clothes soft with a light, lasting fresh scent." },
-  { id: "p3", name: "Laundry Starter Kit", price: 16000, cat: "Kits", desc: "Detergent, softener, scent booster and mesh bags, boxed together." },
-  { id: "p4", name: "Scent Booster Beads", price: 4800, cat: "Care", popular: true, desc: "In-wash beads that keep clothes smelling fresh for weeks." },
-  { id: "p5", name: "Mesh Wash Bags, set of 3", price: 3500, cat: "Care", desc: "Protect delicates, lingerie and socks through the wash." },
-  { id: "p6", name: "Stain Remover Pen", price: 3000, cat: "Care", desc: "Treat spills on the go before they have a chance to set." },
-];
-const MOCK_REVIEWS = [
-  { id: "r1", name: "Amara N.", r: 5, when: "2 weeks ago", service: "Dry Cleaning", verified: true, photos: 2, text: "Picked up my husband's suits and they came back looking brand new. Pickup and delivery were both right on time.", response: { when: "2 weeks ago", text: "Thank you Amara. Those suits cleaned up beautifully, see you next time." } },
-  { id: "r2", name: "Tunde A.", r: 5, when: "3 weeks ago", service: "Weekly Laundry Plan", verified: true, photos: 1, text: "The weekly plan has genuinely changed my routine. Clothes leave on Monday and come back folded and fresh. Not going back." },
-  { id: "r3", name: "Zainab K.", r: 4, when: "1 month ago", service: "Wash & Fold", verified: true, photos: 0, text: "Lovely fresh result and great folding. Delivery came a little outside the window, but they kept me posted the whole way.", response: { when: "1 month ago", text: "Thank you Zainab, and sorry the drop off ran late. We have tightened the delivery windows since." } },
-  { id: "r4", name: "Chidi O.", r: 5, when: "1 month ago", service: "Sneaker & Shoe Care", verified: true, photos: 2, text: "Thought my white trainers were finished. They came back looking like new. Worth every naira." },
-  { id: "r5", name: "Bisi A.", r: 3, when: "2 months ago", service: "Stain Removal & Repair", verified: true, photos: 0, text: "They were honest that an old oil stain might not fully lift, and it mostly did. Fair, just not perfect." },
-  { id: "r6", name: "Ngozi E.", r: 5, when: "2 months ago", service: "Curtains & Drapes", verified: true, photos: 1, text: "My curtains look and smell incredible, and they even rehung them for me. So easy from start to finish." },
-];
+const MOCK_PRODUCTS: any[] = [];
+const MOCK_REVIEWS: any[] = [];
 const MOCK_PRODUCT_FAQS = [
   ["How long does delivery take?", "Most Lagos orders arrive in 1 to 3 days. The delivery cost is shown at checkout based on your area."],
   ["Do you ship outside Lagos?", "Yes, nationwide delivery across Nigeria is available, with timing and cost confirmed at checkout."],
@@ -209,84 +186,11 @@ const MOCK_SERVICE_FAQS = [
   ["How is the price worked out?", "Prices shown are indicative starting points, by bag, item or piece. Your final total is confirmed once your items are counted and weighed, before any work begins."],
   ["How do I pay?", "Pay securely through Frontstore, or by bank transfer where offered. Your receipt always arrives on WhatsApp."],
 ];
-const MOCK_FAQ_GROUPS = [
-  {
-    cat: "Pickup and delivery", icon: Truck, items: [
-      ["How do I book a pickup?", "Pick a service, choose a pickup time, and a deposit secures your slot. We confirm on WhatsApp and come to collect your items."],
-      ["Which areas do you cover?", "We cover Lagos island and mainland. Pickup and delivery are free within our core zones, with a small fee for areas further out, shown before you confirm."],
-      ["How long is turnaround?", "Most orders are back within 24 to 72 hours depending on the service. Express options are available when you are in a hurry, just ask."],
-      ["How do I reschedule or cancel?", "Reschedule or cancel up to 24 hours before your pickup for a full deposit refund. Inside 24 hours the deposit is held against the booking."],
-    ],
-  },
-  {
-    cat: "Payments and deposits", icon: Lock, items: [
-      ["How do I pay?", "You can pay securely through Frontstore at checkout, or by bank transfer to the team. Frontstore checkout is the safer option as it comes with buyer protection."],
-      ["Is paying through Frontstore safe?", "Yes. Payments made through Frontstore are protected, so if an order does not go as described you can raise a dispute and we help mediate. This protection cannot be removed by the vendor."],
-      ["How much is the deposit?", "A deposit secures your pickup when you book, and the balance is paid on delivery. The exact deposit is shown before you confirm."],
-      ["What currency are prices in?", "Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are always charged in naira."],
-    ],
-  },
-  {
-    cat: "How we handle your clothes", icon: Sparkles, items: [
-      ["Do you wash orders together?", "No. Every order is washed separately, never mixed with anyone else's, and sorted by colour and fabric before it goes in."],
-      ["How do you handle delicates?", "Delicate and special pieces are treated by hand or on gentle settings, and anything marked dry clean only is cleaned accordingly."],
-      ["What if an item goes missing or is damaged?", "Every item is logged at pickup. In the rare case something goes missing or is damaged, we make it right, and the work is covered."],
-    ],
-  },
-  {
-    cat: "Care products", icon: ShoppingBag, items: [
-      ["Are your products genuine and safe?", "Yes. We sell the same eco friendly, low irritation products our team trusts, suited to everyday home laundry when used as directed."],
-      ["Can I return a product?", "Unopened products can be returned within 7 days of delivery in their original packaging. Opened products cannot be returned unless faulty."],
-      ["Do you deliver products?", "Yes, across Lagos and nationwide. Delivery is arranged after checkout and the fee depends on your location."],
-    ],
-  },
-  {
-    cat: "Trust and Frontstore", icon: ShieldCheck, items: [
-      ["What does Secured by Frontstore mean?", "It means this store runs on Frontstore, so your booking or order is covered by Frontstore buyer protection and platform terms that the vendor cannot remove."],
-      ["Are the reviews real?", "Yes. Reviews can only be left by clients with a completed Frontstore order, and each is shown with a verified badge. The vendor can respond but cannot delete genuine ones."],
-      ["What if something goes wrong?", "If an order paid through Frontstore does not go as described, you can raise a dispute and Frontstore will help mediate a fair resolution."],
-    ],
-  },
-];
+const MOCK_FAQ_GROUPS: any[] = [];
 const MOCK_FAQS_PREVIEW = MOCK_FAQ_GROUPS.map((g: any) => g.items[0]);
-const MOCK_TERMS = [
-  { t: "Who these terms are between", p: [`These terms are an agreement between you and ${MOCK_STORE.name}, the laundry service that provides the services and products on this store. The store runs on Frontstore, which provides the platform and buyer protection but is not the seller.`] },
-  { t: "Bookings and deposits", p: ["Orders are arranged by booking a pickup through this store. A deposit secures your slot and the balance is paid on delivery. Your pickup is confirmed once the deposit is received."] },
-  { t: "Pricing and payment", p: ["Prices are shown in Nigerian naira and are indicative starting points by bag, item or piece. Your final total is confirmed once items are counted, before any work begins.", "You can pay securely through Frontstore at checkout, or by bank transfer to the team. Funds paid by transfer go directly to the team, while Frontstore payments are held under buyer protection."] },
-  { t: "Cancellations and refunds", p: ["You can reschedule, cancel or return within the windows set out on the Refunds page, where you will also find how and when refunds are issued."], link: { label: "Read the Refunds policy", page: "returns" } },
-  { t: "Your items", p: ["Please point out stains, delicate pieces and anything dry clean only at pickup. We treat every item with care, but some stains and older fabrics cannot be fully restored, and we will always be honest about this.", "Please check pockets before pickup. We are not liable for items left in pockets, and any found are returned with your order where possible."] },
-  { t: "Products", p: ["We sell genuine products only. Please check that a product suits your fabrics and household, and reach out if you are unsure. Returns are handled as set out on the Refunds page."] },
-  { t: "Reviews and content", p: ["Reviews can only be left by clients with a completed order, and each is shown with a verified badge. The vendor may respond to reviews but cannot remove genuine ones. By submitting a review or photo, you allow it to be shown on this store."] },
-  { t: "Liability", p: ["We provide our services with reasonable skill and care, and carry cover for the items in our care. Nothing in these terms removes any rights you have under applicable law."] },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform terms", body: "Every Frontstore store also operates under the Frontstore platform terms and buyer protection policy. These apply alongside the store's own policies and cannot be removed by the vendor.", link: "Read the Frontstore platform terms" } },
-  { t: "Changes to these terms", p: ["We may update these terms from time to time. The version shown on this page is the current one, and the date it was last updated is shown alongside it."] },
-  { t: "Governing law", p: ["These terms are governed by the laws of the Federal Republic of Nigeria, and any dispute falls under the courts of Lagos State."] },
-  { t: "Contact", p: ["Questions about these terms? Reach the team through the Contact page and we will be glad to help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PRIVACY = [
-  { t: "What we collect", p: [`When you book, buy or get in touch, ${MOCK_STORE.name} collects the details you give us: your name, contact details such as a WhatsApp number, phone or email, your booking, pickup address and order details, any message you send, and reviews or photos you choose to share.`] },
-  { t: "How we use it", p: ["We use your details to take and confirm pickups and orders, reach the right address, reply to your enquiries, arrange delivery, process payments, show verified reviews, and improve the store. We do not send marketing without your consent."] },
-  { t: "Payments", p: ["Payments made through Frontstore are handled by Frontstore and its payment providers under buyer protection, and the team does not see or store your card details. Bank transfers are made directly to the team."] },
-  { t: "WhatsApp and messaging", p: ["When you message us, the conversation takes place on WhatsApp and is also subject to WhatsApp's own privacy terms. In future this may move to Frontstore's own messaging."] },
-  { t: "Who we share it with", p: ["We share only what is needed: with delivery and pickup partners to fulfil your order, with payment providers to take payment, and with Frontstore as the platform the store runs on. We never sell your data."] },
-  { t: "Cookies and analytics", p: ["The store uses basic cookies and analytics, provided through the Frontstore platform, to keep the store working and understand how it is used."] },
-  { t: "Keeping your data", p: ["We keep your details only as long as needed to provide our services and to meet legal and tax obligations, after which they are removed."] },
-  { t: "Your rights", p: ["Under Nigerian data protection law you can ask to see the data we hold about you, correct it, delete it, or object to how it is used. To make a request, reach us through the Contact page."], link: { label: "Go to Contact", page: "contact" } },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform privacy", body: "As the platform this store runs on, Frontstore also processes data under its own privacy policy and platform terms. These apply alongside the store's own notice and cannot be removed by the vendor.", link: "Read the Frontstore privacy policy" } },
-  { t: "Changes to this notice", p: ["We may update this notice from time to time. The version shown on this page is the current one, with the date it was last updated shown alongside it."] },
-  { t: "Contact", p: ["Questions about your privacy, or want to make a data request? Reach the team through the Contact page and we will help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PORTFOLIO = [
-  { label: "Suit restored", cat: "Premium", c: "c0", ba: true },
-  { label: "White trainers", cat: "Premium", c: "c1", ba: true },
-  { label: "Wine stain lifted", cat: "Premium", c: "c2", ba: true },
-  { label: "Duvet refreshed", cat: "Home", c: "c1" },
-  { label: "Collar & cuffs", cat: "Everyday", c: "c2", ba: true },
-  { label: "Curtains cleaned", cat: "Home", c: "c0", ba: true },
-  { label: "Silk dress", cat: "Premium", c: "c1" },
-  { label: "Uniform whites", cat: "Everyday", c: "c2", ba: true },
-  { label: "Bedding set", cat: "Home", c: "c0" },
-];
+const MOCK_TERMS: any[] = [];
+const MOCK_PRIVACY: any[] = [];
+const MOCK_PORTFOLIO: any[] = [];
 const MOCK_NOTIFY_TOPICS = [["plans", "Laundry plans"], ["offers", "Offers and slots"], ["tips", "Fabric care tips"], ["news", "Announcements"]];
 const MOCK_HOURS = [
   ["Mon", "8:00am - 7:00pm"], ["Tue", "8:00am - 7:00pm"], ["Wed", "8:00am - 7:00pm"],
@@ -298,88 +202,23 @@ const MOCK_NAV = [
 ];
 const MOCK_LEGAL = [["returns", "Refunds"], ["terms", "Terms"], ["privacy", "Privacy"]];
 const MOCK_CATS = ["Everyday", "Premium", "Home", "Plans"];
-const MOCK_FEATURED = [
-  { id: "s2", name: "Dry Cleaning", price: 3500, dur: "48 hr turnaround", type: "service" },
-  { id: "s1", name: "Wash & Fold", price: 6000, dur: "48 hr turnaround", type: "service" },
-  { id: "p3", name: "Laundry Starter Kit", price: 16000, type: "product" },
-];
+const MOCK_FEATURED: any[] = [];
 const MOCK_AUTHOR = {
-  name: "Folake Bello",
-  initial: "F",
-  role: "Founder and operations lead",
-  bio: "Folake founded Crisp and has spent over seven years building a laundry service that Lagos genuinely trusts with its best clothes.",
-  long: "Folake started Crisp with one pickup route and a simple promise: handle every order like it was your own wardrobe. Today she runs the pickups, trains the team, and still checks the delicate and dry clean pieces herself before they go back.",
-  quote: "Fresh laundry is a small thing that quietly makes your whole week better.",
-  specialities: ["Dry cleaning", "Pickup and delivery", "Fabric care", "7+ years"],
-  socials: { instagram: "@folake.crisp", tiktok: "@crisplaundry" },
-  credentials: [
-    "Trained, in-house laundry team",
-    "Every order washed and tracked separately",
-    "Cover in place for the items in our care",
-  ],
+  name: "",
+  initial: "",
+  role: "",
+  bio: "",
+  long: "",
+  quote: "",
+  specialities: [],
+  socials: { instagram: "", tiktok: "" },
+  credentials: [],
 };
-const MOCK_OFFERINGS = [
-  ["Everyday laundry", "Wash and fold and pressing that come back fresh, folded and right on time.", "services"],
-  ["Dry cleaning", "Suits, dresses and delicates cleaned by the right method, never a guess.", "services"],
-  ["Specialist care", "Sneakers, curtains, bedding and tough stains, the pieces worth saving.", "services"],
-  ["Care for in between", "The eco laundry products our team trusts, for sale to take home.", "products"],
-];
-const MOCK_GALLERY = [
-  { label: "Suit restored", c: "c0" },
-  { label: "White trainers", c: "c1" },
-  { label: "Wine stain lifted", c: "c2" },
-  { label: "Duvet refreshed", c: "c1" },
-  { label: "Curtains cleaned", c: "c2" },
-  { label: "Collar & cuffs", c: "c0" },
-];
-const MOCK_RECOGNITION = ["Lagos Home Expo", "FreshPress Africa", "SME Awards NG", "Naija Homes"];
-const MOCK_ABOUT_FACTS = [
-  ["Established", "Lagos, since 2019"],
-  ["Registered", "CAC RC 1689420"],
-  ["Coverage", "Lagos mainland and island"],
-  ["Turnaround", "24 to 72 hours, express on request"],
-  ["Booking", "A deposit secures your pickup, balance paid on delivery"],
-  ["Payment", "Pay securely with Frontstore, or by bank transfer"],
-  ["Pickup", "Free pickup and delivery within core Lagos zones"],
-  ["Insurance", "Cover in place for the items in our care"],
-];
-const MOCK_BLOG = [
-  { title: "How often should you actually wash everything?", date: "6 Jun 2026", cat: "Care", read: "4 min", excerpt: "A simple guide to how often each kind of clothing really needs washing.", body: [
-    { p: "Washing everything after one wear is hard on your clothes and your time. Some pieces need it, many do not, and knowing the difference keeps clothes looking newer for longer." },
-    { h: "A rough guide" },
-    { list: ["Underwear, socks and gym wear, after every wear", "Shirts and tops, after one or two wears", "Trousers and jeans, every four to five wears", "Jackets and knitwear, every several wears or when needed", "Bed linen, once a week"] },
-    { p: "Airing clothes between wears does a lot of the work. When something does need a proper clean, that is where we come in." },
-  ] },
-  { title: "Dry clean only? What the label really means", date: "24 May 2026", cat: "Care", read: "3 min", excerpt: "How to read care labels so you stop ruining good clothes.", body: [
-    { p: "Care labels look cryptic but they are trying to protect your clothes. The symbols tell you how a piece should be washed, dried and pressed, and ignoring them is how good clothes get shrunk or faded." },
-    { list: ["A circle means dry clean, and a crossed circle means do not", "A tub with a number is the maximum wash temperature", "A crossed tub means do not machine wash at all", "Dots on the iron show how hot it can go"] },
-    { p: "When in doubt, leave the risky pieces to us. Getting a label wrong once can cost you a garment you loved." },
-  ] },
-  { title: "Getting stains out: what to do before you hand it over", date: "11 May 2026", cat: "Tips", read: "4 min", excerpt: "The first few minutes after a spill matter more than anything else.", body: [
-    { p: "Most stains are beatable if they are treated quickly and correctly. The worst thing you can do is rub hard or reach for hot water, which can set a stain for good." },
-    { h: "In the moment" },
-    { list: ["Blot, do not rub, to lift rather than spread", "Use cool water, never hot, on fresh stains", "Skip the heat of a dryer until the stain is gone", "Get it to us soon, and tell us what caused it"] },
-    { p: "Knowing what caused a stain helps us treat it right. The sooner we see it, the better the odds of lifting it fully." },
-  ] },
-  { title: "Caring for trainers so they last longer", date: "29 Apr 2026", cat: "Tips", read: "4 min", excerpt: "A little care keeps your favourite trainers looking new for far longer.", body: [
-    { p: "Good trainers are an investment, and a few habits keep them looking fresh between proper cleans. Most damage comes from neglect, not wear." },
-    { h: "The simple habits" },
-    { list: ["Wipe off mud and dust before it dries in", "Never machine wash leather or suede", "Air them out instead of leaving them damp", "Rotate pairs so each gets time to recover"] },
-    { p: "When they do need a proper revive, our sneaker care brings back the white and lifts the scuffs without damaging the material." },
-  ] },
-  { title: "Why we wash every order separately", date: "13 Apr 2026", cat: "Care", read: "3 min", excerpt: "A small policy that makes a big difference to how your laundry comes back.", body: [
-    { p: "It is faster and cheaper to throw several orders into one big machine. We do not, and the reason matters." },
-    { h: "What separate washing protects" },
-    { p: "Your clothes never touch anyone else's, which means no colour bleed from a stranger's red shirt, no mix ups, and no lingering scents that are not yours. It is more work for us and a better result for you." },
-    { p: "Every order is bagged, tagged and tracked from pickup to delivery, so what leaves your home is exactly what comes back." },
-  ] },
-  { title: "What to look for in a laundry service", date: "3 Apr 2026", cat: "Tips", read: "4 min", excerpt: "A short list that saves you from the most common letdowns.", body: [
-    { p: "Handing over your wardrobe is a matter of trust. A few checks up front save you the most common problems further down the line." },
-    { h: "The questions worth asking" },
-    { list: ["Are orders washed separately or mixed together", "Is every item logged and tracked", "Is the work covered if something is lost or damaged", "How clear are the turnaround times", "Can I pay somewhere protected"] },
-    { p: "A service that answers these clearly, and puts the booking and payment somewhere protected, is one you can relax with. Vague answers now tend to become problems later." },
-  ] },
-];
+const MOCK_OFFERINGS: any[] = [];
+const MOCK_GALLERY: any[] = [];
+const MOCK_RECOGNITION: any[] = [];
+const MOCK_ABOUT_FACTS: any[] = [];
+const MOCK_BLOG: any[] = [];
 
 const money = (n: number) => "₦" + n.toLocaleString("en-NG");
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -827,7 +666,7 @@ export default function LaundryStorefront({
               <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>Order Placed!</h3>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>Your order reference is <b>{orderReceipt.order.order_number}</b>.</p>
               
-              {store.payment_provider === 'paystack' && (
+              {store.payment_provider && store.payment_provider !== 'manual' && (
                 <div style={{ background: '#f9f5f3', borderRadius: 12, padding: 14, marginTop: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span>Total Amount</span>
@@ -859,8 +698,9 @@ export default function LaundryStorefront({
         headers: { 'Content-Type': 'application/json' }
       });
       const json = await res.json();
-      if (res.ok && json.data?.authorization_url) {
-        window.location.href = json.data.authorization_url;
+      const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
+      if (res.ok && redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         sonnerToast.error(json.message || "Online payment setup failed.");
       }
@@ -1497,6 +1337,7 @@ export default function LaundryStorefront({
   );
   const aboutReview = () => {
     const r = displayReviews[0];
+    if (!r) return null;
     return (
       <div className="ab-review">
         <Quote className="ab-quote-mark" size={28} />
@@ -1514,7 +1355,7 @@ export default function LaundryStorefront({
   const aboutJournal = () => (
     <div className="ab-section">
       <div className="ab-sec-head">
-        <h4 className="ab-subhead">From Folake's journal</h4>
+        <h4 className="ab-subhead">{DUMMY_AUTHOR.name ? `From ${DUMMY_AUTHOR.name.split(" ")[0]}'s journal` : "From the journal"}</h4>
         <button className="ab-seclink" onClick={() => go("blog")}>All articles <ChevronRight size={14} /></button>
       </div>
       <div className="ab-journal">
@@ -1563,7 +1404,7 @@ export default function LaundryStorefront({
     <div className="ps-about-grid">
       <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-      <div><b>10 yrs</b><span>in practice</span></div>
+      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
       <span className="ab-follow-h">Follow the studio</span>
@@ -1625,7 +1466,7 @@ export default function LaundryStorefront({
   const contactForm = () => (
     <div className="ct-form">
       <h4 className="ab-subhead">Send an enquiry</h4>
-      <p className="ct-form-sub">Tell us what you are after and we will reply by email. A real person, usually Folake or the team, will answer.</p>
+      <p className="ct-form-sub">Tell us what you are after and we will reply by email. A real person from the team will answer.</p>
       <div className="ct-form-row">
         <select className="ct-input" value={cSvc} onChange={(e) => setCSvc(e.target.value)}>
           <option value="">Service (optional)</option>
@@ -1883,7 +1724,7 @@ export default function LaundryStorefront({
       <button onClick={() => setAnnOff(true)} aria-label="Dismiss"><X size={15} /></button>
     </div>
   );
-  const featured = (
+  const featured = MOCK_FEATURED.length > 0 ? (
     <section className="feat">
       <div className="feat-head"><span className="feat-tag"><Sparkles size={13} /> Featured</span></div>
       <div className="feat-grid">
@@ -1892,13 +1733,13 @@ export default function LaundryStorefront({
         ))}
       </div>
     </section>
-  );
+  ) : null;
 
   /* ---- drawer panel (mobile only) ---- */
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo">frontstore<span>.app</span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1975,7 +1816,7 @@ export default function LaundryStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -2058,7 +1899,7 @@ export default function LaundryStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -2441,10 +2282,8 @@ export default function LaundryStorefront({
                 <div className="ab-wrap">
                   <div className="ab-main">
                     <span className="ab-kicker">Our story</span>
-                    <h2 className="ab-headline">A Lagos studio for looking like yourself, on your best day.</h2>
-                    <p className="ab-lede">Crisp is a Lagos based laundry and dry cleaning service with free pickup and delivery. We treat every order with care and get it back to you fresh, pressed and right on time.</p>
-                    <p className="ab-para">What began in 2019 with one pickup route is now a full laundry team across Lagos. The promise has stayed the same throughout: handle every order like it was your own wardrobe, and get it back fresh and on time.</p>
-                    <p className="ab-para">Today the studio looks after brides, busy professionals and regulars who keep coming back for the calm of a private room and results they can count on, whether that is a wedding morning, a big shoot or an everyday refresh.</p>
+                    <h2 className="ab-headline">Laundry and dry cleaning, handled like it's our own wardrobe.</h2>
+                    {DUMMY_STORE.bio && <p className="ab-lede">{DUMMY_STORE.bio}</p>}
 
                     <div className="ab-founder">
                       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
@@ -2489,7 +2328,7 @@ export default function LaundryStorefront({
                     <div className="ps-about-grid ab-stats">
                       <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
                       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-                      <div><b>10 yrs</b><span>in practice</span></div>
+                      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
                     </div>
                   </div>
 
@@ -2570,7 +2409,7 @@ export default function LaundryStorefront({
                 </div>
                 <div className="ct-wrap">
                   <div className="ct-main">
-                    <p className="svc-intro">Reach us on WhatsApp for a quick reply, or send an enquiry and we will get back to you by email. A real person, usually Folake or the team, will answer.</p>
+                    <p className="svc-intro">Reach us on WhatsApp for a quick reply, or send an enquiry and we will get back to you by email. A real person from the team will answer.</p>
                     {contactChannels()}
                     {contactForm()}
                   </div>
@@ -2920,7 +2759,7 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
 .ps-logo span{color:var(--brand);}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
@@ -3664,7 +3503,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .svc-card-thumb.c1{background:linear-gradient(150deg,var(--brand-deep),var(--gold));}
 .svc-card-thumb.c2{background:linear-gradient(150deg,#6fb0ec,var(--brand));}
 .svc-card-thumb.c3{background:linear-gradient(150deg,var(--brand),#5e8fd6);}
-.svc-card-cat{position:absolute;bottom:10px;left:10px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
+.svc-card-cat{position:absolute;bottom:10px;left:10px;width:max-content;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
 .svc-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:rgba(42,29,34,.5);backdrop-filter:blur(2px);padding:4px 8px;border-radius:7px;}
 .svc-badge svg{color:var(--gold);fill:var(--gold);}
 .svc-card-body{padding:13px 14px 14px;display:flex;flex-direction:column;flex:1;}

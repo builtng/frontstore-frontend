@@ -11,7 +11,8 @@ import {
   DollarSign, Calendar, MapPin, Receipt, Menu, X, ArrowUpRight,
   TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck, BookOpen,
-  ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer
+  ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer,
+  Briefcase, CreditCard, Landmark, PenLine
 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
@@ -23,6 +24,8 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import SearchableSelect from '../../components/SearchableSelect';
 import FileUpload from '../../components/FileUpload';
 import ThemeToggle from '../../components/ThemeToggle';
+import Toggle from '../../components/Toggle';
+import NinaWidget from '../../components/NinaWidget';
 import { businessPersonas } from '../../utils/businessPersonas';
 import { getServiceFactPresets } from '../../utils/serviceFactPresets';
 
@@ -37,7 +40,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 };
 
 const getCurrencySymbol = (code?: string): string => {
-  if (!code) return CURRENCY_SYMBOLS['NGN'];
+  if (!code) return CURRENCY_SYMBOLS['USD'];
   return CURRENCY_SYMBOLS[code.toUpperCase()] ?? `${code} `;
 };
 
@@ -73,10 +76,14 @@ interface StoreInfo {
   store_name: string;
   store_bio: string | null;
   currency_code: string;
+  country_code?: string | null;
+  available_payment_providers?: string[];
   whatsapp_phone: string;
+  whatsapp_phone_updated_at?: string | null;
   username: string;
   banner_url?: string | null;
   location?: string | null;
+  since?: string | null;
   logo_url?: string | null;
   instagram_handle?: string | null;
   tiktok_handle?: string | null;
@@ -208,9 +215,9 @@ interface BroadcastCampaign {
   created_at: string;
 }
 
-type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings';
+type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings'];
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings'];
 
 const BROADCAST_AUDIENCES: Array<{ id: 'all' | 'repeat' | 'unpaid_whatsapp'; label: string; description: string }> = [
   { id: 'all', label: 'All customers', description: 'Everyone who has ever placed an order with your store.' },
@@ -370,6 +377,11 @@ export default function DashboardPage() {
   const setStore = wrapSetter(setStoreInternal, normalizeStore);
   const store = storeInternal;
 
+  const whatsappCooldownUntil = (!isPro && store?.whatsapp_phone_updated_at)
+    ? new Date(new Date(store.whatsapp_phone_updated_at).getTime() + 30 * 24 * 60 * 60 * 1000)
+    : null;
+  const whatsappOnCooldown = !!whatsappCooldownUntil && whatsappCooldownUntil.getTime() > Date.now();
+
   const [systemDomain, setSystemDomain] = useState('frontstore.app');
   const [apiUrl, setApiUrl] = useState('https://api.frontstore.app/api');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -431,6 +443,8 @@ export default function DashboardPage() {
 
   // Billing Cycle state for Pro Subscription Plan
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [proMonthlyPrice, setProMonthlyPrice] = useState(1500);
+  const [proYearlyPrice, setProYearlyPrice] = useState(15000);
 
 
   // --- Active Dialog/Modal States ---
@@ -553,6 +567,7 @@ export default function DashboardPage() {
   const [setStoreName, setSetStoreName] = useState('');
   const [setStoreBio, setSetStoreBio] = useState('');
   const [setStoreLocation, setSetStoreLocation] = useState('');
+  const [setStoreSince, setSetStoreSince] = useState('');
   const [deliveryInfo, setDeliveryInfo] = useState('');
   const [returnPolicy, setReturnPolicy] = useState('');
   const [setBannerUrl, setSetBannerUrl] = useState('');
@@ -561,20 +576,33 @@ export default function DashboardPage() {
   const [logoUploading, setLogoUploading] = useState(false);
   const [bannerUploading, setBannerUploading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
-  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
-  const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
+  const [isChangingWhatsapp, setIsChangingWhatsapp] = useState(false);
+  const [whatsappOtpStage, setWhatsappOtpStage] = useState<'entry' | 'otp'>('entry');
+  const [newWhatsappDialCode, setNewWhatsappDialCode] = useState(countries[0].dialCode);
+  const [newWhatsappLocal, setNewWhatsappLocal] = useState('');
+  const [whatsappOtpCode, setWhatsappOtpCode] = useState('');
+  const [whatsappOtpSending, setWhatsappOtpSending] = useState(false);
+  const [whatsappOtpVerifying, setWhatsappOtpVerifying] = useState(false);
   const [setInstagram, setSetInstagram] = useState('');
   const [setTiktok, setSetTiktok] = useState('');
   const [setTwitter, setSetTwitter] = useState('');
-  const [setCurrency, setSetCurrency] = useState('NGN');
+  const [setCurrency, setSetCurrency] = useState('USD');
+  const [setStoreCountryCode, setSetStoreCountryCode] = useState('');
+  const [setPaymentProvider, setSetPaymentProvider] = useState('');
+  const [availableProviders, setAvailableProviders] = useState<string[]>([]);
+  const [metaCountries, setMetaCountries] = useState<Array<{ code: string; name: string; default_currency: string }>>([]);
   const [detectedMerchantLocation, setDetectedMerchantLocation] = useState<string | null>(null);
+  const [detectedCountryCode, setDetectedCountryCode] = useState<string | null>(null);
+  const [detectedCurrencyCode, setDetectedCurrencyCode] = useState<string | null>(null);
+  const [geoDetectionDone, setGeoDetectionDone] = useState(false);
+  const autoDetectAppliedRef = useRef(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsSubTab, setSettingsSubTab] = useState<'profile' | 'design' | 'social' | 'payment' | 'security'>('profile');
   const [customLinks, setCustomLinks] = useState<StoreLink[]>([]);
   const [primaryColor, setPrimaryColor] = useState('#25D366');
   const [selectedTemplate, setSelectedTemplate] = useState('luxe-market');
   const [selectedPersona, setSelectedPersona] = useState('');
   
-  const [showQrModal, setShowQrModal] = useState(false);
 
   // Storefront custom sections and reply time
   const [storefrontSections, setStorefrontSections] = useState<string[]>(['reviews', 'replies_approximation', 'products', 'services', 'portfolio', 'about', 'faq', 'contact', 'blog']);
@@ -832,6 +860,7 @@ export default function DashboardPage() {
                 setBookingCapacityPerDay(Number(parsedStore.booking_capacity_per_day));
               }
               setSetStoreLocation(parsedStore.location || '');
+              setSetStoreSince(parsedStore.since || '');
               setDeliveryInfo(parsedStore.delivery_info || '');
               setReturnPolicy(parsedStore.return_policy || '');
               setSetBannerUrl(parsedStore.banner_url || '');
@@ -841,7 +870,10 @@ export default function DashboardPage() {
               setSetInstagram(parsedStore.instagram_handle || '');
               setSetTiktok(parsedStore.tiktok_handle || '');
               setSetTwitter(parsedStore.twitter_handle || '');
-              setSetCurrency(parsedStore.currency_code || 'NGN');
+              setSetCurrency(parsedStore.currency_code || 'USD');
+              setSetStoreCountryCode(parsedStore.country_code || '');
+              setSetPaymentProvider(parsedStore.payment_provider || '');
+              setAvailableProviders(parsedStore.available_payment_providers || []);
               setPaymentBankName(parsedStore.bank_name || '');
               setPaymentBankCode(parsedStore.paystack_bank_code || '');
               setPaymentAccountNumber(parsedStore.bank_account_number || '');
@@ -885,7 +917,22 @@ export default function DashboardPage() {
     return () => window.removeEventListener('popstate', syncTabFromUrl);
   }, []);
 
-  // Surface the merchant's own detected location as read-only context in Settings (helps them fill in Store Location accurately)
+  // Fetch admin-configured Pro subscription pricing so the upgrade UI never drifts from what checkout actually charges
+  useEffect(() => {
+    if (!apiUrl) return;
+    fetch(`${apiUrl}/v1/public/settings`)
+      .then(res => res.json())
+      .then(json => {
+        const monthly = Number(json?.data?.pro_monthly_price);
+        const yearly = Number(json?.data?.pro_yearly_price);
+        if (!Number.isNaN(monthly) && monthly > 0) setProMonthlyPrice(monthly);
+        if (!Number.isNaN(yearly) && yearly > 0) setProYearlyPrice(yearly);
+      })
+      .catch(err => console.error('Failed to fetch subscription pricing:', err));
+  }, [apiUrl]);
+
+  // Surface the merchant's own detected location as read-only context in Settings (helps them fill in Store Location accurately),
+  // and capture the detected country/currency so a brand-new store can auto-select them below.
   useEffect(() => {
     const detectMerchantLocation = async () => {
       try {
@@ -894,28 +941,65 @@ export default function DashboardPage() {
           const data = await res.json();
           const parts = [data?.city, data?.country_name].filter(Boolean);
           if (parts.length > 0) setDetectedMerchantLocation(parts.join(', '));
+          if (data?.country_code) setDetectedCountryCode(String(data.country_code).toUpperCase());
+          if (data?.currency) setDetectedCurrencyCode(String(data.currency).toUpperCase());
         }
       } catch (e) {
         console.warn('Merchant location detection failed:', e);
+      } finally {
+        setGeoDetectionDone(true);
       }
     };
     detectMerchantLocation();
   }, []);
 
-  // Close dropdown on click outside
+  // Fetch the canonical country list for the Store Country selector
   useEffect(() => {
-    if (!isCountryDropdownOpen) return;
-    const handleOutsideClick = () => {
-      setIsCountryDropdownOpen(false);
-    };
-    const timer = setTimeout(() => {
-      window.addEventListener('click', handleOutsideClick);
-    }, 50);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('click', handleOutsideClick);
-    };
-  }, [isCountryDropdownOpen]);
+    fetch(`${apiUrl}/v1/meta/countries`)
+      .then(res => res.json())
+      .then(json => { if (json.data) setMetaCountries(json.data); })
+      .catch(() => {});
+  }, [apiUrl]);
+
+  // For a store that has no country locked in yet, auto-select the Store Country + Currency
+  // from the merchant's detected IP location (falling back to USD if detection fails or the
+  // detected country isn't in our supported list). Runs once; never overrides an existing
+  // selection or a saved store.country_code.
+  useEffect(() => {
+    if (autoDetectAppliedRef.current) return;
+    if (store?.country_code) return; // already saved server-side — field is locked, leave it alone
+    if (setStoreCountryCode) return; // user already picked one (or it was prefilled)
+    if (!geoDetectionDone || metaCountries.length === 0) return;
+
+    autoDetectAppliedRef.current = true;
+    const match = detectedCountryCode
+      ? metaCountries.find(c => c.code.toUpperCase() === detectedCountryCode)
+      : undefined;
+    if (match) {
+      setSetStoreCountryCode(match.code);
+      setSetCurrency(match.default_currency || detectedCurrencyCode || 'USD');
+    } else {
+      setSetCurrency(detectedCurrencyCode || 'USD');
+    }
+  }, [geoDetectionDone, metaCountries, detectedCountryCode, detectedCurrencyCode, setStoreCountryCode, store]);
+
+  // Keep the Payment Provider options in sync with the (possibly unsaved) Store
+  // Country selection, instead of only reflecting whatever country was last saved.
+  useEffect(() => {
+    if (!setStoreCountryCode) return;
+    let cancelled = false;
+    fetch(`${apiUrl}/v1/meta/payment-providers?country_code=${setStoreCountryCode}`)
+      .then(res => res.json())
+      .then(json => {
+        if (cancelled || !json.data) return;
+        setAvailableProviders(json.data);
+        if (!json.data.includes(setPaymentProvider)) {
+          setSetPaymentProvider(json.data[0] || '');
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [setStoreCountryCode, apiUrl]);
 
   // Close bank dropdown on click outside
   useEffect(() => {
@@ -1128,6 +1212,7 @@ export default function DashboardPage() {
         setSetStoreName(liveStore.store_name || '');
         setSetStoreBio(liveStore.store_bio || '');
         setSetStoreLocation(liveStore.location || '');
+        setSetStoreSince(liveStore.since || '');
         setDeliveryInfo(liveStore.delivery_info || '');
         if (liveStore.working_hours && typeof liveStore.working_hours === 'object') {
           setWorkingHours({ ...DEFAULT_WORKING_HOURS, ...liveStore.working_hours });
@@ -1143,7 +1228,10 @@ export default function DashboardPage() {
         setSetInstagram(liveStore.instagram_handle || '');
         setSetTiktok(liveStore.tiktok_handle || '');
         setSetTwitter(liveStore.twitter_handle || '');
-        setSetCurrency(liveStore.currency_code || 'NGN');
+        setSetCurrency(liveStore.currency_code || 'USD');
+        setSetStoreCountryCode(liveStore.country_code || '');
+        setSetPaymentProvider(liveStore.payment_provider || '');
+        setAvailableProviders(liveStore.available_payment_providers || []);
         setPaymentBankName(liveStore.bank_name || '');
         setPaymentBankCode(liveStore.paystack_bank_code || '');
         setPaymentAccountNumber(liveStore.bank_account_number || '');
@@ -1187,8 +1275,10 @@ export default function DashboardPage() {
   // Verification states
   const [verificationDocType, setVerificationDocType] = useState('national_id');
   const [verificationDocUrl, setVerificationDocUrl] = useState('');
+  const [verificationIdNumber, setVerificationIdNumber] = useState('');
   const [verificationUploading, setVerificationUploading] = useState(false);
   const [isSubmittingVerification, setIsSubmittingVerification] = useState(false);
+  const [verificationRedirectUrl, setVerificationRedirectUrl] = useState<string | null>(null);
 
   const fetchWalletData = async () => {
     if (!token) return;
@@ -1482,23 +1572,33 @@ export default function DashboardPage() {
 
   const handleSubmitVerification = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!verificationDocUrl) {
-      toast.warning('Please upload a document first.');
+    if (!verificationDocUrl && !verificationIdNumber) {
+      toast.warning('Please enter an ID number or upload a document.');
       return;
     }
     try {
       setIsSubmittingVerification(true);
+      setVerificationRedirectUrl(null);
       const res = await fetch(`${apiUrl}/v1/store/verify-request`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
           document_type: verificationDocType,
-          document_url: verificationDocUrl
+          document_url: verificationDocUrl || undefined,
+          id_number: verificationIdNumber || undefined,
         })
       });
       const json = await res.json();
       if (res.ok) {
-        toast.success(json.message || 'Verification request submitted.');
+        const data = json.data ?? {};
+        if (data.auto_approved) {
+          toast.success('Identity verified automatically. Your badge is now active!');
+        } else if (data.redirect_url) {
+          setVerificationRedirectUrl(data.redirect_url);
+          toast.success('Open the link below to complete your identity verification.');
+        } else {
+          toast.success(json.message || 'Verification request submitted.');
+        }
         loadAllData(true);
       } else {
         toast.error(json.message || 'Failed to submit request.');
@@ -1630,7 +1730,7 @@ export default function DashboardPage() {
       const json = await res.json();
       if (res.ok && json.data?.description) {
         setProdDesc(json.data.description);
-        toast.success('Description written by ChatGPT AI! 🧠✨');
+        toast.success('Description written by AI! 🧠✨');
       } else {
         throw new Error(json.message || 'Description generation failed.');
       }
@@ -2049,16 +2149,6 @@ export default function DashboardPage() {
     e.preventDefault();
     try {
       setSettingsSaving(true);
-      const normalizePhone = (input: string, dialCode: string) => {
-        const cleanDial = dialCode.replace(/[^\d]/g, '');
-        let cleaned = input.replace(/[^\d]/g, '');
-        if (cleaned.startsWith(cleanDial)) {
-          cleaned = cleaned.slice(cleanDial.length);
-        }
-        cleaned = cleaned.replace(/^0+/, '');
-        return `+${cleanDial}${cleaned}`;
-      };
-      const normalizedPhone = normalizePhone(localWhatsapp, selectedCountry.dialCode);
       const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
       const personaPreset = getSelectedPersonaPreset();
       const res = await fetch(`${apiUrl}/v1/store`, {
@@ -2069,12 +2159,14 @@ export default function DashboardPage() {
           store_name: setStoreName,
           store_bio: setStoreBio,
           location: setStoreLocation || null,
+          since: setStoreSince || null,
           banner_url: setBannerUrl || null,
-          whatsapp_phone: normalizedPhone,
           instagram_handle: setInstagram,
           tiktok_handle: setTiktok,
           twitter_handle: setTwitter,
           currency_code: setCurrency,
+          country_code: setStoreCountryCode || null,
+          payment_provider: setPaymentProvider || null,
           bank_name: paymentBankName || null,
           bank_account_number: paymentAccountNumber || null,
           bank_account_name: paymentAccountName || null,
@@ -2111,6 +2203,7 @@ export default function DashboardPage() {
         setSetStoreName(json.data.store_name || '');
         setSetStoreBio(json.data.store_bio || '');
         setSetStoreLocation(json.data.location || '');
+        setSetStoreSince(json.data.since || '');
         setDeliveryInfo(json.data.delivery_info || '');
         setReturnPolicy(json.data.return_policy || '');
         setSetBannerUrl(json.data.banner_url || '');
@@ -2150,6 +2243,66 @@ export default function DashboardPage() {
       toast.error(e.message || 'Error occurred saving settings.');
     } finally {
       setSettingsSaving(false);
+    }
+  };
+
+  const normalizeNewWhatsappNumber = () => {
+    const cleanDial = newWhatsappDialCode.replace(/[^\d]/g, '');
+    const cleaned = newWhatsappLocal.replace(/[^\d]/g, '').replace(/^0+/, '');
+    return `+${cleanDial}${cleaned}`;
+  };
+
+  const handleSendWhatsappOtp = async () => {
+    if (!newWhatsappLocal.trim()) {
+      toast.error('Enter the new WhatsApp number first.');
+      return;
+    }
+    setWhatsappOtpSending(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/whatsapp-phone/send-otp`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ whatsapp_phone: normalizeNewWhatsappNumber() }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Failed to send verification code.');
+      toast.success('Verification code sent to your new WhatsApp number.');
+      setWhatsappOtpStage('otp');
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to send verification code.');
+    } finally {
+      setWhatsappOtpSending(false);
+    }
+  };
+
+  const handleVerifyWhatsappOtp = async () => {
+    if (whatsappOtpCode.trim().length !== 6) {
+      toast.error('Enter the 6-digit code sent to your new number.');
+      return;
+    }
+    setWhatsappOtpVerifying(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/whatsapp-phone/verify-otp`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ whatsapp_phone: normalizeNewWhatsappNumber(), otp: whatsappOtpCode.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Invalid or expired code.');
+      toast.success('WhatsApp number updated!');
+      setStore(json.data);
+      localStorage.setItem('store', JSON.stringify(json.data));
+      const parsedPhone = parsePhoneNumber(json.data.whatsapp_phone || '');
+      setSelectedCountry(parsedPhone.country);
+      setLocalWhatsapp(parsedPhone.local);
+      setIsChangingWhatsapp(false);
+      setWhatsappOtpStage('entry');
+      setNewWhatsappLocal('');
+      setWhatsappOtpCode('');
+    } catch (e: any) {
+      toast.error(e.message || 'Invalid or expired code.');
+    } finally {
+      setWhatsappOtpVerifying(false);
     }
   };
 
@@ -2613,9 +2766,7 @@ export default function DashboardPage() {
       }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32, paddingLeft: 8 }}>
-          <div style={{ background: 'var(--primary)', color: '#fff', width: 36, height: 36, borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-primary)' }}>
-            <Store size={20} />
-          </div>
+          <img src="/logo.png" alt="Frontstore" width={36} height={36} style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }} />
           <div>
             <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>frontstore</h1>
             <span style={{ fontSize: 10, color: 'var(--primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Merchant Dashboard v2.0</span>
@@ -2681,12 +2832,11 @@ export default function DashboardPage() {
             { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
             { id: 'products', label: 'My Products', icon: <Package size={18} /> },
             { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
-            { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} />, badge: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
+            { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} />, badge: !isPro ? 'Pro' : (waOrders.filter(o => o.payment_status === 'unpaid').length || undefined) },
             { id: 'reach', label: 'Broadcast Messages', icon: <Megaphone size={18} />, badge: isPro ? undefined : 'Pro' },
             { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
-            { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} /> },
-            { id: 'templates', label: 'Store Themes', icon: <Palette size={18} /> },
-            { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} />, badge: reviews.filter(r => !r.reply).length || undefined },
+            { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} />, badge: isPro ? undefined : 'Pro' },
+            { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} />, badge: !isPro ? 'Pro' : (reviews.filter(r => !r.reply).length || undefined) },
             { id: 'blog', label: 'Blog Posts', icon: <BookOpen size={18} /> },
             { id: 'availability', label: 'Availability', icon: <Clock size={18} /> },
             { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} />, badge: bookings.filter((b: any) => b.status === 'pending').length || undefined },
@@ -2697,7 +2847,7 @@ export default function DashboardPage() {
             return (
               <button
                 key={item.id}
-                onClick={() => item.id === 'qr' ? setShowQrModal(true) : navigateDashboardTab(item.id as DashboardTab)}
+                onClick={() => navigateDashboardTab(item.id as DashboardTab)}
                 className="clickable"
                 style={{
                   display: 'flex',
@@ -2721,7 +2871,7 @@ export default function DashboardPage() {
                     fontSize: 10,
                     fontWeight: 800,
                     color: '#fff',
-                    background: item.id === 'whatsapp' ? 'var(--primary)' : 'var(--danger)',
+                    background: item.badge === 'Pro' ? 'var(--danger)' : (item.id === 'whatsapp' ? 'var(--primary)' : 'var(--danger)'),
                     padding: '2px 7px',
                     borderRadius: 'var(--r-full)'
                   }}>
@@ -2781,9 +2931,7 @@ export default function DashboardPage() {
 
             {/* Mobile logo (hidden on desktop via css) */}
             <div className="header-logo-mobile" style={{ display: 'none', alignItems: 'center', gap: 6 }}>
-              <div style={{ background: 'var(--primary)', color: '#fff', width: 28, height: 28, borderRadius: 'var(--r-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-primary)' }}>
-                <Store size={15} />
-              </div>
+              <img src="/logo.png" alt="Frontstore" width={28} height={28} style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }} />
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em' }}>frontstore</span>
             </div>
           </div>
@@ -3334,7 +3482,7 @@ export default function DashboardPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="responsive-product-header">
                     <div>
                       <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>My Products</h2>
-                      <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Converts inventory into checkouts. Create items, update pricing, and generate descriptions using ChatGPT AI.</p>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Converts inventory into checkouts. Create items, update pricing, and generate descriptions using AI.</p>
                     </div>
                     <button
                       onClick={openAddProductModal}
@@ -3447,7 +3595,46 @@ export default function DashboardPage() {
               )}
 
               {/* ── TAB 4: WHATSAPP SALES INBOX ── */}
-              {activeTab === 'whatsapp' && (() => {
+              {activeTab === 'whatsapp' && !isPro && (
+                <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
+                  <div style={{ background: 'rgba(37, 211, 102, 0.15)', color: '#25D366', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <WhatsAppIcon size={32} />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>WhatsApp Inbox</h2>
+                  <p style={{ fontSize: 11.5, fontWeight: 800, color: '#25D366', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Chat & Order Management</p>
+                  <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+                    Manage every WhatsApp order and conversation from one inbox — reply, send receipts, and follow up on unpaid orders without leaving your dashboard.
+                  </p>
+
+                  <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>All WhatsApp orders in one inbox</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Quick reply & receipt templates</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Real-time unpaid order alerts</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => openUpgradePrompt(
+                      'WhatsApp Inbox requires Pro',
+                      'The dedicated WhatsApp inbox for managing orders and conversations is available on Pro. You can review the plan before upgrading.'
+                    )}
+                    className="btn btn-primary clickable"
+                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
+                  >
+                    <Zap size={16} /> Upgrade to Pro to Unlock Inbox
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'whatsapp' && isPro && (() => {
                 if (waOrders.length === 0 && !waLoading) loadWaOrders();
                 const sym = getCurrencySymbol(store?.currency_code);
                 const filtered = waOrders.filter(o =>
@@ -3768,6 +3955,445 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* ── TAB: MY QR CODE ── */}
+              {activeTab === 'qr' && !isPro && (
+                <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
+                  <div style={{ background: 'rgba(98, 16, 159, 0.12)', color: 'var(--primary)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <QrCode size={32} />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>My QR Code</h2>
+                  <p style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Print-Ready Store QR</p>
+                  <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+                    Get a branded, downloadable QR flyer for your store so customers can scan and shop instantly — perfect for packaging, receipts, and signage.
+                  </p>
+
+                  <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Printable, branded store QR flyer</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Instant scan-to-shop for customers</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>High-res downloads for print</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => openUpgradePrompt(
+                      'My QR Code requires Pro',
+                      'Downloadable, print-ready store QR flyers are available on Pro. You can review the plan before upgrading.'
+                    )}
+                    className="btn btn-primary clickable"
+                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
+                  >
+                    <Zap size={16} /> Upgrade to Pro to Unlock QR Code
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'qr' && isPro && (() => {
+                const qrUrl = store?.custom_domain
+                  ? `https://${store.custom_domain}`
+                  : `https://${systemDomain}/${store?.username}`;
+                const storeName = store?.store_name || store?.username || 'My Store';
+
+                // ── Download full flyer as PNG ──────────────────────────────────────
+                const downloadFlyer = async () => {
+                  const svg = document.getElementById('merchant-qr-svg');
+                  if (!svg) return;
+                  const serialized = new XMLSerializer().serializeToString(svg);
+                  const W = 900, H = 1200, M = 64;
+                  const canvas = document.createElement('canvas');
+                  canvas.width = W; canvas.height = H;
+                  const ctx = canvas.getContext('2d');
+                  if (!ctx) return;
+
+                  // Background
+                  const grad = ctx.createLinearGradient(0, 0, W * 0.4, H);
+                  grad.addColorStop(0, '#1a0830');
+                  grad.addColorStop(1, '#0c0418');
+                  ctx.fillStyle = grad;
+                  ctx.fillRect(0, 0, W, H);
+
+                  // Decorative orbs
+                  ctx.save();
+                  ctx.globalAlpha = 0.12;
+                  ctx.fillStyle = '#8b21f0';
+                  ctx.beginPath(); ctx.arc(W * 0.88, H * 0.1, 220, 0, Math.PI * 2); ctx.fill();
+                  ctx.beginPath(); ctx.arc(W * 0.08, H * 0.82, 160, 0, Math.PI * 2); ctx.fill();
+                  ctx.restore();
+
+                  // Top accent bar
+                  const barGrad = ctx.createLinearGradient(0, 0, W, 0);
+                  barGrad.addColorStop(0, '#62109F');
+                  barGrad.addColorStop(1, '#9b30f0');
+                  ctx.fillStyle = barGrad;
+                  ctx.fillRect(0, 0, W, 8);
+
+                  // ── Header: logo + store name, left-aligned ──
+                  const headerSz = store?.logo_url ? 110 : 0;
+                  let nameX = M;
+                  if (store?.logo_url) {
+                    try {
+                      const logoImg = new Image();
+                      logoImg.crossOrigin = 'anonymous';
+                      await new Promise<void>(res => { logoImg.onload = () => res(); logoImg.onerror = () => res(); logoImg.src = store.logo_url!; });
+                      if (logoImg.naturalWidth > 0) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.roundRect(M, M, headerSz, headerSz, 22);
+                        ctx.clip();
+                        ctx.drawImage(logoImg, M, M, headerSz, headerSz);
+                        ctx.restore();
+                        nameX = M + headerSz + 28;
+                      }
+                    } catch { /* ignore */ }
+                  }
+                  ctx.textAlign = 'left';
+                  ctx.fillStyle = '#ffffff';
+                  ctx.font = 'bold 52px Arial, sans-serif';
+                  const nameText = storeName.length > 20 ? storeName.slice(0, 20) + '…' : storeName;
+                  ctx.fillText(nameText, nameX, M + headerSz / 2 + 18);
+                  let yOffset = M + Math.max(headerSz, 70) + 44;
+
+                  // ── Bio — wrapped to max 3 lines, left-aligned ──
+                  if (store?.store_bio) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                    ctx.font = '30px Arial, sans-serif';
+                    const maxWidth = W - M * 2;
+                    const words = store.store_bio.split(' ');
+                    const lines: string[] = [];
+                    let line = '';
+                    for (const word of words) {
+                      const test = line ? `${line} ${word}` : word;
+                      if (ctx.measureText(test).width > maxWidth && line) {
+                        lines.push(line);
+                        line = word;
+                        if (lines.length === 2) break;
+                      } else {
+                        line = test;
+                      }
+                    }
+                    if (line && lines.length < 3) lines.push(line);
+                    lines.forEach((l, i) => ctx.fillText(l, M, yOffset + i * 42));
+                    yOffset += lines.length * 42 + 20;
+                  }
+
+                  // ── Divider ──
+                  yOffset += 24;
+                  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                  ctx.lineWidth = 2;
+                  ctx.beginPath(); ctx.moveTo(M, yOffset); ctx.lineTo(W - M, yOffset); ctx.stroke();
+                  yOffset += 50;
+
+                  // ── Contact rows ──
+                  ctx.font = '30px Arial, sans-serif';
+                  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+                  if (store?.whatsapp_phone) {
+                    ctx.fillText(`📞  ${store.whatsapp_phone}`, M, yOffset);
+                    yOffset += 52;
+                  }
+                  if (store?.location) {
+                    ctx.fillText(`📍  ${store.location}`, M, yOffset);
+                    yOffset += 52;
+                  }
+
+                  // ── QR code, bottom-right, beneath the merchant info ──
+                  const qrImg = new Image();
+                  await new Promise<void>(res => { qrImg.onload = () => res(); qrImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(serialized))); });
+
+                  const qrSize = 220, qrPad = 20;
+                  const qrBoxSize = qrSize + qrPad * 2;
+                  const qrBoxX = W - M - qrBoxSize;
+                  const qrBoxY = H - M - qrBoxSize - 56;
+
+                  ctx.fillStyle = '#ffffff';
+                  ctx.beginPath(); ctx.roundRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 22); ctx.fill();
+                  ctx.drawImage(qrImg, qrBoxX + qrPad, qrBoxY + qrPad, qrSize, qrSize);
+
+                  const appLogo = new Image();
+                  await new Promise<void>(res => { appLogo.onload = () => res(); appLogo.onerror = () => res(); appLogo.src = '/icon.png'; });
+                  if (appLogo.naturalWidth > 0) {
+                    const lSz = 48;
+                    const lX = qrBoxX + qrPad + (qrSize - lSz) / 2;
+                    const lY = qrBoxY + qrPad + (qrSize - lSz) / 2;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath(); ctx.roundRect(lX - 6, lY - 6, lSz + 12, lSz + 12, 12); ctx.fill();
+                    ctx.drawImage(appLogo, lX, lY, lSz, lSz);
+                  }
+
+                  ctx.textAlign = 'center';
+                  ctx.fillStyle = '#c084fc';
+                  ctx.font = '22px Arial, sans-serif';
+                  ctx.fillText(qrUrl.replace('https://', ''), qrBoxX + qrBoxSize / 2, qrBoxY + qrBoxSize + 34);
+
+                  // ── CTA + footer, bottom-left, level with the QR block ──
+                  ctx.textAlign = 'left';
+                  ctx.fillStyle = '#ffffff';
+                  ctx.font = 'bold 32px Arial, sans-serif';
+                  ctx.fillText('📱 Scan to Shop', M, qrBoxY + 40);
+                  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+                  ctx.font = '24px Arial, sans-serif';
+                  ctx.fillText('on WhatsApp', M, qrBoxY + 76);
+                  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+                  ctx.font = '22px Arial, sans-serif';
+                  ctx.fillText('Powered by Frontstore', M, H - M);
+
+                  const link = document.createElement('a');
+                  link.download = `${store?.username ?? 'store'}-flyer.png`;
+                  link.href = canvas.toDataURL('image/png');
+                  link.click();
+                };
+
+                // ── Print flyer ────────────────────────────────────────────────────
+                const printFlyer = () => {
+                  const svg = document.getElementById('merchant-qr-svg');
+                  if (!svg) return;
+                  const serialized = new XMLSerializer().serializeToString(svg);
+                  const b64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(serialized)));
+                  const win = window.open('', '_blank');
+                  if (!win) return;
+                  win.document.write(`<!DOCTYPE html>
+<html><head><title>${storeName} — Store Flyer</title>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+  @page { size: auto; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
+  html, body { width: 100%; height: 100%; }
+  body { font-family: Inter, Arial, sans-serif; background: #128C7E; }
+  .flyer { width: 100vw; height: 100vh; background: linear-gradient(160deg, #128C7E 0%, #075E52 100%); padding: 8vh 7vw; display: flex; flex-direction: column; justify-content: space-between; gap: 40px; position: relative; overflow: hidden; }
+  .flyer::before { content: ''; position: absolute; top: -15vh; right: -15vh; width: 45vh; height: 45vh; border-radius: 50%; background: rgba(37,211,102,0.22); }
+  .flyer::after { content: ''; position: absolute; bottom: -12vh; left: -12vh; width: 35vh; height: 35vh; border-radius: 50%; background: rgba(100,255,218,0.14); }
+  .accent { position: absolute; top: 0; left: 0; right: 0; height: 10px; background: linear-gradient(90deg, #0A192F, #25D366); }
+  .header { display: flex; align-items: center; gap: 24px; z-index: 1; }
+  .store-logo { width: 96px; height: 96px; border-radius: 22px; object-fit: cover; flex-shrink: 0; }
+  .store-name { color: #fff; font-size: 44px; font-weight: 900; letter-spacing: -0.5px; }
+  .store-bio { color: rgba(255,255,255,0.7); font-size: 18px; line-height: 1.6; z-index: 1; max-width: 65%; }
+  .divider { height: 1px; background: rgba(255,255,255,0.12); z-index: 1; }
+  .contacts { display: flex; flex-direction: column; gap: 12px; z-index: 1; }
+  .contact-row { color: rgba(255,255,255,0.8); font-size: 20px; font-weight: 600; }
+  .bottom-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; z-index: 1; }
+  .cta { color: #fff; font-size: 26px; font-weight: 700; }
+  .cta-sub { color: rgba(255,255,255,0.65); font-size: 16px; margin-top: 4px; }
+  .footer { color: rgba(255,255,255,0.45); font-size: 13px; margin-top: 18px; }
+  .qr-col { display: flex; flex-direction: column; align-items: center; gap: 12px; flex-shrink: 0; }
+  .qr-wrap { background: #fff; padding: 22px; border-radius: 24px; position: relative; box-shadow: 0 8px 40px rgba(0,0,0,0.4); }
+  .qr-img { width: 220px; height: 220px; display: block; }
+  .qr-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 52px; height: 52px; border-radius: 12px; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.18); object-fit: contain; }
+  .url { color: #64FFDA; font-size: 16px; font-weight: 600; }
+  @media print { .flyer { width: 100%; height: 100%; } }
+</style></head>
+<body>
+  <div class="flyer">
+    <div class="accent"></div>
+    <div class="header">
+      ${store?.logo_url ? `<img class="store-logo" src="${store.logo_url}" alt="${storeName}" />` : ''}
+      <div class="store-name">${storeName}</div>
+    </div>
+    ${store?.store_bio ? `<div class="store-bio">${store.store_bio}</div>` : ''}
+    <div class="divider"></div>
+    <div class="contacts">
+      ${store?.whatsapp_phone ? `<div class="contact-row">📞 ${store.whatsapp_phone}</div>` : ''}
+      ${store?.location ? `<div class="contact-row">📍 ${store.location}</div>` : ''}
+    </div>
+    <div class="bottom-row">
+      <div>
+        <div class="cta">📱 Scan to Shop on WhatsApp</div>
+        <div class="cta-sub">Powered by Frontstore</div>
+        <div class="footer">frontstore.app</div>
+      </div>
+      <div class="qr-col">
+        <div class="qr-wrap">
+          <img class="qr-img" src="${b64}" alt="QR Code" />
+          <img class="qr-logo" src="/icon.png" alt="Frontstore" />
+        </div>
+        <div class="url">${qrUrl.replace('https://', '')}</div>
+      </div>
+    </div>
+  </div>
+  <script>window.onload = () => { setTimeout(() => { window.print(); }, 600); }<\/script>
+</body></html>`);
+                  win.document.close();
+                };
+
+                return (
+                  <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <div>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 900 }}>My QR Code</h2>
+                      <p style={{ fontSize: 13.5, color: 'var(--text-muted)', marginTop: 4 }}>
+                        Download or print this flyer and display it in your physical store so customers can scan to shop online.
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: 24, alignItems: 'start' }} className="responsive-share-grid">
+                      {/* ── Flyer Preview Card ── */}
+                      <div style={{
+                        background: 'linear-gradient(160deg, #1a0830 0%, #0c0418 100%)',
+                        borderRadius: 24,
+                        padding: 28,
+                        display: 'flex', flexDirection: 'column', gap: 16,
+                        position: 'relative', overflow: 'hidden',
+                        boxShadow: '0 32px 80px rgba(0,0,0,0.5)',
+                      }}>
+                        {/* Top accent bar */}
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: 'linear-gradient(90deg,#62109F,#9b30f0)', borderRadius: '24px 24px 0 0' }} />
+                        {/* BG orbs */}
+                        <div style={{ position: 'absolute', top: -70, right: -70, width: 220, height: 220, borderRadius: '50%', background: 'rgba(139,33,240,0.15)' }} />
+                        <div style={{ position: 'absolute', bottom: -50, left: -50, width: 160, height: 160, borderRadius: '50%', background: 'rgba(139,33,240,0.08)' }} />
+
+                        {/* Header: logo + store name, left-aligned */}
+                        <div style={{ zIndex: 1, display: 'flex', alignItems: 'center', gap: 14 }}>
+                          {store?.logo_url && (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img src={store.logo_url} alt={storeName} style={{ width: 56, height: 56, borderRadius: 14, objectFit: 'cover', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', flexShrink: 0, border: '2px solid rgba(255,255,255,0.15)' }} />
+                          )}
+                          <div style={{ color: '#fff', fontWeight: 900, fontSize: 19, letterSpacing: -0.3 }}>{storeName}</div>
+                        </div>
+
+                        {/* Bio */}
+                        {store?.store_bio && (
+                          <div style={{ zIndex: 1, color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 1.5 }}>
+                            {store.store_bio.length > 140 ? store.store_bio.slice(0, 140) + '…' : store.store_bio}
+                          </div>
+                        )}
+
+                        {/* Divider */}
+                        <div style={{ zIndex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
+
+                        {/* Contact rows */}
+                        {(store?.whatsapp_phone || store?.location) && (
+                          <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {store?.whatsapp_phone && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.75)', fontSize: 13, fontWeight: 600 }}>
+                                <Phone size={14} color="rgba(255,255,255,0.5)" /> {store.whatsapp_phone}
+                              </div>
+                            )}
+                            {store?.location && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.75)', fontSize: 13, fontWeight: 600 }}>
+                                <MapPin size={14} color="rgba(255,255,255,0.5)" /> {store.location}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Bottom row: CTA left, QR bottom-right beneath the info above */}
+                        <div style={{ zIndex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, marginTop: 4 }}>
+                          <div>
+                            <div style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>📱 Scan to Shop</div>
+                            <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 1 }}>on WhatsApp</div>
+                            <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 10.5, marginTop: 10 }}>Powered by Frontstore</div>
+                          </div>
+
+                          {/* QR Code — smaller, anchored bottom-right */}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                            <div style={{
+                              background: '#fff',
+                              padding: 10,
+                              borderRadius: 16,
+                              boxShadow: '0 8px 40px rgba(0,0,0,0.45)',
+                              position: 'relative',
+                            }}>
+                              <div style={{ position: 'relative', width: 110, height: 110 }}>
+                                <QRCodeSVG
+                                  id="merchant-qr-svg"
+                                  value={qrUrl}
+                                  size={110}
+                                  fgColor="#1a0830"
+                                  bgColor="#ffffff"
+                                  level="H"
+                                  style={{ display: 'block' }}
+                                />
+                                <div style={{
+                                  position: 'absolute',
+                                  top: '50%', left: '50%',
+                                  transform: 'translate(-50%, -50%)',
+                                  width: 26, height: 26,
+                                  borderRadius: 7,
+                                  background: '#fff',
+                                  boxShadow: '0 2px 14px rgba(0,0,0,0.22)',
+                                  overflow: 'hidden',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src="/icon.png" alt="Frontstore" style={{ width: 22, height: 22, borderRadius: 5, display: 'block' }} />
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ color: '#c084fc', fontSize: 10.5, fontWeight: 600 }}>{qrUrl.replace('https://', '')}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ── Actions panel ── */}
+                      <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        <div>
+                          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Share your store</h3>
+                          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.5 }}>
+                            Download the flyer as an image, copy your store link, or print it directly to hang up in your physical store.
+                          </p>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                          <button
+                            onClick={downloadFlyer}
+                            className="clickable"
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 10,
+                              padding: '14px 16px', borderRadius: 14,
+                              background: 'linear-gradient(135deg,#62109F,#9b30f0)',
+                              border: 'none', cursor: 'pointer', boxShadow: '0 4px 20px rgba(98,16,159,0.4)',
+                            }}
+                          >
+                            <Download size={18} color="#fff" />
+                            <span style={{ fontSize: 13.5, fontWeight: 700, color: '#fff' }}>Download Flyer</span>
+                          </button>
+
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(qrUrl); toast.success('Store link copied!'); }}
+                            className="clickable"
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 10,
+                              padding: '14px 16px', borderRadius: 14,
+                              background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <Copy size={18} color="var(--text)" />
+                            <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>Copy Link</span>
+                          </button>
+
+                          <button
+                            onClick={printFlyer}
+                            className="clickable"
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 10,
+                              padding: '14px 16px', borderRadius: 14,
+                              background: 'var(--surface-2)', border: '1.5px solid var(--border)',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <Printer size={18} color="var(--text)" />
+                            <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>Print Flyer</span>
+                          </button>
+                        </div>
+
+                        <div style={{ background: 'var(--bg-2)', padding: 14, borderRadius: 'var(--r-lg)', border: '1px solid var(--border)' }}>
+                          <span style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Store URL</span>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginTop: 4, wordBreak: 'break-all' }}>
+                            {qrUrl.replace('https://', '')}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* ── TAB: STOREFRONT DESIGN (color only) ── */}
               {activeTab === 'templates' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }} className="animate-fade-in">
@@ -3911,8 +4537,38 @@ export default function DashboardPage() {
 
               {activeTab === 'settings' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+
+                  {/* Settings Sub-Tab Navigation */}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', borderBottom: '1px solid var(--border)', paddingBottom: 4 }}>
+                    {([
+                      { id: 'profile', label: 'Profile', icon: <FileText size={14} /> },
+                      { id: 'design', label: 'Design', icon: <Palette size={14} /> },
+                      { id: 'social', label: 'Social & Links', icon: <Link size={14} /> },
+                      { id: 'payment', label: 'Payment', icon: <DollarSign size={14} /> },
+                      { id: 'security', label: 'Security', icon: <Key size={14} /> },
+                    ] as const).map(sub => (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => setSettingsSubTab(sub.id)}
+                        className="clickable"
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6,
+                          padding: '10px 16px', fontSize: 13, fontWeight: 800,
+                          border: 'none', borderBottom: settingsSubTab === sub.id ? '2.5px solid var(--primary)' : '2.5px solid transparent',
+                          background: 'none', cursor: 'pointer',
+                          color: settingsSubTab === sub.id ? 'var(--primary)' : 'var(--text-muted)',
+                          marginBottom: -5,
+                        }}
+                      >
+                        {sub.icon} {sub.label}
+                      </button>
+                    ))}
+                  </div>
+
                   <form onSubmit={handleSettingsSave} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }} className="responsive-settings-grid">
+                    {settingsSubTab === 'profile' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
                       {/* Left Column Card: Store Details & Info */}
                       <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -3936,8 +4592,13 @@ export default function DashboardPage() {
 
                         <div className="responsive-form-row">
                           <div>
-                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store URL Username</label>
-                            <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid var(--border)', borderRadius: 'var(--r-md)', background: 'var(--surface)', overflow: 'hidden' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                              Store URL Username
+                              {!isPro && (
+                                <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: 'var(--danger)', padding: '2px 7px', borderRadius: 'var(--r-full)', textTransform: 'none' }}>Pro</span>
+                              )}
+                            </label>
+                            <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid var(--border)', borderRadius: 'var(--r-md)', background: isPro ? 'var(--surface)' : 'var(--bg-2)', overflow: 'hidden', opacity: isPro ? 1 : 0.75 }}>
                               <span style={{ padding: '0 12px', fontSize: 13, fontWeight: 750, color: 'var(--text-muted)', borderRight: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
                                 {systemDomain}/
                               </span>
@@ -3949,11 +4610,27 @@ export default function DashboardPage() {
                                 value={setStoreUsername}
                                 onChange={e => setSetStoreUsername(normalizeUsernameInput(e.target.value))}
                                 placeholder="my-store"
-                                style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', padding: '13px 14px', background: 'transparent', color: 'var(--text)', fontSize: 14.5, fontWeight: 700 }}
+                                disabled={!isPro}
+                                readOnly={!isPro}
+                                style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', padding: '13px 14px', background: 'transparent', color: isPro ? 'var(--text)' : 'var(--text-muted)', fontSize: 14.5, fontWeight: 700, cursor: isPro ? 'text' : 'not-allowed' }}
                               />
                             </div>
                             <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-                              This controls your public store link. Use letters, numbers, hyphens, or underscores.
+                              {isPro
+                                ? 'This controls your public store link. Use letters, numbers, hyphens, or underscores.'
+                                : 'Free plan usernames are locked after setup. '}
+                              {!isPro && (
+                                <button
+                                  type="button"
+                                  onClick={() => openUpgradePrompt(
+                                    'Changing your username requires Pro',
+                                    'Upgrade to Pro to change your store URL username at any time. Usernames stay unique across all merchants.'
+                                  )}
+                                  style={{ fontSize: 11, color: 'var(--primary)', fontWeight: 800, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline' }}
+                                >
+                                  Upgrade to Pro to change it
+                                </button>
+                              )}
                             </span>
                           </div>
                           <div>
@@ -3983,6 +4660,22 @@ export default function DashboardPage() {
                         </div>
 
                         <div>
+                          <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Established Since (Year)</label>
+                          <input
+                            type="number"
+                            value={setStoreSince}
+                            onChange={e => setSetStoreSince(e.target.value)}
+                            className="input-field"
+                            placeholder="e.g. 2019"
+                            min={1900}
+                            max={new Date().getFullYear()}
+                          />
+                          <span style={{ display: 'block', fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>
+                            Shown on your storefront as "X yrs in practice". Leave blank to hide it.
+                          </span>
+                        </div>
+
+                        <div>
                           <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Description (Bio)</label>
                           <textarea
                             rows={3}
@@ -3996,121 +4689,121 @@ export default function DashboardPage() {
 
                         <div className="responsive-form-row">
                           <div>
-                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>WhatsApp Number</label>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                              <label style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>WhatsApp Number</label>
+                              {!isChangingWhatsapp && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsChangingWhatsapp(true);
+                                    setWhatsappOtpStage('entry');
+                                    setNewWhatsappDialCode(selectedCountry.dialCode);
+                                    setNewWhatsappLocal('');
+                                  }}
+                                  style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: 11.5, fontWeight: 800, cursor: 'pointer', padding: 0 }}
+                                >
+                                  Change number
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Current number — read-only, changed only via the verified flow below */}
                             <div style={{
                               display: 'flex',
                               alignItems: 'center',
+                              gap: 10,
                               border: '1.5px solid var(--border)',
                               borderRadius: 'var(--r-md)',
-                              background: 'var(--surface)',
-                              transition: 'all var(--t-fast)',
-                              position: 'relative'
+                              background: 'var(--bg-2)',
+                              padding: '13px 14px',
                             }}>
-                              {/* Country Code Trigger Button */}
-                              <button
-                                type="button"
-                                onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 6,
-                                  padding: '0 14px',
-                                  height: '100%',
-                                  minHeight: 46,
-                                  background: 'none',
-                                  border: 'none',
-                                  borderRight: '1px solid var(--border)',
-                                  cursor: 'pointer',
-                                  fontSize: 15,
-                                  color: 'var(--text)',
-                                  fontWeight: 600,
-                                  userSelect: 'none'
-                                }}
-                              >
-                                <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
-                                <span>{selectedCountry.dialCode}</span>
-                                <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
-                              </button>
-
-                              {/* Real Phone Input */}
-                              <input
-                                type="tel"
-                                required
-                                placeholder="e.g. 803 123 4567"
-                                value={localWhatsapp}
-                                onChange={e => setLocalWhatsapp(e.target.value)}
-                                style={{
-                                  flex: 1,
-                                  padding: '13px 14px',
-                                  border: 'none',
-                                  fontSize: 15,
-                                  outline: 'none',
-                                  background: 'transparent',
-                                  color: 'var(--text)',
-                                  minWidth: 0,
-                                }}
-                                autoComplete="tel"
-                              />
-
-                              {/* Dropdown Menu */}
-                              {isCountryDropdownOpen && (
-                                <div className="glass animate-scale-in" style={{
-                                  position: 'absolute',
-                                  top: '110%',
-                                  left: 0,
-                                  width: 280,
-                                  maxHeight: 250,
-                                  overflowY: 'auto',
-                                  borderRadius: 'var(--r-lg)',
-                                  border: '1px solid var(--border)',
-                                  background: 'var(--surface)',
-                                  boxShadow: 'var(--shadow-lg)',
-                                  zIndex: 100,
-                                  padding: '6px 0'
-                                }}>
-                                  {countries.map((c, idx) => (
-                                    <button
-                                      key={c.code}
-                                      type="button"
-                                      onMouseEnter={() => setHoveredCountryIndex(idx)}
-                                      onMouseLeave={() => setHoveredCountryIndex(null)}
-                                      onClick={() => {
-                                        setSelectedCountry(c);
-                                        setIsCountryDropdownOpen(false);
-                                      }}
-                                      style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        width: '100%',
-                                        padding: '10px 14px',
-                                        background: selectedCountry.code === c.code
-                                          ? 'var(--primary-light)'
-                                          : hoveredCountryIndex === idx
-                                            ? 'var(--bg-2)'
-                                            : 'none',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        fontSize: 14,
-                                        textAlign: 'left',
-                                        color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)',
-                                        fontWeight: selectedCountry.code === c.code ? 750 : 600,
-                                        transition: 'background var(--t-fast)'
-                                      }}
-                                    >
-                                      <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                        <span style={{ fontSize: 18 }}>{c.flag}</span>
-                                        <span>{c.name}</span>
-                                      </span>
-                                      <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{c.dialCode}</span>
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
+                              <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
+                              <span style={{ fontSize: 15, color: 'var(--text)' }}>{selectedCountry.dialCode} {localWhatsapp || '—'}</span>
                             </div>
-                            <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-                              Enter local number (e.g. 0808 943 7483). Country code is added automatically.
-                            </span>
+
+                            {isChangingWhatsapp && (
+                              <div style={{
+                                marginTop: 10,
+                                padding: 14,
+                                borderRadius: 'var(--r-md)',
+                                border: '1.5px dashed var(--border)',
+                                background: 'var(--bg-2)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 10,
+                              }}>
+                                {whatsappOnCooldown ? (
+                                  <>
+                                    <p style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
+                                      You can change your WhatsApp number again on{' '}
+                                      <strong style={{ color: 'var(--text)' }}>{whatsappCooldownUntil!.toLocaleDateString()}</strong>.
+                                      Upgrade to Pro to change it anytime, with no waiting period.
+                                    </p>
+                                    <button type="button" onClick={() => setIsChangingWhatsapp(false)} className="btn btn-ghost" style={{ alignSelf: 'flex-start', fontSize: 12.5, padding: '8px 14px' }}>
+                                      Cancel
+                                    </button>
+                                  </>
+                                ) : whatsappOtpStage === 'entry' ? (
+                                  <>
+                                    <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>
+                                      We'll text a verification code to the new number before it replaces your current one.
+                                      {!isPro && ' Free stores can do this once every 30 days.'}
+                                    </p>
+                                    <div style={{ display: 'flex', gap: 8 }}>
+                                      <div style={{ width: 130 }}>
+                                        <SearchableSelect
+                                          options={countries.map(c => ({ value: c.dialCode, label: `${c.flag} ${c.dialCode}` }))}
+                                          value={newWhatsappDialCode}
+                                          onChange={setNewWhatsappDialCode}
+                                          placeholder="Code"
+                                        />
+                                      </div>
+                                      <input
+                                        type="tel"
+                                        placeholder="e.g. 803 123 4567"
+                                        value={newWhatsappLocal}
+                                        onChange={e => setNewWhatsappLocal(e.target.value)}
+                                        className="input-field"
+                                        style={{ flex: 1 }}
+                                        autoComplete="tel"
+                                      />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8 }}>
+                                      <button type="button" onClick={handleSendWhatsappOtp} disabled={whatsappOtpSending} className="btn btn-primary" style={{ fontSize: 12.5, padding: '8px 14px' }}>
+                                        {whatsappOtpSending ? 'Sending…' : 'Send verification code'}
+                                      </button>
+                                      <button type="button" onClick={() => setIsChangingWhatsapp(false)} className="btn btn-ghost" style={{ fontSize: 12.5, padding: '8px 14px' }}>
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>
+                                      Enter the 6-digit code sent to {newWhatsappDialCode} {newWhatsappLocal}.
+                                    </p>
+                                    <input
+                                      type="text"
+                                      inputMode="numeric"
+                                      maxLength={6}
+                                      placeholder="123456"
+                                      value={whatsappOtpCode}
+                                      onChange={e => setWhatsappOtpCode(e.target.value.replace(/\D/g, ''))}
+                                      className="input-field"
+                                      style={{ maxWidth: 160, letterSpacing: 4, textAlign: 'center', fontWeight: 700 }}
+                                    />
+                                    <div style={{ display: 'flex', gap: 8 }}>
+                                      <button type="button" onClick={handleVerifyWhatsappOtp} disabled={whatsappOtpVerifying} className="btn btn-primary" style={{ fontSize: 12.5, padding: '8px 14px' }}>
+                                        {whatsappOtpVerifying ? 'Verifying…' : 'Verify & update'}
+                                      </button>
+                                      <button type="button" onClick={() => setWhatsappOtpStage('entry')} className="btn btn-ghost" style={{ fontSize: 12.5, padding: '8px 14px' }}>
+                                        Back
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div>
                             <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Currency</label>
@@ -4127,6 +4820,39 @@ export default function DashboardPage() {
                               onChange={val => setSetCurrency(val)}
                               placeholder="Select Currency"
                             />
+                          </div>
+                        </div>
+
+                        <div className="responsive-form-row">
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Country</label>
+                            <SearchableSelect
+                              options={metaCountries.map(c => ({ value: c.code, label: c.name }))}
+                              value={setStoreCountryCode}
+                              onChange={val => setSetStoreCountryCode(val)}
+                              placeholder="Select Country"
+                              disabled={!!store?.country_code}
+                            />
+                            <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                              {store?.country_code
+                                ? 'Locked once set. Contact support to change your store country.'
+                                : 'Determines which payment providers you can accept below.'}
+                            </span>
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Payment Provider</label>
+                            <SearchableSelect
+                              options={Array.from(new Set([...availableProviders, 'manual'])).map(p => ({
+                                value: p,
+                                label: p === 'paystack' ? 'Paystack' : p === 'flutterwave' ? 'Flutterwave' : p === 'stripe' ? 'Stripe' : 'Manual (Bank Transfer)',
+                              }))}
+                              value={setPaymentProvider}
+                              onChange={val => setSetPaymentProvider(val)}
+                              placeholder="Select Payment Provider"
+                            />
+                            <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                              Only providers enabled for your country are shown. Contact support if you need another option.
+                            </span>
                           </div>
                         </div>
 
@@ -4170,7 +4896,9 @@ export default function DashboardPage() {
                           marginTop: 4
                         }}>
                           <div>
-                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0 }}>✍️ Storefront Writing</h3>
+                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <PenLine size={16} color="var(--primary)" /> Storefront Writing
+                            </h3>
                             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.45 }}>
                               Control the words customers see on your public storefront. Free stores always show the active template name.
                             </p>
@@ -4187,7 +4915,7 @@ export default function DashboardPage() {
                               background: 'var(--bg-3)',
                               border: '1px solid var(--border)',
                             }}>
-                              <span style={{ fontSize: 20 }}>💼</span>
+                              <Briefcase size={20} color="var(--primary)" />
                               <div>
                                 <strong style={{ display: 'block', fontSize: 14, color: 'var(--text)' }}>
                                   {businessPersonas.find(p => p.id === selectedPersona)?.name || 'Custom / Unassigned'}
@@ -4270,6 +4998,11 @@ export default function DashboardPage() {
 
                       </div>
 
+                    </div>
+                    )}
+
+                    {settingsSubTab === 'design' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                       {/* Right Column Card: Design & Customization */}
                       <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
                         <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -4415,6 +5148,9 @@ export default function DashboardPage() {
 
                           <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                             🎨 Storefront Branding & Colors
+                            {!isPro && (
+                              <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: 'var(--danger)', padding: '2px 7px', borderRadius: 'var(--r-full)' }}>Pro</span>
+                            )}
                           </h3>
                           <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.4 }}>
                             Customize the primary color of your storefront buttons, highlights, and icons.
@@ -4560,21 +5296,18 @@ export default function DashboardPage() {
                             ].map(sec => {
                               const isEnabled = storefrontSections.includes(sec.id);
                               return (
-                                <label key={sec.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, cursor: 'pointer', userSelect: 'none' }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={isEnabled}
-                                    onChange={() => {
-                                      if (isEnabled) {
-                                        setStorefrontSections(prev => prev.filter(x => x !== sec.id));
-                                      } else {
-                                        setStorefrontSections(prev => [...prev, sec.id]);
-                                      }
-                                    }}
-                                    style={{ width: 16, height: 16, cursor: 'pointer' }}
-                                  />
-                                  <span>{sec.label}</span>
-                                </label>
+                                <Toggle
+                                  key={sec.id}
+                                  checked={isEnabled}
+                                  onChange={(next) => {
+                                    if (!next) {
+                                      setStorefrontSections(prev => prev.filter(x => x !== sec.id));
+                                    } else {
+                                      setStorefrontSections(prev => [...prev, sec.id]);
+                                    }
+                                  }}
+                                  label={<span style={{ fontSize: 13 }}>{sec.label}</span>}
+                                />
                               );
                             })}
                           </div>
@@ -4704,8 +5437,9 @@ export default function DashboardPage() {
                       </div>
 
                     </div>
+                    )}
 
-                    {/* Submit Bar */}
+                    {(settingsSubTab === 'profile' || settingsSubTab === 'design') && (
                     <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: 16 }}>
                       <button
                         type="submit"
@@ -4716,9 +5450,12 @@ export default function DashboardPage() {
                         {settingsSaving ? <><Loader2 size={16} className="spinner" /> Saving...</> : 'Save Configuration Changes'}
                       </button>
                     </div>
+                    )}
 
                   </form>
 
+                  {settingsSubTab === 'security' && (
+                  <>
                   {/* SECOND ROW: Security & Context */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }} className="responsive-settings-grid">
                     
@@ -4860,7 +5597,11 @@ export default function DashboardPage() {
                     </div>
 
                   </div>
+                  </>
+                  )}
 
+                  {settingsSubTab === 'social' && (
+                  <>
                   {/* ── CUSTOM DOMAIN CONFIGURATION CARD (temporarily disabled — DNS infra not ready yet) ── */}
                   {false && (
                   <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24, position: 'relative', overflow: 'hidden' }}>
@@ -4895,7 +5636,7 @@ export default function DashboardPage() {
                           className="btn btn-primary clickable"
                           style={{ padding: '8px 20px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13 }}
                         >
-                          Upgrade to Pro (₦1,500/mo)
+                          Upgrade to Pro (₦{proMonthlyPrice.toLocaleString()}/mo)
                         </button>
                       </div>
                     )}
@@ -4974,18 +5715,14 @@ export default function DashboardPage() {
                               </button>
                             </div>
 
-                            {/* Bypass checkbox */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-                              <input
-                                type="checkbox"
+                            {/* Bypass toggle */}
+                            <div style={{ marginTop: 12 }}>
+                              <Toggle
                                 id="bypass-dns-checkbox"
                                 checked={customDomainBypassDNS}
-                                onChange={e => setCustomDomainBypassDNS(e.target.checked)}
-                                style={{ cursor: 'pointer', width: 15, height: 15 }}
+                                onChange={setCustomDomainBypassDNS}
+                                label={<span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Simulate DNS check (local/testing)</span>}
                               />
-                              <label htmlFor="bypass-dns-checkbox" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', cursor: 'pointer' }}>
-                                Simulate DNS check (local/testing)
-                              </label>
                             </div>
                           </div>
 
@@ -5159,15 +5896,11 @@ export default function DashboardPage() {
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-                                <input
-                                  type="checkbox"
-                                  checked={linkActive}
-                                  onChange={e => setLinkActive(e.target.checked)}
-                                  style={{ width: 16, height: 16, accentColor: 'var(--primary)' }}
-                                />
-                                Show link on storefront
-                              </label>
+                              <Toggle
+                                checked={linkActive}
+                                onChange={setLinkActive}
+                                label={<span style={{ fontSize: 13, fontWeight: 700 }}>Show link on storefront</span>}
+                              />
 
                               <div style={{ display: 'flex', gap: 10 }}>
                                 <button
@@ -5475,7 +6208,11 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </div>
+                  </>
+                  )}
 
+                  {settingsSubTab === 'payment' && (
+                  <>
                   {/* ── PAYMENT ACCOUNTS CARD ── */}
                   {store?.payment_provider === 'stripe' ? (
                   <div className="card" style={{ padding: 28 }}>
@@ -5515,7 +6252,7 @@ export default function DashboardPage() {
                     }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          <span style={{ fontSize: 18 }}>💳</span>
+                          <CreditCard size={18} color="var(--primary)" />
                           <strong style={{ fontSize: 14.5 }}>Stripe Connect account</strong>
                           {store?.stripe_payouts_enabled && (
                             <span className="badge badge-primary" style={{ fontSize: 10 }}>Active</span>
@@ -5601,10 +6338,13 @@ export default function DashboardPage() {
                       }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                            <span style={{ fontSize: 18 }}>🏦</span>
+                            <Landmark size={18} color="var(--primary)" />
                             <strong style={{ fontSize: 14.5 }}>Dedicated Paystack account</strong>
                             {store?.paystack_dva_active && (
                               <span className="badge badge-primary" style={{ fontSize: 10 }}>Active</span>
+                            )}
+                            {!isPro && (
+                              <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: 'var(--danger)', padding: '2px 7px', borderRadius: 'var(--r-full)' }}>Pro</span>
                             )}
                           </div>
                           {store?.paystack_dva_account_number ? (
@@ -5620,11 +6360,28 @@ export default function DashboardPage() {
                         <button
                           type="button"
                           className="btn btn-primary clickable"
-                          onClick={handleGenerateDedicatedAccount}
+                          onClick={() => {
+                            if (!isPro) {
+                              openUpgradePrompt(
+                                'Dedicated Virtual Account requires Pro',
+                                'Upgrade to Pro to generate or manage a dedicated virtual account for your storefront, enabling automated tracking of buyer bank transfers.'
+                              );
+                              return;
+                            }
+                            handleGenerateDedicatedAccount();
+                          }}
                           disabled={isGeneratingDedicatedAccount}
                           style={{ padding: '11px 16px', borderRadius: 'var(--r-lg)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
                         >
-                          {isGeneratingDedicatedAccount ? <><Loader2 size={15} className="spinner" /> Generating...</> : store?.paystack_dva_account_number ? 'Refresh account' : 'Generate account'}
+                          {isGeneratingDedicatedAccount ? (
+                            <><Loader2 size={15} className="spinner" /> Generating...</>
+                          ) : !isPro ? (
+                            <><Zap size={14} /> Unlock with Pro</>
+                          ) : store?.paystack_dva_account_number ? (
+                            'Refresh account'
+                          ) : (
+                            'Generate account'
+                          )}
                         </button>
                       </div>
 
@@ -5693,7 +6450,7 @@ export default function DashboardPage() {
                                     onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-2)')}
                                     onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                                   >
-                                    <span style={{ fontSize: 16 }}>🏦</span>
+                                    <Landmark size={16} color="var(--text-muted)" />
                                     <span style={{ flex: 1 }}>{bank.name}</span>
                                     <span style={{ fontSize: 11, color: 'var(--text-faint)', fontFamily: 'monospace' }}>{bank.code}</span>
                                   </button>
@@ -5842,7 +6599,7 @@ export default function DashboardPage() {
                           className="btn btn-primary clickable"
                           style={{ padding: '13px 28px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
                         >
-                          {settingsSaving ? <><Loader2 size={16} className="spinner" /> Saving...</> : '💳 Save Payment Details'}
+                          {settingsSaving ? <><Loader2 size={16} className="spinner" /> Saving...</> : <><CreditCard size={16} /> Save Payment Details</>}
                         </button>
                         {!accountVerified && (
                           <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
@@ -5858,6 +6615,8 @@ export default function DashboardPage() {
 
                     </div>
                   </div>
+                  )}
+                  </>
                   )}
 
                 </div>
@@ -6064,7 +6823,7 @@ export default function DashboardPage() {
                         Subscription Plans & Billing
                       </h2>
                       <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
-                        Unlock custom domain, store bio profile description, product details, and ChatGPT AI features.
+                        Unlock custom domain, store bio profile description, product details, and AI features.
                       </p>
                     </div>
                   </div>
@@ -6133,7 +6892,7 @@ export default function DashboardPage() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, opacity: 0.5 }}>
                           <span style={{ color: 'var(--danger)', fontWeight: 900, marginRight: 6 }}>✕</span>
-                          <span style={{ textDecoration: 'line-through' }}>AI description auto-write (ChatGPT)</span>
+                          <span style={{ textDecoration: 'line-through' }}>AI description auto-write</span>
                         </div>
                       </div>
 
@@ -6178,7 +6937,7 @@ export default function DashboardPage() {
                         <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--text)' }}>Pro Business Plan</h3>
                         <span style={{ background: '#fef3c7', color: '#d97706', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4 }}>POPULAR</span>
                       </div>
-                      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Unlock full branding, SEO features, and ChatGPT AI.</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Unlock full branding, SEO features, and AI-powered tools.</p>
 
                       {/* Billing Cycle Toggle */}
                       <div style={{
@@ -6246,7 +7005,7 @@ export default function DashboardPage() {
                         {appliedCoupon ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <span style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 600 }}>
-                              {billingCycle === 'monthly' ? '₦1,500' : '₦15,000'}
+                              {billingCycle === 'monthly' ? `₦${proMonthlyPrice.toLocaleString()}` : `₦${proYearlyPrice.toLocaleString()}`}
                             </span>
                             <div>
                               <span style={{ fontSize: 28, fontWeight: 900, color: 'var(--primary)', fontFamily: 'var(--font-heading)' }}>
@@ -6260,7 +7019,7 @@ export default function DashboardPage() {
                         ) : (
                           <>
                             <span style={{ fontSize: 28, fontWeight: 900, color: '#d97706', fontFamily: 'var(--font-heading)' }}>
-                              {billingCycle === 'monthly' ? '₦1,500' : '₦15,000'}
+                              {billingCycle === 'monthly' ? `₦${proMonthlyPrice.toLocaleString()}` : `₦${proYearlyPrice.toLocaleString()}`}
                             </span>
                             <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
                               {billingCycle === 'monthly' ? ' / month' : ' / year'}
@@ -6269,7 +7028,7 @@ export default function DashboardPage() {
                         )}
                         {billingCycle === 'yearly' && !appliedCoupon && (
                           <div style={{ fontSize: 11.5, color: '#25D366', fontWeight: 700, marginTop: 4 }}>
-                            equivalent to ₦1,250 / month (billed annually)
+                            equivalent to ₦{Math.round(proYearlyPrice / 12).toLocaleString()} / month (billed annually)
                           </div>
                         )}
                       </div>
@@ -6289,7 +7048,7 @@ export default function DashboardPage() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
-                          <span><strong>ChatGPT AI auto-write</strong> — generate title, bio &amp; descriptions instantly</span>
+                          <span><strong>AI auto-write</strong> — generate title, bio &amp; descriptions instantly</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
@@ -6555,6 +7314,26 @@ export default function DashboardPage() {
 
 
                               <div>
+                                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>ID Number (Optional if uploading document)</label>
+                                <input
+                                  type="text"
+                                  placeholder="Enter NIN, Passport #, Driver's License #, or CAC #"
+                                  value={verificationIdNumber}
+                                  onChange={e => setVerificationIdNumber(e.target.value)}
+                                  style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    background: 'var(--surface)',
+                                    border: '1.5px solid var(--border)',
+                                    borderRadius: 'var(--r-md)',
+                                    fontSize: 13.5,
+                                    color: 'var(--text)',
+                                    outline: 'none'
+                                  }}
+                                />
+                              </div>
+
+                              <div>
                                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Upload Document File (Image/PDF)</label>
                                 <FileUpload
                                   variant="default"
@@ -6571,7 +7350,7 @@ export default function DashboardPage() {
 
                               <button
                                 type="submit"
-                                disabled={isSubmittingVerification || !verificationDocUrl || verificationUploading}
+                                disabled={isSubmittingVerification || (!verificationDocUrl && !verificationIdNumber) || verificationUploading}
                                 className="btn btn-primary clickable"
                                 style={{
                                   padding: '12px 24px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13.5, width: 'fit-content', marginTop: 8
@@ -6580,6 +7359,34 @@ export default function DashboardPage() {
                                 {isSubmittingVerification ? <><Loader2 size={15} className="spinner" /> Submitting...</> : 'Submit Documents for Verification'}
                               </button>
                             </form>
+
+                            {verificationRedirectUrl && (
+                              <div style={{ marginTop: 16, padding: 16, background: 'var(--primary-light)', border: '1px solid var(--primary-border)', borderRadius: 'var(--r-md)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                <p style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 700, margin: 0 }}>
+                                  Action Required: Complete verification on our secure partner portal.
+                                </p>
+                                <a
+                                  href={verificationRedirectUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="btn btn-primary clickable"
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 8,
+                                    padding: '10px 16px',
+                                    borderRadius: 'var(--r-md)',
+                                    fontWeight: 800,
+                                    fontSize: 13,
+                                    textDecoration: 'none',
+                                    width: 'fit-content'
+                                  }}
+                                >
+                                  Open Verification Portal
+                                </a>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -6640,7 +7447,46 @@ export default function DashboardPage() {
               )}
 
               {/* ── TAB 11: REVIEWS MANAGER ── */}
-              {activeTab === 'reviews' && (
+              {activeTab === 'reviews' && !isPro && (
+                <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
+                  <div style={{ background: 'rgba(217, 119, 6, 0.15)', color: '#d97706', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Star size={32} />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Customer Reviews</h2>
+                  <p style={{ fontSize: 11.5, fontWeight: 800, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Ratings & Reputation</p>
+                  <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+                    See every rating and comment left by your customers, and reply publicly to build trust and win repeat business.
+                  </p>
+
+                  <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Read every customer review</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Reply publicly to build trust</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Track your store's overall rating</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => openUpgradePrompt(
+                      'Customer Reviews requires Pro',
+                      'Viewing and replying to customer reviews is available on Pro. You can review the plan before upgrading.'
+                    )}
+                    className="btn btn-primary clickable"
+                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
+                  >
+                    <Zap size={16} /> Upgrade to Pro to Unlock Reviews
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'reviews' && isPro && (
                 <div className="card animate-fade-in" style={{ padding: 24 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 20 }}>
                     <div>
@@ -7238,7 +8084,6 @@ export default function DashboardPage() {
                 { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
                 { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} /> },
-                { id: 'templates', label: 'Store Themes', icon: <Palette size={18} /> },
                 { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} /> },
                 { id: 'blog', label: 'Blog Posts', icon: <BookOpen size={18} /> },
                 { id: 'availability', label: 'Availability', icon: <Clock size={18} /> },
@@ -7249,7 +8094,6 @@ export default function DashboardPage() {
                 <button
                   key={item.id}
                   onClick={() => {
-                    if (item.id === 'qr') { setShowQrModal(true); setIsMobileMenuOpen(false); return; }
                     navigateDashboardTab(item.id as DashboardTab);
                     setIsMobileMenuOpen(false);
                   }}
@@ -7582,7 +8426,7 @@ export default function DashboardPage() {
                         </>
                       ) : (
                         <>
-                          <span style={{ fontSize: 24 }}>🖼️</span>
+                          <ImageIcon size={24} color="var(--text-muted)" />
                           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)' }}>Click to upload cover image</span>
                           <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>JPG, PNG, WebP — max 5MB</span>
                         </>
@@ -7716,23 +8560,21 @@ export default function DashboardPage() {
                 flexDirection: 'column',
                 gap: 12
               }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-                  <input
-                    type="checkbox"
-                    checked={prodIsDigital}
-                    onChange={e => {
-                      setProdIsDigital(e.target.checked);
-                      if (e.target.checked) {
-                        setProdStock('in_stock');
-                      }
-                    }}
-                    style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }}
-                  />
-                  <div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Digital Product</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Sell eBooks, courses, templates, music, PDFs, etc.</span>
-                  </div>
-                </label>
+                <Toggle
+                  checked={prodIsDigital}
+                  onChange={(next) => {
+                    setProdIsDigital(next);
+                    if (next) {
+                      setProdStock('in_stock');
+                    }
+                  }}
+                  label={
+                    <div>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Digital Product</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Sell eBooks, courses, templates, music, PDFs, etc.</span>
+                    </div>
+                  }
+                />
 
                 {prodIsDigital && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(16, 185, 129, 0.15)', paddingTop: 14 }} className="animate-fade-in">
@@ -7810,18 +8652,16 @@ export default function DashboardPage() {
                 flexDirection: 'column',
                 gap: 12
               }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-                  <input
-                    type="checkbox"
-                    checked={prodType === 'service'}
-                    onChange={e => setProdType(e.target.checked ? 'service' : 'product')}
-                    style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }}
-                  />
-                  <div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>This is a Service</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Bookable services like appointments, sessions, or consultations.</span>
-                  </div>
-                </label>
+                <Toggle
+                  checked={prodType === 'service'}
+                  onChange={(next) => setProdType(next ? 'service' : 'product')}
+                  label={
+                    <div>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>This is a Service</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Bookable services like appointments, sessions, or consultations.</span>
+                    </div>
+                  }
+                />
 
                 {prodType === 'service' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(129, 0, 209, 0.15)', paddingTop: 14 }} className="animate-fade-in">
@@ -7855,21 +8695,18 @@ export default function DashboardPage() {
                         {getServiceFactPresets(selectedPersona).map(preset => {
                           const checked = prodServiceFacts.includes(preset.label);
                           return (
-                            <label key={preset.label} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={e => {
-                                  if (e.target.checked) {
-                                    setProdServiceFacts(prev => [...prev, preset.label]);
-                                  } else {
-                                    setProdServiceFacts(prev => prev.filter(f => f !== preset.label));
-                                  }
-                                }}
-                                style={{ width: 16, height: 16, accentColor: 'var(--primary)', cursor: 'pointer' }}
-                              />
-                              <span style={{ fontSize: 12.5, color: 'var(--text)', fontWeight: 600 }}>{preset.label}</span>
-                            </label>
+                            <Toggle
+                              key={preset.label}
+                              checked={checked}
+                              onChange={(next) => {
+                                if (next) {
+                                  setProdServiceFacts(prev => [...prev, preset.label]);
+                                } else {
+                                  setProdServiceFacts(prev => prev.filter(f => f !== preset.label));
+                                }
+                              }}
+                              label={<span style={{ fontSize: 12.5, color: 'var(--text)', fontWeight: 600 }}>{preset.label}</span>}
+                            />
                           );
                         })}
                       </div>
@@ -8058,8 +8895,10 @@ export default function DashboardPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>Product Tags</label>
-                  {isPro && (
+                  {isPro ? (
                     <span style={{ fontSize: 9, fontWeight: 900, background: 'linear-gradient(135deg,#d97706,#f59e0b)', color: '#fff', padding: '2px 6px', borderRadius: 3 }}>AI-SUGGESTED</span>
+                  ) : (
+                    <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: 'var(--danger)', padding: '2px 7px', borderRadius: 'var(--r-full)' }}>Pro</span>
                   )}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
@@ -8190,23 +9029,21 @@ export default function DashboardPage() {
                 flexDirection: 'column',
                 gap: 12
               }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-                  <input
-                    type="checkbox"
-                    checked={prodIsDigital}
-                    onChange={e => {
-                      setProdIsDigital(e.target.checked);
-                      if (e.target.checked) {
-                        setProdStock('in_stock');
-                      }
-                    }}
-                    style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }}
-                  />
-                  <div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Digital Product</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Sell eBooks, courses, templates, music, PDFs, etc.</span>
-                  </div>
-                </label>
+                <Toggle
+                  checked={prodIsDigital}
+                  onChange={(next) => {
+                    setProdIsDigital(next);
+                    if (next) {
+                      setProdStock('in_stock');
+                    }
+                  }}
+                  label={
+                    <div>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Digital Product</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Sell eBooks, courses, templates, music, PDFs, etc.</span>
+                    </div>
+                  }
+                />
 
                 {prodIsDigital && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(16, 185, 129, 0.15)', paddingTop: 14 }} className="animate-fade-in">
@@ -8284,18 +9121,16 @@ export default function DashboardPage() {
                 flexDirection: 'column',
                 gap: 12
               }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-                  <input
-                    type="checkbox"
-                    checked={prodType === 'service'}
-                    onChange={e => setProdType(e.target.checked ? 'service' : 'product')}
-                    style={{ width: 18, height: 18, accentColor: 'var(--primary)', cursor: 'pointer' }}
-                  />
-                  <div>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>This is a Service</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Bookable services like appointments, sessions, or consultations.</span>
-                  </div>
-                </label>
+                <Toggle
+                  checked={prodType === 'service'}
+                  onChange={(next) => setProdType(next ? 'service' : 'product')}
+                  label={
+                    <div>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>This is a Service</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Bookable services like appointments, sessions, or consultations.</span>
+                    </div>
+                  }
+                />
 
                 {prodType === 'service' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(129, 0, 209, 0.15)', paddingTop: 14 }} className="animate-fade-in">
@@ -8329,21 +9164,18 @@ export default function DashboardPage() {
                         {getServiceFactPresets(selectedPersona).map(preset => {
                           const checked = prodServiceFacts.includes(preset.label);
                           return (
-                            <label key={preset.label} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={e => {
-                                  if (e.target.checked) {
-                                    setProdServiceFacts(prev => [...prev, preset.label]);
-                                  } else {
-                                    setProdServiceFacts(prev => prev.filter(f => f !== preset.label));
-                                  }
-                                }}
-                                style={{ width: 16, height: 16, accentColor: 'var(--primary)', cursor: 'pointer' }}
-                              />
-                              <span style={{ fontSize: 12.5, color: 'var(--text)', fontWeight: 600 }}>{preset.label}</span>
-                            </label>
+                            <Toggle
+                              key={preset.label}
+                              checked={checked}
+                              onChange={(next) => {
+                                if (next) {
+                                  setProdServiceFacts(prev => [...prev, preset.label]);
+                                } else {
+                                  setProdServiceFacts(prev => prev.filter(f => f !== preset.label));
+                                }
+                              }}
+                              label={<span style={{ fontSize: 12.5, color: 'var(--text)', fontWeight: 600 }}>{preset.label}</span>}
+                            />
                           );
                         })}
                       </div>
@@ -8532,8 +9364,10 @@ export default function DashboardPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>Product Tags</label>
-                  {isPro && (
+                  {isPro ? (
                     <span style={{ fontSize: 9, fontWeight: 900, background: 'linear-gradient(135deg,#d97706,#f59e0b)', color: '#fff', padding: '2px 6px', borderRadius: 3 }}>AI-SUGGESTED</span>
+                  ) : (
+                    <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: 'var(--danger)', padding: '2px 7px', borderRadius: 'var(--r-full)' }}>Pro</span>
                   )}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
@@ -8914,169 +9748,8 @@ export default function DashboardPage() {
         loading={confirmationDialog.loading}
       />
 
-      {/* ── QR CODE MODAL ── */}
-      {showQrModal && (() => {
-        const qrUrl = store?.custom_domain
-          ? `https://${store.custom_domain}`
-          : `https://${systemDomain}/${store?.username}`;
-
-        const downloadQR = () => {
-          const svg = document.getElementById('merchant-qr-svg');
-          if (!svg) return;
-          const serialized = new XMLSerializer().serializeToString(svg);
-          const canvas = document.createElement('canvas');
-          canvas.width = 400;
-          canvas.height = 400;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return;
-          const qrImg = new Image();
-          qrImg.onload = () => {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, 400, 400);
-            ctx.drawImage(qrImg, 0, 0, 400, 400);
-            // Overlay FrontStore logo in center
-            const logo = new Image();
-            logo.onload = () => {
-              const logoSize = 80;
-              const x = (400 - logoSize) / 2;
-              const y = (400 - logoSize) / 2;
-              ctx.fillStyle = '#ffffff';
-              ctx.beginPath();
-              ctx.roundRect(x - 4, y - 4, logoSize + 8, logoSize + 8, 14);
-              ctx.fill();
-              ctx.drawImage(logo, x, y, logoSize, logoSize);
-              const link = document.createElement('a');
-              link.download = `${store?.username ?? 'store'}-qrcode.png`;
-              link.href = canvas.toDataURL('image/png');
-              link.click();
-            };
-            logo.src = '/icon.png';
-          };
-          qrImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(serialized)));
-        };
-
-        const printQR = () => {
-          const svg = document.getElementById('merchant-qr-svg');
-          if (!svg) return;
-          const serialized = new XMLSerializer().serializeToString(svg);
-          const b64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(serialized)));
-          const win = window.open('', '_blank');
-          if (!win) return;
-          win.document.write(`
-            <html><head><title>QR Code — ${store?.store_name ?? 'My Store'}</title>
-            <style>
-              body { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: sans-serif; background: #fff; }
-              h2 { color: #62109F; margin-bottom: 6px; font-size: 22px; }
-              p { color: #666; margin-bottom: 24px; font-size: 14px; }
-              img { width: 260px; height: 260px; }
-              span { color: #62109F; font-size: 13px; margin-top: 16px; font-weight: 600; }
-            </style></head>
-            <body>
-              <h2>${store?.store_name ?? 'My Store'}</h2>
-              <p>Scan to visit our store</p>
-              <img src="${b64}" />
-              <span>${qrUrl}</span>
-              <script>window.onload = () => { window.print(); window.close(); }<\/script>
-            </body></html>
-          `);
-          win.document.close();
-        };
-
-        return (
-          <div
-            onClick={() => setShowQrModal(false)}
-            style={{
-              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-              zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: 24,
-            }}
-          >
-            <div
-              onClick={e => e.stopPropagation()}
-              style={{
-                background: 'var(--card)', borderRadius: 'var(--r-xl)',
-                padding: 32, width: '100%', maxWidth: 400,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
-                boxShadow: '0 24px 60px rgba(0,0,0,0.35)',
-              }}
-            >
-              {/* Header */}
-              <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 'var(--r-md)', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <QrCode size={20} color="var(--primary)" />
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: 17, color: 'var(--text)', letterSpacing: -0.3 }}>Store QR Code</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>Customers scan to open your store</div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowQrModal(false)}
-                  style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'var(--surface)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  <X size={16} color="var(--text-muted)" />
-                </button>
-              </div>
-
-              {/* QR Code */}
-              <div style={{ background: '#fff', padding: 20, borderRadius: 'var(--r-lg)', boxShadow: '0 2px 20px rgba(98,16,159,0.12)', position: 'relative', display: 'inline-flex' }}>
-                <QRCodeSVG
-                  id="merchant-qr-svg"
-                  value={qrUrl}
-                  size={220}
-                  fgColor="#62109F"
-                  bgColor="#ffffff"
-                  level="H"
-                />
-                {/* FrontStore logo centred over QR */}
-                <div style={{
-                  position: 'absolute', top: '50%', left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: 52, height: 52, borderRadius: 12,
-                  background: '#fff', padding: 3,
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
-                  overflow: 'hidden',
-                }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/icon.png" alt="FrontStore" style={{ width: 46, height: 46, borderRadius: 9, display: 'block' }} />
-                </div>
-              </div>
-
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)', letterSpacing: 0.2 }}>{qrUrl}</span>
-
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: 12, width: '100%' }}>
-                <button
-                  onClick={downloadQR}
-                  className="btn clickable"
-                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 8px', borderRadius: 'var(--r-lg)', background: 'var(--primary-light)', border: 'none', cursor: 'pointer' }}
-                >
-                  <Download size={20} color="var(--primary)" />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)' }}>Download</span>
-                </button>
-                <button
-                  onClick={() => { navigator.clipboard.writeText(qrUrl); toast.success('Store link copied!'); }}
-                  className="btn clickable"
-                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 8px', borderRadius: 'var(--r-lg)', background: 'var(--primary-light)', border: 'none', cursor: 'pointer' }}
-                >
-                  <Copy size={20} color="var(--primary)" />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)' }}>Copy Link</span>
-                </button>
-                <button
-                  onClick={printQR}
-                  className="btn clickable"
-                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 8px', borderRadius: 'var(--r-lg)', background: 'var(--primary-light)', border: 'none', cursor: 'pointer' }}
-                >
-                  <Printer size={20} color="var(--primary)" />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)' }}>Print</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
+      {/* ── NINA AI WIDGET ── */}
+      <NinaWidget />
     </div>
   );
 }

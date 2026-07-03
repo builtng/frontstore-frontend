@@ -149,26 +149,17 @@ interface CreatorStorefrontProps {
 }
 
 const MOCK_STORE = {
-  name: "Victor Ijomah", initial: "V", slug: "victorijomah",
+  name: "", initial: "", slug: "",
   primaryCta: "book",
-  category: "Technical SEO", location: "Lagos, working worldwide",
-  rating: 4.9, reviews: 148, orders: "12k", reply: "~1 day",
-  bio: "Technical SEO for people who want to actually understand it. Courses, templates and hands-on audits that turn search from a black box into something you can control.",
-  address: "Remote, with calls by appointment",
-  phone: "+234 803 222 0145",
-  email: "hello@victorijomah.com",
-  socials: { instagram: "@victorijomah", tiktok: "@victorijomah" },
+  category: "", location: "",
+  rating: undefined as number | undefined, reviews: 0, orders: 0, reply: "",
+  bio: "",
+  address: "",
+  phone: "",
+  email: "",
+  socials: { instagram: "", tiktok: "" },
 };
-const MOCK_SERVICES = [
-  { id: "s1", name: "Technical SEO Audit", price: 250000, dur: "5 to 7 days", durMin: 7, cat: "Audits", popular: true, desc: "A deep audit of your crawlability, indexing, speed and structure, with a prioritised fix list." },
-  { id: "s2", name: "Mini Audit", price: 80000, dur: "48 hours", durMin: 2, cat: "Audits", desc: "A focused review of one pressing issue with clear next steps. A great first step." },
-  { id: "s3", name: "Strategy Consultation", price: 60000, dur: "60 min call", durMin: 60, cat: "Consulting", popular: true, desc: "A one to one call to talk through your SEO challenges and map a clear way forward." },
-  { id: "s4", name: "Site Migration Review", price: 350000, dur: "1 to 2 weeks", durMin: 14, cat: "Audits", desc: "Plan or sense check a replatform so you do not lose rankings in the move." },
-  { id: "s5", name: "1:1 Coaching", price: 150000, dur: "Per month", durMin: 30, cat: "Coaching", popular: true, desc: "Two calls a month plus async support to level up your own technical SEO skills." },
-  { id: "s6", name: "Monthly Retainer", price: 400000, dur: "Per month", durMin: 30, cat: "Consulting", desc: "Ongoing technical SEO support and priority access for teams that need a steady hand." },
-  { id: "s7", name: "Team Workshop", price: 500000, dur: "Half day", durMin: 240, cat: "Workshops", desc: "A live, hands-on technical SEO workshop for your in-house team, remote or in person." },
-  { id: "s8", name: "Speaking Session", price: 300000, dur: "By arrangement", durMin: 60, cat: "Workshops", desc: "Book me for a talk, podcast or guest training. The price is a starting point, reach out with details." },
-];
+const MOCK_SERVICES: any[] = [];
 const MOCK_SERVICE_INFO = {
   s1: { includes: ["A full crawl and technical review", "Indexing, crawl budget and structure", "Core Web Vitals and speed analysis", "A prioritised, plain English fix list", "A walkthrough call to talk it through", "Async follow up questions after"] },
   s2: { includes: ["A focused look at one key issue", "Clear diagnosis of the problem", "A short, prioritised action list", "Turnaround within 48 hours", "A summary you can act on", "Often the right first step"] },
@@ -179,24 +170,8 @@ const MOCK_SERVICE_INFO = {
   s7: { includes: ["A live half day workshop", "Tailored to your team and stack", "Hands-on, not just slides", "Remote or in person", "Resources to keep afterward", "A recording for the team"] },
   s8: { includes: ["A talk, podcast or guest session", "Tailored to your audience", "Technical SEO made approachable", "Remote or in person", "Slides and resources shared", "Reach out with the details"] },
 };
-const MOCK_PRODUCTS = [
-  { id: "p1", name: "Technical SEO Masterclass", price: 120000, cat: "Courses", popular: true, desc: "A complete self-paced course, from crawl budget to Core Web Vitals, with lifetime access." },
-  { id: "p2", name: "Core Web Vitals Course", price: 45000, cat: "Courses", desc: "A focused course on diagnosing and fixing speed and Core Web Vitals for real." },
-  { id: "p3", name: "Audit Checklist", price: 8000, cat: "Checklists", popular: true, desc: "The exact 120-point checklist I run on every client audit, ready to use." },
-  { id: "p4", name: "Site Migration Playbook", price: 15000, cat: "Guides", desc: "A step by step PDF to plan a replatform without losing your rankings." },
-  { id: "p5", name: "SEO Audit Notion Template", price: 12000, cat: "Templates", popular: true, desc: "A ready to use Notion workspace to run and track your own audits." },
-  { id: "p6", name: "Log File Analysis Toolkit", price: 18000, cat: "Templates", desc: "Spreadsheets and queries to turn raw server logs into crawl insights." },
-  { id: "p7", name: "Everything Bundle", price: 160000, cat: "Bundles", desc: "Every course, checklist and template together, at the best possible price." },
-  { id: "p8", name: "SEO Insiders Membership", price: 12000, cat: "Membership", popular: true, desc: "Monthly teardowns, a private community and live office hours. Billed monthly." },
-];
-const MOCK_REVIEWS = [
-  { id: "r1", name: "Daniel O.", r: 5, when: "2 weeks ago", service: "Technical SEO Audit", verified: true, photos: 0, text: "The audit found indexing issues two agencies had missed. Organic traffic is up 40 percent in three months. Worth every naira.", response: { when: "2 weeks ago", text: "Thank you Daniel, great to see the fixes landing. Shout if anything new comes up." } },
-  { id: "r2", name: "Aisha B.", r: 5, when: "3 weeks ago", service: "Technical SEO Masterclass", verified: true, photos: 0, text: "Finally a course that explains the technical side without drowning you in jargon. I actually understand crawl budget now." },
-  { id: "r3", name: "Femi A.", r: 4, when: "1 month ago", service: "Strategy Consultation", verified: true, photos: 0, text: "One hour with Victor saved us weeks of guessing. Clear, direct, no fluff. Would have loved a bit more time on tooling.", response: { when: "1 month ago", text: "Thanks Femi. Happy to do a focused follow up on tooling whenever you are ready." } },
-  { id: "r4", name: "Grace N.", r: 5, when: "1 month ago", service: "Audit Checklist", verified: true, photos: 0, text: "This checklist is basically a senior SEO in a document. We now run it before every launch. Incredible value for the price." },
-  { id: "r5", name: "Tobi E.", r: 3, when: "2 months ago", service: "Site Migration Review", verified: true, photos: 0, text: "Solid review and the redirects were spot on. Turnaround ran a little long for us, but the work itself was thorough." },
-  { id: "r6", name: "Lola K.", r: 5, when: "2 months ago", service: "SEO Insiders Membership", verified: true, photos: 0, text: "The monthly teardowns alone are worth it, and the community answers questions fast. Best SEO money I spend each month." },
-];
+const MOCK_PRODUCTS: any[] = [];
+const MOCK_REVIEWS: any[] = [];
 const MOCK_PRODUCT_FAQS = [
   ["How do I get my course or download?", "Everything is digital. As soon as your payment is confirmed you get instant access to your course or a download link, nothing is shipped."],
   ["Do courses come with lifetime access?", "Yes. You get lifetime access to the course and any future updates to it, at no extra cost."],
@@ -211,87 +186,11 @@ const MOCK_SERVICE_FAQS = [
   ["How fast is turnaround?", "A mini audit is 48 hours, a full audit 5 to 7 days, and migrations 1 to 2 weeks. Timing is confirmed when you book."],
   ["How do I pay?", "Pay securely through Frontstore, or by bank transfer where offered. Your receipt always arrives on WhatsApp or by email."],
 ];
-const MOCK_FAQ_GROUPS = [
-  {
-    cat: "Courses and downloads", icon: Sparkles, items: [
-      ["How do I access what I buy?", "Everything is digital and instant. The moment your payment clears you get access to your course or a download link, nothing is shipped."],
-      ["Do I get lifetime access?", "Yes, courses come with lifetime access and free future updates. Templates and checklists are yours to keep once downloaded."],
-      ["Can I get a refund?", "Courses come with a 14 day refund if you have completed under 30 percent. Templates, checklists and other downloads cannot be refunded once accessed."],
-      ["Are the courses suitable for beginners?", "Yes. They start from the ground up and build to advanced topics, so they work whether you are new or brushing up."],
-    ],
-  },
-  {
-    cat: "Services and bookings", icon: Calendar, items: [
-      ["How do bookings work?", "Pick a service, choose a date, and a deposit confirms it. We have a short kickoff to align on goals and access before the work begins."],
-      ["What do you need from me?", "For audits, access to your site and analytics. For calls, just your questions. We confirm exactly what is needed at kickoff."],
-      ["How fast is turnaround?", "A mini audit is 48 hours, a full audit 5 to 7 days, and migrations 1 to 2 weeks. Timing is confirmed when you book."],
-      ["Can I reschedule a call?", "Yes, reschedule or cancel up to 24 hours before a call for a full deposit refund. Inside 24 hours the deposit is held against the booking."],
-    ],
-  },
-  {
-    cat: "Payments", icon: Lock, items: [
-      ["How do I pay?", "You can pay securely through Frontstore at checkout, or by bank transfer. Frontstore checkout is the safer option as it comes with buyer protection."],
-      ["Is paying through Frontstore safe?", "Yes. Payments made through Frontstore are protected, so if something does not go as described you can raise a dispute and we help mediate. This protection cannot be removed by the vendor."],
-      ["What currency are prices in?", "Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are always charged in naira."],
-      ["Can I expense this for my company?", "Yes, a proper invoice and receipt are provided for every purchase, which you can use for reimbursement or accounts."],
-    ],
-  },
-  {
-    cat: "Membership", icon: Bell, items: [
-      ["What is SEO Insiders?", "A monthly membership with site teardowns, a private community and live office hours, for people who want to keep getting sharper at technical SEO."],
-      ["How does billing work?", "It is billed monthly and you can cancel anytime. You keep access until the end of the period you have paid for."],
-      ["Is it worth it if I am not technical?", "Yes. The teardowns are explained plainly, and the community is a friendly place to ask the questions you are not sure about."],
-    ],
-  },
-  {
-    cat: "Trust and Frontstore", icon: ShieldCheck, items: [
-      ["What does Secured by Frontstore mean?", "It means this store runs on Frontstore, so your purchase or booking is covered by Frontstore buyer protection and platform terms the vendor cannot remove."],
-      ["Are the reviews real?", "Yes. Reviews can only be left by people with a completed Frontstore purchase, and each is shown with a verified badge. The vendor can respond but cannot delete genuine ones."],
-      ["What if something goes wrong?", "If a purchase paid through Frontstore does not go as described, you can raise a dispute and Frontstore will help mediate a fair resolution."],
-    ],
-  },
-];
+const MOCK_FAQ_GROUPS: any[] = [];
 const MOCK_FAQS_PREVIEW = MOCK_FAQ_GROUPS.map((g: any) => g.items[0]);
-const MOCK_TERMS = [
-  { t: "Who these terms are between", p: [`These terms are an agreement between you and ${MOCK_STORE.name}, who provides the courses, products and services on this store. The store runs on Frontstore, which provides the platform and buyer protection but is not the seller.`] },
-  { t: "Courses and digital products", p: ["Courses, templates, checklists and other downloads are digital and delivered instantly after payment. Access is for your own use and may not be resold or shared. Courses include lifetime access and free updates unless stated otherwise."] },
-  { t: "Services and bookings", p: ["Audits, consultations and other services are arranged by booking through this store. A deposit confirms your booking and the balance is due before the work begins."] },
-  { t: "Membership", p: ["The SEO Insiders membership is billed monthly and continues until you cancel. You keep access until the end of the period you have paid for. No refunds are given for partial months."] },
-  { t: "Pricing and payment", p: ["Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are charged in naira.", "You can pay securely through Frontstore at checkout, or by bank transfer. Funds paid by transfer go directly to the seller, while Frontstore payments are held under buyer protection."] },
-  { t: "Cancellations and refunds", p: ["Refunds are handled as set out on the Refunds page, including the course refund window and the rules for downloads and bookings."], link: { label: "Read the Refunds policy", page: "returns" } },
-  { t: "Results", p: ["SEO depends on many factors outside any one person's control. Advice, audits and courses are provided in good faith, but no specific ranking or traffic outcome is guaranteed."] },
-  { t: "Reviews and content", p: ["Reviews can only be left by people with a completed purchase, and each is shown with a verified badge. The vendor may respond to reviews but cannot remove genuine ones. By submitting a review, you allow it to be shown on this store."] },
-  { t: "Liability", p: ["Services and content are provided with reasonable skill and care. Liability is limited to the amount paid for the relevant product or service. Nothing in these terms removes any rights you have under applicable law."] },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform terms", body: "Every Frontstore store also operates under the Frontstore platform terms and buyer protection policy. These apply alongside the store's own policies and cannot be removed by the vendor.", link: "Read the Frontstore platform terms" } },
-  { t: "Changes to these terms", p: ["We may update these terms from time to time. The version shown on this page is the current one, and the date it was last updated is shown alongside it."] },
-  { t: "Governing law", p: ["These terms are governed by the laws of the Federal Republic of Nigeria, and any dispute falls under the courts of Lagos State."] },
-  { t: "Contact", p: ["Questions about these terms? Reach me through the Contact page and I will be glad to help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PRIVACY = [
-  { t: "What we collect", p: [`When you buy, book or get in touch, ${MOCK_STORE.name} collects the details you give: your name, contact details such as a WhatsApp number, phone or email, your purchase, booking and account details, any message you send, and reviews you choose to share.`] },
-  { t: "How we use it", p: ["We use your details to deliver your courses and downloads, take and run bookings, send the newsletter you signed up for, reply to your enquiries, process payments, show verified reviews, and improve the store. We do not send marketing you have not asked for."] },
-  { t: "The newsletter", p: ["If you join the newsletter, we use your email only to send the updates you asked for. Every email has a one click unsubscribe, and you can opt out at any time."] },
-  { t: "Payments", p: ["Payments made through Frontstore are handled by Frontstore and its payment providers under buyer protection, and we do not see or store your card details. Bank transfers are made directly to the seller."] },
-  { t: "WhatsApp and messaging", p: ["When you message us, the conversation takes place on WhatsApp and is also subject to WhatsApp's own privacy terms. In future this may move to Frontstore's own messaging."] },
-  { t: "Who we share it with", p: ["We share only what is needed: with the course and email platforms that deliver your products, with payment providers to take payment, and with Frontstore as the platform the store runs on. We never sell your data."] },
-  { t: "Cookies and analytics", p: ["The store uses basic cookies and analytics, provided through the Frontstore platform, to keep the store working and understand how it is used."] },
-  { t: "Keeping your data", p: ["We keep your details only as long as needed to provide our services and to meet legal and tax obligations, after which they are removed."] },
-  { t: "Your rights", p: ["Under Nigerian data protection law you can ask to see the data we hold about you, correct it, delete it, or object to how it is used. To make a request, reach us through the Contact page."], link: { label: "Go to Contact", page: "contact" } },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform privacy", body: "As the platform this store runs on, Frontstore also processes data under its own privacy policy and platform terms. These apply alongside the store's own notice and cannot be removed by the vendor.", link: "Read the Frontstore privacy policy" } },
-  { t: "Changes to this notice", p: ["We may update this notice from time to time. The version shown on this page is the current one, with the date it was last updated shown alongside it."] },
-  { t: "Contact", p: ["Questions about your privacy, or want to make a data request? Reach us through the Contact page and we will help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PORTFOLIO = [
-  { label: "SaaS, +180% organic", cat: "Audits", c: "c0" },
-  { label: "Migration, traffic held", cat: "Audits", c: "c1" },
-  { label: "Publisher, indexing fixed", cat: "Audits", c: "c2" },
-  { label: "Store, Core Web Vitals pass", cat: "Consulting", c: "c1" },
-  { label: "Marketplace, crawl budget", cat: "Audits", c: "c2" },
-  { label: "Startup, coaching to in-house", cat: "Coaching", c: "c0" },
-  { label: "Brand, rankings recovered", cat: "Consulting", c: "c1" },
-  { label: "Team workshop, upskilled", cat: "Workshops", c: "c2" },
-  { label: "Blog, indexed and ranking", cat: "Audits", c: "c0" },
-];
+const MOCK_TERMS: any[] = [];
+const MOCK_PRIVACY: any[] = [];
+const MOCK_PORTFOLIO: any[] = [];
 const MOCK_NOTIFY_TOPICS = [["weekly", "Weekly SEO tips"], ["launches", "New courses and drops"], ["audits", "Audit slots opening"], ["events", "Workshops and talks"]];
 const MOCK_HOURS = [
   ["Mon", "9:00am - 5:00pm"], ["Tue", "9:00am - 5:00pm"], ["Wed", "9:00am - 5:00pm"],
@@ -303,89 +202,23 @@ const MOCK_NAV = [
 ];
 const MOCK_LEGAL = [["returns", "Refunds"], ["terms", "Terms"], ["privacy", "Privacy"]];
 const MOCK_CATS = ["Audits", "Consulting", "Coaching", "Workshops"];
-const MOCK_FEATURED = [
-  { id: "p1", name: "Technical SEO Masterclass", price: 120000, type: "product" },
-  { id: "s1", name: "Technical SEO Audit", price: 250000, dur: "5 to 7 days", type: "service" },
-  { id: "p3", name: "Audit Checklist", price: 8000, type: "product" },
-];
+const MOCK_FEATURED: any[] = [];
 const MOCK_AUTHOR = {
-  name: "Victor Ijomah",
-  initial: "V",
-  role: "Technical SEO consultant and educator",
-  bio: "Victor is a technical SEO consultant and educator with over ten years in search, known for making the technical side genuinely understandable.",
-  long: "Victor spent years fixing broken sites and untangling indexing problems before he started teaching what he learned. What began as a few threads and a checklist grew into courses, templates and a newsletter read by thousands. The goal has stayed the same throughout: take the most intimidating part of SEO and make it clear, practical and usable.",
-  quote: "Technical SEO is not magic. It is a system, and once you can see the system, you can control it.",
-  specialities: ["Technical SEO", "Site migrations", "Core Web Vitals", "Education"],
-  socials: { instagram: "@victorijomah", tiktok: "@victorijomah" },
-  credentials: [
-    "Over ten years in technical SEO",
-    "8,000+ students taught",
-    "Trusted by SaaS, publishers and agencies",
-  ],
+  name: "",
+  initial: "",
+  role: "",
+  bio: "",
+  long: "",
+  quote: "",
+  specialities: [],
+  socials: { instagram: "", tiktok: "" },
+  credentials: [],
 };
-const MOCK_OFFERINGS = [
-  ["Courses", "Self-paced courses that teach technical SEO properly, from the ground up.", "products"],
-  ["Templates and guides", "Checklists, Notion templates and playbooks used on real client work.", "products"],
-  ["Audits and consulting", "Done-with-you audits, migration reviews and one to one strategy calls.", "services"],
-  ["SEO Insiders", "A monthly membership with teardowns, a community and live office hours.", "products"],
-];
-const MOCK_GALLERY = [
-  { label: "SaaS, +180% organic", c: "c0" },
-  { label: "Migration, traffic held", c: "c1" },
-  { label: "Publisher, indexing fixed", c: "c2" },
-  { label: "Store, Core Web Vitals pass", c: "c1" },
-  { label: "Marketplace, crawl budget", c: "c2" },
-  { label: "Brand, rankings recovered", c: "c0" },
-];
-const MOCK_RECOGNITION = ["Search Engine Land", "BrightonSEO", "SMX", "Ahrefs"];
-const MOCK_ABOUT_FACTS = [
-  ["Focus", "Technical SEO, nothing else"],
-  ["Experience", "10+ years in search"],
-  ["Students", "8,000+ taught"],
-  ["Newsletter", "12,000+ subscribers"],
-  ["Based in", "Lagos, working worldwide"],
-  ["Booking", "A deposit confirms your booking, balance before work begins"],
-  ["Courses", "Lifetime access and free updates"],
-  ["Payment", "Pay securely with Frontstore, or by transfer"],
-];
-const MOCK_BLOG = [
-  { title: "Crawl budget, and when you should actually care", date: "6 Jun 2026", cat: "Technical", read: "5 min", excerpt: "Most sites worry about crawl budget when they do not need to. Here is when it really matters.", body: [
-    { p: "Crawl budget is one of the most misunderstood ideas in SEO. For most small and medium sites, it is simply not your problem, and worrying about it is a distraction from things that actually move the needle." },
-    { h: "When it does matter" },
-    { p: "Crawl budget becomes real on large sites, think hundreds of thousands of URLs, faceted navigation, or endless parameter combinations. There, wasted crawling on junk URLs means your important pages get seen less often." },
-    { p: "If you are under a few thousand pages, focus on quality, internal links and speed instead. The crawl will take care of itself." },
-  ] },
-  { title: "A sane way to approach Core Web Vitals", date: "24 May 2026", cat: "Technical", read: "5 min", excerpt: "You do not need perfect scores. You need to clear the thresholds and move on.", body: [
-    { p: "Core Web Vitals send people down rabbit holes chasing green scores. The truth is more boring: clear the thresholds, then spend your energy elsewhere." },
-    { h: "Where to actually look" },
-    { list: ["Use field data, not just lab scores", "Fix the largest contentful element first", "Tame layout shift from images and ads", "Cut the JavaScript you do not need", "Measure on real mobile, not your laptop"] },
-    { p: "Perfect is the enemy of shipped here. Passing is a ranking factor, a perfect score is not, so pass and get back to content and links." },
-  ] },
-  { title: "How to migrate a site without losing rankings", date: "11 May 2026", cat: "Migrations", read: "6 min", excerpt: "Most migration disasters come down to a handful of avoidable mistakes.", body: [
-    { p: "A site migration is the single riskiest thing you can do to your organic traffic, and most of the damage is self-inflicted. The good news is that the failures are predictable, which means they are preventable." },
-    { h: "The things that go wrong" },
-    { list: ["Redirects missed, broken or chained", "URLs changed with no mapping", "Staging site left indexable", "Internal links still pointing to old URLs", "No baseline to compare against after"] },
-    { p: "Map everything, redirect one to one, keep a pre-launch baseline, and watch closely for the first few weeks. Do that and a migration is a non-event, which is exactly what you want." },
-  ] },
-  { title: "Reading server logs to find what Google really does", date: "29 Apr 2026", cat: "Technical", read: "5 min", excerpt: "Your logs tell you what Google actually crawls, not what you hope it does.", body: [
-    { p: "Tools estimate. Server logs are the truth. They show you exactly which URLs Googlebot is hitting, how often, and what it is wasting time on." },
-    { h: "What logs reveal" },
-    { p: "You will often find Google spending crawl on parameter URLs, old redirects and pages you forgot existed, while your money pages get crawled less than you would like. That gap is where a lot of technical wins hide." },
-    { p: "You do not need fancy tools to start, a spreadsheet and a few filters go a long way. The toolkit in the shop gives you the queries to do it faster." },
-  ] },
-  { title: "Indexing problems and how to diagnose them", date: "13 Apr 2026", cat: "Technical", read: "5 min", excerpt: "If Google cannot index it, nothing else you do matters.", body: [
-    { p: "Rankings, links and content are all irrelevant if a page is not indexed. Indexing is the foundation, and it is where I start almost every audit." },
-    { h: "A simple way to work through it" },
-    { list: ["Check coverage in Search Console first", "Confirm the page is not blocked or noindexed", "Make sure it is reachable by internal links", "Look for duplicate or canonical confusion", "Check the page is actually worth indexing"] },
-    { p: "Work top down from can Google reach it to should Google index it. Most indexing problems resolve to one of those two questions." },
-  ] },
-  { title: "The technical SEO checklist I run on every site", date: "3 Apr 2026", cat: "Technical", read: "4 min", excerpt: "A look at the foundation I check before anything clever.", body: [
-    { p: "Before any clever strategy, the basics have to be right. The same foundational checks catch the majority of issues on most sites, which is why I run them every single time." },
-    { h: "The foundation" },
-    { p: "Indexability, a clean and logical site structure, fast and stable pages, correct canonicals, and internal links that actually connect your important pages. Get those right and you are ahead of most of your competitors already." },
-    { p: "The full version of this, all 120 points, is the checklist in the shop. It is the exact one I use on client work." },
-  ] },
-];
+const MOCK_OFFERINGS: any[] = [];
+const MOCK_GALLERY: any[] = [];
+const MOCK_RECOGNITION: any[] = [];
+const MOCK_ABOUT_FACTS: any[] = [];
+const MOCK_BLOG: any[] = [];
 
 const money = (n: number) => "₦" + n.toLocaleString("en-NG");
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -833,7 +666,7 @@ export default function CreatorStorefront({
               <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>Order Placed!</h3>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>Your order reference is <b>{orderReceipt.order.order_number}</b>.</p>
               
-              {store.payment_provider === 'paystack' && (
+              {store.payment_provider && store.payment_provider !== 'manual' && (
                 <div style={{ background: '#f9f5f3', borderRadius: 12, padding: 14, marginTop: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span>Total Amount</span>
@@ -865,8 +698,9 @@ export default function CreatorStorefront({
         headers: { 'Content-Type': 'application/json' }
       });
       const json = await res.json();
-      if (res.ok && json.data?.authorization_url) {
-        window.location.href = json.data.authorization_url;
+      const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
+      if (res.ok && redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         sonnerToast.error(json.message || "Online payment setup failed.");
       }
@@ -1505,6 +1339,7 @@ export default function CreatorStorefront({
   );
   const aboutReview = () => {
     const r = displayReviews[0];
+    if (!r) return null;
     return (
       <div className="ab-review">
         <Quote className="ab-quote-mark" size={28} />
@@ -1571,10 +1406,10 @@ export default function CreatorStorefront({
     <div className="ps-about-grid">
       <div><b>{DUMMY_STORE.orders}</b><span>subscribers</span></div>
       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-      <div><b>10 yrs</b><span>in practice</span></div>
+      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
-      <span className="ab-follow-h">Follow Victor Ijomah</span>
+      <span className="ab-follow-h">Follow us</span>
       <div className="ab-socials">
         <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {(DUMMY_STORE.socials?.instagram || '')}</button>
         <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {(DUMMY_STORE.socials?.tiktok || '')}</button>
@@ -1671,7 +1506,7 @@ export default function CreatorStorefront({
           </ul>
         </div>
         <div className="ab-follow-rail">
-          <span>Follow Victor Ijomah</span>
+          <span>Follow us</span>
           <div className="ab-follow-icons">
             <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
             <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
@@ -1900,7 +1735,7 @@ export default function CreatorStorefront({
       <button onClick={() => setAnnOff(true)} aria-label="Dismiss"><X size={15} /></button>
     </div>
   );
-  const featured = (
+  const featured = MOCK_FEATURED.length > 0 ? (
     <section className="feat">
       <div className="feat-head"><span className="feat-tag"><Sparkles size={13} /> Featured</span></div>
       <div className="feat-grid">
@@ -1909,13 +1744,13 @@ export default function CreatorStorefront({
         ))}
       </div>
     </section>
-  );
+  ) : null;
 
   /* ---- drawer panel (mobile only) ---- */
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo">frontstore<span>.app</span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1992,7 +1827,7 @@ export default function CreatorStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -2083,7 +1918,7 @@ export default function CreatorStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -2470,10 +2305,8 @@ export default function CreatorStorefront({
                 <div className="ab-wrap">
                   <div className="ab-main">
                     <span className="ab-kicker">Our story</span>
-                    <h2 className="ab-headline">Technical SEO, finally explained properly.</h2>
-                    <p className="ab-lede">Victor Ijomah is a technical SEO consultant and educator. Through courses, templates and hands-on audits, he helps founders, marketers and teams turn search from a black box into something they understand and control.</p>
-                    <p className="ab-para">What began as fixing broken sites and sharing what worked has grown into courses, templates and a newsletter read by thousands. The aim has stayed the same throughout: make technical SEO clear, practical and a little less intimidating.</p>
-                    <p className="ab-para">Today the work spans audits, courses and a membership, and people keep coming back because they finally understand what they are doing, whether they are a founder, a marketer or an in-house team.</p>
+                    <h2 className="ab-headline">Clear, practical knowledge, shared with anyone who wants to learn.</h2>
+                    {DUMMY_STORE.bio && <p className="ab-lede">{DUMMY_STORE.bio}</p>}
 
                     <div className="ab-founder">
                       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
@@ -2518,7 +2351,7 @@ export default function CreatorStorefront({
                     <div className="ps-about-grid ab-stats">
                       <div><b>{DUMMY_STORE.orders}</b><span>subscribers</span></div>
                       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-                      <div><b>10 yrs</b><span>in practice</span></div>
+                      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
                     </div>
                   </div>
 
@@ -2533,7 +2366,7 @@ export default function CreatorStorefront({
                         <button onClick={() => ping("Opening WhatsApp")}><WhatsApp size={14} /> Message</button>
                       </div>
                       <div className="ab-follow-rail">
-                        <span>Follow Victor Ijomah</span>
+                        <span>Follow us</span>
                         <div className="ab-follow-icons">
                           <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
                           <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
@@ -2949,7 +2782,7 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
 .ps-logo span{color:var(--brand);}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
@@ -3693,7 +3526,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .svc-card-thumb.c1{background:linear-gradient(150deg,var(--brand-deep),var(--gold));}
 .svc-card-thumb.c2{background:linear-gradient(150deg,#1bb5d8,var(--brand));}
 .svc-card-thumb.c3{background:linear-gradient(150deg,var(--brand),#8a86c4);}
-.svc-card-cat{position:absolute;bottom:10px;left:10px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
+.svc-card-cat{position:absolute;bottom:10px;left:10px;width:max-content;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
 .svc-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:rgba(42,29,34,.5);backdrop-filter:blur(2px);padding:4px 8px;border-radius:7px;}
 .svc-badge svg{color:var(--gold);fill:var(--gold);}
 .svc-card-body{padding:13px 14px 14px;display:flex;flex-direction:column;flex:1;}

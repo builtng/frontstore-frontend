@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Create Buyer Account',
   description: 'Create a buyer account to save your details, track orders, and check out faster.',
   alternates: {
-    canonical: '/buyer/register',
+    canonical: '/buyer/signup',
   },
 };
 

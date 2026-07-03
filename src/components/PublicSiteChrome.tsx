@@ -8,8 +8,10 @@ import ThemeToggle from './ThemeToggle';
 export function PublicSiteNav() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [appName, setAppName] = useState('Front Store');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     try {
       const token = localStorage.getItem('token');
       const user = localStorage.getItem('user');
@@ -56,7 +58,9 @@ export function PublicSiteNav() {
           <a href="/business" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>For Business</a>
           <a href="/blog" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Blog</a>
           <a href="/docs" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Help</a>
-          {isLoggedIn ? (
+          {!mounted ? (
+            <div style={{ width: 140, height: 36 }} />
+          ) : isLoggedIn ? (
             <a href="/dashboard" className="btn btn-primary" style={{ padding: '9px 18px', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               Dashboard <ArrowRight size={14} />
             </a>

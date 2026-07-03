@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  Store, Lock, Eye, EyeOff, Loader2, ArrowRight, ShoppingBag, Check, User
+  Lock, Eye, EyeOff, Loader2, ArrowRight, ShoppingBag, Check, User
 } from 'lucide-react';
 
 const countries = [
@@ -99,7 +99,18 @@ export default function BuyerSignupPage() {
       <div style={{ width: '100%', maxWidth: 420 }}>
         <header style={{ textAlign: 'center', marginBottom: 28 }}>
           <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', marginBottom: 12 }}>
-            <Store size={24} style={{ color: 'var(--primary)', strokeWidth: 2.5 }} />
+            <img 
+              src="/logo.png" 
+              alt="Logo"
+              width={24}
+              height={24}
+              style={{
+                width: 24,
+                height: 24,
+                objectFit: 'contain',
+                flexShrink: 0,
+              }}
+            />
             <span>frontstore</span>
           </a>
           <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>

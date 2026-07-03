@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import ToastProvider from '@/components/ToastProvider';
@@ -153,7 +154,7 @@ export default function RootLayout({
             __html: `
               try {
                 var theme = localStorage.getItem('frontstore-theme');
-                var isDashboard = window.location.pathname.startsWith('/dashboard');
+                var isDashboard = window.location.pathname.startsWith('/dashboard') || window.location.pathname.startsWith('/admin');
                 if (!theme && isDashboard) {
                   theme = 'dark';
                 }
@@ -170,6 +171,19 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-W6MKQWE1V3"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-W6MKQWE1V3');
+          `}
+        </Script>
         {children}
         <ToastProvider />
       </body>

@@ -149,26 +149,17 @@ interface PhotographerStorefrontProps {
 }
 
 const MOCK_STORE = {
-  name: "Kcs Craft", initial: "K", slug: "kcscraft",
+  name: "", initial: "", slug: "",
   primaryCta: "book",
-  category: "Photography", location: "Lagos",
-  rating: 4.9, reviews: 173, orders: "500+", reply: "~15 min",
-  bio: "Lagos based photographer for weddings, portraits and brands. Natural, warm and timeless images, shot in a relaxed way and delivered as a gallery you will keep coming back to.",
-  address: "By appointment, Lekki, Lagos",
-  phone: "+234 803 222 0145",
-  email: "hello@kcscraft.app",
-  socials: { instagram: "@kcscraft", tiktok: "@kcscraft.photo" },
+  category: "", location: "",
+  rating: undefined as number | undefined, reviews: 0, orders: 0, reply: "",
+  bio: "",
+  address: "",
+  phone: "",
+  email: "",
+  socials: { instagram: "", tiktok: "" },
 };
-const MOCK_SERVICES = [
-  { id: "s1", name: "Portrait Session", price: 40000, dur: "1 hour", durMin: 60, cat: "Portraits", popular: true, desc: "A relaxed studio or outdoor portrait session, perfect for personal or professional shots." },
-  { id: "s2", name: "Family / Group", price: 60000, dur: "1.5 hours", durMin: 90, cat: "Portraits", desc: "An easy, fun session for families and groups, with everyone looking their best." },
-  { id: "s3", name: "Brand / Product Shoot", price: 90000, dur: "Half day", durMin: 240, cat: "Brand", popular: true, desc: "Clean, on-brand images of your products or team for web, social and ads." },
-  { id: "s4", name: "Event Coverage", price: 120000, dur: "Up to 4 hours", durMin: 240, cat: "Events", desc: "Coverage of birthdays, launches and corporate events, candid and posed." },
-  { id: "s5", name: "Wedding Coverage", price: 350000, dur: "Full day", durMin: 600, cat: "Weddings", popular: true, desc: "Full day storytelling of your wedding, from morning prep to the last dance." },
-  { id: "s6", name: "Pre-Wedding Shoot", price: 80000, dur: "2 hours", durMin: 120, cat: "Weddings", desc: "A pre-wedding shoot at a location you love, for save the dates and more." },
-  { id: "s7", name: "Maternity / Newborn", price: 70000, dur: "1.5 hours", durMin: 90, cat: "Portraits", desc: "Gentle, timeless images of this season, in studio or at home." },
-  { id: "s8", name: "Graduation / Milestone", price: 45000, dur: "1 hour", durMin: 60, cat: "Portraits", desc: "Mark a graduation, birthday or milestone with images worth keeping." },
-];
+const MOCK_SERVICES: any[] = [];
 const MOCK_SERVICE_INFO = {
   s1: { includes: ["Up to one hour of shooting", "Studio or one outdoor location", "Outfit and pose guidance throughout", "Around 30 hand-edited images", "A private online download gallery", "Print ready high resolution files"] },
   s2: { includes: ["Up to 90 minutes of shooting", "One location of your choice", "Direction so everyone looks natural", "Around 40 hand-edited images", "A private gallery to share", "Print ready high resolution files"] },
@@ -179,22 +170,8 @@ const MOCK_SERVICE_INFO = {
   s7: { includes: ["Up to 90 minutes, studio or home", "Gowns and props available", "Gentle, unhurried direction", "Around 35 edited images", "A private download gallery", "Print ready high resolution files"] },
   s8: { includes: ["Up to one hour of shooting", "Studio or campus location", "Outfit and pose guidance", "Around 30 edited images", "A quick turnaround gallery", "Print ready high resolution files"] },
 };
-const MOCK_PRODUCTS = [
-  { id: "p1", name: "Fine Art Print, A3", price: 15000, cat: "Prints", popular: true, desc: "A museum quality print of your favourite image, ready to frame." },
-  { id: "p2", name: "Framed Print, A2", price: 35000, cat: "Prints", desc: "A large framed print, delivered ready to hang on your wall." },
-  { id: "p3", name: "Premium Photo Album", price: 85000, cat: "Albums", popular: true, desc: "A handcrafted layflat album of your shoot, built to last for years." },
-  { id: "p4", name: "Canvas Wrap, 60cm", price: 45000, cat: "Prints", desc: "Your image wrapped on gallery canvas, no frame needed." },
-  { id: "p5", name: "Digital Gallery Upgrade", price: 20000, cat: "Digital", desc: "Add the full set of high resolution edits from your session." },
-  { id: "p6", name: "Lightroom Preset Pack", price: 12000, cat: "Digital", popular: true, desc: "The presets behind our signature look, for editing your own photos." },
-];
-const MOCK_REVIEWS = [
-  { id: "r1", name: "Amara N.", r: 5, when: "2 weeks ago", service: "Wedding Coverage", verified: true, photos: 2, text: "Kcs Craft captured our wedding so beautifully I cried going through the gallery. Every important moment is there, and the editing is just gorgeous.", response: { when: "2 weeks ago", text: "Thank you Amara, it was an honour to photograph your day. Wishing you both the very best." } },
-  { id: "r2", name: "Kelvin Gadgets", r: 5, when: "3 weeks ago", service: "Brand / Product Shoot", verified: true, photos: 1, text: "Our product photos completely lifted the brand. Clean, sharp and on point, and our sales noticeably went up after we updated the store." },
-  { id: "r3", name: "Zainab K.", r: 4, when: "1 month ago", service: "Portrait Session", verified: true, photos: 0, text: "Lovely photos and so easy to relax with on the day. The gallery took a touch longer than I expected, but it was worth the wait.", response: { when: "1 month ago", text: "Thank you Zainab. We were finishing a wedding that week, but I will keep clients posted on timing in future." } },
-  { id: "r4", name: "Chidi O.", r: 5, when: "1 month ago", service: "Event Coverage", verified: true, photos: 2, text: "Caught every moment of our launch without ever being in the way. The candids are incredible. Already booking the next one." },
-  { id: "r5", name: "Bisi A.", r: 3, when: "2 months ago", service: "Family / Group", verified: true, photos: 0, text: "Nice images overall and a couple I really love. I just wished there were a few more to choose from in the final gallery." },
-  { id: "r6", name: "Ngozi E.", r: 5, when: "2 months ago", service: "Pre-Wedding Shoot", verified: true, photos: 1, text: "Made us feel completely at ease, even though we are awkward in front of a camera. The results are stunning, we cannot stop looking." },
-];
+const MOCK_PRODUCTS: any[] = [];
+const MOCK_REVIEWS: any[] = [];
 const MOCK_PRODUCT_FAQS = [
   ["How long does print delivery take?", "Prints and albums are made to order and usually arrive within 5 to 10 days. Delivery cost is shown at checkout based on your area."],
   ["Do you ship outside Lagos?", "Yes, nationwide delivery across Nigeria is available, with timing and cost confirmed at checkout."],
@@ -209,87 +186,11 @@ const MOCK_SERVICE_FAQS = [
   ["Can we shoot at a location of my choice?", "Yes. Sessions can be in studio, outdoors or at a location you love. Travel beyond Lagos can be arranged for an added cost."],
   ["How do I pay?", "Pay securely through Frontstore, or by bank transfer where offered. Your receipt always arrives on WhatsApp."],
 ];
-const MOCK_FAQ_GROUPS = [
-  {
-    cat: "Booking and sessions", icon: Calendar, items: [
-      ["How do I book a session?", "Pick a session, choose a date, and a deposit secures it. We confirm on WhatsApp and have a quick chat to plan the shoot."],
-      ["Can we shoot where I want?", "Yes. Studio, outdoors or a location you love all work. Travel beyond Lagos can be arranged for an added cost, agreed before the day."],
-      ["What should I wear and bring?", "We talk through outfits and ideas before the shoot, and there is a short guide in the journal. Bring anything meaningful you would like in your photos."],
-      ["Can I reschedule or cancel?", "Reschedule or cancel up to 7 days before your shoot for a full deposit refund. Inside 7 days the deposit is held against the booking."],
-    ],
-  },
-  {
-    cat: "Payments and deposits", icon: Lock, items: [
-      ["How do I pay?", "You can pay securely through Frontstore at checkout, or by bank transfer. Frontstore checkout is the safer option as it comes with buyer protection."],
-      ["Is paying through Frontstore safe?", "Yes. Payments made through Frontstore are protected, so if a booking does not go as described you can raise a dispute and we help mediate. This protection cannot be removed by the vendor."],
-      ["How much is the deposit?", "A deposit secures your date when you book, and the balance is due on the shoot day. The exact deposit is shown before you confirm."],
-      ["What currency are prices in?", "Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are always charged in naira."],
-    ],
-  },
-  {
-    cat: "Your photos and delivery", icon: Sparkles, items: [
-      ["When will my gallery be ready?", "Most galleries are ready within 2 to 3 weeks, with wedding sneak peeks inside 48 hours. The timeline is confirmed when you book."],
-      ["How do I receive my photos?", "You get a private online gallery to view, download and share, with print ready high resolution files included."],
-      ["Do I get the raw, unedited files?", "Editing is part of the craft, so galleries are delivered fully edited. Raw files are not normally shared, but talk to us if you have a specific need."],
-      ["Can I use the photos how I like?", "Personal use is all yours. For brand and commercial shoots, usage rights for your own channels are included, and wider licensing can be arranged."],
-    ],
-  },
-  {
-    cat: "Prints and albums", icon: ShoppingBag, items: [
-      ["Are the prints good quality?", "Yes. Prints and albums are produced on archival, museum quality materials, colour managed to match your edited images."],
-      ["Can I return a print?", "Prints and albums are made to order, so they cannot be returned unless they arrive damaged or faulty, in which case they are replaced free."],
-      ["Do you deliver prints?", "Yes, across Lagos and nationwide. Delivery is arranged after checkout and the fee depends on your location."],
-    ],
-  },
-  {
-    cat: "Trust and Frontstore", icon: ShieldCheck, items: [
-      ["What does Secured by Frontstore mean?", "It means this store runs on Frontstore, so your booking or order is covered by Frontstore buyer protection and platform terms that the vendor cannot remove."],
-      ["Are the reviews real?", "Yes. Reviews can only be left by clients with a completed Frontstore booking, and each is shown with a verified badge. The vendor can respond but cannot delete genuine ones."],
-      ["What if something goes wrong?", "If a booking paid through Frontstore does not go as described, you can raise a dispute and Frontstore will help mediate a fair resolution."],
-    ],
-  },
-];
+const MOCK_FAQ_GROUPS: any[] = [];
 const MOCK_FAQS_PREVIEW = MOCK_FAQ_GROUPS.map((g: any) => g.items[0]);
-const MOCK_TERMS = [
-  { t: "Who these terms are between", p: [`These terms are an agreement between you and ${MOCK_STORE.name}, the photographer who provides the services and products on this store. The store runs on Frontstore, which provides the platform and buyer protection but is not the seller.`] },
-  { t: "Bookings and deposits", p: ["Sessions are arranged by booking through this store. A deposit secures your date and the balance is due on the shoot day. Your date is confirmed once the deposit is received."] },
-  { t: "Pricing and payment", p: ["Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are charged in naira.", "You can pay securely through Frontstore at checkout, or by bank transfer. Funds paid by transfer go directly to the photographer, while Frontstore payments are held under buyer protection."] },
-  { t: "Cancellations and refunds", p: ["You can reschedule, cancel or return within the windows set out on the Refunds page, where you will also find how and when refunds are issued."], link: { label: "Read the Refunds policy", page: "returns" } },
-  { t: "On the day", p: ["Please arrive on time and let us know about locations, access and anything important to the shoot ahead of the day. Where weather or a venue affects an outdoor shoot, we will agree an alternative or a new date.", "You are responsible for any permissions or permits needed to shoot at a private or restricted location."] },
-  { t: "Your images and usage", p: ["You receive a licence to use your photos for personal use, and for brand shoots, for your own channels as agreed. The photographer retains copyright in the images and may use selected photos in a portfolio unless you ask otherwise in writing."] },
-  { t: "Prints and products", p: ["Prints and albums are made to order. Please check sizes and details before ordering. Returns are handled as set out on the Refunds page."] },
-  { t: "Reviews and content", p: ["Reviews can only be left by clients with a completed booking, and each is shown with a verified badge. The vendor may respond to reviews but cannot remove genuine ones. By submitting a review or photo, you allow it to be shown on this store."] },
-  { t: "Liability", p: ["We provide our services with reasonable skill and care. In the unlikely event of equipment failure or other issues beyond our control, liability is limited to a refund of fees paid. Nothing in these terms removes any rights you have under applicable law."] },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform terms", body: "Every Frontstore store also operates under the Frontstore platform terms and buyer protection policy. These apply alongside the store's own policies and cannot be removed by the vendor.", link: "Read the Frontstore platform terms" } },
-  { t: "Changes to these terms", p: ["We may update these terms from time to time. The version shown on this page is the current one, and the date it was last updated is shown alongside it."] },
-  { t: "Governing law", p: ["These terms are governed by the laws of the Federal Republic of Nigeria, and any dispute falls under the courts of Lagos State."] },
-  { t: "Contact", p: ["Questions about these terms? Reach us through the Contact page and we will be glad to help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PRIVACY = [
-  { t: "What we collect", p: [`When you book, buy or get in touch, ${MOCK_STORE.name} collects the details you give us: your name, contact details such as a WhatsApp number, phone or email, your booking, shoot and order details, any message you send, and reviews or photos you choose to share.`] },
-  { t: "How we use it", p: ["We use your details to take and confirm bookings and orders, plan and deliver your shoot, reply to your enquiries, arrange print delivery, process payments, show verified reviews, and improve the store. We do not send marketing without your consent."] },
-  { t: "Your photos", p: ["The photos taken at your session are stored securely and delivered to you through a private gallery. Selected images may be used in the photographer's portfolio unless you ask us not to in writing."] },
-  { t: "Payments", p: ["Payments made through Frontstore are handled by Frontstore and its payment providers under buyer protection, and we do not see or store your card details. Bank transfers are made directly to the photographer."] },
-  { t: "WhatsApp and messaging", p: ["When you message us, the conversation takes place on WhatsApp and is also subject to WhatsApp's own privacy terms. In future this may move to Frontstore's own messaging."] },
-  { t: "Who we share it with", p: ["We share only what is needed: with print and album labs to fulfil orders, with payment providers to take payment, and with Frontstore as the platform the store runs on. We never sell your data."] },
-  { t: "Cookies and analytics", p: ["The store uses basic cookies and analytics, provided through the Frontstore platform, to keep the store working and understand how it is used."] },
-  { t: "Keeping your data", p: ["We keep your details and your gallery only as long as needed to provide our services and to meet legal and tax obligations, after which they are removed. Galleries are kept available for a set period, agreed when you book."] },
-  { t: "Your rights", p: ["Under Nigerian data protection law you can ask to see the data we hold about you, correct it, delete it, or object to how it is used. To make a request, reach us through the Contact page."], link: { label: "Go to Contact", page: "contact" } },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform privacy", body: "As the platform this store runs on, Frontstore also processes data under its own privacy policy and platform terms. These apply alongside the store's own notice and cannot be removed by the vendor.", link: "Read the Frontstore privacy policy" } },
-  { t: "Changes to this notice", p: ["We may update this notice from time to time. The version shown on this page is the current one, with the date it was last updated shown alongside it."] },
-  { t: "Contact", p: ["Questions about your privacy, or want to make a data request? Reach us through the Contact page and we will help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PORTFOLIO = [
-  { label: "Lagos wedding", cat: "Weddings", c: "c0" },
-  { label: "Studio portrait", cat: "Portraits", c: "c1" },
-  { label: "Brand campaign", cat: "Brand", c: "c2" },
-  { label: "Birthday event", cat: "Events", c: "c1" },
-  { label: "Maternity session", cat: "Portraits", c: "c2" },
-  { label: "Pre-wedding", cat: "Weddings", c: "c0" },
-  { label: "Product shoot", cat: "Brand", c: "c1" },
-  { label: "Graduation", cat: "Portraits", c: "c2" },
-  { label: "Family session", cat: "Portraits", c: "c0" },
-];
+const MOCK_TERMS: any[] = [];
+const MOCK_PRIVACY: any[] = [];
+const MOCK_PORTFOLIO: any[] = [];
 const MOCK_NOTIFY_TOPICS = [["dates", "Open dates"], ["offers", "Offers and mini sessions"], ["tips", "Shoot tips"], ["news", "Announcements"]];
 const MOCK_HOURS = [
   ["Mon", "9:00am - 7:00pm"], ["Tue", "9:00am - 7:00pm"], ["Wed", "9:00am - 7:00pm"],
@@ -301,87 +202,23 @@ const MOCK_NAV = [
 ];
 const MOCK_LEGAL = [["returns", "Refunds"], ["terms", "Terms"], ["privacy", "Privacy"]];
 const MOCK_CATS = ["Portraits", "Weddings", "Events", "Brand"];
-const MOCK_FEATURED = [
-  { id: "s5", name: "Wedding Coverage", price: 350000, dur: "Full day", type: "service" },
-  { id: "s1", name: "Portrait Session", price: 40000, dur: "1 hour", type: "service" },
-  { id: "p3", name: "Premium Photo Album", price: 85000, type: "product" },
-];
+const MOCK_FEATURED: any[] = [];
 const MOCK_AUTHOR = {
-  name: "Kcs Craft",
-  initial: "K",
-  role: "Photographer",
-  bio: "Kcs Craft is a Lagos based photography brand with over eight years behind the lens, known for natural, warm images and a calm, easy way on a shoot.",
-  long: "Kcs Craft started back in 2017 with one camera and a love of catching real moments. What began as portraits for friends grew into a full time craft across weddings, brands and milestones. The approach has stayed the same throughout: make people comfortable, catch the real moments, and edit with a light, timeless hand.",
-  quote: "The best photos happen when people forget the camera is there. Our whole job is getting you to that point.",
-  specialities: ["Weddings", "Portraits", "Brand", "8+ years"],
-  socials: { instagram: "@kcscraft", tiktok: "@kcscraft.photo" },
-  credentials: [
-    "Over eight years behind the lens",
-    "Full frame cameras and professional lighting",
-    "Private studio plus on location across Lagos",
-  ],
+  name: "",
+  initial: "",
+  role: "",
+  bio: "",
+  long: "",
+  quote: "",
+  specialities: [],
+  socials: { instagram: "", tiktok: "" },
+  credentials: []
 };
-const MOCK_OFFERINGS = [
-  ["Portraits", "Studio and outdoor portraits for individuals, families and milestones.", "services"],
-  ["Weddings", "Full day wedding storytelling and relaxed pre-wedding shoots.", "services"],
-  ["Brand and events", "Product, brand and event photography for businesses across Lagos.", "services"],
-  ["Prints and albums", "Turn your favourite images into fine art prints and handcrafted albums.", "products"],
-];
-const MOCK_GALLERY = [
-  { label: "Lagos wedding", c: "c0" },
-  { label: "Studio portrait", c: "c1" },
-  { label: "Brand campaign", c: "c2" },
-  { label: "Birthday event", c: "c1" },
-  { label: "Maternity session", c: "c2" },
-  { label: "Pre-wedding", c: "c0" },
-];
-const MOCK_RECOGNITION = ["Lagos Photo", "BellaNaija Weddings", "Brand Africa", "Nigerian Wedding Awards"];
-const MOCK_ABOUT_FACTS = [
-  ["Based in", "Lagos, available to travel"],
-  ["Shooting since", "2017"],
-  ["Style", "Natural, warm and timeless"],
-  ["Studio", "Private studio plus on location"],
-  ["Booking", "A deposit secures your date, balance on the day"],
-  ["Delivery", "Edited online gallery within 2 to 3 weeks"],
-  ["Payment", "Pay securely with Frontstore, or by transfer"],
-  ["Gear", "Full frame cameras and professional lighting"],
-];
-const MOCK_BLOG = [
-  { title: "What to wear for your portrait session", date: "6 Jun 2026", cat: "Tips", read: "4 min", excerpt: "A few simple choices make a big difference to how your photos feel.", body: [
-    { p: "What you wear shapes the whole mood of a portrait. You do not need a new wardrobe, just a few thoughtful choices that let you, rather than the outfit, be the focus." },
-    { h: "A few simple rules" },
-    { list: ["Choose solid colours over busy patterns", "Pick tones that suit your skin and the setting", "Coordinate a group, do not match exactly", "Bring a second outfit for variety", "Wear something you feel like yourself in"] },
-    { p: "When in doubt, send us a couple of options before the shoot and we will pick together. Comfort always photographs better than a stiff new outfit." },
-  ] },
-  { title: "How to prepare for your wedding photos", date: "24 May 2026", cat: "Weddings", read: "5 min", excerpt: "A little planning means the camera catches the day, not the chaos.", body: [
-    { p: "Wedding photos are made long before the shutter clicks. A relaxed couple and a sensible timeline are worth more than any single trick on the day." },
-    { h: "The things that help most" },
-    { list: ["Build a little breathing room into the timeline", "Share a short list of must have moments and people", "Plan getting ready in a tidy, well lit room", "Trust us to direct, then relax into it", "Eat and drink water, it shows on camera"] },
-    { p: "We handle a full plan with every couple before the day. The more we sort in advance, the more present you get to be when it actually matters." },
-  ] },
-  { title: "Why a pre-wedding shoot is worth it", date: "11 May 2026", cat: "Weddings", read: "3 min", excerpt: "More than save the dates, it makes the wedding photos better too.", body: [
-    { p: "A pre-wedding shoot is not just for save the dates. It is a low pressure way to get comfortable in front of the camera before the big day." },
-    { p: "By the time the wedding comes, you already know how it feels to be photographed together, so you relax faster and the day's images look more natural. It is one of the easiest ways to get better wedding photos." },
-  ] },
-  { title: "Getting product photos that actually sell", date: "29 Apr 2026", cat: "Brand", read: "4 min", excerpt: "Good product images do quiet work for your brand every day.", body: [
-    { p: "Online, your photos are your shop window. Clear, consistent product images build trust and make the decision to buy easier, often without a customer realising why." },
-    { h: "What makes the difference" },
-    { list: ["Clean, consistent lighting across the set", "A few angles, plus one in real use", "Backgrounds that suit your brand", "Sizes ready for web and social", "A style you can repeat as you grow"] },
-    { p: "A focused brand shoot gives you a library of images to draw on for months. Talk to us about your range and where the photos will live." },
-  ] },
-  { title: "The best times of day to shoot outdoors", date: "13 Apr 2026", cat: "Tips", read: "3 min", excerpt: "Light is everything outdoors, and timing decides the light.", body: [
-    { p: "The same spot looks completely different at 10am and at 6pm. Outdoors, the time of day matters more than the location itself." },
-    { h: "When the light is kindest" },
-    { p: "The hour after sunrise and the hour before sunset, often called golden hour, give soft, warm, flattering light. Harsh midday sun is the trickiest, so we either find shade or plan around it." },
-    { p: "When we book, we will pick a time that gives your shoot the best possible light for the look you want." },
-  ] },
-  { title: "How we edit, and why your photos look like that", date: "3 Apr 2026", cat: "Tips", read: "4 min", excerpt: "Editing is part of the craft, not an afterthought.", body: [
-    { p: "A photograph is made twice, once in the camera and once in the edit. The editing is where a consistent, timeless look comes together." },
-    { h: "The approach" },
-    { p: "The aim is natural, not heavy. True to life skin tones, warm and balanced colour, and a light hand so the images still look like you in ten years. Every photo in your gallery is hand-edited, not run through a filter." },
-    { p: "If you love the look and want it for your own photos, the preset pack in the shop is the same starting point we use." },
-  ] },
-];
+const MOCK_OFFERINGS: any[] = [];
+const MOCK_GALLERY: any[] = [];
+const MOCK_RECOGNITION: any[] = [];
+const MOCK_ABOUT_FACTS: any[] = [];
+const MOCK_BLOG: any[] = [];
 
 const money = (n: number) => "₦" + n.toLocaleString("en-NG");
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -829,7 +666,7 @@ export default function PhotographerStorefront({
               <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>Order Placed!</h3>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>Your order reference is <b>{orderReceipt.order.order_number}</b>.</p>
               
-              {store.payment_provider === 'paystack' && (
+              {store.payment_provider && store.payment_provider !== 'manual' && (
                 <div style={{ background: '#f9f5f3', borderRadius: 12, padding: 14, marginTop: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span>Total Amount</span>
@@ -861,8 +698,9 @@ export default function PhotographerStorefront({
         headers: { 'Content-Type': 'application/json' }
       });
       const json = await res.json();
-      if (res.ok && json.data?.authorization_url) {
-        window.location.href = json.data.authorization_url;
+      const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
+      if (res.ok && redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         sonnerToast.error(json.message || "Online payment setup failed.");
       }
@@ -1499,6 +1337,7 @@ export default function PhotographerStorefront({
   );
   const aboutReview = () => {
     const r = displayReviews[0];
+    if (!r) return null;
     return (
       <div className="ab-review">
         <Quote className="ab-quote-mark" size={28} />
@@ -1513,10 +1352,12 @@ export default function PhotographerStorefront({
       </div>
     );
   };
-  const aboutJournal = () => (
+  const aboutJournal = () => {
+    if (!displayBlog.length) return null;
+    return (
     <div className="ab-section">
       <div className="ab-sec-head">
-        <h4 className="ab-subhead">From the Kcs Craft journal</h4>
+        <h4 className="ab-subhead">From the journal</h4>
         <button className="ab-seclink" onClick={() => go("blog")}>All articles <ChevronRight size={14} /></button>
       </div>
       <div className="ab-journal">
@@ -1528,12 +1369,12 @@ export default function PhotographerStorefront({
           </button>
         ))}
       </div>
-      <p className="ab-journal-note">Written by {DUMMY_AUTHOR.name}, drawing on a decade of client work.</p>
+      <p className="ab-journal-note">{DUMMY_AUTHOR.name ? `Written by ${DUMMY_AUTHOR.name}, drawing on a decade of client work.` : "Tips, routines and notes from the team."}</p>
     </div>
-  );
+    );
+  };
   const aboutBody = () => (<>
     <p className="ps-prose">{DUMMY_STORE.bio}</p>
-    <p className="ab-para">What began in 2017 photographing friends has grown into a full time craft across weddings, brands and milestones, with a calm, natural style clients keep coming back for.</p>
     <div className="ab-founder ab-founder-m">
       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
       <div className="ab-founder-body">{aboutFounderBody()}</div>
@@ -1565,10 +1406,10 @@ export default function PhotographerStorefront({
     <div className="ps-about-grid">
       <div><b>{DUMMY_STORE.orders}</b><span>shoots done</span></div>
       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-      <div><b>10 yrs</b><span>in practice</span></div>
+      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
-      <span className="ab-follow-h">Follow Kcs Craft</span>
+      <span className="ab-follow-h">Follow us</span>
       <div className="ab-socials">
         <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {(DUMMY_STORE.socials?.instagram || '')}</button>
         <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {(DUMMY_STORE.socials?.tiktok || '')}</button>
@@ -1665,7 +1506,7 @@ export default function PhotographerStorefront({
           </ul>
         </div>
         <div className="ab-follow-rail">
-          <span>Follow Kcs Craft</span>
+          <span>Follow us</span>
           <div className="ab-follow-icons">
             <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
             <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
@@ -1885,7 +1726,7 @@ export default function PhotographerStorefront({
       <button onClick={() => setAnnOff(true)} aria-label="Dismiss"><X size={15} /></button>
     </div>
   );
-  const featured = (
+  const featured = MOCK_FEATURED.length > 0 ? (
     <section className="feat">
       <div className="feat-head"><span className="feat-tag"><Sparkles size={13} /> Featured</span></div>
       <div className="feat-grid">
@@ -1894,13 +1735,13 @@ export default function PhotographerStorefront({
         ))}
       </div>
     </section>
-  );
+  ) : null;
 
   /* ---- drawer panel (mobile only) ---- */
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo">frontstore<span>.app</span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1977,7 +1818,7 @@ export default function PhotographerStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -2060,7 +1901,7 @@ export default function PhotographerStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -2444,9 +2285,7 @@ export default function PhotographerStorefront({
                   <div className="ab-main">
                     <span className="ab-kicker">Our story</span>
                     <h2 className="ab-headline">Photography that feels like you, and lasts a lifetime.</h2>
-                    <p className="ab-lede">Kcs Craft is a Lagos based photographer for weddings, portraits and brands. Natural, warm and timeless images, shot in a relaxed way and delivered as a gallery you will keep coming back to.</p>
-                    <p className="ab-para">What began in 2017 photographing friends has grown into a full time craft across weddings, brands and milestones. The approach has stayed the same throughout: make people comfortable, catch the real moments, and edit with a light, timeless hand.</p>
-                    <p className="ab-para">Today the work spans weddings, portraits, brands and events across Lagos and beyond, and clients keep coming back because the photos still feel like them years later, whether it is a wedding morning, a new baby or a brand launch.</p>
+                    {DUMMY_STORE.bio && <p className="ab-lede">{DUMMY_STORE.bio}</p>}
 
                     <div className="ab-founder">
                       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
@@ -2491,7 +2330,7 @@ export default function PhotographerStorefront({
                     <div className="ps-about-grid ab-stats">
                       <div><b>{DUMMY_STORE.orders}</b><span>shoots done</span></div>
                       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-                      <div><b>10 yrs</b><span>in practice</span></div>
+                      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
                     </div>
                   </div>
 
@@ -2506,7 +2345,7 @@ export default function PhotographerStorefront({
                         <button onClick={() => ping("Opening WhatsApp")}><WhatsApp size={14} /> Message</button>
                       </div>
                       <div className="ab-follow-rail">
-                        <span>Follow Kcs Craft</span>
+                        <span>Follow us</span>
                         <div className="ab-follow-icons">
                           <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
                           <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
@@ -2922,7 +2761,7 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
 .ps-logo span{color:var(--brand);}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
@@ -3666,7 +3505,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .svc-card-thumb.c1{background:linear-gradient(150deg,var(--brand-deep),var(--gold));}
 .svc-card-thumb.c2{background:linear-gradient(150deg,#b08d57,var(--brand));}
 .svc-card-thumb.c3{background:linear-gradient(150deg,var(--brand),#9c8f7a);}
-.svc-card-cat{position:absolute;bottom:10px;left:10px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
+.svc-card-cat{position:absolute;bottom:10px;left:10px;width:max-content;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
 .svc-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:rgba(42,29,34,.5);backdrop-filter:blur(2px);padding:4px 8px;border-radius:7px;}
 .svc-badge svg{color:var(--gold);fill:var(--gold);}
 .svc-card-body{padding:13px 14px 14px;display:flex;flex-direction:column;flex:1;}

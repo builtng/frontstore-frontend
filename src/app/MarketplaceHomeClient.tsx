@@ -13,7 +13,12 @@ import {
 } from "lucide-react";
 
 /* ─── TOKENS & REGIONS ───────────────────────────── */
+// GLOBAL is the default/fallback market shown before a shopper's country is detected (or when
+// detection fails / their country isn't one we localize yet) — prices show in USD and listings
+// are unfiltered. Every other entry scopes both currency display and product visibility to that
+// one country, per market.
 const MARKETS = [
+  { code:"GLOBAL", label:"Global",  ccy:"USD", symbol:"$",   perNgn:0.00062 },
   { code:"NG", label:"Nigeria",      ccy:"NGN", symbol:"₦",   perNgn:1       },
   { code:"GH", label:"Ghana",        ccy:"GHS", symbol:"GH₵", perNgn:0.0077  },
   { code:"KE", label:"Kenya",        ccy:"KES", symbol:"KSh", perNgn:0.084   },
@@ -21,6 +26,7 @@ const MARKETS = [
   { code:"GB", label:"United Kingdom",ccy:"GBP", symbol:"£",  perNgn:0.00049 },
   { code:"US", label:"United States",ccy:"USD", symbol:"$",   perNgn:0.00062 },
 ];
+const inMarket = (market: typeof MARKETS[0], ccy?: string) => market.code === "GLOBAL" || ccy === market.ccy;
 const ccyToNgn = { NGN:1, GHS:130, KES:11.9, ZAR:86, GBP:2040, USD:1610 };
 
 // Live exchange rates (NGN-based: liveRates[CCY] = units of CCY per 1 NGN), populated from a rates API on mount.
@@ -67,9 +73,6 @@ const fmt = (p: number, ccy: string, market: typeof MARKETS[0]) => {
   return `${t.symbol}${new Intl.NumberFormat("en-GB", { maximumFractionDigits: val >= 1000 ? 0 : 2 }).format(val)}`;
 };
 
-// Ranks items from the shopper's own market/currency ahead of others — used to surface nearby stores & products first
-const nearFirst = (market: typeof MARKETS[0], ccyA?: string, ccyB?: string) =>
-  Number(ccyB === market.ccy) - Number(ccyA === market.ccy);
 
 /* ─── SHARED UI ATOMS ────────────────────────────── */
 function Thumb({ cat, h = 148, image }: { cat: string; h?: number; image?: string | null }) {
@@ -182,7 +185,7 @@ function EmptyState({ icon: Icon, title, sub, btnLabel, onBtn }: { icon: any; ti
 }
 
 /* ─── LAYOUT SHELL ───────────────────────────────── */
-function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer }: { tab: string; setTab: (t: string) => void; market: any; setMarket: (m: any) => void; onSearchTap: () => void; children: React.ReactNode; buyer?: any | null }) {
+function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer, buyerAuthChecked }: { tab: string; setTab: (t: string) => void; market: any; setMarket: (m: any) => void; onSearchTap: () => void; children: React.ReactNode; buyer?: any | null; buyerAuthChecked: boolean }) {
   const [drawer, setDrawer]   = useState(false);
   const [mktOpen, setMktOpen] = useState(false);
 
@@ -228,7 +231,7 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer }:
                 <div className="mkt-dropdown">
                   <p className="mkt-dh">Shopping in</p>
                   {MARKETS.map(m => (
-                    <button key={m.code} className={`mkt-opt${m.ccy === market.ccy ? " on" : ""}`}
+                    <button key={m.code} className={`mkt-opt${m.code === market.code ? " on" : ""}`}
                       onClick={() => { setMarket(m); setMktOpen(false); }}>
                       <span>{m.label}</span><span className="mkt-sym">{m.symbol} {m.ccy}</span>
                     </button>
@@ -237,9 +240,13 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer }:
               )}
             </div>
             <ThemeToggle />
-            {buyer
-              ? <button className="signin-btn nav-acct-btn" onClick={() => setTab("account")}><User size={14} />{(buyer.name || 'Account').split(' ')[0]}</button>
-              : <button className="signin-btn" onClick={() => setTab("account")}>Sign in</button>}
+            {!buyerAuthChecked ? (
+              <div style={{ width: 80, height: 32 }} />
+            ) : buyer ? (
+              <button className="signin-btn nav-acct-btn" onClick={() => setTab("account")}><User size={14} />{(buyer.name || 'Account').split(' ')[0]}</button>
+            ) : (
+              <button className="signin-btn" onClick={() => setTab("account")}>Sign in</button>
+            )}
             <button className="open-store-btn" onClick={goToMerchantArea}>Open store</button>
           </div>
         </div>
@@ -313,20 +320,13 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
   }, [q, products]);
 
   const sponsored = filtered.filter(p => p.is_sponsored || p.sponsored);
-  // Fallback: if no explicitly sponsored products, pick top-viewed ones as featured — stores in the shopper's own market surface first
+  // `products`/`stores` are already scoped to the shopper's market by the parent component
   const featuredProducts = sponsored.length > 0
     ? sponsored
-    : [...filtered].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || (b.views_count || 0) - (a.views_count || 0)).slice(0, 4);
-  const trending  = [...filtered].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || (b.views_count || 0) - (a.views_count || 0)).slice(0, 4);
-  const latest    = [...filtered].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()).slice(0, 6);
-  // Surface stores from the shopper's own market first, then rank by real traffic (page views)
-  const nearbyStores = [...stores].sort((a, b) => nearFirst(market, a.currency_code, b.currency_code) || (b.traffic || 0) - (a.traffic || 0));
-  // Sellers and listings actually based in the shopper's detected country
-  const nearYouStores = stores.filter(s => s.currency_code === market.ccy);
-  const nearYouProducts = [...filtered]
-    .filter(p => p.store?.currency_code === market.ccy)
-    .sort((a, b) => (b.views_count || 0) - (a.views_count || 0))
-    .slice(0, 4);
+    : [...filtered].sort((a, b) => (b.views_count || 0) - (a.views_count || 0)).slice(0, 4);
+  const trending  = [...filtered].sort((a, b) => (b.views_count || 0) - (a.views_count || 0)).slice(0, 4);
+  const latest    = [...filtered].sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime()).slice(0, 6);
+  const nearbyStores = [...stores].sort((a, b) => (b.traffic || 0) - (a.traffic || 0));
 
   return (
     <>
@@ -423,22 +423,11 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
         </section>
       )}
 
-      {/* NEAR YOU */}
-      {(nearYouStores.length > 0 || nearYouProducts.length > 0) && (
-        <section className="sec near-you-sec">
-          <SectionHead title={`Near you in ${market.label}`} icon={MapPin}
-            right={<button className="see-all" onClick={() => setTab("browse")}>See all <ChevronRight size={14} /></button>} />
-          {nearYouStores.length > 0 && (
-            <div className="store-scroll">
-              {nearYouStores.slice(0, 8).map(s => <StoreCard key={s.id} s={s} />)}
-            </div>
-          )}
-          {nearYouProducts.length > 0 && (
-            <div className="product-grid" style={{ marginTop: nearYouStores.length > 0 ? 16 : 8 }}>
-              {nearYouProducts.map(p => <ProductCard key={p.id} p={p} market={market} liked={!!liked[p.id]} onLike={() => toggleLike(p.id)} />)}
-            </div>
-          )}
-        </section>
+      {/* SCOPE BANNER — listings below are already filtered to this market by the parent component */}
+      {market.code !== "GLOBAL" && (
+        <div className="scope-banner">
+          <MapPin size={13} /> Showing stores in {market.label}. Use the region switcher above to browse other countries.
+        </div>
       )}
 
       {/* STORES */}
@@ -554,7 +543,7 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
                   links: [
                     { label: "Help centre", href: "/docs" },
                     { label: "WhatsApp", href: "https://wa.me/2348030000000", target: "_blank", rel: "noopener noreferrer" },
-                    { label: "Contact", href: "mailto:support@frontstore.app" }
+                    { label: "Contact", href: "mailto:hello@frontstore.app" }
                   ]
                 }
               ] as { h: string; links: { label: string; href: string; onClick?: (e: React.MouseEvent) => void; target?: string; rel?: string; }[] }[]
@@ -614,8 +603,8 @@ function PageBrowse({ market, liked, toggleLike, products, categories, activeCat
       (p.name || "").toLowerCase().includes(q.toLowerCase()) || 
       (p.store?.store_name || "").toLowerCase().includes(q.toLowerCase())
     );
-    if (sortBy === "popular")    r = [...r].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || (b.views_count || 0) - (a.views_count || 0));
-    if (sortBy === "newest")     r = [...r].sort((a, b) => nearFirst(market, a.store?.currency_code, b.store?.currency_code) || new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime());
+    if (sortBy === "popular")    r = [...r].sort((a, b) => (b.views_count || 0) - (a.views_count || 0));
+    if (sortBy === "newest")     r = [...r].sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime());
     if (sortBy === "price_asc")  r = [...r].sort((a, b) => {
       const pA = (typeof a.price === 'number' ? a.price : Number(a.price) || 0) * (ccyToNgn[a.store?.currency_code as keyof typeof ccyToNgn] || 1);
       const pB = (typeof b.price === 'number' ? b.price : Number(b.price) || 0) * (ccyToNgn[b.store?.currency_code as keyof typeof ccyToNgn] || 1);
@@ -728,10 +717,12 @@ interface PageAccountProps {
   buyer: any | null;
   setBuyer: (b: any | null) => void;
   buyerAuthChecked: boolean;
+  setTab: (t: string) => void;
 }
-function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buyerAuthChecked }: PageAccountProps) {
+function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buyerAuthChecked, setTab }: PageAccountProps) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
-  const [section, setSection] = useState("main"); // main | orders | settings | password | payment-methods | help | edit-profile
+  const SUPPORT_WHATSAPP = '2348030000000'; // Real support WhatsApp number
+  const [section, setSection] = useState("main"); // main | orders | settings | password | help | edit-profile
   const [mktOpen, setMktOpen] = useState(false);
   const [notifOn, setNotifOn] = useState(true);
   const [language, setLanguage] = useState("English");
@@ -906,7 +897,7 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
                   </span>
                   <div style={{ display:"flex", gap:8 }}>
                     <a href={`/track/${o.id}`} className="o-btn" style={{ textDecoration:"none" }}>Track</a>
-                    {o.status === "completed" && <button className="o-btn o-btn-primary">Review</button>}
+                    {o.status === "completed" && <a href={`/track/${o.id}?review=true`} className="o-btn o-btn-primary" style={{ textDecoration:"none" }}>Review</a>}
                   </div>
                 </div>
                 <p className="order-id">{o.order_number || `Order: ${o.id.slice(0,8)}`}</p>
@@ -936,7 +927,7 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
         {mktOpen && (
           <div className="mkt-inline">
             {MARKETS.map(m => (
-              <button key={m.code} className={`mkt-opt${m.ccy === market.ccy ? " on" : ""}`}
+              <button key={m.code} className={`mkt-opt${m.code === market.code ? " on" : ""}`}
                 style={{ width:"100%" }} onClick={() => { setMarket(m); setMktOpen(false); }}>
                 <span>{m.label}</span><span className="mkt-sym">{m.symbol} {m.ccy}</span>
               </button>
@@ -947,11 +938,11 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
 
       <div className="settings-block">
         <p className="settings-group-label">Account</p>
-        <div className="settings-row">
+        <div className="settings-row" style={{ opacity: 0.65 }}>
           <Bell size={15} style={{ color:"var(--brand)" }} />
-          <span>Notifications</span>
-          <label className="toggle-switch" style={{ marginLeft:"auto" }}>
-            <input type="checkbox" checked={notifOn} onChange={e => setNotifOn(e.target.checked)} />
+          <span>Notifications <span style={{ fontSize:10, padding:"2px 6px", borderRadius:4, background:"var(--line)", color:"var(--muted)", marginLeft:6 }}>Coming soon</span></span>
+          <label className="toggle-switch" style={{ marginLeft:"auto", pointerEvents: "none" }}>
+            <input type="checkbox" checked={false} disabled />
             <span className="toggle-slider" />
           </label>
         </div>
@@ -960,26 +951,11 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
           <span>Password &amp; security</span>
           <span className="sr-val"><ChevronRight size={14} style={{ color:"var(--muted)" }} /></span>
         </button>
-        <button className="settings-row" onClick={() => setSection("payment-methods")}>
-          <CreditCard size={15} style={{ color:"var(--brand)" }} />
-          <span>Payment methods</span>
-          <span className="sr-val"><ChevronRight size={14} style={{ color:"var(--muted)" }} /></span>
-        </button>
-        <button className="settings-row" onClick={() => setLangOpen(o => !o)}>
+        <button className="settings-row" style={{ opacity: 0.65, cursor: "not-allowed" }} disabled>
           <Globe size={15} style={{ color:"var(--brand)" }} />
-          <span>Language</span>
-          <span className="sr-val">{language} <ChevronDown size={13} /></span>
+          <span>Language <span style={{ fontSize:10, padding:"2px 6px", borderRadius:4, background:"var(--line)", color:"var(--muted)", marginLeft:6 }}>Coming soon</span></span>
+          <span className="sr-val">English</span>
         </button>
-        {langOpen && (
-          <div className="mkt-inline" style={{ marginTop:4 }}>
-            {["English","French","Arabic","Portuguese","Swahili"].map(l => (
-              <button key={l} className={`mkt-opt${language === l ? " on" : ""}`}
-                style={{ width:"100%" }} onClick={() => { setLanguage(l); setLangOpen(false); }}>
-                <span>{l}</span>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className="settings-block">
@@ -989,12 +965,12 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
           <span>Help centre</span>
           <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
         </button>
-        <button className="settings-row" onClick={() => window.open('https://wa.me/2348030000000', '_blank')}>
+        <button className="settings-row" onClick={() => window.open(`https://wa.me/${SUPPORT_WHATSAPP}`, '_blank')}>
           <MessageCircle size={15} style={{ color:"var(--brand)" }} />
           <span>Chat on WhatsApp</span>
           <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
         </button>
-        <button className="settings-row" onClick={() => window.open('mailto:support@frontstore.app')}>
+        <button className="settings-row" onClick={() => window.open('mailto:hello@frontstore.app')}>
           <AlertCircle size={15} style={{ color:"var(--brand)" }} />
           <span>Report a problem</span>
           <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
@@ -1086,21 +1062,6 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
     </>
   );
 
-  /* PAYMENT METHODS */
-  if (section === "payment-methods") return (
-    <>
-      <div className="sub-header">
-        <button className="back-btn" onClick={() => setSection("settings")}><ChevronLeft size={20} /></button>
-        <h1 className="page-title">Payment methods</h1>
-      </div>
-      <EmptyState icon={CreditCard} title="No payment methods saved"
-        sub="Add a card or bank account to check out faster next time." />
-      <button className="add-pm-btn">
-        <Plus size={16} />Add payment method
-      </button>
-    </>
-  );
-
   /* HELP & SUPPORT */
   if (section === "help") return (
     <>
@@ -1114,12 +1075,12 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
           <span>Help centre</span>
           <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
         </button>
-        <button className="settings-row" onClick={() => window.open('https://wa.me/2348030000000', '_blank')}>
+        <button className="settings-row" onClick={() => window.open(`https://wa.me/${SUPPORT_WHATSAPP}`, '_blank')}>
           <MessageCircle size={15} style={{ color:"var(--brand)" }} />
           <span>Chat on WhatsApp</span>
           <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
         </button>
-        <button className="settings-row" onClick={() => window.open('mailto:support@frontstore.app')}>
+        <button className="settings-row" onClick={() => window.open('mailto:hello@frontstore.app')}>
           <AlertCircle size={15} style={{ color:"var(--brand)" }} />
           <span>Report a problem</span>
           <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
@@ -1142,7 +1103,6 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
       <div className="profile-card">
         <div className="avatar-wrap">
           <div className="avatar">{finalProfileName[0]}</div>
-          <button className="avatar-edit"><Camera size={12} color="#fff" /></button>
         </div>
         <div style={{ flex:1 }}>
           <p className="ac-name">{finalProfileName}</p>
@@ -1201,7 +1161,7 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
         <div className="quick-actions">
           {[
             { Icon:Package,    label:"Track order",   color:"#2f6f9e", onClick: () => setSection("orders") },
-            { Icon:CreditCard, label:"Payment",        color:"#25D366", onClick: () => setSection("payment-methods") },
+            { Icon:Bookmark,   label:"Saved items",    color:"#e056fd", onClick: () => setTab("saved") },
             { Icon:Bell,       label:"Alerts",         color:"#d98324", onClick: () => setSection("settings") },
             { Icon:Store,      label:"Open store",     color:"#6a52b8", onClick: handleMerchantEntry },
           ].map(({ Icon, label, color, onClick }) => (
@@ -1243,8 +1203,54 @@ export default function MarketplaceHomeClient({ initialData, initialSettings }: 
     return ['home','browse','saved','account'].includes(p as string) ? (p as string) : 'home';
   });
   const [market, setMarket] = useState(MARKETS[0]);
-  const [liked,  setLiked]  = useState<Record<string, boolean>>({});
-  const toggleLike = (id: string) => setLiked(s => ({ ...s, [id]: !s[id] }));
+  const [liked,  setLiked]  = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('buyer_liked_products');
+        return saved ? JSON.parse(saved) : {};
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  });
+
+  const toggleLike = (id: string) => {
+    setLiked(s => {
+      const next = { ...s, [id]: !s[id] };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('buyer_liked_products', JSON.stringify(next));
+        } catch (e) {
+          console.error("Failed to save liked products to localStorage", e);
+        }
+      }
+      return next;
+    });
+  };
+
+  // Validate token freshness in background on mount
+  useEffect(() => {
+    const token = localStorage.getItem('buyer_token');
+    if (!token) return;
+    const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+    fetch(`${configuredApiUrl}/v1/buyer/auth/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    })
+    .then(res => {
+      if (res.status === 401) {
+        localStorage.removeItem('buyer_token');
+        localStorage.removeItem('buyer');
+        setBuyer(null);
+      }
+    })
+    .catch(err => {
+      console.warn("Background session validation check failed:", err);
+    });
+  }, []);
 
   // Buyer session — read once on mount and re-checked whenever the Account tab is opened,
   // so the header reflects sign-in state right away (incl. returning from /buyer/login).
@@ -1330,6 +1336,17 @@ export default function MarketplaceHomeClient({ initialData, initialSettings }: 
     return Array.from(storeMap.values());
   }, [stores, products]);
 
+  // Home & Browse are scoped to the shopper's detected market ("Nigerians see Nigerian stores"), while
+  // Saved/Account keep the unfiltered lists since those reflect the shopper's own picks/history.
+  const scopedProducts = useMemo(
+    () => market.code === "GLOBAL" ? products : products.filter(p => inMarket(market, p.store?.currency_code)),
+    [products, market]
+  );
+  const scopedStores = useMemo(
+    () => market.code === "GLOBAL" ? finalStores : finalStores.filter(s => inMarket(market, s.currency_code)),
+    [finalStores, market]
+  );
+
   // Fetch live marketplace records on mount
   useEffect(() => {
     const fetchMarketplace = async () => {
@@ -1355,14 +1372,14 @@ export default function MarketplaceHomeClient({ initialData, initialSettings }: 
   }, []);
 
   const pages = {
-    home:    <PageHome    market={market} liked={liked} toggleLike={toggleLike} setTab={setTab} products={products} categories={categories} stores={finalStores} setActiveCat={setActiveCat} q={q} setQ={setQ} />,
-    browse:  <PageBrowse  market={market} liked={liked} toggleLike={toggleLike} products={products} categories={categories} activeCat={activeCat} setActiveCat={setActiveCat} q={q} setQ={setQ} focusSignal={searchFocusSignal} />,
+    home:    <PageHome    market={market} liked={liked} toggleLike={toggleLike} setTab={setTab} products={scopedProducts} categories={categories} stores={scopedStores} setActiveCat={setActiveCat} q={q} setQ={setQ} />,
+    browse:  <PageBrowse  market={market} liked={liked} toggleLike={toggleLike} products={scopedProducts} categories={categories} activeCat={activeCat} setActiveCat={setActiveCat} q={q} setQ={setQ} focusSignal={searchFocusSignal} />,
     saved:   <PageSaved   market={market} liked={liked} toggleLike={toggleLike} setTab={setTab} products={products} />,
-    account: <PageAccount market={market} setMarket={setMarket} products={products} liked={liked} buyer={buyer} setBuyer={setBuyer} buyerAuthChecked={buyerAuthChecked} />,
+    account: <PageAccount market={market} setMarket={setMarket} products={products} liked={liked} buyer={buyer} setBuyer={setBuyer} buyerAuthChecked={buyerAuthChecked} setTab={setTab} />,
   };
 
   return (
-    <Shell tab={tab} setTab={setTab} market={market} setMarket={setMarket} onSearchTap={() => setSearchFocusSignal(s => s + 1)} buyer={buyer}>
+    <Shell tab={tab} setTab={setTab} market={market} setMarket={setMarket} onSearchTap={() => setSearchFocusSignal(s => s + 1)} buyer={buyer} buyerAuthChecked={buyerAuthChecked}>
       {/* dangerouslySetInnerHTML prevents React from diffing style content during hydration, avoiding mismatches from browser extensions that modify <style> tags */}
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="inner-wrap" key={tab}>
@@ -1479,6 +1496,9 @@ const CSS = `
 .page-sub{font-size:14px;color:var(--muted);margin-top:4px;}
 .sub-header{display:flex;align-items:center;gap:10px;padding-top:24px;margin-bottom:22px;}
 .back-btn{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--surface);}
+
+/* scope banner */
+.scope-banner{display:flex;align-items:center;gap:6px;margin-top:20px;padding:10px 14px;border-radius:10px;background:var(--brand-tint);color:var(--brand-text);font-size:12.5px;font-weight:600;}
 
 /* section */
 .sec{padding:28px 0 6px;}

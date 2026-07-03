@@ -2,85 +2,25 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Zap, Link, BarChart3, Globe,
+  Zap, Globe,
   Store, Star, ArrowRight, User, MessageCircle,
-  CreditCard, Users, Brain, Megaphone, TrendingUp, Check, X,
-  PenTool, Play
+  CreditCard, Users, Brain, Megaphone, Check, X,
+  Play
 } from 'lucide-react';
-import { WhatsAppIcon } from '../components/WhatsAppIcon';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
 import { RESERVED_SUBDOMAINS } from '../utils/reservedKeywords';
 
-// ── Sample Store Feature Cards ───────────────────────────────────────────────
-const FEATURES = [
-  {
-    title: 'WhatsApp-Native Checkout',
-    body: 'No complex payment setup. Customers browse, tap "Order on WhatsApp", and land directly in your chat with a pre-filled message ready to send.',
-    color: 'hsl(142, 71%, 45%)',
-    bg: 'hsl(142, 71%, 96%)',
-  },
-  {
-    title: 'AI-Powered Listings',
-    body: 'Upload a photo — ChatGPT AI writes your product descriptions, suggests local prices, and creates searchable tags in seconds.',
-    color: 'hsl(250, 84%, 60%)',
-    bg: 'hsl(250, 84%, 97%)',
-  },
-  {
-    title: 'Ultra-Fast Loading',
-    body: 'Optimized for African mobile networks. Static pages load in under 2 seconds even on 3G, keeping your bounce rate low and buyers engaged.',
-    color: 'hsl(38, 92%, 50%)',
-    bg: 'hsl(38, 92%, 96%)',
-  },
-  {
-    title: 'Shareable Store Links',
-    body: 'Your store gets a clean frontstore link — share it on Instagram bio, TikTok profile, or WhatsApp status to drive traffic instantly.',
-    color: 'hsl(200, 98%, 45%)',
-    bg: 'hsl(200, 98%, 96%)',
-  },
-  {
-    title: 'Simple Order Tracking',
-    body: "Every order creates a trackable record. See what's pending, confirmed, or shipped — all in one clean dashboard.",
-    color: 'hsl(340, 82%, 55%)',
-    bg: 'hsl(340, 82%, 97%)',
-  },
-  {
-    title: 'Multi-Currency Support',
-    body: 'Sell in NGN, GHS, KES, ZAR and more. frontstore handles local currency formatting so prices feel right to your local buyers.',
-    color: 'hsl(170, 70%, 40%)',
-    bg: 'hsl(170, 70%, 96%)',
-  },
-] as const;
-
-const TESTIMONIALS = [
-  {
-    name: 'Chioma A.',
-    role: 'Fashion Vendor, Lagos',
-    initial: 'C',
-    bg: 'hsl(142, 70%, 94%)',
-    color: 'hsl(142, 70%, 35%)',
-    text: 'I set up my store in 5 minutes and got 3 orders the same day via WhatsApp. frontstore is a game changer for small businesses.',
-    stars: 5,
-  },
-  {
-    name: 'Kwame O.',
-    role: 'Electronics Reseller, Accra',
-    initial: 'K',
-    bg: 'hsl(210, 80%, 94%)',
-    color: 'hsl(210, 80%, 35%)',
-    text: 'My customers love how easy it is to browse and order. The WhatsApp button makes them feel comfortable and trusted.',
-    stars: 5,
-  },
-  {
-    name: 'Fatima B.',
-    role: 'Food Vendor, Kano',
-    initial: 'F',
-    bg: 'hsl(340, 80%, 94%)',
-    color: 'hsl(340, 80%, 35%)',
-    text: 'Before frontstore I was sending photos one-by-one on WhatsApp. Now I just share my store link and let customers browse themselves!',
-    stars: 5,
-  },
-] as const;
+// Testimonials default empty — real ones are supplied via admin-configured homepage_content.
+const TESTIMONIALS: ReadonlyArray<{
+  name: string;
+  role: string;
+  initial: string;
+  bg: string;
+  color: string;
+  text: string;
+  stars: number;
+}> = [];
 
 const HOW_IT_WORKS = [
   { step: '01', title: 'Claim your URL', body: 'Type your business name and claim your branded store link in seconds.' },
@@ -125,6 +65,18 @@ const DEFAULT_PLATFORM_SUITE = [
     desc: 'Send product drops, promos, and updates to your customer base without rebuilding your audience from scratch.',
     badge: 'Growth Tools'
   },
+  {
+    brand: 'Ultra-Fast Loading',
+    tagline: 'Built for African mobile networks',
+    desc: 'Static pages load in under 2 seconds even on 3G, keeping your bounce rate low and buyers engaged.',
+    badge: 'Speed'
+  },
+  {
+    brand: 'Multi-Currency Support',
+    tagline: 'Sell in NGN, GHS, KES, ZAR & more',
+    desc: 'frontstore handles local currency formatting automatically so prices feel right to your local buyers.',
+    badge: 'Multi-Currency'
+  },
 ];
 
 const DEFAULT_COMPARISON_ROWS = [
@@ -133,6 +85,7 @@ const DEFAULT_COMPARISON_ROWS = [
   { feat: 'Mobile-first Merchant Operations', alo: 'Manage store fully on 3G mobile network', sho: 'Complex desk-oriented admin dashboard', oth: 'Limited mobile configuration' },
   { feat: 'African Payment Rails', alo: 'Escrow options + Paystack/Flutterwave/Mobile Money', sho: 'High card fees, complex setup for Africa', oth: 'Standard payments only, no escrow' },
   { feat: 'Setup Speed', alo: 'Under 2 minutes (claim & launch immediately)', sho: 'Hours/Days of theme editing', oth: '5-15 minutes configuration' },
+  { feat: 'Pricing', alo: '₦1,500/month or ₦15,000/year flat — no tiers', sho: '$5–$399+/month by tier, Plus from $2,300+/month', oth: 'Bumpa: ₦15k–30k+/quarter by tier · Selar: free-to-start + ~₦22,500/month premium' },
 ];
 
 const DEFAULT_HOME_CONTENT = {
@@ -151,7 +104,7 @@ const DEFAULT_HOME_CONTENT = {
   narrative: {
     eyebrow: 'Our Narrative',
     title: 'Commerce Through Conversation',
-    body: "Most African businesses don't need complicated ecommerce websites before they can start selling with confidence. They need a fast way to show products, answer questions, confirm orders, and collect buyer details without leaving the channel their customers already trust.\n\nThat channel is WhatsApp. It is where discovery, negotiation, referrals, payment conversations, and repeat purchases already happen every day.\n\nFrontstore turns those conversations into a structured commerce system. A merchant can launch a branded store, organize products, share one link, receive clear order intent, and keep customer conversations moving toward payment and delivery.\n\nInstead of forcing sellers to choose between a website and WhatsApp, Frontstore connects both. The store gives buyers a clean catalog experience, while WhatsApp keeps the human relationship that drives trust.\n\nThe result is simple: sellers look more professional, customers understand what to buy, and every conversation has a clearer path to revenue.",
+    body: 'Frontstore turns WhatsApp — the channel your customers already trust — into a structured commerce system: a branded store, one shareable link, and orders that land straight in your chat, ready to confirm.',
     steps: [
       { title: 'Create a Store', desc: 'Add products in 2 mins' },
       { title: 'Share a Link', desc: 'Status, Instagram, TikTok' },
@@ -183,12 +136,6 @@ const DEFAULT_HOME_CONTENT = {
     title: 'Start selling in 3 simple steps',
     items: HOW_IT_WORKS,
   },
-  features: {
-    eyebrow: 'Features',
-    title: 'Built for how business is done in Africa',
-    description: 'Every feature is designed for African sellers — low bandwidth, WhatsApp-first, and mobile-optimized.',
-    items: FEATURES,
-  },
   testimonials: {
     eyebrow: 'Testimonials',
     title: 'Sellers love Frontstore',
@@ -202,42 +149,28 @@ function mergeHomeContent(raw?: string): HomeContent {
   if (!raw) return DEFAULT_HOME_CONTENT;
   try {
     const parsed = JSON.parse(raw);
-    return {
-      ...DEFAULT_HOME_CONTENT,
-      ...parsed,
-      hero: { ...DEFAULT_HOME_CONTENT.hero, ...(parsed.hero || {}) },
-      stats: { ...DEFAULT_HOME_CONTENT.stats, ...(parsed.stats || {}) },
-      narrative: { ...DEFAULT_HOME_CONTENT.narrative, ...(parsed.narrative || {}) },
-      platformSuite: { ...DEFAULT_HOME_CONTENT.platformSuite, ...(parsed.platformSuite || {}) },
-      comparison: { ...DEFAULT_HOME_CONTENT.comparison, ...(parsed.comparison || {}) },
-      vision: { ...DEFAULT_HOME_CONTENT.vision, ...(parsed.vision || {}) },
-      howItWorks: { ...DEFAULT_HOME_CONTENT.howItWorks, ...(parsed.howItWorks || {}) },
-      features: { ...DEFAULT_HOME_CONTENT.features, ...(parsed.features || {}) },
-      testimonials: { ...DEFAULT_HOME_CONTENT.testimonials, ...(parsed.testimonials || {}) },
+    
+    // Helper to merge nested objects falling back to default values for falsy fields (like empty strings)
+    const mergeWithFallback = (defaultObj: any, parsedObj: any): any => {
+      if (!parsedObj) return defaultObj;
+      const result = { ...defaultObj };
+      for (const key in defaultObj) {
+        if (Object.prototype.hasOwnProperty.call(defaultObj, key)) {
+          if (typeof defaultObj[key] === 'object' && defaultObj[key] !== null && !Array.isArray(defaultObj[key])) {
+            result[key] = mergeWithFallback(defaultObj[key], parsedObj[key]);
+          } else {
+            result[key] = parsedObj[key] || defaultObj[key];
+          }
+        }
+      }
+      return result;
     };
+
+    return mergeWithFallback(DEFAULT_HOME_CONTENT, parsed);
   } catch {
     return DEFAULT_HOME_CONTENT;
   }
 }
-
-const getFeatureIcon = (title: string, color: string) => {
-  switch (title) {
-    case 'WhatsApp-Native Checkout':
-      return <WhatsAppIcon size={22} color={color} />;
-    case 'AI-Powered Listings':
-      return <PenTool size={22} color={color} />;
-    case 'Ultra-Fast Loading':
-      return <Zap size={22} color={color} />;
-    case 'Shareable Store Links':
-      return <Link size={22} color={color} />;
-    case 'Simple Order Tracking':
-      return <BarChart3 size={22} color={color} />;
-    case 'Multi-Currency Support':
-      return <Globe size={22} color={color} />;
-    default:
-      return <Store size={22} color={color} />;
-  }
-};
 
 export default function HomePageClient({ initialSettings }: { initialSettings?: any }) {
   const [username, setUsername] = useState('');
@@ -400,7 +333,9 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           >
             Blog
           </a>
-          {isLoggedIn ? (
+          {!mounted ? (
+            <div style={{ width: 140, height: 36 }} />
+          ) : isLoggedIn ? (
             <a
               href="/dashboard"
               className="btn btn-primary"
@@ -433,21 +368,20 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
 
       {/* ── Hero ── */}
       <header style={{
-        padding: 'clamp(48px, 10vw, 96px) 20px clamp(48px, 8vw, 72px)',
-        textAlign: 'center',
+        padding: 'clamp(48px, 9vw, 100px) 20px clamp(48px, 8vw, 80px)',
         position: 'relative',
         overflow: 'hidden',
       }}>
-        {/* Background blob */}
-        <div style={{
-          position: 'absolute', top: '10%', left: '50%', transform: 'translateX(-50%)',
-          width: '80vw', maxWidth: 600, height: '60%',
-          background: 'radial-gradient(ellipse, var(--primary-glow) 0%, transparent 70%)',
-          pointerEvents: 'none',
-          zIndex: 0,
-        }} />
+        <div className="hero-mesh" />
+        <div className="hero-grid" />
 
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 640, margin: '0 auto' }}>
+        <div className="hero-inner" style={{
+          position: 'relative', zIndex: 1,
+          maxWidth: 1180, margin: '0 auto',
+          display: 'grid', gridTemplateColumns: '1fr', gap: 40,
+          alignItems: 'center',
+        }}>
+        <div className="hero-copy" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
           {/* Pill badges */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 24 }}>
             <span className="badge badge-primary" style={{ padding: '5px 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -620,6 +554,58 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             </p>
           </div>
         </div>
+
+        <div className="hero-visual" style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
+          <div className="hero-float-chip glass" style={{ top: '10%', left: '-2%' }}>
+            <span style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Check size={15} color="var(--primary)" strokeWidth={3} />
+            </span>
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', lineHeight: 1.3 }}>Order confirmed</p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Paid via Paystack</p>
+            </div>
+          </div>
+
+          <div className="hero-float-chip glass" style={{ bottom: '8%', right: '-4%', animationDelay: '1.6s' }}>
+            <span style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Zap size={15} color="var(--accent)" strokeWidth={2.5} />
+            </span>
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', lineHeight: 1.3 }}>Store live</p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Set up in 2 minutes</p>
+            </div>
+          </div>
+
+          <div className="phone-mockup animate-fade-in">
+            <div className="phone-mockup__notch" />
+            <div className="phone-mockup__screen">
+              <div className="phone-mockup__bar">
+                <div className="phone-mockup__avatar"><Store size={13} /></div>
+                {appName} Store
+              </div>
+              <div className="phone-mockup__body">
+                <div className="phone-bubble phone-bubble--in" style={{ animationDelay: '200ms' }}>
+                  Hi! Is the blue Ankara set still available? 😍
+                </div>
+                <div className="phone-bubble phone-bubble--out" style={{ animationDelay: '550ms' }}>
+                  Yes it is! Here's the order summary 👇
+                </div>
+                <div className="phone-bubble phone-bubble--card" style={{ animationDelay: '900ms' }}>
+                  <div style={{ width: '100%', height: 54, borderRadius: 6, background: 'linear-gradient(135deg, var(--primary-light), var(--accent-light))' }} />
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text)' }}>Blue Ankara Set × 1</p>
+                  <p style={{ fontSize: 10, fontWeight: 800, color: 'var(--primary)' }}>₦18,500</p>
+                  <div style={{ background: 'var(--wa-green)', color: '#fff', fontSize: 9, fontWeight: 700, textAlign: 'center', padding: '5px 0', borderRadius: 5 }}>
+                    Confirm Order
+                  </div>
+                </div>
+                <div className="phone-bubble phone-bubble--in" style={{ animationDelay: '1250ms' }}>
+                  Confirmed! When can I expect delivery? 🚚
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
       </header>
 
       <style jsx global>{`
@@ -670,6 +656,33 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         }
       `}</style>
 
+      {/* ── Trust Marquee ── */}
+      <section style={{
+        padding: '22px 0',
+        borderTop: '1px solid var(--border)',
+        borderBottom: '1px solid var(--border)',
+        background: 'var(--surface)',
+      }}>
+        <div className="marquee-viewport no-scrollbar" style={{ overflow: 'hidden', maskImage: 'linear-gradient(90deg, transparent, black 8%, black 92%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, transparent, black 8%, black 92%, transparent)' }}>
+          <div className="marquee-track">
+            {[...Array(2)].map((_, dupe) => (
+              [
+                { icon: <Globe size={13} />, label: '🇳🇬 Nigeria · 🇬🇭 Ghana · 🇰🇪 Kenya · 🇿🇦 South Africa' },
+                { icon: <CreditCard size={13} />, label: 'Paystack & Flutterwave secured' },
+                { icon: <MessageCircle size={13} />, label: 'Built on WhatsApp Business' },
+                { icon: <Zap size={13} />, label: 'Live stores in under 2 minutes' },
+                { icon: <Users size={13} />, label: `${homeContent.stats.sellerCount} strong` },
+              ].map((item, i) => (
+                <div key={`${dupe}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, color: 'var(--text-muted)', fontSize: 13, fontWeight: 600 }}>
+                  <span style={{ color: 'var(--primary)', display: 'flex' }}>{item.icon}</span>
+                  {item.label}
+                </div>
+              ))
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Premium Brand Narrative ── */}
       <section id="about" style={{
         padding: 'clamp(56px, 8vw, 88px) 20px',
@@ -719,8 +732,17 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
                   {paragraph}
                 </p>
               ))}
+              <a href="/about" className="clickable" style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: 'var(--primary)',
+                textDecoration: 'none',
+                justifySelf: 'start'
+              }}>
+                Read our full story →
+              </a>
             </div>
-            
+
             {/* Steps timeline */}
             <div style={{
               display: 'grid',
@@ -757,7 +779,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         borderBottom: '1px solid var(--border)',
         borderTop: '1px solid var(--border)'
       }}>
-        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1080, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <span className="badge badge-primary" style={{ marginBottom: 12 }}>{homeContent.platformSuite.eyebrow}</span>
             <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)' }}>{homeContent.platformSuite.title}</h2>
@@ -765,50 +787,64 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               {homeContent.platformSuite.description}
             </p>
           </div>
-          
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 20
-          }}>
-            {homeContent.platformSuite.items.map((prod, idx) => (
-              <div
-                key={idx}
-                className="card hover-lift"
-                style={{
-                  padding: '28px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 16,
-                  background: 'var(--surface-2)',
-                  border: '1px solid var(--border)'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 'var(--r-md)',
-                    background: 'var(--surface)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: 'var(--shadow-sm)'
-                  }}>
-                    {[<Store key="store" size={22} color="var(--primary)" />, <MessageCircle key="message" size={22} color="hsl(142, 71%, 45%)" />, <CreditCard key="credit" size={22} color="hsl(200, 98%, 45%)" />, <Users key="users" size={22} color="hsl(250, 84%, 60%)" />, <Brain key="brain" size={22} color="hsl(280, 70%, 55%)" />, <Megaphone key="mega" size={22} color="hsl(340, 82%, 55%)" />, <TrendingUp key="trend" size={22} color="hsl(38, 92%, 50%)" />][idx % 7]}
+
+          <div className="bento-grid">
+            {homeContent.platformSuite.items.map((prod, idx) => {
+              const featured = idx < 2;
+              const icon = [
+                <Store key="store" size={featured ? 26 : 22} color="var(--primary)" />,
+                <MessageCircle key="message" size={featured ? 26 : 22} color="hsl(142, 71%, 45%)" />,
+                <CreditCard key="credit" size={22} color="hsl(200, 98%, 45%)" />,
+                <Users key="users" size={22} color="hsl(250, 84%, 60%)" />,
+                <Brain key="brain" size={22} color="hsl(280, 70%, 55%)" />,
+                <Megaphone key="mega" size={22} color="hsl(340, 82%, 55%)" />,
+                <Zap key="zap" size={22} color="hsl(38, 92%, 50%)" />,
+                <Globe key="globe" size={22} color="hsl(170, 70%, 40%)" />,
+              ][idx % 8];
+
+              return (
+                <div
+                  key={idx}
+                  className={`card hover-lift ${featured ? 'bento-span-3' : 'bento-span-2'}`}
+                  style={{
+                    padding: featured ? '32px' : '26px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 16,
+                    background: featured
+                      ? 'linear-gradient(160deg, var(--surface-2), var(--surface))'
+                      : 'var(--surface-2)',
+                    border: featured ? '1px solid var(--border-strong)' : '1px solid var(--border)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{
+                      width: featured ? 52 : 44, height: featured ? 52 : 44, borderRadius: 'var(--r-md)',
+                      background: 'var(--surface)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: 'var(--shadow-sm)'
+                    }}>
+                      {icon}
+                    </div>
+                    <span className="badge badge-verified" style={{ textTransform: 'none', fontSize: 10 }}>{prod.badge}</span>
                   </div>
-                  <span className="badge badge-verified" style={{ textTransform: 'none', fontSize: 10 }}>{prod.badge}</span>
+
+                  <div>
+                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: featured ? 20 : 17, fontWeight: 700, marginBottom: 4, color: 'var(--text)' }}>
+                      {prod.brand}
+                    </h3>
+                    <p style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600, marginBottom: 12 }}>
+                      {prod.tagline}
+                    </p>
+                    <p style={{ fontSize: featured ? 14 : 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                      {prod.desc}
+                    </p>
+                  </div>
                 </div>
-                
-                <div>
-                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 700, marginBottom: 4, color: 'var(--text)' }}>
-                    {prod.brand}
-                  </h3>
-                  <p style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600, marginBottom: 12 }}>
-                    {prod.tagline}
-                  </p>
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                    {prod.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -828,27 +864,47 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             </p>
           </div>
           
-          <div className="card" style={{ overflowX: 'auto', background: 'var(--surface)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 600 }}>
+          <div className="card" style={{ overflowX: 'auto', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', padding: 0 }}>
+            <table className="no-scrollbar" style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left', minWidth: 640 }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid var(--border)' }}>
-                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{homeContent.comparison.columns[0]}</th>
-                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)' }}>{homeContent.comparison.columns[1]}</th>
-                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>{homeContent.comparison.columns[2]}</th>
-                  <th style={{ padding: '16px 20px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>{homeContent.comparison.columns[3]}</th>
+                <tr>
+                  <th style={{ padding: '18px 20px 14px', fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{homeContent.comparison.columns[0]}</th>
+                  <th style={{ padding: '14px 20px 10px', fontSize: 14, fontWeight: 800, color: 'var(--primary)', background: 'var(--primary-light)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span className="badge badge-primary" style={{ width: 'fit-content', marginBottom: 2, background: 'var(--primary)', color: '#fff' }}>Winner</span>
+                      {homeContent.comparison.columns[1]}
+                    </div>
+                  </th>
+                  <th style={{ padding: '18px 20px 14px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>{homeContent.comparison.columns[2]}</th>
+                  <th style={{ padding: '18px 20px 14px', fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>{homeContent.comparison.columns[3]}</th>
                 </tr>
               </thead>
               <tbody>
                 {homeContent.comparison.rows.map((row, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                  <tr
+                    key={i}
+                    style={{
+                      borderTop: '1px solid var(--border)',
+                      transition: 'background var(--t-fast) var(--ease)',
+                    }}
+                    className="comparison-row"
+                  >
                     <td style={{ padding: '16px 20px', fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{row.feat}</td>
                     <td style={{ padding: '16px 20px', fontSize: 13, color: 'var(--text)', background: 'var(--primary-light)', fontWeight: 500 }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                        <Check size={14} color="var(--primary)" strokeWidth={3} /> {row.alo}
+                      <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 6 }}>
+                        <Check size={14} color="var(--primary)" strokeWidth={3} style={{ marginTop: 2, flexShrink: 0 }} /> {row.alo}
                       </span>
                     </td>
-                    <td style={{ padding: '16px 20px', fontSize: 12, color: 'var(--text-muted)' }}>{row.sho}</td>
-                    <td style={{ padding: '16px 20px', fontSize: 12, color: 'var(--text-muted)' }}>{row.oth}</td>
+                    <td style={{ padding: '16px 20px', fontSize: 12, color: 'var(--text-muted)' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 6 }}>
+                        <X size={13} color="var(--text-faint)" strokeWidth={2.5} style={{ marginTop: 2, flexShrink: 0 }} /> {row.sho}
+                      </span>
+                    </td>
+                    <td style={{ padding: '16px 20px', fontSize: 12, color: 'var(--text-muted)' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 6 }}>
+                        <X size={13} color="var(--text-faint)" strokeWidth={2.5} style={{ marginTop: 2, flexShrink: 0 }} /> {row.oth}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -907,82 +963,49 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-block' }}>{homeContent.howItWorks.eyebrow}</span>
             <h2 className="text-title">{homeContent.howItWorks.title}</h2>
           </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 20,
-          }}>
-            {homeContent.howItWorks.items.map((item, i) => (
-              <div
-                key={item.step}
-                className="card hover-lift animate-fade-in"
-                style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}
-              >
-                <div style={{
-                  position: 'absolute', top: -16, right: -8,
-                  fontSize: 64, fontWeight: 900, color: 'var(--primary-light)',
-                  fontFamily: 'var(--font-heading)', lineHeight: 1,
-                  userSelect: 'none',
-                }}>
-                  {item.step}
+          <div style={{ position: 'relative' }}>
+            <div className="flow-connector" />
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 20,
+              position: 'relative',
+            }}>
+              {homeContent.howItWorks.items.map((item, i) => (
+                <div
+                  key={item.step}
+                  className="card hover-lift animate-fade-in"
+                  style={{ padding: '24px', position: 'relative', overflow: 'hidden', animationDelay: `${i * 120}ms`, background: 'var(--surface)' }}
+                >
+                  <div style={{
+                    position: 'absolute', top: -16, right: -8,
+                    fontSize: 64, fontWeight: 900, color: 'var(--primary-light)',
+                    fontFamily: 'var(--font-heading)', lineHeight: 1,
+                    userSelect: 'none',
+                  }}>
+                    {item.step}
+                  </div>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 'var(--r-md)',
+                    background: 'var(--primary-light)', color: 'var(--primary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 16,
+                    marginBottom: 14,
+                    boxShadow: '0 0 0 4px var(--surface)',
+                  }}>
+                    {i + 1}
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 8 }}>{item.title}</h3>
+                  <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>{item.body}</p>
                 </div>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 'var(--r-md)',
-                  background: 'var(--primary-light)', color: 'var(--primary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 16,
-                  marginBottom: 14,
-                }}>
-                  {i + 1}
-                </div>
-                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 8 }}>{item.title}</h3>
-                <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Features Grid ── */}
-      <section style={{ padding: 'clamp(48px, 8vw, 80px) 20px' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-block' }}>{homeContent.features.eyebrow}</span>
-            <h2 className="text-title">{homeContent.features.title}</h2>
-            <p style={{ color: 'var(--text-muted)', marginTop: 12, fontSize: 15, maxWidth: 500, margin: '12px auto 0' }}>
-              {homeContent.features.description}
-            </p>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: 16,
-          }}>
-            {homeContent.features.items.map((f, i) => (
-              <div
-                key={f.title}
-                className="card hover-lift animate-fade-in"
-                style={{ padding: '22px', display: 'flex', gap: 14, animationDelay: `${i * 60}ms` }}
-              >
-                <div style={{
-                  width: 44, height: 44, borderRadius: 'var(--r-md)',
-                  background: f.bg, flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  {getFeatureIcon(f.title, f.color)}
-                </div>
-                <div>
-                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 700, marginBottom: 6, color: 'var(--text)' }}>{f.title}</h3>
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>{f.body}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── Testimonials ── */}
+      {homeContent.testimonials.items.length > 0 && (
       <section style={{ padding: 'clamp(48px, 8vw, 72px) 20px', background: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 36 }}>
@@ -1019,6 +1042,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           </div>
         </div>
       </section>
+      )}
 
       {/* ── Final CTA ── */}
       <section style={{

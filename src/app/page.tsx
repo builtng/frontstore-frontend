@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import WaitlistStorefront from './[username]/WaitlistStorefront';
+import HomePageClient from './HomePageClient';
 
 async function getPublicSettings() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
@@ -17,43 +17,26 @@ async function getPublicSettings() {
   }
 }
 
-async function getMarketplaceData() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
-  try {
-    const res = await fetch(`${API_URL}/v1/public/marketplace`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) {
-      return { products: [], categories: [], stats: { products_count: 0, stores_count: 0 } };
-    }
-    const { data } = await res.json();
-    return data;
-  } catch (err) {
-    console.error('Error fetching marketplace data:', err);
-    return { products: [], categories: [], stats: { products_count: 0, stores_count: 0 } };
-  }
-}
-
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings();
   const appName = settings?.app_name || 'Frontstore';
   const logoUrl = settings?.logo_url || 'https://frontstore.app/icon.png';
   const systemDomain = settings?.system_domain || 'frontstore.app';
 
-  const title = `${appName} Marketplace - Shop Products from Local Businesses`;
-  const description = `Discover products uploaded by businesses on ${appName}. Browse by category, see the business behind each product, and shop directly from trusted storefronts.`;
+  const title = `${appName} - Conversational Commerce Engine for Africa`;
+  const description = `Build your store in under 2 minutes. Automate order taking, handle checkout inside WhatsApp, and manage payments and delivery with ${appName}.`;
   const url = `https://${systemDomain}`;
 
   return {
     title,
     description,
     keywords: [
-      `${appName} marketplace`,
-      'online marketplace',
+      `${appName}`,
+      'conversational commerce',
       'African businesses',
-      'shop local businesses',
       'WhatsApp stores',
-      'product discovery',
+      'WhatsApp checkout',
+      'SME platform Africa',
     ],
     alternates: {
       canonical: url,
@@ -70,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
           url: logoUrl,
           width: 512,
           height: 512,
-          alt: `${appName} Marketplace`,
+          alt: `${appName} - Conversational Commerce Platform`,
         },
       ],
     },
@@ -84,10 +67,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [settings, marketplaceData] = await Promise.all([
-    getPublicSettings(),
-    getMarketplaceData(),
-  ]);
+  const settings = await getPublicSettings();
 
   const appName = settings?.app_name || 'Frontstore';
   const systemDomain = settings?.system_domain || 'frontstore.app';
@@ -96,15 +76,10 @@ export default async function HomePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: `${appName} Marketplace`,
+    name: appName,
     url: `https://${systemDomain}`,
     logo: logoUrl,
-    description: `Discover products uploaded by businesses on ${appName}.`,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `https://${systemDomain}/?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
+    description: `The conversational commerce engine for Africa.`,
   };
 
   return (
@@ -113,7 +88,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <WaitlistStorefront systemDomain={systemDomain} appName={appName} />
+      <HomePageClient initialSettings={settings} />
     </>
   );
 }

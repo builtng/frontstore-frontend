@@ -34,7 +34,7 @@ export default function BuyerDocsPage() {
     { id: 'booking', title: '3. Booking Services', icon: <Calendar size={16} /> },
     { id: 'paying', title: '4. Flexible Payments', icon: <CreditCard size={16} /> },
     { id: 'escrow', title: '5. Buyer Protection', icon: <ShieldCheck size={16} /> },
-    { id: 'aura', title: '6. WhatsApp Aura AI', icon: <MessageSquare size={16} /> },
+    { id: 'nina', title: '6. WhatsApp Nina AI', icon: <MessageSquare size={16} /> },
     { id: 'tracking', title: '7. Order Invoices', icon: <FileText size={16} /> },
   ];
 
@@ -121,7 +121,7 @@ export default function BuyerDocsPage() {
             <div style={{ marginTop: 24, padding: 20, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)' }}>
               <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, color: 'var(--text)' }}>Have an Order Dispute?</h4>
               <p style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>Contact our customer support team to resolve payment or delivery issues.</p>
-              <a href="mailto:support@frontstore.app" className="btn btn-outline" style={{ width: '100%', padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-sm)' }}>
+              <a href="mailto:hello@frontstore.app" className="btn btn-outline" style={{ width: '100%', padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-sm)' }}>
                 Email Support
               </a>
             </div>
@@ -258,27 +258,27 @@ export default function BuyerDocsPage() {
               </div>
             </section>
 
-            {/* WhatsApp Aura AI */}
-            <section id="aura" className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* WhatsApp Nina AI */}
+            <section id="nina" className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <h2 className="font-heading" style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <MessageSquare size={22} style={{ color: 'var(--primary)' }} /> 6. Shopping via WhatsApp with Aura AI
+                <MessageSquare size={22} style={{ color: 'var(--primary)' }} /> 6. Shopping via WhatsApp with Nina AI
               </h2>
               <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                When you click to chat on WhatsApp with a Frontstore merchant, you may be greeted by **Aura AI**. Aura acts as a helper directly in the thread:
+                When you click to chat on WhatsApp with a Frontstore merchant, you may be greeted by **Nina AI**. Nina acts as a helper directly in the thread:
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginTop: 8 }}>
                 <div style={{ padding: 14, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)' }}>
                   <strong style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>💬 Ask Questions & Bargain</strong>
-                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.45, display: 'block' }}>Ask Aura about product sizing, shipping costs, or negotiate discount thresholds on bulk bookings.</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.45, display: 'block' }}>Ask Nina about product sizing, shipping costs, or negotiate discount thresholds on bulk bookings.</span>
                 </div>
                 <div style={{ padding: 14, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)' }}>
                   <strong style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>⚡ Direct Order capturing</strong>
-                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.45, display: 'block' }}>Text what you want (e.g. &quot;I want 2 Dashiki shirts delivered to 4 Marina Rd, Lagos&quot;) and Aura drafts the checkout.</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.45, display: 'block' }}>Text what you want (e.g. &quot;I want 2 Dashiki shirts delivered to 4 Marina Rd, Lagos&quot;) and Nina drafts the checkout.</span>
                 </div>
                 <div style={{ padding: 14, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)' }}>
                   <strong style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>📷 Screenshot receipts</strong>
-                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.45, display: 'block' }}>Paste a screenshot of your bank transfer receipt. Aura automatically parses the image to verify the payment.</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.45, display: 'block' }}>Paste a screenshot of your bank transfer receipt. Nina automatically parses the image to verify the payment.</span>
                 </div>
               </div>
             </section>

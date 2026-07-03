@@ -9,7 +9,7 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true);
-    const isDashboard = typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard');
+    const isDashboard = typeof window !== 'undefined' && (window.location.pathname.startsWith('/dashboard') || window.location.pathname.startsWith('/admin'));
     const defaultTheme = isDashboard ? 'dark' : 'light';
     const saved = localStorage.getItem('frontstore-theme') || defaultTheme;
     const dark = saved === 'dark';

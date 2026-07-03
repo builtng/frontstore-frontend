@@ -26,11 +26,14 @@ export default function StoresClient({ initialStores }: { initialStores: StoreIt
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   useEffect(() => {
+    // Skip client-side fetch on mount if stores are already loaded from the server
+    if (initialStores && initialStores.length > 0) {
+      return;
+    }
+
     const fetchStores = async () => {
       try {
-        if (stores.length === 0) {
-          setLoading(true);
-        }
+        setLoading(true);
         const res = await fetch(`${API_URL}/v1/public/stores`);
         const json = await res.json();
         if (res.ok && json.data) {
@@ -44,7 +47,7 @@ export default function StoresClient({ initialStores }: { initialStores: StoreIt
     };
 
     fetchStores();
-  }, []);
+  }, [initialStores, API_URL]);
 
   const filteredStores = stores.filter(store =>
     (store.store_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||

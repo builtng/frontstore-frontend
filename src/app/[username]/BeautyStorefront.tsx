@@ -951,8 +951,9 @@ export default function BeautyStorefront({
       if (!res.ok) {
         throw new Error(json.message || 'Payment initialization failed.');
       }
-      if (json.data && json.data.authorization_url) {
-        window.location.href = json.data.authorization_url;
+      const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         throw new Error('Secure payment link unavailable.');
       }
@@ -1152,7 +1153,9 @@ export default function BeautyStorefront({
     </div>
   );
 
-  const aboutFeatured = () => (
+  const aboutFeatured = () => {
+    if (!recognition.length) return null;
+    return (
     <div className="ab-featured">
       <span className="ab-featured-h"><Award size={14} /> As seen in and trusted by</span>
       <div className="ab-featured-row">
@@ -1160,6 +1163,7 @@ export default function BeautyStorefront({
       </div>
     </div>
   );
+  };
 
   const aboutReview = () => {
     const best = displayReviews.find((r) => r.r === 5);
@@ -1242,7 +1246,7 @@ export default function BeautyStorefront({
       <div className="ps-about-grid">
         <div><b>{store.total_orders || "100+"}</b><span>orders delivered</span></div>
         <div><b>{(store.rating || 4.9).toFixed(1)}</b><span>average rating</span></div>
-        <div><b>{store.since ? `${new Date().getFullYear() - parseInt(store.since)} yrs` : "10 yrs"}</b><span>in practice</span></div>
+        {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
       </div>
       <div className="ab-follow">
         <span className="ab-follow-h">Follow the studio</span>
@@ -1646,7 +1650,7 @@ export default function BeautyStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><SearchIcon size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1780,7 +1784,7 @@ export default function BeautyStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><SearchIcon size={17} /> <span>Search {store.store_name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={copyUrl} aria-label="Share"><Share2 size={18} /></button>
@@ -2156,7 +2160,7 @@ export default function BeautyStorefront({
           <div className="ps-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="ps-panel">
               <div className="ps-panel-top">
-                <span className="ps-logo">frontstore<span>.app</span></span>
+                <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
                 <button className="ps-x" onClick={() => setDrawer(false)} aria-label="Close"><X size={20} /></button>
               </div>
               <button className="ps-id" onClick={() => go("home")}>
@@ -2612,7 +2616,7 @@ const css = `
 .ps-root *{box-sizing:border-box;}
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
 .ps-logo span{color:var(--brand);}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
@@ -2945,7 +2949,7 @@ const css = `
 .svc-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(43,29,42,.06);}
 .svc-card-thumb{height:140px;position:relative;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand-deep));}
 .svc-card-thumb img{width:100%;height:100%;object-fit:cover;}
-.svc-card-cat{position:absolute;bottom:10px;left:10px;font-size:10px;font-weight:800;text-transform:uppercase;color:var(--brand-deep);background:#fff;padding:3px 8px;border-radius:6px;}
+.svc-card-cat{position:absolute;bottom:10px;left:10px;width:max-content;font-size:10px;font-weight:800;text-transform:uppercase;color:var(--brand-deep);background:#fff;padding:3px 8px;border-radius:6px;}
 .svc-card-body{padding:14px;display:flex;flex-direction:column;flex:1;}
 .svc-card-body b{font-size:14.5px;font-weight:700;}
 .svc-card-dur{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;margin-top:4px;}

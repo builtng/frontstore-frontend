@@ -34,7 +34,7 @@ export default function MerchantDocsPage() {
     { id: 'onboarding', title: '2. Onboarding', icon: <Settings size={16} /> },
     { id: 'flow', title: '3. Frontstore Flow', icon: <Package size={16} /> },
     { id: 'pay', title: '4. Frontstore Pay', icon: <CreditCard size={16} /> },
-    { id: 'aura', title: '5. Frontstore Aura (AI)', icon: <MessageSquare size={16} /> },
+    { id: 'nina', title: '5. Frontstore Nina (AI)', icon: <MessageSquare size={16} /> },
     { id: 'pulse', title: '6. Frontstore Pulse', icon: <TrendingUp size={16} /> },
     { id: 'reach', title: '7. Frontstore Reach', icon: <Megaphone size={16} /> },
   ];
@@ -270,13 +270,13 @@ export default function MerchantDocsPage() {
               </p>
             </section>
 
-            {/* Frontstore Aura */}
-            <section id="aura" className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Frontstore Nina */}
+            <section id="nina" className="card" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
               <h2 className="font-heading" style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <MessageSquare size={22} style={{ color: 'var(--primary)' }} /> 5. Frontstore Aura (WhatsApp AI)
+                <MessageSquare size={22} style={{ color: 'var(--primary)' }} /> 5. Frontstore Nina (WhatsApp AI)
               </h2>
               <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                **Frontstore Aura** is an AI sales agent that acts on your behalf 24/7 inside WhatsApp. By scanning QR verification or hooking up the API, Aura handles customer chats autonomously.
+                **Frontstore Nina** is an AI sales agent that acts on your behalf 24/7 inside WhatsApp. By scanning QR verification or hooking up the API, Nina handles customer chats autonomously.
               </p>
 
               <h3 style={{ fontSize: 16, fontWeight: 700 }}>Key Capabilities</h3>
@@ -306,7 +306,7 @@ export default function MerchantDocsPage() {
                   <AlertTriangle size={16} /> Merchant Accountability
                 </div>
                 <p style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.5 }}>
-                  You configure Aura's bargaining thresholds in settings. You remain contractually responsible for the agreements and pricing guidelines dispatched by Aura in chats.
+                  You configure Nina's bargaining thresholds in settings. You remain contractually responsible for the agreements and pricing guidelines dispatched by Nina in chats.
                 </p>
               </div>
             </section>

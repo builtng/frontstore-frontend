@@ -149,42 +149,19 @@ interface EventsStorefrontProps {
 }
 
 const MOCK_STORE = {
-  name: "Velvet & Gold Events", initial: "V", slug: "velvetandgold",
+  name: "", initial: "", slug: "",
   primaryCta: "book",
-  category: "Events & Décor", location: "Lekki, Lagos",
-  rating: 4.9, reviews: 168, orders: "240+", reply: "~15 min",
-  bio: "Lagos based events and décor studio styling weddings, milestones and brand events. Twelve years turning empty halls into rooms people never forget.",
-  address: "12 Admiralty Way, Lekki Phase 1, Lagos",
-  phone: "+234 802 555 0142",
-  email: "hello@velvetandgold.app",
-  socials: { instagram: "@velvetandgold.ng", tiktok: "@velvetandgold" },
+  category: "", location: "",
+  rating: undefined as number | undefined, reviews: 0, orders: "", reply: "",
+  bio: "",
+  address: "",
+  phone: "",
+  email: "",
+  socials: { instagram: "", tiktok: "" },
 };
-const MOCK_SERVICES = [
-  { id: "s1", name: "Décor Consultation", price: 15000, dur: "60 min", durMin: 60, cat: "Planning", popular: true, desc: "Sit with our lead stylist to shape the look, mood and budget for your event." },
-  { id: "s2", name: "Intimate Celebration", price: 350000, dur: "Up to 50 guests", durMin: 60, cat: "Packages", popular: true, desc: "Full styling for a small, beautiful gathering: backdrop, table settings, florals and lighting." },
-  { id: "s3", name: "Classic Wedding Décor", price: 1200000, dur: "Up to 200 guests", durMin: 60, cat: "Weddings", popular: true, desc: "A complete ceremony and reception look, styled end to end with our signature finish." },
-  { id: "s4", name: "Luxury Wedding", price: 3500000, dur: "Full design", durMin: 60, cat: "Weddings", desc: "A bespoke, no detail spared design for couples who want a true showpiece." },
-  { id: "s5", name: "Corporate Event Styling", price: 850000, dur: "Per event", durMin: 60, cat: "Corporate", desc: "Branded, polished staging for launches, galas and conferences." },
-  { id: "s6", name: "Floral & Centerpieces", price: 180000, dur: "Per event", durMin: 45, cat: "Add-ons", desc: "Fresh and faux arrangements, aisle florals and statement centerpieces." },
-  { id: "s7", name: "Draping & Backdrop", price: 220000, dur: "Per event", durMin: 45, cat: "Add-ons", popular: true, desc: "Soft draping, floral walls and custom backdrops built around your theme." },
-  { id: "s8", name: "Full Planning & Coordination", price: 600000, dur: "End to end", durMin: 60, cat: "Planning", desc: "We manage the vendors, timeline and the day itself so you can be a guest at your own event." },
-];
-const MOCK_PRODUCTS = [
-  { id: "p1", name: "Wedding Planning Checklist", price: 5000, cat: "Guides", popular: true, desc: "A month by month checklist so nothing slips between the engagement and the big day." },
-  { id: "p2", name: "Event Budget Template", price: 4000, cat: "Guides", popular: true, desc: "A ready to use spreadsheet that keeps your spend on track across every vendor." },
-  { id: "p3", name: "Décor Moodboard Pack", price: 6500, cat: "Guides", desc: "Curated colour palettes and styling references to help you settle on a direction." },
-  { id: "p4", name: "Seating Plan Toolkit", price: 3500, cat: "Guides", desc: "Templates and tips to arrange your guests without the last minute stress." },
-  { id: "p5", name: "Vendor Question Sheet", price: 3000, cat: "Guides", popular: true, desc: "The exact questions to ask caterers, venues and planners before you commit." },
-  { id: "p6", name: "Custom Guest Favours, set of 50", price: 45000, cat: "Favours", desc: "Personalised keepsakes styled to match your event, delivered ready to place." },
-];
-const MOCK_REVIEWS = [
-  { id: "r1", name: "Amara N.", r: 5, when: "3 weeks ago", service: "Classic Wedding Décor", verified: true, photos: 3, text: "Our reception looked like a magazine. Guests are still talking about the floral wall. Adaeze understood the vision instantly.", response: { when: "3 weeks ago", text: "Thank you Amara, your day was a dream to style. Wishing you and Tobi every happiness." } },
-  { id: "r2", name: "Tunde A.", r: 5, when: "1 month ago", service: "Corporate Event Styling", verified: true, photos: 1, text: "Styled our product launch and made the brand look premium without being loud. Setup was on time to the minute." },
-  { id: "r3", name: "Zainab K.", r: 4, when: "1 month ago", service: "Intimate Celebration", verified: true, photos: 2, text: "Beautiful work for my mother's dinner. A couple of the centerpieces arrived later than planned but the final look was lovely.", response: { when: "1 month ago", text: "Thank you Zainab, and noted on the timing. We have tightened our delivery run for evening events." } },
-  { id: "r4", name: "Chidi O.", r: 5, when: "2 months ago", service: "Draping & Backdrop", verified: true, photos: 2, text: "The backdrop was the centrepiece of the whole hall. Every photo looks incredible because of it." },
-  { id: "r5", name: "Bisi A.", r: 3, when: "2 months ago", service: "Floral & Centerpieces", verified: true, photos: 0, text: "Lovely arrangements but one table colour was slightly off from the sample. Sorted on the day to be fair." },
-  { id: "r6", name: "Ngozi E.", r: 5, when: "2 months ago", service: "Full Planning & Coordination", verified: true, photos: 1, text: "I actually enjoyed my own wedding because they ran everything. Worth every naira for the peace of mind alone." },
-];
+const MOCK_SERVICES: any[] = [];
+const MOCK_PRODUCTS: any[] = [];
+const MOCK_REVIEWS: any[] = [];
 const MOCK_PRODUCT_FAQS = [
   ["How do I get a digital guide?", "Guides are delivered instantly after checkout, with a download link sent to your WhatsApp and email."],
   ["Can I print the templates?", "Yes. The checklists and templates are made to be printed or filled in on your phone or laptop."],
@@ -199,84 +176,11 @@ const MOCK_SERVICE_FAQS = [
   ["Do you do site visits?", "Yes. For weddings and larger events we visit the venue to plan the layout and flag anything that affects the setup."],
   ["How do I pay?", "Pay securely through Frontstore, or by bank transfer where offered. Your receipt always arrives on WhatsApp."],
 ];
-const MOCK_FAQ_GROUPS = [
-  {
-    cat: "Booking and dates", icon: Calendar, items: [
-      ["How far ahead should I book?", "For weddings, three to six months is ideal so we can hold your date and plan properly. Smaller events come together in a few weeks, but earlier is always safer."],
-      ["How do I hold my date?", "A deposit secures your date when you book. Until the deposit is received the date stays open to other enquiries."],
-      ["Can I move my date?", "Yes, within the windows on the Refunds page. We will always try to accommodate a change where our calendar allows."],
-      ["Do you only do large events?", "Not at all. We style intimate dinners and milestone birthdays as carefully as full weddings."],
-    ],
-  },
-  {
-    cat: "Payments and deposits", icon: Lock, items: [
-      ["How do I pay?", "You can pay securely through Frontstore at checkout, or by bank transfer to the studio. Frontstore checkout is the safer option as it comes with buyer protection."],
-      ["Is paying through Frontstore safe?", "Yes. Payments made through Frontstore are protected, so if something does not go as described you can raise a dispute and we help mediate. This protection cannot be removed by the vendor."],
-      ["How much is the deposit?", "A deposit secures your date, with the balance paid before the event. The exact deposit is shown before you confirm."],
-      ["What currency are prices in?", "Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are always charged in naira."],
-    ],
-  },
-  {
-    cat: "Setup and delivery", icon: Truck, items: [
-      ["Do you handle setup and takedown?", "Yes. Our team delivers, styles and clears everything on the day, so you never touch a thing."],
-      ["How early do you arrive to set up?", "Setup time depends on the scale, but we plan to be fully styled and out of sight before your first guest arrives."],
-      ["Do you work with my venue?", "We work in homes, halls, hotels and outdoor venues across Lagos, and coordinate directly with your venue team."],
-    ],
-  },
-  {
-    cat: "Packages and add-ons", icon: ShoppingBag, items: [
-      ["Can I customise a package?", "Always. The packages are a starting point. We shape the florals, colours and scale around your day and your budget."],
-      ["Do you provide florals?", "Yes, both fresh and faux. We will recommend what suits your venue, season and budget."],
-      ["Can I just hire you for part of the day?", "Yes. Add-ons like draping, backdrops or florals can be booked on their own without a full package."],
-    ],
-  },
-  {
-    cat: "Trust and Frontstore", icon: ShieldCheck, items: [
-      ["What does Secured by Frontstore mean?", "It means this store runs on Frontstore, so your booking is covered by Frontstore buyer protection and platform terms that the vendor cannot remove."],
-      ["Are the reviews real?", "Yes. Reviews can only be left by clients with a completed Frontstore booking, and each is shown with a verified badge. The vendor can respond but cannot delete genuine ones."],
-      ["What if something goes wrong?", "If a booking paid through Frontstore does not go as described, you can raise a dispute and Frontstore will help mediate a fair resolution."],
-    ],
-  },
-];
+const MOCK_FAQ_GROUPS: any[] = [];
 const MOCK_FAQS_PREVIEW = MOCK_FAQ_GROUPS.map((g: any) => g.items[0]);
-const MOCK_TERMS = [
-  { t: "Who these terms are between", p: [`These terms are an agreement between you and ${MOCK_STORE.name}, the events team that provides the services and products on this store. The store runs on Frontstore, which provides the platform and buyer protection but is not the seller.`] },
-  { t: "Bookings and deposits", p: ["Events are arranged by booking through this store. A deposit secures your date and the balance is paid before the event. Your date is held once the deposit is received."] },
-  { t: "Pricing and payment", p: ["Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are charged in naira.", "You can pay securely through Frontstore at checkout, or by bank transfer to the studio. Funds paid by transfer go directly to the studio, while Frontstore payments are held under buyer protection."] },
-  { t: "Cancellations and refunds", p: ["You can move a date, cancel or return within the windows set out on the Refunds page, where you will also find how and when refunds are issued."], link: { label: "Read the Refunds policy", page: "returns" } },
-  { t: "The event and your responsibility", p: ["Please share accurate guest numbers, venue details and access arrangements ahead of your date, as these affect the design and the setup. Changes close to the day may carry extra cost.", "Where a venue or third party limits what we can install, we will tell you honestly and adapt the design. We cannot accept responsibility for restrictions outside our control."] },
-  { t: "Products and guides", p: ["Digital guides are delivered after checkout and cannot be refunded once downloaded, except where faulty. Custom favours are made to order and handled as set out on the Refunds page."] },
-  { t: "Reviews and content", p: ["Reviews can only be left by clients with a completed booking, and each is shown with a verified badge. The vendor may respond to reviews but cannot remove genuine ones. By submitting a review or photo, you allow it to be shown on this store."] },
-  { t: "Liability", p: ["We provide our services with reasonable skill and care. Nothing in these terms removes any rights you have under applicable law."] },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform terms", body: "Every Frontstore store also operates under the Frontstore platform terms and buyer protection policy. These apply alongside the store's own policies and cannot be removed by the vendor.", link: "Read the Frontstore platform terms" } },
-  { t: "Changes to these terms", p: ["We may update these terms from time to time. The version shown on this page is the current one, and the date it was last updated is shown alongside it."] },
-  { t: "Governing law", p: ["These terms are governed by the laws of the Federal Republic of Nigeria, and any dispute falls under the courts of Lagos State."] },
-  { t: "Contact", p: ["Questions about these terms? Reach the team through the Contact page and we will be glad to help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PRIVACY = [
-  { t: "What we collect", p: [`When you book, buy or get in touch, ${MOCK_STORE.name} collects the details you give us: your name, contact details such as a WhatsApp number, phone or email, your event and order details, any message you send, and reviews or photos you choose to share.`] },
-  { t: "How we use it", p: ["We use your details to take and confirm bookings and orders, reply to your enquiries, plan and deliver your event, process payments, show verified reviews, and improve the store. We do not send marketing without your consent."] },
-  { t: "Payments", p: ["Payments made through Frontstore are handled by Frontstore and its payment providers under buyer protection, and the team does not see or store your card details. Bank transfers are made directly to the studio."] },
-  { t: "WhatsApp and messaging", p: ["When you message us, the conversation takes place on WhatsApp and is also subject to WhatsApp's own privacy terms. In future this may move to Frontstore's own messaging."] },
-  { t: "Who we share it with", p: ["We share only what is needed: with delivery and logistics partners to fulfil your event, with payment providers to take payment, and with Frontstore as the platform the store runs on. We never sell your data."] },
-  { t: "Cookies and analytics", p: ["The store uses basic cookies and analytics, provided through the Frontstore platform, to keep the store working and understand how it is used."] },
-  { t: "Keeping your data", p: ["We keep your details only as long as needed to provide our services and to meet legal and tax obligations, after which they are removed."] },
-  { t: "Your rights", p: ["Under Nigerian data protection law you can ask to see the data we hold about you, correct it, delete it, or object to how it is used. To make a request, reach us through the Contact page."], link: { label: "Go to Contact", page: "contact" } },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform privacy", body: "As the platform this store runs on, Frontstore also processes data under its own privacy policy and platform terms. These apply alongside the store's own notice and cannot be removed by the vendor.", link: "Read the Frontstore privacy policy" } },
-  { t: "Changes to this notice", p: ["We may update this notice from time to time. The version shown on this page is the current one, with the date it was last updated shown alongside it."] },
-  { t: "Contact", p: ["Questions about your privacy, or want to make a data request? Reach the team through the Contact page and we will help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PORTFOLIO = [
-  { label: "Lakeside Wedding, Lekki", cat: "Weddings", c: "c0" },
-  { label: "Gold & Ivory Reception", cat: "Weddings", c: "c1" },
-  { label: "50th Birthday Soirée", cat: "Birthdays", c: "c2" },
-  { label: "Corporate Gala, V.I.", cat: "Corporate", c: "c1" },
-  { label: "Garden Engagement", cat: "Weddings", c: "c0" },
-  { label: "Traditional Wedding", cat: "Weddings", c: "c2" },
-  { label: "Product Launch Staging", cat: "Corporate", c: "c0" },
-  { label: "Baby Shower, Ikoyi", cat: "Celebrations", c: "c1" },
-  { label: "Intimate Dinner Party", cat: "Celebrations", c: "c2" },
-];
+const MOCK_TERMS: any[] = [];
+const MOCK_PRIVACY: any[] = [];
+const MOCK_PORTFOLIO: any[] = [];
 const MOCK_NOTIFY_TOPICS = [["packages", "New packages"], ["dates", "Available dates"], ["work", "New work"], ["news", "Announcements"]];
 const MOCK_HOURS = [
   ["Mon", "9:00am - 6:00pm"], ["Tue", "9:00am - 6:00pm"], ["Wed", "9:00am - 6:00pm"],
@@ -288,97 +192,23 @@ const MOCK_NAV = [
 ];
 const MOCK_LEGAL = [["returns", "Refunds"], ["terms", "Terms"], ["privacy", "Privacy"]];
 const MOCK_CATS = ["Packages", "Weddings", "Corporate", "Planning", "Add-ons"];
-const MOCK_FEATURED = [
-  { id: "s3", name: "Classic Wedding Décor", price: 1200000, dur: "Up to 200 guests", type: "service" },
-  { id: "s2", name: "Intimate Celebration", price: 350000, dur: "Up to 50 guests", type: "service" },
-  { id: "p1", name: "Wedding Planning Checklist", price: 5000, type: "product" },
-];
+const MOCK_FEATURED: any[] = [];
 const MOCK_AUTHOR = {
-  name: "Adaeze Bello",
-  initial: "A",
-  role: "Founder and lead stylist",
-  bio: "Adaeze founded Velvet & Gold and has spent over twelve years styling weddings, milestones and brand events across Lagos and Abuja.",
-  long: "Adaeze started out styling friends' weddings and built Velvet & Gold into a studio known for warm, considered design that still feels effortless. She leads every wedding personally, and her in-house team of stylists and florists brings each look to life on the day.",
-  quote: "A room should feel like the couple, not like a catalogue. That is the whole job.",
-  specialities: ["Weddings", "Luxury décor", "Florals and installations", "12+ years"],
-  socials: { instagram: "@adaeze.styles", tiktok: "@adaezebello" },
-  credentials: [
-    "Trained with a leading Lagos events house",
-    "Certified event and wedding planner",
-    "Member of a professional events network",
-  ],
+  name: "",
+  initial: "",
+  role: "",
+  bio: "",
+  long: "",
+  quote: "",
+  specialities: [],
+  socials: { instagram: "", tiktok: "" },
+  credentials: [],
 };
-const MOCK_OFFERINGS = [
-  ["Weddings", "Full ceremony and reception styling, from intimate vows to grand celebrations.", "services"],
-  ["Corporate and brand events", "Polished, branded staging for launches, galas and conferences.", "services"],
-  ["Florals and installations", "Statement florals, backdrops and draping built around your theme.", "services"],
-  ["Plan it yourself", "Guides and templates if you would rather style your own day.", "products"],
-];
-const MOCK_GALLERY = [
-  { label: "Lakeside wedding", c: "c0" },
-  { label: "Gold reception", c: "c1" },
-  { label: "Garden engagement", c: "c2" },
-  { label: "Corporate gala", c: "c1" },
-  { label: "Birthday soirée", c: "c2" },
-  { label: "Floral backdrop", c: "c0" },
-];
-const MOCK_RECOGNITION = ["Lagos Bridal Week", "BellaNaija Weddings", "The Wedding Guru NG", "Eventful Africa"];
-const MOCK_ABOUT_FACTS = [
-  ["Established", "Lagos, since 2014"],
-  ["Registered", "CAC RC 1731002"],
-  ["The studio", "Design studio in Lekki Phase 1, by appointment"],
-  ["Coverage", "Lagos and Abuja, travel nationwide on request"],
-  ["Booking", "A deposit secures your date, balance paid before the event"],
-  ["Payment", "Pay securely with Frontstore, or by bank transfer"],
-  ["The team", "In-house stylists, florists and a planning lead"],
-  ["Languages", "English, Yoruba and Pidgin"],
-];
-const MOCK_BLOG = [
-  { title: "How to choose a décor style that fits your venue", date: "6 Jun 2026", cat: "Planning", read: "5 min", excerpt: "Before you fall for a colour palette, start with the room you are working with.", body: [
-    { p: "The prettiest moodboard falls flat in the wrong room. The best décor starts with the venue, not the other way round, so the styling works with the space instead of fighting it." },
-    { h: "Read the room first" },
-    { p: "High ceilings beg for height: tall arrangements, hanging installations, draping that draws the eye up. Low or busy rooms want the opposite, kept clean and grounded so they do not feel crowded." },
-    { h: "Let the light lead" },
-    { list: ["Daytime garden events can carry soft, natural palettes", "Dim halls come alive with warm lighting and metallics", "Strong existing colours in a room should be worked with, not against"] },
-    { p: "Bring photos of your venue to your consultation. We can tell you in minutes what will sing in that space and what will disappear." },
-  ] },
-  { title: "A realistic wedding décor budget, broken down", date: "24 May 2026", cat: "Budget", read: "6 min", excerpt: "Where the money actually goes, so you can spend it where it shows.", body: [
-    { p: "Décor budgets blow up when everything feels essential. It does not. A few elements carry the room, and the rest is detail. Here is roughly where a sensible budget lands." },
-    { h: "Spend where guests look" },
-    { p: "The backdrop, the head table and the entrance do the heavy lifting in photos and first impressions. If money is tight, these three are where it should go first." },
-    { h: "Trim without it showing" },
-    { list: ["Mix a few statement florals with greenery rather than all blooms", "Repeat one strong centerpiece rather than many different ones", "Reuse ceremony pieces at the reception where the layout allows"] },
-    { p: "A good stylist will tell you where to save, not just where to spend. Ask for the version of your design at two budgets and you will see what truly matters." },
-  ] },
-  { title: "Five backdrop ideas that photograph beautifully", date: "11 May 2026", cat: "Décor", read: "4 min", excerpt: "The backdrop is the most photographed spot of the day. Make it count.", body: [
-    { p: "Nearly every key photo of the day happens in front of one wall. The backdrop earns more attention than almost anything else you style, so it is worth getting right." },
-    { h: "Looks we return to" },
-    { list: ["A floral wall in two or three tones, never one flat colour", "Soft draping with warm uplighting for an evening glow", "A clean arch that frames the couple without crowding them", "Mixed greenery with a few statement blooms for texture", "A custom neon or signage piece for a modern room"] },
-    { p: "Whatever the style, scale it to the room and keep the couple framed, not swallowed. A backdrop should flatter the people in front of it first." },
-  ] },
-  { title: "Questions to ask before you book an events vendor", date: "29 Apr 2026", cat: "Planning", read: "4 min", excerpt: "A short list that saves you from the most common regrets.", body: [
-    { p: "Most event day stress traces back to questions that were never asked up front. Run through these before you pay any deposit." },
-    { h: "The ones that matter" },
-    { list: ["Is my date actually available and held, or just pencilled in", "What exactly is included, and what is an extra", "Who runs setup and takedown on the day", "What happens if something is damaged or late", "How and when is the balance due"] },
-    { p: "A vendor who answers these clearly and in writing is one you can relax with. Vague answers now become problems on the day." },
-  ] },
-  { title: "Fresh or faux: choosing your event florals", date: "13 Apr 2026", cat: "Décor", read: "5 min", excerpt: "Both have their place. Here is how we decide for each event.", body: [
-    { p: "Fresh or faux is not about one being better. It is about the right choice for your venue, season and budget. We often use both in the same room." },
-    { h: "When fresh wins" },
-    { p: "For scent, for close up moments like the head table, and for blooms that simply cannot be faked, fresh is worth it. Just plan for the heat and a same day setup." },
-    { h: "When faux earns its place" },
-    { list: ["Large installations where cost would run away with fresh", "Outdoor events in strong Lagos sun", "Pieces you want to keep or reuse afterwards"] },
-    { p: "A good mix gives you the impact of fresh where it counts and the reliability of faux where it does not show. We will tell you honestly which to use where." },
-  ] },
-  { title: "Planning a corporate event that actually impresses", date: "3 Apr 2026", cat: "Corporate", read: "4 min", excerpt: "Branded does not have to mean boring. Here is how we keep it sharp.", body: [
-    { p: "Corporate events fail when they look like a logo printed on everything. The brand should be felt, not shouted. Restraint is what reads as premium." },
-    { h: "Style with intent" },
-    { p: "Pick one or two brand colours and let neutral tones carry the rest. Clean staging, good lighting and considered signage do more for a brand than wall to wall print ever will." },
-    { h: "Plan the flow, not just the look" },
-    { list: ["Stage the entrance so the first impression lands", "Light the speaking area properly, it is where eyes go", "Keep networking spaces open and uncluttered"] },
-    { p: "Done well, the room tells your guests the brand has taste before a single word is said. That is the impression worth paying for." },
-  ] },
-];
+const MOCK_OFFERINGS: any[] = [];
+const MOCK_GALLERY: any[] = [];
+const MOCK_RECOGNITION: any[] = [];
+const MOCK_ABOUT_FACTS: any[] = [];
+const MOCK_BLOG: any[] = [];
 
 const money = (n: number) => "₦" + n.toLocaleString("en-NG");
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -826,7 +656,7 @@ export default function EventsStorefront({
               <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>Order Placed!</h3>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>Your order reference is <b>{orderReceipt.order.order_number}</b>.</p>
               
-              {store.payment_provider === 'paystack' && (
+              {store.payment_provider && store.payment_provider !== 'manual' && (
                 <div style={{ background: '#f9f5f3', borderRadius: 12, padding: 14, marginTop: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span>Total Amount</span>
@@ -858,8 +688,9 @@ export default function EventsStorefront({
         headers: { 'Content-Type': 'application/json' }
       });
       const json = await res.json();
-      if (res.ok && json.data?.authorization_url) {
-        window.location.href = json.data.authorization_url;
+      const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
+      if (res.ok && redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         sonnerToast.error(json.message || "Online payment setup failed.");
       }
@@ -1380,6 +1211,7 @@ export default function EventsStorefront({
   );
   const aboutReview = () => {
     const r = displayReviews[0];
+    if (!r) return null;
     return (
       <div className="ab-review">
         <Quote className="ab-quote-mark" size={28} />
@@ -1397,7 +1229,7 @@ export default function EventsStorefront({
   const aboutJournal = () => (
     <div className="ab-section">
       <div className="ab-sec-head">
-        <h4 className="ab-subhead">From Adaeze's journal</h4>
+        <h4 className="ab-subhead">{DUMMY_AUTHOR.name ? `From ${DUMMY_AUTHOR.name.split(" ")[0]}'s journal` : "From the journal"}</h4>
         <button className="ab-seclink" onClick={() => go("blog")}>All articles <ChevronRight size={14} /></button>
       </div>
       <div className="ab-journal">
@@ -1446,7 +1278,7 @@ export default function EventsStorefront({
     <div className="ps-about-grid">
       <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-      <div><b>10 yrs</b><span>in practice</span></div>
+      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
       <span className="ab-follow-h">Follow the studio</span>
@@ -1508,7 +1340,7 @@ export default function EventsStorefront({
   const contactForm = () => (
     <div className="ct-form">
       <h4 className="ab-subhead">Send an enquiry</h4>
-      <p className="ct-form-sub">Tell us what you are after and we will reply by email. A real person, usually Adaeze or the team, will answer.</p>
+      <p className="ct-form-sub">Tell us what you are after and we will reply by email. A real person from the team will answer.</p>
       <div className="ct-form-row">
         <select className="ct-input" value={cSvc} onChange={(e) => setCSvc(e.target.value)}>
           <option value="">Service (optional)</option>
@@ -1766,7 +1598,7 @@ export default function EventsStorefront({
       <button onClick={() => setAnnOff(true)} aria-label="Dismiss"><X size={15} /></button>
     </div>
   );
-  const featured = (
+  const featured = MOCK_FEATURED.length > 0 ? (
     <section className="feat">
       <div className="feat-head"><span className="feat-tag"><Sparkles size={13} /> Featured</span></div>
       <div className="feat-grid">
@@ -1775,13 +1607,13 @@ export default function EventsStorefront({
         ))}
       </div>
     </section>
-  );
+  ) : null;
 
   /* ---- drawer panel (mobile only) ---- */
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo">frontstore<span>.app</span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1858,7 +1690,7 @@ export default function EventsStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1940,7 +1772,7 @@ export default function EventsStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -2322,10 +2154,8 @@ export default function EventsStorefront({
                 <div className="ab-wrap">
                   <div className="ab-main">
                     <span className="ab-kicker">Our story</span>
-                    <h2 className="ab-headline">A Lagos studio for looking like yourself, on your best day.</h2>
-                    <p className="ab-lede">Velvet & Gold is a Lekki based events and décor studio for weddings, milestones and brand events. We pair calm, hands-on planning with styling that holds up in the room and in every photo.</p>
-                    <p className="ab-para">What began in 2014 styling friends' weddings is now a full design studio with a small, trusted team. The work has stayed the same throughout: warm, considered events that feel like the people they are for.</p>
-                    <p className="ab-para">Today the studio looks after brides, busy professionals and regulars who keep coming back for the calm of a private room and results they can count on, whether that is a wedding morning, a big shoot or an everyday refresh.</p>
+                    <h2 className="ab-headline">Events and décor that feel like the people they are for.</h2>
+                    {DUMMY_STORE.bio && <p className="ab-lede">{DUMMY_STORE.bio}</p>}
 
                     <div className="ab-founder">
                       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
@@ -2370,7 +2200,7 @@ export default function EventsStorefront({
                     <div className="ps-about-grid ab-stats">
                       <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
                       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-                      <div><b>10 yrs</b><span>in practice</span></div>
+                      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
                     </div>
                   </div>
 
@@ -2451,7 +2281,7 @@ export default function EventsStorefront({
                 </div>
                 <div className="ct-wrap">
                   <div className="ct-main">
-                    <p className="svc-intro">Reach us on WhatsApp for a quick reply, or send an enquiry and we will get back to you by email. A real person, usually Adaeze or the team, will answer.</p>
+                    <p className="svc-intro">Reach us on WhatsApp for a quick reply, or send an enquiry and we will get back to you by email. A real person from the team will answer.</p>
                     {contactChannels()}
                     {contactForm()}
                   </div>
@@ -2801,7 +2631,7 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
 .ps-logo span{color:var(--brand);}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
@@ -3545,7 +3375,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .svc-card-thumb.c1{background:linear-gradient(150deg,var(--brand-deep),var(--gold));}
 .svc-card-thumb.c2{background:linear-gradient(150deg,#caa06f,var(--brand));}
 .svc-card-thumb.c3{background:linear-gradient(150deg,var(--brand),#a86b8a);}
-.svc-card-cat{position:absolute;bottom:10px;left:10px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
+.svc-card-cat{position:absolute;bottom:10px;left:10px;width:max-content;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
 .svc-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:rgba(42,29,34,.5);backdrop-filter:blur(2px);padding:4px 8px;border-radius:7px;}
 .svc-badge svg{color:var(--gold);fill:var(--gold);}
 .svc-card-body{padding:13px 14px 14px;display:flex;flex-direction:column;flex:1;}

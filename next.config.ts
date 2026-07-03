@@ -62,7 +62,7 @@ const nextConfig: NextConfig = {
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
-              "upgrade-insecure-requests",
+              ...(process.env.NODE_ENV === 'development' ? [] : ["upgrade-insecure-requests"]),
             ].join('; '),
           },
         ],

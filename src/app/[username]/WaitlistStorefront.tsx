@@ -45,17 +45,6 @@ const CATEGORIES = [
 ];
 const CODES = [["NG", "+234"], ["GH", "+233"], ["KE", "+254"], ["ZA", "+27"], ["UK", "+44"], ["US", "+1"]];
 
-/* names already claimed in the demo (scarcity). In prod this is the database. */
-const TAKEN = ["bisi", "eko", "terra", "revival", "moremi", "gadgethub", "bella", "funke"];
-
-/* scrolling ticker of recently claimed handles (demo). Prod feeds real claims. */
-const CLAIMED = ["bisi", "ekoeats", "terra", "gen6ixx", "funkebakes", "lekkigadgets", "adastitches", "vibeautybar", "naijathrift", "mamaput", "asoebihouse", "zariascents"];
-
-/* floating herd alert pool (demo). Prod streams real recent sign ups. */
-const STORES = ["Gen6ixx Ltd", "Bella Hair Lagos", "Eko Eats", "Naija Thrift", "Terra Kitchen", "Lekki Gadgets", "Funke Bakes", "Aso Ebi House", "Surulere Sneakers", "VI Beauty Bar", "Ada Stitches", "Chop Life Foods", "Zaria Scents", "Ikeja Tech Hub", "Mama Put Express"];
-const ACTIONS = ["just claimed their store", "just reserved their link", "just joined the early list"];
-const TIMES = ["just now", "2 mins ago", "4 mins ago", "6 mins ago", "9 mins ago", "12 mins ago"];
-
 /* reserved namespace. */
 const BRAND = ["frontstore", "frontstores", "frontstoreapp", "frontstoreofficial", "front-store", "front"];
 const GENERIC = ["shop", "shops", "store", "stores", "market", "markets", "fashion", "food", "foods", "drink", "drinks", "restaurant", "restaurants", "bar", "bars", "beauty", "hair", "salon", "gadget", "gadgets", "phone", "phones", "phonestore", "phone-store", "electronics", "clothing", "clothes", "thrift", "kitchen", "health", "wellness", "digital", "shoes", "makeup", "skincare", "jewelry", "jewellery", "bag", "bags"];
@@ -124,7 +113,6 @@ export default function WaitlistStorefront({
   const [intent, setIntent] = useState<"sell" | "buy" | null>(null);
   const [idx, setIdx] = useState(0);
   const [done, setDone] = useState(false);
-  const [herd, setHerd] = useState<{ name: string; a: string; tm: string; id: number } | null>(null);
   const [peeked, setPeeked] = useState(false);
 
   const [bizName, setBizName] = useState("");
@@ -292,27 +280,6 @@ export default function WaitlistStorefront({
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
   }, [done]);
 
-  // herd alert: a live drip of other people claiming
-  useEffect(() => {
-    if (done) { setHerd(null); return; }
-    let cancelled = false;
-    let timer: NodeJS.Timeout;
-    let i = Math.floor(Math.random() * STORES.length);
-    const tick = () => {
-      if (cancelled) return;
-      const name = STORES[i % STORES.length];
-      i += 1 + Math.floor(Math.random() * 3);
-      setHerd({ name, a: ACTIONS[Math.floor(Math.random() * ACTIONS.length)], tm: TIMES[Math.floor(Math.random() * TIMES.length)], id: Date.now() });
-      timer = setTimeout(() => {
-        if (cancelled) return;
-        setHerd(null);
-        timer = setTimeout(tick, 2600 + Math.random() * 2200);
-      }, 4600);
-    };
-    timer = setTimeout(tick, 2200);
-    return () => { cancelled = true; clearTimeout(timer); };
-  }, [done]);
-
   const sellerMsg = `Hi ${name.trim() || "there"}, you are on the ${appName} early access list. We have reserved ${systemDomain}/${effectiveSlug || "yourname"} for your ${catForCopy} shop, so the link is locked to you for launch. We will message you right here the moment your storefront is ready to set up. Welcome in, the ${appName} team.`;
   const buyerMsg = `Hi ${name.trim() || "there"}, you are on the ${appName} early access list. We are lining up ${catForCopy} shops you can browse and buy from, all inside WhatsApp. We will message you here as soon as there is something good to show you. Thanks for joining early, the ${appName} team.`;
   const waMsg = intent === "sell" ? sellerMsg : buyerMsg;
@@ -429,15 +396,6 @@ export default function WaitlistStorefront({
                     </div>
                   )}
 
-                  <div className="fw-ticker">
-                    <span className="fw-ticker-l">Just claimed:</span>
-                    <div className="fw-ticker-mask">
-                      <div className="fw-ticker-row" aria-hidden="true">
-                        {[...CLAIMED, ...CLAIMED].map((n, i) => <span key={i} className="fw-ticker-item"><span className="fw-ticker-dot" />{n}</span>)}
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="fw-prev">
                     <span className="fw-prev-label">Your link, everywhere you already share</span>
                     <div className="fw-prev-grid">
@@ -551,13 +509,6 @@ export default function WaitlistStorefront({
           </div>
         </main>
       )}
-
-      {!done && herd && (idx === 0 || key === "link") && (
-        <div className="fw-herd" key={herd.id}>
-          <span className="fw-herd-av">{herd.name.charAt(0)}</span>
-          <span className="fw-herd-tx"><b>{herd.name}</b> {herd.a}<i>{herd.tm}</i></span>
-        </div>
-      )}
     </div>
   );
 }
@@ -662,21 +613,6 @@ const css = `
 .fw-sug{font-size:13px; font-weight:600; color:var(--green); background:rgba(37,211,102,.1); border:1px solid rgba(37,211,102,.24); padding:7px 11px; border-radius:9px; cursor:pointer; transition:.14s}
 .fw-sug:hover{background:rgba(37,211,102,.17)}
 
-.fw-ticker{margin-top:15px; display:flex; align-items:center; gap:9px}
-.fw-ticker-l{flex:none; font-size:12.5px; font-weight:600; color:var(--muted)}
-.fw-ticker-mask{position:relative; flex:1; min-width:0; overflow:hidden; -webkit-mask-image:linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image:linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent)}
-.fw-ticker-row{display:inline-flex; gap:18px; white-space:nowrap; will-change:transform; animation:tick 22s linear infinite}
-.fw-ticker-item{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:#c2ccd2}
-.fw-ticker-dot{width:6px; height:6px; border-radius:50%; background:var(--green); flex:none}
-@keyframes tick{from{transform:translateX(0)} to{transform:translateX(-50%)}}
-
-.fw-herd{position:fixed; left:14px; bottom:16px; z-index:70; pointer-events:none; display:flex; align-items:center; gap:10px; max-width:290px; background:var(--panel); border:1px solid var(--line2); border-radius:13px; padding:11px 13px; box-shadow:0 16px 40px -16px rgba(0,0,0,.6); animation:herd-in .42s cubic-bezier(.2,.7,.2,1)}
-.fw-herd-av{flex:none; width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#25d366,#1da851); color:#0b141a; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center}
-.fw-herd-tx{font-size:12.5px; line-height:1.3; color:var(--muted); display:flex; flex-direction:column}
-.fw-herd-tx b{color:var(--text); font-weight:600}
-.fw-herd-tx i{font-style:normal; font-size:11px; color:#5c6b75; margin-top:1px}
-@keyframes herd-in{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
-
 .fw-prev{margin-top:24px}
 .fw-prev-label{display:block; font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:12px}
 .fw-prev-grid{display:grid; grid-template-columns:1fr; gap:12px}
@@ -750,12 +686,10 @@ const css = `
   .fw-flow-inner{display:flex; flex-direction:column; justify-content:center; max-width:500px; padding:48px 56px}
   .fw-hero-m{display:none}
   .fw-prev-grid{grid-template-columns:1fr 1fr}
-  .fw-herd{left:auto; right:24px; bottom:24px}
 }
 
-@media (prefers-reduced-motion:reduce){.fw-step{animation:none}.fw-prog-fill{transition:none}.fw-claim.free{animation:none}.fw-ticker-row{animation:none}.fw-herd{animation:none}}
+@media (prefers-reduced-motion:reduce){.fw-step{animation:none}.fw-prog-fill{transition:none}.fw-claim.free{animation:none}}
 @media (max-width:520px){.fw-flow-inner{padding:22px 18px 36px}}
 @media (min-width:430px) and (max-width:879px){.fw-prev-grid{grid-template-columns:1fr 1fr}}
 @keyframes sweep{100%{transform:translateX(100%)}}
-@keyframes tick{from{transform:translateX(0)} to{transform:translateX(-50%)}}
 `;

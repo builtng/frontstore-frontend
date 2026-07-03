@@ -149,26 +149,23 @@ interface CleaningStorefrontProps {
 }
 
 const MOCK_STORE = {
-  name: "Somart Cleaning", initial: "S", slug: "somart",
+  name: "",
+  initial: "",
+  slug: "",
   primaryCta: "book",
-  category: "Cleaning Services", location: "Lekki, Lagos",
-  rating: 4.9, reviews: 192, orders: "1.1k", reply: "~10 min",
-  bio: "Lagos based cleaning service for homes and offices. Trained, background checked cleaners and a finish you can actually feel, on a schedule that suits you.",
-  address: "12 Admiralty Way, Lekki Phase 1, Lagos",
-  phone: "+234 803 222 0145",
-  email: "hello@somart.app",
-  socials: { instagram: "@somartcleaning", tiktok: "@somart.cleaning" },
+  category: "",
+  location: "",
+  rating: undefined as number | undefined,
+  reviews: 0,
+  orders: 0,
+  reply: "",
+  bio: "",
+  address: "",
+  phone: "",
+  email: "",
+  socials: { instagram: "", tiktok: "" },
 };
-const MOCK_SERVICES = [
-  { id: "s1", name: "Standard Home Clean", price: 25000, dur: "2-3 hrs", durMin: 150, cat: "Home", popular: true, desc: "A thorough top to bottom clean: dusting, mopping, surfaces, kitchen and bathrooms." },
-  { id: "s2", name: "Deep Clean", price: 55000, dur: "4-6 hrs", durMin: 300, cat: "Home", popular: true, desc: "An intensive reset that gets into the build up a standard clean does not reach." },
-  { id: "s3", name: "Move In / Move Out Clean", price: 70000, dur: "Half day", durMin: 360, cat: "Home", desc: "A full property clean so you hand over, or move into, a genuinely spotless space." },
-  { id: "s4", name: "Post-Construction Clean", price: 120000, dur: "Full day", durMin: 480, cat: "Specialist", desc: "Dust, debris and paint splatter cleared after building or renovation work." },
-  { id: "s5", name: "Office / Commercial Clean", price: 60000, dur: "Per visit", durMin: 240, cat: "Commercial", popular: true, desc: "Reliable cleaning for offices and workspaces, after hours or before opening." },
-  { id: "s6", name: "Sofa & Upholstery Clean", price: 35000, dur: "2-3 hrs", durMin: 150, cat: "Specialist", desc: "Deep extraction cleaning for sofas, mattresses and upholstery." },
-  { id: "s7", name: "Fumigation & Pest Control", price: 40000, dur: "1-2 hrs", durMin: 90, cat: "Specialist", desc: "Safe treatment for insects and pests, with advice to keep them from coming back." },
-  { id: "s8", name: "Recurring Clean, Weekly", price: 22000, dur: "Per visit", durMin: 150, cat: "Plans", popular: true, desc: "A regular cleaner on a weekly or fortnightly schedule, the same trusted team each time." },
-];
+const MOCK_SERVICES: any[] = [];
 const MOCK_SERVICE_INFO = {
   s1: { includes: ["Dusting of all surfaces, shelves and skirting", "Floors vacuumed and mopped throughout", "Kitchen surfaces, sink and appliance exteriors", "Bathrooms cleaned and sanitised", "Beds made and rooms tidied", "Bins emptied and relined"] },
   s2: { includes: ["Everything in a standard clean, taken deeper", "Inside the oven, microwave and fridge", "Limescale lifted from taps, tiles and glass", "Skirting, door frames, switches and handles", "Behind and under movable furniture", "Internal windows, sills and tracks"] },
@@ -179,22 +176,8 @@ const MOCK_SERVICE_INFO = {
   s7: { includes: ["Treatment for crawling and flying insects", "Targeted application around entry points", "Family and pet safe products, applied correctly", "Advice to keep pests from coming back", "Safe ventilation guidance after treatment", "Follow up recommendations where needed"] },
   s8: { includes: ["A full standard clean on every visit", "The same trusted cleaner where possible", "A weekly or fortnightly schedule that suits you", "Priority slots and easy rescheduling", "The same checklist followed every time", "Pause or adjust the plan as your needs change"] },
 };
-const MOCK_PRODUCTS = [
-  { id: "p1", name: "Eco All-Purpose Spray", price: 4500, cat: "Supplies", popular: true, desc: "Plant based all purpose cleaner that cuts grease without the harsh smell." },
-  { id: "p2", name: "Microfibre Cloth Set, 6", price: 5000, cat: "Supplies", popular: true, desc: "Lint free microfibre cloths that lift dust and dry streak free." },
-  { id: "p3", name: "Home Starter Kit", price: 18000, cat: "Kits", desc: "Everything to keep a home fresh between cleans, boxed and ready to go." },
-  { id: "p4", name: "Glass & Mirror Cleaner", price: 4000, cat: "Supplies", desc: "Streak free shine for windows, mirrors and glass surfaces." },
-  { id: "p5", name: "Toilet & Bathroom Gel", price: 4800, cat: "Supplies", popular: true, desc: "Thick gel that clings, lifts limescale and leaves a fresh finish." },
-  { id: "p6", name: "Scented Floor Cleaner", price: 5500, cat: "Supplies", desc: "Concentrated floor cleaner that leaves tiles and wood spotless and fragrant." },
-];
-const MOCK_REVIEWS = [
-  { id: "r1", name: "Amara N.", r: 5, when: "2 weeks ago", service: "Deep Clean", verified: true, photos: 2, text: "They got my kitchen and bathrooms looking brand new. I did not know my tiles were that colour. Booking the recurring plan now.", response: { when: "2 weeks ago", text: "Thank you Amara, the team loved this one. See you on the weekly visits." } },
-  { id: "r2", name: "Tunde A.", r: 5, when: "3 weeks ago", service: "Office / Commercial Clean", verified: true, photos: 1, text: "We switched our office to Somart and the difference is night and day. They come after hours and never miss a visit." },
-  { id: "r3", name: "Zainab K.", r: 4, when: "1 month ago", service: "Standard Home Clean", verified: true, photos: 0, text: "Lovely job and very polite team. They ran about twenty minutes late but called ahead to let me know.", response: { when: "1 month ago", text: "Thank you Zainab, and apologies for the wait. We have adjusted the route to keep arrivals on time." } },
-  { id: "r4", name: "Chidi O.", r: 5, when: "1 month ago", service: "Post-Construction Clean", verified: true, photos: 2, text: "After our renovation the place was covered in dust. They cleared every bit of it, even the spots we missed." },
-  { id: "r5", name: "Bisi A.", r: 3, when: "2 months ago", service: "Sofa & Upholstery Clean", verified: true, photos: 0, text: "Good clean overall but one old stain did not fully come out. They were honest that it might not, to be fair." },
-  { id: "r6", name: "Ngozi E.", r: 5, when: "2 months ago", service: "Recurring Clean, Weekly", verified: true, photos: 1, text: "Same two cleaners every week, always on time and trustworthy. It has taken a real weight off my plate." },
-];
+const MOCK_PRODUCTS: any[] = [];
+const MOCK_REVIEWS: any[] = [];
 const MOCK_PRODUCT_FAQS = [
   ["How long does delivery take?", "Most Lagos orders arrive in 1 to 3 days. The delivery cost is shown at checkout based on your area."],
   ["Do you ship outside Lagos?", "Yes, nationwide delivery across Nigeria is available, with timing and cost confirmed at checkout."],
@@ -209,84 +192,11 @@ const MOCK_SERVICE_FAQS = [
   ["Do I need to be home?", "Not necessarily. Many clients leave access instructions. Our cleaners are background checked and the work is covered."],
   ["How do I pay?", "Pay securely through Frontstore, or by bank transfer where offered. Your receipt always arrives on WhatsApp."],
 ];
-const MOCK_FAQ_GROUPS = [
-  {
-    cat: "Booking and access", icon: Calendar, items: [
-      ["How do I book a clean?", "Pick a service, choose a date and time, and a deposit secures your slot. We confirm on WhatsApp and the same is shown before you pay."],
-      ["Do I need to be home for the clean?", "Not always. Many clients leave access instructions or a key with security. Our cleaners are background checked and the work is covered."],
-      ["How do I reschedule or cancel?", "Reschedule or cancel up to 24 hours before your clean for a full deposit refund. Inside 24 hours the deposit is held against the booking."],
-      ["Can I request the same cleaner each time?", "Yes, and for recurring plans we keep the same trusted team on your visits wherever possible."],
-    ],
-  },
-  {
-    cat: "Payments and deposits", icon: Lock, items: [
-      ["How do I pay?", "You can pay securely through Frontstore at checkout, or by bank transfer to the team. Frontstore checkout is the safer option as it comes with buyer protection."],
-      ["Is paying through Frontstore safe?", "Yes. Payments made through Frontstore are protected, so if a clean does not go as described you can raise a dispute and we help mediate. This protection cannot be removed by the vendor."],
-      ["How much is the deposit?", "A deposit secures your slot when you book, and the balance is paid after the clean. The exact deposit is shown before you confirm."],
-      ["What currency are prices in?", "Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are always charged in naira."],
-    ],
-  },
-  {
-    cat: "On the day", icon: Sparkles, items: [
-      ["What do you bring?", "We arrive with our own eco friendly products and professional equipment. If you would rather we use your own supplies, just say so when you book."],
-      ["How long will it take?", "It depends on the size and the service. The estimated time is shown on each service, and a deep clean naturally takes longer than a standard one."],
-      ["What if I am not happy with the clean?", "Tell us within 24 hours and we will come back and put it right. Your satisfaction is the whole point."],
-    ],
-  },
-  {
-    cat: "Supplies and products", icon: ShoppingBag, items: [
-      ["Are your products authentic and safe?", "Yes. We sell the same eco friendly, low odour products our cleaners use, suited to homes with children and pets when used as directed."],
-      ["Can I return a product?", "Unopened products can be returned within 7 days of delivery in their original packaging. Opened products cannot be returned unless faulty."],
-      ["Do you deliver supplies?", "Yes, across Lagos and nationwide. Delivery is arranged after checkout and the fee depends on your location."],
-    ],
-  },
-  {
-    cat: "Trust and Frontstore", icon: ShieldCheck, items: [
-      ["What does Secured by Frontstore mean?", "It means this store runs on Frontstore, so your booking or order is covered by Frontstore buyer protection and platform terms that the vendor cannot remove."],
-      ["Are the reviews real?", "Yes. Reviews can only be left by clients with a completed Frontstore booking, and each is shown with a verified badge. The vendor can respond but cannot delete genuine ones."],
-      ["What if something goes wrong?", "If a booking paid through Frontstore does not go as described, you can raise a dispute and Frontstore will help mediate a fair resolution."],
-    ],
-  },
-];
+const MOCK_FAQ_GROUPS: any[] = [];
 const MOCK_FAQS_PREVIEW = MOCK_FAQ_GROUPS.map((g: any) => g.items[0]);
-const MOCK_TERMS = [
-  { t: "Who these terms are between", p: [`These terms are an agreement between you and ${MOCK_STORE.name}, the cleaning team that provides the services and products on this store. The store runs on Frontstore, which provides the platform and buyer protection but is not the seller.`] },
-  { t: "Bookings and deposits", p: ["Cleans are arranged by booking through this store. A deposit secures your slot and the balance is paid after the clean. Your slot is confirmed once the deposit is received."] },
-  { t: "Pricing and payment", p: ["Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are charged in naira.", "You can pay securely through Frontstore at checkout, or by bank transfer to the team. Funds paid by transfer go directly to the team, while Frontstore payments are held under buyer protection."] },
-  { t: "Cancellations and refunds", p: ["You can reschedule, cancel or return within the windows set out on the Refunds page, where you will also find how and when refunds are issued."], link: { label: "Read the Refunds policy", page: "returns" } },
-  { t: "Access and your responsibility", p: ["Please give accurate access details, and let us know about pets, fragile items or areas to avoid before your clean. Where we cannot safely reach or treat something, we will tell you honestly.", "We take care in your home or workspace, but please secure valuables and any items of particular sentimental value ahead of the visit."] },
-  { t: "Products", p: ["We sell genuine products only. Please check that a product suits your surfaces and household, and reach out if you are unsure. Returns are handled as set out on the Refunds page."] },
-  { t: "Reviews and content", p: ["Reviews can only be left by clients with a completed booking, and each is shown with a verified badge. The vendor may respond to reviews but cannot remove genuine ones. By submitting a review or photo, you allow it to be shown on this store."] },
-  { t: "Liability", p: ["We provide our services with reasonable skill and care, and carry cover for the work we do. Nothing in these terms removes any rights you have under applicable law."] },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform terms", body: "Every Frontstore store also operates under the Frontstore platform terms and buyer protection policy. These apply alongside the store's own policies and cannot be removed by the vendor.", link: "Read the Frontstore platform terms" } },
-  { t: "Changes to these terms", p: ["We may update these terms from time to time. The version shown on this page is the current one, and the date it was last updated is shown alongside it."] },
-  { t: "Governing law", p: ["These terms are governed by the laws of the Federal Republic of Nigeria, and any dispute falls under the courts of Lagos State."] },
-  { t: "Contact", p: ["Questions about these terms? Reach the team through the Contact page and we will be glad to help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PRIVACY = [
-  { t: "What we collect", p: [`When you book, buy or get in touch, ${MOCK_STORE.name} collects the details you give us: your name, contact details such as a WhatsApp number, phone or email, your booking, address and order details, any message you send, and reviews or photos you choose to share.`] },
-  { t: "How we use it", p: ["We use your details to take and confirm bookings and orders, reach the right address, reply to your enquiries, arrange delivery, process payments, show verified reviews, and improve the store. We do not send marketing without your consent."] },
-  { t: "Payments", p: ["Payments made through Frontstore are handled by Frontstore and its payment providers under buyer protection, and the team does not see or store your card details. Bank transfers are made directly to the team."] },
-  { t: "WhatsApp and messaging", p: ["When you message us, the conversation takes place on WhatsApp and is also subject to WhatsApp's own privacy terms. In future this may move to Frontstore's own messaging."] },
-  { t: "Who we share it with", p: ["We share only what is needed: with delivery partners to fulfil supply orders, with payment providers to take payment, and with Frontstore as the platform the store runs on. We never sell your data."] },
-  { t: "Cookies and analytics", p: ["The store uses basic cookies and analytics, provided through the Frontstore platform, to keep the store working and understand how it is used."] },
-  { t: "Keeping your data", p: ["We keep your details only as long as needed to provide our services and to meet legal and tax obligations, after which they are removed."] },
-  { t: "Your rights", p: ["Under Nigerian data protection law you can ask to see the data we hold about you, correct it, delete it, or object to how it is used. To make a request, reach us through the Contact page."], link: { label: "Go to Contact", page: "contact" } },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform privacy", body: "As the platform this store runs on, Frontstore also processes data under its own privacy policy and platform terms. These apply alongside the store's own notice and cannot be removed by the vendor.", link: "Read the Frontstore privacy policy" } },
-  { t: "Changes to this notice", p: ["We may update this notice from time to time. The version shown on this page is the current one, with the date it was last updated shown alongside it."] },
-  { t: "Contact", p: ["Questions about your privacy, or want to make a data request? Reach the team through the Contact page and we will help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PORTFOLIO = [
-  { label: "Kitchen deep clean", cat: "Home", c: "c0", ba: true },
-  { label: "Bathroom reset", cat: "Home", c: "c1", ba: true },
-  { label: "Post-construction", cat: "Specialist", c: "c2", ba: true },
-  { label: "Office refresh", cat: "Commercial", c: "c1" },
-  { label: "Sofa extraction", cat: "Specialist", c: "c2", ba: true },
-  { label: "Move-out clean", cat: "Home", c: "c0", ba: true },
-  { label: "Tiled floor revival", cat: "Home", c: "c1", ba: true },
-  { label: "Window & glass", cat: "Home", c: "c2" },
-  { label: "Workspace clean", cat: "Commercial", c: "c0" },
-];
+const MOCK_TERMS: any[] = [];
+const MOCK_PRIVACY: any[] = [];
+const MOCK_PORTFOLIO: any[] = [];
 const MOCK_NOTIFY_TOPICS = [["plans", "Cleaning plans"], ["offers", "Offers and slots"], ["tips", "Cleaning tips"], ["news", "Announcements"]];
 const MOCK_HOURS = [
   ["Mon", "8:00am - 6:00pm"], ["Tue", "8:00am - 6:00pm"], ["Wed", "8:00am - 6:00pm"],
@@ -298,91 +208,23 @@ const MOCK_NAV = [
 ];
 const MOCK_LEGAL = [["returns", "Refunds"], ["terms", "Terms"], ["privacy", "Privacy"]];
 const MOCK_CATS = ["Home", "Commercial", "Specialist", "Plans"];
-const MOCK_FEATURED = [
-  { id: "s2", name: "Deep Clean", price: 55000, dur: "4-6 hrs", type: "service" },
-  { id: "s1", name: "Standard Home Clean", price: 25000, dur: "2-3 hrs", type: "service" },
-  { id: "p3", name: "Home Starter Kit", price: 18000, type: "product" },
-];
+const MOCK_FEATURED: any[] = [];
 const MOCK_AUTHOR = {
-  name: "Somto Martins",
-  initial: "S",
-  role: "Founder and operations lead",
-  bio: "Somto founded Somart and has spent over eight years building a cleaning team that homes and offices across Lagos genuinely trust.",
-  long: "Somto started Somart with one van and a simple promise: turn up on time, do the job properly, and treat every home like your own. Today she runs a vetted team of cleaners, trains each one herself, and still does the quality checks on the bigger jobs.",
-  quote: "Clean is not a look, it is a feeling. You should be able to feel it the second you walk in.",
-  specialities: ["Deep cleaning", "Office contracts", "Vetted cleaners", "8+ years"],
-  socials: { instagram: "@somto.cleans", tiktok: "@somartcleaning" },
-  credentials: [
-    "Trained, in-house cleaning team",
-    "Background checked and reference verified cleaners",
-    "Cover in place for the work carried out",
-  ],
+  name: "",
+  initial: "",
+  role: "",
+  bio: "",
+  long: "",
+  quote: "",
+  specialities: [],
+  socials: { instagram: "", tiktok: "" },
+  credentials: [],
 };
-const MOCK_OFFERINGS = [
-  ["Home cleaning", "Standard and deep cleans that leave your home genuinely fresh, not just tidy.", "services"],
-  ["Office and commercial", "Reliable contract cleaning for workspaces, after hours or before opening.", "services"],
-  ["Specialist cleans", "Post-construction, upholstery and fumigation, the jobs others would rather avoid.", "services"],
-  ["Supplies for in between", "The eco products our cleaners actually use, for sale to take home.", "products"],
-];
-const MOCK_GALLERY = [
-  { label: "Kitchen deep clean", c: "c0" },
-  { label: "Bathroom reset", c: "c1" },
-  { label: "Office refresh", c: "c2" },
-  { label: "Sofa extraction", c: "c1" },
-  { label: "Move-out clean", c: "c2" },
-  { label: "Tiled floor revival", c: "c0" },
-];
-const MOCK_RECOGNITION = ["Lagos Home Expo", "CleanPro Africa", "SME Awards NG", "Naija Homes"];
-const MOCK_ABOUT_FACTS = [
-  ["Established", "Lagos, since 2018"],
-  ["Registered", "CAC RC 1689420"],
-  ["Coverage", "Lagos mainland and island"],
-  ["The team", "Trained, background checked cleaners"],
-  ["Booking", "A deposit secures your slot, balance paid after the clean"],
-  ["Payment", "Pay securely with Frontstore, or by bank transfer"],
-  ["Supplies", "We bring our own eco friendly products and equipment"],
-  ["Insurance", "Cover in place for the work we carry out"],
-];
-const MOCK_BLOG = [
-  { title: "How often should you deep clean your home?", date: "6 Jun 2026", cat: "Home", read: "4 min", excerpt: "A simple guide to how often each part of your home really needs a deep clean.", body: [
-    { p: "A standard clean keeps things tidy week to week, but every home needs a deeper reset now and then. Leave it too long and the build up gets much harder to shift." },
-    { h: "A rough schedule" },
-    { list: ["Kitchens and bathrooms, a deep clean every one to two months", "Living areas and bedrooms, every three months", "Behind appliances and inside cupboards, twice a year", "Whole home reset, before any big event or a move"] },
-    { p: "If your home sees heavy traffic, pets or small children, lean towards the more frequent end. A deep clean on a sensible schedule keeps the weekly tidy quick and easy." },
-  ] },
-  { title: "The five spots everyone forgets to clean", date: "24 May 2026", cat: "Tips", read: "3 min", excerpt: "The places that quietly collect grime while the obvious surfaces get all the attention.", body: [
-    { p: "Most people clean what they can see at eye level. The spots below are the ones our cleaners always find neglected, and they make a bigger difference than you would think." },
-    { list: ["The tops of doors, frames and skirting", "Behind and under the fridge and cooker", "Light switches, handles and remote controls", "The inside of the microwave and the bin itself", "Extractor fans and air vents"] },
-    { p: "You do not need to tackle all of these every week. Add one or two to your routine each time and they never get the chance to build up." },
-  ] },
-  { title: "Eco cleaning that actually works in a Lagos home", date: "11 May 2026", cat: "Tips", read: "5 min", excerpt: "Gentler on your home and your lungs, without giving up on a real clean.", body: [
-    { p: "Harsh chemicals are not the only way to get a proper clean. The right plant based products handle everyday grime well, with far less smell and far less risk around children and pets." },
-    { h: "Where eco shines" },
-    { p: "For daily surfaces, glass, floors and light grease, a good eco cleaner does the job without filling the room with fumes. We use these as our default in homes." },
-    { h: "Where to be realistic" },
-    { p: "For heavy limescale or deep stains, a stronger targeted product, used carefully and rinsed well, is sometimes the right call. The trick is using it only where it is truly needed." },
-    { p: "A mostly eco routine with the odd targeted product is the balance we recommend to most homes. Cleaner air, and a finish that still holds up." },
-  ] },
-  { title: "Getting your deposit back: a move-out clean checklist", date: "29 Apr 2026", cat: "Home", read: "4 min", excerpt: "What landlords actually check, and how to leave a place truly clean.", body: [
-    { p: "A move out clean is not about making a place look lived in and tidy. It is about returning it to the state it was handed to you, which is a higher bar than most people expect." },
-    { h: "The areas that decide it" },
-    { list: ["Kitchen, including inside the oven, fridge and cupboards", "Bathrooms, with limescale and grout properly treated", "Walls, skirting and any marks from furniture", "Floors throughout, cleaned not just swept", "Windows, sills and tracks"] },
-    { p: "If a full move out clean feels like too much on top of the move itself, this is exactly the kind of job worth handing over. It often pays for itself in the deposit alone." },
-  ] },
-  { title: "Keeping a busy office genuinely clean", date: "13 Apr 2026", cat: "Commercial", read: "4 min", excerpt: "A clean workspace is not just about looks, it affects how people feel at work.", body: [
-    { p: "An office gets dirty in different ways to a home: high touch surfaces, shared kitchens and steady foot traffic. Keeping it clean is less about a big effort and more about the right routine." },
-    { h: "The daily and weekly split" },
-    { p: "Desks, kitchens, bathrooms and high touch points need daily attention. Floors, glass and the deeper jobs fit better into a weekly visit. Splitting it this way keeps standards up without disrupting work." },
-    { h: "Why it matters" },
-    { p: "People notice a clean workspace, even when they cannot say why. It signals care, it keeps illness down, and it quietly tells clients you have your act together." },
-  ] },
-  { title: "What to look for before you hire a cleaner", date: "3 Apr 2026", cat: "Tips", read: "4 min", excerpt: "A short list that saves you from the most common letdowns.", body: [
-    { p: "Letting someone into your home is a matter of trust. A few checks up front save you the most common problems further down the line." },
-    { h: "The questions worth asking" },
-    { list: ["Are the cleaners trained and background checked", "Is the work covered if something is damaged", "Do they bring their own supplies and equipment", "What happens if I am not happy with the clean", "Can I keep the same cleaner each visit"] },
-    { p: "A service that answers these clearly, and puts the booking and payment somewhere protected, is one you can relax with. Vague answers now tend to become problems later." },
-  ] },
-];
+const MOCK_OFFERINGS: any[] = [];
+const MOCK_GALLERY: any[] = [];
+const MOCK_RECOGNITION: any[] = [];
+const MOCK_ABOUT_FACTS: any[] = [];
+const MOCK_BLOG: any[] = [];
 
 const money = (n: number) => "₦" + n.toLocaleString("en-NG");
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -830,7 +672,7 @@ export default function CleaningStorefront({
               <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>Order Placed!</h3>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>Your order reference is <b>{orderReceipt.order.order_number}</b>.</p>
               
-              {store.payment_provider === 'paystack' && (
+              {store.payment_provider && store.payment_provider !== 'manual' && (
                 <div style={{ background: '#f9f5f3', borderRadius: 12, padding: 14, marginTop: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span>Total Amount</span>
@@ -862,8 +704,9 @@ export default function CleaningStorefront({
         headers: { 'Content-Type': 'application/json' }
       });
       const json = await res.json();
-      if (res.ok && json.data?.authorization_url) {
-        window.location.href = json.data.authorization_url;
+      const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
+      if (res.ok && redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         sonnerToast.error(json.message || "Online payment setup failed.");
       }
@@ -1500,6 +1343,7 @@ export default function CleaningStorefront({
   );
   const aboutReview = () => {
     const r = displayReviews[0];
+    if (!r) return null;
     return (
       <div className="ab-review">
         <Quote className="ab-quote-mark" size={28} />
@@ -1517,7 +1361,7 @@ export default function CleaningStorefront({
   const aboutJournal = () => (
     <div className="ab-section">
       <div className="ab-sec-head">
-        <h4 className="ab-subhead">From Somto's journal</h4>
+        <h4 className="ab-subhead">{DUMMY_AUTHOR.name ? `From ${DUMMY_AUTHOR.name.split(" ")[0]}'s journal` : "From the journal"}</h4>
         <button className="ab-seclink" onClick={() => go("blog")}>All articles <ChevronRight size={14} /></button>
       </div>
       <div className="ab-journal">
@@ -1529,12 +1373,11 @@ export default function CleaningStorefront({
           </button>
         ))}
       </div>
-      <p className="ab-journal-note">Written by {DUMMY_AUTHOR.name}, drawing on a decade of client work.</p>
+      <p className="ab-journal-note">{DUMMY_AUTHOR.name ? `Written by ${DUMMY_AUTHOR.name}, drawing on a decade of client work.` : "Tips, routines and notes from the team."}</p>
     </div>
   );
   const aboutBody = () => (<>
     <p className="ps-prose">{DUMMY_STORE.bio}</p>
-    <p className="ab-para">What began in 2018 with one van and one cleaner is now a vetted team that homes and offices across Lagos genuinely trust, known for turning up on time and doing the job properly.</p>
     <div className="ab-founder ab-founder-m">
       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
       <div className="ab-founder-body">{aboutFounderBody()}</div>
@@ -1566,7 +1409,7 @@ export default function CleaningStorefront({
     <div className="ps-about-grid">
       <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-      <div><b>10 yrs</b><span>in practice</span></div>
+      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
       <span className="ab-follow-h">Follow the studio</span>
@@ -1628,7 +1471,7 @@ export default function CleaningStorefront({
   const contactForm = () => (
     <div className="ct-form">
       <h4 className="ab-subhead">Send an enquiry</h4>
-      <p className="ct-form-sub">Tell us what you are after and we will reply by email. A real person, usually Somto or the team, will answer.</p>
+      <p className="ct-form-sub">Tell us what you are after and we will reply by email. A real person from the team will answer.</p>
       <div className="ct-form-row">
         <select className="ct-input" value={cSvc} onChange={(e) => setCSvc(e.target.value)}>
           <option value="">Service (optional)</option>
@@ -1886,7 +1729,7 @@ export default function CleaningStorefront({
       <button onClick={() => setAnnOff(true)} aria-label="Dismiss"><X size={15} /></button>
     </div>
   );
-  const featured = (
+  const featured = MOCK_FEATURED.length > 0 ? (
     <section className="feat">
       <div className="feat-head"><span className="feat-tag"><Sparkles size={13} /> Featured</span></div>
       <div className="feat-grid">
@@ -1895,13 +1738,13 @@ export default function CleaningStorefront({
         ))}
       </div>
     </section>
-  );
+  ) : null;
 
   /* ---- drawer panel (mobile only) ---- */
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo">frontstore<span>.app</span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1978,7 +1821,7 @@ export default function CleaningStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -2061,7 +1904,7 @@ export default function CleaningStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -2444,10 +2287,7 @@ export default function CleaningStorefront({
                 <div className="ab-wrap">
                   <div className="ab-main">
                     <span className="ab-kicker">Our story</span>
-                    <h2 className="ab-headline">A Lagos studio for looking like yourself, on your best day.</h2>
-                    <p className="ab-lede">Somart is a Lagos based cleaning service for homes and offices. We pair a trained, background checked team with a finish you can actually feel, on a schedule that suits you.</p>
-                    <p className="ab-para">What began in 2018 with one van and one cleaner is now a vetted team across Lagos. The promise has stayed the same throughout: turn up on time, do the job properly, and treat every home like your own.</p>
-                    <p className="ab-para">Today the studio looks after brides, busy professionals and regulars who keep coming back for the calm of a private room and results they can count on, whether that is a wedding morning, a big shoot or an everyday refresh.</p>
+                    <p className="ab-lede">{DUMMY_STORE.bio}</p>
 
                     <div className="ab-founder">
                       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
@@ -2492,7 +2332,7 @@ export default function CleaningStorefront({
                     <div className="ps-about-grid ab-stats">
                       <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
                       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-                      <div><b>10 yrs</b><span>in practice</span></div>
+                      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
                     </div>
                   </div>
 
@@ -2573,7 +2413,7 @@ export default function CleaningStorefront({
                 </div>
                 <div className="ct-wrap">
                   <div className="ct-main">
-                    <p className="svc-intro">Reach us on WhatsApp for a quick reply, or send an enquiry and we will get back to you by email. A real person, usually Somto or the team, will answer.</p>
+                    <p className="svc-intro">Reach us on WhatsApp for a quick reply, or send an enquiry and we will get back to you by email. A real person from the team will answer.</p>
                     {contactChannels()}
                     {contactForm()}
                   </div>
@@ -2923,7 +2763,7 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
 .ps-logo span{color:var(--brand);}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
@@ -3667,7 +3507,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .svc-card-thumb.c1{background:linear-gradient(150deg,var(--brand-deep),var(--gold));}
 .svc-card-thumb.c2{background:linear-gradient(150deg,#57b8c2,var(--brand));}
 .svc-card-thumb.c3{background:linear-gradient(150deg,var(--brand),#a86b8a);}
-.svc-card-cat{position:absolute;bottom:10px;left:10px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
+.svc-card-cat{position:absolute;bottom:10px;left:10px;width:max-content;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
 .svc-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:rgba(42,29,34,.5);backdrop-filter:blur(2px);padding:4px 8px;border-radius:7px;}
 .svc-badge svg{color:var(--gold);fill:var(--gold);}
 .svc-card-body{padding:13px 14px 14px;display:flex;flex-direction:column;flex:1;}

@@ -58,7 +58,7 @@ const parsePhoneNumber = (fullPhone: string) => {
 
 // ── Main form component ───────────────────────────────────────────────────────
 
-function SignupFormContent({ appName }: { appName: string }) {
+function SignupFormContent({ appName, registrationMethod = 'email' }: { appName: string; registrationMethod?: 'email' | 'whatsapp' | 'both' }) {
   const searchParams = useSearchParams();
 
   const [storeName, setStoreName] = useState('');
@@ -83,6 +83,9 @@ function SignupFormContent({ appName }: { appName: string }) {
     label: persona.name,
     sublabel: `${persona.persona} · ${persona.templateName} · ${persona.summary}`,
   }));
+
+  const isEmailRequired = registrationMethod === 'email' || registrationMethod === 'both';
+  const isPhoneRequired = registrationMethod === 'whatsapp' || registrationMethod === 'both';
 
   // successData intentionally does NOT contain the password field
   const [successData, setSuccessData] = useState<{
@@ -156,25 +159,46 @@ function SignupFormContent({ appName }: { appName: string }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!storeName || !username || !name || !phone.trim() || !password) {
+    const isEmailRequired = registrationMethod === 'email' || registrationMethod === 'both';
+    const isPhoneRequired = registrationMethod === 'whatsapp' || registrationMethod === 'both';
+
+    if (isEmailRequired && !email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+    if (email.trim() && !/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (isPhoneRequired && !phone.trim()) {
+      setError('Please enter your WhatsApp phone number.');
+      return;
+    }
+    if (!storeName || !username || !name || !password) {
       setError('Please fill in all required fields.');
       return;
     }
 
-    const normalizePhone = (input: string, dialCode: string) => {
-      const cleanDial = dialCode.replace(/[^\d]/g, '');
-      let cleaned = input.replace(/[^\d]/g, '');
-      if (cleaned.startsWith(cleanDial)) {
-        cleaned = cleaned.slice(cleanDial.length);
+    let normalizedPhone = undefined;
+    let countryDialCode = undefined;
+
+    if (phone.trim()) {
+      const normalizePhone = (input: string, dialCode: string) => {
+        const cleanDial = dialCode.replace(/[^\d]/g, '');
+        let cleaned = input.replace(/[^\d]/g, '');
+        if (cleaned.startsWith(cleanDial)) {
+          cleaned = cleaned.slice(cleanDial.length);
+        }
+        cleaned = cleaned.replace(/^0+/, '');
+        return `+${cleanDial}${cleaned}`;
+      };
+      normalizedPhone = normalizePhone(phone, selectedCountry.dialCode);
+      countryDialCode = selectedCountry.dialCode;
+      const localPhoneDigits = normalizedPhone.replace(/[^\d]/g, '').slice(selectedCountry.dialCode.replace(/[^\d]/g, '').length);
+      if (localPhoneDigits.length < 7) {
+        setError('Please enter a valid WhatsApp phone number.');
+        return;
       }
-      cleaned = cleaned.replace(/^0+/, '');
-      return `+${cleanDial}${cleaned}`;
-    };
-    const normalizedPhone = normalizePhone(phone, selectedCountry.dialCode);
-    const localPhoneDigits = normalizedPhone.replace(/[^\d]/g, '').slice(selectedCountry.dialCode.replace(/[^\d]/g, '').length);
-    if (localPhoneDigits.length < 7) {
-      setError('Please enter a valid WhatsApp phone number.');
-      return;
     }
 
     const cleanUsername = username.toLowerCase().replace(/[^a-z0-9_-]/g, '');
@@ -203,7 +227,7 @@ function SignupFormContent({ appName }: { appName: string }) {
           username: cleanUsername,
           name,
           phone_number: normalizedPhone,
-          country_dial_code: selectedCountry.dialCode,
+          country_dial_code: countryDialCode,
           business_persona: selectedPersona,
           password,
           email: email || undefined,
@@ -212,7 +236,7 @@ function SignupFormContent({ appName }: { appName: string }) {
 
       const json = await res.json();
       if (!res.ok) {
-        throw new Error(json.message || 'Registration failed. Try a different username or phone number.');
+        throw new Error(json.message || 'Registration failed. Try a different username or email.');
       }
 
       // Store credentials locally for automatic login
@@ -467,7 +491,18 @@ function SignupFormContent({ appName }: { appName: string }) {
           href="/"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', marginBottom: 12 }}
         >
-          <Store size={28} style={{ color: 'var(--primary)', strokeWidth: 2.5 }} />
+          <img 
+            src="/logo.png" 
+            alt="Logo"
+            width={28}
+            height={28}
+            style={{
+              width: 28,
+              height: 28,
+              objectFit: 'contain',
+              flexShrink: 0,
+            }}
+          />
           <span>{appName}</span>
         </a>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em' }}>
@@ -744,7 +779,7 @@ function SignupFormContent({ appName }: { appName: string }) {
               htmlFor="phone"
               style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
             >
-              WhatsApp Number
+              {isPhoneRequired ? 'WhatsApp Number' : 'WhatsApp Number (Optional)'}
             </label>
             <div style={{
               display: 'flex',
@@ -786,7 +821,7 @@ function SignupFormContent({ appName }: { appName: string }) {
               <input
                 id="phone"
                 type="tel"
-                required
+                required={isPhoneRequired}
                 placeholder="e.g. 803 123 4567"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
@@ -872,12 +907,13 @@ function SignupFormContent({ appName }: { appName: string }) {
               htmlFor="email"
               style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
             >
-              Email Address (Optional)
+              {isEmailRequired ? 'Email Address' : 'Email Address (Optional)'}
             </label>
             <div style={{ position: 'relative' }}>
               <input
                 id="email"
                 type="email"
+                required={isEmailRequired}
                 placeholder="e.g. merchant@example.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -1042,6 +1078,7 @@ function SignupFormContent({ appName }: { appName: string }) {
 
 export default function SignupPage() {
   const [appName, setAppName] = useState('Front Store');
+  const [registrationMethod, setRegistrationMethod] = useState<'email' | 'whatsapp' | 'both'>('email');
 
   useEffect(() => {
     const loadPublicSettings = async () => {
@@ -1051,6 +1088,7 @@ export default function SignupPage() {
         if (!res.ok) return;
         const json = await res.json();
         if (json.data?.app_name) setAppName(json.data.app_name);
+        if (json.data?.registration_method) setRegistrationMethod(json.data.registration_method);
       } catch {
         // Keep the local fallback when settings cannot be loaded.
       }
@@ -1137,7 +1175,19 @@ export default function SignupPage() {
             marginBottom: 48,
             color: '#fff'
           }}>
-            <Store size={26} style={{ strokeWidth: 2.5 }} />
+            <img 
+              src="/logo.png" 
+              alt="Logo"
+              width={26}
+              height={26}
+              style={{
+                width: 26,
+                height: 26,
+                objectFit: 'contain',
+                flexShrink: 0,
+                filter: 'brightness(0) invert(1)',
+              }}
+            />
             <span>{appName}</span>
           </div>
 
@@ -1241,7 +1291,7 @@ export default function SignupPage() {
               <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading storefront creator...</span>
             </div>
           }>
-            <SignupFormContent appName={appName} />
+            <SignupFormContent appName={appName} registrationMethod={registrationMethod} />
           </Suspense>
         </div>
       </div>

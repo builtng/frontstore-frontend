@@ -65,7 +65,7 @@ export default function AdminLoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
-          phone_number: email.trim(),
+          email: email.trim(),
           password,
         }),
       });

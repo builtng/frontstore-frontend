@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Merchant & Seller Documentation',
-  description: 'Detailed instructions on how to use Frontstore Flow, Pay, Aura, Pulse, and Reach to launch and grow a WhatsApp storefront.',
+  description: 'Detailed instructions on how to use Frontstore Flow, Pay, Nina, Pulse, and Reach to launch and grow a WhatsApp storefront.',
   alternates: {
     canonical: '/docs/merchant',
   },

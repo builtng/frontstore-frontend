@@ -14,8 +14,8 @@
   --font-sans: var(--font-inter, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   --font-heading: var(--font-outfit, 'Outfit', var(--font-sans));
 
-  /* Brand / Primary – WhatsApp Green (overridable per-store) */
-  --primary:        #25D366;
+  /* Brand / Primary – WhatsApp Dark Green (Frontstore brand color per brand_book.md) */
+  --primary:        #128C7E;
   --primary-dark:   color-mix(in oklch, var(--primary) 70%, black);
   --primary-hover:  color-mix(in oklch, var(--primary) 85%, black);
   --primary-light:  color-mix(in oklch, var(--primary) 10%, white);
@@ -67,8 +67,8 @@
   --shadow-md:  0 4px 8px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
   --shadow-lg:  0 12px 24px rgba(15, 23, 42, 0.08), 0 4px 8px rgba(15, 23, 42, 0.04);
   --shadow-xl:  0 24px 48px rgba(15, 23, 42, 0.10), 0 8px 16px rgba(15, 23, 42, 0.05);
-  --shadow-primary: 0 8px 24px rgba(37, 211, 102, 0.3);
-  --shadow-wa:  0 8px 24px rgba(37, 211, 102, 0.35);
+  --shadow-primary: 0 8px 24px rgba(18, 140, 126, 0.3);
+  --shadow-wa:  0 8px 24px rgba(18, 140, 126, 0.35);
 
   /* Border Radius */
   --r-xs:  4px;
@@ -622,6 +622,231 @@ img, video {
 .stagger > *:nth-child(4) { animation-delay: 180ms; }
 .stagger > *:nth-child(5) { animation-delay: 240ms; }
 .stagger > *:nth-child(6) { animation-delay: 300ms; }
+
+/* ================================================================
+   LANDING PAGE — hero mesh, phone mockup, marquee, bento
+   ================================================================ */
+
+.hero-mesh {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 0%, color-mix(in srgb, var(--primary) 16%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 45% at 85% 15%, color-mix(in srgb, hsl(178, 76%, 45%) 14%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 50% 100%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 65%);
+}
+
+/* Two-column hero at desktop widths — lives here (not in a component
+   <style jsx>) so it's active on first paint. A component-scoped style
+   tag only becomes active once client hydration runs, which briefly
+   rendered the single-column mobile layout (phone stacked below the
+   copy) even on wide viewports, then snapped to two columns. */
+@media (max-width: 520px) {
+  .hero-float-chip { display: none !important; }
+}
+@media (min-width: 980px) {
+  .hero-inner {
+    grid-template-columns: 1.05fr 0.95fr !important;
+    text-align: left !important;
+  }
+  .hero-copy {
+    text-align: left !important;
+    margin: 0 !important;
+  }
+  .hero-copy h1, .hero-copy p {
+    margin-left: 0 !important;
+  }
+  .hero-copy > div:first-child,
+  .hero-copy form,
+  .hero-copy > div:last-child {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+  }
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, black 0%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, black 0%, transparent 75%);
+  opacity: 0.6;
+}
+
+/* Phone mockup — hero product visual */
+.phone-mockup {
+  position: relative;
+  width: min(280px, 74vw);
+  aspect-ratio: 9 / 18.5;
+  background: #0b141a;
+  border-radius: 38px;
+  padding: 12px;
+  box-shadow:
+    0 30px 70px -20px rgba(0,0,0,0.35),
+    0 10px 30px -10px color-mix(in srgb, var(--primary) 25%, transparent),
+    0 0 0 1px rgba(255,255,255,0.06) inset;
+}
+
+.phone-mockup__notch {
+  position: absolute;
+  top: 12px; left: 50%; transform: translateX(-50%);
+  width: 90px; height: 20px;
+  background: #0b141a;
+  border-radius: var(--r-full);
+  z-index: 3;
+}
+
+.phone-mockup__screen {
+  position: relative;
+  width: 100%; height: 100%;
+  background: var(--wa-chat-bg);
+  border-radius: 28px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.phone-mockup__bar {
+  background: var(--wa-dark);
+  color: #fff;
+  padding: 20px 14px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.phone-mockup__avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.phone-mockup__body {
+  flex: 1;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.phone-bubble {
+  max-width: 82%;
+  padding: 7px 10px;
+  border-radius: 10px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  box-shadow: var(--shadow-xs);
+  animation: slideUp var(--t-slow) var(--ease-out) both;
+}
+
+.phone-bubble--in {
+  align-self: flex-start;
+  background: var(--wa-bubble-customer-bg);
+  color: var(--wa-bubble-customer-text);
+  border-top-left-radius: 3px;
+}
+
+.phone-bubble--out {
+  align-self: flex-end;
+  background: var(--wa-bubble-merchant-bg);
+  color: var(--wa-bubble-merchant-text);
+  border-top-right-radius: 3px;
+}
+
+.phone-bubble--card {
+  align-self: flex-end;
+  background: var(--surface);
+  color: var(--text);
+  border-top-right-radius: 3px;
+  padding: 8px;
+  width: 78%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.phone-bubble--card img { border-radius: 6px; width: 100%; height: 56px; object-fit: cover; }
+
+/* Floating stat chips over hero visual */
+.hero-float-chip {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--r-lg);
+  z-index: 2;
+  animation: floatChip 5s var(--ease) infinite;
+}
+
+@keyframes floatChip {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+/* Marquee strip */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 40px;
+  animation: marqueeScroll 28s linear infinite;
+}
+
+.marquee-viewport:hover .marquee-track { animation-play-state: paused; }
+
+@keyframes marqueeScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Bento grid for feature suite */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+}
+
+.bento-grid > .bento-span-3 { grid-column: span 6; }
+.bento-grid > .bento-span-2 { grid-column: span 6; }
+
+@media (min-width: 720px) {
+  .bento-grid > .bento-span-3 { grid-column: span 3; }
+  .bento-grid > .bento-span-2 { grid-column: span 2; }
+}
+
+.comparison-row:hover { background: var(--surface-2); }
+.comparison-row:hover td:nth-child(2) { background: color-mix(in srgb, var(--primary-light) 80%, var(--surface-2)); }
+
+/* Numbered flow connector for How It Works */
+.flow-connector {
+  display: none;
+}
+
+@media (min-width: 720px) {
+  .flow-connector {
+    display: block;
+    position: absolute;
+    top: 44px;
+    left: 8%;
+    width: 84%;
+    height: 1px;
+    background: repeating-linear-gradient(90deg, var(--border-strong) 0 6px, transparent 6px 12px);
+    z-index: 0;
+  }
+}
 
 /* ================================================================
    PRODUCT CARD STYLES

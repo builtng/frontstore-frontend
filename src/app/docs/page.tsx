@@ -111,7 +111,7 @@ export default function DocsLandingPage() {
                 For Merchants & Sellers
               </h2>
               <p style={{ color: 'var(--text-muted)', fontSize: 14.5, lineHeight: 1.6, minHeight: 96 }}>
-                Learn how to create your automated storefront, customize styles and templates, verify bank details for instant payouts, configure the WhatsApp Aura AI sales assistant, and launch marketing broadcasts to repeat buyers.
+                Learn how to create your automated storefront, customize styles and templates, verify bank details for instant payouts, configure the WhatsApp Nina AI sales assistant, and launch marketing broadcasts to repeat buyers.
               </p>
             </div>
             <a href="/docs/merchant" className="btn btn-primary clickable" style={{ width: '100%', gap: 8, padding: '14px 20px', fontSize: 14.5, textDecoration: 'none' }}>
@@ -179,7 +179,7 @@ export default function DocsLandingPage() {
             <div style={{ display: 'flex', gap: 14 }}>
               <div style={{ color: 'var(--primary)', flexShrink: 0 }}><MessageSquare size={20} /></div>
               <div>
-                <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4, color: 'var(--text)' }}>Frontstore Aura</h4>
+                <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4, color: 'var(--text)' }}>Frontstore Nina</h4>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }}>Intelligent AI sales agent responding, negotiating, and verifying transfer screenshots in WhatsApp 24/7.</p>
               </div>
             </div>

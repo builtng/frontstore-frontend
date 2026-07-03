@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  Globe, Store, Lock, Eye, EyeOff, Loader2, ArrowRight, Check, LogIn, Mail
+  Globe, Lock, Eye, EyeOff, Loader2, ArrowRight, Check, LogIn, Mail
 } from 'lucide-react';
 
 const countries = [
@@ -57,6 +57,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [loginMethod, setLoginMethod] = useState<'phone' | 'email'>('phone');
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
@@ -140,7 +141,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
       setLoading(true);
       setError(null);
       const trimmedIdentifier = loginIdentifier.trim();
-      const normalizedIdentifier = isAdminMode || trimmedIdentifier.includes('@')
+      const normalizedIdentifier = isAdminMode || loginMethod === 'email' || trimmedIdentifier.includes('@')
         ? trimmedIdentifier
         : normalizePhone(trimmedIdentifier, selectedCountry.dialCode);
 
@@ -193,7 +194,18 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
           href="/"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', marginBottom: 12 }}
         >
-          <Store size={28} style={{ color: 'var(--primary)', strokeWidth: 2.5 }} />
+          <img 
+            src="/logo.png" 
+            alt="Logo"
+            width={28}
+            height={28}
+            style={{
+              width: 28,
+              height: 28,
+              objectFit: 'contain',
+              flexShrink: 0,
+            }}
+          />
           <span>{appName}</span>
         </a>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em' }}>
@@ -225,21 +237,53 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)' }}>
+          
+          {!isAdminMode && (
+            <div style={{ display: 'flex', gap: 8, padding: 4, borderRadius: 'var(--r-md)', background: 'var(--bg-2)', border: '1px solid var(--border)' }}>
+              <button
+                type="button"
+                onClick={() => { setLoginMethod('phone'); setLoginIdentifier(''); setError(null); }}
+                style={{
+                  flex: 1, padding: '8px 12px', borderRadius: 'var(--r-md)', border: 'none', cursor: 'pointer',
+                  background: loginMethod === 'phone' ? 'var(--surface)' : 'transparent',
+                  color: loginMethod === 'phone' ? 'var(--primary)' : 'var(--text-muted)',
+                  fontWeight: 750, fontSize: 13, transition: 'all 0.2s',
+                  boxShadow: loginMethod === 'phone' ? 'var(--shadow-sm)' : 'none'
+                }}
+              >
+                WhatsApp Phone
+              </button>
+              <button
+                type="button"
+                onClick={() => { setLoginMethod('email'); setLoginIdentifier(''); setError(null); }}
+                style={{
+                  flex: 1, padding: '8px 12px', borderRadius: 'var(--r-md)', border: 'none', cursor: 'pointer',
+                  background: loginMethod === 'email' ? 'var(--surface)' : 'transparent',
+                  color: loginMethod === 'email' ? 'var(--primary)' : 'var(--text-muted)',
+                  fontWeight: 750, fontSize: 13, transition: 'all 0.2s',
+                  boxShadow: loginMethod === 'email' ? 'var(--shadow-sm)' : 'none'
+                }}
+              >
+                Email Address
+              </button>
+            </div>
+          )}
+
           {/* Phone Number / Email */}
           <div>
             <label
               htmlFor="loginIdentifier"
               style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
             >
-              {isAdminMode ? 'Admin Email Address' : 'Local WhatsApp Number'}
+              {isAdminMode ? 'Admin Email Address' : loginMethod === 'email' ? 'Email Address' : 'Local WhatsApp Number'}
             </label>
-            {isAdminMode ? (
+            {isAdminMode || loginMethod === 'email' ? (
               <div style={{ position: 'relative' }}>
                 <input
                   id="loginIdentifier"
                   type="email"
                   required
-                  placeholder="e.g. admin@frontstore.app"
+                  placeholder={isAdminMode ? "e.g. admin@frontstore.app" : "you@example.com"}
                   value={loginIdentifier}
                   onChange={e => setLoginIdentifier(e.target.value)}
                   onFocus={() => setFocusedInput('loginIdentifier')}
@@ -378,7 +422,9 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
             <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
               {isAdminMode
                 ? 'Enter your registered administrator email address'
-                : `Select ${selectedCountry.dialCode} from the dropdown, then enter only your local number. Do not type the country code.`
+                : loginMethod === 'email'
+                  ? 'Enter your registered merchant email address'
+                  : `Select ${selectedCountry.dialCode} from the dropdown, then enter only your local number. Do not type the country code.`
               }
             </span>
           </div>
@@ -596,7 +642,19 @@ export default function LoginPage() {
             marginBottom: 48,
             color: '#fff'
           }}>
-            <Store size={26} style={{ strokeWidth: 2.5 }} />
+            <img 
+              src="/logo.png" 
+              alt="Logo"
+              width={26}
+              height={26}
+              style={{
+                width: 26,
+                height: 26,
+                objectFit: 'contain',
+                flexShrink: 0,
+                filter: 'brightness(0) invert(1)',
+              }}
+            />
             <span>{appName}</span>
           </div>
 
@@ -620,7 +678,7 @@ export default function LoginPage() {
           }}>
             {isAdminMode
               ? 'Sign in to monitor system performance, manage merchants, resolve support queries, and configure global platform settings.'
-              : 'Sign in to manage your orders, tweak storefront settings, create products with ChatGPT AI descriptions, and interact with prospective buyers in real time.'
+              : 'Sign in to manage your orders, tweak storefront settings, create products with AI-generated descriptions, and interact with prospective buyers in real time.'
             }
           </p>
 
@@ -636,7 +694,7 @@ export default function LoginPage() {
               : [
                 'Track visitor views & conversion rates',
                 'Update order shipping & payment statuses',
-                'Generate ChatGPT AI product descriptions',
+                'Generate AI-written product descriptions',
                 'Manage storefront details in real-time'
               ]
             ).map(spec => (

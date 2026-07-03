@@ -149,26 +149,17 @@ interface WhatsAppTVStorefrontProps {
 }
 
 const MOCK_STORE = {
-  name: "Tory of Delsu", initial: "T", slug: "toryofdelsu",
-  primaryCta: "book",
-  category: "WhatsApp TV · Adverts", location: "Abraka, Delta State",
-  rating: 4.9, reviews: 186, orders: "45k", reply: "~5 min",
-  bio: "Delta State's go to WhatsApp TV. We put your brand in front of tens of thousands of students and residents on our daily Status, every single day.",
-  address: "Off Campus Road, Abraka, Delta State",
-  phone: "+234 803 222 0145",
-  email: "ads@toryofdelsu.app",
-  socials: { instagram: "@toryofdelsu", tiktok: "@toryofdelsu" },
+  name: "", initial: "", slug: "",
+  primaryCta: "",
+  category: "", location: "",
+  rating: undefined as number | undefined, reviews: 0, orders: 0, reply: "",
+  bio: "",
+  address: "",
+  phone: "",
+  email: "",
+  socials: { instagram: "", tiktok: "" },
 };
-const MOCK_SERVICES = [
-  { id: "s1", name: "Single Status Post", price: 1500, dur: "24 hours", durMin: 24, cat: "Status", popular: true, desc: "One advert on our WhatsApp Status, live for a full day in front of our audience." },
-  { id: "s2", name: "3-Day Run", price: 3500, dur: "3 days", durMin: 72, cat: "Status", desc: "Your advert posted across three days for steady, repeated views." },
-  { id: "s3", name: "One Week Placement", price: 7000, dur: "7 days", durMin: 168, cat: "Status", popular: true, desc: "A full week on our Status, ideal for sales, launches and longer campaigns." },
-  { id: "s4", name: "Video Advert", price: 3000, dur: "24 hours", durMin: 24, cat: "Status", desc: "A video advert on our Status, where motion grabs far more attention than a flyer." },
-  { id: "s5", name: "Pinned Advert", price: 5000, dur: "24 hours", durMin: 24, cat: "Premium", desc: "Your advert posted first and repeated through the day for the most eyes possible." },
-  { id: "s6", name: "Event Promo", price: 4000, dur: "Up to event day", durMin: 120, cat: "Promo", popular: true, desc: "Build hype for your event with countdown posts running up to the big day." },
-  { id: "s7", name: "Job / Vacancy Post", price: 2000, dur: "48 hours", durMin: 48, cat: "Promo", desc: "Reach job seekers across Delta with a clear, well laid out vacancy post." },
-  { id: "s8", name: "Monthly Brand Partner", price: 25000, dur: "30 days", durMin: 720, cat: "Plans", popular: true, desc: "An ongoing presence on our Status all month, for brands that want to stay seen." },
-];
+const MOCK_SERVICES: any[] = [];
 const MOCK_SERVICE_INFO = {
   s1: { includes: ["One advert posted to our WhatsApp Status", "Stays live for a full 24 hours", "Seen by our entire Status audience", "Your caption and contact details included", "A screenshot proof of your live advert", "Reposted free if we ever miss the day"] },
   s2: { includes: ["Your advert posted across three days", "Fresh post each day for repeated views", "Seen by our entire Status audience", "Caption and contact details included", "Screenshot proof on each day", "Great for slower building campaigns"] },
@@ -179,22 +170,8 @@ const MOCK_SERVICE_INFO = {
   s7: { includes: ["A clear vacancy post on our Status", "Live for 48 hours", "Reaches job seekers across Delta", "Role, requirements and how to apply", "Screenshot proof of the live post", "Applications come straight to you"] },
   s8: { includes: ["Ongoing presence for a full month", "Regular posts across the month", "Priority over single bookings", "Caption and contact details included", "A monthly summary of your run", "Best rate for serious, repeat brands"] },
 };
-const MOCK_PRODUCTS = [
-  { id: "p1", name: "Flyer Design", price: 3000, cat: "Creative", popular: true, desc: "We design a clean, scroll stopping advert flyer ready to post." },
-  { id: "p2", name: "Video Advert Edit", price: 5000, cat: "Creative", desc: "We turn your photos and clips into a short, sharp video advert." },
-  { id: "p3", name: "Caption & Copywriting", price: 2000, cat: "Creative", desc: "Punchy advert copy written to get people to actually act." },
-  { id: "p4", name: "Extra Reach Boost", price: 4000, cat: "Boost", popular: true, desc: "We cross post your advert to partner WhatsApp TVs for wider reach." },
-  { id: "p5", name: "Pin to Top, 24h", price: 2500, cat: "Boost", desc: "Your advert pinned and reposted to stay at the front of the Status." },
-  { id: "p6", name: "Rush Same-Day Post", price: 1500, cat: "Boost", desc: "Skip the queue and get your advert live today." },
-];
-const MOCK_REVIEWS = [
-  { id: "r1", name: "Efe's Kitchen", r: 5, when: "2 weeks ago", service: "One Week Placement", verified: true, photos: 2, text: "Ran a week of adverts and my weekend orders sold out. The reach is real, my phone did not stop buzzing.", response: { when: "2 weeks ago", text: "Love to see it. Thank you for trusting us with your launch, see you next campaign." } },
-  { id: "r2", name: "Kelvin Gadgets", r: 5, when: "3 weeks ago", service: "Pinned Advert", verified: true, photos: 1, text: "The pinned advert paid for itself in one day. So many DMs from students wanting phones. Booking again." },
-  { id: "r3", name: "Glow by Tega", r: 4, when: "1 month ago", service: "Single Status Post", verified: true, photos: 0, text: "Got a good number of bookings from one post. Honestly wished I had paid for the week instead.", response: { when: "1 month ago", text: "Thank you Tega. The week placement would suit a salon really well, we will sort you out next time." } },
-  { id: "r4", name: "Abraka Events", r: 5, when: "1 month ago", service: "Event Promo", verified: true, photos: 2, text: "The countdown posts filled our event. People kept saying they saw it on your Status. Worth every naira." },
-  { id: "r5", name: "Ruby Wears", r: 3, when: "2 months ago", service: "3-Day Run", verified: true, photos: 0, text: "Decent reach but it was a quiet week on campus. Fair value, just timing was not on my side." },
-  { id: "r6", name: "Delta Homes", r: 5, when: "2 months ago", service: "Monthly Brand Partner", verified: true, photos: 1, text: "Being on the Status all month keeps a steady flow of enquiries coming in. The partner rate is great value." },
-];
+const MOCK_PRODUCTS: any[] = [];
+const MOCK_REVIEWS: any[] = [];
 const MOCK_PRODUCT_FAQS = [
   ["How do add-ons work?", "Add-ons attach to an advert booking, nothing is shipped. Once you pay we get the design or boost done and it goes out with your advert."],
   ["How fast is a flyer or video ready?", "Most designs are ready within a day, often the same day. Rush requests can usually be turned around quickly, just ask."],
@@ -209,86 +186,11 @@ const MOCK_SERVICE_FAQS = [
   ["How big is your audience?", "Our Status is seen by tens of thousands of students and residents across Delta State every day, with thousands of saved contacts."],
   ["How do I pay?", "Pay securely through Frontstore, or by bank transfer where offered. Your receipt always arrives on WhatsApp."],
 ];
-const MOCK_FAQ_GROUPS = [
-  {
-    cat: "Booking and posting", icon: Calendar, items: [
-      ["How do I book an advert?", "Pick a placement, choose the day it should run, and a deposit secures your slot. We confirm on WhatsApp and you send your advert across."],
-      ["What do I need to send?", "Your flyer or photos, a short caption, and your contact details. If you do not have a flyer, add flyer design and we create one for you."],
-      ["When does it go live, and what are the rules?", "Adverts post on the day you booked. We keep things clean, so no scams, no adult content and nothing illegal. We will tell you honestly if something cannot run."],
-      ["Can I reschedule or cancel?", "Reschedule or cancel up to 24 hours before your advert is due to go live for a full deposit refund. Inside 24 hours the deposit is held against the booking."],
-    ],
-  },
-  {
-    cat: "Payments", icon: Lock, items: [
-      ["How do I pay?", "You can pay securely through Frontstore at checkout, or by bank transfer to us. Frontstore checkout is the safer option as it comes with buyer protection."],
-      ["Is paying through Frontstore safe?", "Yes. Payments made through Frontstore are protected, so if an advert does not run as described you can raise a dispute and we help mediate. This protection cannot be removed by the vendor."],
-      ["How much is the deposit?", "A deposit secures your slot when you book, and the balance is due before your advert goes live. The exact deposit is shown before you confirm."],
-      ["What currency are prices in?", "Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are always charged in naira."],
-    ],
-  },
-  {
-    cat: "Reach and results", icon: Megaphone, items: [
-      ["How many people will see my advert?", "Our Status reaches tens of thousands of viewers across Delta State each day. Exact views vary by day, but every advert goes to our full audience."],
-      ["Who is your audience?", "Mostly students and young residents around Abraka and wider Delta State, the kind of audience that buys, attends events and shares."],
-      ["What results should I expect?", "Most advertisers see a clear jump in calls, DMs and sales, especially with a week placement or a strong flyer. Reach is real, but the offer still has to be good."],
-      ["Will I get proof it ran?", "Yes, always. We send a screenshot of your live advert on our Status so you can see exactly how it looked."],
-    ],
-  },
-  {
-    cat: "Design add-ons", icon: ShoppingBag, items: [
-      ["Can you make the advert for me?", "Yes. Add flyer design or video editing and we create the advert from your photos and details. You approve it before anything posts."],
-      ["How quickly are designs ready?", "Most are ready within a day, often the same day. Tell us if you are in a hurry and we will do our best."],
-      ["Can I boost an advert further?", "Yes. Extra reach boost cross posts your advert to partner WhatsApp TVs, and pin to top keeps it at the front of our Status."],
-    ],
-  },
-  {
-    cat: "Trust and Frontstore", icon: ShieldCheck, items: [
-      ["What does Secured by Frontstore mean?", "It means this store runs on Frontstore, so your booking is covered by Frontstore buyer protection and platform terms that the vendor cannot remove."],
-      ["Are the reviews real?", "Yes. Reviews can only be left by advertisers with a completed Frontstore booking, and each is shown with a verified badge. The vendor can respond but cannot delete genuine ones."],
-      ["What if something goes wrong?", "If an advert paid through Frontstore does not run as described, you can raise a dispute and Frontstore will help mediate a fair resolution."],
-    ],
-  },
-];
+const MOCK_FAQ_GROUPS: any[] = [];
 const MOCK_FAQS_PREVIEW = MOCK_FAQ_GROUPS.map((g: any) => g.items[0]);
-const MOCK_TERMS = [
-  { t: "Who these terms are between", p: [`These terms are an agreement between you and ${MOCK_STORE.name}, the WhatsApp TV that provides the advertising services on this store. The store runs on Frontstore, which provides the platform and buyer protection but is not the advertiser.`] },
-  { t: "Bookings and deposits", p: ["Adverts are arranged by booking a placement through this store. A deposit secures your slot and the balance is due before your advert goes live. Your slot is confirmed once the deposit is received."] },
-  { t: "Pricing and payment", p: ["Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are charged in naira.", "You can pay securely through Frontstore at checkout, or by bank transfer. Funds paid by transfer go directly to us, while Frontstore payments are held under buyer protection."] },
-  { t: "Cancellations and refunds", p: ["You can reschedule or cancel within the windows set out on the Refunds page, where you will also find how and when refunds are issued. Once an advert has gone live it cannot be refunded."], link: { label: "Read the Refunds policy", page: "returns" } },
-  { t: "Advert content", p: ["You are responsible for the accuracy of what you ask us to post. We do not run scams, adult content, hate, or anything illegal, and we may decline or pull an advert that breaks these rules or risks our audience's trust.", "Where we design a flyer or video for you, you approve it before it posts. Once approved and live, the work is considered delivered."] },
-  { t: "Reach", p: ["We reach a large daily audience but we cannot guarantee a specific number of views, sales or outcomes. What we guarantee is that your advert runs in the placement you booked, for the duration agreed, with proof."] },
-  { t: "Reviews and content", p: ["Reviews can only be left by advertisers with a completed booking, and each is shown with a verified badge. The vendor may respond to reviews but cannot remove genuine ones. By submitting a review, you allow it to be shown on this store."] },
-  { t: "Liability", p: ["We provide our services with reasonable skill and care. Nothing in these terms removes any rights you have under applicable law."] },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform terms", body: "Every Frontstore store also operates under the Frontstore platform terms and buyer protection policy. These apply alongside the store's own policies and cannot be removed by the vendor.", link: "Read the Frontstore platform terms" } },
-  { t: "Changes to these terms", p: ["We may update these terms from time to time. The version shown on this page is the current one, and the date it was last updated is shown alongside it."] },
-  { t: "Governing law", p: ["These terms are governed by the laws of the Federal Republic of Nigeria, and any dispute falls under the courts of Delta State."] },
-  { t: "Contact", p: ["Questions about these terms? Reach us through the Contact page and we will be glad to help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PRIVACY = [
-  { t: "What we collect", p: [`When you book an advert or get in touch, ${MOCK_STORE.name} collects the details you give us: your name or brand name, contact details such as a WhatsApp number, phone or email, your advert content and booking details, any message you send, and reviews you choose to share.`] },
-  { t: "How we use it", p: ["We use your details to take and confirm bookings, post and schedule your advert, reply to your enquiries, process payments, show verified reviews, and improve the store. We do not send marketing without your consent."] },
-  { t: "Payments", p: ["Payments made through Frontstore are handled by Frontstore and its payment providers under buyer protection, and we do not see or store your card details. Bank transfers are made directly to us."] },
-  { t: "WhatsApp and messaging", p: ["When you message us, the conversation takes place on WhatsApp and is also subject to WhatsApp's own privacy terms. In future this may move to Frontstore's own messaging."] },
-  { t: "Your advert content", p: ["The flyers, photos and captions you send are used to create and post your advert. By sending them, you confirm you have the right to use them and allow us to post them on your behalf."] },
-  { t: "Who we share it with", p: ["We share only what is needed: with partner WhatsApp TVs where you buy a reach boost, with payment providers to take payment, and with Frontstore as the platform the store runs on. We never sell your data."] },
-  { t: "Cookies and analytics", p: ["The store uses basic cookies and analytics, provided through the Frontstore platform, to keep the store working and understand how it is used."] },
-  { t: "Keeping your data", p: ["We keep your details only as long as needed to provide our services and to meet legal and tax obligations, after which they are removed."] },
-  { t: "Your rights", p: ["Under Nigerian data protection law you can ask to see the data we hold about you, correct it, delete it, or object to how it is used. To make a request, reach us through the Contact page."], link: { label: "Go to Contact", page: "contact" } },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform privacy", body: "As the platform this store runs on, Frontstore also processes data under its own privacy policy and platform terms. These apply alongside the store's own notice and cannot be removed by the vendor.", link: "Read the Frontstore privacy policy" } },
-  { t: "Changes to this notice", p: ["We may update this notice from time to time. The version shown on this page is the current one, with the date it was last updated shown alongside it."] },
-  { t: "Contact", p: ["Questions about your privacy, or want to make a data request? Reach us through the Contact page and we will help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PORTFOLIO = [
-  { label: "Campus fashion sale", cat: "Status", c: "c0" },
-  { label: "Phone & gadget vendor", cat: "Premium", c: "c1" },
-  { label: "Restaurant launch", cat: "Status", c: "c2" },
-  { label: "Freshers party promo", cat: "Promo", c: "c1" },
-  { label: "Hair & wig brand", cat: "Status", c: "c2" },
-  { label: "Real estate listing", cat: "Plans", c: "c0" },
-  { label: "Salon & spa", cat: "Status", c: "c1" },
-  { label: "Concert promo", cat: "Promo", c: "c2" },
-  { label: "Food vendor", cat: "Status", c: "c0" },
-];
+const MOCK_TERMS: any[] = [];
+const MOCK_PRIVACY: any[] = [];
+const MOCK_PORTFOLIO: any[] = [];
 const MOCK_NOTIFY_TOPICS = [["slots", "Open slots"], ["offers", "Offers and discounts"], ["tips", "Advertising tips"], ["news", "Announcements"]];
 const MOCK_HOURS = [
   ["Mon", "9:00am - 9:00pm"], ["Tue", "9:00am - 9:00pm"], ["Wed", "9:00am - 9:00pm"],
@@ -300,89 +202,23 @@ const MOCK_NAV = [
 ];
 const MOCK_LEGAL = [["returns", "Refunds"], ["terms", "Terms"], ["privacy", "Privacy"]];
 const MOCK_CATS = ["Status", "Premium", "Promo", "Plans"];
-const MOCK_FEATURED = [
-  { id: "s3", name: "One Week Placement", price: 7000, dur: "7 days", type: "service" },
-  { id: "s1", name: "Single Status Post", price: 1500, dur: "24 hours", type: "service" },
-  { id: "p1", name: "Flyer Design", price: 3000, type: "product" },
-];
+const MOCK_FEATURED: any[] = [];
 const MOCK_AUTHOR = {
-  name: "Efe Oghenekaro",
-  initial: "E",
-  role: "Founder and admin",
-  bio: "Efe built Tory of Delsu from a personal contact list into one of Delta State's most watched WhatsApp TVs, trusted by hundreds of local brands.",
-  long: "Efe started posting campus gist and updates to a few hundred contacts back in 2021. Word spread, the audience grew, and brands started asking to be featured. Today the Status reaches tens of thousands a day, and Efe still personally vets every advert that goes out.",
-  quote: "Reach is only half of it. People trust what they see on our Status, and that trust is what actually sells.",
-  specialities: ["Status adverts", "Campus reach", "Flyer design", "Delta State"],
-  socials: { instagram: "@efe.delsu", tiktok: "@toryofdelsu" },
-  credentials: [
-    "Verified WhatsApp Business presence",
-    "Tens of thousands of daily Status views",
-    "Trusted by hundreds of local brands",
-  ],
+  name: "",
+  initial: "",
+  role: "",
+  bio: "",
+  long: "",
+  quote: "",
+  specialities: [],
+  socials: { instagram: "", tiktok: "" },
+  credentials: [],
 };
-const MOCK_OFFERINGS = [
-  ["Status adverts", "Get your product or service in front of our daily Status audience across Delta.", "services"],
-  ["Events and promos", "Build hype for events, sales and launches with countdown posts that fill the room.", "services"],
-  ["Brand partnerships", "Stay in front of our audience all month long as a featured partner brand.", "services"],
-  ["Design add-ons", "No flyer yet? We design the advert, edit the video and write the copy for you.", "products"],
-];
-const MOCK_GALLERY = [
-  { label: "Campus fashion sale", c: "c0" },
-  { label: "Phone & gadget vendor", c: "c1" },
-  { label: "Restaurant launch", c: "c2" },
-  { label: "Freshers party promo", c: "c1" },
-  { label: "Hair & wig brand", c: "c2" },
-  { label: "Concert promo", c: "c0" },
-];
-const MOCK_RECOGNITION = ["Delta Campus Buzz", "Abraka Online", "Naija TV Network", "Student Voice NG"];
-const MOCK_ABOUT_FACTS = [
-  ["Audience", "Students and residents across Delta"],
-  ["Status views", "Around 45,000 a day"],
-  ["Based in", "Abraka, Delta State"],
-  ["Running since", "2021"],
-  ["Booking", "Pay to confirm, your advert runs on the agreed day"],
-  ["Payment", "Pay securely with Frontstore, or by transfer"],
-  ["Turnaround", "Adverts can go live the same day"],
-  ["Proof", "A screenshot of your live advert, every time"],
-];
-const MOCK_BLOG = [
-  { title: "Why WhatsApp TV beats Instagram for local reach", date: "6 Jun 2026", cat: "Tips", read: "4 min", excerpt: "When your customers are local, the Status beats the feed almost every time.", body: [
-    { p: "Instagram is great for a national or global brand, but if you sell to one town or one campus, most of that reach is wasted on people who will never buy from you. WhatsApp TV is different, the audience is local by design." },
-    { h: "Why local wins" },
-    { p: "People actually watch Status updates, all the way through, in a way they no longer scroll feeds. And because the audience is built around one place, nearly everyone who sees your advert could realistically become a customer." },
-    { p: "For a campus brand, an event or a local shop, that focus is worth more than a big number full of strangers." },
-  ] },
-  { title: "How to write a status advert that actually sells", date: "24 May 2026", cat: "Tips", read: "4 min", excerpt: "A good advert is clear in two seconds. Here is how to get there.", body: [
-    { p: "Status viewers move fast. Your advert has about two seconds to land, so the work is in being clear, not clever." },
-    { h: "The basics that work" },
-    { list: ["Lead with the offer, not your logo", "One clear product or deal per advert", "A price, or a reason to message you", "A simple call to action and your number", "A clean flyer, not a wall of text"] },
-    { p: "If a stranger cannot tell what you are selling and what to do next in one glance, the advert is doing too much. Strip it back." },
-  ] },
-  { title: "The best days and times to run a campus advert", date: "11 May 2026", cat: "Tips", read: "3 min", excerpt: "Timing your advert around campus life makes a real difference.", body: [
-    { p: "The same advert can do very differently depending on when it runs. Around a campus, life has a rhythm, and the best results come from riding it." },
-    { list: ["Weekends and evenings see the most Status views", "Start of the semester is peak spending", "Run event promos a few days ahead, not the day of", "Avoid exam weeks for anything non essential"] },
-    { p: "If your offer is time sensitive, talk to us about timing. A small shift in the day can make a real difference to your results." },
-  ] },
-  { title: "Flyer or video: which advert works better?", date: "29 Apr 2026", cat: "Tips", read: "4 min", excerpt: "Both have their place. Here is how to choose for your advert.", body: [
-    { p: "A still flyer and a short video both work on Status, but they pull their weight in different ways. The right choice depends on what you are selling." },
-    { h: "When a flyer wins" },
-    { p: "For a clear offer, a price drop or an event with key details, a clean flyer is read in a glance and is cheaper to run. Most adverts are flyers for good reason." },
-    { h: "When video wins" },
-    { p: "For products that need showing off, a launch, or anything where energy matters, a few seconds of motion grabs far more attention. If you do not have a video, we can edit one from your photos." },
-  ] },
-  { title: "Turning status views into real customers", date: "13 Apr 2026", cat: "Tips", read: "4 min", excerpt: "Reach gets you seen. These habits turn that into sales.", body: [
-    { p: "Plenty of people will see your advert. Turning those views into customers is about making the next step easy and worth it." },
-    { h: "Close the gap" },
-    { list: ["Make it dead simple to message or call", "Reply fast while the advert is fresh", "Have a clear price ready, do not stall", "Give a reason to act now, not later"] },
-    { p: "The advert opens the door, but a slow or vague reply closes it again. Be ready for the rush while your advert is live." },
-  ] },
-  { title: "A simple guide to advertising your small business in Delta", date: "3 Apr 2026", cat: "Tips", read: "5 min", excerpt: "A starting point for local brands new to paid promotion.", body: [
-    { p: "If you have never paid to advertise before, it can feel like a gamble. It does not have to be. Start small, learn what works, and grow from there." },
-    { h: "A sensible first run" },
-    { p: "Begin with a single strong advert and a clear offer. See how the response feels, note what people ask about, and use that to sharpen the next one. A week placement is the usual step up once you know your offer lands." },
-    { p: "Talk to us about your goal and budget and we will point you to the placement that makes sense, rather than the most expensive one." },
-  ] },
-];
+const MOCK_OFFERINGS: any[] = [];
+const MOCK_GALLERY: any[] = [];
+const MOCK_RECOGNITION: any[] = [];
+const MOCK_ABOUT_FACTS: any[] = [];
+const MOCK_BLOG: any[] = [];
 
 const money = (n: number) => "₦" + n.toLocaleString("en-NG");
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -830,7 +666,7 @@ export default function WhatsAppTVStorefront({
               <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>Order Placed!</h3>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>Your order reference is <b>{orderReceipt.order.order_number}</b>.</p>
               
-              {store.payment_provider === 'paystack' && (
+              {store.payment_provider && store.payment_provider !== 'manual' && (
                 <div style={{ background: '#f9f5f3', borderRadius: 12, padding: 14, marginTop: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span>Total Amount</span>
@@ -862,8 +698,9 @@ export default function WhatsAppTVStorefront({
         headers: { 'Content-Type': 'application/json' }
       });
       const json = await res.json();
-      if (res.ok && json.data?.authorization_url) {
-        window.location.href = json.data.authorization_url;
+      const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
+      if (res.ok && redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         sonnerToast.error(json.message || "Online payment setup failed.");
       }
@@ -1500,6 +1337,7 @@ export default function WhatsAppTVStorefront({
   );
   const aboutReview = () => {
     const r = displayReviews[0];
+    if (!r) return null;
     return (
       <div className="ab-review">
         <Quote className="ab-quote-mark" size={28} />
@@ -1566,10 +1404,10 @@ export default function WhatsAppTVStorefront({
     <div className="ps-about-grid">
       <div><b>{DUMMY_STORE.orders}</b><span>status views</span></div>
       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-      <div><b>10 yrs</b><span>in practice</span></div>
+      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
-      <span className="ab-follow-h">Follow Tory of Delsu</span>
+      <span className="ab-follow-h">Follow us</span>
       <div className="ab-socials">
         <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {(DUMMY_STORE.socials?.instagram || '')}</button>
         <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {(DUMMY_STORE.socials?.tiktok || '')}</button>
@@ -1666,7 +1504,7 @@ export default function WhatsAppTVStorefront({
           </ul>
         </div>
         <div className="ab-follow-rail">
-          <span>Follow Tory of Delsu</span>
+          <span>Follow us</span>
           <div className="ab-follow-icons">
             <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
             <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
@@ -1886,7 +1724,7 @@ export default function WhatsAppTVStorefront({
       <button onClick={() => setAnnOff(true)} aria-label="Dismiss"><X size={15} /></button>
     </div>
   );
-  const featured = (
+  const featured = MOCK_FEATURED.length > 0 ? (
     <section className="feat">
       <div className="feat-head"><span className="feat-tag"><Sparkles size={13} /> Featured</span></div>
       <div className="feat-grid">
@@ -1895,13 +1733,13 @@ export default function WhatsAppTVStorefront({
         ))}
       </div>
     </section>
-  );
+  ) : null;
 
   /* ---- drawer panel (mobile only) ---- */
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo">frontstore<span>.app</span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1978,7 +1816,7 @@ export default function WhatsAppTVStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -2061,7 +1899,7 @@ export default function WhatsAppTVStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -2444,10 +2282,8 @@ export default function WhatsAppTVStorefront({
                 <div className="ab-wrap">
                   <div className="ab-main">
                     <span className="ab-kicker">Our story</span>
-                    <h2 className="ab-headline">The WhatsApp TV that gets Delta brands seen, and gets them sales.</h2>
-                    <p className="ab-lede">Tory of Delsu is Delta State's go to WhatsApp TV. We put your brand in front of tens of thousands of students and residents on our daily Status, with adverts people actually watch and trust.</p>
-                    <p className="ab-para">What began in 2021 as campus gist for a few hundred contacts has grown into one of Delta's most watched WhatsApp TVs. The promise has stayed the same throughout: keep the audience's trust, so the adverts we run actually work.</p>
-                    <p className="ab-para">Today the Status reaches tens of thousands across Delta every day, and brands keep coming back because the audience actually watches, trusts and buys, whether you are filling an event, launching a product or clearing stock.</p>
+                    <h2 className="ab-headline">The WhatsApp TV that gets your brand seen, and gets you sales.</h2>
+                    {DUMMY_STORE.bio && <p className="ab-lede">{DUMMY_STORE.bio}</p>}
 
                     <div className="ab-founder">
                       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
@@ -2492,7 +2328,7 @@ export default function WhatsAppTVStorefront({
                     <div className="ps-about-grid ab-stats">
                       <div><b>{DUMMY_STORE.orders}</b><span>status views</span></div>
                       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-                      <div><b>10 yrs</b><span>in practice</span></div>
+                      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
                     </div>
                   </div>
 
@@ -2507,7 +2343,7 @@ export default function WhatsAppTVStorefront({
                         <button onClick={() => ping("Opening WhatsApp")}><WhatsApp size={14} /> Message</button>
                       </div>
                       <div className="ab-follow-rail">
-                        <span>Follow Tory of Delsu</span>
+                        <span>Follow us</span>
                         <div className="ab-follow-icons">
                           <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
                           <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
@@ -2923,7 +2759,7 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
 .ps-logo span{color:var(--brand);}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
@@ -3667,7 +3503,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .svc-card-thumb.c1{background:linear-gradient(150deg,var(--brand-deep),var(--gold));}
 .svc-card-thumb.c2{background:linear-gradient(150deg,#d24aa0,var(--brand));}
 .svc-card-thumb.c3{background:linear-gradient(150deg,var(--brand),#b06fe6);}
-.svc-card-cat{position:absolute;bottom:10px;left:10px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
+.svc-card-cat{position:absolute;bottom:10px;left:10px;width:max-content;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
 .svc-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:rgba(42,29,34,.5);backdrop-filter:blur(2px);padding:4px 8px;border-radius:7px;}
 .svc-badge svg{color:var(--gold);fill:var(--gold);}
 .svc-card-body{padding:13px 14px 14px;display:flex;flex-direction:column;flex:1;}

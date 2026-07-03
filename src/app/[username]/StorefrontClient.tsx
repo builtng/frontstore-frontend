@@ -318,27 +318,13 @@ export default function StorefrontClient({
   // ⚠️ React Hooks Rule: isComingSoon must be computed from props only (before any hooks)
   // so we can safely call all hooks every render regardless of the condition.
   const isComingSoon = !initialData || !initialData.store
-    || (initialData.store as Store).store_template === 'coming-soon'
-    || (initialData.store as Store).store_template === 'waitlist';
+    || (initialData.store as Store).store_template === 'coming-soon';
 
   const router = useRouter();
 
   // --- Normalize Data ---
   const store: Store = useMemo(() => {
     let s = initialData?.store || {} as Store;
-
-    // Load waitlist settings from localStorage if database record is missing
-    if (!s.store_name && typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem(`waitlist_store:${username}`);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          s = { ...s, ...parsed };
-        }
-      } catch (e) {
-        console.error("Error loading cached waitlist store:", e);
-      }
-    }
 
     const rawName = s.store_name || username || 'Store';
     const formattedName = rawName.includes('-') || rawName.includes('_') || rawName === rawName.toLowerCase()
@@ -351,6 +337,7 @@ export default function StorefrontClient({
       currency_code: s.currency_code || 'NGN',
       whatsapp_phone: s.whatsapp_phone || '',
       location: s.location || 'Online store',
+      business_persona: s.business_persona === 'whatsapp-tv' ? 'WhatsApp TV' : s.business_persona,
     };
   }, [initialData, username]);
 
@@ -735,8 +722,9 @@ export default function StorefrontClient({
       if (!res.ok) {
         throw new Error(json.message || 'Payment initialization failed.');
       }
-      if (json.data && json.data.authorization_url) {
-        window.location.href = json.data.authorization_url;
+      const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         throw new Error('Secure payment link unavailable.');
       }
@@ -753,7 +741,7 @@ export default function StorefrontClient({
   }, [activeCat, categories]);
 
   // --- Conditional renders (AFTER all hooks) ---
-  // Pre-launch / Waitlist: show ComingSoon page
+  // Pre-launch (coming-soon template): show ComingSoon page
   if (isComingSoon) {
     return (
       <ComingSoonStorefront
@@ -1178,7 +1166,7 @@ export default function StorefrontClient({
               <div className="fs-m-id-info">
                 <h1 className="fs-m-id-name">{store.store_name} {store.is_verified ? <BadgeCheck size={16} style={{ color: '#fff', verticalAlign: 'middle' }} /> : null}</h1>
                 <p className="fs-m-meta fs-m-meta-hero">
-                  {businessPersonas.find(p => p.id === store.business_persona)?.name ?? 'Online store'}
+                  {businessPersonas.find(p => p.id === normalizeTemplateKey(store.business_persona))?.name ?? 'Online store'}
                   {store.location && store.location !== 'Online store' && <><span> • </span><MapPin size={11} /> {store.location}</>}
                 </p>
               </div>

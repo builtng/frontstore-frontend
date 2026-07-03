@@ -149,37 +149,19 @@ interface FoodStorefrontProps {
 }
 
 const MOCK_STORE = {
-  name: "Eko Kitchen", initial: "E", slug: "ekokitchen",
+  name: "", initial: "", slug: "",
   primaryCta: "shop",
-  category: "Home kitchen and small chops", location: "Maryland, Lagos",
-  rating: 4.9, reviews: 418, orders: "12k", reply: "~15 min",
-  bio: "A Lagos home kitchen cooking proper Nigerian comfort food. Smoky party jollof, rich soups, peppered grills and fresh small chops, made to order and delivered hot.",
-  address: "21 Mende Crescent, Maryland, Lagos",
-  phone: "+234 805 555 0173",
-  email: "ekokitchen@frontstore.app",
-  socials: { instagram: "@ekokitchenlagos", tiktok: "@eko.kitchen" },
+  category: "", location: "",
+  rating: undefined as number | undefined, reviews: 0, orders: 0, reply: "",
+  bio: "",
+  address: "",
+  phone: "",
+  email: "",
+  socials: { instagram: "", tiktok: "" },
 };
-const MOCK_SERVICES = [
-  { id: "s1", name: "Event Catering", price: 150000, dur: "Full event", durMin: 240, cat: "Catering", popular: true, desc: "Full spread cooked for your event, from jollof and proteins to small chops, served fresh." },
-  { id: "s2", name: "Small Chops Platters", price: 80000, dur: "Per order", durMin: 120, cat: "Catering", desc: "Big platters of puff puff, samosa, spring rolls and gizdodo for parties and meetings." },
-  { id: "s3", name: "Weekly Meal Prep", price: 35000, dur: "Per week", durMin: 60, cat: "Meal prep", desc: "A week of home cooked meals portioned and delivered, built around what you love." },
-];
-const MOCK_PRODUCTS = [
-  { id: "p1", name: "Party Jollof Rice Plate", price: 3500, cat: "Mains", popular: true, options: [{ label: "Portion", choices: ["Regular", "Large"] }, { label: "Protein", choices: ["Chicken", "Beef", "Fish", "Turkey"] }], note: "Made fresh to order, ready in about 45 minutes", desc: "Smoky party style jollof, cooked low over wood fire flavour, served with your choice of protein." },
-  { id: "p2", name: "Small Chops Pack", price: 5000, cat: "Small Chops", popular: true, options: [{ label: "Pack", choices: ["Small, for 2", "Medium, for 5", "Large, for 10"] }], note: "Fried fresh on order, best eaten warm", desc: "Puff puff, samosa, spring rolls and peppered gizzard, all in one crowd pleasing pack." },
-  { id: "p3", name: "Egusi Soup and Swallow", price: 4000, cat: "Mains", options: [{ label: "Swallow", choices: ["Eba", "Pounded yam", "Semovita", "Fufu"] }, { label: "Protein", choices: ["Assorted meat", "Goat meat", "Fish"] }], note: "Cooked fresh daily in small batches", desc: "Rich, hearty egusi loaded with greens and protein, served with the swallow of your choice." },
-  { id: "p4", name: "Peppered Chicken", price: 4500, cat: "Sides", options: [{ label: "Spice", choices: ["Mild", "Medium", "Hot"] }, { label: "Pieces", choices: ["4", "6", "8"] }], note: "Grilled and peppered to order", desc: "Grilled chicken tossed in a fresh pepper sauce, smoky on the outside and tender within." },
-  { id: "p5", name: "Chapman Jug", price: 3000, cat: "Drinks", options: [{ label: "Size", choices: ["1 litre", "2 litre"] }], note: "Mixed fresh, served chilled", desc: "The classic Lagos mocktail, fruity and refreshing, mixed fresh and bottled cold." },
-  { id: "p6", name: "Puff Puff Bucket", price: 2500, cat: "Small Chops", options: [{ label: "Bucket", choices: ["Small, 20 pieces", "Large, 40 pieces"] }], note: "Fried golden and soft, best warm", desc: "Soft, golden, slightly sweet puff puff by the bucket. Dangerously good while warm." },
-];
-const MOCK_REVIEWS = [
-  { id: "r1", name: "Damilola O.", r: 5, when: "2 days ago", service: "Party Jollof Rice Plate", verified: true, photos: 2, text: "Tastes exactly like owambe jollof. Came hot, well packed and the portion was generous.", response: { when: "2 days ago", text: "Thank you Damilola, that smoky flavour is our pride. See you again." } },
-  { id: "r2", name: "Kemi A.", r: 5, when: "1 week ago", service: "Small Chops Pack", verified: true, photos: 1, text: "Ordered for a meeting and everyone asked where they were from. Fresh and crispy." },
-  { id: "r3", name: "Uche M.", r: 4, when: "2 weeks ago", service: "Egusi Soup and Swallow", verified: true, photos: 0, text: "Soup was rich and full of meat. Delivery took a little long but worth it.", response: { when: "2 weeks ago", text: "Appreciate it Uche, traffic was rough that evening. We will keep tightening timing." } },
-  { id: "r4", name: "Tola B.", r: 5, when: "3 weeks ago", service: "Peppered Chicken", verified: true, photos: 1, text: "Asked for hot and they delivered. Proper pepper, proper grill. Chef knows what they are doing." },
-  { id: "r5", name: "Ngozi P.", r: 3, when: "1 month ago", service: "Chapman Jug", verified: true, photos: 0, text: "Chapman was nice but I wanted it less sweet. They said they can adjust next time." },
-  { id: "r6", name: "Seun K.", r: 5, when: "1 month ago", service: "Puff Puff Bucket", verified: true, photos: 2, text: "The whole bucket vanished in minutes. Soft, warm and just sweet enough. Ordering again." },
-];
+const MOCK_SERVICES: any[] = [];
+const MOCK_PRODUCTS: any[] = [];
+const MOCK_REVIEWS: any[] = [];
 const MOCK_PRODUCT_FAQS = [
   ["How long does delivery take?", "Most Lagos orders arrive within 1 to 2 hours, since everything is cooked fresh on order. The delivery cost is shown at checkout based on your area."],
   ["Can I order ahead for a specific time?", "Yes. Tell us your preferred time at checkout or on WhatsApp and we will cook to have it ready and delivered for then."],
@@ -194,75 +176,11 @@ const MOCK_SERVICE_FAQS = [
   ["How does meal prep work?", "Pick your meals for the week, we cook, portion and deliver them, ready to warm and eat."],
   ["How do I pay?", "Pay securely through Frontstore, or by bank transfer where the kitchen offers it. Your receipt always arrives on WhatsApp."],
 ];
-const MOCK_FAQ_GROUPS = [
-  {
-    cat: "Payments", icon: Lock, items: [
-      ["How do I pay?", "You can pay securely through Frontstore at checkout, or by bank transfer directly to the kitchen. Frontstore checkout is the safer option as it comes with buyer protection."],
-      ["Is paying through Frontstore safe?", "Yes. Payments made through Frontstore are protected, so if an order does not arrive as described you can raise a dispute and we help mediate. This protection cannot be removed by the kitchen."],
-      ["What currency are prices in?", "Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are always charged in naira."],
-    ],
-  },
-  {
-    cat: "Delivery and pickup", icon: Truck, items: [
-      ["Do you deliver, and where?", "We deliver across Lagos. Delivery is arranged after checkout and the fee depends on your location and the distance from Maryland."],
-      ["How long does delivery take?", "Because food is cooked to order, most Lagos deliveries arrive within one to two hours. Order ahead if you need it for a set time."],
-      ["Can I pick up my order myself?", "Yes. Free pickup is available from our kitchen in Maryland once your order is ready, which we confirm on WhatsApp."],
-    ],
-  },
-  {
-    cat: "Food and ordering", icon: ShoppingBag, items: [
-      ["Is everything made fresh?", "Yes. We cook to order in small batches, so your food is fresh, not sitting under a warmer. That is why we ask for a little time."],
-      ["Can I adjust spice or portions?", "Yes, choose your options on each dish, and add a note at checkout for anything specific like less pepper or extra protein."],
-      ["Do you label allergens?", "Tell us about any allergy before you order and we will let you know what is safe. Many dishes contain pepper, palm oil, fish or nuts."],
-    ],
-  },
-  {
-    cat: "Trust and Frontstore", icon: ShieldCheck, items: [
-      ["What does Secured by Frontstore mean?", "It means this kitchen runs on Frontstore, so your order is covered by Frontstore buyer protection and platform terms that the kitchen cannot remove."],
-      ["Are the reviews real?", "Yes. Reviews can only be left by customers with a completed Frontstore order, and each one is shown with a verified badge. The kitchen can respond to reviews but cannot delete genuine ones."],
-      ["What if something goes wrong with my order?", "If an order paid through Frontstore does not arrive as described, you can raise a dispute and Frontstore will help mediate a fair resolution."],
-    ],
-  },
-];
+const MOCK_FAQ_GROUPS: any[] = [];
 const MOCK_FAQS_PREVIEW = MOCK_FAQ_GROUPS.map((g: any) => g.items[0]);
-const MOCK_TERMS = [
-  { t: "Who these terms are between", p: [`These terms are an agreement between you and ${MOCK_STORE.name}, the kitchen that cooks and sells the food on this store. The kitchen runs on Frontstore, which provides the platform and buyer protection but is not the seller.`] },
-  { t: "Orders and timing", p: ["Because food is cooked fresh to order, please allow the preparation time shown. If you need an order for a set time, tell us at checkout and we will do our best to meet it."] },
-  { t: "Pricing and payment", p: ["Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are charged in naira.", "You can pay securely through Frontstore at checkout, or by bank transfer to the kitchen. Funds paid by transfer go directly to the kitchen, while Frontstore payments are held under buyer protection."] },
-  { t: "Cancellations and refunds", p: ["As food is perishable and cooked to order, cancellations are only possible before we start cooking. If your order arrives wrong, late or not as described, contact us straight away as set out on the Refunds page."], link: { label: "Read the Refunds policy", page: "returns" } },
-  { t: "Food, allergens and safety", p: ["We cook in a clean home kitchen with care. Many dishes contain common allergens such as pepper, palm oil, fish, eggs, gluten or nuts. Tell us about any allergy before ordering, as we cannot guarantee a fully allergen free kitchen."] },
-  { t: "Catering and events", p: ["Catering and meal prep are arranged directly with the kitchen. A deposit secures your date, and the balance and final guest count are confirmed before the event."] },
-  { t: "Reviews and content", p: ["Reviews can only be left by customers with a completed order, and each is shown with a verified badge. The kitchen may respond to reviews but cannot remove genuine ones. By submitting a review or photo, you allow it to be shown on this store."] },
-  { t: "Liability", p: ["We cook and handle food with reasonable skill and care. Nothing in these terms removes any rights you have under applicable law."] },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform terms", body: "Every Frontstore store also operates under the Frontstore platform terms and buyer protection policy. These apply alongside the kitchen's own policies and cannot be removed by the vendor.", link: "Read the Frontstore platform terms" } },
-  { t: "Changes to these terms", p: ["We may update these terms from time to time. The version shown on this page is the current one, and the date it was last updated is shown alongside it."] },
-  { t: "Governing law", p: ["These terms are governed by the laws of the Federal Republic of Nigeria, and any dispute falls under the courts of Lagos State."] },
-  { t: "Contact", p: ["Questions about these terms? Reach the kitchen through the Contact page and we will be glad to help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PRIVACY = [
-  { t: "What we collect", p: [`When you order, book catering or get in touch, ${MOCK_STORE.name} collects the details you give us: your name, contact details such as a WhatsApp number, phone or email, your order and delivery details, any message you send, and reviews or photos you choose to share.`] },
-  { t: "How we use it", p: ["We use your details to cook and deliver your order, manage catering and meal prep, reply to your enquiries, arrange delivery or pickup, process payments, show verified reviews, and improve the kitchen. We do not send marketing without your consent."] },
-  { t: "Payments", p: ["Payments made through Frontstore are handled by Frontstore and its payment providers under buyer protection, and the kitchen does not see or store your card details. Bank transfers are made directly to the kitchen."] },
-  { t: "WhatsApp and messaging", p: ["When you message us, the conversation takes place on WhatsApp and is also subject to WhatsApp's own privacy terms. In future this may move to Frontstore's own messaging."] },
-  { t: "Who we share it with", p: ["We share only what is needed: with delivery riders to bring your order, with payment providers to take payment, and with Frontstore as the platform the kitchen runs on. We never sell your data."] },
-  { t: "Cookies and analytics", p: ["The store uses basic cookies and analytics, provided through the Frontstore platform, to keep the store working and understand how it is used."] },
-  { t: "Keeping your data", p: ["We keep your details only as long as needed to provide our services and to meet legal and tax obligations, after which they are removed."] },
-  { t: "Your rights", p: ["Under Nigerian data protection law you can ask to see the data we hold about you, correct it, delete it, or object to how it is used. To make a request, reach us through the Contact page."], link: { label: "Go to Contact", page: "contact" } },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform privacy", body: "As the platform this kitchen runs on, Frontstore also processes data under its own privacy policy and platform terms. These apply alongside the kitchen's own notice and cannot be removed by the vendor.", link: "Read the Frontstore privacy policy" } },
-  { t: "Changes to this notice", p: ["We may update this notice from time to time. The version shown on this page is the current one, with the date it was last updated shown alongside it."] },
-  { t: "Contact", p: ["Questions about your privacy, or want to make a data request? Reach the kitchen through the Contact page and we will help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PORTFOLIO = [
-  { label: "Party jollof", cat: "Mains", c: "c0" },
-  { label: "Egusi and swallow", cat: "Mains", c: "c1" },
-  { label: "Small chops", cat: "Small Chops", c: "c1" },
-  { label: "Peppered chicken", cat: "Sides", c: "c2" },
-  { label: "Puff puff", cat: "Small Chops", c: "c2" },
-  { label: "Chapman", cat: "Drinks", c: "c0" },
-  { label: "Fried rice", cat: "Mains", c: "c1" },
-  { label: "Moin moin", cat: "Sides", c: "c2" },
-  { label: "Event spread", cat: "Catering", c: "c0" },
-];
+const MOCK_TERMS: any[] = [];
+const MOCK_PRIVACY: any[] = [];
+const MOCK_PORTFOLIO: any[] = [];
 const MOCK_NOTIFY_TOPICS = [["services", "New menu items"], ["products", "Weekend specials"], ["offers", "Offers and bundles"], ["news", "Announcements"]];
 const MOCK_HOURS = [
   ["Mon", "Closed"], ["Tue", "10:00am - 8:00pm"], ["Wed", "10:00am - 8:00pm"],
@@ -274,90 +192,22 @@ const MOCK_NAV = [
 ];
 const MOCK_LEGAL = [["returns", "Refunds"], ["terms", "Terms"], ["privacy", "Privacy"]];
 const MOCK_CATS = ["Mains", "Small Chops", "Sides", "Drinks", "Desserts"];
-const MOCK_FEATURED = [
-  { id: "p1", name: "Party Jollof Rice Plate", price: 3500, type: "product" },
-  { id: "p2", name: "Small Chops Pack", price: 5000, type: "product" },
-  { id: "p5", name: "Chapman Jug", price: 3000, type: "product" },
-];
+const MOCK_FEATURED: any[] = [];
 const MOCK_AUTHOR = {
-  name: "Funke Bello",
-  initial: "F",
-  role: "Founder and head chef",
-  bio: "Funke founded Eko Kitchen and runs the pots herself, cooking the Lagos comfort food she grew up on for a city that loves to eat.",
-  long: "Funke started Eko Kitchen from her own home, cooking party jollof and small chops for friends until the orders would not stop. She still leads the kitchen, tasting every pot and refusing to let anything leave that she would not serve her own family.",
-  quote: "Good food is love you can taste. We cook every order like it is for someone we know.",
-  specialities: ["Party jollof", "Small chops", "Nigerian soups", "7 years"],
-  socials: { instagram: "@chef.funke", tiktok: "@funkecooks" },
-  credentials: [
-    "Seven years cooking for Lagos events and homes",
-    "Trained in Nigerian and continental cooking",
-    "A clean, hygiene first home kitchen",
-  ],
+  name: "",
+  role: "",
+  bio: "",
+  long: "",
+  quote: "",
+  specialities: [],
+  socials: { instagram: "", tiktok: "" },
+  credentials: []
 };
-const MOCK_OFFERINGS = [
-  ["Order mains", "Jollof, fried rice, soups and swallow, cooked fresh to order.", "products"],
-  ["Small chops", "Puff puff, samosa, spring rolls and more, fried on order.", "products"],
-  ["Drinks", "Chapman, zobo and fresh juices, mixed and bottled cold.", "products"],
-  ["The full menu", "Browse everything we cook, with options for portion and protein.", "products"],
-];
-const MOCK_GALLERY = [
-  { label: "Party jollof", c: "c0" },
-  { label: "Small chops", c: "c1" },
-  { label: "Egusi and swallow", c: "c2" },
-  { label: "Peppered chicken", c: "c1" },
-  { label: "Chapman", c: "c2" },
-  { label: "The kitchen in Maryland", c: "c0" },
-];
-const MOCK_RECOGNITION = ["Lagos Food Festival", "EatDrinkLagos", "Naija Foodies", "BellaNaija Living"];
-const MOCK_ABOUT_FACTS = [
-  ["Established", "Lagos, since 2019"],
-  ["Registered", "CAC RC 1701338"],
-  ["The kitchen", "A clean home kitchen in Maryland, Lagos"],
-  ["How we cook", "Fresh to order, in small batches"],
-  ["Payment", "Pay securely with Frontstore, or by bank transfer"],
-  ["Hygiene", "A hygiene first kitchen, fresh ingredients daily"],
-  ["Delivery", "Pickup in Maryland, hot delivery across Lagos"],
-  ["Languages", "English, Yoruba and Pidgin"],
-];
-const MOCK_BLOG = [
-  { title: "What makes party jollof taste like party jollof", date: "7 Jun 2026", cat: "Food", read: "4 min", excerpt: "The smoky secret behind the jollof everyone fights over at owambe.", body: [
-    { p: "Everyone has eaten jollof, but party jollof hits different. That smoky depth is not an accident, it is technique. Here is how we get it." },
-    { h: "It is about the base and the burn" },
-    { p: "A long cooked pepper and tomato base, fried down until it stops tasting raw, is the foundation. Then a touch of controlled bottom heat near the end gives that gentle smoky edge without burning the pot." },
-    { h: "The small things that matter" },
-    { list: ["Long grain rice that holds its shape", "Real stock, never just water", "Patience, jollof rushed is jollof ruined", "Resting the pot before serving"] },
-    { p: "Get those right and you get the jollof people remember long after the party ends." },
-  ] },
-  { title: "Ordering food ahead for an event", date: "24 May 2026", cat: "Guides", read: "3 min", excerpt: "How to plan quantities and timing so nobody goes hungry.", body: [
-    { p: "Feeding a crowd is part maths, part timing. A little planning means hot food, enough for everyone, and no last minute panic." },
-    { h: "How much to order" },
-    { list: ["Plan one and a half plates per adult for a party mood", "Add a small chops pack for every five guests", "Order extra drinks, people always want more", "Tell us the headcount and we will help you plan"] },
-    { p: "Place large or timed orders ahead so we can cook in the right batches and deliver everything hot, right when you need it." },
-  ] },
-  { title: "How we keep delivered food fresh and hot", date: "11 May 2026", cat: "Behind the scenes", read: "3 min", excerpt: "The packaging and timing that get food to you the way it left the pot.", body: [
-    { p: "Cooking great food is half the job. Getting it to your door still hot and intact is the other half, and we take it seriously." },
-    { list: ["We cook to order, then pack immediately", "Insulated, sealed packaging keeps heat in", "Wet and dry items are packed apart", "Riders go straight to you, no long detours"] },
-    { p: "If anything ever arrives less than right, message us straight away and we will make it good." },
-  ] },
-  { title: "A quick guide to our small chops", date: "28 Apr 2026", cat: "Food", read: "3 min", excerpt: "What is in the pack, and how to keep it crisp.", body: [
-    { p: "Our small chops pack is a little of everything good. Here is what you are getting and how to enjoy it at its best." },
-    { h: "In the pack" },
-    { list: ["Puff puff, soft and lightly sweet", "Samosa and spring rolls, crisp and savoury", "Peppered gizzard, our spicy favourite", "A pepper dip on the side"] },
-    { p: "Small chops are best warm and fresh. If you must hold them, a few minutes in a hot oven brings the crunch right back. Skip the microwave, it steals the crisp." },
-  ] },
-  { title: "Mild, medium or hot, choosing your spice", date: "13 Apr 2026", cat: "Guides", read: "2 min", excerpt: "How our pepper levels actually taste, so you order with confidence.", body: [
-    { p: "Pepper is personal, so we cook to your level. Here is honestly what each one feels like, so there are no surprises." },
-    { list: ["Mild, flavour forward with just a gentle warmth", "Medium, a proper kick that most Lagosians love", "Hot, for the pepper lovers, it will make you sweat"] },
-    { p: "Not sure? Start at medium. You can always tell us to push it up next time, and we will remember." },
-  ] },
-  { title: "Why fresh to order takes a little longer", date: "2 Apr 2026", cat: "Behind the scenes", read: "2 min", excerpt: "The trade off between speed and food that actually tastes good.", body: [
-    { p: "We could keep trays of food sitting warm and hand it over in two minutes. We choose not to, and here is why." },
-    { p: "Food held under a warmer dries out, loses its texture and never tastes as good as it did fresh from the pot. So we cook your order when you place it." },
-    { h: "What that means for you" },
-    { list: ["A little wait, usually under an hour in Lagos", "Food that tastes the way it should", "Order ahead and there is no wait at all"] },
-    { p: "Good food is worth a short wait, and ordering ahead means you never have to." },
-  ] },
-];
+const MOCK_OFFERINGS: any[] = [];
+const MOCK_GALLERY: any[] = [];
+const MOCK_RECOGNITION: any[] = [];
+const MOCK_ABOUT_FACTS: any[] = [];
+const MOCK_BLOG: any[] = [];
 
 const money = (n: number) => "₦" + n.toLocaleString("en-NG");
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -805,7 +655,7 @@ export default function FoodStorefront({
               <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>Order Placed!</h3>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>Your order reference is <b>{orderReceipt.order.order_number}</b>.</p>
               
-              {store.payment_provider === 'paystack' && (
+              {store.payment_provider && store.payment_provider !== 'manual' && (
                 <div style={{ background: '#f9f5f3', borderRadius: 12, padding: 14, marginTop: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span>Total Amount</span>
@@ -837,8 +687,9 @@ export default function FoodStorefront({
         headers: { 'Content-Type': 'application/json' }
       });
       const json = await res.json();
-      if (res.ok && json.data?.authorization_url) {
-        window.location.href = json.data.authorization_url;
+      const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
+      if (res.ok && redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         sonnerToast.error(json.message || "Online payment setup failed.");
       }
@@ -1415,6 +1266,7 @@ export default function FoodStorefront({
   );
   const aboutReview = () => {
     const r = displayReviews[0];
+    if (!r) return null;
     return (
       <div className="ab-review">
         <Quote className="ab-quote-mark" size={28} />
@@ -1432,7 +1284,7 @@ export default function FoodStorefront({
   const aboutJournal = () => (
     <div className="ab-section">
       <div className="ab-sec-head">
-        <h4 className="ab-subhead">From Jane's journal</h4>
+        <h4 className="ab-subhead">{DUMMY_AUTHOR.name ? `From ${DUMMY_AUTHOR.name.split(" ")[0]}'s journal` : "From the journal"}</h4>
         <button className="ab-seclink" onClick={() => go("blog")}>All articles <ChevronRight size={14} /></button>
       </div>
       <div className="ab-journal">
@@ -1481,7 +1333,7 @@ export default function FoodStorefront({
     <div className="ps-about-grid">
       <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-      <div><b>10 yrs</b><span>in practice</span></div>
+      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
       <span className="ab-follow-h">Follow the kitchen</span>
@@ -1543,7 +1395,7 @@ export default function FoodStorefront({
   const contactForm = () => (
     <div className="ct-form">
       <h4 className="ab-subhead">Send an enquiry</h4>
-      <p className="ct-form-sub">Tell us what you are after and we will reply by email. A real person, usually Jane or the team, will answer.</p>
+      <p className="ct-form-sub">Tell us what you are after and we will reply by email. A real person from the team will answer.</p>
       <div className="ct-form-row">
         <select className="ct-input" value={cSvc} onChange={(e) => setCSvc(e.target.value)}>
           <option value="">Service (optional)</option>
@@ -1801,7 +1653,7 @@ export default function FoodStorefront({
       <button onClick={() => setAnnOff(true)} aria-label="Dismiss"><X size={15} /></button>
     </div>
   );
-  const featured = (
+  const featured = MOCK_FEATURED.length > 0 ? (
     <section className="feat">
       <div className="feat-head"><span className="feat-tag"><Sparkles size={13} /> Featured</span></div>
       <div className="feat-grid">
@@ -1810,13 +1662,13 @@ export default function FoodStorefront({
         ))}
       </div>
     </section>
-  );
+  ) : null;
 
   /* ---- drawer panel (mobile only) ---- */
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo">frontstore<span>.app</span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1893,7 +1745,7 @@ export default function FoodStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1973,7 +1825,7 @@ export default function FoodStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -2354,10 +2206,8 @@ export default function FoodStorefront({
                 <div className="ab-wrap">
                   <div className="ab-main">
                     <span className="ab-kicker">Our story</span>
-                    <h2 className="ab-headline">A Lagos kitchen cooking the comfort food you grew up on.</h2>
-                    <p className="ab-lede">Eko Kitchen is a Maryland based home kitchen for proper Nigerian comfort food. Smoky party jollof, rich soups, peppered grills and fresh small chops, all cooked to order and delivered hot.</p>
-                    <p className="ab-para">What began in 2019 as a home kitchen cooking for friends is now a busy Lagos kitchen with a small, trusted team. The promise has stayed the same throughout: cook every order fresh, and never send out anything we would not eat ourselves.</p>
-                    <p className="ab-para">Today the kitchen feeds families, offices and parties across Lagos who keep coming back for food that tastes like home and arrives hot, whether that is a weekday lunch, a craving for small chops or a full spread for a celebration.</p>
+                    <h2 className="ab-headline">A kitchen cooking the comfort food you grew up on.</h2>
+                    {DUMMY_STORE.bio && <p className="ab-lede">{DUMMY_STORE.bio}</p>}
 
                     <div className="ab-founder">
                       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
@@ -2402,7 +2252,7 @@ export default function FoodStorefront({
                     <div className="ps-about-grid ab-stats">
                       <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
                       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-                      <div><b>10 yrs</b><span>in practice</span></div>
+                      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
                     </div>
                   </div>
 
@@ -2483,7 +2333,7 @@ export default function FoodStorefront({
                 </div>
                 <div className="ct-wrap">
                   <div className="ct-main">
-                    <p className="svc-intro">Reach us on WhatsApp for a quick reply, or send an enquiry and we will get back to you by email. A real person, usually Jane or the team, will answer.</p>
+                    <p className="svc-intro">Reach us on WhatsApp for a quick reply, or send an enquiry and we will get back to you by email. A real person from the team will answer.</p>
                     {contactChannels()}
                     {contactForm()}
                   </div>
@@ -2833,7 +2683,7 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
 .ps-logo span{color:var(--brand);}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
@@ -3577,7 +3427,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .svc-card-thumb.c1{background:linear-gradient(150deg,var(--brand-deep),var(--gold));}
 .svc-card-thumb.c2{background:linear-gradient(150deg,#caa06f,var(--brand));}
 .svc-card-thumb.c3{background:linear-gradient(150deg,var(--brand),#a86b8a);}
-.svc-card-cat{position:absolute;bottom:10px;left:10px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
+.svc-card-cat{position:absolute;bottom:10px;left:10px;width:max-content;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
 .svc-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:rgba(42,29,34,.5);backdrop-filter:blur(2px);padding:4px 8px;border-radius:7px;}
 .svc-badge svg{color:var(--gold);fill:var(--gold);}
 .svc-card-body{padding:13px 14px 14px;display:flex;flex-direction:column;flex:1;}

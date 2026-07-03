@@ -149,40 +149,19 @@ interface AgentStorefrontProps {
 }
 
 const MOCK_STORE = {
-  name: "Chiko Bryan Properties", initial: "C", slug: "chikobryan",
-  primaryCta: "book",
-  category: "Estate agent", location: "Lekki & Ikoyi, Lagos",
-  rating: 4.9, reviews: 168, orders: "380", reply: "~15 min",
-  bio: "Independent estate agent for Lekki and Ikoyi. I help buyers, renters and investors find the right property without the runaround, and guide sellers and landlords through a clean, well-priced sale or let. Twelve years working Lagos property.",
-  address: "4 Admiralty Way, Lekki Phase 1, Lagos",
-  phone: "+234 801 234 5678",
-  email: "chiko@frontstore.app",
-  socials: { instagram: "@chikobryanproperties", tiktok: "@chikobryan.properties" },
+  name: "", initial: "", slug: "",
+  primaryCta: "",
+  category: "", location: "",
+  rating: undefined as number | undefined, reviews: 0, orders: 0, reply: "",
+  bio: "",
+  address: "",
+  phone: "",
+  email: "",
+  socials: { instagram: "", tiktok: "", twitter: "" },
 };
-const MOCK_SERVICES = [
-  { id: "s1", name: "Guided Property Viewing", price: 10000, dur: "1 hr", durMin: 60, cat: "Viewings", popular: true, desc: "A guided inspection of a shortlisted property, with honest notes on the building, the area and the paperwork." },
-  { id: "s2", name: "Buyer Consultation", price: 25000, dur: "45 min", durMin: 45, cat: "Consultations", popular: true, desc: "We sit down to map your budget, your areas and a realistic shortlist before anyone wastes a trip." },
-  { id: "s3", name: "Renter Consultation", price: 15000, dur: "45 min", durMin: 45, cat: "Consultations", desc: "Find the right rental, understand the agency and agreement fees, and avoid the traps first-time renters fall into." },
-  { id: "s4", name: "Property Valuation", price: 50000, dur: "2 hrs", durMin: 120, cat: "Valuations", popular: true, desc: "A market-based valuation of your property for sale or let, with a clear written summary you can act on." },
-  { id: "s5", name: "Seller and Landlord Consult", price: 40000, dur: "1 hr", durMin: 60, cat: "Selling", desc: "How to price, prepare and present your property so it sells or lets faster, without endless wasted viewings." },
-  { id: "s6", name: "Property Management Consult", price: 30000, dur: "1 hr", durMin: 60, cat: "Management", desc: "For landlords who want their property let, managed and their tenants handled properly." },
-];
-const MOCK_PRODUCTS = [
-  { id: "p1", name: "The Lagos First-Time Buyer's Guide", price: 5000, cat: "Buying", popular: true, desc: "Every step from budget to keys, with the documents to check and the costs people always forget." },
-  { id: "p2", name: "Lekki and Ikoyi Area Report 2026", price: 7500, cat: "Areas", popular: true, desc: "Prices, new developments and the streets worth your money across Lekki and Ikoyi." },
-  { id: "p3", name: "Renter's Survival Pack", price: 3500, cat: "Renting", desc: "Agency fees, agreement fees, your rights as a tenant, and the red flags before you pay a kobo." },
-  { id: "p4", name: "Land and Title Verification Checklist", price: 6000, cat: "Buying", popular: true, desc: "How to check a title, spot omo onile trouble and verify a property before you commit." },
-  { id: "p5", name: "Off-Plan and Investment Primer", price: 8000, cat: "Investing", desc: "How to buy off-plan without getting burned, and how to read the real return on a Lagos rental." },
-  { id: "p6", name: "Landlord's Letting Playbook", price: 5500, cat: "Letting", desc: "Pricing, vetting tenants, agreements and managing a let so it stays profitable and calm." },
-];
-const MOCK_REVIEWS = [
-  { id: "r1", name: "Amara N.", r: 5, when: "3 weeks ago", service: "Buyer Consultation", verified: true, photos: 0, text: "Chiko found us a flat in Lekki that ticked every box, and talked us out of two that looked great but had title issues. Saved us from a real mistake.", response: { when: "3 weeks ago", text: "Thank you Amara. So glad we got you the right place and not just any place. Enjoy the new home." } },
-  { id: "r2", name: "Tunde A.", r: 5, when: "1 month ago", service: "Guided Property Viewing", verified: true, photos: 1, text: "Showed up on time, knew every building, and was honest about the ones that were not worth it. Rare in Lagos." },
-  { id: "r3", name: "Zainab K.", r: 4, when: "1 month ago", service: "Property Valuation", verified: true, photos: 0, text: "Fair valuation and a clear written summary. Took a little longer than expected but the detail was worth it.", response: { when: "1 month ago", text: "Thank you Zainab, and noted on the timing. I would rather be thorough than quick on a valuation." } },
-  { id: "r4", name: "Chidi O.", r: 5, when: "6 weeks ago", service: "Seller and Landlord Consult", verified: true, photos: 1, text: "Priced my place properly and it let within three weeks. No endless wasted viewings with the wrong people." },
-  { id: "r5", name: "Bisi A.", r: 4, when: "2 months ago", service: "Renter Consultation", verified: true, photos: 0, text: "Helped me understand the agency and agreement fees so I was not caught out. Wish the shortlist had a couple more options." },
-  { id: "r6", name: "Ngozi E.", r: 5, when: "2 months ago", service: "The Lagos First-Time Buyer's Guide", verified: true, photos: 1, text: "Bought the buyer's guide before we started and it paid for itself ten times over. I knew exactly what to ask and what to walk away from." },
-];
+const MOCK_SERVICES: any[] = [];
+const MOCK_PRODUCTS: any[] = [];
+const MOCK_REVIEWS: any[] = [];
 const MOCK_PRODUCT_FAQS = [
   ["How do I get the guide after I pay?", "It is a digital download. As soon as your payment clears, the PDF is sent to you on WhatsApp and by email, so you can read it on any device."],
   ["Can I get a refund on a guide?", "Because guides are digital and delivered instantly, they cannot be refunded once sent. If a download fails or you receive the wrong file, I will fix it straight away."],
@@ -197,102 +176,11 @@ const MOCK_SERVICE_FAQS = [
   ["Do you cover areas outside Lekki and Ikoyi?", "Lekki and Ikoyi are home, but I take on Victoria Island and Ikate by arrangement. Ask before you book and I will tell you honestly if I can help."],
   ["How do I pay?", "Pay securely through Frontstore, or by bank transfer where offered. Your receipt always arrives on WhatsApp."],
 ];
-const MOCK_FAQ_GROUPS = [
-  {
-    cat: "Viewings and bookings", icon: Calendar, items: [
-      ["Do I have to pay to view a property?", "An inspection fee covers a guided viewing and my time. Where you buy or rent through me it is credited back, so a serious buyer never really pays it twice."],
-      ["Can you arrange viewings for several properties?", "Yes. Tell me your budget and area and I will line up a shortlist worth seeing in one trip, rather than dragging you around half of Lagos."],
-      ["How do I reschedule or cancel a viewing?", "Reschedule or cancel up to 24 hours before for a full refund of the fee. Inside 24 hours it is held against a rebooked viewing."],
-      ["How soon can you show me something?", "Often within a day or two for Lekki and Ikoyi. Message me with what you are after and I will tell you what is realistic this week."],
-    ],
-  },
-  {
-    cat: "Payments and fees", icon: Lock, items: [
-      ["How do I pay?", "You can pay securely through Frontstore at checkout, or by bank transfer directly. Frontstore checkout is the safer option as it comes with buyer protection."],
-      ["What fees should I expect as a buyer or renter?", "Beyond the rent or price, expect agency and agreement or legal fees, and for rentals a caution deposit. I set these out in writing before you commit, so nothing is a surprise."],
-      ["Is paying through Frontstore safe?", "Yes. Payments made through Frontstore are protected, so if a paid service or guide is not delivered as described you can raise a dispute and we help mediate. This protection cannot be removed."],
-      ["What currency are prices in?", "Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are always charged in naira."],
-    ],
-  },
-  {
-    cat: "Listings and properties", icon: MapPin, items: [
-      ["Are the listings still available?", "I keep listings current, but Lagos moves fast and good properties go quickly. Message me on the one you like and I will confirm availability before you travel."],
-      ["Can you find something that is not listed?", "Yes, most of my work is off-list. Tell me your budget, area and must-haves and I will go and find it, including properties never advertised publicly."],
-      ["Do you handle both sales and rentals?", "Both, across Lekki and Ikoyi, for buyers, renters, sellers and landlords. I will tell you honestly which makes more sense for your situation."],
-    ],
-  },
-  {
-    cat: "Guides and downloads", icon: ShoppingBag, items: [
-      ["What are the guides?", "Short, practical PDF guides on buying, renting and investing in Lagos property, written from real deals rather than theory. They download instantly after payment."],
-      ["Can I get a refund on a guide?", "As digital downloads, guides cannot be refunded once sent. If a download fails or you receive the wrong file, I will sort it immediately."],
-      ["Will a guide really help me?", "If you are new to Lagos property, yes. They cover the documents to check, the costs people forget and the traps that cost buyers and renters real money."],
-    ],
-  },
-  {
-    cat: "Trust and Frontstore", icon: ShieldCheck, items: [
-      ["What does Secured by Frontstore mean?", "It means this store runs on Frontstore, so your paid booking or guide is covered by Frontstore buyer protection and platform terms that the agent cannot remove."],
-      ["Are the reviews real?", "Yes. Reviews can only be left by clients with a completed Frontstore order, and each one is shown with a verified badge. I can respond to reviews but cannot delete genuine ones."],
-      ["What if something goes wrong with a paid service?", "If a service or guide paid through Frontstore is not delivered as described, you can raise a dispute and Frontstore will help mediate a fair resolution."],
-    ],
-  },
-];
+const MOCK_FAQ_GROUPS: any[] = [];
 const MOCK_FAQS_PREVIEW = MOCK_FAQ_GROUPS.map((g: any) => g.items[0]);
-const MOCK_TERMS = [
-  { t: "Who these terms are between", p: [`These terms are an agreement between you and ${MOCK_STORE.name}, the agent who provides the services and guides on this store. The store runs on Frontstore, which provides the platform and buyer protection but is not the seller.`] },
-  { t: "Viewings and bookings", p: ["Viewings, valuations and consultations are arranged by booking through this store. An inspection or service fee secures your slot and is shown before you confirm. Where you go on to buy, rent, sell or let through the agent, a viewing fee is credited back against what you owe."] },
-  { t: "Pricing and payment", p: ["Prices are shown in Nigerian naira. Any approximate conversion shown elsewhere is indicative only, and you are charged in naira.", "You can pay securely through Frontstore at checkout, or by bank transfer to the agent. Funds paid by transfer go directly to the agent, while Frontstore payments are held under buyer protection."] },
-  { t: "Cancellations and refunds", p: ["You can reschedule, cancel or return within the windows set out on the Refunds page, where you will also find how and when refunds are issued."], link: { label: "Read the Refunds policy", page: "returns" } },
-  { t: "Property information and your responsibility", p: ["Listings and property details are provided in good faith, based on information from owners and developers, and can change without notice. You should carry out your own checks, including title and legal verification, before you commit to any property.", "The agent helps you verify and will flag concerns honestly, but the final decision and due diligence remain yours."] },
-  { t: "Guides", p: ["Guides are digital products delivered to you on payment. They are general information drawn from real experience, not legal, tax or financial advice. Returns are handled as set out on the Refunds page."] },
-  { t: "Reviews and content", p: ["Reviews can only be left by clients with a completed order, and each is shown with a verified badge. The agent may respond to reviews but cannot remove genuine ones. By submitting a review or photo, you allow it to be shown on this store."] },
-  { t: "Liability", p: ["Services are provided with reasonable skill and care, and are not a substitute for professional legal, tax or financial advice. Nothing in these terms removes any rights you have under applicable law."] },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform terms", body: "Every Frontstore store also operates under the Frontstore platform terms and buyer protection policy. These apply alongside the store's own policies and cannot be removed by the vendor.", link: "Read the Frontstore platform terms" } },
-  { t: "Changes to these terms", p: ["We may update these terms from time to time. The version shown on this page is the current one, and the date it was last updated is shown alongside it."] },
-  { t: "Governing law", p: ["These terms are governed by the laws of the Federal Republic of Nigeria, and any dispute falls under the courts of Lagos State."] },
-  { t: "Contact", p: ["Questions about these terms? Reach the agent through the Contact page and I will be glad to help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PRIVACY = [
-  { t: "What we collect", p: [`When you book, buy or get in touch, ${MOCK_STORE.name} collects the details you give us: your name, contact details such as a WhatsApp number, phone or email, your booking and order details, any message you send, and reviews or photos you choose to share.`] },
-  { t: "How we use it", p: ["We use your details to take and confirm bookings and orders, reply to your enquiries, arrange viewings, process payments, deliver guides, show verified reviews, and improve the store. We do not send marketing without your consent."] },
-  { t: "Payments", p: ["Payments made through Frontstore are handled by Frontstore and its payment providers under buyer protection, and the agent does not see or store your card details. Bank transfers are made directly to the agent."] },
-  { t: "WhatsApp and messaging", p: ["When you message us, the conversation takes place on WhatsApp and is also subject to WhatsApp's own privacy terms. In future this may move to Frontstore's own messaging."] },
-  { t: "Who we share it with", p: ["We share only what is needed: with partners to arrange a viewing or transaction, with payment providers to take payment, and with Frontstore as the platform the store runs on. We never sell your data."] },
-  { t: "Cookies and analytics", p: ["The store uses basic cookies and analytics, provided through the Frontstore platform, to keep the store working and understand how it is used."] },
-  { t: "Keeping your data", p: ["We keep your details only as long as needed to provide our services and to meet legal and tax obligations, after which they are removed."] },
-  { t: "Your rights", p: ["Under Nigerian data protection law you can ask to see the data we hold about you, correct it, delete it, or object to how it is used. To make a request, reach us through the Contact page."], link: { label: "Go to Contact", page: "contact" } },
-  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform privacy", body: "As the platform this store runs on, Frontstore also processes data under its own privacy policy and platform terms. These apply alongside the store's own notice and cannot be removed by the vendor.", link: "Read the Frontstore privacy policy" } },
-  { t: "Changes to this notice", p: ["We may update this notice from time to time. The version shown on this page is the current one, with the date it was last updated shown alongside it."] },
-  { t: "Contact", p: ["Questions about your privacy, or want to make a data request? Reach the agent through the Contact page and we will help."], link: { label: "Go to Contact", page: "contact" } },
-];
-const MOCK_PORTFOLIO = [
-  { id: "l1", listed: "2 days ago", title: "3-bed flat", area: "Lekki Phase 1", cat: "For rent", price: 450000, basis: "month", beds: 3, baths: 3, size: "140 sqm", status: "available", c: "c0", ptype: "Apartment", extra: "Furnished", street: "Admiralty Way",
-    desc: "A bright, well-finished three bedroom flat on a quiet street in Lekki Phase 1, walking distance to the shops and a short drive to the toll gate. All rooms are en suite, with a fitted kitchen and a generous living area.",
-    features: ["All rooms en suite", "Fitted kitchen", "24/7 power on estate", "Borehole and treated water", "Secure compound, parking for 2"] },
-  { id: "l2", listed: "1 week ago", title: "4-bed terrace", area: "Ikoyi", cat: "For sale", price: 185000000, basis: null, beds: 4, baths: 5, size: "320 sqm", status: "available", c: "c1", ptype: "Terrace", extra: "C of O", street: "Bourdillon Road",
-    desc: "A smart four bedroom terrace in a gated Ikoyi development, finished to a high standard with a private rooftop terrace. Ideal for a family wanting space and security in a central location.",
-    features: ["Rooftop terrace", "Boys quarters", "Fitted kitchen with island", "24/7 power and security", "Title: registered and clean"] },
-  { id: "l3", listed: "5 hours ago", title: "2-bed apartment", area: "Lekki Phase 1", cat: "For rent", price: 300000, basis: "month", beds: 2, baths: 2, size: "95 sqm", status: "available", c: "c2", ptype: "Apartment", extra: "Unfurnished", street: "Fola Osibo",
-    desc: "A neat two bedroom apartment well suited to a young couple or professional, in a small, quiet block in Lekki Phase 1. Move-in ready with good natural light throughout.",
-    features: ["Open-plan living", "Fitted kitchen", "Estate power and security", "Parking for 1", "Close to shops and offices"] },
-  { id: "l4", listed: "3 days ago", title: "5-bed detached house", area: "Ikoyi", cat: "For sale", price: 420000000, basis: null, beds: 5, baths: 6, size: "560 sqm", status: "available", c: "c0", ptype: "Detached", extra: "C of O", street: "Glover Road",
-    desc: "An imposing five bedroom detached house on its own grounds in old Ikoyi, with mature gardens, staff quarters and ample parking. A rare bit of space in one of the most sought-after pockets of Lagos.",
-    features: ["Standalone on own land", "Mature garden", "Boys quarters and gatehouse", "Borehole and large water reserve", "Title: governor's consent in place"] },
-  { id: "l5", listed: "yesterday", title: "Serviced 2-bed", area: "Lekki", cat: "For rent", price: 550000, basis: "month", beds: 2, baths: 3, size: "110 sqm", status: "available", c: "c1", ptype: "Apartment", extra: "Serviced", street: "Chevron Drive",
-    desc: "A fully serviced two bedroom apartment with gym and pool access, ideal for anyone who wants a hands-off, all-in living arrangement. The service charge covers power, security and the shared facilities.",
-    features: ["Fully serviced building", "Shared gym and pool", "24/7 power included", "Concierge and security", "Parking for 1, lift access"] },
-  { id: "l6", listed: "6 days ago", title: "Off-plan 1-bed", area: "Lekki", cat: "Off-plan", price: 55000000, basis: null, beds: 1, baths: 1, size: "60 sqm", status: "available", c: "c2", ptype: "Apartment", extra: "Payment plan", street: "Orchid Road",
-    desc: "A one bedroom unit in a new off-plan development, offered at the launch price with a staged payment plan. A sensible entry point for a first investment, with handover expected within the developer's build window.",
-    features: ["Launch pricing", "Staged payment plan", "Reputable developer", "Planned gym and lounge", "Handover within build window"] },
-  { id: "l7", listed: "2 weeks ago", title: "Penthouse", area: "Ikoyi", cat: "For sale", price: 650000000, basis: null, beds: 4, baths: 5, size: "400 sqm", status: "available", c: "c1", ptype: "Penthouse", extra: "C of O", street: "Banana Island",
-    desc: "A four bedroom penthouse on the top floor of a waterfront Ikoyi tower, with wide views, a private lift lobby and a wraparound terrace. The finish and the position put this at the top of the market.",
-    features: ["Top-floor penthouse", "Private lift lobby", "Wraparound terrace", "Waterfront views", "Two parking bays and storage"] },
-  { id: "l8", title: "3-bed maisonette", area: "Ikoyi", cat: "For rent", price: 750000, basis: "month", beds: 3, baths: 4, size: "180 sqm", status: "taken", c: "c0", ptype: "Maisonette", extra: "Furnished", street: "Parkview Estate",
-    desc: "A three bedroom maisonette over two floors in a quiet Ikoyi close, with its own entrance and a small private yard. Recently let.",
-    features: ["Two floors, own entrance", "Private yard", "Fitted kitchen", "Estate power and security", "Parking for 2"] },
-  { id: "l9", title: "4-bed semi-detached", area: "Lekki Phase 1", cat: "For sale", price: 240000000, basis: null, beds: 4, baths: 5, size: "360 sqm", status: "taken", c: "c2", ptype: "Semi-detached", extra: "C of O", street: "Admiralty Way",
-    desc: "A four bedroom semi-detached house in a well-run Lekki Phase 1 estate, with boys quarters and a tidy frontage. Recently sold.",
-    features: ["Semi-detached on estate", "Boys quarters", "Fitted kitchen", "24/7 power and security", "Title: registered and clean"] },
-];
+const MOCK_TERMS: any[] = [];
+const MOCK_PRIVACY: any[] = [];
+const MOCK_PORTFOLIO: any[] = [];
 const MOCK_NOTIFY_TOPICS = [["listings", "New listings"], ["viewings", "Viewing slots"], ["guides", "New guides"], ["news", "Announcements"]];
 const MOCK_HOURS = [
   ["Mon", "9:00am - 6:00pm"], ["Tue", "9:00am - 6:00pm"], ["Wed", "9:00am - 6:00pm"],
@@ -304,98 +192,23 @@ const MOCK_NAV = [
 ];
 const MOCK_LEGAL = [["returns", "Refunds"], ["terms", "Terms"], ["privacy", "Privacy"]];
 const MOCK_CATS = ["Viewings", "Consultations", "Valuations", "Buying", "Renting", "Investing"];
-const MOCK_FEATURED = [
-  { id: "s1", name: "Guided Property Viewing", price: 10000, dur: "1 hr", type: "service" },
-  { id: "s4", name: "Property Valuation", price: 50000, dur: "2 hrs", type: "service" },
-  { id: "p2", name: "Lekki and Ikoyi Area Report 2026", price: 7500, type: "product" },
-];
+const MOCK_FEATURED: any[] = [];
 const MOCK_AUTHOR = {
-  name: "Chiko Bryan",
-  initial: "C",
-  role: "Independent estate agent",
-  bio: "Chiko Bryan is an independent estate agent covering Lekki and Ikoyi, with twelve years matching buyers, renters and investors to the right Lagos property and helping owners sell and let well.",
-  long: "Chiko started out on the developer side before going independent, and has spent the last twelve years working Lekki and Ikoyi street by street. He still handles every client himself, views each property before he shows it, and would rather talk you out of a bad deal than push you into a quick one.",
-  quote: "A good agent saves you from the property you would have regretted, not just the one you end up buying.",
-  specialities: ["Lekki and Ikoyi", "Buying and renting", "Valuations", "12+ years"],
-  socials: { instagram: "@chiko.bryan", tiktok: "@chikobryan" },
-  credentials: [
-    "Over twelve years in Lagos residential property",
-    "Registered Nigerian real estate practitioner",
-    "Member of a professional estate agents network",
-  ],
+  name: "",
+  initial: "",
+  role: "",
+  bio: "",
+  long: "",
+  quote: "",
+  specialities: [],
+  socials: { instagram: "", tiktok: "" },
+  credentials: []
 };
-const MOCK_OFFERINGS = [
-  ["Buying and renting", "Honest shortlists and guided viewings across Lekki and Ikoyi, with the checks that protect you.", "services"],
-  ["Valuations and selling", "Market-based valuations and listing advice that price your property to actually move.", "services"],
-  ["Property management", "For landlords who want their property let, managed and their tenants handled properly.", "services"],
-  ["Guides to take away", "Practical PDF guides on buying, renting and investing in Lagos property.", "products"],
-];
-const MOCK_GALLERY = [
-  { label: "Lekki Phase 1", c: "c0" },
-  { label: "Ikoyi waterfront", c: "c1" },
-  { label: "Handover day", c: "c2" },
-  { label: "A clean title", c: "c1" },
-  { label: "New development", c: "c2" },
-  { label: "Viewing in Ikoyi", c: "c0" },
-];
-const MOCK_RECOGNITION = ["Lagos Property Week", "The Real Estate Edit", "Naija Homes", "Estate Insider"];
-const MOCK_ABOUT_FACTS = [
-  ["Established", "Lagos, since 2014"],
-  ["Registered", "CAC RC 1648205"],
-  ["The office", "4 Admiralty Way, Lekki Phase 1, by appointment"],
-  ["Coverage", "Lekki and Ikoyi, Victoria Island by arrangement"],
-  ["Bookings", "A fee secures your slot, credited back where you transact"],
-  ["Payment", "Pay securely with Frontstore, or by bank transfer"],
-  ["Guides", "Digital downloads, sent on WhatsApp the moment you pay"],
-  ["Languages", "English, Yoruba and Pidgin"],
-];
-const MOCK_BLOG = [
-  { title: "What to check before you pay for any Lagos property", date: "5 Jun 2026", cat: "Buying", read: "6 min", excerpt: "The documents, the people and the red flags that separate a safe buy from a costly one.", body: [
-    { p: "More money is lost in Lagos property to bad paperwork than to bad buildings. A flat can be beautiful and still be a trap if the title is wrong or the seller does not truly own it. Here is what I check before any client pays a kobo." },
-    { h: "Start with the title" },
-    { p: "Find out exactly what is being sold and on what document. A registered title, a deed of assignment and a survey that matches the land are the basics. If the seller cannot show clean documents, that is your answer." },
-    { h: "Then check the people" },
-    { list: ["Confirm who actually owns the land, not just who is selling it", "Be wary of family land with many sellers who must all agree", "Watch for omo onile claims that surface after you pay", "Use a lawyer for verification, not only the agent"] },
-    { p: "None of this is to scare you off. It is to make sure that when you do buy, you buy something you keep. A good property with clean papers is worth waiting an extra week for." },
-  ] },
-  { title: "Renting in Lekki without getting caught out", date: "22 May 2026", cat: "Renting", read: "5 min", excerpt: "Agency fees, agreement fees and the deposit traps every first-time renter should know.", body: [
-    { p: "Rent in Lekki is only half of what you pay on day one. The fees around it catch people out, and a few of them are negotiable if you know to ask. Here is what to expect before you sign." },
-    { h: "Know the fees before you fall in love with a flat" },
-    { list: ["Agency fee, usually a share of the annual rent", "Agreement and legal fee for the tenancy paperwork", "A caution or security deposit you should get back", "Service charge on serviced and estate apartments"] },
-    { h: "Protect yourself" },
-    { p: "Get every figure in writing before you transfer anything, and never pay cash without a receipt. A proper tenancy agreement protects you as much as the landlord, so read it and ask about anything that is not clear." },
-    { p: "If a deal feels rushed or the fees keep changing, slow down. The right place will still be there for a buyer who does their checks." },
-  ] },
-  { title: "Is Lekki or Ikoyi right for you?", date: "9 May 2026", cat: "Areas", read: "6 min", excerpt: "Two of the most wanted addresses in Lagos, and who each one really suits.", body: [
-    { p: "People ask me to choose between Lekki and Ikoyi as if one is simply better. They are different, and the right answer depends entirely on how you live and what you are buying for." },
-    { h: "Ikoyi" },
-    { p: "Established, central and premium. You pay more per square metre, but you get mature infrastructure, proximity to the island business district, and addresses that hold their value. It suits buyers who want prestige and convenience over space." },
-    { h: "Lekki" },
-    { p: "Newer, faster growing and more varied. From Phase 1 to the newer schemes further out, you get more space for your money and a lot of fresh stock, with the trade-off of traffic and developments still maturing. It suits families and investors chasing growth." },
-    { p: "If you are buying to live, choose the daily life you want. If you are buying to invest, we look at the numbers, not the postcode. I am happy to walk you through both before you decide." },
-  ] },
-  { title: "How a property valuation actually works", date: "28 Apr 2026", cat: "Selling", read: "4 min", excerpt: "What goes into a fair valuation, and why the highest number is rarely the right one.", body: [
-    { p: "Every seller wants the biggest figure, and any agent can give you one to win the listing. A valuation that actually helps you is the one that gets your property sold or let at a price the market will pay." },
-    { h: "What I look at" },
-    { p: "Recent sales and lets of similar properties nearby, the condition and finish of yours, the specific street and estate, and what is currently competing with you. The number comes from evidence, not optimism." },
-    { h: "Why the highest quote can cost you" },
-    { p: "Price too high and your property sits, goes stale, and eventually sells for less than a sensible price would have fetched in the first place. A realistic price brings real buyers and a faster, cleaner sale." },
-    { p: "You get a clear written summary you can act on, whether you list with me or not." },
-  ] },
-  { title: "Buying off-plan in Lagos without getting burned", date: "12 Apr 2026", cat: "Investing", read: "5 min", excerpt: "Off-plan can be the best value or the biggest mistake. Here is how to tell which.", body: [
-    { p: "Off-plan means buying before it is built, usually at a lower price than the finished unit. Done with the right developer it is smart. Done with the wrong one it is money tied up in a hole in the ground. The difference is homework." },
-    { h: "Vet the developer, not just the brochure" },
-    { list: ["Visit projects they have actually finished and handed over", "Check that they delivered on time, or how late they ran", "Confirm the land title under the development is clean", "Read the payment plan and the penalties on both sides"] },
-    { p: "Stagger your payments against real construction milestones where you can, and keep everything in writing. A good developer will welcome the questions. A nervous one will rush you." },
-    { p: "If you want, I will look at the offer with you before you commit and tell you honestly whether the numbers and the risk make sense." },
-  ] },
-  { title: "What a good agent should actually do for you", date: "2 Apr 2026", cat: "Advice", read: "3 min", excerpt: "If your agent only opens doors and collects a fee, you are missing the point.", body: [
-    { p: "Anyone can unlock a flat and quote you a price. That is not the job. A good agent saves you time, money and mistakes, and earns the fee long before any keys change hands." },
-    { h: "What you should expect" },
-    { list: ["A shortlist that fits your budget and life, not just what pays the most", "Honesty about a property's faults, not only its features", "Help checking title and paperwork before you commit", "Clear figures on every fee, in writing, with no surprises"] },
-    { p: "If you are working with someone who only ever says yes, be careful. The agent worth keeping is the one who is willing to tell you no." },
-  ] },
-];
+const MOCK_OFFERINGS: any[] = [];
+const MOCK_GALLERY: any[] = [];
+const MOCK_RECOGNITION: any[] = [];
+const MOCK_ABOUT_FACTS: any[] = [];
+const MOCK_BLOG: any[] = [];
 
 const money = (n: number) => "₦" + n.toLocaleString("en-NG");
 const money2 = (n: number) => "₦" + n.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -406,10 +219,7 @@ const typeWord = (t: string) => (t === "Apartment" ? "Flat" : t === "Detached" ?
 const listingName = (p: any) => `${p.beds} Bedroom ${typeWord(p.ptype)} in ${p.area}`;
 const basisLabel = (b: string) => (b === "month" ? "per month" : b === "day" ? "per day" : b === "year" ? "per year" : "");
 const MOCK_AREA_GUIDE = {
-  "Lekki Phase 1": { intro: "Lekki Phase 1 is one of the most settled and well planned parts of the Lekki axis, with a mix of low rise blocks and family homes on gridded streets. It sits a short drive from the toll gate and the shops and offices along Admiralty Way, so it stays convenient without being in the thick of the traffic.", points: ["Walking distance to shops, banks and restaurants", "Estate level power and security on most streets", "Can be busy at peak hours near the toll gate"] },
-  "Ikoyi": { intro: "Ikoyi is the established, leafy heart of central Lagos, close to the Victoria Island business district and known for its older streets, embassies and premium developments. Pricing sits at the top of the market and good homes tend to move quickly.", points: ["Minutes from the Victoria Island business district", "Quiet, mature streets with strong security", "Premium pricing and limited supply"] },
-  "Lekki": { intro: "The wider Lekki axis covers the newer estates and serviced developments spreading along the expressway. It tends to offer more space and newer finishes for the money than Phase 1 or Ikoyi, with infrastructure still catching up in parts.", points: ["Newer builds and serviced estates", "Better value per square metre than Phase 1", "Infrastructure can vary street to street"] },
-  _default: { intro: "A sought after part of Lagos with a mix of residential streets and easy access to the main routes. Ask the agent for a fuller picture of the immediate neighbourhood.", points: ["Established residential area", "Good access to main routes", "Ask the agent for street level detail"] },
+  _default: { intro: "", points: [] },
 };
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
@@ -856,7 +666,7 @@ export default function AgentStorefront({
               <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>Order Placed!</h3>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>Your order reference is <b>{orderReceipt.order.order_number}</b>.</p>
               
-              {store.payment_provider === 'paystack' && (
+              {store.payment_provider && store.payment_provider !== 'manual' && (
                 <div style={{ background: '#f9f5f3', borderRadius: 12, padding: 14, marginTop: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span>Total Amount</span>
@@ -888,8 +698,9 @@ export default function AgentStorefront({
         headers: { 'Content-Type': 'application/json' }
       });
       const json = await res.json();
-      if (res.ok && json.data?.authorization_url) {
-        window.location.href = json.data.authorization_url;
+      const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
+      if (res.ok && redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
         sonnerToast.error(json.message || "Online payment setup failed.");
       }
@@ -1435,6 +1246,7 @@ export default function AgentStorefront({
   );
   const aboutReview = () => {
     const r = displayReviews[0];
+    if (!r) return null;
     return (
       <div className="ab-review">
         <Quote className="ab-quote-mark" size={28} />
@@ -1452,7 +1264,7 @@ export default function AgentStorefront({
   const aboutJournal = () => (
     <div className="ab-section">
       <div className="ab-sec-head">
-        <h4 className="ab-subhead">From Chiko's journal</h4>
+        <h4 className="ab-subhead">{DUMMY_AUTHOR.name ? `From ${DUMMY_AUTHOR.name.split(" ")[0]}'s journal` : "From the journal"}</h4>
         <button className="ab-seclink" onClick={() => go("blog")}>All articles <ChevronRight size={14} /></button>
       </div>
       <div className="ab-journal">
@@ -1501,7 +1313,7 @@ export default function AgentStorefront({
     <div className="ps-about-grid">
       <div><b>{DUMMY_STORE.orders}</b><span>deals closed</span></div>
       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-      <div><b>10 yrs</b><span>in practice</span></div>
+      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
       <span className="ab-follow-h">Follow the agent</span>
@@ -1563,7 +1375,7 @@ export default function AgentStorefront({
   const contactForm = () => (
     <div className="ct-form">
       <h4 className="ab-subhead">Send an enquiry</h4>
-      <p className="ct-form-sub">Tell us what you are after and we will reply by email. A real person, Chiko himself, will answer.</p>
+      <p className="ct-form-sub">Tell us what you are after and we will reply by email. A real person from the team will answer.</p>
       <div className="ct-form-row">
         <select className="ct-input" value={cSvc} onChange={(e) => setCSvc(e.target.value)}>
           <option value="">Service (optional)</option>
@@ -1936,7 +1748,7 @@ export default function AgentStorefront({
       <button onClick={() => setAnnOff(true)} aria-label="Dismiss"><X size={15} /></button>
     </div>
   );
-  const featured = (
+  const featured = MOCK_FEATURED.length > 0 ? (
     <section className="feat">
       <div className="feat-head"><span className="feat-tag"><Sparkles size={13} /> Featured</span></div>
       <div className="feat-grid">
@@ -1945,13 +1757,13 @@ export default function AgentStorefront({
         ))}
       </div>
     </section>
-  );
+  ) : null;
 
   /* ---- drawer panel (mobile only) ---- */
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo">frontstore<span>.app</span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -2028,7 +1840,7 @@ export default function AgentStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -2114,7 +1926,7 @@ export default function AgentStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}>frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -2499,10 +2311,8 @@ export default function AgentStorefront({
                 <div className="ab-wrap">
                   <div className="ab-main">
                     <span className="ab-kicker">Our story</span>
-                    <h2 className="ab-headline">A Lagos agent who would rather you bought the right place than any place.</h2>
-                    <p className="ab-lede">Chiko Bryan Properties is an independent agency covering Lekki and Ikoyi, for buyers, renters, sellers and landlords. You get straight talk, honest shortlists and the checks that protect your money.</p>
-                    <p className="ab-para">What began in 2014 as one agent with a phone and a patch of Lekki is now a small, trusted practice. The approach has stayed the same throughout: honest advice, properties seen in person, and no pressure to rush a decision this big.</p>
-                    <p className="ab-para">Today the agency looks after first-time buyers, growing families, landlords and investors who keep coming back, because the advice holds up long after the deal is done.</p>
+                    <h2 className="ab-headline">An agent who would rather you bought the right place than any place.</h2>
+                    {DUMMY_STORE.bio && <p className="ab-lede">{DUMMY_STORE.bio}</p>}
 
                     <div className="ab-founder">
                       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Agent</span></div>
@@ -2547,7 +2357,7 @@ export default function AgentStorefront({
                     <div className="ps-about-grid ab-stats">
                       <div><b>{DUMMY_STORE.orders}</b><span>deals closed</span></div>
                       <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
-                      <div><b>10 yrs</b><span>in practice</span></div>
+                      {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
                     </div>
                   </div>
 
@@ -2628,7 +2438,7 @@ export default function AgentStorefront({
                 </div>
                 <div className="ct-wrap">
                   <div className="ct-main">
-                    <p className="svc-intro">Reach us on WhatsApp for a quick reply, or send an enquiry and we will get back to you by email. A real person, Chiko himself, will answer.</p>
+                    <p className="svc-intro">Reach us on WhatsApp for a quick reply, or send an enquiry and we will get back to you by email. A real person from the team will answer.</p>
                     {contactChannels()}
                     {contactForm()}
                   </div>
@@ -3021,7 +2831,7 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
 .ps-logo span{color:var(--brand);}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
@@ -3917,7 +3727,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .svc-card-thumb.c1{background:linear-gradient(150deg,var(--brand-deep),var(--gold));}
 .svc-card-thumb.c2{background:linear-gradient(150deg,#caa06f,var(--brand));}
 .svc-card-thumb.c3{background:linear-gradient(150deg,var(--brand),#5f7da6);}
-.svc-card-cat{position:absolute;bottom:10px;left:10px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
+.svc-card-cat{position:absolute;bottom:10px;left:10px;width:max-content;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:7px;}
 .svc-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:rgba(42,29,34,.5);backdrop-filter:blur(2px);padding:4px 8px;border-radius:7px;}
 .svc-badge svg{color:var(--gold);fill:var(--gold);}
 .svc-card-body{padding:13px 14px 14px;display:flex;flex-direction:column;flex:1;}
