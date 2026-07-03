@@ -22,6 +22,14 @@ const TESTIMONIALS: ReadonlyArray<{
   stars: number;
 }> = [];
 
+const HOME_NAV_LINKS = [
+  { href: '/', label: 'Home' },
+  { href: '#about', label: 'About' },
+  { href: '#how-it-works', label: 'How it works' },
+  { href: '/marketplace', label: 'Marketplace' },
+  { href: '/blog', label: 'Blog' },
+];
+
 const HOW_IT_WORKS = [
   { step: '01', title: 'Claim your URL', body: 'Type your business name and claim your branded store link in seconds.' },
   { step: '02', title: 'Add your products', body: 'Upload photos, add prices, and let AI write descriptions for you.' },
@@ -179,6 +187,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
   const [messageType, setMessageType] = useState<'error' | 'success' | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   
   const [appName, setAppName] = useState(initialSettings?.app_name || 'Frontstore');
   const [logoUrl, setLogoUrl] = useState(initialSettings?.logo_url || '');
@@ -305,41 +314,16 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
 
         <div className="home-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <ThemeToggle />
-          <a
-            href="/"
-            className="btn btn-ghost home-nav-link"
-            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
-          >
-            Home
-          </a>
-          <a
-            href="#about"
-            className="btn btn-ghost home-nav-link"
-            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
-          >
-            About
-          </a>
-          <a
-            href="#how-it-works"
-            className="btn btn-ghost home-nav-link"
-            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
-          >
-            How it works
-          </a>
-          <a
-            href="/marketplace"
-            className="btn btn-ghost home-nav-link"
-            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
-          >
-            Marketplace
-          </a>
-          <a
-            href="/blog"
-            className="btn btn-ghost home-nav-link"
-            style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
-          >
-            Blog
-          </a>
+          {HOME_NAV_LINKS.map(link => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="btn btn-ghost home-nav-link"
+              style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}
+            >
+              {link.label}
+            </a>
+          ))}
           {!mounted ? (
             <div style={{ width: 140, height: 36 }} />
           ) : isLoggedIn ? (
@@ -370,7 +354,25 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               </a>
             </>
           )}
+          <button
+            type="button"
+            className="home-nav-hamburger"
+            aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen(o => !o)}
+            style={{ display: 'none', width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center', color: 'var(--text)' }}
+          >
+            {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
+
+        {mobileNavOpen && (
+          <div className="home-nav-mobile-panel">
+            {HOME_NAV_LINKS.map(link => (
+              <a key={link.href} href={link.href} onClick={() => setMobileNavOpen(false)}>{link.label}</a>
+            ))}
+          </div>
+        )}
       </nav>
 
       {/* ── Hero ── */}
@@ -631,6 +633,9 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           .home-nav-actions .home-nav-link {
             display: none !important;
           }
+          .home-nav-hamburger {
+            display: inline-flex !important;
+          }
           #nav-get-started svg,
           #nav-dashboard svg {
             display: none !important;
@@ -660,6 +665,35 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           .badge {
             white-space: normal;
           }
+        }
+
+        .home-nav-mobile-panel {
+          display: none;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          flex-direction: column;
+          background: var(--surface);
+          border-bottom: 1px solid var(--border);
+          padding: 8px 20px 14px;
+          box-shadow: 0 12px 24px rgba(0,0,0,.08);
+        }
+        @media (max-width: 640px) {
+          .home-nav-mobile-panel {
+            display: flex;
+          }
+        }
+        .home-nav-mobile-panel a {
+          padding: 12px 4px;
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text);
+          text-decoration: none;
+          border-bottom: 1px solid var(--border);
+        }
+        .home-nav-mobile-panel a:last-child {
+          border-bottom: none;
         }
       `}</style>
 
