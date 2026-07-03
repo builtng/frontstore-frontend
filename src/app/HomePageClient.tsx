@@ -32,13 +32,13 @@ const DEFAULT_PLATFORM_SUITE = [
   {
     brand: 'Online Store',
     tagline: 'Your store ready in 2 minutes',
-    desc: 'Generate a stunning, mobile-ready product catalog in under 2 minutes. No coding, no website builder — just add your products and go.',
+    desc: 'Generate a stunning, mobile ready product catalog in under 2 minutes. No coding, no website builder — just add your products and go.',
     badge: 'Core Feature'
   },
   {
     brand: 'WhatsApp Checkout',
     tagline: 'Sell directly in WhatsApp',
-    desc: 'Customers browse your store and tap "Order" — their message lands in your WhatsApp chat, pre-filled and ready to confirm.',
+    desc: 'Customers browse your store and tap "Order" — their message lands in your WhatsApp chat, pre filled and ready to confirm.',
     badge: 'WhatsApp Native'
   },
   {
@@ -66,26 +66,26 @@ const DEFAULT_PLATFORM_SUITE = [
     badge: 'Growth Tools'
   },
   {
-    brand: 'Ultra-Fast Loading',
+    brand: 'Ultra Fast Loading',
     tagline: 'Built for African mobile networks',
     desc: 'Static pages load in under 2 seconds even on 3G, keeping your bounce rate low and buyers engaged.',
     badge: 'Speed'
   },
   {
-    brand: 'Multi-Currency Support',
+    brand: 'Multi Currency Support',
     tagline: 'Sell in NGN, GHS, KES, ZAR & more',
     desc: 'frontstore handles local currency formatting automatically so prices feel right to your local buyers.',
-    badge: 'Multi-Currency'
+    badge: 'Multi Currency'
   },
 ];
 
 const DEFAULT_COMPARISON_ROWS = [
-  { feat: 'WhatsApp-first Checkout', alo: 'Direct order details sent straight to merchant chat', sho: 'Generic web-cart & email confirmations', oth: 'Partial integrations / web-redirects' },
-  { feat: 'AI-assisted Listings', alo: 'Upload photo → Auto price, tags, and rich descriptions', sho: 'Manual data entry required', oth: 'No built-in AI catalog tool' },
-  { feat: 'Mobile-first Merchant Operations', alo: 'Manage store fully on 3G mobile network', sho: 'Complex desk-oriented admin dashboard', oth: 'Limited mobile configuration' },
+  { feat: 'WhatsApp Checkout', alo: 'Direct order details sent straight to merchant chat', sho: 'Generic web cart & email confirmations', oth: 'Partial integrations / web redirects' },
+  { feat: 'AI assisted Listings', alo: 'Upload photo → Auto price, tags, and rich descriptions', sho: 'Manual data entry required', oth: 'No built in AI catalog tool' },
+  { feat: 'Mobile first Merchant Operations', alo: 'Manage store fully on 3G mobile network', sho: 'Complex desk oriented admin dashboard', oth: 'Limited mobile configuration' },
   { feat: 'African Payment Rails', alo: 'Escrow options + Paystack/Flutterwave/Mobile Money', sho: 'High card fees, complex setup for Africa', oth: 'Standard payments only, no escrow' },
   { feat: 'Setup Speed', alo: 'Under 2 minutes (claim & launch immediately)', sho: 'Hours/Days of theme editing', oth: '5-15 minutes configuration' },
-  { feat: 'Pricing', alo: '₦1,500/month or ₦15,000/year flat — no tiers', sho: '$5–$399+/month by tier, Plus from $2,300+/month', oth: 'Bumpa: ₦15k–30k+/quarter by tier · Selar: free-to-start + ~₦22,500/month premium' },
+  { feat: 'Pricing', alo: '₦1,500/month or ₦15,000/year flat — no tiers', sho: '$5–$399+/month by tier, Plus from $2,300+/month', oth: 'Bumpa: ₦15k–30k+/quarter by tier · Selar: free to start + ~₦22,500/month premium' },
 ];
 
 const DEFAULT_HOME_CONTENT = {
@@ -109,7 +109,7 @@ const DEFAULT_HOME_CONTENT = {
       { title: 'Create a Store', desc: 'Add products in 2 mins' },
       { title: 'Share a Link', desc: 'Status, Instagram, TikTok' },
       { title: 'Receive Orders', desc: 'Directly in WhatsApp' },
-      { title: 'Manage Customers', desc: 'Conversation-driven CRM' },
+      { title: 'Manage Customers', desc: 'Conversation driven CRM' },
       { title: 'Grow Revenue', desc: 'Scale with simple analytics' },
     ],
   },
@@ -390,7 +390,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         }}>
         <div className="hero-copy" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
           {/* Pill badges */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 24 }}>
+          <div className="hero-badges" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 24 }}>
             <span className="badge badge-primary" style={{ padding: '5px 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               <Zap size={11} /> {homeContent.hero.badges[0]}
             </span>

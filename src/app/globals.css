@@ -646,6 +646,10 @@ img, video {
 @media (max-width: 520px) {
   .hero-float-chip { display: none !important; }
 }
+@media (max-width: 979px) {
+  .hero-visual { display: none !important; }
+  .hero-badges { display: none !important; }
+}
 @media (min-width: 980px) {
   .hero-inner {
     grid-template-columns: 1.05fr 0.95fr !important;
