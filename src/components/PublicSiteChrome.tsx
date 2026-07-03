@@ -1,14 +1,23 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Menu, X } from 'lucide-react';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
+
+const NAV_LINKS = [
+  { href: '/marketplace', label: 'Marketplace' },
+  { href: '/stores', label: 'Stores' },
+  { href: '/business', label: 'For Business' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/docs', label: 'Help' },
+];
 
 export function PublicSiteNav() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [appName, setAppName] = useState('Front Store');
   const [mounted, setMounted] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -53,11 +62,9 @@ export function PublicSiteNav() {
 
         <div className="public-site-nav__links" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <ThemeToggle />
-          <a href="/marketplace" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Marketplace</a>
-          <a href="/stores" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Stores</a>
-          <a href="/business" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>For Business</a>
-          <a href="/blog" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Blog</a>
-          <a href="/docs" className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>Help</a>
+          {NAV_LINKS.map(link => (
+            <a key={link.href} href={link.href} className="btn btn-ghost public-site-nav__secondary" style={{ padding: '8px 10px', fontSize: 13, textDecoration: 'none' }}>{link.label}</a>
+          ))}
           {!mounted ? (
             <div style={{ width: 140, height: 36 }} />
           ) : isLoggedIn ? (
@@ -72,12 +79,33 @@ export function PublicSiteNav() {
               </a>
             </>
           )}
+          <button
+            type="button"
+            className="public-site-nav__hamburger"
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen(o => !o)}
+            style={{ display: 'none', width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center', color: 'var(--text)' }}
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
+
+        {mobileOpen && (
+          <div className="public-site-nav__mobile-panel">
+            {NAV_LINKS.map(link => (
+              <a key={link.href} href={link.href} onClick={() => setMobileOpen(false)}>{link.label}</a>
+            ))}
+          </div>
+        )}
       </nav>
       <style jsx global>{`
         @media (max-width: 768px) {
           .public-site-nav__secondary {
             display: none !important;
+          }
+          .public-site-nav__hamburger {
+            display: inline-flex !important;
           }
         }
         @media (max-width: 640px) {
@@ -95,6 +123,34 @@ export function PublicSiteNav() {
           .public-site-nav__links a svg {
             display: none !important;
           }
+        }
+        .public-site-nav__mobile-panel {
+          display: none;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          flex-direction: column;
+          background: var(--surface);
+          border-bottom: 1px solid var(--border);
+          padding: 8px 20px 14px;
+          box-shadow: 0 12px 24px rgba(0,0,0,.08);
+        }
+        @media (max-width: 768px) {
+          .public-site-nav__mobile-panel {
+            display: flex;
+          }
+        }
+        .public-site-nav__mobile-panel a {
+          padding: 12px 4px;
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text);
+          text-decoration: none;
+          border-bottom: 1px solid var(--border);
+        }
+        .public-site-nav__mobile-panel a:last-child {
+          border-bottom: none;
         }
       `}</style>
     </>

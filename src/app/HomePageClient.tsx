@@ -5,7 +5,7 @@ import {
   Zap, Globe,
   Store, Star, ArrowRight, User, MessageCircle,
   CreditCard, Users, Brain, Megaphone, Check, X,
-  Play
+  Play, Menu
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
