@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin } from 'lucide-react';
 import { NIGERIAN_STATES, slugify } from '@/utils/nigerianStates';
+import SearchableSelect from '@/components/SearchableSelect';
 
 export default function CompareSearchClient() {
   const router = useRouter();
@@ -11,6 +12,11 @@ export default function CompareSearchClient() {
   const [state, setState] = useState('');
   const [city, setCity] = useState('');
   const [lga, setLga] = useState('');
+
+  const stateOptions = NIGERIAN_STATES.map((s) => ({
+    value: s.slug,
+    label: s.name,
+  }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,24 +58,14 @@ export default function CompareSearchClient() {
         <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6, display: 'block' }}>
           State
         </label>
-        <div style={{ position: 'relative' }}>
-          <MapPin size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)' }} />
-          <select
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            required
-            style={{
-              width: '100%', padding: '12px 12px 12px 36px', borderRadius: 'var(--r-md)',
-              border: '1px solid var(--border)', fontSize: 14, background: 'var(--surface)', color: 'var(--text)',
-              appearance: 'none',
-            }}
-          >
-            <option value="">Select a state</option>
-            {NIGERIAN_STATES.map((s) => (
-              <option key={s.slug} value={s.slug}>{s.name}</option>
-            ))}
-          </select>
-        </div>
+        <SearchableSelect
+          options={stateOptions}
+          value={state}
+          onChange={setState}
+          placeholder="Select a state"
+          searchPlaceholder="Search states..."
+          prefixIcon={<MapPin size={16} />}
+        />
       </div>
 
       <div style={{ display: 'flex', gap: 12 }}>

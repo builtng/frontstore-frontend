@@ -19,6 +19,7 @@ interface SearchableSelectProps {
   disabled?: boolean;
   style?: React.CSSProperties;
   className?: string;
+  prefixIcon?: React.ReactNode;
 }
 
 export default function SearchableSelect({
@@ -30,6 +31,7 @@ export default function SearchableSelect({
   disabled = false,
   style = {},
   className = '',
+  prefixIcon,
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -172,6 +174,9 @@ export default function SearchableSelect({
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+          {prefixIcon && (
+            <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>{prefixIcon}</span>
+          )}
           {selectedOption?.icon && (
             <span style={{ flexShrink: 0, display: 'inline-flex' }}>{selectedOption.icon}</span>
           )}
