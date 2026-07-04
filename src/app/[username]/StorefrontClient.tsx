@@ -28,6 +28,12 @@ import LaundryStorefront from "./LaundryStorefront";
 import PhotographerStorefront from "./PhotographerStorefront";
 import WhatsAppTVStorefront from "./WhatsAppTVStorefront";
 import AgentStorefront from "./AgentStorefront";
+import RetailStorefront from "./RetailStorefront";
+import FaithStorefront from "./FaithStorefront";
+import SchoolStorefront from "./SchoolStorefront";
+import PharmacyStorefront from "./PharmacyStorefront";
+import HomeServicesStorefront from "./HomeServicesStorefront";
+import AutoRepairStorefront from "./AutoRepairStorefront";
 
 
 // --- Types & Interfaces ---
@@ -858,6 +864,42 @@ export default function StorefrontClient({
   ];
   if (beautyPersonas.map(normalizeTemplateKey).includes(personaKey) || ['editorial', 'beauty'].includes(templateKey)) {
     return <BeautyStorefront {...sharedTemplateProps} />;
+  }
+
+  // Retail & groceries
+  const retailPersonas = ['retail-groceries', 'groceries', 'supermarket'];
+  if (retailPersonas.map(normalizeTemplateKey).includes(personaKey) || ['retail-groceries'].includes(templateKey)) {
+    return <RetailStorefront {...sharedTemplateProps} />;
+  }
+
+  // Faith community
+  const faithPersonas = ['faith-community', 'church', 'ministry'];
+  if (faithPersonas.map(normalizeTemplateKey).includes(personaKey) || ['faith-community'].includes(templateKey)) {
+    return <FaithStorefront {...sharedTemplateProps} />;
+  }
+
+  // School & education
+  const schoolPersonas = ['school-education', 'school', 'education'];
+  if (schoolPersonas.map(normalizeTemplateKey).includes(personaKey) || ['school-education'].includes(templateKey)) {
+    return <SchoolStorefront {...sharedTemplateProps} />;
+  }
+
+  // Pharmacy & health
+  const pharmacyPersonas = ['pharmacy-health', 'pharmacy', 'wellness'];
+  if (pharmacyPersonas.map(normalizeTemplateKey).includes(personaKey) || ['pharmacy-health'].includes(templateKey)) {
+    return <PharmacyStorefront {...sharedTemplateProps} />;
+  }
+
+  // Home services
+  const homeServicesPersonas = ['home-services', 'home-repair', 'handyman'];
+  if (homeServicesPersonas.map(normalizeTemplateKey).includes(personaKey) || ['home-services'].includes(templateKey)) {
+    return <HomeServicesStorefront {...sharedTemplateProps} />;
+  }
+
+  // Auto repair
+  const autoRepairPersonas = ['auto-repair', 'mechanic', 'auto-electrician'];
+  if (autoRepairPersonas.map(normalizeTemplateKey).includes(personaKey) || ['auto-repair'].includes(templateKey)) {
+    return <AutoRepairStorefront {...sharedTemplateProps} />;
   }
 
 

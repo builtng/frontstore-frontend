@@ -58,22 +58,24 @@ const parsePhoneNumber = (fullPhone: string) => {
 
 // ── Main form component ───────────────────────────────────────────────────────
 
-function SignupFormContent({ appName, registrationMethod = 'email' }: { appName: string; registrationMethod?: 'email' | 'whatsapp' | 'both' }) {
+function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appName: string; registrationMethod?: 'email' | 'whatsapp' | 'both' }) {
   const searchParams = useSearchParams();
 
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [storeName, setStoreName] = useState('');
   const [username, setUsername] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
+  const [otp, setOtp] = useState('');
   const [selectedPersona, setSelectedPersona] = useState('general-store');
   const [mounted, setMounted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
   const [isUsernameManuallyEdited, setIsUsernameManuallyEdited] = useState(false);
+  const [lastSentPhone, setLastSentPhone] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,10 +87,6 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
     sublabel: `${persona.persona} · ${persona.templateName} · ${persona.summary}`,
   }));
 
-  const isEmailRequired = registrationMethod === 'email' || registrationMethod === 'both';
-  const isPhoneRequired = registrationMethod === 'whatsapp' || registrationMethod === 'both';
-
-  // successData intentionally does NOT contain the password field
   const [successData, setSuccessData] = useState<{
     storeName: string;
     username: string;
@@ -97,10 +95,18 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
-  // Detect host suffix
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Resend cooldown timer effect
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown(c => c - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   // Auto-detect country code from IP
   useEffect(() => {
@@ -151,69 +157,45 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
     }
   }, [searchParams]);
 
-  const pwStrength = password.length > 0 ? getPasswordStrength(password) : null;
-
-  // Track active input focus for premium interactive styling
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
-  // ── Submit ──────────────────────────────────────────────────────────────────
+  // Helper to normalize phone
+  const getNormalizedPhone = () => {
+    const cleanDial = selectedCountry.dialCode.replace(/[^\d]/g, '');
+    let cleaned = phone.replace(/[^\d]/g, '');
+    if (cleaned.startsWith(cleanDial)) {
+      cleaned = cleaned.slice(cleanDial.length);
+    }
+    cleaned = cleaned.replace(/^0+/, '');
+    return `+${cleanDial}${cleaned}`;
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // ── Step 1 Submit (Send OTP) ───────────────────────────────────────────────
+  const handleSubmitStep1 = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const isEmailRequired = registrationMethod === 'email' || registrationMethod === 'both';
-    const isPhoneRequired = registrationMethod === 'whatsapp' || registrationMethod === 'both';
-
-    if (isEmailRequired && !email.trim()) {
-      setError('Please enter your email address.');
+    if (!storeName.trim()) {
+      setError('Please enter your Store Name.');
       return;
     }
-    if (email.trim() && !/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email address.');
+    if (!username.trim()) {
+      setError('Please choose a Store Link Name.');
       return;
     }
-    if (isPhoneRequired && !phone.trim()) {
+    if (!phone.trim()) {
       setError('Please enter your WhatsApp phone number.');
       return;
     }
-    if (!storeName || !username || !name || !password) {
-      setError('Please fill in all required fields.');
+
+    const normalizedPhone = getNormalizedPhone();
+    const localPhoneDigits = normalizedPhone.replace(/[^\d]/g, '').slice(selectedCountry.dialCode.replace(/[^\d]/g, '').length);
+    if (localPhoneDigits.length < 7) {
+      setError('Please enter a valid WhatsApp phone number.');
       return;
     }
 
-    let normalizedPhone = undefined;
-    let countryDialCode = undefined;
-
-    if (phone.trim()) {
-      const normalizePhone = (input: string, dialCode: string) => {
-        const cleanDial = dialCode.replace(/[^\d]/g, '');
-        let cleaned = input.replace(/[^\d]/g, '');
-        if (cleaned.startsWith(cleanDial)) {
-          cleaned = cleaned.slice(cleanDial.length);
-        }
-        cleaned = cleaned.replace(/^0+/, '');
-        return `+${cleanDial}${cleaned}`;
-      };
-      normalizedPhone = normalizePhone(phone, selectedCountry.dialCode);
-      countryDialCode = selectedCountry.dialCode;
-      const localPhoneDigits = normalizedPhone.replace(/[^\d]/g, '').slice(selectedCountry.dialCode.replace(/[^\d]/g, '').length);
-      if (localPhoneDigits.length < 7) {
-        setError('Please enter a valid WhatsApp phone number.');
-        return;
-      }
-    }
-
-    const cleanUsername = username.toLowerCase().replace(/[^a-z0-9_-]/g, '');
-    if (cleanUsername.length < 3) {
-      setError('Store username must be at least 3 characters.');
-      return;
-    }
-    if (RESERVED_SUBDOMAINS.includes(cleanUsername)) {
-      setError(`The username "${cleanUsername}" is reserved.`);
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    // Token Saver: Avoid sending a new OTP if phone number hasn't changed
+    if (lastSentPhone === normalizedPhone) {
+      setCurrentStep(2);
       return;
     }
 
@@ -221,52 +203,147 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
       setLoading(true);
       setError(null);
 
-      const res = await fetch(`${API_URL}/v1/auth/signup`, {
+      const res = await fetch(`${API_URL}/v1/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
-          store_name: storeName,
-          username: cleanUsername,
-          name,
           phone_number: normalizedPhone,
-          country_dial_code: countryDialCode,
-          business_persona: selectedPersona,
-          password,
-          email: email || undefined,
-        }),
+          country_dial_code: selectedCountry.dialCode
+        })
       });
 
       const json = await res.json();
       if (!res.ok) {
-        throw new Error(json.message || 'Registration failed. Try a different username or email.');
+        throw new Error(json.message || 'Failed to send verification code. Please check your number.');
+      }
+
+      toast.success(json.message || 'Verification code sent to your WhatsApp!');
+      setLastSentPhone(normalizedPhone);
+      setResendCooldown(60); // 60s default cooldown
+      setCurrentStep(2);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper to resend OTP code manually
+  const handleResendOtp = async () => {
+    const normalizedPhone = getNormalizedPhone();
+    try {
+      setLoading(true);
+      setError(null);
+
+      const res = await fetch(`${API_URL}/v1/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          phone_number: normalizedPhone,
+          country_dial_code: selectedCountry.dialCode
+        })
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to resend code.');
+      }
+
+      toast.success('A new verification code has been sent to your WhatsApp!');
+      setLastSentPhone(normalizedPhone);
+      setResendCooldown(60); // Reset cooldown
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Step 2 Submit (Verify OTP & Complete Setup) ────────────────────────────
+  const handleSubmitStep2 = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp.trim() || otp.length !== 6) {
+      setError('Please enter the 6-digit verification code.');
+      return;
+    }
+    if (!name.trim()) {
+      setError('Please enter your Full Name.');
+      return;
+    }
+
+    const normalizedPhone = getNormalizedPhone();
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // 1. Verify OTP code
+      const verifyRes = await fetch(`${API_URL}/v1/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          phone_number: normalizedPhone,
+          otp: otp,
+          country_dial_code: selectedCountry.dialCode
+        })
+      });
+
+      const verifyJson = await verifyRes.json();
+      if (!verifyRes.ok) {
+        throw new Error(verifyJson.message || 'Incorrect verification code. Please check and try again.');
+      }
+
+      // If existing user, log in immediately
+      if (!verifyJson.is_new_user) {
+        if (typeof window !== 'undefined' && verifyJson.token) {
+          localStorage.setItem('token', verifyJson.token);
+          localStorage.setItem('user', JSON.stringify(verifyJson.data?.user));
+          localStorage.setItem('store', JSON.stringify(verifyJson.data?.user?.store));
+        }
+        toast.success(`Welcome back, ${verifyJson.data?.user?.name || 'Merchant'}!`);
+        window.location.replace('/dashboard');
+        return;
+      }
+
+      // 2. New user: Complete onboarding/setup
+      const setupRes = await fetch(`${API_URL}/v1/auth/complete-setup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          setup_token: verifyJson.setup_token,
+          name: name,
+          store_name: storeName,
+          username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+          business_persona: selectedPersona,
+          email: email.trim() || undefined,
+          country_dial_code: selectedCountry.dialCode
+        })
+      });
+
+      const setupJson = await setupRes.json();
+      if (!setupRes.ok) {
+        throw new Error(setupJson.message || 'Failed to complete store setup. Please check your inputs.');
       }
 
       // Store credentials locally for automatic login
-      if (typeof window !== 'undefined' && json.data?.token) {
-        localStorage.setItem('token', json.data.token);
-        localStorage.setItem('user', JSON.stringify(json.data.user));
-        localStorage.setItem('store', JSON.stringify(json.data.store));
+      if (typeof window !== 'undefined' && setupJson.token) {
+        localStorage.setItem('token', setupJson.token);
+        localStorage.setItem('user', JSON.stringify(setupJson.data?.user));
+        localStorage.setItem('store', JSON.stringify(setupJson.data?.store));
       }
 
       const storeUrl = typeof window !== 'undefined'
-        ? `${window.location.origin}/${cleanUsername}`
-        : `https://frontstore.app/${cleanUsername}`;
+        ? `${window.location.origin}/${username.toLowerCase().replace(/[^a-z0-9_-]/g, '')}`
+        : `https://frontstore.app/${username.toLowerCase().replace(/[^a-z0-9_-]/g, '')}`;
 
       setSuccessData({
-        storeName: json.data?.store?.store_name ?? storeName,
-        username: cleanUsername,
+        storeName: setupJson.data?.store?.store_name ?? storeName,
+        username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
         storeUrl,
       });
 
-      // Wipe sensitive state from memory immediately
-      setPassword('');
-
     } catch (err: any) {
-      setError(
-        err instanceof TypeError
-          ? `Could not reach the server at ${API_URL}. Please check the API URL and try again.`
-          : err.message || 'An error occurred. Please try again.'
-      );
+      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -491,23 +568,22 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
         </div>
       )}
 
-      {/* Visual elegant step indicators */}
+      {/* Step Indicators */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
         {[
-          { label: 'Store Info', check: storeName && username },
-          { label: 'Your Details', check: name && phone },
-          { label: 'Security', check: password.length >= 6 }
+          { label: '1. Store & WhatsApp', active: currentStep === 1, done: currentStep > 1 },
+          { label: '2. Verify & Setup', active: currentStep === 2, done: false }
         ].map((step, i) => (
           <div key={step.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{
               height: 4, width: '100%', borderRadius: 99,
-              background: step.check ? 'var(--primary)' : (i === 0 ? 'var(--primary)' : 'var(--border)'),
-              opacity: step.check ? 1 : (i === 0 ? 1 : 0.6),
+              background: step.done || step.active ? 'var(--primary)' : 'var(--border)',
+              opacity: step.done || step.active ? 1 : 0.6,
               transition: 'all 0.3s var(--ease)'
             }} />
             <span style={{
               fontSize: 11,
-              color: step.check ? 'var(--primary)' : 'var(--text-muted)',
+              color: step.done || step.active ? 'var(--primary)' : 'var(--text-muted)',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
@@ -520,34 +596,431 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
       </div>
 
       {/* Form Container */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <form onSubmit={currentStep === 1 ? handleSubmitStep1 : handleSubmitStep2} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        {/* Section 1: Store Setup */}
-        <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 4 }}>
-            <div style={{ background: 'var(--primary-light)', padding: 6, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
-              <Store size={16} />
+        {/* Screen 1: Store Setup */}
+        {currentStep === 1 && (
+          <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 'var(--r-xl)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 4 }}>
+              <div style={{ background: 'var(--primary-light)', padding: 6, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
+                <Store size={16} />
+              </div>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Store Information</h3>
             </div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Store Information</h3>
-          </div>
 
-          {/* Business Type */}
-          <div>
-            <label
-              style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
-            >
-              Business Type
-            </label>
-            <SearchableSelect
-              options={businessPersonaOptions}
-              value={selectedPersona}
-              onChange={setSelectedPersona}
-              placeholder="Select your business type"
-              searchPlaceholder="Search business types, templates, or examples..."
-              style={{ zIndex: 20 }}
-            />
-            <div
+            {/* Store Name */}
+            <div>
+              <label
+                htmlFor="store-name"
+                style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
+              >
+                Store Name
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="store-name"
+                  type="text"
+                  required
+                  placeholder="e.g. Chioma's Fashion, Eko Goods"
+                  value={storeName}
+                  onChange={e => {
+                    const newName = e.target.value;
+                    setStoreName(newName);
+                    if (!isUsernameManuallyEdited) {
+                      const slug = newName
+                        .toLowerCase()
+                        .replace(/[^a-z0-9\s_-]/g, '')
+                        .trim()
+                        .replace(/\s+/g, '-');
+                      setUsername(slug);
+                    }
+                  }}
+                  onFocus={() => setFocusedInput('store-name')}
+                  onBlur={() => setFocusedInput(null)}
+                  className="input-field"
+                  style={{
+                    paddingLeft: 44,
+                    borderColor: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--border)'
+                  }}
+                  autoComplete="organization"
+                />
+                <Store size={18} style={{
+                  position: 'absolute',
+                  left: 14,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--text-faint)',
+                  transition: 'color var(--t-fast)'
+                }} />
+              </div>
+            </div>
+
+            {/* Store URL */}
+            <div>
+              <label
+                htmlFor="store-username"
+                style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
+              >
+                Store Link Name
+              </label>
+              <div style={{
+                display: 'flex', alignItems: 'center',
+                border: focusedInput === 'store-username' ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
+                borderRadius: 'var(--r-md)',
+                background: 'var(--surface)',
+                boxShadow: focusedInput === 'store-username' ? '0 0 0 3px var(--primary-glow)' : 'none',
+                transition: 'all var(--t-fast)',
+                position: 'relative'
+              }}>
+                <Globe size={18} style={{
+                  position: 'absolute',
+                  left: 14,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: focusedInput === 'store-username' ? 'var(--primary)' : 'var(--text-faint)',
+                  transition: 'color var(--t-fast)'
+                }} />
+                <span style={{ padding: '0 0 0 44px', color: 'var(--text-muted)', fontSize: 13.5, fontWeight: 600, whiteSpace: 'nowrap', userSelect: 'none' }}>
+                  frontstore.app/
+                </span>
+                <input
+                  id="store-username"
+                  type="text"
+                  required
+                  value={username}
+                  onFocus={() => setFocusedInput('store-username')}
+                  onBlur={() => setFocusedInput(null)}
+                  onChange={(e) => {
+                    const val = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+                    setUsername(val);
+                    if (val === '') {
+                      setIsUsernameManuallyEdited(false);
+                      const slug = storeName
+                        .toLowerCase()
+                        .replace(/[^a-z0-9\s_-]/g, '')
+                        .trim()
+                        .replace(/\s+/g, '-');
+                      setUsername(slug);
+                    } else {
+                      setIsUsernameManuallyEdited(true);
+                    }
+                  }}
+                  placeholder="yourname"
+                  style={{
+                    flex: 1,
+                    border: 'none',
+                    padding: '14px 14px 14px 0',
+                    fontSize: 15,
+                    outline: 'none',
+                    background: 'transparent',
+                    color: 'var(--text)',
+                    minWidth: 0,
+                  }}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </div>
+              {username && (
+                <span style={{ fontSize: 11.5, color: 'var(--primary)', display: 'block', marginTop: 6, fontWeight: 700 }}>
+                  Live link: frontstore.app/{username.toLowerCase()}
+                </span>
+              )}
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label
+                htmlFor="phone"
+                style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
+              >
+                WhatsApp Phone Number
+              </label>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                border: focusedInput === 'phone' ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
+                borderRadius: 'var(--r-md)',
+                background: 'var(--surface)',
+                boxShadow: focusedInput === 'phone' ? '0 0 0 3px var(--primary-glow)' : 'none',
+                transition: 'all var(--t-fast)',
+                position: 'relative'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '0 14px',
+                    height: '100%',
+                    minHeight: 46,
+                    background: 'none',
+                    border: 'none',
+                    borderRight: '1px solid var(--border)',
+                    cursor: 'pointer',
+                    fontSize: 15,
+                    color: 'var(--text)',
+                    fontWeight: 600,
+                    userSelect: 'none'
+                  }}
+                >
+                  <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
+                  <span>{selectedCountry.dialCode}</span>
+                  <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
+                </button>
+
+                <input
+                  id="phone"
+                  type="tel"
+                  required
+                  placeholder="e.g. 803 123 4567"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  onFocus={() => setFocusedInput('phone')}
+                  onBlur={() => setFocusedInput(null)}
+                  style={{
+                    flex: 1,
+                    padding: '13px 14px',
+                    border: 'none',
+                    fontSize: 15,
+                    outline: 'none',
+                    background: 'transparent',
+                    color: 'var(--text)',
+                    minWidth: 0,
+                  }}
+                  autoComplete="tel"
+                />
+
+                {isCountryDropdownOpen && (
+                  <div className="glass animate-scale-in" style={{
+                    position: 'absolute',
+                    top: '110%',
+                    left: 0,
+                    width: 280,
+                    maxHeight: 250,
+                    overflowY: 'auto',
+                    borderRadius: 'var(--r-lg)',
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface)',
+                    boxShadow: 'var(--shadow-lg)',
+                    zIndex: 100,
+                    padding: '6px 0'
+                  }}>
+                    {countries.map((c, idx) => (
+                      <button
+                        key={c.code}
+                        type="button"
+                        onMouseEnter={() => setHoveredCountryIndex(idx)}
+                        onMouseLeave={() => setHoveredCountryIndex(null)}
+                        onClick={() => {
+                          setSelectedCountry(c);
+                          setIsCountryDropdownOpen(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          padding: '10px 14px',
+                          background: selectedCountry.code === c.code
+                            ? 'var(--primary-light)'
+                            : hoveredCountryIndex === idx
+                              ? 'var(--bg-2)'
+                              : 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: 14,
+                          textAlign: 'left',
+                          color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)',
+                          fontWeight: selectedCountry.code === c.code ? 750 : 600,
+                          transition: 'background var(--t-fast)'
+                        }}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontSize: 18 }}>{c.flag}</span>
+                          <span>{c.name}</span>
+                        </span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{c.dialCode}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Submit Step 1 Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary clickable"
               style={{
+                padding: '16px',
+                fontSize: 16,
+                borderRadius: 'var(--r-xl)',
+                marginTop: 12,
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 800,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                boxShadow: 'var(--shadow-primary)',
+                width: '100%'
+              }}
+            >
+              {loading ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : null}
+              <span>
+                {loading ? 'Sending Code...' : 'Send Code via WhatsApp'}
+              </span>
+              {!loading ? (
+                <ArrowRight size={18} />
+              ) : null}
+            </button>
+          </div>
+        )}
+
+        {/* Screen 2: Details & Verification */}
+        {currentStep === 2 && (
+          <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 'var(--r-xl)' }}>
+            
+            {/* Back Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setCurrentStep(1);
+              }}
+              style={{
+                alignSelf: 'flex-start',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'none',
+                border: 'none',
+                color: 'var(--primary)',
+                fontSize: 13.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+                marginBottom: 4,
+                padding: '4px 0'
+              }}
+            >
+              ← Edit Store Name / Phone
+            </button>
+
+            {/* Welcome banner */}
+            <div style={{
+              background: 'linear-gradient(135deg, var(--primary-light), rgba(16, 185, 129, 0.05))',
+              color: 'var(--primary-dark)',
+              padding: '14px 18px',
+              borderRadius: 'var(--r-xl)',
+              fontSize: 14,
+              fontWeight: 700,
+              lineHeight: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              border: '1px solid rgba(16, 185, 129, 0.15)'
+            }}>
+              <CheckCircle2 size={18} style={{ flexShrink: 0, color: 'var(--primary)' }} />
+              <span>Welcome, <strong>{storeName}</strong>! We sent a 6-digit verification code to {getNormalizedPhone()} on WhatsApp.</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 4 }}>
+              <div style={{ background: 'var(--primary-light)', padding: 6, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
+                <Phone size={16} />
+              </div>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Onboarding & Verification</h3>
+            </div>
+
+            {/* OTP Code */}
+            <div>
+              <label htmlFor="otp-code" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                Verification Code (OTP)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="otp-code"
+                  type="text"
+                  required
+                  maxLength={6}
+                  pattern="\d{6}"
+                  placeholder="Enter 6-digit code"
+                  value={otp}
+                  onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onFocus={() => setFocusedInput('otp-code')}
+                  onBlur={() => setFocusedInput(null)}
+                  className="input-field"
+                  style={{
+                    paddingLeft: 44,
+                    borderColor: focusedInput === 'otp-code' ? 'var(--primary)' : 'var(--border)',
+                    letterSpacing: otp ? '0.3em' : 'normal',
+                    fontSize: otp ? 18 : 15,
+                    fontWeight: otp ? 'bold' : 'normal'
+                  }}
+                  autoComplete="one-time-code"
+                />
+                <Phone size={18} style={{
+                  position: 'absolute',
+                  left: 14,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: focusedInput === 'otp-code' ? 'var(--primary)' : 'var(--text-faint)',
+                  transition: 'color var(--t-fast)'
+                }} />
+              </div>
+            </div>
+
+            {/* Full Name */}
+            <div>
+              <label htmlFor="full-name" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                Full Name
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="full-name"
+                  type="text"
+                  required
+                  placeholder="e.g. Chidi Emmanuel"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  onFocus={() => setFocusedInput('full-name')}
+                  onBlur={() => setFocusedInput(null)}
+                  className="input-field"
+                  style={{
+                    paddingLeft: 44,
+                    borderColor: focusedInput === 'full-name' ? 'var(--primary)' : 'var(--border)'
+                  }}
+                  autoComplete="name"
+                />
+                <User size={18} style={{
+                  position: 'absolute',
+                  left: 14,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: focusedInput === 'full-name' ? 'var(--primary)' : 'var(--text-faint)',
+                  transition: 'color var(--t-fast)'
+                }} />
+              </div>
+            </div>
+
+            {/* Business Category Selector */}
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                Business Category
+              </label>
+              <SearchableSelect
+                options={businessPersonaOptions}
+                value={selectedPersona}
+                onChange={setSelectedPersona}
+                placeholder="Select your business category"
+                searchPlaceholder="Search category..."
+                style={{ zIndex: 20 }}
+              />
+              <div style={{
                 marginTop: 10,
                 padding: '12px 14px',
                 border: '1px solid var(--border)',
@@ -557,476 +1030,6 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
                 justifyContent: 'space-between',
                 gap: 14,
                 alignItems: 'flex-start',
-              }}
-            >
-              <div style={{ minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 10.5, color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', marginBottom: 4 }}>
-                  {selectedPersonaDetails.persona} · {selectedPersonaDetails.templateName}
-                </span>
-                <strong style={{ display: 'block', color: 'var(--text)', fontSize: 13.5, marginBottom: 3 }}>
-                  {selectedPersonaDetails.name}
-                </strong>
-                <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: 11.5, lineHeight: 1.45 }}>
-                  {selectedPersonaDetails.summary}
-                </span>
-              </div>
-              <span
-                style={{
-                  flexShrink: 0,
-                  fontSize: 10.5,
-                  fontWeight: 900,
-                  color: 'var(--primary)',
-                  background: 'var(--primary-light)',
-                  border: '1px solid var(--primary)',
-                  borderRadius: 999,
-                  padding: '5px 8px',
-                  textTransform: 'uppercase',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Template
-              </span>
-            </div>
-            <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 8 }}>
-              We will activate the best default template and storefront copy for this business type. You can change everything later in your dashboard.
-            </span>
-          </div>
-
-          {/* Store Name */}
-          <div>
-            <label
-              htmlFor="store-name"
-              style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
-            >
-              Store Name
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="store-name"
-                type="text"
-                required
-                placeholder="e.g. Chioma's Fashion, Lagos Tech Hub"
-                value={storeName}
-                onChange={e => {
-                  const newName = e.target.value;
-                  setStoreName(newName);
-                  if (!isUsernameManuallyEdited) {
-                    const slug = newName
-                      .toLowerCase()
-                      .replace(/[^a-z0-9\s_-]/g, '')
-                      .trim()
-                      .replace(/\s+/g, '-');
-                    setUsername(slug);
-                  }
-                }}
-                onFocus={() => setFocusedInput('store-name')}
-                onBlur={() => setFocusedInput(null)}
-                className="input-field"
-                style={{
-                  paddingLeft: 44,
-                  borderColor: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--border)'
-                }}
-                autoComplete="organization"
-              />
-              <Store size={18} style={{
-                position: 'absolute',
-                left: 14,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--text-faint)',
-                transition: 'color var(--t-fast)'
-              }} />
-            </div>
-          </div>
-
-          {/* Store URL */}
-          <div>
-            <label
-              htmlFor="store-username"
-              style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
-            >
-              Store Link Name
-            </label>
-            <div style={{
-              display: 'flex', alignItems: 'center',
-              border: focusedInput === 'store-username' ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
-              borderRadius: 'var(--r-md)',
-              background: 'var(--surface)',
-              boxShadow: focusedInput === 'store-username' ? '0 0 0 3px var(--primary-glow)' : 'none',
-              transition: 'all var(--t-fast)',
-              position: 'relative'
-            }}>
-              <Globe size={18} style={{
-                position: 'absolute',
-                left: 14,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: focusedInput === 'store-username' ? 'var(--primary)' : 'var(--text-faint)',
-                transition: 'color var(--t-fast)'
-              }} />
-              <span style={{ padding: '0 0 0 44px', color: 'var(--text-muted)', fontSize: 13.5, fontWeight: 600, whiteSpace: 'nowrap', userSelect: 'none' }}>
-                frontstore.app/
-              </span>
-              <input
-                id="store-username"
-                type="text"
-                required
-                value={username}
-                onFocus={() => setFocusedInput('store-username')}
-                onBlur={() => setFocusedInput(null)}
-                onChange={(e) => {
-                  const val = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
-                  setUsername(val);
-                  if (val === '') {
-                    setIsUsernameManuallyEdited(false);
-                    const slug = storeName
-                      .toLowerCase()
-                      .replace(/[^a-z0-9\s_-]/g, '')
-                      .trim()
-                      .replace(/\s+/g, '-');
-                    setUsername(slug);
-                  } else {
-                    setIsUsernameManuallyEdited(true);
-                  }
-                }}
-                placeholder="yourname"
-                style={{
-                  flex: 1,
-                  border: 'none',
-                  padding: '14px 14px 14px 0',
-                  fontSize: 15,
-                  outline: 'none',
-                  background: 'transparent',
-                  color: 'var(--text)',
-                  minWidth: 0,
-                }}
-                autoComplete="off"
-                spellCheck={false}
-              />
-            </div>
-
-            {/* Live Link Preview Nudge */}
-            {username && (
-              <span style={{ fontSize: 11.5, color: 'var(--primary)', display: 'block', marginTop: 6, fontWeight: 700 }}>
-                Live link: frontstore.app/{username.toLowerCase()}
-              </span>
-            )}
-            <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 4 }}>
-              Used to access your storefront · Letters, numbers & dashes only
-            </span>
-          </div>
-        </div>
-
-        {/* Section 2: Contact Info */}
-        <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 4 }}>
-            <div style={{ background: 'var(--primary-light)', padding: 6, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
-              <User size={16} />
-            </div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Account & WhatsApp Details</h3>
-          </div>
-
-          {/* Full Name */}
-          <div>
-            <label
-              htmlFor="full-name"
-              style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
-            >
-              Full Name
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="full-name"
-                type="text"
-                required
-                placeholder="e.g. Babajide Kolawole"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                onFocus={() => setFocusedInput('full-name')}
-                onBlur={() => setFocusedInput(null)}
-                className="input-field"
-                style={{
-                  paddingLeft: 44,
-                  borderColor: focusedInput === 'full-name' ? 'var(--primary)' : 'var(--border)'
-                }}
-                autoComplete="name"
-              />
-              <User size={18} style={{
-                position: 'absolute',
-                left: 14,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: focusedInput === 'full-name' ? 'var(--primary)' : 'var(--text-faint)',
-                transition: 'color var(--t-fast)'
-              }} />
-            </div>
-          </div>
-
-          {/* Phone Number */}
-          <div>
-            <label
-              htmlFor="phone"
-              style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
-            >
-              {isPhoneRequired ? 'WhatsApp Number' : 'WhatsApp Number (Optional)'}
-            </label>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              border: focusedInput === 'phone' ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
-              borderRadius: 'var(--r-md)',
-              background: 'var(--surface)',
-              boxShadow: focusedInput === 'phone' ? '0 0 0 3px var(--primary-glow)' : 'none',
-              transition: 'all var(--t-fast)',
-              position: 'relative'
-            }}>
-              {/* Country Code Trigger Button */}
-              <button
-                type="button"
-                onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '0 14px',
-                  height: '100%',
-                  minHeight: 46,
-                  background: 'none',
-                  border: 'none',
-                  borderRight: '1px solid var(--border)',
-                  cursor: 'pointer',
-                  fontSize: 15,
-                  color: 'var(--text)',
-                  fontWeight: 600,
-                  userSelect: 'none'
-                }}
-              >
-                <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
-                <span>{selectedCountry.dialCode}</span>
-                <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
-              </button>
-
-              {/* Real Phone Input */}
-              <input
-                id="phone"
-                type="tel"
-                required={isPhoneRequired}
-                placeholder="e.g. 803 123 4567"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                onFocus={() => setFocusedInput('phone')}
-                onBlur={() => setFocusedInput(null)}
-                style={{
-                  flex: 1,
-                  padding: '13px 14px',
-                  border: 'none',
-                  fontSize: 15,
-                  outline: 'none',
-                  background: 'transparent',
-                  color: 'var(--text)',
-                  minWidth: 0,
-                }}
-                autoComplete="tel"
-              />
-
-              {/* Dropdown Menu */}
-              {isCountryDropdownOpen && (
-                <div className="glass animate-scale-in" style={{
-                  position: 'absolute',
-                  top: '110%',
-                  left: 0,
-                  width: 280,
-                  maxHeight: 250,
-                  overflowY: 'auto',
-                  borderRadius: 'var(--r-lg)',
-                  border: '1px solid var(--border)',
-                  background: 'var(--surface)',
-                  boxShadow: 'var(--shadow-lg)',
-                  zIndex: 100,
-                  padding: '6px 0'
-                }}>
-                  {countries.map((c, idx) => (
-                    <button
-                      key={c.code}
-                      type="button"
-                      onMouseEnter={() => setHoveredCountryIndex(idx)}
-                      onMouseLeave={() => setHoveredCountryIndex(null)}
-                      onClick={() => {
-                        setSelectedCountry(c);
-                        setIsCountryDropdownOpen(false);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        width: '100%',
-                        padding: '10px 14px',
-                        background: selectedCountry.code === c.code
-                          ? 'var(--primary-light)'
-                          : hoveredCountryIndex === idx
-                            ? 'var(--bg-2)'
-                            : 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: 14,
-                        textAlign: 'left',
-                        color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)',
-                        fontWeight: selectedCountry.code === c.code ? 750 : 600,
-                        transition: 'background var(--t-fast)'
-                      }}
-                    >
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 18 }}>{c.flag}</span>
-                        <span>{c.name}</span>
-                      </span>
-                      <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{c.dialCode}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-              Enter your local number (e.g. 0808 943 7483). Country code is added automatically.
-            </span>
-          </div>
-
-          {/* Email Address */}
-          <div>
-            <label
-              htmlFor="email"
-              style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
-            >
-              {isEmailRequired ? 'Email Address' : 'Email Address (Optional)'}
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="email"
-                type="email"
-                required={isEmailRequired}
-                placeholder="e.g. merchant@example.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                onFocus={() => setFocusedInput('email')}
-                onBlur={() => setFocusedInput(null)}
-                className="input-field"
-                style={{
-                  paddingLeft: 44,
-                  borderColor: focusedInput === 'email' ? 'var(--primary)' : 'var(--border)'
-                }}
-                autoComplete="email"
-              />
-              <Mail size={18} style={{
-                position: 'absolute',
-                left: 14,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: focusedInput === 'email' ? 'var(--primary)' : 'var(--text-faint)',
-                transition: 'color var(--t-fast)'
-              }} />
-            </div>
-            <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-              For receiving shop performance reports & order alerts.
-            </span>
-          </div>
-        </div>
-
-        {/* Section 3: Password */}
-        <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 4 }}>
-            <div style={{ background: 'var(--primary-light)', padding: 6, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
-              <Lock size={16} />
-            </div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Account Security</h3>
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
-            >
-              Password
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="password"
-                type={showPw ? 'text' : 'password'}
-                required
-                minLength={6}
-                placeholder="Choose a secure password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                onFocus={() => setFocusedInput('password')}
-                onBlur={() => setFocusedInput(null)}
-                className="input-field"
-                style={{
-                  paddingLeft: 44,
-                  paddingRight: 48,
-                  borderColor: focusedInput === 'password' ? 'var(--primary)' : 'var(--border)'
-                }}
-                autoComplete="new-password"
-              />
-              <Lock size={18} style={{
-                position: 'absolute',
-                left: 14,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: focusedInput === 'password' ? 'var(--primary)' : 'var(--text-faint)',
-                transition: 'color var(--t-fast)'
-              }} />
-              <button
-                type="button"
-                onClick={() => setShowPw(v => !v)}
-                style={{
-                  position: 'absolute', right: 14, top: '50%',
-                  transform: 'translateY(-50%)',
-                  border: 'none', background: 'none',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--text-faint)', padding: 4,
-                }}
-                aria-label={showPw ? 'Hide password' : 'Show password'}
-                suppressHydrationWarning
-              >
-                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-
-            {/* Strength meter */}
-            {pwStrength && (
-              <div style={{ marginTop: 10 }}>
-                <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <div
-                      key={i}
-                      style={{
-                        flex: 1, height: 4, borderRadius: 99,
-                        background: i <= pwStrength.score ? pwStrength.color : 'var(--border)',
-                        transition: 'background 0.2s',
-                      }}
-                    />
-                  ))}
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 700, color: pwStrength.color, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {pwStrength.label} Security
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn btn-primary clickable"
-          style={{
-            padding: '16px',
-            fontSize: 16,
-            borderRadius: 'var(--r-xl)',
-            marginTop: 8,
-            fontFamily: 'var(--font-heading)',
-            fontWeight: 800,
-            display: 'inline-flex',
-            alignItems: 'center',
             justifyContent: 'center',
             gap: 8,
             boxShadow: 'var(--shadow-primary)'
@@ -1067,7 +1070,7 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
 
 export default function SignupPage() {
   const [appName, setAppName] = useState('Front Store');
-  const [registrationMethod, setRegistrationMethod] = useState<'email' | 'whatsapp' | 'both'>('email');
+  const [registrationMethod, setRegistrationMethod] = useState<'email' | 'whatsapp' | 'both'>('whatsapp');
 
   useEffect(() => {
     const loadPublicSettings = async () => {
@@ -1174,7 +1177,6 @@ export default function SignupPage() {
                 height: 26,
                 objectFit: 'contain',
                 flexShrink: 0,
-                filter: 'brightness(0) invert(1)',
               }}
             />
             <span>{appName}</span>

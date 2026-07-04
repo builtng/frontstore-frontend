@@ -22,6 +22,16 @@ const countries = [
   { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸' },
 ];
 
+const normalizePhone = (input: string, dialCode: string) => {
+  const cleanDial = dialCode.replace(/[^\d]/g, '');
+  let cleaned = input.replace(/[^\d]/g, '');
+  if (cleaned.startsWith(cleanDial)) {
+    cleaned = cleaned.slice(cleanDial.length);
+  }
+  cleaned = cleaned.replace(/^0+/, '');
+  return `+${cleanDial}${cleaned}`;
+};
+
 export default function BuyerSignupPage() {
   const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
@@ -61,12 +71,13 @@ export default function BuyerSignupPage() {
     try {
       setLoading(true);
       setError(null);
+      const normalizedPhone = normalizePhone(phone, selectedCountry.dialCode);
       const res = await fetch(`${API_URL}/v1/buyer/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           name,
-          phone_number: phone,
+          phone_number: normalizedPhone,
           country_dial_code: selectedCountry.dialCode,
           password,
         }),

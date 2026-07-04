@@ -652,7 +652,6 @@ export default function LoginPage() {
                 height: 26,
                 objectFit: 'contain',
                 flexShrink: 0,
-                filter: 'brightness(0) invert(1)',
               }}
             />
             <span>{appName}</span>

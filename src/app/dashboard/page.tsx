@@ -54,13 +54,13 @@ const getOrderDisplayAmount = (order: { total_amount: number | string; currency_
   return { symbol: getCurrencySymbol(currency || undefined), amount };
 };
 
-// --- Type Definitions ---
 interface UserInfo {
   id: string;
   name: string;
   phone_number: string;
   email?: string | null;
   plan?: string;
+  has_password?: boolean;
 }
 
 interface StoreLink {
@@ -2451,8 +2451,10 @@ export default function DashboardPage() {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!cpCurrent || !cpNew || !cpConfirm) {
-      toast.warning('Please fill in all password fields.');
+    const isCurrentRequired = user?.has_password !== false;
+
+    if ((isCurrentRequired && !cpCurrent) || !cpNew || !cpConfirm) {
+      toast.warning(isCurrentRequired ? 'Please fill in all password fields.' : 'Please fill in the new password fields.');
       return;
     }
 
@@ -2472,7 +2474,7 @@ export default function DashboardPage() {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          current_password: cpCurrent,
+          current_password: isCurrentRequired ? cpCurrent : undefined,
           new_password: cpNew,
           new_password_confirmation: cpConfirm,
         }),
@@ -2480,10 +2482,15 @@ export default function DashboardPage() {
 
       const json = await res.json();
       if (res.ok) {
-        toast.success('Password updated successfully! 🔒');
+        toast.success(isCurrentRequired ? 'Password updated successfully! 🔒' : 'Password set successfully! 🔒');
         setCpCurrent('');
         setCpNew('');
         setCpConfirm('');
+        
+        // Update user has_password status
+        const updatedUser = json.user || { ...user, has_password: true };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
       } else {
         throw new Error(json.message || 'Password update failed.');
       }
@@ -5465,34 +5472,38 @@ export default function DashboardPage() {
                         <div style={{ background: 'var(--primary-light)', padding: 5, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
                           <Key size={14} />
                         </div>
-                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Update Password</h3>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>
+                          {user?.has_password === false ? 'Set Account Password' : 'Update Password'}
+                        </h3>
                       </div>
                       <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         {/* Current Password */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Current Password</label>
-                          <div style={{ position: 'relative' }}>
-                            <input
-                              type={showCpCurrent ? 'text' : 'password'}
-                              value={cpCurrent}
-                              onChange={e => setCpCurrent(e.target.value)}
-                              className="input-field"
-                              placeholder="••••••••"
-                              style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowCpCurrent(!showCpCurrent)}
-                              style={{
-                                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                                background: 'none', border: 'none', color: 'var(--text-muted)',
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                              }}
-                            >
-                              {showCpCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
-                            </button>
+                        {user?.has_password !== false && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <label style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Current Password</label>
+                            <div style={{ position: 'relative' }}>
+                              <input
+                                type={showCpCurrent ? 'text' : 'password'}
+                                value={cpCurrent}
+                                onChange={e => setCpCurrent(e.target.value)}
+                                className="input-field"
+                                placeholder="••••••••"
+                                style={{ paddingRight: 40, height: 38, fontSize: 13.5 }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowCpCurrent(!showCpCurrent)}
+                                style={{
+                                  position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                                  background: 'none', border: 'none', color: 'var(--text-muted)',
+                                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                }}
+                              >
+                                {showCpCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+                              </button>
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         {/* New Password */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -5558,9 +5569,9 @@ export default function DashboardPage() {
                           {cpSaving ? (
                             <>
                               <Loader2 size={14} className="spinner" />
-                              Updating...
+                              Saving...
                             </>
-                          ) : 'Update Password'}
+                          ) : (user?.has_password === false ? 'Set Account Password' : 'Update Password')}
                         </button>
                       </form>
                     </div>

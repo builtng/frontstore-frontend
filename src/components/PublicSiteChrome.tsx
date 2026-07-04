@@ -1,16 +1,15 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, Menu, X } from 'lucide-react';
+import { ArrowRight, Briefcase, ChevronRight, HelpCircle, Menu, Newspaper, Store, X } from 'lucide-react';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 
 const NAV_LINKS = [
-  { href: '/marketplace', label: 'Marketplace' },
-  { href: '/stores', label: 'Stores' },
-  { href: '/business', label: 'For Business' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/docs', label: 'Help' },
+  { href: '/stores', label: 'Stores', icon: Store },
+  { href: '/business', label: 'For Business', icon: Briefcase },
+  { href: '/blog', label: 'Blog', icon: Newspaper },
+  { href: '/docs', label: 'Help', icon: HelpCircle },
 ];
 
 export function PublicSiteNav() {
@@ -44,6 +43,15 @@ export function PublicSiteNav() {
     };
     loadPublicSettings();
   }, []);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [mobileOpen]);
 
   return (
     <>
@@ -82,23 +90,72 @@ export function PublicSiteNav() {
           <button
             type="button"
             className="public-site-nav__hamburger"
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-label="Open menu"
             aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen(o => !o)}
-            style={{ display: 'none', width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center', color: 'var(--text)' }}
+            onClick={() => setMobileOpen(true)}
           >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            <Menu size={19} />
+          </button>
+        </div>
+      </nav>
+
+      <div
+        className={`public-site-drawer__backdrop${mobileOpen ? ' is-open' : ''}`}
+        onClick={() => setMobileOpen(false)}
+        aria-hidden="true"
+      />
+
+      <aside
+        className={`public-site-drawer${mobileOpen ? ' is-open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site menu"
+      >
+        <div className="public-site-drawer__header">
+          <Logo size={22} textColor="var(--primary)" text={appName} />
+          <button
+            type="button"
+            className="public-site-drawer__close"
+            aria-label="Close menu"
+            onClick={() => setMobileOpen(false)}
+          >
+            <X size={18} />
           </button>
         </div>
 
-        {mobileOpen && (
-          <div className="public-site-nav__mobile-panel">
-            {NAV_LINKS.map(link => (
-              <a key={link.href} href={link.href} onClick={() => setMobileOpen(false)}>{link.label}</a>
-            ))}
+        <div className="public-site-drawer__actions">
+          <ThemeToggle />
+          {!mounted ? null : isLoggedIn ? (
+            <a href="/dashboard" className="btn btn-primary" onClick={() => setMobileOpen(false)}>
+              Dashboard <ArrowRight size={14} />
+            </a>
+          ) : (
+            <a href="/signup" className="btn btn-primary" onClick={() => setMobileOpen(false)}>
+              Get started <ArrowRight size={14} />
+            </a>
+          )}
+        </div>
+
+        <nav className="public-site-drawer__links" aria-label="Site navigation">
+          {NAV_LINKS.map(link => {
+            const Icon = link.icon;
+            return (
+              <a key={link.href} href={link.href} onClick={() => setMobileOpen(false)}>
+                <span className="public-site-drawer__link-icon"><Icon size={17} /></span>
+                <span className="public-site-drawer__link-label">{link.label}</span>
+                <ChevronRight size={16} className="public-site-drawer__link-chevron" />
+              </a>
+            );
+          })}
+        </nav>
+
+        {mounted && !isLoggedIn && (
+          <div className="public-site-drawer__footer">
+            <a href="/login" onClick={() => setMobileOpen(false)}>Sign in</a>
           </div>
         )}
-      </nav>
+      </aside>
+
       <style jsx global>{`
         @media (max-width: 768px) {
           .public-site-nav__secondary {
@@ -124,33 +181,161 @@ export function PublicSiteNav() {
             display: none !important;
           }
         }
-        .public-site-nav__mobile-panel {
+        .public-site-nav__hamburger {
           display: none;
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          flex-direction: column;
+          width: 38px;
+          height: 38px;
+          border-radius: var(--r-md, 10px);
+          align-items: center;
+          justify-content: center;
+          color: var(--text);
           background: var(--surface);
+          border: 1.5px solid var(--border-strong);
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .public-site-nav__hamburger:hover {
+          border-color: var(--primary);
+          background: var(--surface-2);
+        }
+
+        .public-site-drawer__backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(4, 12, 22, 0.5);
+          -webkit-backdrop-filter: blur(2px);
+          backdrop-filter: blur(2px);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.25s ease;
+          z-index: 90;
+        }
+        .public-site-drawer__backdrop.is-open {
+          opacity: 1;
+          pointer-events: auto;
+        }
+
+        .public-site-drawer {
+          position: fixed;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          width: min(340px, 86vw);
+          background: var(--surface);
+          border-left: 1px solid var(--border);
+          box-shadow: -16px 0 40px rgba(0,0,0,.18);
+          z-index: 91;
+          display: flex;
+          flex-direction: column;
+          padding: 16px 18px 20px;
+          transform: translateX(100%);
+          transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .public-site-drawer.is-open {
+          transform: translateX(0);
+        }
+
+        .public-site-drawer__header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-bottom: 16px;
+          margin-bottom: 16px;
           border-bottom: 1px solid var(--border);
-          padding: 8px 20px 14px;
-          box-shadow: 0 12px 24px rgba(0,0,0,.08);
         }
-        @media (max-width: 768px) {
-          .public-site-nav__mobile-panel {
-            display: flex;
-          }
+        .public-site-drawer__close {
+          width: 36px;
+          height: 36px;
+          border-radius: 999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--surface-2);
+          color: var(--text-muted);
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
-        .public-site-nav__mobile-panel a {
-          padding: 12px 4px;
-          font-size: 14px;
-          font-weight: 600;
+        .public-site-drawer__close:hover {
+          background: var(--danger-light, rgba(231,76,60,.12));
+          color: var(--danger, #e74c3c);
+          transform: rotate(90deg);
+        }
+
+        .public-site-drawer__actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+        .public-site-drawer__actions .btn {
+          flex: 1;
+          justify-content: center;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 10px 14px;
+          font-size: 13px;
+          text-decoration: none;
+        }
+
+        .public-site-drawer__links {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .public-site-drawer__links a {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 13px 10px;
+          border-radius: var(--r-md, 12px);
           color: var(--text);
           text-decoration: none;
-          border-bottom: 1px solid var(--border);
+          font-size: 14.5px;
+          font-weight: 600;
+          transition: background 0.15s ease;
         }
-        .public-site-nav__mobile-panel a:last-child {
-          border-bottom: none;
+        .public-site-drawer__links a:hover {
+          background: var(--surface-2);
+        }
+        .public-site-drawer__link-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border-radius: 9px;
+          background: var(--surface-2);
+          color: var(--primary);
+          flex-shrink: 0;
+        }
+        .public-site-drawer__link-label {
+          flex: 1;
+        }
+        .public-site-drawer__link-chevron {
+          color: var(--text-faint);
+          flex-shrink: 0;
+        }
+
+        .public-site-drawer__footer {
+          margin-top: auto;
+          padding-top: 16px;
+          border-top: 1px solid var(--border);
+          text-align: center;
+        }
+        .public-site-drawer__footer a {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text-muted);
+          text-decoration: none;
+        }
+
+        @media (min-width: 769px) {
+          .public-site-drawer,
+          .public-site-drawer__backdrop {
+            display: none;
+          }
         }
       `}</style>
     </>
@@ -205,7 +390,6 @@ export function PublicSiteFooter() {
         © {new Date().getFullYear()} {appName}. Africa's #1 WhatsApp commerce platform.
       </p>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <a href="/marketplace" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Marketplace</a>
         <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Stores</a>
         <a href="/business" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>For Business</a>
         <a href="/blog" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Blog</a>

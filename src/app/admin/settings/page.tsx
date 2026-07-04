@@ -384,8 +384,8 @@ export default function AdminSettingsPage() {
                   value={settings.registration_method}
                   onChange={(value) => setSettings({ ...settings, registration_method: value as any })}
                   options={[
-                    { value: 'email', label: 'Email Address Only (Default)' },
-                    { value: 'whatsapp', label: 'WhatsApp Phone Number Only' },
+                    { value: 'email', label: 'Email Address Only' },
+                    { value: 'whatsapp', label: 'WhatsApp Phone Number Only (Default)' },
                     { value: 'both', label: 'Both Email and WhatsApp Phone Number' },
                   ]}
                   description="Choose credentials required for merchant storefront registration."

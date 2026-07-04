@@ -121,7 +121,7 @@ export const defaultSettings: SystemSettings = {
   store_disclaimer: '',
   homepage_content: '',
   mobile_hero: '',
-  registration_method: 'email',
+  registration_method: 'whatsapp',
   pro_monthly_price: '1500',
   pro_yearly_price: '15000',
   verification_provider: 'manual',

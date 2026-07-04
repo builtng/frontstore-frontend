@@ -26,7 +26,7 @@ const HOME_NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '#about', label: 'About' },
   { href: '#how-it-works', label: 'How it works' },
-  { href: '/marketplace', label: 'Marketplace' },
+  { href: '/stores', label: 'Stores' },
   { href: '/blog', label: 'Blog' },
 ];
 
@@ -1145,7 +1145,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           <a href="/" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Home</a>
           <a href="#about" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>About</a>
           <a href="#how-it-works" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>How it works</a>
-          <a href="/marketplace" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Marketplace</a>
+          <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Stores</a>
           <a href="/blog" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Blog</a>
           <a href={isLoggedIn ? '/dashboard' : '/signup'} style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>{isLoggedIn ? 'Dashboard' : 'Sign up'}</a>
           <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
