@@ -73,6 +73,7 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
+  const [isUsernameManuallyEdited, setIsUsernameManuallyEdited] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -146,6 +147,7 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
         .map(w => w.charAt(0).toUpperCase() + w.slice(1))
         .join(' ');
       setStoreName(guessed);
+      setIsUsernameManuallyEdited(true);
     }
   }, [searchParams]);
 
@@ -605,7 +607,18 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
                 required
                 placeholder="e.g. Chioma's Fashion, Lagos Tech Hub"
                 value={storeName}
-                onChange={e => setStoreName(e.target.value)}
+                onChange={e => {
+                  const newName = e.target.value;
+                  setStoreName(newName);
+                  if (!isUsernameManuallyEdited) {
+                    const slug = newName
+                      .toLowerCase()
+                      .replace(/[^a-z0-9\s_-]/g, '')
+                      .trim()
+                      .replace(/\s+/g, '-');
+                    setUsername(slug);
+                  }
+                }}
                 onFocus={() => setFocusedInput('store-name')}
                 onBlur={() => setFocusedInput(null)}
                 className="input-field"
@@ -661,7 +674,21 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
                 value={username}
                 onFocus={() => setFocusedInput('store-username')}
                 onBlur={() => setFocusedInput(null)}
-                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
+                onChange={(e) => {
+                  const val = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+                  setUsername(val);
+                  if (val === '') {
+                    setIsUsernameManuallyEdited(false);
+                    const slug = storeName
+                      .toLowerCase()
+                      .replace(/[^a-z0-9\s_-]/g, '')
+                      .trim()
+                      .replace(/\s+/g, '-');
+                    setUsername(slug);
+                  } else {
+                    setIsUsernameManuallyEdited(true);
+                  }
+                }}
                 placeholder="yourname"
                 style={{
                   flex: 1,
