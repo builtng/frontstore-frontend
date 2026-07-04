@@ -5,7 +5,7 @@ import {
   Zap, Globe,
   Store, Star, ArrowRight, User, MessageCircle,
   CreditCard, Users, Brain, Megaphone, Check, X,
-  Play, Menu
+  Play, Menu, ChevronRight
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import ThemeToggle from '../components/ThemeToggle';
@@ -237,6 +237,15 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
   }, []);
 
   useEffect(() => {
+    if (!mobileNavOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [mobileNavOpen]);
+
+  useEffect(() => {
     if (!initialSettings) {
       fetch(`${API_URL}/v1/public/settings`)
         .then(res => res.json())
@@ -357,23 +366,68 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           <button
             type="button"
             className="home-nav-hamburger"
-            aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+            aria-label="Open menu"
             aria-expanded={mobileNavOpen}
-            onClick={() => setMobileNavOpen(o => !o)}
+            onClick={() => setMobileNavOpen(true)}
             style={{ display: 'none', width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center', color: 'var(--text)' }}
           >
-            {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
+            <Menu size={20} />
+          </button>
+        </div>
+      </nav>
+
+      <div
+        className={`home-nav-drawer__backdrop${mobileNavOpen ? ' is-open' : ''}`}
+        onClick={() => setMobileNavOpen(false)}
+        aria-hidden="true"
+      />
+
+      <aside
+        className={`home-nav-drawer${mobileNavOpen ? ' is-open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site menu"
+      >
+        <div className="home-nav-drawer__header">
+          <Logo size={22} textColor="var(--primary)" text={appName} />
+          <button
+            type="button"
+            className="home-nav-drawer__close"
+            aria-label="Close menu"
+            onClick={() => setMobileNavOpen(false)}
+          >
+            <X size={18} />
           </button>
         </div>
 
-        {mobileNavOpen && (
-          <div className="home-nav-mobile-panel">
-            {HOME_NAV_LINKS.map(link => (
-              <a key={link.href} href={link.href} onClick={() => setMobileNavOpen(false)}>{link.label}</a>
-            ))}
+        <div className="home-nav-drawer__actions">
+          <ThemeToggle />
+          {!mounted ? null : isLoggedIn ? (
+            <a href="/dashboard" className="btn btn-primary" onClick={() => setMobileNavOpen(false)}>
+              Dashboard <ArrowRight size={14} />
+            </a>
+          ) : (
+            <a href="/signup" className="btn btn-primary" onClick={() => setMobileNavOpen(false)}>
+              Get started <ArrowRight size={14} />
+            </a>
+          )}
+        </div>
+
+        <nav className="home-nav-drawer__links" aria-label="Site navigation">
+          {HOME_NAV_LINKS.map(link => (
+            <a key={link.href} href={link.href} onClick={() => setMobileNavOpen(false)}>
+              <span className="home-nav-drawer__link-label">{link.label}</span>
+              <ChevronRight size={16} className="home-nav-drawer__link-chevron" />
+            </a>
+          ))}
+        </nav>
+
+        {mounted && !isLoggedIn && (
+          <div className="home-nav-drawer__footer">
+            <a href="/login" onClick={() => setMobileNavOpen(false)}>Sign in</a>
           </div>
         )}
-      </nav>
+      </aside>
 
       {/* ── Hero ── */}
       <header style={{
@@ -667,33 +721,132 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           }
         }
 
-        .home-nav-mobile-panel {
-          display: none;
-          position: absolute;
-          top: 100%;
-          left: 0;
+        .home-nav-drawer__backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(4, 12, 22, 0.5);
+          -webkit-backdrop-filter: blur(2px);
+          backdrop-filter: blur(2px);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.25s ease;
+          z-index: 90;
+        }
+        .home-nav-drawer__backdrop.is-open {
+          opacity: 1;
+          pointer-events: auto;
+        }
+
+        .home-nav-drawer {
+          position: fixed;
+          top: 0;
           right: 0;
-          flex-direction: column;
+          bottom: 0;
+          width: min(340px, 86vw);
           background: var(--surface);
+          border-left: 1px solid var(--border);
+          box-shadow: -16px 0 40px rgba(0,0,0,.18);
+          z-index: 91;
+          display: flex;
+          flex-direction: column;
+          padding: 16px 18px 20px;
+          transform: translateX(100%);
+          transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .home-nav-drawer.is-open {
+          transform: translateX(0);
+        }
+
+        .home-nav-drawer__header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-bottom: 16px;
+          margin-bottom: 16px;
           border-bottom: 1px solid var(--border);
-          padding: 8px 20px 14px;
-          box-shadow: 0 12px 24px rgba(0,0,0,.08);
         }
-        @media (max-width: 640px) {
-          .home-nav-mobile-panel {
-            display: flex;
-          }
+        .home-nav-drawer__close {
+          width: 36px;
+          height: 36px;
+          border-radius: 999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--surface-2);
+          color: var(--text-muted);
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
-        .home-nav-mobile-panel a {
-          padding: 12px 4px;
-          font-size: 14px;
-          font-weight: 600;
+        .home-nav-drawer__close:hover {
+          background: var(--danger-light, rgba(231,76,60,.12));
+          color: var(--danger, #e74c3c);
+          transform: rotate(90deg);
+        }
+
+        .home-nav-drawer__actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+        .home-nav-drawer__actions .btn {
+          flex: 1;
+          justify-content: center;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 10px 14px;
+          font-size: 13px;
+          text-decoration: none;
+        }
+
+        .home-nav-drawer__links {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .home-nav-drawer__links a {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 13px 10px;
+          border-radius: var(--r-md, 12px);
           color: var(--text);
           text-decoration: none;
-          border-bottom: 1px solid var(--border);
+          font-size: 14.5px;
+          font-weight: 600;
+          transition: background 0.15s ease;
         }
-        .home-nav-mobile-panel a:last-child {
-          border-bottom: none;
+        .home-nav-drawer__links a:hover {
+          background: var(--surface-2);
+        }
+        .home-nav-drawer__link-label {
+          flex: 1;
+        }
+        .home-nav-drawer__link-chevron {
+          color: var(--text-faint);
+          flex-shrink: 0;
+        }
+
+        .home-nav-drawer__footer {
+          margin-top: auto;
+          padding-top: 16px;
+          border-top: 1px solid var(--border);
+          text-align: center;
+        }
+        .home-nav-drawer__footer a {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text-muted);
+          text-decoration: none;
+        }
+
+        @media (min-width: 769px) {
+          .home-nav-drawer,
+          .home-nav-drawer__backdrop {
+            display: none;
+          }
         }
       `}</style>
 

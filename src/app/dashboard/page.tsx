@@ -529,6 +529,12 @@ export default function DashboardPage() {
 
   const getSelectedPersonaPreset = () => businessPersonas.find(item => item.id === selectedPersona);
 
+  const businessPersonaOptions = businessPersonas.map(persona => ({
+    value: persona.id,
+    label: persona.name,
+    sublabel: `${persona.persona} · ${persona.templateName} · ${persona.summary}`,
+  }));
+
   // Quick discount campaign modal
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [discountPercent, setDiscountPercent] = useState('10');
@@ -595,6 +601,7 @@ export default function DashboardPage() {
   const [detectedCountryCode, setDetectedCountryCode] = useState<string | null>(null);
   const [detectedCurrencyCode, setDetectedCurrencyCode] = useState<string | null>(null);
   const [geoDetectionDone, setGeoDetectionDone] = useState(false);
+  const [countryDetectionFailed, setCountryDetectionFailed] = useState(false);
   const autoDetectAppliedRef = useRef(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsSubTab, setSettingsSubTab] = useState<'profile' | 'design' | 'social' | 'payment' | 'security'>('profile');
@@ -931,27 +938,36 @@ export default function DashboardPage() {
       .catch(err => console.error('Failed to fetch subscription pricing:', err));
   }, [apiUrl]);
 
-  // Surface the merchant's own detected location as read-only context in Settings (helps them fill in Store Location accurately),
-  // and capture the detected country/currency so a brand-new store can auto-select them below.
+  // Best-effort city/country label for the Store Location hint — third-party and
+  // frequently blocked by ad blockers/privacy extensions, so failures here are silent
+  // and non-fatal (worst case the "Detected near…" hint just doesn't show).
   useEffect(() => {
-    const detectMerchantLocation = async () => {
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        if (res.ok) {
-          const data = await res.json();
-          const parts = [data?.city, data?.country_name].filter(Boolean);
-          if (parts.length > 0) setDetectedMerchantLocation(parts.join(', '));
-          if (data?.country_code) setDetectedCountryCode(String(data.country_code).toUpperCase());
-          if (data?.currency) setDetectedCurrencyCode(String(data.currency).toUpperCase());
-        }
-      } catch (e) {
-        console.warn('Merchant location detection failed:', e);
-      } finally {
-        setGeoDetectionDone(true);
-      }
-    };
-    detectMerchantLocation();
+    fetch('https://ipapi.co/json/')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        const parts = [data?.city, data?.country_name].filter(Boolean);
+        if (parts.length > 0) setDetectedMerchantLocation(parts.join(', '));
+      })
+      .catch(() => {});
   }, []);
+
+  // Authoritative country/currency detection for auto-selecting Store Country + Currency
+  // below. Routed through our own backend (same GeoIP lookup used at signup) instead of
+  // calling a third-party IP API directly from the browser, since that call is commonly
+  // blocked by ad blockers/privacy extensions — which was silently leaving stores on the
+  // USD/no-country fallback even for merchants outside the US.
+  useEffect(() => {
+    fetch(`${apiUrl}/v1/meta/detect-location`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(json => {
+        const data = json?.data;
+        if (data?.country_code) setDetectedCountryCode(String(data.country_code).toUpperCase());
+        if (data?.currency_code) setDetectedCurrencyCode(String(data.currency_code).toUpperCase());
+        if (!data?.country_code) setCountryDetectionFailed(true);
+      })
+      .catch(() => setCountryDetectionFailed(true))
+      .finally(() => setGeoDetectionDone(true));
+  }, [apiUrl]);
 
   // Fetch the canonical country list for the Store Country selector
   useEffect(() => {
@@ -962,9 +978,10 @@ export default function DashboardPage() {
   }, [apiUrl]);
 
   // For a store that has no country locked in yet, auto-select the Store Country + Currency
-  // from the merchant's detected IP location (falling back to USD if detection fails or the
-  // detected country isn't in our supported list). Runs once; never overrides an existing
-  // selection or a saved store.country_code.
+  // from the merchant's detected IP location. If detection fails (or the detected country
+  // isn't in our supported list), leave both fields unset rather than silently guessing USD —
+  // countryDetectionFailed drives a prompt telling the merchant to pick their country manually.
+  // Runs once; never overrides an existing selection or a saved store.country_code.
   useEffect(() => {
     if (autoDetectAppliedRef.current) return;
     if (store?.country_code) return; // already saved server-side — field is locked, leave it alone
@@ -979,7 +996,7 @@ export default function DashboardPage() {
       setSetStoreCountryCode(match.code);
       setSetCurrency(match.default_currency || detectedCurrencyCode || 'USD');
     } else {
-      setSetCurrency(detectedCurrencyCode || 'USD');
+      setCountryDetectionFailed(true);
     }
   }, [geoDetectionDone, metaCountries, detectedCountryCode, detectedCurrencyCode, setStoreCountryCode, store]);
 
@@ -4840,9 +4857,11 @@ export default function DashboardPage() {
                               placeholder="Select Country"
                               disabled={!!store?.country_code}
                             />
-                            <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                            <span style={{ fontSize: 11, color: countryDetectionFailed && !store?.country_code ? 'var(--warning, #b45309)' : 'var(--text-faint)', display: 'block', marginTop: 5 }}>
                               {store?.country_code
                                 ? 'Locked once set. Contact support to change your store country.'
+                                : countryDetectionFailed
+                                ? "We couldn't detect your country automatically — please select it below."
                                 : 'Determines which payment providers you can accept below.'}
                             </span>
                           </div>
@@ -4913,25 +4932,46 @@ export default function DashboardPage() {
 
                           <div>
                             <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Business Persona</label>
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 12,
-                              padding: '12px 16px',
-                              borderRadius: 'var(--r-md)',
-                              background: 'var(--bg-3)',
-                              border: '1px solid var(--border)',
-                            }}>
-                              <Briefcase size={20} color="var(--primary)" />
-                              <div>
-                                <strong style={{ display: 'block', fontSize: 14, color: 'var(--text)' }}>
-                                  {businessPersonas.find(p => p.id === selectedPersona)?.name || 'Custom / Unassigned'}
-                                </strong>
-                                <span style={{ display: 'block', fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                                  {businessPersonas.find(p => p.id === selectedPersona)?.summary || 'Custom storefront setup'}
+                            {isPro ? (
+                              <>
+                                <SearchableSelect
+                                  options={businessPersonaOptions}
+                                  value={selectedPersona}
+                                  onChange={applyPersonaPreset}
+                                  placeholder="Select your business category"
+                                  searchPlaceholder="Search category..."
+                                />
+                                <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 6 }}>
+                                  Changing this switches your storefront's template and default copy. Save settings to publish it.
                                 </span>
-                              </div>
-                            </div>
+                              </>
+                            ) : (
+                              <>
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 12,
+                                  padding: '12px 16px',
+                                  borderRadius: 'var(--r-md)',
+                                  background: 'var(--bg-3)',
+                                  border: '1px solid var(--border)',
+                                  opacity: 0.85,
+                                }}>
+                                  <Briefcase size={20} color="var(--primary)" />
+                                  <div>
+                                    <strong style={{ display: 'block', fontSize: 14, color: 'var(--text)' }}>
+                                      {businessPersonas.find(p => p.id === selectedPersona)?.name || 'Custom / Unassigned'}
+                                    </strong>
+                                    <span style={{ display: 'block', fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                                      {businessPersonas.find(p => p.id === selectedPersona)?.summary || 'Custom storefront setup'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 6 }}>
+                                  Upgrade to Pro to change your business category and storefront template.
+                                </span>
+                              </>
+                            )}
                           </div>
 
                           <div className="responsive-form-row">
