@@ -576,6 +576,10 @@ export default function DashboardPage() {
   const [setStoreSince, setSetStoreSince] = useState('');
   const [deliveryInfo, setDeliveryInfo] = useState('');
   const [returnPolicy, setReturnPolicy] = useState('');
+  const [announcementTitle, setAnnouncementTitle] = useState('');
+  const [announcementBody, setAnnouncementBody] = useState('');
+  const [announcementCtaLabel, setAnnouncementCtaLabel] = useState('');
+  const [announcementCtaPage, setAnnouncementCtaPage] = useState('');
   const [setBannerUrl, setSetBannerUrl] = useState('');
   const [localWhatsapp, setLocalWhatsapp] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -870,6 +874,10 @@ export default function DashboardPage() {
               setSetStoreSince(parsedStore.since || '');
               setDeliveryInfo(parsedStore.delivery_info || '');
               setReturnPolicy(parsedStore.return_policy || '');
+              setAnnouncementTitle(parsedStore.announcement_title || '');
+              setAnnouncementBody(parsedStore.announcement_body || '');
+              setAnnouncementCtaLabel(parsedStore.announcement_cta_label || '');
+              setAnnouncementCtaPage(parsedStore.announcement_cta_page || '');
               setSetBannerUrl(parsedStore.banner_url || '');
               const parsedPhone = parsePhoneNumber(parsedStore.whatsapp_phone || '');
               setSelectedCountry(parsedPhone.country);
@@ -1238,6 +1246,10 @@ export default function DashboardPage() {
           setBookingCapacityPerDay(Number(liveStore.booking_capacity_per_day));
         }
         setReturnPolicy(liveStore.return_policy || '');
+        setAnnouncementTitle(liveStore.announcement_title || '');
+        setAnnouncementBody(liveStore.announcement_body || '');
+        setAnnouncementCtaLabel(liveStore.announcement_cta_label || '');
+        setAnnouncementCtaPage(liveStore.announcement_cta_page || '');
         setSetBannerUrl(liveStore.banner_url || '');
         const parsedPhone = parsePhoneNumber(liveStore.whatsapp_phone || '');
         setSelectedCountry(parsedPhone.country);
@@ -2190,6 +2202,10 @@ export default function DashboardPage() {
           payment_instructions: paymentInstructions || null,
           delivery_info: deliveryInfo || null,
           return_policy: returnPolicy || null,
+          announcement_title: announcementTitle || null,
+          announcement_body: announcementBody || null,
+          announcement_cta_label: announcementCtaLabel || null,
+          announcement_cta_page: announcementCtaPage || null,
           paystack_bank_code: paymentBankCode || null,
           bank_account_verified: accountVerified,
           custom_links: customLinks,
@@ -2223,6 +2239,10 @@ export default function DashboardPage() {
         setSetStoreSince(json.data.since || '');
         setDeliveryInfo(json.data.delivery_info || '');
         setReturnPolicy(json.data.return_policy || '');
+        setAnnouncementTitle(json.data.announcement_title || '');
+        setAnnouncementBody(json.data.announcement_body || '');
+        setAnnouncementCtaLabel(json.data.announcement_cta_label || '');
+        setAnnouncementCtaPage(json.data.announcement_cta_page || '');
         setSetBannerUrl(json.data.banner_url || '');
         setLogoUrl(json.data.logo_url || null);
         const parsedPhone = parsePhoneNumber(json.data.whatsapp_phone || '');
@@ -4908,6 +4928,81 @@ export default function DashboardPage() {
                             style={{ resize: 'vertical' }}
                             maxLength={300}
                           />
+                        </div>
+
+                        {/* ── Announcement Banner ── */}
+                        <div style={{
+                          border: '1.5px solid var(--border)',
+                          borderRadius: 'var(--r-xl)',
+                          padding: 18,
+                          background: 'var(--bg-2)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 16
+                        }}>
+                          <div>
+                            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <Megaphone size={16} color="var(--primary)" /> Announcement Banner
+                            </h3>
+                            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.45 }}>
+                              Shows a dismissible banner at the top of your storefront. Leave the title and message blank to hide it.
+                            </p>
+                          </div>
+
+                          <div className="responsive-form-row">
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Title</label>
+                              <input
+                                type="text"
+                                value={announcementTitle}
+                                onChange={e => setAnnouncementTitle(e.target.value)}
+                                placeholder="e.g. Sale ends Sunday"
+                                className="input-field"
+                                maxLength={255}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Button Label (optional)</label>
+                              <input
+                                type="text"
+                                value={announcementCtaLabel}
+                                onChange={e => setAnnouncementCtaLabel(e.target.value)}
+                                placeholder="e.g. Shop now"
+                                className="input-field"
+                                maxLength={100}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Message</label>
+                            <textarea
+                              rows={2}
+                              value={announcementBody}
+                              onChange={e => setAnnouncementBody(e.target.value)}
+                              placeholder="e.g. 20% off all products this weekend only. Free delivery on orders over ₦20,000."
+                              className="input-field"
+                              style={{ resize: 'vertical' }}
+                              maxLength={300}
+                            />
+                          </div>
+
+                          {announcementCtaLabel && (
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Button Links To</label>
+                              <input
+                                type="text"
+                                value={announcementCtaPage}
+                                onChange={e => setAnnouncementCtaPage(e.target.value)}
+                                placeholder="e.g. shop, services, contact"
+                                className="input-field"
+                                maxLength={100}
+                              />
+                              <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                                The storefront section your button opens, e.g. "shop", "services", or "contact".
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         {/* ── Storefront Writing (moved here from right column) ── */}

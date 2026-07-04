@@ -1424,7 +1424,7 @@ export default function SchoolStorefront({
       <div className="ab-socials">
         <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {(DUMMY_STORE.socials?.instagram || '')}</button>
         <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {(DUMMY_STORE.socials?.tiktok || '')}</button>
-        <button onClick={() => ping("Opening WhatsApp")}><WhatsApp size={16} /> WhatsApp</button>
+        <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={16} /> WhatsApp</button>
       </div>
     </div>
     <button className="ab-book-m" onClick={() => openBooking()}><Calendar size={16} /> Register now</button></>);
@@ -1456,7 +1456,7 @@ export default function SchoolStorefront({
     <div className="faq-help">
       <b>Still need help?</b>
       <p>Message the studio directly and we will get back to you, usually in {DUMMY_STORE.reply}.</p>
-      <button className="faq-help-cta" onClick={() => ping("Opening WhatsApp")}><WhatsApp size={15} /> Message on WhatsApp</button>
+      <button className="faq-help-cta" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={15} /> Message on WhatsApp</button>
     </div>
   );
   const faqBody = () => (<>
@@ -1469,7 +1469,7 @@ export default function SchoolStorefront({
   </>);
   const contactChannels = () => (
     <div className="ct-channels">
-      <button className="ct-wa" onClick={() => ping("Opening WhatsApp")}><WhatsApp size={18} /> Chat on WhatsApp</button>
+      <button className="ct-wa" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={18} /> Chat on WhatsApp</button>
       <div className="ct-alt">
         <button onClick={() => ping("Opening email")}><Mail size={15} /> {DUMMY_STORE.email}</button>
         <button onClick={() => ping("Opening phone")}><Phone size={15} /> {DUMMY_STORE.phone}</button>
@@ -1521,7 +1521,7 @@ export default function SchoolStorefront({
           <div className="ab-follow-icons">
             <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
             <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
-            <button onClick={() => ping("Opening WhatsApp")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
+            <button onClick={() => handleWa("Hello! I'm interested in your services.")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
           </div>
         </div>
       </div>
@@ -1574,7 +1574,7 @@ export default function SchoolStorefront({
     <div className="blog-convert">
       <b>Need to cancel or return something?</b>
       <p>Message the studio and we will sort your cancellation, return or refund.</p>
-      <button className="blog-convert-cta" onClick={() => ping("Opening WhatsApp")}><WhatsApp size={15} /> Message on WhatsApp</button>
+      <button className="blog-convert-cta" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={15} /> Message on WhatsApp</button>
       <button className="blog-convert-ghost" onClick={() => go("contact")}>Contact options</button>
     </div>
   );
@@ -1752,7 +1752,7 @@ export default function SchoolStorefront({
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1773,7 +1773,7 @@ export default function SchoolStorefront({
       <div className="ps-panel-actions">
         <button className="ps-act-book" onClick={() => { primaryCta.run(); onClose && onClose(); }}><primaryCta.Icon size={17} /> {primaryCta.label}</button>
         <div className="ps-act-row">
-          {DUMMY_STORE.primaryCta !== "message" && <button onClick={() => { ping("Opening WhatsApp"); onClose && onClose(); }}><WhatsApp size={16} /> Message</button>}
+          {DUMMY_STORE.primaryCta !== "message" && <button onClick={() => { handleWa("Hello! I'm interested in your services."); onClose && onClose(); }}><WhatsApp size={16} /> Message</button>}
           <button onClick={() => { setShare(true); onClose && onClose(); }}><Share2 size={16} /> Share</button>
         </div>
       </div>
@@ -1829,7 +1829,7 @@ export default function SchoolStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1847,7 +1847,7 @@ export default function SchoolStorefront({
                 </div>
                 <div className="ps-stats">
                   <div><b><Star size={14} className="ps-star" /> {DUMMY_STORE.rating}</b><span>{DUMMY_STORE.reviews} reviews</span></div>
-                  <div><b>{DUMMY_STORE.orders}</b><span>cleans done</span></div>
+                  <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
                   <div><b>{DUMMY_STORE.reply}</b><span>reply time</span></div>
                 </div>
                 <p className="ps-bio">{DUMMY_STORE.bio}</p>
@@ -1912,7 +1912,7 @@ export default function SchoolStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -1939,7 +1939,7 @@ export default function SchoolStorefront({
                 </div>
                 <div className="pd-identity-actions">
                   <button className="pd-book" onClick={primaryCta.run}><primaryCta.Icon size={16} /> {primaryCta.label}</button>
-                  {DUMMY_STORE.primaryCta !== "message" && <button className="pd-ghost" onClick={() => ping("Opening WhatsApp")}><WhatsApp size={16} /> Message</button>}
+                  {DUMMY_STORE.primaryCta !== "message" && <button className="pd-ghost" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={16} /> Message</button>}
                   <button className="pd-ghost" onClick={() => setNotifyOpen(true)}><Bell size={16} /> Get notified</button>
                 </div>
               </div>
@@ -1966,7 +1966,7 @@ export default function SchoolStorefront({
                     <p className="ps-addr"><MapPin size={14} /> {DUMMY_STORE.address}</p>
                     <div className="pd-railbtns">
                       <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
-                      <button onClick={() => ping("Opening WhatsApp")}><WhatsApp size={14} /> Message</button>
+                      <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
                     </div>
                     <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
                   </div>
@@ -2043,7 +2043,7 @@ export default function SchoolStorefront({
                           <span className="svc-open"><span className="ps-pulse" /> Open now</span>
                           <p className="svc-next">Next availability <b>Today, 3:00pm</b></p>
                           <button className="svc-book-cta" onClick={() => openBooking()}><Calendar size={16} /> Book a slot</button>
-                          <button className="svc-msg" onClick={() => ping("Opening WhatsApp")}><WhatsApp size={15} /> Message on WhatsApp</button>
+                          <button className="svc-msg" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={15} /> Message on WhatsApp</button>
                         </div>
                       </aside>
 
@@ -2116,7 +2116,7 @@ export default function SchoolStorefront({
                             <li><MapPin size={14} /> Pickup available in Lekki</li>
                           </ul>
                           <button className="svc-book-cta" onClick={() => setBag(true)}><ShoppingBag size={16} /> View bag{bagCount > 0 ? ` (${bagCount})` : ""}</button>
-                          <button className="svc-msg" onClick={() => ping("Opening WhatsApp")}><WhatsApp size={15} /> Ask about a product</button>
+                          <button className="svc-msg" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={15} /> Ask about a product</button>
                         </div>
                       </aside>
 
@@ -2355,14 +2355,14 @@ export default function SchoolStorefront({
                       <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>
                       <div className="pd-railbtns">
                         <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
-                        <button onClick={() => ping("Opening WhatsApp")}><WhatsApp size={14} /> Message</button>
+                        <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
                       </div>
                       <div className="ab-follow-rail">
                         <span>Follow the studio</span>
                         <div className="ab-follow-icons">
                           <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
                           <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
-                          <button onClick={() => ping("Opening WhatsApp")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
+                          <button onClick={() => handleWa("Hello! I'm interested in your services.")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
                         </div>
                       </div>
                     </div>
@@ -2775,7 +2775,7 @@ const css = `
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
 .ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
-.ps-logo span{color:var(--brand);}
+.ps-logo-text span{color:var(--brand);}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
 .ps-star{color:var(--gold);fill:var(--gold);}

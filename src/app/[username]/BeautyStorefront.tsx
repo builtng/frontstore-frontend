@@ -628,7 +628,7 @@ export default function BeautyStorefront({
 
   const openWhatsAppChat = (message: string) => {
     const phone = store.whatsapp_phone.replace(/\D/g, '');
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+    setPendingWaUrl(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
   };
 
   const primaryCta = useMemo(() => {
@@ -1650,7 +1650,7 @@ export default function BeautyStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><SearchIcon size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1784,7 +1784,7 @@ export default function BeautyStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><SearchIcon size={17} /> <span>Search {store.store_name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={copyUrl} aria-label="Share"><Share2 size={18} /></button>
@@ -2160,7 +2160,7 @@ export default function BeautyStorefront({
           <div className="ps-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="ps-panel">
               <div className="ps-panel-top">
-                <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></span>
+                <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></span>
                 <button className="ps-x" onClick={() => setDrawer(false)} aria-label="Close"><X size={20} /></button>
               </div>
               <button className="ps-id" onClick={() => go("home")}>
@@ -2617,7 +2617,7 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 
 .ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
-.ps-logo span{color:var(--brand);}
+.ps-logo-text span{color:var(--brand);}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
 .ps-star{color:var(--gold);fill:var(--gold);}

@@ -38,7 +38,7 @@
   align-items: center;
   gap: 7px;
 }
-.ps-logo span {
+.ps-logo-text span {
   color: var(--brand);
 }
 .ps-logo.as-btn {

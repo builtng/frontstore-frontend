@@ -1303,7 +1303,7 @@ export default function RestaurantStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1629,7 +1629,7 @@ export default function RestaurantStorefront({
                       <p className="ps-addr" style={{ marginBottom: 12 }}><MapPin size={15} /> <b>Location:</b> {store.location || "Victoria Island, Lagos"}</p>
                       {store.address && <p className="ps-addr" style={{ marginBottom: 12 }}><MapPin size={15} /> <b>Address:</b> {store.address}</p>}
                       
-                      <button className="ps-sheet-cta" style={{ marginTop: 20 }} onClick={() => window.open(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent("Hi! I'd like to get in touch.")}`, '_blank')}>
+                      <button className="ps-sheet-cta" style={{ marginTop: 20 }} onClick={() => setPendingWaUrl(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent("Hi! I'd like to get in touch.")}`)}>
                         <WhatsAppIcon size={18} /> Message on WhatsApp
                       </button>
                     </div>
@@ -1680,7 +1680,7 @@ export default function RestaurantStorefront({
               <div className="ps-drawer">
                 <div className="ps-panel">
                   <div className="ps-panel-top">
-                    <button className="ps-logo" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
+                    <button className="ps-logo" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
                     <button className="ps-x" onClick={() => setDrawer(false)} aria-label="Close menu"><X size={20} /></button>
                   </div>
                   <div className="ps-id">
@@ -1707,7 +1707,7 @@ export default function RestaurantStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} />frontstore<span>.app</span></button>
+            <button className="ps-logo" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
             <div className="pd-search" style={{ border: '1px solid var(--line)' }}>
               <Search size={16} />
               <input value={prodQuery} onChange={(e) => { setProdQuery(e.target.value); if (page !== "products" && page !== "product") go("products"); }} placeholder="Search dishes, drinks..." style={{ border: 'none', outline: 'none', background: 'none', width: '100%', fontSize: 13 }} />

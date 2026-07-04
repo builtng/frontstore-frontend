@@ -40,6 +40,8 @@ export default function AdminSettingsPage() {
   } = useAdmin();
 
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const logoFileInputRef = React.useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('branding');
 
   // Visual helper states for homepage_content and mobile_hero JSON configs
@@ -156,6 +158,31 @@ export default function AdminSettingsPage() {
       if (error.message !== 'Session expired') toast.error(error.message);
     } finally {
       setSettingsSaving(false);
+    }
+  };
+
+  const handleLogoFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    try {
+      setLogoUploading(true);
+      const formData = new FormData();
+      formData.append('logo', file);
+
+      const res = await fetch(`${apiUrl}/v1/admin/settings/upload-logo`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const json = await handleFetchResponse(res, 'Could not upload logo.');
+      setSettings({ ...settings, logo_url: json.url });
+      toast.success('Logo uploaded.');
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    } finally {
+      setLogoUploading(false);
     }
   };
 
@@ -304,11 +331,37 @@ export default function AdminSettingsPage() {
                   onChange={(value) => setSettings({ ...settings, app_name: value })}
                   required
                 />
-                <Field
-                  label="Logo URL"
-                  value={settings.logo_url}
-                  onChange={(value) => setSettings({ ...settings, logo_url: value })}
-                />
+                <label className="admin-field admin-field--full">
+                  <span>Platform Logo</span>
+                  <small className="admin-field-desc">Shown on the homepage, marketplace, and admin nav. PNG or SVG, square, works best.</small>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6 }}>
+                    {settings.logo_url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={settings.logo_url}
+                        alt="Current platform logo"
+                        style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'contain', border: '1px solid var(--border)', background: '#fff' }}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      onClick={() => logoFileInputRef.current?.click()}
+                      disabled={logoUploading}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    >
+                      {logoUploading ? <Loader2 className="admin-spin" size={15} /> : null}
+                      {logoUploading ? 'Uploading…' : settings.logo_url ? 'Replace logo' : 'Upload logo'}
+                    </button>
+                    <input
+                      ref={logoFileInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
+                      style={{ display: 'none' }}
+                      onChange={handleLogoFileChange}
+                    />
+                  </div>
+                </label>
                 <Field
                   label="System Domain"
                   value={settings.system_domain}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock, Star } from 'lucide-react';
+import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock, Star, Truck, PartyPopper, ShieldCheck, MapPin, User, Phone } from 'lucide-react';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
 
@@ -329,11 +329,20 @@ export default function OrderTrackingPage() {
   const isConfirmed = order.order_status === 'confirmed';
   const isCompleted = order.order_status === 'completed';
   const isDigitalOnly = order.items.length > 0 && order.items.every(item => item.product?.is_digital);
+  const isDelivered = order.delivery_confirmed_at !== null;
 
   // Progress indexes: Placed=1, Confirmed=2, Completed=3
   let activeStepIndex = 1;
   if (isConfirmed) activeStepIndex = 2;
   if (isCompleted) activeStepIndex = 3;
+
+  const statusMeta = isCancelled
+    ? { label: 'Cancelled', color: 'var(--danger)', bg: 'var(--danger-light)' }
+    : isCompleted
+    ? { label: isDigitalOnly ? 'Delivered' : 'Completed', color: 'var(--primary)', bg: 'var(--primary-light)' }
+    : isConfirmed
+    ? { label: 'In Progress', color: 'var(--accent)', bg: 'var(--accent-light)' }
+    : { label: 'Order Placed', color: 'var(--text-muted)', bg: 'var(--surface-2)' };
 
   // Build WhatsApp text for customer checking in
   const checkinMsg = `Hello *${store.store_name}*! I'm checking in on my order *#${order.order_number}* placed on ${new Date(order.created_at).toLocaleDateString()}. Let me know if there's any update!`;
@@ -343,26 +352,33 @@ export default function OrderTrackingPage() {
     <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', position: 'relative' }}>
 
       {/* Navbar Header */}
-      <header style={{ padding: '20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Package size={20} style={{ color: 'var(--primary)' }} />
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: 800, color: 'var(--text)' }}>
-            Track Order
-          </span>
+      <header style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: 34, height: 34, borderRadius: 'var(--r-md)', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Package size={17} style={{ color: 'var(--primary)' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: '15px', fontWeight: 800, color: 'var(--text)', lineHeight: 1.2 }}>
+              Track Order
+            </span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
+              {store.store_name}
+            </span>
+          </div>
         </div>
-        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>
-          {store.store_name}
+        <span className="badge" style={{ background: statusMeta.bg, color: statusMeta.color }}>
+          {statusMeta.label}
         </span>
       </header>
 
-      <main style={{ padding: '24px 16px 100px', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <main style={{ padding: '20px 16px 100px', flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
         {/* Order Identifier Header */}
-        <div style={{ textAlign: 'center' }}>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginBottom: '4px' }}>
+        <div style={{ textAlign: 'center', padding: '4px 0 4px' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginBottom: '4px', letterSpacing: '-0.02em' }}>
             Order #{order.order_number}
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13.5px' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
             Placed on {formattedDate}
           </p>
         </div>
@@ -383,20 +399,21 @@ export default function OrderTrackingPage() {
 
         {/* Secure Online Payment Box */}
         {order.payment_status === 'unpaid' && (
-          <div style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: '20px',
-            padding: '24px',
+          <div className="card" style={{
+            padding: '22px',
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',
-            boxShadow: 'var(--shadow-sm)',
             textAlign: 'center'
           }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'var(--text)' }}>
-              💳 Pay Online Securely
-            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ShieldCheck size={19} style={{ color: 'var(--primary)' }} />
+              </div>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--text)' }}>
+                Pay Online Securely
+              </h3>
+            </div>
             <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
               Pay via Paystack using Cards, Bank Transfer, or USSD to instantly process your order.
             </p>
@@ -409,13 +426,13 @@ export default function OrderTrackingPage() {
               color: 'var(--text-muted)',
               lineHeight: 1.4,
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               gap: '8px',
               textAlign: 'left'
             }}>
-              <span style={{ fontSize: '16px' }}>🛡️</span>
+              <ShieldCheck size={15} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 1 }} />
               <span>
-                <strong>Escrow Protection Active:</strong> For Free Plan stores, your payment is held securely in escrow until you confirm delivery below.
+                <strong style={{ color: 'var(--text)' }}>Escrow Protection Active:</strong> For Free Plan stores, your payment is held securely in escrow until you confirm delivery below.
               </span>
             </div>
             <button
@@ -448,17 +465,20 @@ export default function OrderTrackingPage() {
             background: 'rgba(16, 185, 129, 0.04)',
             border: '1.5px solid var(--primary)',
             boxShadow: '0 0 0 4px rgba(16,185,129,0.04)',
-            borderRadius: '20px',
-            padding: '24px',
+            borderRadius: 'var(--r-xl)',
+            padding: '22px',
             display: 'flex',
             flexDirection: 'column',
             gap: '16px'
           }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              📦 {isDigitalOnly ? 'Confirm Download' : 'Confirm Delivery Receipt'}
+            <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {isDigitalOnly ? <Download size={16} style={{ color: '#fff' }} /> : <Truck size={16} style={{ color: '#fff' }} />}
+              </span>
+              {isDigitalOnly ? 'Confirm Download' : 'Confirm Delivery Receipt'}
             </h3>
             <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-              {isDigitalOnly 
+              {isDigitalOnly
                 ? 'Since you have downloaded or accessed your digital items, click below to confirm receipt and release funds to the seller.'
                 : 'Once you have received your order items or the services have been rendered, click below to confirm receipt and release funds to the seller.'}
             </p>
@@ -512,101 +532,66 @@ export default function OrderTrackingPage() {
             <AlertCircle size={16} style={{ flexShrink: 0 }} /> This order has been cancelled by the seller.
           </div>
         ) : (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: 'var(--shadow-sm)' }}>
+          <div className="card" style={{ padding: '22px 22px 24px', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '18px' }}>
+              Order Progress
+            </h3>
 
-            {/* Timeline Item 1: Placed */}
-            <div style={{ display: 'flex', gap: '16px', position: 'relative' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  backgroundColor: 'var(--primary)',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  zIndex: 2
-                }}>
-                  <Check size={14} strokeWidth={3} />
+            {[
+              {
+                step: 1,
+                title: 'Order Placed',
+                desc: 'We have received your order details.',
+              },
+              {
+                step: 2,
+                title: 'Confirmed',
+                desc: 'Merchant is preparing your items.',
+              },
+              {
+                step: 3,
+                title: isDigitalOnly ? 'Access Provided' : 'Ready / Handed Over',
+                desc: isDigitalOnly ? 'Digital downloads unlocked and ready.' : 'Order completed and shipped or picked up.',
+              },
+            ].map(({ step, title, desc }, idx, arr) => {
+              const isDone = activeStepIndex >= step;
+              const isLast = idx === arr.length - 1;
+              return (
+                <div key={step} style={{ display: 'flex', gap: '14px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{
+                      width: '26px',
+                      height: '26px',
+                      borderRadius: '50%',
+                      backgroundColor: isDone ? 'var(--primary)' : 'var(--bg)',
+                      border: isDone ? 'none' : '2px solid var(--border)',
+                      color: isDone ? '#fff' : 'var(--text-faint)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      flexShrink: 0
+                    }}>
+                      {isDone ? <Check size={13} strokeWidth={3} /> : step}
+                    </div>
+                    {!isLast && (
+                      <div style={{
+                        width: '2px',
+                        flex: 1,
+                        minHeight: '28px',
+                        margin: '2px 0',
+                        backgroundColor: activeStepIndex > step ? 'var(--primary)' : 'var(--border)',
+                      }} />
+                    )}
+                  </div>
+                  <div style={{ paddingBottom: isLast ? 0 : '20px' }}>
+                    <h4 style={{ fontSize: '14.5px', fontWeight: 700, color: isDone ? 'var(--text)' : 'var(--text-faint)' }}>{title}</h4>
+                    <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '2px' }}>{desc}</p>
+                  </div>
                 </div>
-                {/* Connecting Line */}
-                <div style={{
-                  width: '3px',
-                  backgroundColor: activeStepIndex >= 2 ? 'var(--primary)' : 'var(--border)',
-                  position: 'absolute',
-                  top: 28,
-                  bottom: -20,
-                  zIndex: 1
-                }}></div>
-              </div>
-              <div>
-                <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Order Placed</h4>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>We have received your order details.</p>
-              </div>
-            </div>
-
-            {/* Timeline Item 2: Confirmed */}
-            <div style={{ display: 'flex', gap: '16px', position: 'relative' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  backgroundColor: activeStepIndex >= 2 ? 'var(--primary)' : 'var(--bg)',
-                  border: activeStepIndex >= 2 ? 'none' : '2px solid var(--border)',
-                  color: activeStepIndex >= 2 ? '#fff' : 'var(--text-muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '13px',
-                  fontWeight: 'bold',
-                  zIndex: 2
-                }}>
-                  {activeStepIndex >= 2 ? <Check size={14} strokeWidth={3} /> : '2'}
-                </div>
-                {/* Connecting Line */}
-                <div style={{
-                  width: '3px',
-                  backgroundColor: activeStepIndex >= 3 ? 'var(--primary)' : 'var(--border)',
-                  position: 'absolute',
-                  top: 28,
-                  bottom: -20,
-                  zIndex: 1
-                }}></div>
-              </div>
-              <div>
-                <h4 style={{ fontSize: '15px', fontWeight: 700, color: activeStepIndex >= 2 ? 'var(--text)' : 'var(--text-muted)' }}>Confirmed</h4>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>Merchant is preparing your items.</p>
-              </div>
-            </div>
-
-            {/* Timeline Item 3: Completed */}
-            <div style={{ display: 'flex', gap: '16px', position: 'relative' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  backgroundColor: activeStepIndex >= 3 ? 'var(--primary)' : 'var(--bg)',
-                  border: activeStepIndex >= 3 ? 'none' : '2px solid var(--border)',
-                  color: activeStepIndex >= 3 ? '#fff' : 'var(--text-muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '13px',
-                  fontWeight: 'bold',
-                  zIndex: 2
-                }}>
-                  {activeStepIndex >= 3 ? <Check size={14} strokeWidth={3} /> : '3'}
-                </div>
-              </div>
-              <div>
-                <h4 style={{ fontSize: '15px', fontWeight: 700, color: activeStepIndex >= 3 ? 'var(--text)' : 'var(--text-muted)' }}>{isDigitalOnly ? 'Access Provided' : 'Ready / Handed Over'}</h4>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>{isDigitalOnly ? 'Digital downloads unlocked and ready.' : 'Order completed and shipped or picked up.'}</p>
-              </div>
-            </div>
-
+              );
+            })}
           </div>
         )}
 
@@ -727,11 +712,11 @@ export default function OrderTrackingPage() {
           </div>
         )}
 
-        {/* Reviews Section */}
-        {order.payment_status === 'paid' && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
+        {/* Reviews Section — only once delivery/download is confirmed, so feedback reflects real experience */}
+        {(isDelivered || (order.reviews && order.reviews.length > 0)) && (
+          <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)', paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: 6 }}>
-              ⭐ Reviews & Feedback
+              <Star size={14} style={{ color: 'var(--accent)' }} fill="var(--accent)" /> Reviews & Feedback
             </h3>
 
             {(order.reviews && order.reviews.length > 0) || localReviewed ? (
@@ -777,9 +762,12 @@ export default function OrderTrackingPage() {
             ) : (
               // Review Submission Form
               <form onSubmit={handleSubmitReviews} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0 }}>
-                  Share your experience with the seller and other shoppers:
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <PartyPopper size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                  <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0 }}>
+                    Your order was marked {isDigitalOnly ? 'downloaded' : 'delivered'} — share your experience with the seller and other shoppers:
+                  </p>
+                </div>
 
                 {/* Star rating for products */}
                 {order.items.filter(item => item.product_id).map(item => (
@@ -871,17 +859,21 @@ export default function OrderTrackingPage() {
         )}
 
         {/* Delivery Details Card */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
             Delivery Details
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Customer Name</span>
+              <span style={{ color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <User size={13} /> Customer Name
+              </span>
               <span style={{ fontWeight: 600 }}>{order.customer_name}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>WhatsApp Number</span>
+              <span style={{ color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Phone size={13} /> WhatsApp Number
+              </span>
               <span style={{ fontWeight: 600 }}>{order.customer_phone}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -892,7 +884,9 @@ export default function OrderTrackingPage() {
             </div>
             {order.delivery_method === 'delivery' && order.delivery_address && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px', borderTop: '1px solid var(--border)', paddingTop: '8px' }}>
-                <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Shipping Address</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <MapPin size={13} /> Shipping Address
+                </span>
                 <span style={{ fontWeight: 500, lineHeight: 1.5, background: 'var(--bg)', padding: '10px 12px', borderRadius: '8px', fontSize: '13.5px' }}>
                   {order.delivery_address}
                 </span>
@@ -902,7 +896,7 @@ export default function OrderTrackingPage() {
         </div>
 
         {/* Order Items & Summary Card */}
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
             Order Items
           </h3>
