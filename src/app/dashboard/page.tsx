@@ -127,6 +127,8 @@ interface StoreInfo {
   verification_document_url?: string | null;
   working_hours?: Record<string, { open: string; close: string; enabled: boolean }> | null;
   booking_capacity_per_day?: number | null;
+  nina_chat_qr_enabled?: boolean | number;
+  nina_avatar_url?: string | null;
 }
 
 interface Category {
@@ -585,6 +587,8 @@ export default function DashboardPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [bannerUploading, setBannerUploading] = useState(false);
+  const [ninaAvatarUrl, setNinaAvatarUrl] = useState<string | null>(null);
+  const [ninaAvatarUploading, setNinaAvatarUploading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isChangingWhatsapp, setIsChangingWhatsapp] = useState(false);
   const [whatsappOtpStage, setWhatsappOtpStage] = useState<'entry' | 'otp'>('entry');
@@ -618,6 +622,7 @@ export default function DashboardPage() {
   // Storefront custom sections and reply time
   const [storefrontSections, setStorefrontSections] = useState<string[]>(['reviews', 'replies_approximation', 'products', 'services', 'portfolio', 'about', 'faq', 'contact', 'blog']);
   const [replyTimeMinutes, setReplyTimeMinutes] = useState<number | ''>('');
+  const [ninaChatQrEnabled, setNinaChatQrEnabled] = useState(false);
 
   // Availability / Booking settings
   const DEFAULT_WORKING_HOURS: Record<string, { open: string; close: string; enabled: boolean }> = {
@@ -1269,6 +1274,7 @@ export default function DashboardPage() {
         setAccountVerified(!!liveStore.bank_account_verified);
         setNameMatchOk(liveStore.bank_account_verified ? true : null);
         setLogoUrl(liveStore.logo_url || null);
+        setNinaAvatarUrl(liveStore.nina_avatar_url || null);
         setCustomLinks(liveStore.custom_links || []);
         setPrimaryColor(liveStore.primary_color || '#25D366');
         setSelectedTemplate(liveStore.store_template || 'luxe-market');
@@ -1284,6 +1290,7 @@ export default function DashboardPage() {
         setFeaturedProductIds((liveStore.featured_product_ids || []).slice(0, 5));
         setStorefrontSections(liveStore.storefront_sections || ['reviews', 'replies_approximation', 'products', 'services', 'portfolio', 'about', 'faq', 'contact', 'blog']);
         setReplyTimeMinutes(liveStore.reply_time_minutes !== null && liveStore.reply_time_minutes !== undefined ? liveStore.reply_time_minutes : '');
+        setNinaChatQrEnabled(!!liveStore.nina_chat_qr_enabled);
       }
 
     } catch (e) {
@@ -2224,6 +2231,8 @@ export default function DashboardPage() {
           featured_product_ids: featuredProductIds.slice(0, 5),
           storefront_sections: storefrontSections,
           reply_time_minutes: replyTimeMinutes !== '' ? Number(replyTimeMinutes) : null,
+          nina_chat_qr_enabled: ninaChatQrEnabled,
+          nina_avatar_url: ninaAvatarUrl,
         })
       });
 
@@ -2245,6 +2254,7 @@ export default function DashboardPage() {
         setAnnouncementCtaPage(json.data.announcement_cta_page || '');
         setSetBannerUrl(json.data.banner_url || '');
         setLogoUrl(json.data.logo_url || null);
+        setNinaAvatarUrl(json.data.nina_avatar_url || null);
         const parsedPhone = parsePhoneNumber(json.data.whatsapp_phone || '');
         setSelectedCountry(parsedPhone.country);
         setLocalWhatsapp(parsedPhone.local);
@@ -2273,6 +2283,7 @@ export default function DashboardPage() {
         setFeaturedProductIds((json.data.featured_product_ids || []).slice(0, 5));
         setStorefrontSections(json.data.storefront_sections || ['reviews', 'replies_approximation', 'products', 'services', 'portfolio', 'about', 'faq', 'contact', 'blog']);
         setReplyTimeMinutes(json.data.reply_time_minutes !== null && json.data.reply_time_minutes !== undefined ? json.data.reply_time_minutes : '');
+        setNinaChatQrEnabled(!!json.data.nina_chat_qr_enabled);
       } else {
         throw new Error(json.message || 'Store settings update failed.');
       }
@@ -5473,6 +5484,98 @@ export default function DashboardPage() {
                               <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
                                 Show customers how fast you typically respond. Hidden if left blank.
                               </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Nina AI Floating QR Code & Live Chat Widget */}
+                        <div style={{
+                          border: '1.5px solid var(--border)',
+                          borderRadius: 'var(--r-xl)',
+                          padding: 18,
+                          background: 'var(--surface)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 16
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
+                            <div>
+                              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0 }}>Nina AI Floating Widget</h3>
+                              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.45 }}>
+                                Enable a floating chat launcher on your storefront. Customers can scan a QR code to chat on WhatsApp or start a live web chat directly with your Nina AI sales assistant.
+                              </p>
+                            </div>
+                            <div style={{ flexShrink: 0 }}>
+                              <Toggle
+                                checked={ninaChatQrEnabled}
+                                onChange={(next) => setNinaChatQrEnabled(next)}
+                                label=""
+                              />
+                            </div>
+                          </div>
+                          <div style={{
+                            display: 'flex',
+                            gap: 8,
+                            alignItems: 'center',
+                            background: 'var(--bg-2)',
+                            borderRadius: 'var(--r-md)',
+                            padding: '10px 14px',
+                            border: '1px solid var(--border)'
+                          }}>
+                            <span style={{ fontSize: 16 }}>🤖</span>
+                            <span style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                              This widget is <strong>off by default</strong>. When enabled, customer queries on your public store will be handled autonomously by your configured sales assistant.
+                            </span>
+                          </div>
+                          {ninaChatQrEnabled && (
+                            <div style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 10,
+                              padding: '14px 0 4px 0',
+                              borderTop: '1px dashed var(--border)'
+                            }}>
+                              <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nina Avatar Image</label>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                                <FileUpload
+                                  variant="avatar"
+                                  accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                  previewUrl={ninaAvatarUrl || '/ninaAssistant.png'}
+                                  uploading={ninaAvatarUploading}
+                                  onRemove={ninaAvatarUrl ? () => setNinaAvatarUrl(null) : undefined}
+                                  inputId="nina-avatar-upload-input"
+                                  maxSize={5 * 1024 * 1024}
+                                  onFile={async (file) => {
+                                    try {
+                                      setNinaAvatarUploading(true);
+                                      const formData = new FormData();
+                                      formData.append('avatar', file);
+                                      const res = await fetch(`${apiUrl}/v1/store/upload-nina-avatar`, {
+                                        method: 'POST',
+                                        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                                        body: formData
+                                      });
+                                      const json = await res.json();
+                                      if (res.ok && json.url) {
+                                        setNinaAvatarUrl(json.url);
+                                        toast.success('Nina avatar updated! 🤖');
+                                      } else {
+                                        throw new Error(json.message || 'Upload failed');
+                                      }
+                                    } catch (err: any) {
+                                      toast.error(err.message || 'Avatar upload error');
+                                    } finally {
+                                      setNinaAvatarUploading(false);
+                                    }
+                                  }}
+                                />
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                  <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>Custom Assistant Face</p>
+                                  <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                                    Upload a custom square avatar for Nina. If empty, the default assistant face will be used.
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -9895,7 +9998,7 @@ export default function DashboardPage() {
       />
 
       {/* ── NINA AI WIDGET ── */}
-      <NinaWidget />
+      <NinaWidget ninaAvatarUrl={store?.nina_avatar_url} />
     </div>
   );
 }

@@ -34,7 +34,12 @@ function getToken(): string | null {
   return null;
 }
 
-export default function NinaWidget() {
+interface NinaWidgetProps {
+  ninaAvatarUrl?: string | null;
+}
+
+export default function NinaWidget({ ninaAvatarUrl }: NinaWidgetProps = {}) {
+  const avatarUrl = ninaAvatarUrl || '/ninaAssistant.png';
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -120,7 +125,7 @@ export default function NinaWidget() {
         onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.07)'; }}
         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
       >
-        {open ? <X size={22} color="#fff" strokeWidth={2.5} /> : <Bot size={22} color="#fff" strokeWidth={2} />}
+        {open ? <X size={22} color="#fff" strokeWidth={2.5} /> : <img src={avatarUrl} alt="Nina" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover' }} />}
       </button>
 
       {/* Chat panel */}
@@ -150,17 +155,7 @@ export default function NinaWidget() {
             padding: '14px 16px',
             background: 'linear-gradient(135deg, #128C7E, #25D366)',
           }}>
-            <div style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <Bot size={18} color="#fff" strokeWidth={2} />
-            </div>
+            <img src={avatarUrl} alt="Nina" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(255, 255, 255, 0.4)' }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 15, color: '#fff', fontFamily: 'var(--font-heading)' }}>Nina</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
@@ -182,9 +177,7 @@ export default function NinaWidget() {
             {displayMessages.map((msg) => (
               <div key={msg.id} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', alignItems: 'flex-end', gap: 7 }}>
                 {msg.role === 'assistant' && (
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg, #128C7E, #25D366)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Bot size={13} color="#fff" strokeWidth={2} />
-                  </div>
+                  <img src={avatarUrl} alt="Nina" style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(0,0,0,0.08)', flexShrink: 0 }} />
                 )}
                 <div style={{
                   maxWidth: '76%',
@@ -205,9 +198,7 @@ export default function NinaWidget() {
 
             {typing && (
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 7 }}>
-                <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg, #128C7E, #25D366)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Bot size={13} color="#fff" strokeWidth={2} />
-                </div>
+                <img src={avatarUrl} alt="Nina" style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(0,0,0,0.08)', flexShrink: 0 }} />
                 <div style={{ padding: '10px 14px', borderRadius: '16px 16px 16px 4px', background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', gap: 4, alignItems: 'center' }}>
                   {[0, 1, 2].map((i) => (
                     <div key={i} style={{

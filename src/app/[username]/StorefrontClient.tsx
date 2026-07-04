@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from "react";
+import StorefrontNinaWidget from "../../components/StorefrontNinaWidget";
 import BeautyStorefront from "./BeautyStorefront";
 import FashionStorefront from "./FashionStorefront";
 import RestaurantStorefront from "./RestaurantStorefront";
@@ -61,6 +62,8 @@ interface Store {
   announcement_cta_page?: string | null;
   // Computed server-side from WhatsApp chat response timestamps
   reply_time_minutes?: number | null;
+  nina_chat_qr_enabled?: boolean | number;
+  nina_avatar_url?: string | null;
 }
 
 interface Category {
@@ -222,123 +225,133 @@ export default function StorefrontClient({
     'thrift-preloved', 'thrift-and-preloved', 'thrift-and-vintage', 'thrift-and-preloved-fashion',
     'thrift-vintage', 'vintage-store', 'preloved-fashion'
   ];
-  if (thriftPersonas.includes(personaKey) || thriftPersonas.includes(templateKey)) {
-    return <ThriftStorefront {...sharedTemplateProps} />;
-  }
 
-  // Tech
-  const techPersonas = [
-    'tech-store', 'electronics', 'gadgets', 'computers', 'phones', 'tech',
-    'Gadgets and repairs', 'gadgets-and-repairs', 'gadgets and repairs'
-  ];
-  if (techPersonas.map(normalizeTemplateKey).includes(personaKey) || ['tech', 'tech-store'].includes(templateKey)) {
-    return <TechStorefront {...sharedTemplateProps} />;
-  }
+  const storefrontElement = (() => {
+    if (thriftPersonas.includes(personaKey) || thriftPersonas.includes(templateKey)) {
+      return <ThriftStorefront {...sharedTemplateProps} />;
+    }
 
-  // Fashion
-  const fashionPersonas = [
-    'fashion', 'fashion-store', 'fashion-apparel', 'clothing', 'streetwear', 'accessories',
-    'Fashion and Clothing', 'fashion and clothing', 'fashion-clothing', 'fashion-and-clothing'
-  ];
-  if (fashionPersonas.map(normalizeTemplateKey).includes(personaKey) || ['fashion', 'fashion-store'].includes(templateKey)) {
-    return <FashionStorefront {...sharedTemplateProps} />;
-  }
+    // Tech
+    const techPersonas = [
+      'tech-store', 'electronics', 'gadgets', 'computers', 'phones', 'tech',
+      'Gadgets and repairs', 'gadgets-and-repairs', 'gadgets and repairs'
+    ];
+    if (techPersonas.map(normalizeTemplateKey).includes(personaKey) || ['tech', 'tech-store'].includes(templateKey)) {
+      return <TechStorefront {...sharedTemplateProps} />;
+    }
 
-  // Restaurant / food
-  const restaurantPersonas = [
-    'restaurant', 'food', 'food-delivery', 'cafeteria', 'bakery', 'fast-food', 'catering', 'cafe', 'food-vendor',
-    'Restaurant and bars', 'restaurant-bars', 'restaurant and bars', 'restaurant-and-bars'
-  ];
-  if (restaurantPersonas.map(normalizeTemplateKey).includes(personaKey) || ['restaurant', 'food-vendor', 'flash-sale'].includes(templateKey)) {
-    return <FoodStorefront {...sharedTemplateProps} />;
-  }
+    // Fashion
+    const fashionPersonas = [
+      'fashion', 'fashion-store', 'fashion-apparel', 'clothing', 'streetwear', 'accessories',
+      'Fashion and Clothing', 'fashion and clothing', 'fashion-clothing', 'fashion-and-clothing'
+    ];
+    if (fashionPersonas.map(normalizeTemplateKey).includes(personaKey) || ['fashion', 'fashion-store'].includes(templateKey)) {
+      return <FashionStorefront {...sharedTemplateProps} />;
+    }
 
-  // Cleaning
-  const cleaningPersonas = ['cleaning-service', 'cleaning', 'laundry-cleaning'];
-  if (cleaningPersonas.map(normalizeTemplateKey).includes(personaKey) || ['cleaning-service'].includes(templateKey)) {
-    return <CleaningStorefront {...sharedTemplateProps} />;
-  }
+    // Restaurant / food
+    const restaurantPersonas = [
+      'restaurant', 'food', 'food-delivery', 'cafeteria', 'bakery', 'fast-food', 'catering', 'cafe', 'food-vendor',
+      'Restaurant and bars', 'restaurant-bars', 'restaurant and bars', 'restaurant-and-bars'
+    ];
+    if (restaurantPersonas.map(normalizeTemplateKey).includes(personaKey) || ['restaurant', 'food-vendor', 'flash-sale'].includes(templateKey)) {
+      return <FoodStorefront {...sharedTemplateProps} />;
+    }
 
-  // Creator / Digital
-  const creatorPersonas = ['creator-digital', 'digital-products', 'creator', 'downloads', 'ebooks'];
-  if (creatorPersonas.map(normalizeTemplateKey).includes(personaKey) || ['creator-digital', 'digital-studio'].includes(templateKey)) {
-    return <CreatorStorefront {...sharedTemplateProps} />;
-  }
+    // Cleaning
+    const cleaningPersonas = ['cleaning-service', 'cleaning', 'laundry-cleaning'];
+    if (cleaningPersonas.map(normalizeTemplateKey).includes(personaKey) || ['cleaning-service'].includes(templateKey)) {
+      return <CleaningStorefront {...sharedTemplateProps} />;
+    }
 
-  // Events
-  const eventsPersonas = ['event-services', 'events', 'planning', 'wedding-planner', 'consultation'];
-  if (eventsPersonas.map(normalizeTemplateKey).includes(personaKey) || ['event-services'].includes(templateKey)) {
-    return <EventsStorefront {...sharedTemplateProps} />;
-  }
+    // Creator / Digital
+    const creatorPersonas = ['creator-digital', 'digital-products', 'creator', 'downloads', 'ebooks'];
+    if (creatorPersonas.map(normalizeTemplateKey).includes(personaKey) || ['creator-digital', 'digital-studio'].includes(templateKey)) {
+      return <CreatorStorefront {...sharedTemplateProps} />;
+    }
 
-  // Laundry
-  const laundryPersonas = ['laundry', 'laundry-service', 'dry-cleaning'];
-  if (laundryPersonas.map(normalizeTemplateKey).includes(personaKey) || ['laundry', 'laundry-service'].includes(templateKey)) {
-    return <LaundryStorefront {...sharedTemplateProps} />;
-  }
+    // Events
+    const eventsPersonas = ['event-services', 'events', 'planning', 'wedding-planner', 'consultation'];
+    if (eventsPersonas.map(normalizeTemplateKey).includes(personaKey) || ['event-services'].includes(templateKey)) {
+      return <EventsStorefront {...sharedTemplateProps} />;
+    }
 
-  // Photographer
-  const photographerPersonas = ['photographer', 'photography', 'videography', 'photographer-service'];
-  if (photographerPersonas.map(normalizeTemplateKey).includes(personaKey) || ['photographer', 'photographer-service'].includes(templateKey)) {
-    return <PhotographerStorefront {...sharedTemplateProps} />;
-  }
+    // Laundry
+    const laundryPersonas = ['laundry', 'laundry-service', 'dry-cleaning'];
+    if (laundryPersonas.map(normalizeTemplateKey).includes(personaKey) || ['laundry', 'laundry-service'].includes(templateKey)) {
+      return <LaundryStorefront {...sharedTemplateProps} />;
+    }
 
-  // WhatsApp TV / Advertising
-  const whatsappTvPersonas = ['whatsapp-tv', 'advertising', 'promo', 'shoutout'];
-  if (whatsappTvPersonas.map(normalizeTemplateKey).includes(personaKey) || ['whatsapp-tv'].includes(templateKey)) {
-    return <WhatsAppTVStorefront {...sharedTemplateProps} />;
-  }
+    // Photographer
+    const photographerPersonas = ['photographer', 'photography', 'videography', 'photographer-service'];
+    if (photographerPersonas.map(normalizeTemplateKey).includes(personaKey) || ['photographer', 'photographer-service'].includes(templateKey)) {
+      return <PhotographerStorefront {...sharedTemplateProps} />;
+    }
 
-  // Agent / real estate
-  const agentPersonas = ['agent', 'agency', 'consulting', 'estate-agent', 'real-estate'];
-  if (agentPersonas.map(normalizeTemplateKey).includes(personaKey) || ['agent', 'estate-agent'].includes(templateKey)) {
-    return <AgentStorefront {...sharedTemplateProps} />;
-  }
+    // WhatsApp TV / Advertising
+    const whatsappTvPersonas = ['whatsapp-tv', 'advertising', 'promo', 'shoutout'];
+    if (whatsappTvPersonas.map(normalizeTemplateKey).includes(personaKey) || ['whatsapp-tv'].includes(templateKey)) {
+      return <WhatsAppTVStorefront {...sharedTemplateProps} />;
+    }
 
-  // Beauty / editorial
-  const beautyPersonas = [
-    'beauty-service', 'barber-shop', 'Beauty and hair', 'beauty-and-hair', 'beauty and hair', 'beauty-hair'
-  ];
-  if (beautyPersonas.map(normalizeTemplateKey).includes(personaKey) || ['editorial', 'beauty'].includes(templateKey)) {
-    return <BeautyStorefront {...sharedTemplateProps} />;
-  }
+    // Agent / real estate
+    const agentPersonas = ['agent', 'agency', 'consulting', 'estate-agent', 'real-estate'];
+    if (agentPersonas.map(normalizeTemplateKey).includes(personaKey) || ['agent', 'estate-agent'].includes(templateKey)) {
+      return <AgentStorefront {...sharedTemplateProps} />;
+    }
 
-  // Retail & groceries
-  const retailPersonas = ['retail-groceries', 'groceries', 'supermarket'];
-  if (retailPersonas.map(normalizeTemplateKey).includes(personaKey) || ['retail-groceries'].includes(templateKey)) {
+    // Beauty / editorial
+    const beautyPersonas = [
+      'beauty-service', 'barber-shop', 'Beauty and hair', 'beauty-and-hair', 'beauty and hair', 'beauty-hair'
+    ];
+    if (beautyPersonas.map(normalizeTemplateKey).includes(personaKey) || ['editorial', 'beauty'].includes(templateKey)) {
+      return <BeautyStorefront {...sharedTemplateProps} />;
+    }
+
+    // Retail & groceries
+    const retailPersonas = ['retail-groceries', 'groceries', 'supermarket'];
+    if (retailPersonas.map(normalizeTemplateKey).includes(personaKey) || ['retail-groceries'].includes(templateKey)) {
+      return <RetailStorefront {...sharedTemplateProps} />;
+    }
+
+    // Faith community
+    const faithPersonas = ['faith-community', 'church', 'ministry'];
+    if (faithPersonas.map(normalizeTemplateKey).includes(personaKey) || ['faith-community'].includes(templateKey)) {
+      return <FaithStorefront {...sharedTemplateProps} />;
+    }
+
+    // School & education
+    const schoolPersonas = ['school-education', 'school', 'education'];
+    if (schoolPersonas.map(normalizeTemplateKey).includes(personaKey) || ['school-education'].includes(templateKey)) {
+      return <SchoolStorefront {...sharedTemplateProps} />;
+    }
+
+    // Pharmacy & health
+    const pharmacyPersonas = ['pharmacy-health', 'pharmacy', 'wellness'];
+    if (pharmacyPersonas.map(normalizeTemplateKey).includes(personaKey) || ['pharmacy-health'].includes(templateKey)) {
+      return <PharmacyStorefront {...sharedTemplateProps} />;
+    }
+
+    // Home services
+    const homeServicesPersonas = ['home-services', 'home-repair', 'handyman'];
+    if (homeServicesPersonas.map(normalizeTemplateKey).includes(personaKey) || ['home-services'].includes(templateKey)) {
+      return <HomeServicesStorefront {...sharedTemplateProps} />;
+    }
+
+    // Auto repair
+    const autoRepairPersonas = ['auto-repair', 'mechanic', 'auto-electrician'];
+    if (autoRepairPersonas.map(normalizeTemplateKey).includes(personaKey) || ['auto-repair'].includes(templateKey)) {
+      return <AutoRepairStorefront {...sharedTemplateProps} />;
+    }
+
+    // General store / default — modern catch-all for any unmatched persona.
     return <RetailStorefront {...sharedTemplateProps} />;
-  }
+  })();
 
-  // Faith community
-  const faithPersonas = ['faith-community', 'church', 'ministry'];
-  if (faithPersonas.map(normalizeTemplateKey).includes(personaKey) || ['faith-community'].includes(templateKey)) {
-    return <FaithStorefront {...sharedTemplateProps} />;
-  }
-
-  // School & education
-  const schoolPersonas = ['school-education', 'school', 'education'];
-  if (schoolPersonas.map(normalizeTemplateKey).includes(personaKey) || ['school-education'].includes(templateKey)) {
-    return <SchoolStorefront {...sharedTemplateProps} />;
-  }
-
-  // Pharmacy & health
-  const pharmacyPersonas = ['pharmacy-health', 'pharmacy', 'wellness'];
-  if (pharmacyPersonas.map(normalizeTemplateKey).includes(personaKey) || ['pharmacy-health'].includes(templateKey)) {
-    return <PharmacyStorefront {...sharedTemplateProps} />;
-  }
-
-  // Home services
-  const homeServicesPersonas = ['home-services', 'home-repair', 'handyman'];
-  if (homeServicesPersonas.map(normalizeTemplateKey).includes(personaKey) || ['home-services'].includes(templateKey)) {
-    return <HomeServicesStorefront {...sharedTemplateProps} />;
-  }
-
-  // Auto repair
-  const autoRepairPersonas = ['auto-repair', 'mechanic', 'auto-electrician'];
-  if (autoRepairPersonas.map(normalizeTemplateKey).includes(personaKey) || ['auto-repair'].includes(templateKey)) {
-    return <AutoRepairStorefront {...sharedTemplateProps} />;
-  }
-
-  // General store / default — modern catch-all for any unmatched persona.
-  return <RetailStorefront {...sharedTemplateProps} />;
+  return (
+    <>
+      {storefrontElement}
+      {store.nina_chat_qr_enabled ? <StorefrontNinaWidget store={store} /> : null}
+    </>
+  );
 }
