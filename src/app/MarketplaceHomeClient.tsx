@@ -211,7 +211,7 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer, b
         <div className="nav-inner">
           <button className="icon-btn hamburger" onClick={() => setDrawer(true)}><Menu size={21} /></button>
           <button className="logo" onClick={() => setTab("home")}>
-            <img src="/logo.svg" alt="" className="logo-mark" />
+            <img src="/logo.png" alt="" className="logo-mark" />
             <span className="logo-word">front<span>store</span></span>
           </button>
 
@@ -256,7 +256,7 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer, b
       <aside className={`fs-drawer${drawer ? " open" : ""}`}>
         <div className="drawer-head">
           <span className="logo sm">
-            <img src="/logo.svg" alt="" className="logo-mark" />
+            <img src="/logo.png" alt="" className="logo-mark" />
             <span className="logo-word">front<span>store</span></span>
           </span>
           <button className="icon-btn" onClick={() => setDrawer(false)}><X size={20} /></button>
@@ -336,7 +336,7 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
       <section className="hero">
         <div className="mkt-hero-grid" />
         <div className="hero-glow" />
-        <img src="/logo.svg" alt="" className="hero-mark" />
+        <img src="/logo.png" alt="" className="hero-mark" />
         <div className="hero-inner">
           <div className="hero-copy">
             <p className="eyebrow">Africa's marketplace for everyday stores</p>
@@ -496,7 +496,7 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
 
       {/* SELL BAND */}
       <section className="sell-band">
-        <img src="/logo.svg" alt="" className="sell-mark" />
+        <img src="/logo.png" alt="" className="sell-mark" />
         <div className="sell-inner">
           <div className="sell-copy">
             <h2>Selling something? Your store is two minutes away.</h2>
@@ -516,7 +516,7 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
         <div className="footer-inner">
           <div className="footer-top">
             <span className="logo sm">
-              <img src="/logo.svg" alt="" className="logo-mark" />
+              <img src="/logo.png" alt="" className="logo-mark" />
               <span className="logo-word">front<span>store</span></span>
             </span>
             <p className="footer-tag">Conversational commerce for Africa and beyond.</p>
