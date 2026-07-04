@@ -378,12 +378,14 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
 
       <div
         className={`home-nav-drawer__backdrop${mobileNavOpen ? ' is-open' : ''}`}
+        style={{ opacity: mobileNavOpen ? 1 : 0, pointerEvents: mobileNavOpen ? 'auto' : 'none' }}
         onClick={() => setMobileNavOpen(false)}
         aria-hidden="true"
       />
 
       <aside
         className={`home-nav-drawer${mobileNavOpen ? ' is-open' : ''}`}
+        style={{ transform: mobileNavOpen ? 'translateX(0)' : 'translateX(100%)' }}
         role="dialog"
         aria-modal="true"
         aria-label="Site menu"
@@ -670,185 +672,6 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         </div>
         </div>
       </header>
-
-      <style jsx global>{`
-        @media (max-width: 640px) {
-          .home-nav {
-            padding: 10px 12px !important;
-            gap: 10px !important;
-          }
-          .home-nav-actions {
-            gap: 4px !important;
-          }
-          .home-nav-actions a {
-            padding: 7px 9px !important;
-            font-size: 12px !important;
-          }
-          .home-nav-actions .home-nav-link {
-            display: none !important;
-          }
-          .home-nav-hamburger {
-            display: inline-flex !important;
-          }
-          #nav-get-started svg,
-          #nav-dashboard svg {
-            display: none !important;
-          }
-          #store-name-input {
-            font-size: 14px !important;
-            padding: 10px 8px !important;
-          }
-          #claim-url-btn {
-            padding: 10px 12px !important;
-            min-width: 118px !important;
-          }
-          #claim-url-btn svg {
-            display: none !important;
-          }
-          footer {
-            justify-content: center !important;
-            text-align: center !important;
-          }
-        }
-
-        @media (max-width: 430px) {
-          #claim-url-btn {
-            min-width: 104px !important;
-            font-size: 12px !important;
-          }
-          .badge {
-            white-space: normal;
-          }
-        }
-
-        .home-nav-drawer__backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(4, 12, 22, 0.5);
-          -webkit-backdrop-filter: blur(2px);
-          backdrop-filter: blur(2px);
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.25s ease;
-          z-index: 90;
-        }
-        .home-nav-drawer__backdrop.is-open {
-          opacity: 1;
-          pointer-events: auto;
-        }
-
-        .home-nav-drawer {
-          position: fixed;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          width: min(340px, 86vw);
-          background: var(--surface);
-          border-left: 1px solid var(--border);
-          box-shadow: -16px 0 40px rgba(0,0,0,.18);
-          z-index: 91;
-          display: flex;
-          flex-direction: column;
-          padding: 16px 18px 20px;
-          transform: translateX(100%);
-          transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-        }
-        .home-nav-drawer.is-open {
-          transform: translateX(0);
-        }
-
-        .home-nav-drawer__header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding-bottom: 16px;
-          margin-bottom: 16px;
-          border-bottom: 1px solid var(--border);
-        }
-        .home-nav-drawer__close {
-          width: 36px;
-          height: 36px;
-          border-radius: 999px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: var(--surface-2);
-          color: var(--text-muted);
-          border: none;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .home-nav-drawer__close:hover {
-          background: var(--danger-light, rgba(231,76,60,.12));
-          color: var(--danger, #e74c3c);
-          transform: rotate(90deg);
-        }
-
-        .home-nav-drawer__actions {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 20px;
-        }
-        .home-nav-drawer__actions .btn {
-          flex: 1;
-          justify-content: center;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 10px 14px;
-          font-size: 13px;
-          text-decoration: none;
-        }
-
-        .home-nav-drawer__links {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-        .home-nav-drawer__links a {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 13px 10px;
-          border-radius: var(--r-md, 12px);
-          color: var(--text);
-          text-decoration: none;
-          font-size: 14.5px;
-          font-weight: 600;
-          transition: background 0.15s ease;
-        }
-        .home-nav-drawer__links a:hover {
-          background: var(--surface-2);
-        }
-        .home-nav-drawer__link-label {
-          flex: 1;
-        }
-        .home-nav-drawer__link-chevron {
-          color: var(--text-faint);
-          flex-shrink: 0;
-        }
-
-        .home-nav-drawer__footer {
-          margin-top: auto;
-          padding-top: 16px;
-          border-top: 1px solid var(--border);
-          text-align: center;
-        }
-        .home-nav-drawer__footer a {
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--text-muted);
-          text-decoration: none;
-        }
-
-        @media (min-width: 769px) {
-          .home-nav-drawer,
-          .home-nav-drawer__backdrop {
-            display: none;
-          }
-        }
-      `}</style>
 
       {/* ── Trust Marquee ── */}
       <section style={{

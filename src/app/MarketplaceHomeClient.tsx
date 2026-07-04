@@ -209,7 +209,6 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer, b
       {/* ── TOP NAV ── */}
       <header className="top-nav">
         <div className="nav-inner">
-          <button className="icon-btn hamburger" onClick={() => setDrawer(true)}><Menu size={21} /></button>
           <button className="logo" onClick={() => setTab("home")}>
             <img src="/logo.png" alt="" className="logo-mark" />
             <span className="logo-word">front<span>store</span></span>
@@ -247,13 +246,21 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer, b
               <button className="signin-btn" onClick={() => setTab("account")}>Sign in</button>
             )}
             <button className="open-store-btn" onClick={goToMerchantArea}>Open store</button>
+            <button className="icon-btn hamburger" aria-label="Open menu" onClick={() => setDrawer(true)}><Menu size={21} /></button>
           </div>
         </div>
       </header>
 
       {/* ── DRAWER ── */}
-      <div className={`scrim${drawer ? " show" : ""}`} onClick={() => setDrawer(false)} />
-      <aside className={`fs-drawer${drawer ? " open" : ""}`}>
+      <div
+        className={`scrim${drawer ? " show" : ""}`}
+        style={{ opacity: drawer ? 1 : 0, pointerEvents: drawer ? 'auto' : 'none' }}
+        onClick={() => setDrawer(false)}
+      />
+      <aside
+        className={`fs-drawer${drawer ? " open" : ""}`}
+        style={{ transform: drawer ? 'translateX(0)' : 'translateX(102%)' }}
+      >
         <div className="drawer-head">
           <span className="logo sm">
             <img src="/logo.png" alt="" className="logo-mark" />
@@ -1476,7 +1483,7 @@ const CSS = `
 /* ── drawer ── */
 .scrim{position:fixed;inset:0;background:rgba(16,38,29,.45);opacity:0;pointer-events:none;transition:.25s;z-index:60;}
 .scrim.show{opacity:1;pointer-events:auto;}
-.fs-drawer{position:fixed;top:0;left:0;height:100%;width:280px;max-width:84%;background:var(--surface);z-index:70;transform:translateX(-102%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;padding:16px;box-shadow:0 0 60px rgba(16,38,29,.2);}
+.fs-drawer{position:fixed;top:0;right:0;height:100%;width:280px;max-width:84%;background:var(--surface);z-index:70;transform:translateX(102%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;padding:16px;box-shadow:0 0 60px rgba(16,38,29,.2);}
 .fs-drawer.open{transform:none;}
 .drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
 .drawer-nav{display:flex;flex-direction:column;}

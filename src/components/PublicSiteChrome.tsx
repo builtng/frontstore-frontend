@@ -101,12 +101,14 @@ export function PublicSiteNav() {
 
       <div
         className={`public-site-drawer__backdrop${mobileOpen ? ' is-open' : ''}`}
+        style={{ opacity: mobileOpen ? 1 : 0, pointerEvents: mobileOpen ? 'auto' : 'none' }}
         onClick={() => setMobileOpen(false)}
         aria-hidden="true"
       />
 
       <aside
         className={`public-site-drawer${mobileOpen ? ' is-open' : ''}`}
+        style={{ transform: mobileOpen ? 'translateX(0)' : 'translateX(100%)' }}
         role="dialog"
         aria-modal="true"
         aria-label="Site menu"
