@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  Globe, Copy, CheckCircle2, Smartphone, Lock, Lightbulb,
+  Globe, Copy, CheckCircle2, Lock,
   Share2, Store, AlertCircle, Eye, EyeOff, Loader2, ArrowRight, User, Phone, Check, ShieldCheck, Mail
 } from 'lucide-react';
 import SearchableSelect from '../../components/SearchableSelect';
@@ -361,44 +361,6 @@ function SignupFormContent({ appName, registrationMethod = 'email' }: { appName:
           </button>
         </div>
 
-        {/* Action Flow Guidance */}
-        <div style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--r-xl)',
-          padding: 24,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}>
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text)' }}>
-            <Smartphone size={18} style={{ color: 'var(--primary)' }} /> Next Step: Manage on the App
-          </h3>
-          <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            Download the <strong>{appName}</strong> app on your Android or iOS device to start uploading products, tracking orders, and customizing your catalogs in seconds.
-          </p>
-
-          <div style={{
-            background: 'var(--bg-2)',
-            borderRadius: 'var(--r-lg)',
-            padding: '14px 16px',
-            fontSize: 13.5,
-            display: 'flex',
-            gap: 12,
-            alignItems: 'flex-start',
-            borderLeft: '4px solid var(--primary)'
-          }}>
-            <Lock size={16} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: 2 }} />
-            <p style={{ color: 'var(--text-2)', lineHeight: 1.55 }}>
-              Use your <strong>WhatsApp phone number</strong> and the <strong>password you just set</strong> to log in securely.
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', gap: 8, fontSize: 12.5, color: 'var(--text-muted)', alignItems: 'center' }}>
-            <Lightbulb size={15} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-            <span>Need support? Simply reach out directly to us on WhatsApp inside the app.</span>
-          </div>
-        </div>
 
         {/* WhatsApp Nudge */}
         <div style={{
@@ -1297,7 +1259,7 @@ export default function SignupPage() {
       </div>
 
       {/* Styled JSX/Responsive rules for pure CSS hero hidden logic */}
-      <style jsx global>{`
+      <style>{`
         @media (max-width: 900px) {
           .left-hero-panel {
             display: none !important;

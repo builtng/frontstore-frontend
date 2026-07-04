@@ -752,7 +752,7 @@ export default function LoginPage() {
       </div>
 
       {/* Styled JSX/Responsive rules for pure CSS hero hidden logic */}
-      <style jsx global>{`
+      <style>{`
         @media (max-width: 900px) {
           .left-hero-panel {
             display: none !important;
