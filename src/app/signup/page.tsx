@@ -1030,22 +1030,71 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                 justifyContent: 'space-between',
                 gap: 14,
                 alignItems: 'flex-start',
-            justifyContent: 'center',
-            gap: 8,
-            boxShadow: 'var(--shadow-primary)'
-          }}
-          id="create-store-btn"
-        >
-          {loading ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : null}
-          <span>
-            {loading ? 'Launching Your Store...' : 'Create My Live Store'}
-          </span>
-          {!loading ? (
-            <ArrowRight size={18} />
-          ) : null}
-        </button>
+              }}>
+                <div style={{ minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 10.5, color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', marginBottom: 4 }}>
+                    {selectedPersonaDetails.persona} · {selectedPersonaDetails.templateName}
+                  </span>
+                  <strong style={{ display: 'block', color: 'var(--text)', fontSize: 13.5, marginBottom: 3 }}>
+                    {selectedPersonaDetails.name}
+                  </strong>
+                  <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: 11.5, lineHeight: 1.45 }}>
+                    {selectedPersonaDetails.summary}
+                  </span>
+                </div>
+                <span style={{
+                  flexShrink: 0,
+                  fontSize: 10.5,
+                  fontWeight: 900,
+                  color: 'var(--primary)',
+                  background: 'var(--primary-light)',
+                  border: '1px solid var(--primary)',
+                  borderRadius: 999,
+                  padding: '5px 8px',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                }}>
+                  Template
+                </span>
+              </div>
+              <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 8 }}>
+                We will activate the best default template and storefront copy for this business type. You can change everything later in your dashboard.
+              </span>
+            </div>
+
+            {/* Submit Step 2 Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary clickable"
+              style={{
+                padding: '16px',
+                fontSize: 16,
+                borderRadius: 'var(--r-xl)',
+                marginTop: 12,
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 800,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                boxShadow: 'var(--shadow-primary)',
+                width: '100%'
+              }}
+              id="create-store-btn"
+            >
+              {loading ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : null}
+              <span>
+                {loading ? 'Launching Your Store...' : 'Create My Live Store'}
+              </span>
+              {!loading ? (
+                <ArrowRight size={18} />
+              ) : null}
+            </button>
+          </div>
+        )}
 
         <p style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
           By launching your store, you agree to {appName}&apos;s{' '}
