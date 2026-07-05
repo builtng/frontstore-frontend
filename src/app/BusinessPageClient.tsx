@@ -718,7 +718,9 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
             <div className="phone-mockup__notch" />
             <div className="phone-mockup__screen">
               <div className="phone-mockup__bar">
-                <div className="phone-mockup__avatar"><Store size={13} /></div>
+                <div className="phone-mockup__avatar">
+                  <img src="/ninaAssistant.png" alt="Nina" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                </div>
                 {appName} Store
               </div>
               <div className="phone-mockup__body">
