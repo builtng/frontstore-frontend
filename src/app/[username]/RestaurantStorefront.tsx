@@ -10,6 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
+import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 
 import "./RestaurantStorefront.css";
@@ -716,6 +717,7 @@ export default function RestaurantStorefront({
 
   const bagCount = bagItems.reduce((n, b) => n + b.qty, 0);
   const subtotal = bagItems.reduce((n, b) => n + b.price * b.qty, 0);
+  const shippingPreview = calculateShippingFee(store, subtotal);
 
   const displayPortfolio = useMemo(() => {
     return portfolio || [];
@@ -1210,7 +1212,21 @@ export default function RestaurantStorefront({
                   <span>Subtotal</span>
                   <b>{money(subtotal)}</b>
                 </div>
-                <p className="ps-deposit"><Lock size={12} /> Secure platform order. Final delivery fees calculated by distance.</p>
+                {deliveryMethod === 'delivery' && shippingPreview.shippingFee > 0 && (
+                  <div className="ps-bag-total" style={{ fontSize: 13, color: 'var(--muted)' }}>
+                    <span>Shipping</span><span>{money(shippingPreview.shippingFee)}</span>
+                  </div>
+                )}
+                {deliveryMethod === 'delivery' && shippingPreview.handlingFee > 0 && (
+                  <div className="ps-bag-total" style={{ fontSize: 13, color: 'var(--muted)' }}>
+                    <span>Handling Fee</span><span>{money(shippingPreview.handlingFee)}</span>
+                  </div>
+                )}
+                <div className="ps-bag-total" style={{ fontWeight: 800 }}>
+                  <span>Total</span>
+                  <b>{money(deliveryMethod === 'delivery' ? shippingPreview.total : subtotal)}</b>
+                </div>
+                <p className="ps-deposit"><Lock size={12} /> Secure platform order.</p>
                 <button className="ps-sheet-cta" onClick={() => setCheckoutStep('details')}>Proceed to Details</button>
                 
                 <button className="bk-ghost" onClick={() => {
@@ -1257,7 +1273,7 @@ export default function RestaurantStorefront({
               <p style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}><Lock size={12} /> Secured checkout. Your details are safe with {appName}.</p>
 
               <button type="submit" className="ps-sheet-cta" disabled={checkoutLoading}>
-                {checkoutLoading ? 'Placing Order...' : `Place Order · ${money(subtotal)}`}
+                {checkoutLoading ? 'Placing Order...' : `Place Order · ${money(deliveryMethod === 'delivery' ? shippingPreview.total : subtotal)}`}
               </button>
             </form>
           )}

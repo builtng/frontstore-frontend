@@ -87,8 +87,9 @@ export interface SystemSettings {
   idanalyzer_api_key: string;
   idanalyzer_confidence_threshold: string | number;
   idanalyzer_region: string;
-  didit_client_id: string;
-  didit_client_secret: string;
+  didit_api_key: string;
+  didit_webhook_secret: string;
+  didit_workflow_id: string;
   didit_callback_url: string;
   modules: Record<string, string>;
 }
@@ -129,8 +130,9 @@ export const defaultSettings: SystemSettings = {
   idanalyzer_api_key: '',
   idanalyzer_confidence_threshold: 0.7,
   idanalyzer_region: 'US',
-  didit_client_id: '',
-  didit_client_secret: '',
+  didit_api_key: '',
+  didit_webhook_secret: '',
+  didit_workflow_id: '',
   didit_callback_url: '',
   modules: {},
 };

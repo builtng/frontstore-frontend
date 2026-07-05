@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast as sonnerToast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
+import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 
 const EXTENSION_SUBSTRING_ERROR = "Cannot read properties of undefined (reading 'substring')";
@@ -1050,6 +1051,7 @@ export default function BeautyStorefront({
 
   const bagCount = bag.reduce((n, b) => n + b.qty, 0);
   const bagTotal = bag.reduce((n, b) => n + b.qty * b.price, 0);
+  const shippingPreview = calculateShippingFee(store, bagTotal);
 
   const homeServices = SERVICES.slice(0, 4);
   const homeProducts = PRODUCTS.slice(0, 4);
@@ -2345,9 +2347,27 @@ export default function BeautyStorefront({
                     </div>
                   ))}
                 </div>
-                <div className="ps-bag-total" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--line)', paddingTop: 12, marginBottom: 16 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>Total</span>
-                  <b style={{ fontSize: 18, fontWeight: 700, color: 'var(--brand-deep)' }}>{money(bagTotal)}</b>
+                <div style={{ borderTop: '1px solid var(--line)', paddingTop: 12, marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 13, color: 'var(--muted)' }}>Subtotal</span>
+                    <span style={{ fontSize: 13 }}>{money(bagTotal)}</span>
+                  </div>
+                  {deliveryMethod === 'delivery' && shippingPreview.shippingFee > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: 13, color: 'var(--muted)' }}>Shipping</span>
+                      <span style={{ fontSize: 13 }}>{money(shippingPreview.shippingFee)}</span>
+                    </div>
+                  )}
+                  {deliveryMethod === 'delivery' && shippingPreview.handlingFee > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: 13, color: 'var(--muted)' }}>Handling Fee</span>
+                      <span style={{ fontSize: 13 }}>{money(shippingPreview.handlingFee)}</span>
+                    </div>
+                  )}
+                  <div className="ps-bag-total" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>Total</span>
+                    <b style={{ fontSize: 18, fontWeight: 700, color: 'var(--brand-deep)' }}>{money(deliveryMethod === 'delivery' ? shippingPreview.total : bagTotal)}</b>
+                  </div>
                 </div>
                 <button className="ps-sheet-cta" onClick={() => setCheckoutStep('details')}>
                   <ShieldCheck size={17} /> Checkout Order

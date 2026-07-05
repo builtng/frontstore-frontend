@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
+import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 
 import "./ThriftStorefront.css";
@@ -713,6 +714,7 @@ export default function ThriftStorefront({
 
   const bagCount = bagItems.reduce((n, b) => n + b.qty, 0);
   const subtotal = bagItems.reduce((n, b) => n + b.price * b.qty, 0);
+  const shippingPreview = calculateShippingFee(store, subtotal);
 
   const durTest = (m: number) => svcDur === "All" || (svcDur === "short" && m < 60) || (svcDur === "mid" && m >= 60 && m <= 120) || (svcDur === "long" && m > 120);
   const svcFiltered = SERVICES
@@ -1671,6 +1673,13 @@ export default function ThriftStorefront({
                 ))}
               </div>
               <div className="ps-bag-total"><span>Subtotal</span><b>{money(subtotal)}</b></div>
+              {deliveryMethod === 'delivery' && shippingPreview.shippingFee > 0 && (
+                <div className="ps-bag-total" style={{ fontSize: 13, color: 'var(--muted)' }}><span>Shipping</span><span>{money(shippingPreview.shippingFee)}</span></div>
+              )}
+              {deliveryMethod === 'delivery' && shippingPreview.handlingFee > 0 && (
+                <div className="ps-bag-total" style={{ fontSize: 13, color: 'var(--muted)' }}><span>Handling Fee</span><span>{money(shippingPreview.handlingFee)}</span></div>
+              )}
+              <div className="ps-bag-total" style={{ fontWeight: 800 }}><span>Total</span><b>{money(deliveryMethod === 'delivery' ? shippingPreview.total : subtotal)}</b></div>
               <button className="ps-sheet-cta" onClick={() => setCheckoutStep('details')}>Checkout <ChevronRight size={16} /></button>
               <button className="th-wa-btn" style={{ marginTop: 10, background: '#25D366', color: '#fff', padding: '12px', width: '100%', fontWeight: 700, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }} onClick={() => handleWa(`Hi ${store.store_name}!\nI'd like to buy:\n${bagItems.map(b => `• ${b.name} (Size: ${b.size}, Color: ${b.colour}) ×${b.qty} — ${money(b.price * b.qty)}`).join('\n')}\nTotal: ${money(subtotal)}`)}>
                 <WhatsAppIcon size={18} /> Order via WhatsApp
@@ -1712,7 +1721,7 @@ export default function ThriftStorefront({
             <p style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}><Lock size={12} /> Secured checkout. Your details are safe with {appName}.</p>
 
             <button type="submit" className="ps-sheet-cta" disabled={checkoutLoading}>
-              {checkoutLoading ? 'Placing Order...' : `Place Order · ${money(subtotal)}`}
+              {checkoutLoading ? 'Placing Order...' : `Place Order · ${money(deliveryMethod === 'delivery' ? shippingPreview.total : subtotal)}`}
             </button>
           </form>
         )}

@@ -103,12 +103,18 @@ interface StoreInfo {
   paystack_dva_currency?: string | null;
   paystack_dva_active?: boolean;
   payment_provider?: string | null;
+  momo_agent_number?: string | null;
+  momo_agent_name?: string | null;
+  momo_agent_network?: string | null;
+  momo_agent_enabled?: boolean;
   stripe_account_id?: string | null;
   stripe_onboarding_complete?: boolean;
   stripe_charges_enabled?: boolean;
   stripe_payouts_enabled?: boolean;
   custom_links?: StoreLink[] | null;
   custom_domain?: string | null;
+  domain_status?: 'pending' | 'active' | 'failed' | null;
+  domain_error?: string | null;
   primary_color?: string | null;
   store_template?: string | null;
   business_persona?: string | null;
@@ -396,6 +402,8 @@ export default function DashboardPage() {
   const whatsappOnCooldown = !!whatsappCooldownUntil && whatsappCooldownUntil.getTime() > Date.now();
 
   const [systemDomain, setSystemDomain] = useState('frontstore.app');
+  const [domainTargetCname, setDomainTargetCname] = useState('');
+  const [domainTargetIp, setDomainTargetIp] = useState('');
   const [apiUrl, setApiUrl] = useState('https://api.frontstore.app/api');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
@@ -1024,6 +1032,17 @@ export default function DashboardPage() {
   const [paymentAccountNumber, setPaymentAccountNumber] = useState('');
   const [paymentAccountName, setPaymentAccountName] = useState(''); // read-only after verify
   const [paymentInstructions, setPaymentInstructions] = useState('');
+  // MoMo Agent
+  const [momoAgentNumber, setMomoAgentNumber] = useState('');
+  const [momoAgentName, setMomoAgentName] = useState('');
+  const [momoAgentNetwork, setMomoAgentNetwork] = useState('mtn');
+  const [momoAgentEnabled, setMomoAgentEnabled] = useState(false);
+  // Shipping Settings
+  const [shippingType, setShippingType] = useState('customer_pays');
+  const [shippingFlatFee, setShippingFlatFee] = useState('');
+  const [shippingFreeThreshold, setShippingFreeThreshold] = useState('');
+  const [shippingHandlingFee, setShippingHandlingFee] = useState('');
+  const [shippingCustomRules, setShippingCustomRules] = useState<{ min_subtotal: string; fee: string }[]>([]);
   const [paymentCopied, setPaymentCopied] = useState(false);
   const [bankDropdownOpen, setBankDropdownOpen] = useState(false);
   // Paystack bank list fetched from API
@@ -1239,6 +1258,19 @@ export default function DashboardPage() {
               setPaymentAccountNumber(parsedStore.bank_account_number || '');
               setPaymentAccountName(parsedStore.bank_account_name || '');
               setPaymentInstructions(parsedStore.payment_instructions || '');
+              setMomoAgentNumber(parsedStore.momo_agent_number || '');
+              setMomoAgentName(parsedStore.momo_agent_name || '');
+              setMomoAgentNetwork(parsedStore.momo_agent_network || 'mtn');
+              setMomoAgentEnabled(!!parsedStore.momo_agent_enabled);
+              setShippingType(parsedStore.shipping_type || 'customer_pays');
+              setShippingFlatFee(parsedStore.shipping_flat_fee != null ? String(parsedStore.shipping_flat_fee) : '');
+              setShippingFreeThreshold(parsedStore.shipping_free_threshold != null ? String(parsedStore.shipping_free_threshold) : '');
+              setShippingHandlingFee(parsedStore.shipping_handling_fee != null ? String(parsedStore.shipping_handling_fee) : '');
+              setShippingCustomRules(
+                Array.isArray(parsedStore.shipping_custom_rules)
+                  ? parsedStore.shipping_custom_rules.map((r: any) => ({ min_subtotal: String(r.min_subtotal ?? ''), fee: String(r.fee ?? '') }))
+                  : []
+              );
               setAccountVerified(!!parsedStore.bank_account_verified);
               setNameMatchOk(parsedStore.bank_account_verified ? true : null);
               setLogoUrl(parsedStore.logo_url || null);
@@ -1287,6 +1319,8 @@ export default function DashboardPage() {
         const yearly = Number(json?.data?.pro_yearly_price);
         if (!Number.isNaN(monthly) && monthly > 0) setProMonthlyPrice(monthly);
         if (!Number.isNaN(yearly) && yearly > 0) setProYearlyPrice(yearly);
+        if (json?.data?.domain_target_cname) setDomainTargetCname(json.data.domain_target_cname);
+        if (json?.data?.domain_target_ip) setDomainTargetIp(json.data.domain_target_ip);
       })
       .catch(err => console.error('Failed to fetch subscription pricing:', err));
   }, [apiUrl]);
@@ -1584,6 +1618,15 @@ export default function DashboardPage() {
         setSetStoreLocation(liveStore.location || '');
         setSetStoreSince(liveStore.since || '');
         setDeliveryInfo(liveStore.delivery_info || '');
+        setShippingType(liveStore.shipping_type || 'customer_pays');
+        setShippingFlatFee(liveStore.shipping_flat_fee != null ? String(liveStore.shipping_flat_fee) : '');
+        setShippingFreeThreshold(liveStore.shipping_free_threshold != null ? String(liveStore.shipping_free_threshold) : '');
+        setShippingHandlingFee(liveStore.shipping_handling_fee != null ? String(liveStore.shipping_handling_fee) : '');
+        setShippingCustomRules(
+          Array.isArray(liveStore.shipping_custom_rules)
+            ? liveStore.shipping_custom_rules.map((r: any) => ({ min_subtotal: String(r.min_subtotal ?? ''), fee: String(r.fee ?? '') }))
+            : []
+        );
         if (liveStore.working_hours && typeof liveStore.working_hours === 'object') {
           setWorkingHours({ ...DEFAULT_WORKING_HOURS, ...liveStore.working_hours });
         }
@@ -2758,6 +2801,17 @@ export default function DashboardPage() {
           bank_account_number: paymentAccountNumber || null,
           bank_account_name: paymentAccountName || null,
           payment_instructions: paymentInstructions || null,
+          momo_agent_number: momoAgentNumber || null,
+          momo_agent_name: momoAgentName || null,
+          momo_agent_network: momoAgentNetwork || 'mtn',
+          momo_agent_enabled: momoAgentEnabled,
+          shipping_type: shippingType,
+          shipping_flat_fee: shippingFlatFee !== '' ? Number(shippingFlatFee) : 0,
+          shipping_free_threshold: shippingFreeThreshold !== '' ? Number(shippingFreeThreshold) : null,
+          shipping_handling_fee: shippingHandlingFee !== '' ? Number(shippingHandlingFee) : 0,
+          shipping_custom_rules: shippingCustomRules
+            .filter(r => r.min_subtotal !== '' && r.fee !== '')
+            .map(r => ({ min_subtotal: Number(r.min_subtotal), fee: Number(r.fee) })),
           delivery_info: deliveryInfo || null,
           return_policy: returnPolicy || null,
           announcement_title: announcementTitle || null,
@@ -2817,6 +2871,19 @@ export default function DashboardPage() {
         setPaymentAccountNumber(json.data.bank_account_number || '');
         setPaymentAccountName(json.data.bank_account_name || '');
         setPaymentInstructions(json.data.payment_instructions || '');
+        setMomoAgentNumber(json.data.momo_agent_number || '');
+        setMomoAgentName(json.data.momo_agent_name || '');
+        setMomoAgentNetwork(json.data.momo_agent_network || 'mtn');
+        setMomoAgentEnabled(!!json.data.momo_agent_enabled);
+        setShippingType(json.data.shipping_type || 'customer_pays');
+        setShippingFlatFee(json.data.shipping_flat_fee != null ? String(json.data.shipping_flat_fee) : '');
+        setShippingFreeThreshold(json.data.shipping_free_threshold != null ? String(json.data.shipping_free_threshold) : '');
+        setShippingHandlingFee(json.data.shipping_handling_fee != null ? String(json.data.shipping_handling_fee) : '');
+        setShippingCustomRules(
+          Array.isArray(json.data.shipping_custom_rules)
+            ? json.data.shipping_custom_rules.map((r: any) => ({ min_subtotal: String(r.min_subtotal ?? ''), fee: String(r.fee ?? '') }))
+            : []
+        );
         setAccountVerified(!!json.data.bank_account_verified);
         setNameMatchOk(json.data.bank_account_verified ? true : null);
         setCustomLinks(json.data.custom_links || []);
@@ -3258,6 +3325,29 @@ export default function DashboardPage() {
       'Cancel'
     );
   };
+
+  // Poll the live provisioning/SSL status while a linked custom domain is
+  // still pending, so the badge flips to Active/Failed without a page reload.
+  useEffect(() => {
+    if (!apiUrl || !store?.custom_domain || store?.domain_status !== 'pending') return;
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`${apiUrl}/v1/store/custom-domain/status`, {
+          headers: getAuthHeaders(),
+        });
+        const json = await res.json();
+        if (res.ok && json?.data) {
+          setStore(prev => prev ? { ...prev, domain_status: json.data.domain_status, domain_error: json.data.domain_error } : prev);
+        }
+      } catch {
+        // Silent — next interval tick retries.
+      }
+    };
+
+    const interval = setInterval(poll, 15000);
+    return () => clearInterval(interval);
+  }, [apiUrl, store?.custom_domain, store?.domain_status]);
 
   // --- Dev API endpoints config handler ---
   const handleSaveDevApi = () => {
@@ -6410,8 +6500,7 @@ export default function DashboardPage() {
 
                   {settingsSubTab === 'social' && (
                   <>
-                  {/* ── CUSTOM DOMAIN CONFIGURATION CARD (temporarily disabled — DNS infra not ready yet) ── */}
-                  {false && (
+                  {/* ── CUSTOM DOMAIN CONFIGURATION CARD ── */}
                   <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24, position: 'relative', overflow: 'hidden' }}>
 
                     {/* Lock Overlay if Free */}
@@ -6463,7 +6552,7 @@ export default function DashboardPage() {
                           Custom Domain Mapping
                         </h2>
                         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                          Connect your own custom domain (e.g. <code>mybrand.com</code>) to your Frontstore storefront using nameservers.
+                          Connect your own custom domain (e.g. <code>mybrand.com</code>) to your Frontstore storefront with a simple DNS record — SSL is provisioned automatically.
                         </p>
                       </div>
                     </div>
@@ -6476,7 +6565,15 @@ export default function DashboardPage() {
                             <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Linked Custom Domain</span>
                             <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--primary-dark)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                               {store?.custom_domain}
-                              <span style={{ fontSize: 11, background: '#25D366', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
+                              {store?.domain_status === 'failed' ? (
+                                <span style={{ fontSize: 11, background: 'var(--danger)', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>FAILED</span>
+                              ) : store?.domain_status === 'active' ? (
+                                <span style={{ fontSize: 11, background: '#25D366', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800 }}>ACTIVE</span>
+                              ) : (
+                                <span style={{ fontSize: 11, background: '#D97706', color: '#fff', padding: '2px 8px', borderRadius: 'var(--r-full)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                  <Loader2 size={10} className="spinner" /> PROVISIONING
+                                </span>
+                              )}
                             </h3>
                           </div>
                           <button
@@ -6490,9 +6587,19 @@ export default function DashboardPage() {
                             Disconnect Domain
                           </button>
                         </div>
-                        <div style={{ borderTop: '1px solid rgba(16, 185, 129, 0.2)', paddingTop: 12, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
-                          ✨ Shoppers can now access your store directly at <a href={`https://${store?.custom_domain}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, color: 'var(--primary-dark)', textDecoration: 'underline' }}>https://{store?.custom_domain}</a>
-                        </div>
+                        {store?.domain_status === 'failed' && store?.domain_error ? (
+                          <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid var(--danger)', borderRadius: 'var(--r-md)', padding: 12, fontSize: 12.5, color: 'var(--danger)', lineHeight: 1.5 }}>
+                            {store?.domain_error}
+                          </div>
+                        ) : store?.domain_status === 'pending' ? (
+                          <div style={{ borderTop: '1px solid rgba(16, 185, 129, 0.2)', paddingTop: 12, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                            ⏳ SSL certificate is being provisioned for your domain — this usually takes a few minutes. This page updates automatically.
+                          </div>
+                        ) : (
+                          <div style={{ borderTop: '1px solid rgba(16, 185, 129, 0.2)', paddingTop: 12, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                            ✨ Shoppers can now access your store directly at <a href={`https://${store?.custom_domain}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 800, color: 'var(--primary-dark)', textDecoration: 'underline' }}>https://{store?.custom_domain}</a>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       // Not Linked Domain State
@@ -6536,41 +6643,64 @@ export default function DashboardPage() {
 
                           <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 18 }}>
                             <h4 style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
-                              Nameservers Setup Instructions
+                              DNS Setup Instructions
                             </h4>
                             <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>
-                              At your domain registrar (GoDaddy, Namecheap, etc.), change your nameservers to:
+                              At your domain registrar (GoDaddy, Namecheap, etc.), add this record. Your existing email and other DNS records stay untouched.
                             </p>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
-                                <span>ns1.{systemDomain}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(`ns1.${systemDomain}`);
-                                    toast.success(`Copied ns1.${systemDomain}`);
-                                  }}
-                                  style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
-                                >Copy</button>
-                              </div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
-                                <span>ns2.{systemDomain}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(`ns2.${systemDomain}`);
-                                    toast.success(`Copied ns2.${systemDomain}`);
-                                  }}
-                                  style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
-                                >Copy</button>
-                              </div>
+                              {domainTargetCname ? (
+                                <>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                    <span style={{ width: 60 }}>Type</span>
+                                    <span style={{ flex: 1 }}>Value</span>
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
+                                    <span style={{ width: 60, opacity: 0.7 }}>CNAME</span>
+                                    <span style={{ flex: 1 }}>{domainTargetCname}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(domainTargetCname);
+                                        toast.success(`Copied ${domainTargetCname}`);
+                                      }}
+                                      style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                                    >Copy</button>
+                                  </div>
+                                </>
+                              ) : domainTargetIp ? (
+                                <>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                    <span style={{ width: 60 }}>Type</span>
+                                    <span style={{ flex: 1 }}>Value</span>
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
+                                    <span style={{ width: 60, opacity: 0.7 }}>A</span>
+                                    <span style={{ flex: 1 }}>{domainTargetIp}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(domainTargetIp);
+                                        toast.success(`Copied ${domainTargetIp}`);
+                                      }}
+                                      style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                                    >Copy</button>
+                                  </div>
+                                </>
+                              ) : (
+                                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                                  DNS target hasn't been configured on this platform yet — contact support.
+                                </p>
+                              )}
                             </div>
+                            <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5, marginTop: 12 }}>
+                              Using the domain's root (e.g. <code>mybrand.com</code> instead of <code>www</code>)? Some registrars don't allow a CNAME at the root — use an ALIAS/ANAME record with the same value, or ask your registrar for CNAME flattening.
+                            </p>
                           </div>
                         </div>
                       </div>
                     )}
                   </div>
-                  )}
 
                   {/* ── CUSTOM LINKS / LINKTREE SECTION ── */}
                   <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24 }}>
@@ -7398,6 +7528,207 @@ export default function DashboardPage() {
                         />
                         <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Shown to buyers after checkout so they know next steps.</span>
                       </div>
+
+                      {/* Shipping & Delivery Fees */}
+                      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20, background: 'var(--card-hover)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Truck size={17} color="#fff" />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 14, fontWeight: 800 }}>Shipping &amp; Delivery Fees</div>
+                            <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>
+                              Frontstore never covers delivery costs — whatever you charge here is what the customer pays at checkout.
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Shipping Type</label>
+                          <select
+                            value={shippingType}
+                            onChange={e => setShippingType(e.target.value)}
+                            className="input"
+                            id="shipping-type"
+                          >
+                            <option value="customer_pays">Customer pays shipping (default)</option>
+                            <option value="free">Free shipping</option>
+                            <option value="free_above_threshold">Free shipping above an order amount</option>
+                            <option value="flat_rate">Flat-rate shipping</option>
+                            <option value="custom">Custom rules by order amount</option>
+                          </select>
+                        </div>
+
+                        {(shippingType === 'customer_pays' || shippingType === 'flat_rate' || shippingType === 'free_above_threshold') && (
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            {shippingType === 'free_above_threshold' && (
+                              <div>
+                                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>
+                                  Free Above ({getCurrencySymbol(store?.currency_code)})
+                                </label>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={shippingFreeThreshold}
+                                  onChange={e => setShippingFreeThreshold(e.target.value)}
+                                  className="input"
+                                  placeholder="e.g. 50000"
+                                  id="shipping-free-threshold"
+                                />
+                              </div>
+                            )}
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>
+                                {shippingType === 'free_above_threshold' ? 'Fee Below Threshold' : 'Shipping Fee'} ({getCurrencySymbol(store?.currency_code)})
+                              </label>
+                              <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={shippingFlatFee}
+                                onChange={e => setShippingFlatFee(e.target.value)}
+                                className="input"
+                                placeholder="e.g. 2500"
+                                id="shipping-flat-fee"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {shippingType === 'custom' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                              Charge different fees depending on the order subtotal. The highest threshold the order clears wins.
+                            </span>
+                            {shippingCustomRules.map((rule, idx) => (
+                              <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 10, alignItems: 'center' }}>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={rule.min_subtotal}
+                                  onChange={e => setShippingCustomRules(prev => prev.map((r, i) => i === idx ? { ...r, min_subtotal: e.target.value } : r))}
+                                  className="input"
+                                  placeholder={`Order total ≥ (${getCurrencySymbol(store?.currency_code)})`}
+                                />
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={rule.fee}
+                                  onChange={e => setShippingCustomRules(prev => prev.map((r, i) => i === idx ? { ...r, fee: e.target.value } : r))}
+                                  className="input"
+                                  placeholder={`Fee (${getCurrencySymbol(store?.currency_code)})`}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShippingCustomRules(prev => prev.filter((_, i) => i !== idx))}
+                                  className="btn btn-outline"
+                                  style={{ padding: '8px 12px' }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => setShippingCustomRules(prev => [...prev, { min_subtotal: '', fee: '' }])}
+                              className="btn btn-outline"
+                              style={{ alignSelf: 'flex-start' }}
+                            >
+                              + Add rule
+                            </button>
+                          </div>
+                        )}
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>
+                            Handling Fee ({getCurrencySymbol(store?.currency_code)}) <span style={{ fontWeight: 500, textTransform: 'none', color: 'var(--text-faint)', fontSize: 11 }}>(optional, added on top)</span>
+                          </label>
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={shippingHandlingFee}
+                            onChange={e => setShippingHandlingFee(e.target.value)}
+                            className="input"
+                            placeholder="e.g. 500"
+                            id="shipping-handling-fee"
+                            style={{ maxWidth: 220 }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* MTN MoMo Agent — only shown in supported countries */}
+                      {['NG','GH','UG','CM','CI','BJ','SN'].includes((store?.country_code || '').toUpperCase()) && (
+                      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20, background: 'var(--card-hover)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#FFCC00,#FF6600)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <span style={{ fontSize: 17 }}>📲</span>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 800 }}>MTN MoMo Agent</div>
+                              <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>Customers pay directly to your mobile money number</div>
+                            </div>
+                          </div>
+                          <Toggle
+                            checked={momoAgentEnabled}
+                            onChange={val => setMomoAgentEnabled(val)}
+                            id="momo-agent-toggle"
+                          />
+                        </div>
+
+                        {momoAgentEnabled && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Network</label>
+                              <select
+                                value={momoAgentNetwork}
+                                onChange={e => setMomoAgentNetwork(e.target.value)}
+                                className="input"
+                                id="momo-agent-network"
+                              >
+                                <option value="mtn">MTN MoMo</option>
+                                <option value="vodafone">Vodafone Cash</option>
+                                <option value="airtel">Airtel Money</option>
+                                <option value="tigo">Tigo Cash</option>
+                              </select>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                              <div>
+                                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Agent Number</label>
+                                <input
+                                  type="tel"
+                                  value={momoAgentNumber}
+                                  onChange={e => setMomoAgentNumber(e.target.value.replace(/\D/g, ''))}
+                                  className="input"
+                                  placeholder="e.g. 0241234567"
+                                  maxLength={15}
+                                  id="momo-agent-number"
+                                />
+                              </div>
+                              <div>
+                                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Account Name</label>
+                                <input
+                                  type="text"
+                                  value={momoAgentName}
+                                  onChange={e => setMomoAgentName(e.target.value)}
+                                  className="input"
+                                  placeholder="e.g. John's Fashion Store"
+                                  maxLength={120}
+                                  id="momo-agent-name"
+                                />
+                              </div>
+                            </div>
+                            <div style={{ background: 'rgba(255,204,0,0.08)', border: '1px solid rgba(255,204,0,0.25)', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>
+                              💡 When enabled, customers will see your MoMo number and payment instructions immediately after checkout. You confirm payment manually in the Orders section.
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      )}
 
                       {/* Save Button */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', paddingTop: 4 }}>

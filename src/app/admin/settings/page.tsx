@@ -498,7 +498,7 @@ export default function AdminSettingsPage() {
                     { value: 'manual', label: 'Manual Admin Verification (Default)' },
                     { value: 'idenverify', label: 'Idenverify API Check' },
                     { value: 'idanalyzer', label: 'ID Analyzer AI Scan' },
-                    { value: 'didit', label: 'Didit.me OAuth Session' },
+                    { value: 'didit', label: 'Didit.me KYC Session' },
                   ]}
                   description="Method used to verify merchant identities."
                   full={true}
@@ -544,21 +544,34 @@ export default function AdminSettingsPage() {
                 {settings.verification_provider === 'didit' && (
                   <>
                     <Field
-                      label="Didit Client ID"
-                      value={settings.didit_client_id}
-                      onChange={(value) => setSettings({ ...settings, didit_client_id: value })}
+                      label="Didit API Key"
+                      value={settings.didit_api_key}
+                      onChange={(value) => setSettings({ ...settings, didit_api_key: value })}
+                      type="password"
+                      placeholder="Console → API keys"
+                      description="Long-lived key sent as x-api-key on every verification.didit.me/v3 call."
                     />
                     <Field
-                      label="Didit Client Secret"
-                      value={settings.didit_client_secret}
-                      onChange={(value) => setSettings({ ...settings, didit_client_secret: value })}
+                      label="Didit Webhook Signing Secret"
+                      value={settings.didit_webhook_secret}
+                      onChange={(value) => setSettings({ ...settings, didit_webhook_secret: value })}
                       type="password"
+                      placeholder="Console → Webhooks → signing secret"
+                      description="Verifies X-Signature-V2 on incoming decision webhooks. Separate from the API key."
+                    />
+                    <Field
+                      label="Didit Workflow ID"
+                      value={settings.didit_workflow_id}
+                      onChange={(value) => setSettings({ ...settings, didit_workflow_id: value })}
+                      placeholder="c3fe1804-f5fa-4d1c-b286-585cd4cf8dcd"
+                      description="Console → Workflows. Leave blank to use the default Free KYC workflow."
                     />
                     <Field
                       label="Didit Callback URL"
                       value={settings.didit_callback_url}
                       onChange={(value) => setSettings({ ...settings, didit_callback_url: value })}
-                      placeholder="https://api.yourdomain.com/v1/verifications/didit/callback"
+                      placeholder="https://frontstore.app"
+                      description="Where the merchant's browser lands after finishing the hosted KYC flow. Not the webhook — register that separately in the Didit console."
                       full={true}
                     />
                   </>

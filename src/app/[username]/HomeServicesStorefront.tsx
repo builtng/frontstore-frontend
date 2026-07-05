@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { toast as sonnerToast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
+import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon } from "../../components/SocialIcons";
 
 import { Menu, X, BadgeCheck, MapPin, Star, Clock, Share2, Store as StoreIcon, Search, ShoppingBag, Calendar, ChevronRight, ChevronDown, ChevronLeft, Megaphone, Truck, Sparkles, ShieldCheck, Navigation, Lock, Plus, Minus, Copy, Instagram, Facebook, Award, Check, Quote, Phone, Mail, RotateCcw, Package, Bell, MessageCircle, Wrench, Hammer, Home as HomeIcon, Receipt } from "lucide-react";
@@ -531,6 +532,7 @@ export default function HomeServicesStorefront({
 
   const bagCount = bagItems.reduce((acc, item) => acc + item.qty, 0);
   const bagTotal = bagItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+  const shippingPreview = calculateShippingFee(store, bagTotal);
 
   const addToBag = (p: any, size: string | null = "One size", colour: string | null = "Original") => {
     const sz = size || "One size";
@@ -616,9 +618,33 @@ export default function HomeServicesStorefront({
                     </div>
                   </div>
                 ))}
-                <div className="ps-bag-total" style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--line)', paddingTop: 12, marginTop: 14 }}>
-                  <span>Subtotal</span>
-                  <b>{money(bagTotal)}</b>
+                <div style={{ borderTop: '1px solid var(--line)', paddingTop: 12, marginTop: 14, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Subtotal</span>
+                    <b>{money(bagTotal)}</b>
+                  </div>
+                  {deliveryMethod === 'delivery' && shippingPreview.shippingFee > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--muted)' }}>
+                      <span>Shipping</span>
+                      <span>{money(shippingPreview.shippingFee)}</span>
+                    </div>
+                  )}
+                  {deliveryMethod === 'delivery' && shippingPreview.shippingFee === 0 && (store as any)?.shipping_type === 'free' && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--muted)' }}>
+                      <span>Shipping</span>
+                      <span>Free</span>
+                    </div>
+                  )}
+                  {deliveryMethod === 'delivery' && shippingPreview.handlingFee > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--muted)' }}>
+                      <span>Handling Fee</span>
+                      <span>{money(shippingPreview.handlingFee)}</span>
+                    </div>
+                  )}
+                  <div className="ps-bag-total" style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800 }}>
+                    <span>Total</span>
+                    <b>{money(deliveryMethod === 'delivery' ? shippingPreview.total : bagTotal)}</b>
+                  </div>
                 </div>
                 <button className="ps-sheet-cta" onClick={() => setCheckoutStep('details')} style={{ marginTop: 14 }}>Proceed to Checkout</button>
               </>

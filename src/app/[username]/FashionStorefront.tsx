@@ -11,6 +11,7 @@ import {
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
+import { calculateShippingFee } from "../../utils/shippingFee";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface StoreData {
@@ -135,6 +136,7 @@ export default function FashionStorefront({
 
   const bagCount = bag.reduce((n, b) => n + b.qty, 0);
   const bagTotal = bag.reduce((n, b) => n + b.qty * b.price, 0);
+  const shippingPreview = calculateShippingFee(store, bagTotal);
   const ping = (m: string) => setToastMsg(m);
 
   const go = (p: string) => { setPage(p); setDrawer(false); setPost(null); window.scrollTo({ top: 0, behavior: 'smooth' }); };
@@ -366,13 +368,29 @@ export default function FashionStorefront({
                     <button className="ps-bag-rm" onClick={() => removeItem(item.key)}>Remove</button>
                   </div>
                 ))}
-                <div className="ps-bag-total">
-                  <span>Subtotal</span><b>{money(bagTotal)}</b>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div className="ps-bag-total">
+                    <span>Subtotal</span><b>{money(bagTotal)}</b>
+                  </div>
+                  {deliveryMethod === 'delivery' && shippingPreview.shippingFee > 0 && (
+                    <div className="ps-bag-total" style={{ fontSize: 13, color: 'var(--muted)' }}>
+                      <span>Shipping</span><span>{money(shippingPreview.shippingFee)}</span>
+                    </div>
+                  )}
+                  {deliveryMethod === 'delivery' && shippingPreview.handlingFee > 0 && (
+                    <div className="ps-bag-total" style={{ fontSize: 13, color: 'var(--muted)' }}>
+                      <span>Handling Fee</span><span>{money(shippingPreview.handlingFee)}</span>
+                    </div>
+                  )}
+                  <div className="ps-bag-total" style={{ fontWeight: 800 }}>
+                    <span>Total</span><b>{money(deliveryMethod === 'delivery' ? shippingPreview.total : bagTotal)}</b>
+                  </div>
                 </div>
                 <button className="ps-sheet-cta" onClick={() => setCheckoutStep('details')}>Continue <ChevronRight size={16} /></button>
                 <button className="ps-wa-cta" onClick={() => {
                   const lines = bag.map(b => `• ${b.name} ×${b.qty} — ${money(b.price * b.qty)}`).join('\n');
-                  handleWA(`Hi ${store.store_name}! I'd like to order:\n${lines}\n\nTotal: ${money(bagTotal)}`);
+                  const grandTotal = deliveryMethod === 'delivery' ? shippingPreview.total : bagTotal;
+                  handleWA(`Hi ${store.store_name}! I'd like to order:\n${lines}\n\nTotal: ${money(grandTotal)}`);
                 }}>
                   <WhatsAppIcon size={18} /> Order via WhatsApp
                 </button>
@@ -405,7 +423,7 @@ export default function FashionStorefront({
                 <Lock size={12} /> Your details are used only for this order and protected by {appName}.
               </div>
               <button className="ps-sheet-cta" disabled={checkoutLoading} onClick={submitOrder}>
-                {checkoutLoading ? 'Placing Order...' : `Place Order · ${money(bagTotal)}`}
+                {checkoutLoading ? 'Placing Order...' : `Place Order · ${money(deliveryMethod === 'delivery' ? shippingPreview.total : bagTotal)}`}
               </button>
               <button className="ps-wa-cta" onClick={() => {
                 const lines = bag.map(b => `• ${b.name} ×${b.qty}`).join('\n');

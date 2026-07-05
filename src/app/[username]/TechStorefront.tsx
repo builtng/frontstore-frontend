@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast as sonnerToast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
+import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 
 // --- Types & Interfaces ---
@@ -863,6 +864,7 @@ export default function TechStorefront({
 
   const bagCount = bag.reduce((n, b) => n + b.qty, 0);
   const subtotal = bag.reduce((n, b) => n + b.price * b.qty, 0);
+  const shippingPreview = calculateShippingFee(store, subtotal);
 
   const bookingFlow = () => {
     const titles = { service: "Choose a service", date: "Choose a date", time: "Choose a time", review: "Confirm booking" };
@@ -1839,6 +1841,13 @@ export default function TechStorefront({
                 </div>
               ))}
               <div className="ps-bag-total"><span>Subtotal</span><b>{money(subtotal)}</b></div>
+              {deliveryMethod === 'delivery' && shippingPreview.shippingFee > 0 && (
+                <div className="ps-bag-total" style={{ fontSize: 13, color: 'var(--muted)' }}><span>Shipping</span><span>{money(shippingPreview.shippingFee)}</span></div>
+              )}
+              {deliveryMethod === 'delivery' && shippingPreview.handlingFee > 0 && (
+                <div className="ps-bag-total" style={{ fontSize: 13, color: 'var(--muted)' }}><span>Handling Fee</span><span>{money(shippingPreview.handlingFee)}</span></div>
+              )}
+              <div className="ps-bag-total" style={{ fontWeight: 800 }}><span>Total</span><b>{money(deliveryMethod === 'delivery' ? shippingPreview.total : subtotal)}</b></div>
               <button className="ps-sheet-cta" onClick={() => setCheckoutStep('details')}>Checkout <ChevronRight size={16} /></button>
               <button className="ps-sheet-cta-wa" style={{ background: '#25d366', color: '#fff', border: 'none', width: '100%', padding: '14px', borderRadius: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 10 }} onClick={() => handleWa(`Hi ${STORE.name}! Order:\n${bag.map(b => `• ${b.name} ×${b.qty} (${b.slot})`).join('\n')}\nSubtotal: ${money(subtotal)}`)}>
                 <WhatsAppIcon size={18} /> Order via WhatsApp
@@ -1874,7 +1883,7 @@ export default function TechStorefront({
               <textarea className="bk-input bk-textarea" value={orderNote} onChange={e => setOrderNote(e.target.value)} placeholder="Warranty questions, device models, serial numbers..." />
 
               <button className="ps-sheet-cta" type="submit" disabled={checkoutLoading}>
-                {checkoutLoading ? 'Placing Order...' : `Place Order · ${money(subtotal)}`}
+                {checkoutLoading ? 'Placing Order...' : `Place Order · ${money(deliveryMethod === 'delivery' ? shippingPreview.total : subtotal)}`}
               </button>
             </form>
           )}
