@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Bot, MessageSquare, Send, X, RotateCcw, ArrowRight, Smartphone, Copy, Check, ExternalLink } from 'lucide-react';
+import { MessageSquare, Send, X, RotateCcw, ArrowRight, Smartphone, Copy, Check, ExternalLink } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 
 interface Store {

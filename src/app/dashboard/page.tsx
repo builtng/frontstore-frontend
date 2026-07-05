@@ -11,7 +11,7 @@ import {
   DollarSign, Calendar, MapPin, Receipt, Menu, X, ArrowUpRight,
   TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck, BookOpen,
-  ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer,
+  ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer, Inbox, MessageSquare, Mail,
   Briefcase, CreditCard, Landmark, PenLine, Truck, Scale, Sparkles, LineChart, Archive
 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
@@ -224,9 +224,9 @@ interface BroadcastCampaign {
   created_at: string;
 }
 
-type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings' | 'invoices' | 'receipts' | 'inventory' | 'automations' | 'analytics';
+type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings' | 'invoices' | 'receipts' | 'inventory' | 'automations' | 'analytics' | 'team' | 'finance' | 'refunds' | 'inbox';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings', 'invoices', 'receipts', 'inventory', 'automations', 'analytics'];
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings', 'invoices', 'receipts', 'inventory', 'automations', 'analytics', 'team', 'finance', 'refunds', 'inbox'];
 
 const BROADCAST_AUDIENCES: Array<{ id: 'all' | 'repeat' | 'unpaid_whatsapp'; label: string; description: string }> = [
   { id: 'all', label: 'All customers', description: 'Everyone who has ever placed an order with your store.' },
@@ -523,6 +523,50 @@ export default function DashboardPage() {
     title: string;
     description: string;
   } | null>(null);
+
+  // --- New Pro Features States (Team, Finance, Refunds, Inbox) ---
+  const [teamData, setTeamData] = useState<{ owner: any, staff: any[] }>({ owner: null, staff: [] });
+  const [teamLoading, setTeamLoading] = useState(false);
+  const [teamInvitations, setTeamInvitations] = useState<any[]>([]);
+  const [teamRoles, setTeamRoles] = useState<any[]>([]);
+  const [teamActivityLogs, setTeamActivityLogs] = useState<any[]>([]);
+  const [teamLoginHistory, setTeamLoginHistory] = useState<any[]>([]);
+  const [isInviteStaffOpen, setIsInviteStaffOpen] = useState(false);
+  const [isCreateRoleOpen, setIsCreateRoleOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [invitePhone, setInvitePhone] = useState('');
+  const [inviteRoleId, setInviteRoleId] = useState('');
+  const [newRoleName, setNewRoleName] = useState('');
+  const [newRolePermissions, setNewRolePermissions] = useState<string[]>([]);
+  const [teamTab, setTeamTab] = useState<'members' | 'invites' | 'roles' | 'activity' | 'login_history'>('members');
+
+  const [financeSummary, setFinanceSummary] = useState<any>(null);
+  const [financeLoading, setFinanceLoading] = useState(false);
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [newExpense, setNewExpense] = useState({ amount: '', category: 'operations', description: '', incurred_at: new Date().toISOString().split('T')[0] });
+  const [financeRange, setFinanceRange] = useState<'today' | 'week' | 'month' | 'year' | 'all'>('month');
+
+  const [refundRequests, setRefundRequests] = useState<any[]>([]);
+  const [refundLoading, setRefundLoading] = useState(false);
+  const [refundStats, setRefundStats] = useState<any>(null);
+  const [isRefundDetailsOpen, setIsRefundDetailsOpen] = useState(false);
+  const [selectedRefundRequest, setSelectedRefundRequest] = useState<any>(null);
+  const [refundMerchantNotes, setRefundMerchantNotes] = useState('');
+
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [inboxLoading, setInboxLoading] = useState(false);
+  const [activeConversation, setActiveConversation] = useState<any>(null);
+  const [activeConversationMessages, setActiveConversationMessages] = useState<any[]>([]);
+  const [quickReplies, setQuickReplies] = useState<any[]>([]);
+  const [messageTemplates, setMessageTemplates] = useState<any[]>([]);
+  const [replyMessageText, setReplyMessageText] = useState('');
+  const [isAddQuickReplyOpen, setIsAddQuickReplyOpen] = useState(false);
+  const [newQuickReplyShortcut, setNewQuickReplyShortcut] = useState('');
+  const [newQuickReplyMessage, setNewQuickReplyMessage] = useState('');
+  const [isAddTemplateOpen, setIsAddTemplateOpen] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState('');
+  const [newTemplateContent, setNewTemplateContent] = useState('');
 
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
@@ -1887,6 +1931,121 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchTeamData = async () => {
+    if (!isPro) return;
+    try {
+      setTeamLoading(true);
+      const headers = getAuthHeaders();
+      const [resMembers, resInvites, resRoles, resLogs, resLogin] = await Promise.all([
+        fetch(`${apiUrl}/v1/team/members`, { headers }),
+        fetch(`${apiUrl}/v1/team/invitations`, { headers }),
+        fetch(`${apiUrl}/v1/team/roles`, { headers }),
+        fetch(`${apiUrl}/v1/team/activity-logs`, { headers }),
+        fetch(`${apiUrl}/v1/team/login-history`, { headers })
+      ]);
+      if (resMembers.ok) setTeamData((await resMembers.json()).data);
+      if (resInvites.ok) setTeamInvitations((await resInvites.json()).data);
+      if (resRoles.ok) setTeamRoles((await resRoles.json()).data);
+      if (resLogs.ok) setTeamActivityLogs((await resLogs.json()).data.data || []);
+      if (resLogin.ok) setTeamLoginHistory((await resLogin.json()).data.data || []);
+    } catch (e) {
+      toast.error("Failed to load team data.");
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  const fetchFinanceData = async () => {
+    if (!isPro) return;
+    try {
+      setFinanceLoading(true);
+      const headers = getAuthHeaders();
+      const [resSummary, resExpenses] = await Promise.all([
+        fetch(`${apiUrl}/v1/finance/summary?range=${financeRange}`, { headers }),
+        fetch(`${apiUrl}/v1/finance/expenses`, { headers })
+      ]);
+      if (resSummary.ok) setFinanceSummary((await resSummary.json()).data);
+      if (resExpenses.ok) setExpenses((await resExpenses.json()).data.data || []);
+    } catch (e) {
+      toast.error("Failed to load financial records.");
+    } finally {
+      setFinanceLoading(false);
+    }
+  };
+
+  const fetchRefundsData = async () => {
+    if (!isPro) return;
+    try {
+      setRefundLoading(true);
+      const headers = getAuthHeaders();
+      const [resList, resStats] = await Promise.all([
+        fetch(`${apiUrl}/v1/refunds`, { headers }),
+        fetch(`${apiUrl}/v1/refunds/stats`, { headers })
+      ]);
+      if (resList.ok) setRefundRequests((await resList.json()).data.data || []);
+      if (resStats.ok) setRefundStats((await resStats.json()).data);
+    } catch (e) {
+      toast.error("Failed to load refunds data.");
+    } finally {
+      setRefundLoading(false);
+    }
+  };
+
+  const fetchInboxData = async () => {
+    if (!isPro) return;
+    try {
+      setInboxLoading(true);
+      const headers = getAuthHeaders();
+      const [resConvs, resReplies, resTemplates] = await Promise.all([
+        fetch(`${apiUrl}/v1/inbox/conversations`, { headers }),
+        fetch(`${apiUrl}/v1/inbox/quick-replies`, { headers }),
+        fetch(`${apiUrl}/v1/inbox/templates`, { headers })
+      ]);
+      if (resConvs.ok) setConversations((await resConvs.json()).data.data || []);
+      if (resReplies.ok) setQuickReplies((await resReplies.json()).data);
+      if (resTemplates.ok) setMessageTemplates((await resTemplates.json()).data);
+    } catch (e) {
+      toast.error("Failed to load unified inbox.");
+    } finally {
+      setInboxLoading(false);
+    }
+  };
+
+  const fetchConversationMessages = async (id: string) => {
+    try {
+      const res = await fetch(`${apiUrl}/v1/inbox/conversations/${id}`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setActiveConversation(json.data.conversation);
+        setActiveConversationMessages(json.data.messages);
+      }
+    } catch (e) {
+      toast.error("Failed to load messages.");
+    }
+  };
+  const downloadAnalyticsReport = async (type: 'weekly' | 'monthly') => {
+    try {
+      toast.loading("Generating report...");
+      const res = await fetch(`${apiUrl}/v1/analytics/reports/${type}`, {
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error("Failed to download PDF");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${type}_report_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast.dismiss();
+      toast.success("Report downloaded successfully!");
+    } catch (e) {
+      toast.dismiss();
+      toast.error("Failed to download statement report.");
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       if (activeTab === 'invoices') fetchInvoicesData();
@@ -1894,8 +2053,12 @@ export default function DashboardPage() {
       if (activeTab === 'inventory') fetchInventoryLogsData();
       if (activeTab === 'automations') fetchAutomationSettingsData();
       if (activeTab === 'analytics') fetchProAnalyticsData();
+      if (activeTab === 'team') fetchTeamData();
+      if (activeTab === 'finance') fetchFinanceData();
+      if (activeTab === 'refunds') fetchRefundsData();
+      if (activeTab === 'inbox') fetchInboxData();
     }
-  }, [isAuthenticated, activeTab, isPro]);
+  }, [isAuthenticated, activeTab, isPro, financeRange]);
 
   const handleSendWithdrawalOtp = async () => {
     try {
@@ -3264,7 +3427,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Nav Links */}
         <nav className="no-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto' }}>
           {[
             { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={18} /> },
@@ -3277,6 +3439,10 @@ export default function DashboardPage() {
             { id: 'analytics', label: 'Pro Analytics', icon: <LineChart size={18} />, badge: isPro ? undefined : 'Pro' },
             { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
             { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} />, badge: !isPro ? 'Pro' : (waOrders.filter(o => o.payment_status === 'unpaid').length || undefined) },
+            { id: 'inbox', label: 'Unified Inbox', icon: <Inbox size={18} />, badge: isPro ? undefined : 'Pro' },
+            { id: 'team', label: 'Staff & Team', icon: <Users size={18} />, badge: isPro ? undefined : 'Pro' },
+            { id: 'finance', label: 'Profit & Expenses', icon: <TrendingUp size={18} />, badge: isPro ? undefined : 'Pro' },
+            { id: 'refunds', label: 'Refunds Center', icon: <RefreshCw size={18} />, badge: isPro ? undefined : 'Pro' },
             { id: 'reach', label: 'Broadcast Messages', icon: <Megaphone size={18} />, badge: isPro ? undefined : 'Pro' },
             { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
             { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} />, badge: isPro ? undefined : 'Pro' },
@@ -8679,30 +8845,48 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <>
+                      {/* Download reports buttons */}
+                      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => downloadAnalyticsReport('weekly')}
+                          className="btn btn-secondary clickable"
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', fontSize: 13, fontWeight: 700 }}
+                        >
+                          <FileText size={15} /> Export Weekly Sales Report (PDF)
+                        </button>
+                        <button
+                          onClick={() => downloadAnalyticsReport('monthly')}
+                          className="btn btn-secondary clickable"
+                          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', fontSize: 13, fontWeight: 700 }}
+                        >
+                          <FileText size={15} /> Export Monthly Account Statement (PDF)
+                        </button>
+                      </div>
+
                       {/* Metric cards grid */}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
                         <div className="card" style={{ padding: 20 }}>
                           <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>GROSS REVENUE</span>
                           <h3 style={{ fontSize: 22, fontWeight: 900, marginTop: 8 }}>
-                            {store?.currency_code} {parseFloat(proAnalytics.gross_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {store?.currency_code} {parseFloat(proAnalytics.metrics?.total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </h3>
                         </div>
                         <div className="card" style={{ padding: 20 }}>
                           <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>NET REVENUE</span>
                           <h3 style={{ fontSize: 22, fontWeight: 900, marginTop: 8 }}>
-                            {store?.currency_code} {parseFloat(proAnalytics.net_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {store?.currency_code} {parseFloat(proAnalytics.metrics?.net_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </h3>
                         </div>
                         <div className="card" style={{ padding: 20 }}>
                           <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>AVG ORDER VALUE</span>
                           <h3 style={{ fontSize: 22, fontWeight: 900, marginTop: 8 }}>
-                            {store?.currency_code} {parseFloat(proAnalytics.average_order_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {store?.currency_code} {parseFloat(proAnalytics.metrics?.average_order_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </h3>
                         </div>
                         <div className="card" style={{ padding: 20 }}>
                           <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>REPEAT PURCHASE RATE</span>
                           <h3 style={{ fontSize: 22, fontWeight: 900, marginTop: 8 }}>
-                            {parseFloat(proAnalytics.repeat_purchase_rate).toFixed(1)}%
+                            {parseFloat(proAnalytics.metrics?.repeat_purchase_rate || 0).toFixed(1)}%
                           </h3>
                         </div>
                       </div>
@@ -8724,11 +8908,11 @@ export default function DashboardPage() {
                             </thead>
                             <tbody>
                               {proAnalytics.top_products?.map((p: any) => (
-                                <tr key={p.product_id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                  <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 750 }}>{p.product_name}</td>
+                                <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                  <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 750 }}>{p.name}</td>
                                   <td style={{ padding: '12px 18px', fontSize: 13 }}>{p.quantity_sold}</td>
                                   <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 800 }}>
-                                    {store?.currency_code} {parseFloat(p.revenue).toLocaleString()}
+                                    {store?.currency_code} {parseFloat(p.revenue_generated || 0).toLocaleString()}
                                   </td>
                                 </tr>
                               ))}
@@ -8750,12 +8934,12 @@ export default function DashboardPage() {
                               </tr>
                             </thead>
                             <tbody>
-                              {proAnalytics.top_customers?.map((c: any) => (
-                                <tr key={c.customer_name} style={{ borderBottom: '1px solid var(--border)' }}>
+                              {proAnalytics.customer_insights?.map((c: any) => (
+                                <tr key={c.id || c.customer_name} style={{ borderBottom: '1px solid var(--border)' }}>
                                   <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 750 }}>{c.customer_name}</td>
-                                  <td style={{ padding: '12px 18px', fontSize: 13 }}>{c.orders_count}</td>
+                                  <td style={{ padding: '12px 18px', fontSize: 13 }}>{c.purchase_count}</td>
                                   <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 800 }}>
-                                    {store?.currency_code} {parseFloat(c.total_spent).toLocaleString()}
+                                    {store?.currency_code} {parseFloat(c.total_spent || 0).toLocaleString()}
                                   </td>
                                 </tr>
                               ))}
@@ -9824,6 +10008,905 @@ export default function DashboardPage() {
                   )}
                 </div>
               )}
+
+              {/* ── TAB 21: TEAM & STAFF ── */}
+              {activeTab === 'team' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  {!isPro ? (
+                    <div className="card text-center" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
+                      <div style={{
+                        width: 64, height: 64, borderRadius: 'var(--r-full)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
+                      }}>
+                        <Users size={28} color="#fff" />
+                      </div>
+                      <div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Team & Staff Management</h3>
+                        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                          Add managers, sales agents, and support staff to run your store together. Set custom permissions, view login histories, and audit activity logs.
+                        </p>
+                      </div>
+                      <button onClick={() => navigateDashboardTab('billing')} className="btn btn-primary clickable" style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}>
+                        🚀 Upgrade to Pro Plan
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div style={{ width: 44, height: 44, borderRadius: 'var(--r-md)', background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Users size={22} color="#fff" />
+                          </div>
+                          <div>
+                            <h2 style={{ fontSize: 18, fontWeight: 900, fontFamily: 'var(--font-heading)' }}>Team & Staff</h2>
+                            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Manage staff members, custom roles, and security audit logs.</p>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 12 }}>
+                          <button onClick={() => setIsCreateRoleOpen(true)} className="btn btn-outline clickable" style={{ padding: '8px 16px', fontSize: 13, fontWeight: 700 }}>
+                            + Create Custom Role
+                          </button>
+                          <button onClick={() => setIsInviteStaffOpen(true)} className="btn btn-primary clickable" style={{ padding: '8px 16px', fontSize: 13, fontWeight: 700 }}>
+                            + Invite Staff Member
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Sub-nav */}
+                      <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 1 }}>
+                        {(['members', 'invites', 'roles', 'activity', 'login_history'] as const).map(t => (
+                          <button
+                            key={t}
+                            onClick={() => setTeamTab(t)}
+                            className="clickable"
+                            style={{
+                              padding: '10px 16px',
+                              fontSize: 13.5,
+                              fontWeight: 700,
+                              background: 'none',
+                              border: 'none',
+                              borderBottom: teamTab === t ? '2px solid var(--primary)' : 'none',
+                              color: teamTab === t ? 'var(--text)' : 'var(--text-muted)',
+                            }}
+                          >
+                            {t === 'members' && 'Staff Members'}
+                            {t === 'invites' && 'Pending Invites'}
+                            {t === 'roles' && 'Custom Roles'}
+                            {t === 'activity' && 'Activity Logs'}
+                            {t === 'login_history' && 'Login Histories'}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Content Panels */}
+                      {teamLoading ? (
+                        <div style={{ padding: 48, display: 'flex', justifyContent: 'center' }}><Loader2 className="spin" size={24} /></div>
+                      ) : (
+                        <>
+                          {teamTab === 'members' && (
+                            <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                <thead>
+                                  <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Name</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Email</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Role</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Date Joined</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {teamData.owner && (
+                                    <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, fontWeight: 750 }}>{teamData.owner.name}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13 }}>{teamData.owner.email}</td>
+                                      <td style={{ padding: '14px 18px' }}><span className="badge" style={{ background: 'rgba(99,102,241,0.1)', color: 'var(--primary)' }}>Owner</span></td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, color: 'var(--text-muted)' }}>Original Creator</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, color: 'var(--text-muted)' }}>—</td>
+                                    </tr>
+                                  )}
+                                  {teamData.staff?.map((member: any) => (
+                                    <tr key={member.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, fontWeight: 750 }}>{member.name}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13 }}>{member.email}</td>
+                                      <td style={{ padding: '14px 18px' }}>
+                                        <span className="badge" style={{ background: 'rgba(245,158,11,0.1)', color: '#d97706' }}>
+                                          {member.role?.name || 'Staff'}
+                                        </span>
+                                      </td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, color: 'var(--text-muted)' }}>
+                                        {new Date(member.created_at).toLocaleDateString()}
+                                      </td>
+                                      <td style={{ padding: '14px 18px' }}>
+                                        <button
+                                          onClick={async () => {
+                                            if (!confirm('Are you sure you want to remove this team member?')) return;
+                                            try {
+                                              const res = await fetch(`${apiUrl}/v1/team/members/${member.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+                                              if (res.ok) {
+                                                toast.success('Team member removed.');
+                                                fetchTeamData();
+                                              } else {
+                                                toast.error('Failed to remove team member.');
+                                              }
+                                            } catch { toast.error('Error removing team member.'); }
+                                          }}
+                                          className="clickable"
+                                          style={{ border: 'none', background: 'none', color: 'var(--danger)', fontSize: 12.5, fontWeight: 700 }}
+                                        >
+                                          Remove
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                  {(!teamData.staff || teamData.staff.length === 0) && (
+                                    <tr>
+                                      <td colSpan={5} style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13.5 }}>
+                                        No staff members added yet. Invite your first employee above!
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+
+                          {teamTab === 'invites' && (
+                            <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                <thead>
+                                  <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Email</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Role</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Status</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {teamInvitations.map((invite: any) => (
+                                    <tr key={invite.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, fontWeight: 750 }}>{invite.email}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13 }}>{invite.role?.name || 'Staff'}</td>
+                                      <td style={{ padding: '14px 18px' }}>
+                                        <span className="badge" style={{ background: invite.status === 'pending' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)', color: invite.status === 'pending' ? '#d97706' : 'var(--danger)' }}>
+                                          {invite.status}
+                                        </span>
+                                      </td>
+                                      <td style={{ padding: '14px 18px' }}>
+                                        <button
+                                          onClick={async () => {
+                                            try {
+                                              const res = await fetch(`${apiUrl}/v1/team/invitations/${invite.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+                                              if (res.ok) {
+                                                toast.success('Invitation cancelled.');
+                                                fetchTeamData();
+                                              } else {
+                                                toast.error('Failed to cancel invitation.');
+                                              }
+                                            } catch { toast.error('Error cancelling invitation.'); }
+                                          }}
+                                          className="clickable"
+                                          style={{ border: 'none', background: 'none', color: 'var(--danger)', fontSize: 12.5, fontWeight: 700 }}
+                                        >
+                                          Cancel
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                  {teamInvitations.length === 0 && (
+                                    <tr>
+                                      <td colSpan={4} style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13.5 }}>
+                                        No pending staff invitations.
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+
+                          {teamTab === 'roles' && (
+                            <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                <thead>
+                                  <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Role Name</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Granted Permissions</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {teamRoles.map((role: any) => (
+                                    <tr key={role.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, fontWeight: 750 }}>{role.name}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, maxWidth: 400 }}>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                          {role.permissions?.map((perm: string) => (
+                                            <span key={perm} className="badge" style={{ background: 'var(--card-hover)', color: 'var(--text-muted)', fontSize: 11 }}>
+                                              {perm}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </td>
+                                      <td style={{ padding: '14px 18px' }}>
+                                        {role.store_id ? (
+                                          <button
+                                            onClick={async () => {
+                                              if (!confirm('Are you sure you want to delete this custom role?')) return;
+                                              try {
+                                                const res = await fetch(`${apiUrl}/v1/team/roles/${role.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+                                                if (res.ok) {
+                                                  toast.success('Role deleted.');
+                                                  fetchTeamData();
+                                                } else {
+                                                  toast.error('Failed to delete role.');
+                                                }
+                                              } catch { toast.error('Error deleting role.'); }
+                                            }}
+                                            className="clickable"
+                                            style={{ border: 'none', background: 'none', color: 'var(--danger)', fontSize: 12.5, fontWeight: 700 }}
+                                          >
+                                            Delete
+                                          </button>
+                                        ) : (
+                                          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>System Default</span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+
+                          {teamTab === 'activity' && (
+                            <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                <thead>
+                                  <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>User</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Action</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Details</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Date & Time</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {teamActivityLogs.map((log: any) => (
+                                    <tr key={log.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, fontWeight: 750 }}>{log.user?.name || 'System'}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13 }}><span className="badge" style={{ background: 'var(--card-hover)' }}>{log.action}</span></td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13 }}>{log.details}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, color: 'var(--text-muted)' }}>
+                                        {new Date(log.created_at).toLocaleString()}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                  {teamActivityLogs.length === 0 && (
+                                    <tr>
+                                      <td colSpan={4} style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13.5 }}>
+                                        No activity history logged yet.
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+
+                          {teamTab === 'login_history' && (
+                            <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                <thead>
+                                  <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>User</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>IP Address</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Browser / Device</th>
+                                    <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Login Time</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {teamLoginHistory.map((login: any) => (
+                                    <tr key={login.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, fontWeight: 750 }}>{login.user?.name || 'User'}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13 }}>{login.ip_address}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{login.user_agent}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, color: 'var(--text-muted)' }}>
+                                        {new Date(login.login_at).toLocaleString()}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                  {teamLoginHistory.length === 0 && (
+                                    <tr>
+                                      <td colSpan={4} style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13.5 }}>
+                                        No login histories logged yet.
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB 22: FINANCE & PROFIT/EXPENSES ── */}
+              {activeTab === 'finance' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  {!isPro ? (
+                    <div className="card text-center" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
+                      <div style={{
+                        width: 64, height: 64, borderRadius: 'var(--r-full)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
+                      }}>
+                        <TrendingUp size={28} color="#fff" />
+                      </div>
+                      <div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Profit & Expense Tracking</h3>
+                        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                          Track item cost prices, capture day-to-day business expenses, and view real-time net profits, margins, and monthly sales growth metrics.
+                        </p>
+                      </div>
+                      <button onClick={() => navigateDashboardTab('billing')} className="btn btn-primary clickable" style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}>
+                        🚀 Upgrade to Pro Plan
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div style={{ width: 44, height: 44, borderRadius: 'var(--r-md)', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <TrendingUp size={22} color="#fff" />
+                          </div>
+                          <div>
+                            <h2 style={{ fontSize: 18, fontWeight: 900, fontFamily: 'var(--font-heading)' }}>Profit & Expenses</h2>
+                            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Financial dashboard, cost tracking, and expenses ledger.</p>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                          <select
+                            value={financeRange}
+                            onChange={(e: any) => setFinanceRange(e.target.value)}
+                            className="input"
+                            style={{ padding: '6px 12px', fontSize: 13.5, width: 140 }}
+                          >
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                            <option value="all">All Time</option>
+                          </select>
+                          <button onClick={() => setIsAddExpenseOpen(true)} className="btn btn-primary clickable" style={{ padding: '8px 16px', fontSize: 13, fontWeight: 700 }}>
+                            + Log Expense
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Cards Grid */}
+                      {financeLoading || !financeSummary ? (
+                        <div style={{ padding: 48, display: 'flex', justifyContent: 'center' }}><Loader2 className="spin" size={24} /></div>
+                      ) : (
+                        <>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+                            <div className="card" style={{ position: 'relative', overflow: 'hidden' }}>
+                              <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Net Profit</span>
+                              <div style={{ fontSize: 24, fontWeight: 900, marginTop: 8, color: financeSummary.net_profit >= 0 ? '#10b981' : 'var(--danger)' }}>
+                                {store?.currency_code} {parseFloat(financeSummary.net_profit || 0).toLocaleString()}
+                              </div>
+                              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
+                                Margin: <strong style={{ color: '#10b981' }}>{financeSummary.profit_margin}%</strong>
+                              </div>
+                            </div>
+                            <div className="card">
+                              <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Revenue (Paid Orders)</span>
+                              <div style={{ fontSize: 24, fontWeight: 900, marginTop: 8 }}>
+                                {store?.currency_code} {parseFloat(financeSummary.revenue || 0).toLocaleString()}
+                              </div>
+                              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
+                                Today: <strong>{store?.currency_code} {parseFloat(financeSummary.today_revenue || 0).toLocaleString()}</strong>
+                              </div>
+                            </div>
+                            <div className="card">
+                              <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Expenses Recorded</span>
+                              <div style={{ fontSize: 24, fontWeight: 900, marginTop: 8, color: 'var(--danger)' }}>
+                                {store?.currency_code} {parseFloat(financeSummary.expenses || 0).toLocaleString()}
+                              </div>
+                              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
+                                Today: <strong>{store?.currency_code} {parseFloat(financeSummary.today_expenses || 0).toLocaleString()}</strong>
+                              </div>
+                            </div>
+                            <div className="card">
+                              <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Monthly Revenue Growth</span>
+                              <div style={{ fontSize: 24, fontWeight: 900, marginTop: 8, color: financeSummary.monthly_growth >= 0 ? '#10b981' : 'var(--danger)' }}>
+                                {financeSummary.monthly_growth >= 0 ? '+' : ''}{financeSummary.monthly_growth}%
+                              </div>
+                              <span style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>VS previous calendar month</span>
+                            </div>
+                          </div>
+
+                          {/* Detail Split */}
+                          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24, alignItems: 'start' }}>
+                            {/* Expense Ledger */}
+                            <div className="card" style={{ padding: 0 }}>
+                              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h3 style={{ fontSize: 14.5, fontWeight: 800 }}>Expense Ledger</h3>
+                              </div>
+                              <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                  <thead>
+                                    <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                      <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Date</th>
+                                      <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Category</th>
+                                      <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Description</th>
+                                      <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Amount</th>
+                                      <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Action</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {expenses.map((expense: any) => (
+                                      <tr key={expense.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <td style={{ padding: '14px 18px', fontSize: 13 }}>{expense.incurred_at}</td>
+                                        <td style={{ padding: '14px 18px' }}>
+                                          <span className="badge" style={{ background: 'var(--card-hover)' }}>{expense.category}</span>
+                                        </td>
+                                        <td style={{ padding: '14px 18px', fontSize: 13 }}>{expense.description || 'No description'}</td>
+                                        <td style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--danger)' }}>
+                                          {store?.currency_code} {parseFloat(expense.amount).toLocaleString()}
+                                        </td>
+                                        <td style={{ padding: '14px 18px' }}>
+                                          <button
+                                            onClick={async () => {
+                                              if (!confirm('Are you sure you want to delete this expense?')) return;
+                                              try {
+                                                const res = await fetch(`${apiUrl}/v1/finance/expenses/${expense.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+                                                if (res.ok) {
+                                                  toast.success('Expense record deleted.');
+                                                  fetchFinanceData();
+                                                }
+                                              } catch { toast.error('Error deleting expense.'); }
+                                            }}
+                                            className="clickable"
+                                            style={{ border: 'none', background: 'none', color: 'var(--danger)', fontSize: 12.5, fontWeight: 700 }}
+                                          >
+                                            Delete
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                    {expenses.length === 0 && (
+                                      <tr>
+                                        <td colSpan={5} style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13.5 }}>
+                                          No business expenses logged in this range.
+                                        </td>
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+
+                            {/* Expenses breakdown */}
+                            <div className="card">
+                              <h3 style={{ fontSize: 14.5, fontWeight: 800, marginBottom: 16 }}>Category Breakdown</h3>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                {['inventory', 'marketing', 'operations', 'staff', 'miscellaneous'].map(cat => {
+                                  const totalCat = financeSummary.expenses_by_category?.find((c: any) => c.category === cat)?.total || 0;
+                                  const pct = financeSummary.expenses > 0 ? (totalCat / financeSummary.expenses) * 100 : 0;
+                                  return (
+                                    <div key={cat}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, marginBottom: 6 }}>
+                                        <span style={{ textTransform: 'capitalize', fontWeight: 700 }}>{cat}</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>{store?.currency_code} {parseFloat(totalCat).toLocaleString()} ({Math.round(pct)}%)</span>
+                                      </div>
+                                      <div style={{ width: '100%', height: 6, borderRadius: 3, background: 'var(--card-hover)', overflow: 'hidden' }}>
+                                        <div style={{ width: `${pct}%`, height: '100%', background: cat === 'inventory' ? '#6366f1' : cat === 'marketing' ? '#ec4899' : cat === 'operations' ? '#3b82f6' : '#10b981', borderRadius: 3 }} />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB 23: REFUND REQUESTS ── */}
+              {activeTab === 'refunds' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  {!isPro ? (
+                    <div className="card text-center" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
+                      <div style={{
+                        width: 64, height: 64, borderRadius: 'var(--r-full)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
+                      }}>
+                        <RefreshCw size={28} color="#fff" />
+                      </div>
+                      <div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Refunds & Returns Management</h3>
+                        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                          Allow customers to submit refund claims directly from their digital order status tracking page, review details, check evidence uploads, and approve payouts reversely.
+                        </p>
+                      </div>
+                      <button onClick={() => navigateDashboardTab('billing')} className="btn btn-primary clickable" style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}>
+                        🚀 Upgrade to Pro Plan
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Header */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 'var(--r-md)', background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <RefreshCw size={22} color="#fff" />
+                        </div>
+                        <div>
+                          <h2 style={{ fontSize: 18, fontWeight: 900, fontFamily: 'var(--font-heading)' }}>Refund Center</h2>
+                          <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Manage customer disputes, return submissions, and reversal claims.</p>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      {refundStats && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+                          <div className="card">
+                            <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Active Disputes</span>
+                            <div style={{ fontSize: 24, fontWeight: 900, marginTop: 8 }}>{refundStats.total_requests || 0}</div>
+                          </div>
+                          <div className="card">
+                            <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Approved Refunds</span>
+                            <div style={{ fontSize: 24, fontWeight: 900, marginTop: 8, color: '#10b981' }}>{refundStats.approved_refunds || 0}</div>
+                          </div>
+                          <div className="card">
+                            <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Refund Rate</span>
+                            <div style={{ fontSize: 24, fontWeight: 900, marginTop: 8, color: 'var(--danger)' }}>{refundStats.refund_rate}%</div>
+                          </div>
+                          <div className="card">
+                            <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Primary Reason</span>
+                            <div style={{ fontSize: 17, fontWeight: 800, marginTop: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {refundStats.common_reasons?.[0]?.reason || 'None logged'}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Ledger */}
+                      {refundLoading ? (
+                        <div style={{ padding: 48, display: 'flex', justifyContent: 'center' }}><Loader2 className="spin" size={24} /></div>
+                      ) : (
+                        <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                            <thead>
+                              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Order ID</th>
+                                <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Reason</th>
+                                <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Notes</th>
+                                <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Amount</th>
+                                <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Status</th>
+                                <th style={{ padding: '12px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {refundRequests.map((ref: any) => (
+                                <tr key={ref.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                  <td style={{ padding: '14px 18px', fontSize: 13, fontWeight: 750 }}>#{ref.order?.order_number}</td>
+                                  <td style={{ padding: '14px 18px', fontSize: 13 }}>{ref.reason}</td>
+                                  <td style={{ padding: '14px 18px', fontSize: 13, color: 'var(--text-muted)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {ref.customer_notes || '—'}
+                                  </td>
+                                  <td style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800 }}>
+                                    {store?.currency_code} {parseFloat(ref.amount).toLocaleString()}
+                                  </td>
+                                  <td style={{ padding: '14px 18px' }}>
+                                    <span className="badge" style={{
+                                      background: ref.status === 'requested' ? 'rgba(245,158,11,0.1)' : ref.status === 'approved' || ref.status === 'refunded' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                                      color: ref.status === 'requested' ? '#d97706' : ref.status === 'approved' || ref.status === 'refunded' ? '#10b981' : 'var(--danger)'
+                                    }}>
+                                      {ref.status}
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: '14px 18px' }}>
+                                    <button
+                                      onClick={() => {
+                                        setSelectedRefundRequest(ref);
+                                        setRefundMerchantNotes('');
+                                        setIsRefundDetailsOpen(true);
+                                      }}
+                                      className="btn btn-outline clickable"
+                                      style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700 }}
+                                    >
+                                      Review
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                              {refundRequests.length === 0 && (
+                                <tr>
+                                  <td colSpan={6} style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13.5 }}>
+                                    No refund requests found.
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB 24: UNIFIED COMMUNICATIONS INBOX ── */}
+              {activeTab === 'inbox' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="no-scrollbar animate-fade-in">
+                  {!isPro ? (
+                    <div className="card text-center" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
+                      <div style={{
+                        width: 64, height: 64, borderRadius: 'var(--r-full)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
+                      }}>
+                        <Inbox size={28} color="#fff" />
+                      </div>
+                      <div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Unified Customer Communications Center</h3>
+                        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                          Consolidate customer conversations from WhatsApp API, email logs, and storefront contact pages in one central inbox with custom message templates and slash-command quick replies.
+                        </p>
+                      </div>
+                      <button onClick={() => navigateDashboardTab('billing')} className="btn btn-primary clickable" style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}>
+                        🚀 Upgrade to Pro Plan
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Grid layout */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr 280px', gap: 20, height: 'calc(100vh - 200px)', minHeight: 560, alignItems: 'stretch' }}>
+                        {/* 1. Conversations List Pane */}
+                        <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
+                          <h3 style={{ fontSize: 14.5, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Inbox size={16} /> Chats Inbox
+                          </h3>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, overflowY: 'auto' }} className="no-scrollbar">
+                            {conversations.map((c: any) => {
+                              const active = activeConversation?.id === c.id;
+                              return (
+                                <button
+                                  key={c.id}
+                                  onClick={() => fetchConversationMessages(c.id)}
+                                  className="clickable text-left"
+                                  style={{
+                                    width: '100%',
+                                    padding: '12px 14px',
+                                    borderRadius: 'var(--r-md)',
+                                    background: active ? 'var(--card-hover)' : 'none',
+                                    border: active ? '1px solid var(--border)' : '1px solid transparent',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 6
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                    <span style={{ fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>
+                                      {c.customer_name}
+                                    </span>
+                                    <span style={{ fontSize: 10.5, color: 'var(--text-muted)' }}>
+                                      {c.source === 'whatsapp' && '💬 WA'}
+                                      {c.source === 'email' && '✉️ Email'}
+                                      {c.source === 'contact_form' && '📄 Form'}
+                                    </span>
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', fontSize: 11.5, color: 'var(--text-muted)' }}>
+                                    <span className="badge" style={{
+                                      fontSize: 10,
+                                      padding: '1px 6px',
+                                      background: c.label === 'new' ? 'rgba(239,68,68,0.1)' : c.label === 'pending' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)',
+                                      color: c.label === 'new' ? 'var(--danger)' : c.label === 'pending' ? '#d97706' : '#10b981'
+                                    }}>
+                                      {c.label}
+                                    </span>
+                                    <span>{new Date(c.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                            {conversations.length === 0 && (
+                              <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, padding: 32 }}>No chats available.</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 2. Active Chat Content Pane */}
+                        <div className="card" style={{ padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                          {activeConversation ? (
+                            <>
+                              {/* Header */}
+                              <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                                <div>
+                                  <h4 style={{ fontSize: 14.5, fontWeight: 900 }}>{activeConversation.customer_name}</h4>
+                                  <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                                    Source: {activeConversation.source} · {activeConversation.customer_phone || activeConversation.customer_email}
+                                  </p>
+                                </div>
+                                <select
+                                  value={activeConversation.label}
+                                  onChange={async (e: any) => {
+                                    const nextLabel = e.target.value;
+                                    try {
+                                      const res = await fetch(`${apiUrl}/v1/inbox/conversations/${activeConversation.id}/label`, {
+                                        method: 'PUT',
+                                        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ label: nextLabel })
+                                      });
+                                      if (res.ok) {
+                                        setActiveConversation(prev => ({ ...prev, label: nextLabel }));
+                                        fetchInboxData();
+                                        toast.success('Conversation label updated');
+                                      }
+                                    } catch { toast.error('Error changing label'); }
+                                  }}
+                                  className="input"
+                                  style={{ padding: '4px 8px', fontSize: 12, width: 110 }}
+                                >
+                                  <option value="new">New</option>
+                                  <option value="pending">Pending</option>
+                                  <option value="resolved">Resolved</option>
+                                </select>
+                              </div>
+
+                              {/* Chat message bubbles scroll */}
+                              <div style={{ flex: 1, padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }} className="no-scrollbar">
+                                {activeConversationMessages.map((m: any) => {
+                                  const self = m.sender === 'agent';
+                                  const isAi = m.sender === 'ai';
+                                  return (
+                                    <div key={m.id} style={{ display: 'flex', justifyContent: self ? 'flex-end' : 'flex-start', width: '100%' }}>
+                                      <div style={{
+                                        maxWidth: '70%',
+                                        padding: '10px 14px',
+                                        borderRadius: self ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                                        background: self ? 'var(--primary)' : isAi ? 'rgba(99,102,241,0.08)' : 'var(--card-hover)',
+                                        border: isAi ? '1px dashed rgba(99,102,241,0.25)' : 'none',
+                                        color: self ? '#fff' : 'var(--text)',
+                                      }}>
+                                        {isAi && (
+                                          <div style={{ fontSize: 9, textTransform: 'uppercase', fontWeight: 900, color: 'var(--primary)', marginBottom: 4 }}>
+                                            🤖 AI Copilot Response
+                                          </div>
+                                        )}
+                                        <p style={{ fontSize: 13, lineHeight: 1.4, margin: 0 }}>{m.message}</p>
+                                        <div style={{ fontSize: 10, textAlign: self ? 'right' : 'left', color: self ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)', marginTop: 4 }}>
+                                          {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Message Input dispatch */}
+                              <form
+                                onSubmit={async (e: React.FormEvent) => {
+                                  e.preventDefault();
+                                  if (!replyMessageText.trim()) return;
+                                  try {
+                                    const bodyText = replyMessageText;
+                                    setReplyMessageText('');
+                                    const res = await fetch(`${apiUrl}/v1/inbox/conversations/${activeConversation.id}/send`, {
+                                      method: 'POST',
+                                      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ message: bodyText })
+                                    });
+                                    const json = await res.json();
+                                    if (res.ok) {
+                                      setActiveConversationMessages(prev => [...prev, json.data]);
+                                      fetchInboxData();
+                                    } else {
+                                      toast.error(json.message || 'Failed to dispatch.');
+                                    }
+                                  } catch { toast.error('Error sending reply.'); }
+                                }}
+                                style={{ padding: 16, borderTop: '1px solid var(--border)', display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0 }}
+                              >
+                                <input
+                                  type="text"
+                                  value={replyMessageText}
+                                  onChange={(e: any) => setReplyMessageText(e.target.value)}
+                                  placeholder="Type response, use templates/replies panel..."
+                                  className="input"
+                                  style={{ flex: 1, padding: 10, fontSize: 13.5 }}
+                                />
+                                <button type="submit" className="btn btn-primary clickable" style={{ padding: '10px 20px', fontSize: 13.5, fontWeight: 700 }}>
+                                  Send
+                                </button>
+                              </form>
+                            </>
+                          ) : (
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', gap: 12, padding: 32 }}>
+                              <MessageSquare size={32} />
+                              <p style={{ fontSize: 14 }}>Select a conversation thread to view logs and reply.</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 3. Right Profile & Utilities Panel */}
+                        <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto' }} className="no-scrollbar">
+                          {activeConversation ? (
+                            <>
+                              <div>
+                                <h4 style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>Customer details</h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
+                                  <div>Name: <strong>{activeConversation.customer_name}</strong></div>
+                                  {activeConversation.customer_phone && <div>Phone: <strong>{activeConversation.customer_phone}</strong></div>}
+                                  {activeConversation.customer_email && <div>Email: <strong>{activeConversation.customer_email}</strong></div>}
+                                </div>
+                              </div>
+                              <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: 0 }} />
+                              <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                  <h4 style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>Quick Replies</h4>
+                                  <button onClick={() => setIsAddQuickReplyOpen(true)} className="clickable" style={{ border: 'none', background: 'none', color: 'var(--primary)', fontSize: 11, fontWeight: 700 }}>+ Add</button>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                  {quickReplies.map((r: any) => (
+                                    <button
+                                      key={r.id}
+                                      onClick={() => setReplyMessageText(r.message)}
+                                      className="clickable text-left"
+                                      style={{ padding: '6px 8px', borderRadius: 'var(--r-md)', background: 'var(--card-hover)', border: '1px solid var(--border)', fontSize: 12, display: 'flex', justifyContent: 'space-between' }}
+                                    >
+                                      <span>{r.shortcut}</span>
+                                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Use</span>
+                                    </button>
+                                  ))}
+                                  {quickReplies.length === 0 && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>No quick replies added yet.</span>}
+                                </div>
+                              </div>
+                              <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: 0 }} />
+                              <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                  <h4 style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)' }}>Templates</h4>
+                                  <button onClick={() => setIsAddTemplateOpen(true)} className="clickable" style={{ border: 'none', background: 'none', color: 'var(--primary)', fontSize: 11, fontWeight: 700 }}>+ Add</button>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                  {messageTemplates.map((t: any) => (
+                                    <button
+                                      key={t.id}
+                                      onClick={() => setReplyMessageText(t.content)}
+                                      className="clickable text-left"
+                                      style={{ padding: '6px 8px', borderRadius: 'var(--r-md)', background: 'var(--card-hover)', border: '1px solid var(--border)', fontSize: 12, display: 'flex', justifyContent: 'space-between' }}
+                                    >
+                                      <span>{t.name}</span>
+                                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Use</span>
+                                    </button>
+                                  ))}
+                                  {messageTemplates.length === 0 && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>No templates added.</span>}
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12, padding: 16 }}>Select a thread to view customer properties.</p>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </>
           )}
 
@@ -9875,6 +10958,10 @@ export default function DashboardPage() {
                 { id: 'analytics', label: 'Pro Analytics', icon: <LineChart size={18} /> },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
                 { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
+                { id: 'inbox', label: 'Unified Inbox', icon: <Inbox size={18} /> },
+                { id: 'team', label: 'Staff & Team', icon: <Users size={18} /> },
+                { id: 'finance', label: 'Profit & Expenses', icon: <TrendingUp size={18} /> },
+                { id: 'refunds', label: 'Refunds Center', icon: <RefreshCw size={18} /> },
                 { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
                 { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} /> },
                 { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} /> },
@@ -10264,6 +11351,286 @@ export default function DashboardPage() {
                 <button type="submit" disabled={blogSubmitting} className="btn btn-primary clickable" style={{ flex: 1, padding: 12 }}>
                   {blogSubmitting ? 'Publishing...' : 'Publish Post'}
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CREATE INVOICE ── */}
+      {isAddInvoiceOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsAddInvoiceOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
+          <div className="card animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 600, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create New Invoice</h3>
+              <button onClick={() => setIsAddInvoiceOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const total = invoiceItems.reduce((acc, it) => acc + (it.quantity * it.price), 0);
+                const payload = {
+                  customer_name: newInvoiceData.customer_name,
+                  customer_email: newInvoiceData.customer_email || null,
+                  customer_phone: newInvoiceData.customer_phone,
+                  due_date: newInvoiceData.due_date,
+                  notes: newInvoiceData.notes || null,
+                  items: invoiceItems.filter(it => it.name.trim() !== ''),
+                  total_amount: total
+                };
+                const res = await fetch(`${apiUrl}/v1/invoices`, {
+                  method: 'POST',
+                  headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                  toast.success("Invoice created successfully.");
+                  setIsAddInvoiceOpen(false);
+                  fetchInvoicesData();
+                } else {
+                  const errorJson = await res.json();
+                  toast.error(errorJson.message || "Failed to create invoice.");
+                }
+              } catch {
+                toast.error("Network error creating invoice.");
+              }
+            }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Customer Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={newInvoiceData.customer_name}
+                  onChange={e => setNewInvoiceData({ ...newInvoiceData, customer_name: e.target.value })}
+                  className="form-control"
+                  style={{ marginTop: 6 }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700 }}>Customer Email</label>
+                  <input
+                    type="email"
+                    value={newInvoiceData.customer_email}
+                    onChange={e => setNewInvoiceData({ ...newInvoiceData, customer_email: e.target.value })}
+                    className="form-control"
+                    style={{ marginTop: 6 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700 }}>Customer Phone *</label>
+                  <input
+                    type="text"
+                    required
+                    value={newInvoiceData.customer_phone}
+                    onChange={e => setNewInvoiceData({ ...newInvoiceData, customer_phone: e.target.value })}
+                    className="form-control"
+                    style={{ marginTop: 6 }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700 }}>Due Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={newInvoiceData.due_date}
+                    onChange={e => setNewInvoiceData({ ...newInvoiceData, due_date: e.target.value })}
+                    className="form-control"
+                    style={{ marginTop: 6 }}
+                  />
+                </div>
+              </div>
+
+              {/* Items Section */}
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 8 }}>Invoice Items</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {invoiceItems.map((item, idx) => (
+                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1.2fr auto', gap: 10, alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        placeholder="Item name"
+                        value={item.name}
+                        required
+                        onChange={e => {
+                          const next = [...invoiceItems];
+                          next[idx].name = e.target.value;
+                          setInvoiceItems(next);
+                        }}
+                        className="form-control"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Qty"
+                        value={item.quantity}
+                        min={1}
+                        required
+                        onChange={e => {
+                          const next = [...invoiceItems];
+                          next[idx].quantity = parseInt(e.target.value) || 1;
+                          setInvoiceItems(next);
+                        }}
+                        className="form-control"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Price"
+                        value={item.price}
+                        min={0}
+                        required
+                        onChange={e => {
+                          const next = [...invoiceItems];
+                          next[idx].price = parseFloat(e.target.value) || 0;
+                          setInvoiceItems(next);
+                        }}
+                        className="form-control"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (invoiceItems.length > 1) {
+                            setInvoiceItems(invoiceItems.filter((_, i) => i !== idx));
+                          }
+                        }}
+                        style={{ border: 'none', background: 'none', color: 'var(--danger)' }}
+                        className="clickable"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setInvoiceItems([...invoiceItems, { name: '', quantity: 1, price: 0 }])}
+                  className="btn btn-outline clickable"
+                  style={{ marginTop: 12, padding: '4px 10px', fontSize: 12 }}
+                >
+                  + Add Item
+                </button>
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Notes / Instructions</label>
+                <textarea
+                  value={newInvoiceData.notes}
+                  onChange={e => setNewInvoiceData({ ...newInvoiceData, notes: e.target.value })}
+                  className="form-control"
+                  style={{ marginTop: 6, height: 60 }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <button type="button" onClick={() => setIsAddInvoiceOpen(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
+                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1, padding: 12 }}>Save Invoice</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: ADJUST INVENTORY STOCK ── */}
+      {isAdjustStockOpen && adjustingProduct && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsAdjustStockOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 450, padding: 24, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Adjust Stock Count</h3>
+              <button onClick={() => setIsAdjustStockOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>PRODUCT</span>
+              <div style={{ fontSize: 14, fontWeight: 800, marginTop: 4 }}>{adjustingProduct.name}</div>
+              {adjustingVariant && (
+                <div style={{ fontSize: 12.5, color: 'var(--primary)', marginTop: 2, fontWeight: 700 }}>
+                  Variant: {adjustingVariant.size ? `Size ${adjustingVariant.size}` : ''} {adjustingVariant.color ? `Color ${adjustingVariant.color}` : ''}
+                </div>
+              )}
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const qtyVal = parseInt(adjustQty);
+                if (isNaN(qtyVal)) return;
+
+                const payload = {
+                  product_id: adjustingProduct.id,
+                  product_variant_id: adjustingVariant?.id || null,
+                  quantity: qtyVal,
+                  adjustment_type: adjustType,
+                  reason: adjustReason || null
+                };
+
+                const res = await fetch(`${apiUrl}/v1/inventory/adjust`, {
+                  method: 'POST',
+                  headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                  toast.success("Stock count adjusted successfully.");
+                  setIsAdjustStockOpen(false);
+                  fetchProducts(); // Refresh product list for stock count
+                  fetchInventoryLogsData(); // Refresh history
+                } else {
+                  const errorJson = await res.json();
+                  toast.error(errorJson.message || "Failed to adjust stock.");
+                }
+              } catch {
+                toast.error("Network error adjusting stock.");
+              }
+            }} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Adjustment Type</label>
+                <select
+                  value={adjustType}
+                  onChange={e => setAdjustType(e.target.value as any)}
+                  className="form-control"
+                  style={{ marginTop: 6 }}
+                >
+                  <option value="restock">Restock (Add to stock count)</option>
+                  <option value="manual">Manual Adjustment (Set new exact count or deduct)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>
+                  Quantity change value (e.g. 10 to add, -5 to deduct) *
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={adjustQty}
+                  onChange={e => setAdjustQty(e.target.value)}
+                  placeholder="e.g. 5 or -2"
+                  className="form-control"
+                  style={{ marginTop: 6 }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Reason / Note</label>
+                <input
+                  type="text"
+                  value={adjustReason}
+                  onChange={e => setAdjustReason(e.target.value)}
+                  placeholder="e.g. Damaged inventory or Restocking new batch"
+                  className="form-control"
+                  style={{ marginTop: 6 }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <button type="button" onClick={() => setIsAdjustStockOpen(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
+                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1, padding: 12 }}>Adjust Stock</button>
               </div>
             </form>
           </div>
@@ -11809,6 +13176,391 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: INVITE STAFF MEMBER ── */}
+      {isInviteStaffOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsInviteStaffOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 450, padding: 24, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Invite Staff Member</h3>
+              <button onClick={() => setIsInviteStaffOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const res = await fetch(`${apiUrl}/v1/team/invite`, {
+                  method: 'POST',
+                  headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: inviteEmail, phone_number: invitePhone, role_id: inviteRoleId || null })
+                });
+                const json = await res.json();
+                if (res.ok) {
+                  toast.success('Invitation sent!');
+                  setIsInviteStaffOpen(false);
+                  setInviteEmail('');
+                  setInvitePhone('');
+                  setInviteRoleId('');
+                  fetchTeamData();
+                } else {
+                  toast.error(json.message || 'Failed to send invite.');
+                }
+              } catch { toast.error('Error sending invitation.'); }
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Email Address</label>
+                  <input type="email" value={inviteEmail} onChange={(e: any) => setInviteEmail(e.target.value)} required className="input" style={{ width: '100%' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>WhatsApp Phone (Optional)</label>
+                  <input type="text" value={invitePhone} onChange={(e: any) => setInvitePhone(e.target.value)} className="input" style={{ width: '100%' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Select Role</label>
+                  <select value={inviteRoleId} onChange={(e: any) => setInviteRoleId(e.target.value)} required className="input" style={{ width: '100%' }}>
+                    <option value="">-- Choose Role --</option>
+                    {teamRoles.map((role: any) => (
+                      <option key={role.id} value={role.id}>{role.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button type="button" onClick={() => setIsInviteStaffOpen(false)} className="btn btn-outline clickable" style={{ flex: 1 }}>Cancel</button>
+                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1 }}>Send Invite</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CREATE CUSTOM ROLE ── */}
+      {isCreateRoleOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsCreateRoleOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 450, padding: 24, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create Custom Role</h3>
+              <button onClick={() => setIsCreateRoleOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (newRolePermissions.length === 0) {
+                toast.warning('Please select at least one permission.');
+                return;
+              }
+              try {
+                const res = await fetch(`${apiUrl}/v1/team/roles`, {
+                  method: 'POST',
+                  headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ name: newRoleName, permissions: newRolePermissions })
+                });
+                const json = await res.json();
+                if (res.ok) {
+                  toast.success('Custom role created!');
+                  setIsCreateRoleOpen(false);
+                  setNewRoleName('');
+                  setNewRolePermissions([]);
+                  fetchTeamData();
+                } else {
+                  toast.error(json.message || 'Failed to create role.');
+                }
+              } catch { toast.error('Error creating custom role.'); }
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Role Name</label>
+                  <input type="text" value={newRoleName} onChange={(e: any) => setNewRoleName(e.target.value)} required placeholder="e.g. Sales Representative" className="input" style={{ width: '100%' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 6 }}>Select Permissions</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 150, overflowY: 'auto' }}>
+                    {[
+                      { id: 'manage team members', label: 'Manage Team Members' },
+                      { id: 'view orders', label: 'View Orders' },
+                      { id: 'edit orders', label: 'Edit / Process Orders & Refunds' },
+                      { id: 'access analytics', label: 'View Profit & Expenses' },
+                      { id: 'access customer data', label: 'Access Inbox & Customer Profile' }
+                    ].map(p => (
+                      <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={newRolePermissions.includes(p.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewRolePermissions(prev => [...prev, p.id]);
+                            } else {
+                              setNewRolePermissions(prev => prev.filter(x => x !== p.id));
+                            }
+                          }}
+                        />
+                        {p.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button type="button" onClick={() => setIsCreateRoleOpen(false)} className="btn btn-outline clickable" style={{ flex: 1 }}>Cancel</button>
+                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1 }}>Create Role</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: LOG EXPENSE ── */}
+      {isAddExpenseOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsAddExpenseOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 450, padding: 24, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Log Business Expense</h3>
+              <button onClick={() => setIsAddExpenseOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const res = await fetch(`${apiUrl}/v1/finance/expenses`, {
+                  method: 'POST',
+                  headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                  body: JSON.stringify(newExpense)
+                });
+                const json = await res.json();
+                if (res.ok) {
+                  toast.success('Expense logged successfully!');
+                  setIsAddExpenseOpen(false);
+                  setNewExpense({ amount: '', category: 'operations', description: '', incurred_at: new Date().toISOString().split('T')[0] });
+                  fetchFinanceData();
+                } else {
+                  toast.error(json.message || 'Failed to log expense.');
+                }
+              } catch { toast.error('Error logging expense.'); }
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Amount ({store?.currency_code})</label>
+                  <input type="number" step="0.01" min="0.01" value={newExpense.amount} onChange={(e: any) => setNewExpense(prev => ({ ...prev, amount: e.target.value }))} required className="input" style={{ width: '100%' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Category</label>
+                  <select value={newExpense.category} onChange={(e: any) => setNewExpense(prev => ({ ...prev, category: e.target.value }))} required className="input" style={{ width: '100%' }}>
+                    <option value="inventory">Inventory / Product Sourcing</option>
+                    <option value="marketing">Marketing & Ads</option>
+                    <option value="operations">Operations & Utilities</option>
+                    <option value="staff">Staff Wages</option>
+                    <option value="miscellaneous">Miscellaneous</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Date Incurred</label>
+                  <input type="date" value={newExpense.incurred_at} onChange={(e: any) => setNewExpense(prev => ({ ...prev, incurred_at: e.target.value }))} required className="input" style={{ width: '100%' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Description / Note</label>
+                  <textarea value={newExpense.description} onChange={(e: any) => setNewExpense(prev => ({ ...prev, description: e.target.value }))} className="input" style={{ width: '100%', height: 60, resize: 'none' }} placeholder="e.g. Paid for Facebook ads campaign" />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button type="button" onClick={() => setIsAddExpenseOpen(false)} className="btn btn-outline clickable" style={{ flex: 1 }}>Cancel</button>
+                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1 }}>Log Expense</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: REVIEW REFUND REQUEST ── */}
+      {isRefundDetailsOpen && selectedRefundRequest && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsRefundDetailsOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 500, padding: 24, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Review Refund Request</h3>
+              <button onClick={() => setIsRefundDetailsOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 18, fontSize: 13.5 }}>
+              <div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Order Number</span>
+                <strong>#{selectedRefundRequest.order?.order_number}</strong>
+              </div>
+              <div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Requested Reversal Amount</span>
+                <strong style={{ color: 'var(--danger)' }}>{store?.currency_code} {parseFloat(selectedRefundRequest.amount).toLocaleString()}</strong>
+              </div>
+              <div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Reason</span>
+                <strong>{selectedRefundRequest.reason}</strong>
+              </div>
+              <div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Customer Notes</span>
+                <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)' }}>{selectedRefundRequest.customer_notes || 'No customer notes provided.'}</p>
+              </div>
+              {selectedRefundRequest.evidence_url && (
+                <div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', marginBottom: 6 }}>Customer Proof / Evidence</span>
+                  <a href={selectedRefundRequest.evidence_url} target="_blank" rel="noreferrer" style={{ display: 'inline-block', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <img src={selectedRefundRequest.evidence_url} alt="Dispute evidence" style={{ maxHeight: 120, objectFit: 'contain' }} />
+                  </a>
+                </div>
+              )}
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', marginBottom: 4 }}>Internal Merchant Notes</label>
+                <textarea
+                  value={refundMerchantNotes}
+                  onChange={(e: any) => setRefundMerchantNotes(e.target.value)}
+                  placeholder="Notes explaining approval or rejection reason..."
+                  className="input"
+                  style={{ width: '100%', height: 60, resize: 'none', fontSize: 13 }}
+                />
+              </div>
+            </div>
+
+            {selectedRefundRequest.status === 'requested' ? (
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  onClick={async () => {
+                    if (!refundMerchantNotes.trim()) {
+                      toast.warning('Please enter rejection notes.');
+                      return;
+                    }
+                    try {
+                      const res = await fetch(`${apiUrl}/v1/refunds/${selectedRefundRequest.id}/reject`, {
+                        method: 'POST',
+                        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ merchant_notes: refundMerchantNotes })
+                      });
+                      if (res.ok) {
+                        toast.success('Refund request rejected.');
+                        setIsRefundDetailsOpen(false);
+                        fetchRefundsData();
+                      }
+                    } catch { toast.error('Error rejecting refund.'); }
+                  }}
+                  className="btn btn-outline clickable"
+                  style={{ flex: 1, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                >
+                  Reject Claim
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!confirm('Are you sure you want to approve this refund and reverse the funds?')) return;
+                    try {
+                      const res = await fetch(`${apiUrl}/v1/refunds/${selectedRefundRequest.id}/approve`, {
+                        method: 'POST',
+                        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ merchant_notes: refundMerchantNotes })
+                      });
+                      if (res.ok) {
+                        toast.success('Refund request approved. Funds reversed.');
+                        setIsRefundDetailsOpen(false);
+                        fetchRefundsData();
+                      }
+                    } catch { toast.error('Error approving refund.'); }
+                  }}
+                  className="btn btn-primary clickable"
+                  style={{ flex: 1, background: '#10b981' }}
+                >
+                  Approve & Refund
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setIsRefundDetailsOpen(false)} className="btn btn-outline clickable" style={{ width: '100%' }}>Close View</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CREATE QUICK REPLY ── */}
+      {isAddQuickReplyOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsAddQuickReplyOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 400, padding: 24, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create Quick Reply</h3>
+              <button onClick={() => setIsAddQuickReplyOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const res = await fetch(`${apiUrl}/v1/inbox/quick-replies`, {
+                  method: 'POST',
+                  headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ shortcut: newQuickReplyShortcut, message: newQuickReplyMessage })
+                });
+                if (res.ok) {
+                  toast.success('Quick reply created.');
+                  setIsAddQuickReplyOpen(false);
+                  setNewQuickReplyShortcut('');
+                  setNewQuickReplyMessage('');
+                  fetchInboxData();
+                }
+              } catch { toast.error('Error saving quick reply'); }
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Shortcut Keyword</label>
+                  <input type="text" placeholder="/thanks" value={newQuickReplyShortcut} onChange={(e: any) => setNewQuickReplyShortcut(e.target.value)} required className="input" style={{ width: '100%' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Reply Message Content</label>
+                  <textarea value={newQuickReplyMessage} onChange={(e: any) => setNewQuickReplyMessage(e.target.value)} required className="input" style={{ width: '100%', height: 80, resize: 'none' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button type="button" onClick={() => setIsAddQuickReplyOpen(false)} className="btn btn-outline clickable" style={{ flex: 1 }}>Cancel</button>
+                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1 }}>Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CREATE MESSAGE TEMPLATE ── */}
+      {isAddTemplateOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsAddTemplateOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 400, padding: 24, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create Message Template</h3>
+              <button onClick={() => setIsAddTemplateOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const res = await fetch(`${apiUrl}/v1/inbox/templates`, {
+                  method: 'POST',
+                  headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ name: newTemplateName, content: newTemplateContent })
+                });
+                if (res.ok) {
+                  toast.success('Template saved successfully.');
+                  setIsAddTemplateOpen(false);
+                  setNewTemplateName('');
+                  setNewTemplateContent('');
+                  fetchInboxData();
+                }
+              } catch { toast.error('Error saving message template'); }
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Template Name</label>
+                  <input type="text" placeholder="Greeting / FAQ" value={newTemplateName} onChange={(e: any) => setNewTemplateName(e.target.value)} required className="input" style={{ width: '100%' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Template Content</label>
+                  <textarea value={newTemplateContent} onChange={(e: any) => setNewTemplateContent(e.target.value)} required className="input" style={{ width: '100%', height: 100, resize: 'none' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button type="button" onClick={() => setIsAddTemplateOpen(false)} className="btn btn-outline clickable" style={{ flex: 1 }}>Cancel</button>
+                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1 }}>Save</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

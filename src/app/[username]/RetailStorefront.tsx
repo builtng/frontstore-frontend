@@ -328,6 +328,9 @@ export default function RetailStorefront({
   const [bagItems, setBagItems] = useState<CartItem[]>([]);
   const [apiSlots, setApiSlots] = useState<any[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedVariantProduct, setSelectedVariantProduct] = useState<any>(null);
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>("");
 
   useEffect(() => {
     try {
@@ -384,21 +387,21 @@ export default function RetailStorefront({
 
   const PRODUCTS = useMemo<any[]>(() => {
     const list = products.filter(p => p.type === 'product');
-    if (list.length > 0) {
-      return list.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        price: parseFloat(p.price),
-        compare_at_price: p.compare_at_price ? parseFloat(p.compare_at_price) : null,
-        cat: categories.find(c => c.id === p.category_id)?.name || "Product",
-        desc: p.description || "",
-        popular: p.compare_at_price ? true : false,
-        image_url: p.image_url || p.image_urls?.[0] || null,
-        image_urls: p.image_urls || null
-      }));
-    }
-    return MOCK_PRODUCTS;
+    return list.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: parseFloat(p.price),
+      compare_at_price: p.compare_at_price ? parseFloat(p.compare_at_price) : null,
+      cat: categories.find(c => c.id === p.category_id)?.name || "Product",
+      desc: p.description || "",
+      popular: p.compare_at_price ? true : false,
+      image_url: p.image_url || p.image_urls?.[0] || null,
+      image_urls: p.image_urls || null,
+      variants: p.variants || [],
+      track_inventory: p.track_inventory,
+      inventory_quantity: p.inventory_quantity
+    }));
   }, [products, categories]);
 
   const CATS = useMemo(() => {
@@ -533,15 +536,15 @@ export default function RetailStorefront({
   const bagCount = bagItems.reduce((acc, item) => acc + item.qty, 0);
   const bagTotal = bagItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
 
-  const addToBag = (p: any, size: string | null = "One size", colour: string | null = "Original") => {
+  const addToBag = (p: any, size: string | null = "One size", colour: string | null = "Original", variantId: string | null = null) => {
     const sz = size || "One size";
     const clr = colour || "Original";
-    const key = p.id + "|" + sz + "|" + clr;
+    const key = p.id + "|" + sz + "|" + clr + "|" + (variantId || "");
     setBagItems((prev) => {
       const ex = prev.find((b) => b.key === key);
       const next = ex
         ? prev.map((b: any) => (b.key === key ? { ...b, qty: b.qty + 1 } : b))
-        : [...prev, { key, id: p.id, name: p.name, price: typeof p.price === 'string' ? parseFloat(p.price) : p.price, size: sz, colour: clr, qty: 1, type: p.type || 'product' }];
+        : [...prev, { key, id: p.id, name: p.name, price: typeof p.price === 'string' ? parseFloat(p.price) : p.price, size: sz, colour: clr, qty: 1, type: p.type || 'product', product_variant_id: variantId || undefined }];
       saveCartToStorage(next);
       return next;
     });
@@ -567,7 +570,15 @@ export default function RetailStorefront({
   const addBag = (name: string) => {
     const found = products.find(x => x.name === name);
     if (found) {
-      addToBag(found);
+      if (found.variants && found.variants.length > 0) {
+        const sizes = found.variants.map((v: any) => v.size).filter(Boolean);
+        const colors = found.variants.map((v: any) => v.color).filter(Boolean);
+        setSelectedSize(sizes[0] || "");
+        setSelectedColor(colors[0] || "");
+        setSelectedVariantProduct(found);
+      } else {
+        addToBag(found);
+      }
     } else {
       const mockFound: any = MOCK_PRODUCTS.find(x => x.name === name);
       if (mockFound) {
@@ -823,7 +834,10 @@ export default function RetailStorefront({
           notes: `Selected sizes/colors:\n${bagItems.map((b: any) => `- ${b.name}: Size ${b.size}, Color ${b.colour}`).join('\n')}\n\nNotes: ${orderNote}`,
           items: bagItems.map((item: any) => ({
             product_id: item.id,
-            quantity: item.qty
+            quantity: item.qty,
+            product_variant_id: item.product_variant_id || undefined,
+            size: item.size || undefined,
+            color: item.colour || undefined,
           })),
           frontstore_protect: frontstoreProtect
         })
@@ -2183,7 +2197,15 @@ export default function RetailStorefront({
                           <b>{prodFiltered.length} {prodFiltered.length === 1 ? "product" : "products"}</b>
                           {prodHasFilters && <button className="svc-clear" onClick={clearProd}>Clear filters</button>}
                         </div>
-                        {prodFiltered.length > 0 ? (
+                        {PRODUCTS.length === 0 ? (
+                          <div className="svc-empty" style={{ padding: 48, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+                            <ShoppingBag size={48} style={{ opacity: 0.5, color: 'var(--text-muted)' }} />
+                            <div>
+                              <b style={{ fontSize: 16, display: 'block' }}>No products listed yet</b>
+                              <span style={{ fontSize: 13, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Check back soon for new arrivals!</span>
+                            </div>
+                          </div>
+                        ) : prodFiltered.length > 0 ? (
                           <div className="svc-grid">
                             {prodFiltered.map((p: any) => <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} onView={() => ping("Opening product")} onBuy={() => addBag(p.name)} />)}
                           </div>
@@ -2619,6 +2641,112 @@ export default function RetailStorefront({
 
       {/* bag sheet (shared) */}
       {bag && orderForm()}
+
+      {/* variant selection sheet */}
+      {selectedVariantProduct && (
+        <Sheet onClose={() => setSelectedVariantProduct(null)} title="Select Product Options">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div>
+              <h3 style={{ fontSize: 16, fontWeight: 900 }}>{selectedVariantProduct.name}</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>{selectedVariantProduct.desc || 'Pick your preference below.'}</p>
+              <div style={{ fontSize: 15, fontWeight: 800, marginTop: 8, color: 'var(--brand)' }}>{money(selectedVariantProduct.price)}</div>
+            </div>
+
+            {/* Size Picker */}
+            {selectedVariantProduct.variants && selectedVariantProduct.variants.some((v: any) => v.size) && (
+              <div>
+                <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Select Size</label>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
+                  {Array.from(new Set(selectedVariantProduct.variants.map((v: any) => v.size).filter(Boolean))).map((sz: any) => {
+                    const active = selectedSize === sz;
+                    return (
+                      <button
+                        key={sz}
+                        type="button"
+                        onClick={() => setSelectedSize(sz)}
+                        className="clickable"
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: 8,
+                          border: active ? '2px solid var(--brand)' : '1px solid var(--border)',
+                          background: active ? 'var(--brand-light)' : 'transparent',
+                          color: active ? 'var(--brand)' : 'var(--text-main)',
+                          fontSize: 13.5,
+                          fontWeight: 700
+                        }}
+                      >
+                        {sz}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Color Picker */}
+            {selectedVariantProduct.variants && selectedVariantProduct.variants.some((v: any) => v.color) && (
+              <div>
+                <label style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Select Color</label>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
+                  {Array.from(new Set(selectedVariantProduct.variants.map((v: any) => v.color).filter(Boolean))).map((clr: any) => {
+                    const active = selectedColor === clr;
+                    return (
+                      <button
+                        key={clr}
+                        type="button"
+                        onClick={() => setSelectedColor(clr)}
+                        className="clickable"
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: 8,
+                          border: active ? '2px solid var(--brand)' : '1px solid var(--border)',
+                          background: active ? 'var(--brand-light)' : 'transparent',
+                          color: active ? 'var(--brand)' : 'var(--text-main)',
+                          fontSize: 13.5,
+                          fontWeight: 700
+                        }}
+                      >
+                        {clr}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Add to Cart CTA */}
+            <button
+              onClick={() => {
+                const matchingVariant = selectedVariantProduct.variants?.find((v: any) => {
+                  const matchSize = !v.size || v.size === selectedSize;
+                  const matchColor = !v.color || v.color === selectedColor;
+                  return matchSize && matchColor;
+                });
+
+                if (selectedVariantProduct.track_inventory) {
+                  const avail = matchingVariant ? matchingVariant.inventory_quantity : selectedVariantProduct.inventory_quantity;
+                  if (avail <= 0) {
+                    ping("Sorry, this option is currently out of stock!");
+                    return;
+                  }
+                }
+
+                addToBag(
+                  selectedVariantProduct,
+                  selectedSize || null,
+                  selectedColor || null,
+                  matchingVariant ? matchingVariant.id : null
+                );
+                setSelectedVariantProduct(null);
+              }}
+              className="btn btn-primary clickable"
+              style={{ padding: 14, fontSize: 14.5, fontWeight: 800, width: '100%', marginTop: 10 }}
+            >
+              Add to Cart · {money(selectedVariantProduct.price)}
+            </button>
+          </div>
+        </Sheet>
+      )}
 
       {/* share sheet (shared) */}
       {share && (
