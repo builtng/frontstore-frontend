@@ -83,6 +83,7 @@ interface Product {
   type?: 'service' | 'product';
   duration_minutes?: number | null;
   image_url?: string | null;
+  variants?: any[];
 }
 
 interface Review {

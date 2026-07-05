@@ -157,6 +157,10 @@ interface Product {
   mobile_fee?: number | string | null;
   mobile_fee_label?: string | null;
   tags?: string[] | null;
+  variants?: any[];
+  track_inventory?: boolean;
+  inventory_quantity?: number;
+  low_stock_threshold?: number | null;
 }
 
 interface OrderItem {
@@ -8473,7 +8477,7 @@ export default function DashboardPage() {
                                         )}
                                       </td>
                                     </tr>
-                                    {hasVariants && prod.variants.map((v: any) => (
+                                    {hasVariants && prod.variants!.map((v: any) => (
                                       <tr key={v.id} style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
                                         <td style={{ padding: '8px 18px 8px 36px', fontSize: 12.5, color: 'var(--text-muted)' }}>
                                           ↳ Variant: {v.size ? `Size ${v.size}` : ''} {v.color ? `Color ${v.color}` : ''}
@@ -8483,11 +8487,11 @@ export default function DashboardPage() {
                                         <td style={{ padding: '8px 18px' }}>
                                           <span style={{
                                             fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 'var(--r-full)',
-                                            background: v.inventory_quantity <= 0 ? 'rgba(239,68,68,0.1)' : (v.inventory_quantity <= prod.low_stock_threshold ? 'rgba(245,158,11,0.1)' : 'rgba(34,197,94,0.1)'),
-                                            color: v.inventory_quantity <= 0 ? 'var(--danger)' : (v.inventory_quantity <= prod.low_stock_threshold ? 'var(--warning)' : 'var(--success)'),
+                                            background: v.inventory_quantity <= 0 ? 'rgba(239,68,68,0.1)' : (v.inventory_quantity <= (prod.low_stock_threshold ?? 5) ? 'rgba(245,158,11,0.1)' : 'rgba(34,197,94,0.1)'),
+                                            color: v.inventory_quantity <= 0 ? 'var(--danger)' : (v.inventory_quantity <= (prod.low_stock_threshold ?? 5) ? 'var(--warning)' : 'var(--success)'),
                                             textTransform: 'uppercase'
                                           }}>
-                                            {v.inventory_quantity <= 0 ? 'OUT OF STOCK' : (v.inventory_quantity <= prod.low_stock_threshold ? 'LOW STOCK' : 'IN STOCK')}
+                                            {v.inventory_quantity <= 0 ? 'OUT OF STOCK' : (v.inventory_quantity <= (prod.low_stock_threshold ?? 5) ? 'LOW STOCK' : 'IN STOCK')}
                                           </span>
                                         </td>
                                         <td style={{ padding: '8px 18px' }}>
@@ -8682,7 +8686,7 @@ export default function DashboardPage() {
                               <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Automatically recovers shoppers who dropped off during checkout without completing payment.</p>
                             </div>
                             <Toggle
-                              active={automationSetting.cart_recovery_enabled}
+                              checked={automationSetting.cart_recovery_enabled}
                               onChange={val => setAutomationSetting({ ...automationSetting, cart_recovery_enabled: val })}
                             />
                           </div>
@@ -8696,7 +8700,7 @@ export default function DashboardPage() {
                               <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Sends immediate, rich order alerts with tracking links upon verified customer purchase.</p>
                             </div>
                             <Toggle
-                              active={automationSetting.order_confirmation_enabled}
+                              checked={automationSetting.order_confirmation_enabled}
                               onChange={val => setAutomationSetting({ ...automationSetting, order_confirmation_enabled: val })}
                             />
                           </div>
@@ -8710,7 +8714,7 @@ export default function DashboardPage() {
                               <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Generates and delivers printable receipts right to customer inbox instantly.</p>
                             </div>
                             <Toggle
-                              active={automationSetting.receipt_delivery_enabled}
+                              checked={automationSetting.receipt_delivery_enabled}
                               onChange={val => setAutomationSetting({ ...automationSetting, receipt_delivery_enabled: val })}
                             />
                           </div>
@@ -8724,7 +8728,7 @@ export default function DashboardPage() {
                               <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Delivers a special thank you appreciation note along with an active coupon discount code.</p>
                             </div>
                             <Toggle
-                              active={automationSetting.thank_you_enabled}
+                              checked={automationSetting.thank_you_enabled}
                               onChange={val => setAutomationSetting({ ...automationSetting, thank_you_enabled: val })}
                             />
                           </div>
@@ -8738,7 +8742,7 @@ export default function DashboardPage() {
                               <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Triggers review feedback prompts 3 days after payment to build storefront social proof.</p>
                             </div>
                             <Toggle
-                              active={automationSetting.review_request_enabled}
+                              checked={automationSetting.review_request_enabled}
                               onChange={val => setAutomationSetting({ ...automationSetting, review_request_enabled: val })}
                             />
                           </div>
@@ -8752,7 +8756,7 @@ export default function DashboardPage() {
                               <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Nudges inactive customers who haven't made a purchase within a configured amount of days.</p>
                             </div>
                             <Toggle
-                              active={automationSetting.win_back_enabled}
+                              checked={automationSetting.win_back_enabled}
                               onChange={val => setAutomationSetting({ ...automationSetting, win_back_enabled: val })}
                             />
                           </div>
@@ -10753,7 +10757,7 @@ export default function DashboardPage() {
                                         body: JSON.stringify({ label: nextLabel })
                                       });
                                       if (res.ok) {
-                                        setActiveConversation(prev => ({ ...prev, label: nextLabel }));
+                                        setActiveConversation((prev: any) => ({ ...prev, label: nextLabel }));
                                         fetchInboxData();
                                         toast.success('Conversation label updated');
                                       }
@@ -10844,7 +10848,7 @@ export default function DashboardPage() {
                         </div>
 
                         {/* 3. Right Profile & Utilities Panel */}
-                        <div className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto' }} className="no-scrollbar">
+                        <div className="card no-scrollbar" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto' }}>
                           {activeConversation ? (
                             <>
                               <div>
@@ -11578,7 +11582,7 @@ export default function DashboardPage() {
                 if (res.ok) {
                   toast.success("Stock count adjusted successfully.");
                   setIsAdjustStockOpen(false);
-                  fetchProducts(); // Refresh product list for stock count
+                  loadAllData(true); // Refresh product list for stock count
                   fetchInventoryLogsData(); // Refresh history
                 } else {
                   const errorJson = await res.json();
