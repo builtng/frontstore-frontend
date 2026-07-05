@@ -12,7 +12,7 @@ import {
   TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck, BookOpen,
   ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer,
-  Briefcase, CreditCard, Landmark, PenLine
+  Briefcase, CreditCard, Landmark, PenLine, Truck, Scale
 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
@@ -182,6 +182,13 @@ interface Order {
   order_status: string;
   created_at: string;
   items?: OrderItem[];
+  dispute_status?: string | null;
+  frontstore_protect?: boolean;
+  frontstore_protect_fee?: string | number | null;
+  delivery_milestone?: string | null;
+  tracking_number?: string | null;
+  shipping_provider?: string | null;
+  payout_hold_until?: string | null;
 }
 
 interface DashboardStats {
@@ -498,6 +505,238 @@ export default function DashboardPage() {
       onConfirm,
       loading: false,
     });
+  };
+
+  // Dispute & Verification States & Handlers
+  const [merchantDisputes, setMerchantDisputes] = useState<any[]>([]);
+  const [activeDisputeChat, setActiveDisputeChat] = useState<any>(null);
+  const [disputeReplyText, setDisputeReplyText] = useState('');
+  const [isResolvingDispute, setIsResolvingDispute] = useState(false);
+  const [isRefundingDispute, setIsRefundingDispute] = useState(false);
+  const [isSendingDisputeReply, setIsSendingDisputeReply] = useState(false);
+
+  const [isSelfieModalOpen, setIsSelfieModalOpen] = useState(false);
+  const [isSelfieLivenessVerifying, setIsSelfieLivenessVerifying] = useState(false);
+  const [isBusinessModalOpen, setIsBusinessModalOpen] = useState(false);
+  const [businessCACName, setBusinessCACName] = useState('');
+  const [businessCACNumber, setBusinessCACNumber] = useState('');
+  const [isSubmittingBusinessCAC, setIsSubmittingBusinessCAC] = useState(false);
+
+  const [shippingRates, setShippingRates] = useState<any[]>([]);
+  const [selectedCarrier, setSelectedCarrier] = useState('');
+  const [loadingRates, setLoadingRates] = useState(false);
+  const [isBookingShipping, setIsBookingShipping] = useState(false);
+  const [isSimulatingTransit, setIsSimulatingTransit] = useState(false);
+
+  const fetchMerchantDisputes = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/disputes`, {
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setMerchantDisputes(json.data || []);
+      }
+    } catch (e) {
+      console.error("Failed to load merchant disputes:", e);
+    }
+  };
+
+  const fetchSingleDispute = async (id: string) => {
+    try {
+      const res = await fetch(`${apiUrl}/v1/public/disputes/${id}`);
+      if (res.ok) {
+        const json = await res.json();
+        setActiveDisputeChat(json.data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSendDisputeReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeDisputeChat || !disputeReplyText.trim()) return;
+    try {
+      setIsSendingDisputeReply(true);
+      const res = await fetch(`${apiUrl}/v1/public/disputes/${activeDisputeChat.id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sender_type: 'seller',
+          sender_name: store?.store_name || 'Merchant',
+          message: disputeReplyText,
+        })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Failed to send message.');
+      setDisputeReplyText('');
+      fetchSingleDispute(activeDisputeChat.id);
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong.');
+    } finally {
+      setIsSendingDisputeReply(false);
+    }
+  };
+
+  const handleResolveDispute = async (id: string) => {
+    try {
+      setIsResolvingDispute(true);
+      const res = await fetch(`${apiUrl}/v1/store/disputes/${id}/resolve`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Failed to resolve dispute.');
+      toast.success('Dispute resolved. Escrow funds released to your withdrawable balance.');
+      fetchSingleDispute(id);
+      fetchWalletData();
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong.');
+    } finally {
+      setIsResolvingDispute(false);
+    }
+  };
+
+  const handleRefundDispute = async (id: string) => {
+    try {
+      setIsRefundingDispute(true);
+      const res = await fetch(`${apiUrl}/v1/store/disputes/${id}/refund`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Failed to refund dispute.');
+      toast.success('Dispute refunded. Buyer has been credited.');
+      fetchSingleDispute(id);
+      fetchWalletData();
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong.');
+    } finally {
+      setIsRefundingDispute(false);
+    }
+  };
+
+  const handleSelfieSubmit = async () => {
+    try {
+      setIsSelfieLivenessVerifying(true);
+      const res = await fetch(`${apiUrl}/v1/store/verify-selfie`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Verification failed.');
+      toast.success('Selfie & liveness check completed successfully!');
+      setIsSelfieModalOpen(false);
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(err.message || 'Selfie verification failed.');
+    } finally {
+      setIsSelfieLivenessVerifying(false);
+    }
+  };
+
+  const handleBusinessSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsSubmittingBusinessCAC(true);
+      const res = await fetch(`${apiUrl}/v1/store/verify-business`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          business_name: businessCACName,
+          cac_number: businessCACNumber
+        })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Failed to verify business.');
+      toast.success('Business info verified! Trust score updated.');
+      setIsBusinessModalOpen(false);
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(err.message || 'Business verification failed.');
+    } finally {
+      setIsSubmittingBusinessCAC(false);
+    }
+  };
+
+  const fetchShippingRates = async (orderId: string) => {
+    try {
+      setLoadingRates(true);
+      const res = await fetch(`${apiUrl}/v1/orders/${orderId}/shipping-rates`, {
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setShippingRates(json.data || []);
+        if (json.data && json.data.length > 0) {
+          setSelectedCarrier(json.data[0].carrier);
+        }
+      }
+    } catch (e) {
+      toast.error("Failed to load shipping rates.");
+    } finally {
+      setLoadingRates(false);
+    }
+  };
+
+  const handleBookShipping = async (orderId: string) => {
+    if (!selectedCarrier) return;
+    try {
+      setIsBookingShipping(true);
+      const res = await fetch(`${apiUrl}/v1/orders/${orderId}/book-shipping`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ carrier: selectedCarrier })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Failed to book shipping.');
+      toast.success('Shipment booked successfully!');
+      
+      // Update selected order details
+      const orderRes = await fetch(`${apiUrl}/v1/public/orders/${orderId}`);
+      if (orderRes.ok) {
+        const orderJson = await orderRes.json();
+        setSelectedOrder(orderJson.data);
+        loadAllData();
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong.');
+    } finally {
+      setIsBookingShipping(false);
+    }
+  };
+
+  const handleSimulateTransit = async (orderId: string) => {
+    try {
+      setIsSimulatingTransit(true);
+      const res = await fetch(`${apiUrl}/v1/orders/${orderId}/simulate-transit`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Failed to simulate transit.');
+      toast.success(`Transit updated to: ${json.data.delivery_milestone}`);
+      
+      // Update selected order details
+      const orderRes = await fetch(`${apiUrl}/v1/public/orders/${orderId}`);
+      if (orderRes.ok) {
+        const orderJson = await orderRes.json();
+        setSelectedOrder(orderJson.data);
+        loadAllData();
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Something went wrong.');
+    } finally {
+      setIsSimulatingTransit(false);
+    }
   };
 
   const closeConfirmationDialog = () => {
@@ -1335,6 +1574,8 @@ export default function DashboardPage() {
         });
         setWithdrawals(json.data.withdrawals || []);
       }
+      // Also fetch disputes for the Disputes Center widget
+      await fetchMerchantDisputes();
     } catch (e) {
       toast.error('Failed to load wallet information.');
     } finally {
@@ -7487,11 +7728,162 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* Trust Verification Card */}
+                      {/* Premium Trust Engine Gauge & Levels Card */}
+                      <div className="card" style={{ padding: 24, display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
+                        <h3 style={{ fontSize: 15, fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Shield size={18} style={{ color: 'var(--primary)' }} />
+                          Trust Payout Engine & Score
+                        </h3>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24, alignItems: 'center' }}>
+                          {/* Radial Gauge */}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                            <div style={{ position: 'relative', width: 120, height: 120 }}>
+                              <svg width="120" height="120" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" strokeWidth="10" />
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--primary)" strokeWidth="10"
+                                  strokeDasharray={`${2 * Math.PI * 50}`}
+                                  strokeDashoffset={`${2 * Math.PI * 50 * (1 - ((store as any)?.trust_score ?? 20) / 100)}`}
+                                  strokeLinecap="round"
+                                  transform="rotate(-90 60 60)"
+                                />
+                              </svg>
+                              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                <span style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)' }}>{(store as any)?.trust_score ?? 20}</span>
+                                <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Score</span>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--primary)', background: 'var(--primary-light)', padding: '3px 10px', borderRadius: 12 }}>
+                                Level {(store as any)?.seller_level ?? 1} Seller
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Payout Hold Levels breakdown */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <h4 style={{ fontSize: 13, fontWeight: 800, margin: 0 }}>Payout Settlement Rules</h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12.5 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', opacity: ((store as any)?.seller_level ?? 1) === 1 ? 1 : 0.6, fontWeight: ((store as any)?.seller_level ?? 1) === 1 ? 800 : 500 }}>
+                                <span>Level 1 (0-40 pts):</span>
+                                <span>5 Days Hold</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', opacity: ((store as any)?.seller_level ?? 1) === 2 ? 1 : 0.6, fontWeight: ((store as any)?.seller_level ?? 1) === 2 ? 800 : 500 }}>
+                                <span>Level 2 (41-70 pts):</span>
+                                <span>Next-Day Payout</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', opacity: ((store as any)?.seller_level ?? 1) === 3 ? 1 : 0.6, fontWeight: ((store as any)?.seller_level ?? 1) === 3 ? 800 : 500 }}>
+                                <span>Level 3 (71-90 pts):</span>
+                                <span>Same-Day Payout</span>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', opacity: ((store as any)?.seller_level ?? 1) === 4 ? 1 : 0.6, fontWeight: ((store as any)?.seller_level ?? 1) === 4 ? 800 : 500 }}>
+                                <span>Level 4 (91-100 pts):</span>
+                                <span>Instant Payout</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Interactive Verification Checklist */}
+                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                          <h4 style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, margin: 0 }}>Verification Status Checklist</h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginTop: 12 }}>
+                            {/* Email Check */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <Check size={16} style={{ color: '#25D366' }} strokeWidth={3} />
+                                <span>Email Address Verified</span>
+                              </div>
+                              <span style={{ color: '#25D366', fontWeight: 700 }}>+10 pts</span>
+                            </div>
+
+                            {/* Phone Check */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <Check size={16} style={{ color: '#25D366' }} strokeWidth={3} />
+                                <span>Phone / WhatsApp Connected</span>
+                              </div>
+                              <span style={{ color: '#25D366', fontWeight: 700 }}>+10 pts</span>
+                            </div>
+
+                            {/* Selfie Liveness Check */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {(store as any)?.selfie_verified_at ? (
+                                  <Check size={16} style={{ color: '#25D366' }} strokeWidth={3} />
+                                ) : (
+                                  <AlertCircle size={16} style={{ color: 'var(--text-faint)' }} />
+                                )}
+                                <span>Selfie Liveness check</span>
+                              </div>
+                              {(store as any)?.selfie_verified_at ? (
+                                <span style={{ color: '#25D366', fontWeight: 700 }}>+10 pts</span>
+                              ) : (
+                                <button type="button" onClick={() => setIsSelfieModalOpen(true)} className="btn btn-outline clickable" style={{ padding: '2px 8px', fontSize: 11, borderRadius: 6 }}>
+                                  Verify
+                                </button>
+                              )}
+                            </div>
+
+                            {/* CAC Business Check */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {(store as any)?.business_info_completed ? (
+                                  <Check size={16} style={{ color: '#25D366' }} strokeWidth={3} />
+                                ) : (
+                                  <AlertCircle size={16} style={{ color: 'var(--text-faint)' }} />
+                                )}
+                                <span>CAC Business details</span>
+                              </div>
+                              {(store as any)?.business_info_completed ? (
+                                <span style={{ color: '#25D366', fontWeight: 700 }}>+10 pts</span>
+                              ) : (
+                                <button type="button" onClick={() => setIsBusinessModalOpen(true)} className="btn btn-outline clickable" style={{ padding: '2px 8px', fontSize: 11, borderRadius: 6 }}>
+                                  Verify
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Gov ID Check */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {store?.verification_status === 'verified' ? (
+                                  <Check size={16} style={{ color: '#25D366' }} strokeWidth={3} />
+                                ) : (
+                                  <AlertCircle size={16} style={{ color: 'var(--text-faint)' }} />
+                                )}
+                                <span>Identity Documents</span>
+                              </div>
+                              {store?.verification_status === 'verified' ? (
+                                <span style={{ color: '#25D366', fontWeight: 700 }}>+15 pts</span>
+                              ) : (
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Upload below</span>
+                              )}
+                            </div>
+
+                            {/* Bank Check */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {walletBalances.bank_account_verified ? (
+                                  <Check size={16} style={{ color: '#25D366' }} strokeWidth={3} />
+                                ) : (
+                                  <AlertCircle size={16} style={{ color: 'var(--text-faint)' }} />
+                                )}
+                                <span>Settlement Bank account</span>
+                              </div>
+                              <span style={{ color: walletBalances.bank_account_verified ? '#25D366' : 'var(--text-muted)', fontWeight: 700 }}>
+                                {walletBalances.bank_account_verified ? '+15 pts' : 'Unverified'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Store verification Document Upload widget */}
                       <div className="card" style={{ padding: 24 }}>
                         <h3 style={{ fontSize: 15, fontWeight: 900, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                           <Shield size={18} style={{ color: 'var(--primary)' }} />
-                          Trust & Store Verification
+                          Document Verification Upload
                         </h3>
 
                         {store?.verification_status === 'verified' && (
@@ -7636,6 +8028,42 @@ export default function DashboardPage() {
                                 </a>
                               </div>
                             )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Store Disputes Center Widget */}
+                      <div className="card" style={{ padding: 24 }}>
+                        <h3 style={{ fontSize: 15, fontWeight: 900, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, color: '#dc2626' }}>
+                          <Scale size={18} />
+                          Store Disputes Center
+                        </h3>
+                        {merchantDisputes.length === 0 ? (
+                          <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-faint)' }}>
+                            <AlertCircle size={28} style={{ margin: '0 auto 10px', opacity: 0.5 }} />
+                            <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>No active store disputes</p>
+                            <p style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 4, margin: 0 }}>Good job! Your customers have not filed any disputes.</p>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {merchantDisputes.map((disp: any) => (
+                              <div key={disp.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-2)', padding: 14, borderRadius: 10, border: '1px solid var(--border)', fontSize: 13 }}>
+                                <div>
+                                  <div style={{ fontWeight: 800 }}>Dispute #{disp.id.substring(0, 8).toUpperCase()}</div>
+                                  <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 2 }}>Reason: {disp.reason.replace(/_/g, ' ').toUpperCase()} • Status: <span style={{ fontWeight: 700, color: disp.status === 'open' ? '#d97706' : '#25D366' }}>{disp.status.toUpperCase()}</span></div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    await fetchSingleDispute(disp.id);
+                                  }}
+                                  className="btn btn-outline clickable"
+                                  style={{ padding: '6px 12px', fontSize: 12, borderRadius: 8 }}
+                                >
+                                  View & Chat
+                                </button>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -9794,6 +10222,97 @@ export default function DashboardPage() {
                   <Receipt size={14} /> Receipt
                 </button>
               </div>
+
+              {/* Logistics & Shipping Booking Box */}
+              {selectedOrder.delivery_method === 'delivery' && (
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginTop: 4 }}>
+                  <h4 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Truck size={14} /> Logistics & Shipping
+                  </h4>
+                  {(selectedOrder as any).tracking_number ? (
+                    <div style={{ background: 'var(--bg-2)', padding: 14, borderRadius: 'var(--r-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                        <span><strong>Shipping Provider:</strong> {(selectedOrder as any).shipping_provider}</span>
+                        <span><strong>Tracking #:</strong> {(selectedOrder as any).tracking_number}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, alignItems: 'center' }}>
+                        <span><strong>Current Milestone:</strong> <span style={{ textTransform: 'uppercase', fontWeight: 800, color: 'var(--primary)' }}>{(selectedOrder as any).delivery_milestone}</span></span>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button
+                            type="button"
+                            onClick={() => handleSimulateTransit(selectedOrder.id)}
+                            disabled={isSimulatingTransit}
+                            className="btn btn-outline clickable"
+                            style={{ padding: '4px 8px', fontSize: 11, borderRadius: 'var(--r-sm)' }}
+                          >
+                            {isSimulatingTransit ? 'Updating...' : 'Simulate Transit'}
+                          </button>
+                          <a
+                            href={`${apiUrl}/v1/orders/${selectedOrder.id}/shipping-label`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-primary clickable"
+                            style={{ padding: '4px 8px', fontSize: 11, borderRadius: 'var(--r-sm)', textDecoration: 'none', color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          >
+                            <ExternalLink size={10} /> Label
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ background: 'var(--bg-2)', padding: 14, borderRadius: 'var(--r-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0 }}>No active shipment booked yet for this order. Retrieve carrier rates to book.</p>
+                      {shippingRates.length === 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => fetchShippingRates(selectedOrder.id)}
+                          disabled={loadingRates}
+                          className="btn btn-outline clickable"
+                          style={{ padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-md)', width: 'fit-content' }}
+                        >
+                          {loadingRates ? 'Loading Rates...' : 'Retrieve Shipping Rates'}
+                        </button>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <label style={{ fontSize: 11, fontWeight: 800 }}>Select Carrier Provider</label>
+                            <select
+                              value={selectedCarrier}
+                              onChange={e => setSelectedCarrier(e.target.value)}
+                              style={{ width: '100%', padding: '8px 10px', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 13, color: 'var(--text)' }}
+                            >
+                              {shippingRates.map((r: any) => (
+                                <option key={r.carrier} value={r.carrier}>
+                                  {r.carrier} - {getCurrencySymbol(store?.currency_code)}{r.price} ({r.eta})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button
+                              type="button"
+                              onClick={() => handleBookShipping(selectedOrder.id)}
+                              disabled={isBookingShipping}
+                              className="btn btn-primary clickable"
+                              style={{ padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-md)' }}
+                            >
+                              {isBookingShipping ? 'Booking...' : 'Confirm & Book'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShippingRates([])}
+                              className="btn btn-ghost clickable"
+                              style={{ padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-md)' }}
+                            >
+                              Reset
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
           </div>
@@ -9985,6 +10504,198 @@ export default function DashboardPage() {
           }
         }
       `}</style>
+
+      {/* ── MODAL: Selfie Liveness Verification ── */}
+      {isSelfieModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsSelfieModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} />
+          <div className="card glass animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 400, padding: 28, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Camera size={18} /> Selfie Liveness Check
+              </h3>
+              <button onClick={() => setIsSelfieModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
+            </div>
+            <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.45 }}>
+              Position your face in the oval below and click Capture to simulate facial liveness verification.
+            </p>
+
+            <div style={{
+              width: '100%',
+              height: 240,
+              background: '#000',
+              borderRadius: 12,
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden'
+            }}>
+              {/* Silhouette Overlay */}
+              <div style={{
+                width: 140,
+                height: 180,
+                border: '2px dashed rgba(255,255,255,0.6)',
+                borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
+                position: 'relative'
+              }} />
+              <div style={{ position: 'absolute', bottom: 12, color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: 700, background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: 4 }}>
+                Simulated Camera Active
+              </div>
+            </div>
+
+            <button
+              onClick={handleSelfieSubmit}
+              disabled={isSelfieLivenessVerifying}
+              className="btn btn-primary clickable"
+              style={{ padding: 12, borderRadius: 10, fontWeight: 800, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            >
+              {isSelfieLivenessVerifying ? <><Loader2 size={14} className="spinner animate-spin" /> Verifying Liveness...</> : 'Capture & Verify Selfie'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: Business Registration Verification ── */}
+      {isBusinessModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsBusinessModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} />
+          <div className="card glass animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 400, padding: 28, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Briefcase size={18} /> Verify Business Info (CAC)
+              </h3>
+              <button onClick={() => setIsBusinessModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
+            </div>
+            <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.45 }}>
+              Enter your official Corporate Affairs Commission (CAC) details to unlock Level 3/4 payouts.
+            </p>
+
+            <form onSubmit={handleBusinessSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 6 }}>Business Name</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="E.g. Frontstore Technologies Ltd"
+                  value={businessCACName}
+                  onChange={e => setBusinessCACName(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-md)', fontSize: 13.5, color: 'var(--text)' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', marginBottom: 6 }}>CAC Registration Number</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="E.g. RC 1234567"
+                  value={businessCACNumber}
+                  onChange={e => setBusinessCACNumber(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-md)', fontSize: 13.5, color: 'var(--text)' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+                <button type="button" onClick={() => setIsBusinessModalOpen(false)} style={{ flex: 1, padding: 12, border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'transparent', fontWeight: 700, color: 'var(--text)' }} className="clickable">Cancel</button>
+                <button type="submit" disabled={isSubmittingBusinessCAC} style={{ flex: 1, padding: 12, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700 }} className="clickable">
+                  {isSubmittingBusinessCAC ? 'Submitting...' : 'Verify CAC'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: Dispute Resolution Chat Center ── */}
+      {activeDisputeChat && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setActiveDisputeChat(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} />
+          <div className="card glass animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 500, padding: 28, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 16, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6, color: '#dc2626' }}>
+                <Scale size={18} /> Dispute Resolution Chat
+              </h3>
+              <button onClick={() => setActiveDisputeChat(null)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
+            </div>
+
+            <div style={{ background: 'var(--bg-2)', padding: '12px 14px', borderRadius: '10px', fontSize: '13px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div><strong>Status:</strong> <span style={{ textTransform: 'capitalize', fontWeight: 800, color: '#d97706' }}>{activeDisputeChat.status.replace(/_/g, ' ')}</span></div>
+              <div><strong>Reason:</strong> {activeDisputeChat.reason.replace(/_/g, ' ').toUpperCase()}</div>
+              <div style={{ borderTop: '1px solid var(--border)', marginTop: 6, paddingTop: 6 }}>
+                <strong>Buyer Explanation:</strong>
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>{activeDisputeChat.explanation}</p>
+              </div>
+            </div>
+
+            {/* Chat Timeline logs */}
+            <div style={{ height: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, padding: '8px 10px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--bg)' }}>
+              {activeDisputeChat.messages && activeDisputeChat.messages.map((msg: any) => {
+                const isMe = msg.sender_type === 'seller';
+                return (
+                  <div key={msg.id} style={{
+                    alignSelf: isMe ? 'flex-end' : 'flex-start',
+                    maxWidth: '85%',
+                    background: isMe ? 'var(--primary)' : 'var(--bg-2)',
+                    color: isMe ? '#fff' : 'var(--text)',
+                    padding: '8px 12px',
+                    borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                    fontSize: '13px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ fontSize: '10px', fontWeight: 800, opacity: 0.8, marginBottom: 2 }}>{msg.sender_name} ({msg.sender_type})</div>
+                    <div>{msg.message}</div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Message input & Actions */}
+            {['resolved', 'refunded', 'closed'].includes(activeDisputeChat.status) ? (
+              <div style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)', padding: '10px 0', borderTop: '1px solid var(--border)' }}>
+                This dispute has been resolved and closed.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <form onSubmit={handleSendDisputeReply} style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    type="text"
+                    value={disputeReplyText}
+                    onChange={e => setDisputeReplyText(e.target.value)}
+                    placeholder="Type message to buyer/admin..."
+                    style={{ flex: 1, padding: '10px 12px', background: 'var(--bg-2)', border: '1.5px solid var(--border)', borderRadius: '10px', fontSize: '13px', color: 'var(--text)' }}
+                    required
+                  />
+                  <button type="submit" disabled={isSendingDisputeReply} style={{ width: 38, height: 38, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="clickable">
+                    {isSendingDisputeReply ? <div className="spinner" style={{ width: 14, height: 14 }} /> : <Send size={15} />}
+                  </button>
+                </form>
+
+                <div style={{ display: 'flex', gap: 10, borderTop: '1px solid var(--border)', paddingTop: 12, marginTop: 4 }}>
+                  <button
+                    type="button"
+                    onClick={() => handleResolveDispute(activeDisputeChat.id)}
+                    disabled={isResolvingDispute}
+                    style={{ flex: 1, padding: 10, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12.5, fontWeight: 700 }}
+                    className="clickable"
+                  >
+                    {isResolvingDispute ? 'Processing...' : 'Resolve & Release Payout'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRefundDispute(activeDisputeChat.id)}
+                    disabled={isRefundingDispute}
+                    style={{ flex: 1, padding: 10, background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12.5, fontWeight: 700 }}
+                    className="clickable"
+                  >
+                    {isRefundingDispute ? 'Processing...' : 'Refund Buyer'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         open={confirmationDialog.open}

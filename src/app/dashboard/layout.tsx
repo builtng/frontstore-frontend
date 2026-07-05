@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import DashboardSessionGuard from '@/components/DashboardSessionGuard';
 
 // Dashboard is a private, authenticated app shell — keep it out of search indices
 export const metadata: Metadata = {
@@ -20,5 +21,10 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <DashboardSessionGuard>
+      {children}
+    </DashboardSessionGuard>
+  );
 }
+

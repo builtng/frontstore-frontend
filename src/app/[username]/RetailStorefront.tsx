@@ -316,6 +316,7 @@ export default function RetailStorefront({
   const [customerWhatsapp, setCustomerWhatsapp] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [frontstoreProtect, setFrontstoreProtect] = useState(false);
   const [orderNote, setOrderNote] = useState('');
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'details' | 'success'>('cart');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -655,6 +656,62 @@ export default function RetailStorefront({
                   <textarea value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} placeholder="Suite 4, Admiralty Way, Lekki Phase 1" style={{ width: '100%', padding: 11, border: '1px solid var(--line)', borderRadius: 10, fontSize: 13, height: 60, background: 'var(--card)', resize: 'none' }} />
                 </div>
               )}
+
+              {/* Frontstore Protect Card */}
+              <div style={{
+                background: frontstoreProtect ? 'rgba(37, 211, 102, 0.06)' : 'var(--card)',
+                border: frontstoreProtect ? '1.5px solid #25D366' : '1.5px solid var(--line)',
+                borderRadius: 12,
+                padding: 14,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                gap: 12,
+                marginTop: 6,
+                alignItems: 'flex-start'
+              }} onClick={() => setFrontstoreProtect(!frontstoreProtect)}>
+                <div style={{ display: 'flex', alignItems: 'center', height: 20 }}>
+                  <input
+                    type="checkbox"
+                    checked={frontstoreProtect}
+                    onChange={(e) => {}}
+                    style={{ accentColor: '#25D366', cursor: 'pointer', width: 16, height: 16 }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 5, color: 'var(--text)' }}>
+                      <ShieldCheck size={15} style={{ color: '#25D366' }} />
+                      Add Frontstore Protect
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 900, color: 'var(--primary)' }}>
+                      +{money(Math.max(store.currency_code === 'NGN' ? 150 : 1.00, Math.round(bagTotal * 0.015)))}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, lineHeight: 1.4, margin: 0 }}>
+                    Protects you against non-shipment and fraud. Funds are held safely in escrow and released only when you confirm receipt.
+                  </p>
+                </div>
+              </div>
+
+              {/* Order Summary */}
+              <div style={{ background: 'var(--card)', border: '1px solid var(--line)', padding: 12, borderRadius: 10, marginTop: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--muted)' }}>
+                  <span>Subtotal</span>
+                  <span>{money(bagTotal)}</span>
+                </div>
+                {frontstoreProtect && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--muted)' }}>
+                    <span>Frontstore Protect Fee</span>
+                    <span>{money(Math.max(store.currency_code === 'NGN' ? 150 : 1.00, Math.round(bagTotal * 0.015)))}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 900, borderTop: '1px solid var(--line)', paddingTop: 6, marginTop: 2, color: 'var(--text)' }}>
+                  <span>Total Amount</span>
+                  <span>{money(bagTotal + (frontstoreProtect ? Math.max(store.currency_code === 'NGN' ? 150 : 1.00, Math.round(bagTotal * 0.015)) : 0))}</span>
+                </div>
+              </div>
+
               <button type="submit" className="ps-sheet-cta" disabled={checkoutLoading} style={{ marginTop: 12 }}>
                 {checkoutLoading ? "Submitting Order..." : `Proceed to Secure Checkout`}
               </button>
@@ -767,7 +824,8 @@ export default function RetailStorefront({
           items: bagItems.map((item: any) => ({
             product_id: item.id,
             quantity: item.qty
-          }))
+          })),
+          frontstore_protect: frontstoreProtect
         })
       });
 
