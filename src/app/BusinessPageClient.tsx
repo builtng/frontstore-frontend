@@ -7,7 +7,7 @@ import {
   CreditCard, Users, Brain, Megaphone, Check, X,
   ShoppingBasket, Shirt,
   UtensilsCrossed, Sparkles, Wrench, BookOpen, Camera, Building2,
-  Smartphone, Recycle, HeartPulse, WashingMachine
+  Smartphone, Recycle, HeartPulse, WashingMachine, KeyRound, Radio
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import { PublicSiteNav } from '../components/PublicSiteChrome';
@@ -307,6 +307,18 @@ const SELL_CATEGORIES = [
     desc: 'Laundry and dry-cleaning businesses schedule pickup and drop-off slots without a single phone call.',
     color: 'hsl(190, 80%, 40%)', bg: 'hsl(190, 80%, 94%)',
   },
+  {
+    icon: KeyRound,
+    title: 'Real Estate',
+    desc: 'Agents list properties, book viewings and share valuations straight from a WhatsApp-native storefront.',
+    color: 'hsl(35, 90%, 42%)', bg: 'hsl(35, 90%, 94%)',
+  },
+  {
+    icon: Radio,
+    title: 'Ads & Promotions',
+    desc: 'Status and community page owners sell ad slots and shoutout packages with instant booking.',
+    color: 'hsl(320, 75%, 50%)', bg: 'hsl(320, 75%, 95%)',
+  },
 ] as const;
 
 const DEFAULT_COMPARISON_ROWS = [
@@ -320,10 +332,10 @@ const DEFAULT_COMPARISON_ROWS = [
 
 const DEFAULT_HOME_CONTENT = {
   hero: {
-    badges: ['Under 2 Minutes Setup', 'Conversational Commerce'],
-    titlePrefix: 'Turn WhatsApp Conversations Into',
-    titleHighlight: 'Sales',
-    description: 'Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa.',
+    badges: ['Built For Business', 'Conversational Commerce'],
+    titlePrefix: 'Turn Your WhatsApp Into Your Most',
+    titleHighlight: 'Profitable Store',
+    description: 'Give your business a branded catalog, automated checkout, and a customer CRM — all running inside the chat your customers already trust.',
     primaryButton: { label: 'Start Free', href: '#store-name-input' },
     secondaryButton: { label: 'Live Demo', href: '/demo' },
   },
@@ -402,7 +414,7 @@ function mergeHomeContent(raw?: string): HomeContent {
   }
 }
 
-export default function HomePageClient({ initialSettings }: { initialSettings?: any }) {
+export default function BusinessPageClient({ initialSettings }: { initialSettings?: any }) {
   const [username, setUsername] = useState('');
   const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState('');
@@ -814,31 +826,31 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             </p>
           </div>
 
-          <div className="category-grid">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
             {SELL_CATEGORIES.map((cat, idx) => {
               const Icon = cat.icon;
               return (
                 <div
                   key={cat.title}
-                  className="category-card hover-lift animate-fade-in"
+                  className="card hover-lift animate-fade-in"
                   style={{
-                    '--cat-color': cat.color,
-                    '--cat-bg': cat.bg,
-                    padding: 28,
+                    padding: 26,
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 16,
+                    gap: 14,
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
                     animationDelay: `${idx * 70}ms`,
-                  } as React.CSSProperties}
+                  }}
                 >
-                  <div className="category-card__icon">
-                    <Icon size={24} color={cat.color} />
+                  <div className="icon-tile" style={{ width: 48, height: 48, background: cat.bg }}>
+                    <Icon size={22} color={cat.color} />
                   </div>
                   <div>
-                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 800, marginBottom: 7, color: 'var(--text)', letterSpacing: '-0.01em' }}>
+                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 6, color: 'var(--text)' }}>
                       {cat.title}
                     </h3>
-                    <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.65 }}>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
                       {cat.desc}
                     </p>
                   </div>

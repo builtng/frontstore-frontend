@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import HomePageClient from '../HomePageClient';
+import BusinessPageClient from '../BusinessPageClient';
 
 async function getPublicSettings() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
@@ -61,5 +61,5 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function BusinessPage() {
   const settings = await getPublicSettings();
 
-  return <HomePageClient initialSettings={settings} />;
+  return <BusinessPageClient initialSettings={settings} />;
 }

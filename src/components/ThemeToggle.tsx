@@ -58,29 +58,19 @@ export default function ThemeToggle() {
       style={{
         width: 38,
         height: 38,
-        border: '1.5px solid var(--border-strong)',
-        borderRadius: 'var(--r-md)',
-        background: 'var(--surface)',
+        border: 'none',
+        background: 'transparent',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         cursor: 'pointer',
         color: isDark ? 'hsl(38, 92%, 50%)' : 'hsl(215, 25%, 27%)',
-        boxShadow: 'var(--shadow-sm)',
         transition: 'all var(--t-normal) var(--ease)',
         position: 'relative',
         overflow: 'hidden',
         padding: 0,
       }}
       aria-label="Toggle theme"
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--primary)';
-        e.currentTarget.style.background = 'var(--surface-2)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--border-strong)';
-        e.currentTarget.style.background = 'var(--surface)';
-      }}
     >
       <div
         style={{

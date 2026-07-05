@@ -6,6 +6,8 @@ import { Search, MapPin } from 'lucide-react';
 import { NIGERIAN_STATES, slugify } from '@/utils/nigerianStates';
 import SearchableSelect from '@/components/SearchableSelect';
 
+const POPULAR_SEARCHES = ['iPhone 15 Pro', 'Generator', 'Ankara fabric', 'Air fryer'];
+
 export default function CompareSearchClient() {
   const router = useRouter();
   const [productName, setProductName] = useState('');
@@ -32,8 +34,7 @@ export default function CompareSearchClient() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="card"
-      style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 520 }}
+      style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
     >
       <div>
         <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6, display: 'block' }}>
@@ -51,6 +52,23 @@ export default function CompareSearchClient() {
               border: '1px solid var(--border)', fontSize: 14, background: 'var(--surface)', color: 'var(--text)',
             }}
           />
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+          {POPULAR_SEARCHES.map((term) => (
+            <button
+              key={term}
+              type="button"
+              onClick={() => setProductName(term)}
+              className="clickable"
+              style={{
+                fontSize: 12, fontWeight: 600, color: 'var(--text-muted)',
+                background: 'var(--bg-2)', border: '1px solid var(--border)',
+                borderRadius: 'var(--r-full)', padding: '5px 12px',
+              }}
+            >
+              {term}
+            </button>
+          ))}
         </div>
       </div>
 
