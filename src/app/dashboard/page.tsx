@@ -12,7 +12,7 @@ import {
   TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck, BookOpen,
   ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer,
-  Briefcase, CreditCard, Landmark, PenLine, Truck, Scale
+  Briefcase, CreditCard, Landmark, PenLine, Truck, Scale, Sparkles, LineChart, Archive
 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
@@ -224,9 +224,9 @@ interface BroadcastCampaign {
   created_at: string;
 }
 
-type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings';
+type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings' | 'invoices' | 'receipts' | 'inventory' | 'automations' | 'analytics';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings'];
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings', 'invoices', 'receipts', 'inventory', 'automations', 'analytics'];
 
 const BROADCAST_AUDIENCES: Array<{ id: 'all' | 'repeat' | 'unpaid_whatsapp'; label: string; description: string }> = [
   { id: 'all', label: 'All customers', description: 'Everyone who has ever placed an order with your store.' },
@@ -466,6 +466,59 @@ export default function DashboardPage() {
 
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
+
+  // --- Pro Merchant Features State Variables ---
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
+  const [isAddInvoiceOpen, setIsAddInvoiceOpen] = useState(false);
+  const [isViewInvoiceOpen, setIsViewInvoiceOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [invoiceFilter, setInvoiceFilter] = useState<'all' | 'draft' | 'sent' | 'paid' | 'overdue'>('all');
+  const [invoiceItems, setInvoiceItems] = useState<Array<{ name: string, quantity: number, price: number }>>([
+    { name: '', quantity: 1, price: 0 }
+  ]);
+  const [newInvoiceData, setNewInvoiceData] = useState({
+    customer_name: '',
+    customer_email: '',
+    customer_phone: '',
+    due_date: '',
+    notes: ''
+  });
+
+  // Receipts State
+  const [receipts, setReceipts] = useState<any[]>([]);
+  const [receiptsLoading, setReceiptsLoading] = useState(false);
+  const [receiptSearch, setReceiptSearch] = useState('');
+  const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
+
+  // Inventory State
+  const [inventoryLogs, setInventoryLogs] = useState<any[]>([]);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
+  const [isAdjustStockOpen, setIsAdjustStockOpen] = useState(false);
+  const [adjustingProduct, setAdjustingProduct] = useState<any>(null);
+  const [adjustingVariant, setAdjustingVariant] = useState<any>(null);
+  const [adjustQty, setAdjustQty] = useState('');
+  const [adjustType, setAdjustType] = useState<'restock' | 'manual'>('restock');
+  const [adjustReason, setAdjustReason] = useState('');
+  const [inventoryTab, setInventoryTab] = useState<'levels' | 'logs'>('levels');
+
+  // Automation Settings State
+  const [automationSetting, setAutomationSetting] = useState<any>({
+    cart_recovery_enabled: false,
+    order_confirmation_enabled: false,
+    receipt_delivery_enabled: false,
+    thank_you_enabled: false,
+    review_request_enabled: false,
+    win_back_enabled: false,
+    win_back_days: 30,
+    win_back_coupon_code: '',
+    channels: ['email', 'whatsapp'],
+  });
+  const [automationLoading, setAutomationLoading] = useState(false);
+
+  // Advanced Pro Analytics State
+  const [proAnalytics, setProAnalytics] = useState<any>(null);
+  const [proAnalyticsLoading, setProAnalyticsLoading] = useState(false);
   const [upgradePrompt, setUpgradePrompt] = useState<{
     title: string;
     description: string;
@@ -1753,6 +1806,96 @@ export default function DashboardPage() {
       fetchWalletData();
     }
   }, [isAuthenticated, activeTab]);
+
+  const fetchInvoicesData = async () => {
+    if (!isPro) return;
+    try {
+      setInvoicesLoading(true);
+      const res = await fetch(`${apiUrl}/v1/invoices`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setInvoices(json.data || []);
+      }
+    } catch (e) {
+      toast.error("Failed to load invoices.");
+    } finally {
+      setInvoicesLoading(false);
+    }
+  };
+
+  const fetchReceiptsData = async () => {
+    if (!isPro) return;
+    try {
+      setReceiptsLoading(true);
+      const res = await fetch(`${apiUrl}/v1/receipts`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setReceipts(json.data || []);
+      }
+    } catch (e) {
+      toast.error("Failed to load receipts.");
+    } finally {
+      setReceiptsLoading(false);
+    }
+  };
+
+  const fetchInventoryLogsData = async () => {
+    if (!isPro) return;
+    try {
+      setInventoryLoading(true);
+      const res = await fetch(`${apiUrl}/v1/inventory/logs`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setInventoryLogs(json.data.data || []);
+      }
+    } catch (e) {
+      toast.error("Failed to load inventory adjustment history.");
+    } finally {
+      setInventoryLoading(false);
+    }
+  };
+
+  const fetchAutomationSettingsData = async () => {
+    if (!isPro) return;
+    try {
+      setAutomationLoading(true);
+      const res = await fetch(`${apiUrl}/v1/store/automations`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setAutomationSetting(json.data);
+      }
+    } catch (e) {
+      toast.error("Failed to load growth automation settings.");
+    } finally {
+      setAutomationLoading(false);
+    }
+  };
+
+  const fetchProAnalyticsData = async () => {
+    if (!isPro) return;
+    try {
+      setProAnalyticsLoading(true);
+      const res = await fetch(`${apiUrl}/v1/analytics/pro`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setProAnalytics(json.data);
+      }
+    } catch (e) {
+      toast.error("Failed to load advanced analytics.");
+    } finally {
+      setProAnalyticsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (activeTab === 'invoices') fetchInvoicesData();
+      if (activeTab === 'receipts') fetchReceiptsData();
+      if (activeTab === 'inventory') fetchInventoryLogsData();
+      if (activeTab === 'automations') fetchAutomationSettingsData();
+      if (activeTab === 'analytics') fetchProAnalyticsData();
+    }
+  }, [isAuthenticated, activeTab, isPro]);
 
   const handleSendWithdrawalOtp = async () => {
     try {
@@ -3127,6 +3270,11 @@ export default function DashboardPage() {
             { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={18} /> },
             { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
             { id: 'products', label: 'My Products', icon: <Package size={18} /> },
+            { id: 'inventory', label: 'Inventory', icon: <Archive size={18} />, badge: isPro ? undefined : 'Pro' },
+            { id: 'invoices', label: 'Invoices', icon: <FileText size={18} />, badge: isPro ? undefined : 'Pro' },
+            { id: 'receipts', label: 'Receipts', icon: <Receipt size={18} />, badge: isPro ? undefined : 'Pro' },
+            { id: 'automations', label: 'Automations', icon: <Sparkles size={18} />, badge: isPro ? undefined : 'Pro' },
+            { id: 'analytics', label: 'Pro Analytics', icon: <LineChart size={18} />, badge: isPro ? undefined : 'Pro' },
             { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
             { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} />, badge: !isPro ? 'Pro' : (waOrders.filter(o => o.payment_status === 'unpaid').length || undefined) },
             { id: 'reach', label: 'Broadcast Messages', icon: <Megaphone size={18} />, badge: isPro ? undefined : 'Pro' },
@@ -7657,6 +7805,969 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* ── TAB: INVOICES ── */}
+              {activeTab === 'invoices' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  {/* Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 'var(--r-md)',
+                        background: 'linear-gradient(135deg, #6366F1 0%, #4338CA 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 16px rgba(99, 102, 241, 0.3)', flexShrink: 0
+                      }}>
+                        <FileText size={22} color="#fff" />
+                      </div>
+                      <div>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                          Pro Invoices
+                        </h2>
+                        <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                          Create, send, and track professional invoices.
+                        </p>
+                      </div>
+                    </div>
+                    {isPro && (
+                      <button
+                        onClick={() => {
+                          setNewInvoiceData({ customer_name: '', customer_email: '', customer_phone: '', due_date: '', notes: '' });
+                          setInvoiceItems([{ name: '', quantity: 1, price: 0 }]);
+                          setIsAddInvoiceOpen(true);
+                        }}
+                        className="btn btn-primary clickable"
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', fontSize: 13.5 }}
+                      >
+                        <Plus size={16} /> Create Invoice
+                      </button>
+                    )}
+                  </div>
+
+                  {!isPro ? (
+                    <div className="card text-center animate-fade-in" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
+                      <div style={{
+                        width: 64, height: 64, borderRadius: 'var(--r-full)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
+                      }}>
+                        <FileText size={28} color="#fff" />
+                      </div>
+                      <div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>
+                          Professional Merchant Invoices
+                        </h3>
+                        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                          Request direct payments, track unpaid client orders, and generate download-ready PDF invoices tailored for African commerce.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 8 }}>
+                        <button
+                          onClick={() => navigateDashboardTab('billing')}
+                          className="btn btn-primary clickable"
+                          style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}
+                        >
+                          🚀 Upgrade to Pro
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Filter tabs */}
+                      <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12, overflowX: 'auto' }}>
+                        {(['all', 'draft', 'sent', 'paid', 'overdue'] as const).map(f => (
+                          <button
+                            key={f}
+                            onClick={() => setInvoiceFilter(f)}
+                            className="clickable"
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: 'var(--r-full)',
+                              border: 'none',
+                              fontSize: 13,
+                              fontWeight: 700,
+                              background: invoiceFilter === f ? 'var(--primary-light)' : 'transparent',
+                              color: invoiceFilter === f ? 'var(--primary)' : 'var(--text-muted)',
+                              textTransform: 'capitalize'
+                            }}
+                          >
+                            {f}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Invoices List */}
+                      {invoicesLoading ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+                          <Loader2 className="spinner" size={32} />
+                        </div>
+                      ) : invoices.length === 0 ? (
+                        <div className="card text-center" style={{ padding: 40 }}>
+                          <p style={{ color: 'var(--text-muted)' }}>No invoices found. Click "Create Invoice" to issue one.</p>
+                        </div>
+                      ) : (
+                        <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 600 }}>
+                            <thead>
+                              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Invoice #</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Customer</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Due Date</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Total Amount</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Status</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {invoices
+                                .filter(inv => invoiceFilter === 'all' || inv.status === invoiceFilter)
+                                .map(inv => {
+                                  const currencySymbols: Record<string, string> = { NGN: '₦', GHS: 'GH₵', KES: 'KSh', ZAR: 'R', USD: '$' };
+                                  const symbol = currencySymbols[store?.currency_code || 'NGN'] || (store?.currency_code || '') + ' ';
+                                  return (
+                                    <tr key={inv.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                      <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 800 }}>{inv.invoice_number}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 14 }}>
+                                        <div style={{ fontWeight: 700 }}>{inv.customer_name}</div>
+                                        <div style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>{inv.customer_email || inv.customer_phone}</div>
+                                      </td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13.5, color: 'var(--text-muted)' }}>{new Date(inv.due_date).toLocaleDateString()}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 800 }}>{symbol}{parseFloat(inv.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                      <td style={{ padding: '14px 18px' }}>
+                                        <span style={{
+                                          fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 'var(--r-full)',
+                                          background: inv.status === 'paid' ? 'rgba(34,197,94,0.1)' : (inv.status === 'sent' ? 'rgba(59,130,246,0.1)' : (inv.status === 'overdue' ? 'rgba(239,68,68,0.1)' : 'rgba(156,163,175,0.1)')),
+                                          color: inv.status === 'paid' ? 'var(--success)' : (inv.status === 'sent' ? 'var(--primary)' : (inv.status === 'overdue' ? 'var(--danger)' : 'var(--text-muted)')),
+                                          textTransform: 'uppercase'
+                                        }}>
+                                          {inv.status}
+                                        </span>
+                                      </td>
+                                      <td style={{ padding: '14px 18px' }}>
+                                        <div style={{ display: 'flex', gap: 8 }}>
+                                          <a
+                                            href={`${apiUrl}/v1/public/invoices/${inv.id}/pdf`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline clickable"
+                                            style={{ padding: '4px 8px', fontSize: 11.5 }}
+                                          >
+                                            PDF
+                                          </a>
+                                          {inv.status !== 'paid' && (
+                                            <>
+                                              <button
+                                                onClick={async () => {
+                                                  toast.loading("Sending invoice...");
+                                                  try {
+                                                    const res = await fetch(`${apiUrl}/v1/invoices/${inv.id}/send`, { method: 'POST', headers: getAuthHeaders() });
+                                                    toast.dismiss();
+                                                    if (res.ok) toast.success("Invoice sent to customer.");
+                                                    else toast.error("Failed to send invoice.");
+                                                  } catch {
+                                                    toast.dismiss();
+                                                    toast.error("Network error sending invoice.");
+                                                  }
+                                                }}
+                                                className="btn btn-outline clickable"
+                                                style={{ padding: '4px 8px', fontSize: 11.5 }}
+                                              >
+                                                Send
+                                              </button>
+                                              <button
+                                                onClick={async () => {
+                                                  if (confirm("Record cash/bank transfer payment for this invoice?")) {
+                                                    try {
+                                                      const res = await fetch(`${apiUrl}/v1/invoices/${inv.id}/record-payment`, {
+                                                        method: 'POST',
+                                                        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ payment_method: 'bank_transfer' })
+                                                      });
+                                                      if (res.ok) {
+                                                        toast.success("Payment recorded successfully.");
+                                                        fetchInvoicesData();
+                                                      }
+                                                    } catch {
+                                                      toast.error("Failed to record payment.");
+                                                    }
+                                                  }
+                                                }}
+                                                className="btn btn-primary clickable"
+                                                style={{ padding: '4px 8px', fontSize: 11.5 }}
+                                              >
+                                                Paid
+                                              </button>
+                                            </>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB: RECEIPTS ── */}
+              {activeTab === 'receipts' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  {/* Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 'var(--r-md)',
+                        background: 'linear-gradient(135deg, #10B981 0%, #047857 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 16px rgba(16, 185, 129, 0.3)', flexShrink: 0
+                      }}>
+                        <Receipt size={22} color="#fff" />
+                      </div>
+                      <div>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                          Pro Receipts
+                        </h2>
+                        <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                          View generated receipts and instantly resend verification details.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!isPro ? (
+                    <div className="card text-center animate-fade-in" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
+                      <div style={{
+                        width: 64, height: 64, borderRadius: 'var(--r-full)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
+                      }}>
+                        <Receipt size={28} color="#fff" />
+                      </div>
+                      <div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>
+                          Automated Digital Receipts
+                        </h3>
+                        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                          Deliver automated customer receipts on successful checkout payment verification, complete with customized PDF layouts for mobile printers.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 8 }}>
+                        <button
+                          onClick={() => navigateDashboardTab('billing')}
+                          className="btn btn-primary clickable"
+                          style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}
+                        >
+                          🚀 Upgrade to Pro
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Search Bar */}
+                      <div className="card" style={{ padding: 12 }}>
+                        <input
+                          type="text"
+                          placeholder="Search receipts by customer or receipt number..."
+                          value={receiptSearch}
+                          onChange={e => setReceiptSearch(e.target.value)}
+                          style={{ width: '100%', border: 'none', background: 'none', fontSize: 14, outline: 'none' }}
+                        />
+                      </div>
+
+                      {/* Receipts List */}
+                      {receiptsLoading ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+                          <Loader2 className="spinner" size={32} />
+                        </div>
+                      ) : receipts.length === 0 ? (
+                        <div className="card text-center" style={{ padding: 40 }}>
+                          <p style={{ color: 'var(--text-muted)' }}>No receipts have been generated yet.</p>
+                        </div>
+                      ) : (
+                        <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 600 }}>
+                            <thead>
+                              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Receipt #</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Customer</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Paid Date</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Amount</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Method</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {receipts
+                                .filter(r => {
+                                  const term = receiptSearch.toLowerCase();
+                                  return r.receipt_number.toLowerCase().includes(term) || r.customer_name.toLowerCase().includes(term);
+                                })
+                                .map(r => {
+                                  const currencySymbols: Record<string, string> = { NGN: '₦', GHS: 'GH₵', KES: 'KSh', ZAR: 'R', USD: '$' };
+                                  const symbol = currencySymbols[store?.currency_code || 'NGN'] || (store?.currency_code || '') + ' ';
+                                  return (
+                                    <tr key={r.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                      <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 800 }}>{r.receipt_number}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 14 }}>
+                                        <div style={{ fontWeight: 700 }}>{r.customer_name}</div>
+                                        <div style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>{r.customer_email || r.customer_phone}</div>
+                                      </td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13.5, color: 'var(--text-muted)' }}>{new Date(r.paid_at).toLocaleDateString()}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 800 }}>{symbol}{parseFloat(r.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 13, textTransform: 'capitalize' }}>{r.payment_method?.replace('_', ' ')}</td>
+                                      <td style={{ padding: '14px 18px' }}>
+                                        <div style={{ display: 'flex', gap: 8 }}>
+                                          <a
+                                            href={`${apiUrl}/v1/public/receipts/${r.id}/pdf`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline clickable"
+                                            style={{ padding: '4px 8px', fontSize: 11.5 }}
+                                          >
+                                            View PDF
+                                          </a>
+                                          <button
+                                            onClick={async () => {
+                                              toast.loading("Resending receipt...");
+                                              try {
+                                                const res = await fetch(`${apiUrl}/v1/receipts/${r.id}/resend`, { method: 'POST', headers: getAuthHeaders() });
+                                                toast.dismiss();
+                                                if (res.ok) toast.success("Receipt resent to customer.");
+                                                else toast.error("Failed to resend receipt.");
+                                              } catch {
+                                                toast.dismiss();
+                                                toast.error("Network error resending receipt.");
+                                              }
+                                            }}
+                                            className="btn btn-primary clickable"
+                                            style={{ padding: '4px 8px', fontSize: 11.5 }}
+                                          >
+                                            Resend
+                                          </button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB: INVENTORY ── */}
+              {activeTab === 'inventory' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  {/* Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 'var(--r-md)',
+                        background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 16px rgba(245, 158, 11, 0.3)', flexShrink: 0
+                      }}>
+                        <Archive size={22} color="#fff" />
+                      </div>
+                      <div>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                          Inventory Management
+                        </h2>
+                        <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                          Track stock levels, configure low stock thresholds, and view adjustment logs.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!isPro ? (
+                    <div className="card text-center animate-fade-in" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
+                      <div style={{
+                        width: 64, height: 64, borderRadius: 'var(--r-full)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
+                      }}>
+                        <Archive size={28} color="#fff" />
+                      </div>
+                      <div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>
+                          Advanced Inventory & Variants
+                        </h3>
+                        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                          Track product sizes and colors, automatically deduct stock levels upon successful customer purchase, and configure instant notifications for low stock counts.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 8 }}>
+                        <button
+                          onClick={() => navigateDashboardTab('billing')}
+                          className="btn btn-primary clickable"
+                          style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}
+                        >
+                          🚀 Upgrade to Pro
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Sub-tabs toggle */}
+                      <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
+                        <button
+                          onClick={() => setInventoryTab('levels')}
+                          className="clickable"
+                          style={{
+                            padding: '6px 14px',
+                            borderRadius: 'var(--r-full)',
+                            border: 'none',
+                            fontSize: 13,
+                            fontWeight: 700,
+                            background: inventoryTab === 'levels' ? 'var(--primary-light)' : 'transparent',
+                            color: inventoryTab === 'levels' ? 'var(--primary)' : 'var(--text-muted)',
+                          }}
+                        >
+                          Stock Levels
+                        </button>
+                        <button
+                          onClick={() => setInventoryTab('logs')}
+                          className="clickable"
+                          style={{
+                            padding: '6px 14px',
+                            borderRadius: 'var(--r-full)',
+                            border: 'none',
+                            fontSize: 13,
+                            fontWeight: 700,
+                            background: inventoryTab === 'logs' ? 'var(--primary-light)' : 'transparent',
+                            color: inventoryTab === 'logs' ? 'var(--primary)' : 'var(--text-muted)',
+                          }}
+                        >
+                          Adjustment History
+                        </button>
+                      </div>
+
+                      {inventoryTab === 'levels' ? (
+                        /* Stock Levels Table */
+                        <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 600 }}>
+                            <thead>
+                              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Product</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Track Stock?</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Stock Count</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Status</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {products.map(prod => {
+                                const hasVariants = prod.variants && prod.variants.length > 0;
+                                return (
+                                  <React.Fragment key={prod.id}>
+                                    <tr style={{ borderBottom: hasVariants ? 'none' : '1px solid var(--border)' }}>
+                                      <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 800 }}>{prod.name}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 14 }}>{prod.track_inventory ? 'Yes' : 'No'}</td>
+                                      <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 850 }}>
+                                        {prod.track_inventory ? prod.inventory_quantity : '—'}
+                                      </td>
+                                      <td style={{ padding: '14px 18px' }}>
+                                        {prod.track_inventory ? (
+                                          <span style={{
+                                            fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 'var(--r-full)',
+                                            background: prod.stock_status === 'in_stock' ? 'rgba(34,197,94,0.1)' : (prod.stock_status === 'low_stock' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)'),
+                                            color: prod.stock_status === 'in_stock' ? 'var(--success)' : (prod.stock_status === 'low_stock' ? 'var(--warning)' : 'var(--danger)'),
+                                            textTransform: 'uppercase'
+                                          }}>
+                                            {prod.stock_status?.replace('_', ' ')}
+                                          </span>
+                                        ) : '—'}
+                                      </td>
+                                      <td style={{ padding: '14px 18px' }}>
+                                        {!hasVariants && prod.track_inventory && (
+                                          <button
+                                            onClick={() => {
+                                              setAdjustingProduct(prod);
+                                              setAdjustingVariant(null);
+                                              setAdjustQty('');
+                                              setAdjustType('restock');
+                                              setAdjustReason('');
+                                              setIsAdjustStockOpen(true);
+                                            }}
+                                            className="btn btn-outline clickable"
+                                            style={{ padding: '4px 8px', fontSize: 11.5 }}
+                                          >
+                                            Adjust Stock
+                                          </button>
+                                        )}
+                                      </td>
+                                    </tr>
+                                    {hasVariants && prod.variants.map((v: any) => (
+                                      <tr key={v.id} style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                        <td style={{ padding: '8px 18px 8px 36px', fontSize: 12.5, color: 'var(--text-muted)' }}>
+                                          ↳ Variant: {v.size ? `Size ${v.size}` : ''} {v.color ? `Color ${v.color}` : ''}
+                                        </td>
+                                        <td style={{ padding: '8px 18px', fontSize: 12.5, color: 'var(--text-muted)' }}>Yes</td>
+                                        <td style={{ padding: '8px 18px', fontSize: 13, fontWeight: 750 }}>{v.inventory_quantity}</td>
+                                        <td style={{ padding: '8px 18px' }}>
+                                          <span style={{
+                                            fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 'var(--r-full)',
+                                            background: v.inventory_quantity <= 0 ? 'rgba(239,68,68,0.1)' : (v.inventory_quantity <= prod.low_stock_threshold ? 'rgba(245,158,11,0.1)' : 'rgba(34,197,94,0.1)'),
+                                            color: v.inventory_quantity <= 0 ? 'var(--danger)' : (v.inventory_quantity <= prod.low_stock_threshold ? 'var(--warning)' : 'var(--success)'),
+                                            textTransform: 'uppercase'
+                                          }}>
+                                            {v.inventory_quantity <= 0 ? 'OUT OF STOCK' : (v.inventory_quantity <= prod.low_stock_threshold ? 'LOW STOCK' : 'IN STOCK')}
+                                          </span>
+                                        </td>
+                                        <td style={{ padding: '8px 18px' }}>
+                                          <button
+                                            onClick={() => {
+                                              setAdjustingProduct(prod);
+                                              setAdjustingVariant(v);
+                                              setAdjustQty('');
+                                              setAdjustType('restock');
+                                              setAdjustReason('');
+                                              setIsAdjustStockOpen(true);
+                                            }}
+                                            className="btn btn-outline clickable"
+                                            style={{ padding: '4px 8px', fontSize: 11 }}
+                                          >
+                                            Adjust
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </React.Fragment>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        /* Adjustment Logs Table */
+                        <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 600 }}>
+                            <thead>
+                              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Date</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Product</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Variant</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Type</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Adjustment</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Qty Before/After</th>
+                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Reason</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {inventoryLogs.map(log => (
+                                <tr key={log.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                  <td style={{ padding: '14px 18px', fontSize: 13, color: 'var(--text-muted)' }}>
+                                    {new Date(log.created_at).toLocaleString()}
+                                  </td>
+                                  <td style={{ padding: '14px 18px', fontSize: 13.5, fontWeight: 700 }}>
+                                    {log.product?.name || '—'}
+                                  </td>
+                                  <td style={{ padding: '14px 18px', fontSize: 13, color: 'var(--text-muted)' }}>
+                                    {log.variant ? `${log.variant.size ? 'S: ' + log.variant.size : ''} ${log.variant.color ? 'C: ' + log.variant.color : ''}` : '—'}
+                                  </td>
+                                  <td style={{ padding: '14px 18px', fontSize: 12.5, textTransform: 'capitalize' }}>
+                                    {log.adjustment_type}
+                                  </td>
+                                  <td style={{ padding: '14px 18px', fontSize: 13.5, fontWeight: 800, color: log.quantity > 0 ? 'var(--success)' : 'var(--danger)' }}>
+                                    {log.quantity > 0 ? `+${log.quantity}` : log.quantity}
+                                  </td>
+                                  <td style={{ padding: '14px 18px', fontSize: 13, color: 'var(--text-muted)' }}>
+                                    {log.previous_quantity} → {log.new_quantity}
+                                  </td>
+                                  <td style={{ padding: '14px 18px', fontSize: 13 }}>
+                                    {log.reason || '—'}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB: AUTOMATIONS ── */}
+              {activeTab === 'automations' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  {/* Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 'var(--r-md)',
+                        background: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 16px rgba(236, 72, 153, 0.3)', flexShrink: 0
+                      }}>
+                        <Sparkles size={22} color="#fff" />
+                      </div>
+                      <div>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                          Growth Automations
+                        </h2>
+                        <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                          Configure triggers, channels, and campaigns to automatically recover lost sales.
+                        </p>
+                      </div>
+                    </div>
+                    {isPro && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            setAutomationLoading(true);
+                            const res = await fetch(`${apiUrl}/v1/store/automations`, {
+                              method: 'PUT',
+                              headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                              body: JSON.stringify(automationSetting)
+                            });
+                            if (res.ok) {
+                              toast.success("Automation settings saved successfully.");
+                            } else {
+                              toast.error("Failed to save settings.");
+                            }
+                          } catch {
+                            toast.error("Network error saving automation settings.");
+                          } finally {
+                            setAutomationLoading(false);
+                          }
+                        }}
+                        className="btn btn-primary clickable"
+                        style={{ padding: '8px 16px', fontSize: 13.5 }}
+                      >
+                        Save Settings
+                      </button>
+                    )}
+                  </div>
+
+                  {!isPro ? (
+                    <div className="card text-center animate-fade-in" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
+                      <div style={{
+                        width: 64, height: 64, borderRadius: 'var(--r-full)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
+                      }}>
+                        <Sparkles size={28} color="#fff" />
+                      </div>
+                      <div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>
+                          Growth & Marketing Journeys
+                        </h3>
+                        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                          Launch multi-channel buyer automation flows. Recover abandoned checkouts, send automatic coupon thank-you gifts, dispatch reviews, and trigger win-back campaigns on Email & WhatsApp.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 8 }}>
+                        <button
+                          onClick={() => navigateDashboardTab('billing')}
+                          className="btn btn-primary clickable"
+                          style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}
+                        >
+                          🚀 Upgrade to Pro
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      {/* Channels selector */}
+                      <div className="card" style={{ padding: 20 }}>
+                        <h3 style={{ fontSize: 14.5, fontWeight: 800 }}>Enabled Notification Channels</h3>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Select the multi-channel notification destinations for automated flows.</p>
+                        <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
+                          {['email', 'whatsapp'].map(ch => {
+                            const active = automationSetting.channels?.includes(ch);
+                            return (
+                              <label key={ch} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, cursor: 'pointer', fontWeight: 700 }}>
+                                <input
+                                  type="checkbox"
+                                  checked={active}
+                                  onChange={e => {
+                                    const nextChs = e.target.checked
+                                      ? [...(automationSetting.channels || []), ch]
+                                      : (automationSetting.channels || []).filter((x: string) => x !== ch);
+                                    setAutomationSetting({ ...automationSetting, channels: nextChs });
+                                  }}
+                                />
+                                {ch.toUpperCase()}
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Automations list */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
+                        {/* Cart Recovery */}
+                        <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <h3 style={{ fontSize: 15, fontWeight: 850 }}>Abandoned Cart Recovery</h3>
+                              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Automatically recovers shoppers who dropped off during checkout without completing payment.</p>
+                            </div>
+                            <Toggle
+                              active={automationSetting.cart_recovery_enabled}
+                              onChange={val => setAutomationSetting({ ...automationSetting, cart_recovery_enabled: val })}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Order Confirmation */}
+                        <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <h3 style={{ fontSize: 15, fontWeight: 850 }}>Immediate Order Confirmation</h3>
+                              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Sends immediate, rich order alerts with tracking links upon verified customer purchase.</p>
+                            </div>
+                            <Toggle
+                              active={automationSetting.order_confirmation_enabled}
+                              onChange={val => setAutomationSetting({ ...automationSetting, order_confirmation_enabled: val })}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Receipt Delivery */}
+                        <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <h3 style={{ fontSize: 15, fontWeight: 850 }}>Instant Receipt PDF Dispatch</h3>
+                              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Generates and delivers printable receipts right to customer inbox instantly.</p>
+                            </div>
+                            <Toggle
+                              active={automationSetting.receipt_delivery_enabled}
+                              onChange={val => setAutomationSetting({ ...automationSetting, receipt_delivery_enabled: val })}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Thank You Coupon */}
+                        <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <h3 style={{ fontSize: 15, fontWeight: 850 }}>Customer Appreciation & Coupons</h3>
+                              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Delivers a special thank you appreciation note along with an active coupon discount code.</p>
+                            </div>
+                            <Toggle
+                              active={automationSetting.thank_you_enabled}
+                              onChange={val => setAutomationSetting({ ...automationSetting, thank_you_enabled: val })}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Review Request */}
+                        <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <h3 style={{ fontSize: 15, fontWeight: 850 }}>Delayed Review Requests</h3>
+                              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Triggers review feedback prompts 3 days after payment to build storefront social proof.</p>
+                            </div>
+                            <Toggle
+                              active={automationSetting.review_request_enabled}
+                              onChange={val => setAutomationSetting({ ...automationSetting, review_request_enabled: val })}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Win-back campaign */}
+                        <div className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <h3 style={{ fontSize: 15, fontWeight: 850 }}>Merchant Win-back Campaigns</h3>
+                              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>Nudges inactive customers who haven't made a purchase within a configured amount of days.</p>
+                            </div>
+                            <Toggle
+                              active={automationSetting.win_back_enabled}
+                              onChange={val => setAutomationSetting({ ...automationSetting, win_back_enabled: val })}
+                            />
+                          </div>
+                          {automationSetting.win_back_enabled && (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                              <div>
+                                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)' }}>Inactive Days Trigger</label>
+                                <input
+                                  type="number"
+                                  value={automationSetting.win_back_days}
+                                  onChange={e => setAutomationSetting({ ...automationSetting, win_back_days: parseInt(e.target.value) || 30 })}
+                                  className="form-control"
+                                  style={{ marginTop: 6 }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)' }}>Discount Coupon Code</label>
+                                <input
+                                  type="text"
+                                  value={automationSetting.win_back_coupon_code}
+                                  onChange={e => setAutomationSetting({ ...automationSetting, win_back_coupon_code: e.target.value })}
+                                  placeholder="e.g. WELCOMEBACK"
+                                  className="form-control"
+                                  style={{ marginTop: 6 }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB: PRO ANALYTICS ── */}
+              {activeTab === 'analytics' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  {/* Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 'var(--r-md)',
+                      background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 4px 16px rgba(59, 130, 246, 0.3)', flexShrink: 0
+                    }}>
+                      <LineChart size={22} color="#fff" />
+                    </div>
+                    <div>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                        Advanced Pro Analytics
+                      </h2>
+                      <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                        Real-time revenue metrics, repeat purchase rates, and top customer insights.
+                      </p>
+                    </div>
+                  </div>
+
+                  {!isPro ? (
+                    <div className="card text-center animate-fade-in" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
+                      <div style={{
+                        width: 64, height: 64, borderRadius: 'var(--r-full)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
+                      }}>
+                        <LineChart size={28} color="#fff" />
+                      </div>
+                      <div>
+                        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>
+                          Advanced Merchant Analytics
+                        </h3>
+                        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
+                          Analyze gross/net earnings, track customer lifetime value (LTV), monitor repeat purchase rates, and isolate top performing products.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 8 }}>
+                        <button
+                          onClick={() => navigateDashboardTab('billing')}
+                          className="btn btn-primary clickable"
+                          style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}
+                        >
+                          🚀 Upgrade to Pro
+                        </button>
+                      </div>
+                    </div>
+                  ) : proAnalyticsLoading || !proAnalytics ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+                      <Loader2 className="spinner" size={32} />
+                    </div>
+                  ) : (
+                    <>
+                      {/* Metric cards grid */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+                        <div className="card" style={{ padding: 20 }}>
+                          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>GROSS REVENUE</span>
+                          <h3 style={{ fontSize: 22, fontWeight: 900, marginTop: 8 }}>
+                            {store?.currency_code} {parseFloat(proAnalytics.gross_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </h3>
+                        </div>
+                        <div className="card" style={{ padding: 20 }}>
+                          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>NET REVENUE</span>
+                          <h3 style={{ fontSize: 22, fontWeight: 900, marginTop: 8 }}>
+                            {store?.currency_code} {parseFloat(proAnalytics.net_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </h3>
+                        </div>
+                        <div className="card" style={{ padding: 20 }}>
+                          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>AVG ORDER VALUE</span>
+                          <h3 style={{ fontSize: 22, fontWeight: 900, marginTop: 8 }}>
+                            {store?.currency_code} {parseFloat(proAnalytics.average_order_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </h3>
+                        </div>
+                        <div className="card" style={{ padding: 20 }}>
+                          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)' }}>REPEAT PURCHASE RATE</span>
+                          <h3 style={{ fontSize: 22, fontWeight: 900, marginTop: 8 }}>
+                            {parseFloat(proAnalytics.repeat_purchase_rate).toFixed(1)}%
+                          </h3>
+                        </div>
+                      </div>
+
+                      {/* Tables layout */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+                        {/* Top Products */}
+                        <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+                            <h3 style={{ fontSize: 14.5, fontWeight: 800 }}>Top Products</h3>
+                          </div>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                            <thead>
+                              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                <th style={{ padding: '10px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Product</th>
+                                <th style={{ padding: '10px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Qty Sold</th>
+                                <th style={{ padding: '10px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Revenue</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {proAnalytics.top_products?.map((p: any) => (
+                                <tr key={p.product_id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                  <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 750 }}>{p.product_name}</td>
+                                  <td style={{ padding: '12px 18px', fontSize: 13 }}>{p.quantity_sold}</td>
+                                  <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 800 }}>
+                                    {store?.currency_code} {parseFloat(p.revenue).toLocaleString()}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Top Customers */}
+                        <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+                            <h3 style={{ fontSize: 14.5, fontWeight: 800 }}>Top Customers</h3>
+                          </div>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                            <thead>
+                              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                                <th style={{ padding: '10px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Customer</th>
+                                <th style={{ padding: '10px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Orders</th>
+                                <th style={{ padding: '10px 18px', fontSize: 12, fontWeight: 800, color: 'var(--text-muted)' }}>Total Spent</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {proAnalytics.top_customers?.map((c: any) => (
+                                <tr key={c.customer_name} style={{ borderBottom: '1px solid var(--border)' }}>
+                                  <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 750 }}>{c.customer_name}</td>
+                                  <td style={{ padding: '12px 18px', fontSize: 13 }}>{c.orders_count}</td>
+                                  <td style={{ padding: '12px 18px', fontSize: 13, fontWeight: 800 }}>
+                                    {store?.currency_code} {parseFloat(c.total_spent).toLocaleString()}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
               {/* ── TAB 8: WALLET & PAYOUTS ── */}
               {activeTab === 'wallet' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
@@ -8757,6 +9868,11 @@ export default function DashboardPage() {
                 { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={18} /> },
                 { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} /> },
                 { id: 'products', label: 'My Products', icon: <Package size={18} /> },
+                { id: 'inventory', label: 'Inventory', icon: <Archive size={18} /> },
+                { id: 'invoices', label: 'Invoices', icon: <FileText size={18} /> },
+                { id: 'receipts', label: 'Receipts', icon: <Receipt size={18} /> },
+                { id: 'automations', label: 'Automations', icon: <Sparkles size={18} /> },
+                { id: 'analytics', label: 'Pro Analytics', icon: <LineChart size={18} /> },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
                 { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
