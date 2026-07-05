@@ -5452,3 +5452,66 @@ svg.spinner {
   }
 }
 
+/* ================================================================
+   BLOG ARTICLE — editorial layout
+   ================================================================ */
+
+.blog-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.blog-rail {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .blog-layout {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 40px;
+  }
+  .blog-rail {
+    display: block;
+  }
+  .blog-mobile-toc {
+    display: none !important;
+  }
+}
+
+.blog-drop-cap::first-letter {
+  font-family: var(--font-heading);
+  font-size: 52px;
+  font-weight: 800;
+  color: var(--primary);
+  float: left;
+  line-height: 0.85;
+  padding: 6px 8px 0 0;
+}
+
+.blog-faq__summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+  outline: none;
+  user-select: none;
+}
+
+.blog-faq__summary::-webkit-details-marker {
+  display: none;
+}
+
+.blog-faq__chevron {
+  transition: transform var(--t-normal) var(--ease);
+}
+
+.blog-faq[open] .blog-faq__chevron {
+  transform: rotate(180deg);
+}
+

@@ -763,7 +763,139 @@ for (const city of cities) {
 console.log(`Original articles: ${ORIGINAL_ARTICLES.length}`);
 console.log(`Generated new articles: ${newArticles.length}`);
 
-const ALL_ARTICLES = [...ORIGINAL_ARTICLES, ...newArticles];
+// ── STATE GUIDE PSEO: one comprehensive article per Nigerian state ─────────
+// Mirrors be/app/Support/NigerianStates.php / fe/src/utils/nigerianStates.ts.
+// Each entry carries real, state-specific commercial facts (capital, hub
+// market, dominant trade, logistics reality) so the copy reads as a distinct
+// local guide rather than a templated mail-merge.
+const STATE_AUTHORS = {
+  northWest: { name: 'Fatima Abdullahi', role: 'Northern Nigeria Retail Strategist', avatarInitials: 'FA', avatarBg: 'hsl(4, 80%, 94%)', avatarColor: 'hsl(4, 80%, 40%)' },
+  northEast: { name: 'Fatima Abdullahi', role: 'Northern Nigeria Retail Strategist', avatarInitials: 'FA', avatarBg: 'hsl(4, 80%, 94%)', avatarColor: 'hsl(4, 80%, 40%)' },
+  northCentral: { name: 'Ibrahim Sule', role: 'North Central Growth Analyst', avatarInitials: 'IS', avatarBg: 'hsl(48, 85%, 94%)', avatarColor: 'hsl(48, 85%, 32%)' },
+  southEast: { name: 'Chidera Okafor', role: 'Southeast Nigeria Commerce Lead', avatarInitials: 'CO', avatarBg: 'hsl(95, 55%, 94%)', avatarColor: 'hsl(95, 55%, 30%)' },
+  southSouth: { name: 'Tobenna Eze', role: 'South-South Growth Lead', avatarInitials: 'TE', avatarBg: 'hsl(255, 70%, 94%)', avatarColor: 'hsl(255, 70%, 45%)' },
+  southWest: { name: 'Yetunde Adisa', role: 'Southwest Nigeria Merchant Success Lead', avatarInitials: 'YA', avatarBg: 'hsl(15, 85%, 94%)', avatarColor: 'hsl(15, 85%, 40%)' },
+};
+
+const STATE_GRADIENT = { from: 'hsl(204, 60%, 17%)', to: 'hsl(158, 60%, 30%)' };
+
+const NIGERIA_STATES_DATA = [
+  { slug: 'abia', name: 'Abia', capital: 'Umuahia', hub: 'Aba', zone: 'southEast', landmark: 'Ariaria International Market', economy: 'shoemaking, leatherworks, and garment manufacturing', note: 'Aba-made shoes and bags already move nationwide through informal distributor networks, but most orders are still negotiated one photo at a time on WhatsApp.' },
+  { slug: 'adamawa', name: 'Adamawa', capital: 'Yola', hub: 'Jimeta', zone: 'northEast', landmark: 'Jimeta Main Market', economy: 'maize, cotton, groundnut trade and cross-border commerce with Cameroon', note: 'Traders here often serve customers scattered across Yola, Mubi, and Numan, making a single shareable storefront link far more practical than repeating catalogs in every group chat.' },
+  { slug: 'akwa-ibom', name: 'Akwa Ibom', capital: 'Uyo', hub: 'Uyo', zone: 'southSouth', landmark: 'Itam and Akpan Andem markets', economy: 'oil-and-gas services, seafood, and a fast-growing hospitality and retail scene', note: 'Uyo\'s rising mall culture has raised customer expectations for clean pricing and fast checkout, even for merchants who never open a physical storefront.' },
+  { slug: 'anambra', name: 'Anambra', capital: 'Awka', hub: 'Onitsha and Nnewi', zone: 'southEast', landmark: 'Onitsha Main Market and Nnewi\'s auto-parts cluster', economy: 'textiles, provisions, and automobile spare parts manufacturing', note: 'Onitsha traders routinely sell in bulk to buyers who never set foot in the market, which is exactly the workflow a digital catalog with clear unit pricing was built for.' },
+  { slug: 'bauchi', name: 'Bauchi', capital: 'Bauchi', hub: 'Bauchi', zone: 'northEast', landmark: 'Muda Lawal Market', economy: 'groundnut, cotton, and livestock trade', note: 'Livestock and grain merchants deal in seasonal, high-volume orders where a structured catalog prevents the price confusion that comes with phone-only negotiation.' },
+  { slug: 'bayelsa', name: 'Bayelsa', capital: 'Yenagoa', hub: 'Yenagoa', zone: 'southSouth', landmark: 'Swali Market', economy: 'oil-and-gas and a riverine trading economy built around boat transport', note: 'Because many communities are only reachable by water, sellers here rely on WhatsApp even more heavily than in landlocked states — a fast-loading link matters when data costs money.' },
+  { slug: 'benue', name: 'Benue', capital: 'Makurdi', hub: 'Makurdi and Gboko', zone: 'northCentral', landmark: 'Wurukum Market', economy: 'yam, soybean, and citrus farming — Benue is widely called the food basket of the nation', note: 'Farm produce sellers who post prices per basket or per bag on a live storefront cut out the repetitive "how much" messages that eat into their day.' },
+  { slug: 'borno', name: 'Borno', capital: 'Maiduguri', hub: 'Maiduguri', zone: 'northEast', landmark: 'Baga Fish Market and Monday Market', economy: 'hides and skins, livestock, and a recovering trade economy historically anchored by the groundnut pyramids', note: 'As commerce rebuilds in Maiduguri, merchants are skipping physical shopfronts entirely and going straight to WhatsApp-first selling.' },
+  { slug: 'cross-river', name: 'Cross River', capital: 'Calabar', hub: 'Calabar', zone: 'southSouth', landmark: 'Watt Market', economy: 'tourism, cocoa, palm oil, and a hospitality sector built around the Calabar Carnival', note: 'Tourism-season spikes mean Calabar sellers need a catalog that can handle a sudden rush of out-of-town orders without losing track of stock.' },
+  { slug: 'delta', name: 'Delta', capital: 'Asaba', hub: 'Warri', zone: 'southSouth', landmark: 'Ogbe-Ijoh and Warri Main markets', economy: 'oil-and-gas servicing, boat building, and timber', note: 'Warri\'s fast-moving retail culture rewards sellers who can confirm an order and dispatch it before a customer\'s attention moves on.' },
+  { slug: 'ebonyi', name: 'Ebonyi', capital: 'Abakaliki', hub: 'Abakaliki', zone: 'southEast', landmark: 'Abakaliki Rice Mill cluster', economy: 'rice farming and milling — Abakaliki rice is one of Nigeria\'s best-known local brands — plus salt and lead-zinc mining', note: 'Rice millers who list bag sizes and current prices on a storefront link make it easy for distributors in other states to reorder without a phone call.' },
+  { slug: 'edo', name: 'Edo', capital: 'Benin City', hub: 'Benin City', zone: 'southSouth', landmark: 'New Benin Market', economy: 'rubber processing, wood carving and craftwork, and a fast-growing logistics corridor for the south-south', note: 'Benin City\'s central position on the Lagos–Port Harcourt corridor means merchants here often ship further than their neighbours, making delivery-zone clarity essential.' },
+  { slug: 'ekiti', name: 'Ekiti', capital: 'Ado-Ekiti', hub: 'Ado-Ekiti', zone: 'southWest', landmark: 'Ureje Market', economy: 'cocoa farming and a civil-service and education-driven local economy', note: 'With a large student and civil-service population, Ekiti buyers respond well to fixed, transparent pricing rather than back-and-forth haggling.' },
+  { slug: 'enugu', name: 'Enugu', capital: 'Enugu', hub: 'Enugu', zone: 'southEast', landmark: 'Ogbete Main Market', economy: 'a growing retail and tech scene built on the old coal-city commercial base', note: 'Enugu\'s young, tech-comfortable population is one of the fastest adopters of link-in-bio storefronts in the southeast.' },
+  { slug: 'fct-abuja', name: 'FCT Abuja', capital: 'Abuja', hub: 'Wuse, Garki, and satellite towns like Kubwa and Lugbe', zone: 'northCentral', landmark: 'Wuse and Garki markets', economy: 'a high-purchasing-power federal capital economy spanning corporate, diplomatic, and civil-service buyers', note: 'Beyond the well-known Wuse II and Maitama boutique scene, satellite towns like Kubwa, Gwagwalada, and Lugbe hold a fast-growing, price-sensitive customer base that a single storefront can serve just as easily.' },
+  { slug: 'gombe', name: 'Gombe', capital: 'Gombe', hub: 'Gombe', zone: 'northEast', landmark: 'Gombe Central Market', economy: 'agriculture and an emerging trade hub for the northeast', note: 'Gombe\'s position along key northeast trade routes makes it a natural distribution point for merchants who want to serve neighbouring states too.' },
+  { slug: 'imo', name: 'Imo', capital: 'Owerri', hub: 'Owerri', zone: 'southEast', landmark: 'Douglas Road and Relief markets', economy: 'oil, retail, and a strong returnee-entrepreneur business culture', note: 'Owerri\'s many diaspora-backed small businesses already think in terms of digital storefronts — WhatsApp commerce is a natural next step for them.' },
+  { slug: 'jigawa', name: 'Jigawa', capital: 'Dutse', hub: 'Dutse', zone: 'northWest', landmark: 'Dutse Central Market', economy: 'rice and groundnut farming in a largely rural economy', note: 'Farm-produce sellers here typically serve buyers in Kano and Kaduna, so a shareable catalog link travels further than word of mouth alone.' },
+  { slug: 'kaduna', name: 'Kaduna', capital: 'Kaduna', hub: 'Kaduna', zone: 'northWest', landmark: 'Kaduna Central Market', economy: 'a textile-manufacturing legacy alongside a growing northern tech and innovation scene', note: 'Kaduna\'s emerging startup and tech community means customers already expect a clean, mobile-first buying experience from local merchants.' },
+  { slug: 'kano', name: 'Kano', capital: 'Kano', hub: 'Kano', zone: 'northWest', landmark: 'Kantin Kwari (textiles), Sabon Gari, and Dawanau international grains markets', economy: 'the largest commercial hub in Northern Nigeria — textiles, leather, and grains trading at national scale', note: 'Kano wholesalers already move goods to every corner of the country; a digital catalog just replaces the stack of WhatsApp Status photos they are already sending distributors every morning.' },
+  { slug: 'katsina', name: 'Katsina', capital: 'Katsina', hub: 'Katsina', zone: 'northWest', landmark: 'Katsina Central Market', economy: 'groundnut and cotton farming plus leatherworks', note: 'Leather and textile traders here sell heavily to buyers outside the state, where a storefront link builds more trust than an unsolicited product photo.' },
+  { slug: 'kebbi', name: 'Kebbi', capital: 'Birnin Kebbi', hub: 'Birnin Kebbi and Argungu', zone: 'northWest', landmark: 'Argungu fish and rice markets', economy: 'rice farming — Kebbi is one of Nigeria\'s largest rice producers — and freshwater fishing', note: 'Rice farmers and aggregators selling by the bag benefit from a catalog that shows current pricing without a phone call to every distributor.' },
+  { slug: 'kogi', name: 'Kogi', capital: 'Lokoja', hub: 'Lokoja', zone: 'northCentral', landmark: 'Lokoja Main Market', economy: 'a transit and logistics economy built on Kogi\'s position at the Niger–Benue confluence, plus limestone mining', note: 'Sitting on Nigeria\'s busiest north-south and east-west highway routes, Kogi merchants are well placed to sell to passing traders as well as locals — a link they can drop in transit-stop WhatsApp groups does that job well.' },
+  { slug: 'kwara', name: 'Kwara', capital: 'Ilorin', hub: 'Ilorin', zone: 'northCentral', landmark: 'Ipata Market', economy: 'agriculture alongside a growing SME and small-tech ecosystem', note: 'Ilorin\'s expanding student and young-professional population is quick to adopt link-based shopping over walk-in visits.' },
+  { slug: 'lagos', name: 'Lagos', capital: 'Ikeja', hub: 'Lagos Island, Ikeja, and satellite markets in Badagry, Epe, and Ikorodu', zone: 'southWest', landmark: 'Alaba International Market, Balogun Market, and Computer Village', note: 'Lagos commerce is not just Lekki and Ikeja — Alaba (electronics), Balogun (fabrics), and Computer Village (gadgets) each move national-scale volume, and increasingly do it over WhatsApp rather than in-person haggling.', economy: 'Nigeria\'s largest and most diverse commercial economy, spanning fashion, electronics, food, and logistics' },
+  { slug: 'nasarawa', name: 'Nasarawa', capital: 'Lafia', hub: 'Lafia', zone: 'northCentral', landmark: 'Lafia Modern Market', economy: 'solid-mineral mining and an agricultural economy benefiting from spillover retail demand from neighbouring Abuja', note: 'Nasarawa\'s proximity to the FCT means a lot of local merchants already sell to Abuja-based customers who never physically visit the state.' },
+  { slug: 'niger', name: 'Niger', capital: 'Minna', hub: 'Minna and Bida', zone: 'northCentral', landmark: 'Kure Ultra-Modern Market', economy: 'Nigeria\'s largest state by landmass, with a farming and hydro-power economy anchored by the Kainji and Shiroro dams', note: 'Niger\'s spread-out population makes physical retail expansion expensive, which is exactly the gap a shareable digital catalog closes.' },
+  { slug: 'ogun', name: 'Ogun', capital: 'Abeokuta', hub: 'Abeokuta and the Sagamu–Agbara industrial corridor', zone: 'southWest', landmark: 'Kuto and Lafenwa markets', economy: 'heavy manufacturing along the Lagos–Ibadan expressway alongside the traditional adire (tie-dye) textile craft', note: 'Ogun\'s factory towns feed a steady wholesale and retail trade into Lagos, so a storefront that displays clear bulk pricing travels well across the state line.' },
+  { slug: 'ondo', name: 'Ondo', capital: 'Akure', hub: 'Akure', zone: 'southWest', landmark: 'Oja Oba Market', economy: 'Nigeria\'s leading cocoa-producing state, plus oil production in the Ilaje riverine belt', note: 'Cocoa and produce aggregators who quote prices per bag or per kilo on a live storefront avoid the daily repetition of price calls to buyers across the state.' },
+  { slug: 'osun', name: 'Osun', capital: 'Osogbo', hub: 'Osogbo and Ile-Ife', zone: 'southWest', landmark: 'Oja Oba and Ile-Ife\'s craft markets', economy: 'agriculture and a strong arts-and-crafts economy tied to Yoruba heritage tourism around Osun-Osogbo and Ile-Ife', note: 'Adire and craft sellers here already attract buyers from outside the state; a storefront link turns a heritage-tourism visit into a repeat online customer.' },
+  { slug: 'oyo', name: 'Oyo', capital: 'Ibadan', hub: 'Ibadan', zone: 'southWest', landmark: 'Bodija and Dugbe markets', economy: 'one of West Africa\'s largest urban economies by landmass, with deep agricultural trade and a fast-growing tech and student-driven retail scene', note: 'Ibadan\'s size means physical markets like Bodija and Dugbe already function as regional wholesale hubs — a digital catalog simply extends their reach past the market gate.' },
+  { slug: 'plateau', name: 'Plateau', capital: 'Jos', hub: 'Jos', zone: 'northCentral', landmark: 'Jos Terminus Market', economy: 'tourism, temperate-crop farming (Irish potatoes, vegetables), and a mining heritage built on tin', note: 'Jos\'s cooler climate supports produce most of Nigeria can\'t grow at scale, giving local farmers a genuine reason to sell nationwide through a shareable catalog.' },
+  { slug: 'rivers', name: 'Rivers', capital: 'Port Harcourt', hub: 'Port Harcourt', zone: 'southSouth', landmark: 'Mile 1 and Oil Mill markets, and the Trans-Amadi industrial layout', zone2: null, economy: 'Nigeria\'s oil-and-gas capital, with dense industrial and retail activity beyond Port Harcourt city itself', note: 'Beyond the GRA and Peter Odili Road boutique scene already known in Port Harcourt, Rivers State\'s riverine LGAs depend on WhatsApp far more than physical shopfronts simply because travel between communities takes longer.' },
+  { slug: 'sokoto', name: 'Sokoto', capital: 'Sokoto', hub: 'Sokoto', zone: 'northWest', landmark: 'Sokoto Central Market', economy: 'the historic seat of the Sokoto Caliphate, with a trade economy built on leather, hides, and agriculture', note: 'Sokoto\'s leatherworkers already sell across the northwest by reputation alone — a catalog link converts that reputation into direct, trackable orders.' },
+  { slug: 'taraba', name: 'Taraba', capital: 'Jalingo', hub: 'Jalingo', zone: 'northEast', landmark: 'Jalingo Main Market', economy: 'agriculture and livestock, plus tea plantations on the Mambilla Plateau', note: 'Taraba\'s produce sellers are spread across a large, hilly state, where a single storefront link reaches buyers a delivery van simply can\'t.' },
+  { slug: 'yobe', name: 'Yobe', capital: 'Damaturu', hub: 'Damaturu and Potiskum', zone: 'northEast', landmark: 'Potiskum Livestock Market', economy: 'pastoral farming and gum arabic production', note: 'Potiskum\'s livestock market draws buyers from across the north; sellers who list stock and prices on a link save themselves the daily phone-call rush on market days.' },
+  { slug: 'zamfara', name: 'Zamfara', capital: 'Gusau', hub: 'Gusau', zone: 'northWest', landmark: 'Gusau Central Market', economy: 'agriculture and artisanal mining alongside a traditional textile trade', note: 'Zamfara traders selling to buyers in neighbouring states rely on trust built through referrals — a storefront link gives that trust something concrete to click through to.' },
+];
+
+function buildStateArticle(state) {
+  const author = STATE_AUTHORS[state.zone];
+  const slug = state.slug === 'fct-abuja' ? 'sell-on-whatsapp-fct-abuja' : `sell-on-whatsapp-${state.slug}-state`;
+  const displayName = state.name === 'FCT Abuja' ? 'the FCT' : `${state.name} State`;
+
+  const title = `The Complete Guide to Selling on WhatsApp in ${displayName} (2026)`;
+  const metaTitle = `Sell on WhatsApp in ${displayName} — Complete 2026 Guide`;
+  const metaDescription = `How merchants in ${displayName} — from ${state.hub} to surrounding towns — are using WhatsApp storefronts to sell faster, get paid, and manage orders around ${state.landmark}.`;
+
+  const regionNoun = state.slug === 'fct-abuja' ? 'territory' : 'state';
+
+  const openingLine = state.hub === state.capital
+    ? `${state.capital} is both the seat of government and the commercial heart of ${displayName}, anchored by ${state.landmark}.`
+    : `${state.capital} is the capital of ${displayName}, but the real commercial engine of the ${regionNoun} runs through ${state.hub}, anchored by ${state.landmark}.`;
+
+  const introduction = `${openingLine} The local economy leans heavily on ${state.economy}, and a growing share of that trade now starts with a WhatsApp message rather than a walk-in visit. ${state.note} A dedicated digital storefront gives ${displayName} merchants a single link to share — on Status, in customer groups, or printed on a receipt — that shows real prices and current stock without another round of "how much is this."`;
+
+  const sections = [
+    {
+      heading: `The ${displayName} Business Landscape`,
+      body: `Commerce in ${displayName} is shaped by ${state.hub} and its surrounding trade routes. ${state.economy.charAt(0).toUpperCase() + state.economy.slice(1)} sit at the center of how goods move through the ${regionNoun}, and most of that trade is still coordinated by phone call, voice note, or scattered WhatsApp Status posts.`,
+      bullets: [
+        `Buyers already default to WhatsApp for price checks — a structured catalog answers those questions before they're asked.`,
+        `Sellers who serve customers outside ${state.hub} rely on a shareable link more than foot traffic.`,
+        `Clear, written pricing reduces the back-and-forth that eats into a trader's day during peak market hours.`
+      ]
+    },
+    {
+      heading: `Why ${displayName} Merchants Are Moving Their Catalog Online`,
+      body: `${state.note} Instead of resending the same product photos to every new inquiry, a merchant in ${displayName} can share one storefront link that stays current — update a price, mark an item sold out, or add new stock, and every customer sees the change instantly.`
+    },
+    {
+      heading: `Payments and Delivery Across ${displayName}`,
+      body: `Most merchants in ${displayName} accept payment via direct bank transfer, Paystack, or Flutterwave, with the customer's transfer receipt shared alongside their order in the same WhatsApp chat. For delivery, sellers typically combine local dispatch riders for in-town orders with park or courier services for customers in neighbouring towns and states — a workflow that depends entirely on having an accurate, easy-to-share list of what's in stock and what it costs.`
+    }
+  ];
+
+  const faqs = [
+    {
+      question: `Do I need a website to sell online in ${displayName}?`,
+      answer: `No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it.`
+    },
+    {
+      question: `How do buyers in ${displayName} usually pay?`,
+      answer: `Bank transfer remains the most common method, alongside card payments through Paystack or Flutterwave. Displaying your payment details directly on the storefront checkout page means customers can pay and share proof of payment without leaving the chat.`
+    },
+    {
+      question: `Can I list products for multiple towns within ${displayName} from one storefront?`,
+      answer: `Yes. You can set different delivery notes or fees per area — for example ${state.hub} versus surrounding towns — so buyers know exactly what to expect before they order.`
+    }
+  ];
+
+  return {
+    slug,
+    title,
+    metaTitle,
+    metaDescription,
+    category: 'State Guide',
+    city: displayName,
+    country: 'Nigeria',
+    readTime: '7 min read',
+    author,
+    publishedAt: '2026-06-15',
+    updatedAt: '2026-07-05',
+    gradientFrom: STATE_GRADIENT.from,
+    gradientTo: STATE_GRADIENT.to,
+    introduction,
+    sections,
+    faqs,
+    ctaText: `Launch Your ${displayName} WhatsApp Store`
+  };
+}
+
+const stateArticles = NIGERIA_STATES_DATA.map(buildStateArticle);
+console.log(`Generated state guide articles: ${stateArticles.length}`);
+
+const ALL_ARTICLES = [...ORIGINAL_ARTICLES, ...newArticles, ...stateArticles];
 console.log(`Total articles: ${ALL_ARTICLES.length}`);
 
 // Write the output file
@@ -804,7 +936,7 @@ const completeCode = `export interface BlogArticle {
 
 export const BLOG_ARTICLES: BlogArticle[] = ${JSON.stringify(ALL_ARTICLES, null, 2)};
 
-export const CATEGORIES = ['All', 'Fashion', 'Beauty', 'Food', 'Electronics', 'Retail'];
+export const CATEGORIES = ['All', 'State Guide', 'Fashion', 'Beauty', 'Food', 'Electronics', 'Retail'];
 export const CITIES = ['All', 'Lagos', 'Nairobi', 'Accra', 'Johannesburg', 'Kampala', 'Mombasa', 'Cape Town', 'Port Harcourt', 'Abuja', 'Kumasi'];
 `;
 
