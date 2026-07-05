@@ -1947,26 +1947,188 @@ img, video {
    HOMEPAGE / LANDING PAGE
    ================================================================ */
 
-.landing-hero {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
+/* ── Bold dark-green hero / banner surface ── */
+.hero-dark,
+.trust-banner {
+  background: linear-gradient(160deg, var(--primary-dark) 0%, color-mix(in oklch, var(--primary) 46%, black) 100%);
+  color: #fff;
   position: relative;
   overflow: hidden;
 }
 
-.landing-hero::before {
-  content: '';
-  position: fixed;
-  top: -50%;
-  right: -20%;
-  width: 700px;
-  height: 700px;
+.hero-blob {
+  position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
+}
+
+.hero-dash {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  border: 1.5px dashed rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.hero-eyebrow b {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+/* ── Browser-chrome demo frame ── */
+.browser-frame {
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.browser-frame__bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.browser-frame__dots {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.browser-frame__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.browser-frame__url {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  padding: 5px 14px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+/* ── Inline highlight mark behind headline words ── */
+.mark-highlight {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  padding: 0 10px;
+  border-radius: 8px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* ── Numbered vertical step rail ── */
+.step-rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.step-rail::before {
+  content: '';
+  position: absolute;
+  left: 19px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--border);
+}
+
+.step-rail__item {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.step-rail__num {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 15px;
+  box-shadow: 0 0 0 4px var(--surface);
+}
+
+/* ── Overlapping-avatar testimonial card ── */
+.testimonial-overlap {
+  display: flex;
+  align-items: flex-start;
+}
+
+.testimonial-overlap__avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--surface);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  z-index: 2;
+  margin-right: -32px;
+  margin-top: 24px;
+  flex-shrink: 0;
+  background: var(--primary-light);
+}
+
+.testimonial-overlap__card {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border-radius: var(--r-2xl);
+  padding: 28px 24px 24px 56px;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Inset rounded CTA container (not edge-to-edge) ── */
+.cta-inset {
+  border-radius: var(--r-2xl);
+  margin: 0 auto;
+  max-width: 1120px;
+}
+
+/* ── Flat pastel icon tile (feature/product grid) ── */
+.icon-tile {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 /* ================================================================

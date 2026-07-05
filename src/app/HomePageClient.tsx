@@ -432,13 +432,13 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       </aside>
 
       {/* ── Hero ── */}
-      <header style={{
+      <header className="hero-dark" style={{
         padding: 'clamp(48px, 9vw, 100px) 20px clamp(48px, 8vw, 80px)',
-        position: 'relative',
-        overflow: 'hidden',
       }}>
-        <div className="hero-mesh" />
-        <div className="hero-grid" />
+        <div className="hero-blob" style={{ top: '-18%', right: '-12%', width: 420, height: 420, background: 'rgba(255,255,255,0.05)' }} />
+        <div className="hero-blob" style={{ bottom: '-25%', left: '-10%', width: 480, height: 480, background: 'color-mix(in srgb, var(--accent) 14%, transparent)' }} />
+        <div className="hero-dash" style={{ top: '18%', right: '10%', width: 54, height: 54 }} />
+        <div className="hero-dash" style={{ bottom: '12%', left: '9%', width: 34, height: 34 }} />
 
         <div className="hero-inner" style={{
           position: 'relative', zIndex: 1,
@@ -447,33 +447,26 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           alignItems: 'center',
         }}>
         <div className="hero-copy" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
-          {/* Pill badges */}
-          <div className="hero-badges" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 24 }}>
-            <span className="badge badge-primary" style={{ padding: '5px 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Zap size={11} /> {homeContent.hero.badges[0]}
-            </span>
-            <span className="badge badge-verified" style={{ padding: '5px 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Globe size={11} /> {homeContent.hero.badges[1]}
-            </span>
+          {/* Eyebrow */}
+          <div className="hero-eyebrow" style={{ marginBottom: 22, justifyContent: 'center' }}>
+            <Zap size={12} color="var(--accent)" /> <b>{homeContent.hero.badges[0]}</b>
+            <span style={{ opacity: 0.5 }}>·</span>
+            <Globe size={12} /> {homeContent.hero.badges[1]}
           </div>
 
           {/* Headline */}
           <h1
             className="text-display"
-            style={{ marginBottom: 20, maxWidth: 620, margin: '0 auto 20px', lineHeight: 1.15 }}
+            style={{ marginBottom: 20, maxWidth: 640, margin: '0 auto 20px', lineHeight: 1.15, color: '#fff' }}
           >
             {homeContent.hero.titlePrefix}{' '}
-            <span style={{
-              background: 'linear-gradient(135deg, hsl(142, 70%, 49%), hsl(168, 76%, 36%))',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}>
+            <span className="mark-highlight">
               {homeContent.hero.titleHighlight}
             </span>
           </h1>
 
           <p style={{
-            color: 'var(--text-muted)',
+            color: 'rgba(255,255,255,0.78)',
             fontSize: 'clamp(15px, 2vw, 17px)',
             lineHeight: 1.65,
             maxWidth: 540,
@@ -496,8 +489,8 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
                   el.focus();
                 }
               }}
-              className="btn btn-primary"
-              style={{ padding: '14px 28px', fontSize: 15, borderRadius: 'var(--r-xl)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+              className="btn"
+              style={{ padding: '14px 28px', fontSize: 15, borderRadius: 'var(--r-xl)', display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fff', color: 'var(--primary-dark)', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}
             >
               {homeContent.hero.primaryButton.label} <ArrowRight size={16} />
             </button>
@@ -509,8 +502,8 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
                 }
                 setShowDemoModal(true);
               }}
-              className="btn btn-outline"
-              style={{ padding: '14px 28px', fontSize: 15, borderRadius: 'var(--r-xl)' }}
+              className="btn"
+              style={{ padding: '14px 28px', fontSize: 15, borderRadius: 'var(--r-xl)', background: 'transparent', color: '#fff', border: '1.5px solid rgba(255,255,255,0.4)' }}
             >
               {homeContent.hero.secondaryButton.label}
             </button>
@@ -518,7 +511,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
 
           {/* Claim form */}
           <div style={{ maxWidth: 440, margin: '0 auto 32px' }}>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 12 }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.72)', fontWeight: 600, marginBottom: 12 }}>
               Or claim your instant store link directly:
             </p>
             <form
@@ -582,8 +575,8 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               )}
 
               {mounted && (
-                <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-                  Your store will be at <strong style={{ color: 'var(--text-muted)' }}>{systemDomain}/yourname</strong>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
+                  Your store will be at <strong style={{ color: '#fff' }}>{systemDomain}/yourname</strong>
                 </p>
               )}
             </form>
@@ -605,7 +598,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
                     width: 28, height: 28, borderRadius: '50%',
                     background: style.bg, color: style.color,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: '2px solid var(--bg)',
+                    border: '2px solid rgba(255,255,255,0.9)',
                     marginLeft: i > 0 ? -8 : 0,
                     zIndex: 5 - i,
                   }}
@@ -614,8 +607,8 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-              <strong style={{ color: 'var(--text)' }}>{homeContent.stats.sellerCount}</strong> {homeContent.stats.text}
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.72)' }}>
+              <strong style={{ color: '#fff' }}>{homeContent.stats.sellerCount}</strong> {homeContent.stats.text}
             </p>
           </div>
         </div>
@@ -638,6 +631,16 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             <div>
               <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', lineHeight: 1.3 }}>Store live</p>
               <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Set up in 2 minutes</p>
+            </div>
+          </div>
+
+          <div className="hero-float-chip glass" style={{ top: '46%', left: '-9%', animationDelay: '0.8s' }}>
+            <span style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Globe size={15} color="var(--primary)" strokeWidth={2.5} />
+            </span>
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', lineHeight: 1.3 }}>{systemDomain}/amara</p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>Claimed just now</p>
             </div>
           </div>
 
@@ -674,12 +677,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       </header>
 
       {/* ── Trust Marquee ── */}
-      <section style={{
-        padding: '22px 0',
-        borderTop: '1px solid var(--border)',
-        borderBottom: '1px solid var(--border)',
-        background: 'var(--surface)',
-      }}>
+      <section className="trust-banner" style={{ padding: '22px 0' }}>
         <div className="marquee-viewport no-scrollbar" style={{ overflow: 'hidden', maskImage: 'linear-gradient(90deg, transparent, black 8%, black 92%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, transparent, black 8%, black 92%, transparent)' }}>
           <div className="marquee-track">
             {[...Array(2)].map((_, dupe) => (
@@ -690,8 +688,8 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
                 { icon: <Zap size={13} />, label: 'Live stores in under 2 minutes' },
                 { icon: <Users size={13} />, label: `${homeContent.stats.sellerCount} strong` },
               ].map((item, i) => (
-                <div key={`${dupe}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, color: 'var(--text-muted)', fontSize: 13, fontWeight: 600 }}>
-                  <span style={{ color: 'var(--primary)', display: 'flex' }}>{item.icon}</span>
+                <div key={`${dupe}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: 600 }}>
+                  <span style={{ color: 'var(--accent)', display: 'flex' }}>{item.icon}</span>
                   {item.label}
                 </div>
               ))
@@ -808,15 +806,25 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
           <div className="bento-grid">
             {homeContent.platformSuite.items.map((prod, idx) => {
               const featured = idx < 2;
+              const hues = [
+                { color: 'var(--primary)', bg: 'var(--primary-light)' },
+                { color: 'hsl(142, 71%, 40%)', bg: 'hsl(142, 71%, 94%)' },
+                { color: 'hsl(200, 98%, 42%)', bg: 'hsl(200, 98%, 94%)' },
+                { color: 'hsl(250, 84%, 58%)', bg: 'hsl(250, 84%, 95%)' },
+                { color: 'hsl(280, 70%, 52%)', bg: 'hsl(280, 70%, 95%)' },
+                { color: 'hsl(340, 82%, 50%)', bg: 'hsl(340, 82%, 95%)' },
+                { color: 'hsl(38, 92%, 45%)', bg: 'hsl(38, 92%, 93%)' },
+                { color: 'hsl(170, 70%, 36%)', bg: 'hsl(170, 70%, 94%)' },
+              ][idx % 8];
               const icon = [
-                <Store key="store" size={featured ? 26 : 22} color="var(--primary)" />,
-                <MessageCircle key="message" size={featured ? 26 : 22} color="hsl(142, 71%, 45%)" />,
-                <CreditCard key="credit" size={22} color="hsl(200, 98%, 45%)" />,
-                <Users key="users" size={22} color="hsl(250, 84%, 60%)" />,
-                <Brain key="brain" size={22} color="hsl(280, 70%, 55%)" />,
-                <Megaphone key="mega" size={22} color="hsl(340, 82%, 55%)" />,
-                <Zap key="zap" size={22} color="hsl(38, 92%, 50%)" />,
-                <Globe key="globe" size={22} color="hsl(170, 70%, 40%)" />,
+                <Store key="store" size={featured ? 26 : 22} color={hues.color} />,
+                <MessageCircle key="message" size={featured ? 26 : 22} color={hues.color} />,
+                <CreditCard key="credit" size={22} color={hues.color} />,
+                <Users key="users" size={22} color={hues.color} />,
+                <Brain key="brain" size={22} color={hues.color} />,
+                <Megaphone key="mega" size={22} color={hues.color} />,
+                <Zap key="zap" size={22} color={hues.color} />,
+                <Globe key="globe" size={22} color={hues.color} />,
               ][idx % 8];
 
               return (
@@ -828,20 +836,16 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 16,
-                    background: featured
-                      ? 'linear-gradient(160deg, var(--surface-2), var(--surface))'
-                      : 'var(--surface-2)',
-                    border: featured ? '1px solid var(--border-strong)' : '1px solid var(--border)',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
                     position: 'relative',
                     overflow: 'hidden',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{
-                      width: featured ? 52 : 44, height: featured ? 52 : 44, borderRadius: 'var(--r-md)',
-                      background: 'var(--surface)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: 'var(--shadow-sm)'
+                    <div className="icon-tile" style={{
+                      width: featured ? 56 : 52, height: featured ? 56 : 52,
+                      background: hues.bg,
                     }}>
                       {icon}
                     </div>
@@ -931,13 +935,9 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       </section>
 
       {/* ── Operating System Vision Quote Callout ── */}
-      <section style={{
+      <section className="hero-dark" style={{
         padding: 'clamp(64px, 10vw, 96px) 20px',
-        background: 'linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%)',
-        color: '#fff',
         textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden'
       }}>
         {/* Decorative circle shapes */}
         <div style={{
@@ -975,84 +975,53 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
 
       {/* ── How It Works ── */}
       <section id="how-it-works" style={{ padding: 'clamp(40px, 8vw, 72px) 20px', background: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <div style={{ maxWidth: 620, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 44 }}>
             <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-block' }}>{homeContent.howItWorks.eyebrow}</span>
             <h2 className="text-title">{homeContent.howItWorks.title}</h2>
           </div>
-          <div style={{ position: 'relative' }}>
-            <div className="flow-connector" />
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: 20,
-              position: 'relative',
-            }}>
-              {homeContent.howItWorks.items.map((item, i) => (
-                <div
-                  key={item.step}
-                  className="card hover-lift animate-fade-in"
-                  style={{ padding: '24px', position: 'relative', overflow: 'hidden', animationDelay: `${i * 120}ms`, background: 'var(--surface)' }}
-                >
-                  <div style={{
-                    position: 'absolute', top: -16, right: -8,
-                    fontSize: 64, fontWeight: 900, color: 'var(--primary-light)',
-                    fontFamily: 'var(--font-heading)', lineHeight: 1,
-                    userSelect: 'none',
-                  }}>
-                    {item.step}
-                  </div>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 'var(--r-md)',
-                    background: 'var(--primary-light)', color: 'var(--primary)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 16,
-                    marginBottom: 14,
-                    boxShadow: '0 0 0 4px var(--surface)',
-                  }}>
-                    {i + 1}
-                  </div>
-                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 8 }}>{item.title}</h3>
+          <div className="step-rail">
+            {homeContent.howItWorks.items.map((item, i) => (
+              <div key={item.step} className="step-rail__item animate-fade-in" style={{ animationDelay: `${i * 120}ms` }}>
+                <div className="step-rail__num">{i + 1}</div>
+                <div style={{ paddingTop: 6 }}>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 700, marginBottom: 6 }}>{item.title}</h3>
                   <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>{item.body}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ── Testimonials ── */}
       {homeContent.testimonials.items.length > 0 && (
-      <section style={{ padding: 'clamp(48px, 8vw, 72px) 20px', background: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 36 }}>
-            <span className="badge badge-accent" style={{ marginBottom: 12, display: 'inline-block' }}>{homeContent.testimonials.eyebrow}</span>
-            <h2 className="text-title">{homeContent.testimonials.title}</h2>
+      <section className="trust-banner" style={{ padding: 'clamp(48px, 8vw, 72px) 20px' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <span className="badge" style={{ marginBottom: 12, display: 'inline-block', background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>{homeContent.testimonials.eyebrow}</span>
+            <h2 className="text-title" style={{ color: '#fff' }}>{homeContent.testimonials.title}</h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 28 }}>
             {homeContent.testimonials.items.map((t, i) => (
-              <div key={t.name} className="card animate-fade-in" style={{ padding: '22px', animationDelay: `${i * 80}ms` }}>
-                <div style={{ display: 'flex', gap: 2, marginBottom: 12 }}>
-                  {Array.from({ length: t.stars }).map((_, j) => (
-                    <Star key={j} size={13} fill="var(--accent)" color="var(--accent)" />
-                  ))}
+              <div key={t.name} className="testimonial-overlap animate-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
+                <div
+                  className="testimonial-overlap__avatar"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: t.bg, color: t.color, fontWeight: 800, fontSize: 24, fontFamily: 'var(--font-heading)' }}
+                >
+                  {t.initial}
                 </div>
-                <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.65, marginBottom: 16, fontStyle: 'italic' }}>
-                  "{t.text}"
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: '50%',
-                    background: t.bg, color: t.color,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 700, fontSize: 14, fontFamily: 'var(--font-heading)'
-                  }}>
-                    {t.initial}
+                <div className="testimonial-overlap__card">
+                  <div style={{ display: 'flex', gap: 2, marginBottom: 10 }}>
+                    {Array.from({ length: t.stars }).map((_, j) => (
+                      <Star key={j} size={13} fill="var(--accent)" color="var(--accent)" />
+                    ))}
                   </div>
-                  <div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{t.name}</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t.role}</p>
-                  </div>
+                  <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.65, marginBottom: 14 }}>
+                    "{t.text}"
+                  </p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{t.name}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t.role}</p>
                 </div>
               </div>
             ))}
@@ -1062,43 +1031,51 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       )}
 
       {/* ── Final CTA ── */}
-      <section style={{
-        padding: 'clamp(48px, 10vw, 80px) 20px',
-        background: 'linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, hsl(178, 70%, 45%) 100%)',
-        color: '#fff',
-        textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\") repeat",
-          pointerEvents: 'none',
-        }} />
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 500, margin: '0 auto' }}>
-          <h2 className="text-title" style={{ color: '#fff', marginBottom: 12 }}>
-            Ready to start selling on WhatsApp?
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
-            Join 1,200+ African sellers already using Frontstore to grow their business. Free to start — no credit card needed.
-          </p>
-          <a
-            href="/signup"
-            className="btn"
-            style={{
-              background: '#fff', color: 'var(--primary)',
-              padding: '16px 32px', fontSize: 16, borderRadius: 'var(--r-xl)',
-              fontFamily: 'var(--font-heading)', fontWeight: 800,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-              display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none',
-            }}
-            id="cta-get-started"
-          >
-            Create Your Free Store <ArrowRight size={16} />
-          </a>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 14 }}>
-            Takes less than 2 minutes. No credit card required.
-          </p>
+      <section style={{ padding: 'clamp(40px, 8vw, 64px) 20px', background: 'var(--bg-2)' }}>
+        <div className="hero-dark cta-inset" style={{
+          padding: 'clamp(48px, 9vw, 76px) 20px',
+          textAlign: 'center',
+        }}>
+          <div className="hero-blob" style={{ top: '-40%', left: '-10%', width: 320, height: 320, background: 'rgba(255,255,255,0.05)' }} />
+          <div className="hero-blob" style={{ bottom: '-45%', right: '-8%', width: 340, height: 340, background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }} />
+          <div style={{ position: 'relative', zIndex: 1, maxWidth: 500, margin: '0 auto' }}>
+            <h2 className="text-title" style={{ color: '#fff', marginBottom: 12 }}>
+              Ready to start selling on WhatsApp?
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.78)', marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
+              Join 1,200+ African sellers already using Frontstore to grow their business. Free to start — no credit card needed.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
+              <a
+                href="/signup"
+                className="btn"
+                style={{
+                  background: '#fff', color: 'var(--primary-dark)',
+                  padding: '15px 28px', fontSize: 15, borderRadius: 'var(--r-xl)',
+                  fontFamily: 'var(--font-heading)', fontWeight: 800,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                  display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none',
+                }}
+                id="cta-get-started"
+              >
+                Create Your Free Store <ArrowRight size={16} />
+              </a>
+              <button
+                onClick={() => setShowDemoModal(true)}
+                className="btn"
+                style={{
+                  padding: '15px 28px', fontSize: 15, borderRadius: 'var(--r-xl)',
+                  background: 'transparent', color: '#fff', border: '1.5px solid rgba(255,255,255,0.4)',
+                  fontFamily: 'var(--font-heading)', fontWeight: 700,
+                }}
+              >
+                See a live demo
+              </button>
+            </div>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 16 }}>
+              Takes less than 2 minutes. No credit card required.
+            </p>
+          </div>
         </div>
       </section>
 
