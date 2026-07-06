@@ -189,8 +189,20 @@ const MOCK_SERVICE_FAQS = [
 ];
 const MOCK_FAQ_GROUPS: any[] = [];
 const MOCK_FAQS_PREVIEW = MOCK_FAQ_GROUPS.map((g: any) => g.items[0]);
-const MOCK_TERMS: any[] = [];
-const MOCK_PRIVACY: any[] = [];
+const MOCK_TERMS: any[] = [
+  { t: "Who these terms are between", p: ["These terms are an agreement between you and the store owner, who sells the products and services on this store. The store runs on Frontstore, which provides the platform and buyer protection but is not the seller."] },
+  { t: "Bookings and calls", p: ["Appointments and coaching sessions are booked through this store. Where a deposit or full payment applies, it secures your slot. Your slot is confirmed once payment is received."] },
+  { t: "Pricing and payment", p: ["Prices are shown in Nigerian naira (or the local currency of the store). You can pay securely through Frontstore at checkout, or by bank transfer where the merchant offers it. Your receipt always arrives on WhatsApp or by email."] },
+  { t: "Cancellations and refunds", p: ["You can cancel or reschedule bookings, and request returns/refunds for products under the conditions set out on the Refunds page. Digital downloads, templates, and courses are non-refundable once accessed."] },
+  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform terms", body: "Every Frontstore store also operates under the Frontstore platform terms and buyer protection policy. These apply alongside the store's own policies and cannot be removed by the vendor.", link: "Read the Frontstore platform terms" } },
+];
+const MOCK_PRIVACY: any[] = [
+  { t: "What we collect", p: ["When you book, buy or get in touch, the store collects the details you give: your name, contact details such as a WhatsApp number, phone or email, booking and order details, and reviews you choose to share."] },
+  { t: "How we use it", p: ["We use your details to take and confirm bookings and orders, reply to your enquiries, deliver products and services, process payments, show verified reviews, and improve the store."] },
+  { t: "Payments", p: ["Payments made through Frontstore are handled by Frontstore and its payment providers under buyer protection, and the store does not see or store your card details. Bank transfers are made directly to the store."] },
+  { t: "WhatsApp and messaging", p: ["When you message us, the conversation takes place on WhatsApp or email and is subject to WhatsApp's own privacy terms."] },
+  { t: "Who we share it with", p: ["We share only what is needed: with payment providers to take payment, and with Frontstore as the platform the store runs on. We never sell your data."] },
+];
 const MOCK_PORTFOLIO: any[] = [];
 const MOCK_NOTIFY_TOPICS = [["weekly", "Weekly SEO tips"], ["launches", "New courses and drops"], ["audits", "Audit slots opening"], ["events", "Workshops and talks"]];
 const MOCK_HOURS = [
@@ -1342,27 +1354,34 @@ export default function CreatorStorefront({
       <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {(DUMMY_AUTHOR.socials?.tiktok || '')}</button>
     </div>
   </>);
-  const aboutWork = () => (
-    <div className="ab-section">
-      <div className="ab-sec-head">
-        <h4 className="ab-subhead">Our work</h4>
-        <button className="ab-seclink" onClick={() => go("portfolio")}>See more <ChevronRight size={14} /></button>
+  const aboutWork = () => {
+    if (!displayPortfolio || displayPortfolio.length === 0) return null;
+    return (
+      <div className="ab-section">
+        <div className="ab-sec-head">
+          <h4 className="ab-subhead">Our work</h4>
+          <button className="ab-seclink" onClick={() => go("portfolio")}>See more <ChevronRight size={14} /></button>
+        </div>
+        <div className="ab-gallery">
+          {displayPortfolio.slice(0, 3).map((g: any) => (
+            <button key={g.label} className={`ab-shot ${g.c}`} onClick={() => ping("Opening photo")}>
+              {g.image_url ? <img src={g.image_url} alt={g.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
+              <span className="ab-shot-cap">{g.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="ab-gallery">
-        {MOCK_GALLERY.map((g: any) => (
-          <button key={g.label} className={`ab-shot ${g.c}`} onClick={() => ping("Opening photo")}>
-            <span className="ab-shot-cap">{g.label}</span>
-          </button>
-        ))}
+    );
+  };
+  const aboutFeatured = () => {
+    if (!RECOGNITION || RECOGNITION.length === 0) return null;
+    return (
+      <div className="ab-featured">
+        <span className="ab-featured-h"><Award size={14} /> As seen in and trusted by</span>
+        <div className="ab-featured-row">{RECOGNITION.map((r: any) => <span key={r} className="ab-logo">{r}</span>)}</div>
       </div>
-    </div>
-  );
-  const aboutFeatured = () => (
-    <div className="ab-featured">
-      <span className="ab-featured-h"><Award size={14} /> As seen in and trusted by</span>
-      <div className="ab-featured-row">{RECOGNITION.map((r: any) => <span key={r} className="ab-logo">{r}</span>)}</div>
-    </div>
-  );
+    );
+  };
   const aboutReview = () => {
     const r = displayReviews[0];
     if (!r) return null;
@@ -1380,53 +1399,62 @@ export default function CreatorStorefront({
       </div>
     );
   };
-  const aboutJournal = () => (
-    <div className="ab-section">
-      <div className="ab-sec-head">
-        <h4 className="ab-subhead">From the newsletter</h4>
-        <button className="ab-seclink" onClick={() => go("blog")}>All articles <ChevronRight size={14} /></button>
+  const aboutJournal = () => {
+    if (!displayBlog || displayBlog.length === 0) return null;
+    return (
+      <div className="ab-section">
+        <div className="ab-sec-head">
+          <h4 className="ab-subhead">From the newsletter</h4>
+          <button className="ab-seclink" onClick={() => go("blog")}>All articles <ChevronRight size={14} /></button>
+        </div>
+        <div className="ab-journal">
+          {displayBlog.slice(0, 3).map((b: any) => (
+            <button key={b.title} className="ab-journal-item" onClick={() => go("blog")}>
+              <span className="ab-journal-cat">{b.cat}</span>
+              <b>{b.title}</b>
+              <span className="ab-journal-meta">{b.read} read</span>
+            </button>
+          ))}
+        </div>
+        <p className="ab-journal-note">Written by {DUMMY_AUTHOR.name}, drawing on a decade of client work.</p>
       </div>
-      <div className="ab-journal">
-        {displayBlog.slice(0, 3).map((b: any) => (
-          <button key={b.title} className="ab-journal-item" onClick={() => go("blog")}>
-            <span className="ab-journal-cat">{b.cat}</span>
-            <b>{b.title}</b>
-            <span className="ab-journal-meta">{b.read} read</span>
-          </button>
-        ))}
-      </div>
-      <p className="ab-journal-note">Written by {DUMMY_AUTHOR.name}, drawing on a decade of client work.</p>
-    </div>
-  );
+    );
+  };
   const aboutBody = () => (<>
-    <p className="ps-prose">{DUMMY_STORE.bio}</p>
-    <p className="ab-para">What began as fixing broken sites and sharing what worked has grown into courses, templates and a newsletter read by thousands, with the same goal throughout: make technical SEO clear and usable.</p>
-    <div className="ab-founder ab-founder-m">
-      <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
-      <div className="ab-founder-body">{aboutFounderBody()}</div>
-    </div>
+    {DUMMY_STORE.bio && <p className="ps-prose">{DUMMY_STORE.bio}</p>}
+    {username === 'victorijomah' && <p className="ab-para">What began as fixing broken sites and sharing what worked has grown into courses, templates and a newsletter read by thousands, with the same goal throughout: make technical SEO clear and usable.</p>}
+    {store.founder_name && (
+      <div className="ab-founder ab-founder-m">
+        <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
+        <div className="ab-founder-body">{aboutFounderBody()}</div>
+      </div>
+    )}
     {aboutWork()}
     {aboutFeatured()}
-    <div className="ab-section">
-      <h4 className="ab-subhead">What we offer</h4>
-      <div className="ab-offer-grid ab-grid-m">
-        {MOCK_OFFERINGS.map(([t, d, pg]: any) => (
-          <button key={t} className="ab-offer-card" onClick={() => go(pg)}>
-            <b>{t}</b>
-            <p>{d}</p>
-            <span className="ab-offer-link">{pg === "products" ? "View the shop" : "View services"} <ChevronRight size={14} /></span>
-          </button>
-        ))}
+    {MOCK_OFFERINGS && MOCK_OFFERINGS.length > 0 && (
+      <div className="ab-section">
+        <h4 className="ab-subhead">What we offer</h4>
+        <div className="ab-offer-grid ab-grid-m">
+          {MOCK_OFFERINGS.map(([t, d, pg]: any) => (
+            <button key={t} className="ab-offer-card" onClick={() => go(pg)}>
+              <b>{t}</b>
+              <p>{d}</p>
+              <span className="ab-offer-link">{pg === "products" ? "View the shop" : "View services"} <ChevronRight size={14} /></span>
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
-    <div className="ab-section">
-      <h4 className="ab-subhead">Good to know</h4>
-      <div className="ab-facts ab-facts-m">
-        {ABOUT_FACTS.map(([k, v]: any) => (
-          <div className="ab-fact" key={k}><span className="ab-fact-k">{k}</span><span className="ab-fact-v">{v}</span></div>
-        ))}
+    )}
+    {ABOUT_FACTS && ABOUT_FACTS.length > 0 && (
+      <div className="ab-section">
+        <h4 className="ab-subhead">Good to know</h4>
+        <div className="ab-facts ab-facts-m">
+          {ABOUT_FACTS.map(([k, v]: any) => (
+            <div className="ab-fact" key={k}><span className="ab-fact-k">{k}</span><span className="ab-fact-v">{v}</span></div>
+          ))}
+        </div>
       </div>
-    </div>
+    )}
     {aboutReview()}
     {aboutJournal()}
     <div className="ps-about-grid">
@@ -1908,15 +1936,30 @@ export default function CreatorStorefront({
               <div className="ps-reviews-row">{displayReviews.slice(0, 3).map((rv: any, i: number) => <ReviewCard key={i} rv={rv} />)}</div>
               <button className="ps-seeall" onClick={() => go("reviews")}>See all reviews <ChevronRight size={16} /></button>
 
-              <SectionHead title="Find us" />
-              <div className="ps-visit">
-                <div className="ps-map"><MapPin size={26} /><span>Map preview</span></div>
-                <div className="ps-visit-info">
-                  <p className="ps-addr"><MapPin size={15} /> {DUMMY_STORE.address}</p>
-                  <button className="ps-dir" onClick={() => ping("Opening directions")}><Navigation size={15} /> Directions</button>
-                  <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
-                </div>
-              </div>
+              {DUMMY_STORE.address && DUMMY_STORE.address.toLowerCase() !== 'remote' && DUMMY_STORE.address.toLowerCase() !== 'online' && (
+                <>
+                  <SectionHead title="Find us" />
+                  <div className="ps-visit">
+                    <div className="ps-map"><MapPin size={26} /><span>Map preview</span></div>
+                    <div className="ps-visit-info">
+                      <p className="ps-addr"><MapPin size={15} /> {DUMMY_STORE.address}</p>
+                      <button className="ps-dir" onClick={() => ping("Opening directions")}><Navigation size={15} /> Directions</button>
+                      {store.working_hours && (
+                        <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {store.working_hours && (!DUMMY_STORE.address || DUMMY_STORE.address.toLowerCase() === 'remote' || DUMMY_STORE.address.toLowerCase() === 'online') && (
+                <>
+                  <SectionHead title="Opening hours" />
+                  <div className="ps-visit" style={{ padding: '16px 20px' }}>
+                    <ul className="ps-hours" style={{ width: '100%', marginTop: 0 }}>{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                  </div>
+                </>
+              )}
 
               <SectionHead title="Good to know" />
               <Accordion items={FAQS_PREVIEW} open={openFaq} setOpen={setOpenFaq} />
@@ -1992,16 +2035,27 @@ export default function CreatorStorefront({
                     <p>{DUMMY_STORE.bio}</p>
                     <button className="pd-raillink" onClick={() => go("about")}>More about us <ChevronRight size={14} /></button>
                   </div>
-                  <div className="pd-railcard">
-                    <h3>Visit us</h3>
-                    <div className="pd-railmap"><MapPin size={22} /></div>
-                    <p className="ps-addr"><MapPin size={14} /> {DUMMY_STORE.address}</p>
-                    <div className="pd-railbtns">
-                      <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
-                      <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
+                  {DUMMY_STORE.address && DUMMY_STORE.address.toLowerCase() !== 'remote' && DUMMY_STORE.address.toLowerCase() !== 'online' && (
+                    <div className="pd-railcard">
+                      <h3>Visit us</h3>
+                      <div className="pd-railmap"><MapPin size={22} /></div>
+                      <p className="ps-addr"><MapPin size={14} /> {DUMMY_STORE.address}</p>
+                      <div className="pd-railbtns">
+                        <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
+                        <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
+                      </div>
+                      {store.working_hours && (
+                        <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                      )}
                     </div>
-                    <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
-                  </div>
+                  )}
+
+                  {store.working_hours && (!DUMMY_STORE.address || DUMMY_STORE.address.toLowerCase() === 'remote' || DUMMY_STORE.address.toLowerCase() === 'online') && (
+                    <div className="pd-railcard">
+                      <h3>Opening hours</h3>
+                      <ul className="ps-hours" style={{ marginTop: 0 }}>{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                    </div>
+                  )}
                   <div className="pd-railcard trust">
                     <span className="pd-trust-h"><ShieldCheck size={15} /> Secured by Frontstore</span>
                     <p>Buyer protection and platform terms apply to every order on this store and cannot be removed by the vendor.</p>
@@ -2334,45 +2388,53 @@ export default function CreatorStorefront({
                     <h2 className="ab-headline">Clear, practical knowledge, shared with anyone who wants to learn.</h2>
                     {DUMMY_STORE.bio && <p className="ab-lede">{DUMMY_STORE.bio}</p>}
 
-                    <div className="ab-founder">
-                      <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
-                      <div className="ab-founder-body">{aboutFounderBody()}</div>
-                    </div>
+                    {store.founder_name && (
+                      <div className="ab-founder">
+                        <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
+                        <div className="ab-founder-body">{aboutFounderBody()}</div>
+                      </div>
+                    )}
                     {aboutWork()}
                     {aboutFeatured()}
 
-                    <div className="ab-section">
-                      <h4 className="ab-subhead">What we offer</h4>
-                      <div className="ab-offer-grid">
-                        {MOCK_OFFERINGS.map(([t, d, pg]: any) => (
-                          <button key={t} className="ab-offer-card" onClick={() => go(pg)}>
-                            <b>{t}</b>
-                            <p>{d}</p>
-                            <span className="ab-offer-link">{pg === "products" ? "View the shop" : "View services"} <ChevronRight size={14} /></span>
-                          </button>
-                        ))}
+                    {MOCK_OFFERINGS && MOCK_OFFERINGS.length > 0 && (
+                      <div className="ab-section">
+                        <h4 className="ab-subhead">What we offer</h4>
+                        <div className="ab-offer-grid">
+                          {MOCK_OFFERINGS.map(([t, d, pg]: any) => (
+                            <button key={t} className="ab-offer-card" onClick={() => go(pg)}>
+                              <b>{t}</b>
+                              <p>{d}</p>
+                              <span className="ab-offer-link">{pg === "products" ? "View the shop" : "View services"} <ChevronRight size={14} /></span>
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
-                    <div className="ab-approach">
-                      <h4>How we work</h4>
-                      <div className="ab-approach-grid">
-                        <div><span className="ab-num">01</span><b>Learn the foundations</b><p>Start with courses and free resources that teach technical SEO from the ground up, no fluff.</p></div>
-                        <div><span className="ab-num">02</span><b>Use the templates</b><p>Put it into practice with the same checklists and templates used on real client work.</p></div>
-                        <div><span className="ab-num">03</span><b>Get expert eyes</b><p>When you need a hand, book an audit or a call and get a clear, prioritised plan to act on.</p></div>
+                    {username === 'victorijomah' && (
+                      <div className="ab-approach">
+                        <h4>How we work</h4>
+                        <div className="ab-approach-grid">
+                          <div><span className="ab-num">01</span><b>Learn the foundations</b><p>Start with courses and free resources that teach technical SEO from the ground up, no fluff.</p></div>
+                          <div><span className="ab-num">02</span><b>Use the templates</b><p>Put it into practice with the same checklists and templates used on real client work.</p></div>
+                          <div><span className="ab-num">03</span><b>Get expert eyes</b><p>When you need a hand, book an audit or a call and get a clear, prioritised plan to act on.</p></div>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {aboutReview()}
                     {aboutJournal()}
-                    <div className="ab-section">
-                      <h4 className="ab-subhead">Good to know</h4>
-                      <div className="ab-facts">
-                        {ABOUT_FACTS.map(([k, v]: any) => (
-                          <div className="ab-fact" key={k}><span className="ab-fact-k">{k}</span><span className="ab-fact-v">{v}</span></div>
-                        ))}
+                    {ABOUT_FACTS && ABOUT_FACTS.length > 0 && (
+                      <div className="ab-section">
+                        <h4 className="ab-subhead">Good to know</h4>
+                        <div className="ab-facts">
+                          {ABOUT_FACTS.map(([k, v]: any) => (
+                            <div className="ab-fact" key={k}><span className="ab-fact-k">{k}</span><span className="ab-fact-v">{v}</span></div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     <div className="ps-about-grid ab-stats">
                       <div><b>{DUMMY_STORE.orders}</b><span>subscribers</span></div>
@@ -2382,24 +2444,32 @@ export default function CreatorStorefront({
                   </div>
 
                   <aside className="ab-rail">
-                    <div className="pd-railcard">
-                      <div className="ab-rail-h"><MapPin size={15} /> Find us</div>
-                      <div className="pd-railmap">Map preview</div>
-                      <p className="ab-addr">{DUMMY_STORE.address}</p>
-                      <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>
-                      <div className="pd-railbtns">
-                        <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
-                        <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
-                      </div>
-                      <div className="ab-follow-rail">
-                        <span>Follow us</span>
-                        <div className="ab-follow-icons">
-                          <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
-                          <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
-                          <button onClick={() => handleWa("Hello! I'm interested in your services.")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
+                    {((DUMMY_STORE.address && DUMMY_STORE.address.toLowerCase() !== 'remote' && DUMMY_STORE.address.toLowerCase() !== 'online') || store.working_hours) && (
+                      <div className="pd-railcard">
+                        <div className="ab-rail-h"><MapPin size={15} /> Find us</div>
+                        {DUMMY_STORE.address && DUMMY_STORE.address.toLowerCase() !== 'remote' && DUMMY_STORE.address.toLowerCase() !== 'online' && (
+                          <>
+                            <div className="pd-railmap">Map preview</div>
+                            <p className="ab-addr">{DUMMY_STORE.address}</p>
+                          </>
+                        )}
+                        {store.working_hours && <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>}
+                        <div className="pd-railbtns">
+                          {DUMMY_STORE.address && DUMMY_STORE.address.toLowerCase() !== 'remote' && DUMMY_STORE.address.toLowerCase() !== 'online' && (
+                            <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
+                          )}
+                          <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
+                        </div>
+                        <div className="ab-follow-rail">
+                          <span>Follow us</span>
+                          <div className="ab-follow-icons">
+                            <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
+                            <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
+                            <button onClick={() => handleWa("Hello! I'm interested in your services.")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
 
                     <div className="blog-convert">
                       <b>Ready when you are</b>
@@ -2787,7 +2857,13 @@ function StoreFoot({ onNav, slug }: { onNav?: (p: string) => void, slug?: string
   return (<footer className="ps-foot">
     <span className="ps-foot-secure"><Lock size={13} /> Secured by Frontstore</span>
     <p>Buyer protection and platform terms apply to every order on this store.</p>
-    <div className="ps-foot-links">{MOCK_LEGAL.map(([id, label]: any) => <button key={id} onClick={() => onNav && onNav(id)}>{label}</button>)}<button>Platform terms</button><button>Report this store</button></div>
+    <div className="ps-foot-links">
+      {MOCK_LEGAL.map(([id, label]: any) => (
+        <button key={id} onClick={() => onNav && onNav(id)}>{label}</button>
+      ))}
+      <button onClick={() => window.open('/terms', '_self')}>Platform terms</button>
+      <button onClick={() => window.open(`mailto:hello@frontstore.app?subject=Reporting Store: ${slug || 'store'}`, '_self')}>Report this store</button>
+    </div>
     <small>frontstore.app/{slug || 'store'}</small></footer>);
 }
 function Sub({ title, children, slug }: { title: string, children: React.ReactNode, slug?: string }) {
@@ -3105,8 +3181,8 @@ const css = `
 .pd-cover-art{height:300px;border-radius:22px;overflow:hidden;background:linear-gradient(125deg,var(--brand-deep),var(--brand) 52%,var(--gold));position:relative;}
 .pd-cover-icn{position:absolute;right:30px;bottom:-60px;width:400px;height:400px;color:#fff;opacity:.19;pointer-events:none;
   -webkit-mask-image:radial-gradient(circle at 55% 42%,#000 34%,transparent 72%);mask-image:radial-gradient(circle at 55% 42%,#000 34%,transparent 72%);}
-.pd-identity{display:flex;align-items:flex-end;gap:22px;padding:0 28px;margin-top:-46px;position:relative;}
-.pd-avatar{width:128px;height:128px;border-radius:30px;flex:0 0 auto;background:linear-gradient(150deg,var(--brand),var(--brand-deep));color:#fff;font-family:'Fraunces';font-weight:700;font-size:56px;display:grid;place-items:center;border:6px solid var(--bg);box-shadow:0 10px 28px rgba(49,46,129,.22);}
+.pd-identity{display:flex;align-items:flex-end;gap:22px;padding:0 28px;margin-top:0;position:relative;}
+.pd-avatar{width:128px;height:128px;border-radius:30px;flex:0 0 auto;background:linear-gradient(150deg,var(--brand),var(--brand-deep));color:#fff;font-family:'Fraunces';font-weight:700;font-size:56px;display:grid;place-items:center;border:6px solid var(--bg);box-shadow:0 10px 28px rgba(49,46,129,.22);margin-top:-64px;}
 .pd-identity-main{flex:1;padding-bottom:8px;min-width:0;}
 .pd-identity-main h1{font-family:'Fraunces';font-weight:700;font-size:32px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;}
 .pd-identity-main p{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:13.5px;color:var(--muted);margin-top:6px;}

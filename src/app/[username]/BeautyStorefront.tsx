@@ -1610,7 +1610,7 @@ export default function BeautyStorefront({
             {related.map((b) => <BlogCard key={b.title} b={b} colour={`c${displayBlog.indexOf(b) % 3}`} onOpen={() => openPost(b)} />)}
           </div>
         </div>
-        <StoreFoot onNav={go} />
+        <StoreFoot onNav={go} slug={store.username} />
       </div>
     );
   };
@@ -1762,22 +1762,22 @@ export default function BeautyStorefront({
 
                 <SectionHead title="Good to know" />
                 {displayFaqs.length > 0 ? <Accordion items={displayFaqs.slice(0, 5)} open={openFaq} setOpen={setOpenFaq} /> : <EmptyState />}
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </>
             )}
 
-            {page === "services" && <Sub title="Services">{SERVICES.length === 0 ? <EmptyState /> : servicesGrid("ps-grid", SERVICES)}<StoreFoot onNav={go} /></Sub>}
-            {page === "products" && <Sub title="Products">{PRODUCTS.length === 0 ? <EmptyState /> : productsGrid("ps-grid", PRODUCTS)}<StoreFoot onNav={go} /></Sub>}
-            {page === "portfolio" && <Sub title="Portfolio">{displayPortfolio.length === 0 ? <EmptyState /> : portfolioBody()}<StoreFoot onNav={go} /></Sub>}
+            {page === "services" && <Sub title="Services">{SERVICES.length === 0 ? <EmptyState /> : servicesGrid("ps-grid", SERVICES)}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "products" && <Sub title="Products">{PRODUCTS.length === 0 ? <EmptyState /> : productsGrid("ps-grid", PRODUCTS)}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "portfolio" && <Sub title="Portfolio">{displayPortfolio.length === 0 ? <EmptyState /> : portfolioBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
             {page === "post" && articleView()}
-            {page === "reviews" && <Sub title="Reviews">{displayReviews.length === 0 ? <EmptyState /> : reviewsBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "blog" && <Sub title="Blog">{displayBlog.length === 0 ? <EmptyState /> : blogBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "about" && <Sub title="About">{(!store.store_bio && !store.founder_bio) ? <EmptyState /> : aboutBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "faq" && <Sub title="FAQ">{displayFaqs.length === 0 ? <EmptyState /> : faqBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "contact" && <Sub title="Contact">{((!store.address && !store.email && !store.phone && !store.whatsapp_phone)) ? <EmptyState /> : contactBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "returns" && <Sub title="Refunds">{returnsBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "terms" && <Sub title="Terms">{termsBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "privacy" && <Sub title="Privacy">{privacyBody()}<StoreFoot onNav={go} /></Sub>}
+            {page === "reviews" && <Sub title="Reviews">{displayReviews.length === 0 ? <EmptyState /> : reviewsBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "blog" && <Sub title="Blog">{displayBlog.length === 0 ? <EmptyState /> : blogBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "about" && <Sub title="About">{(!store.store_bio && !store.founder_bio) ? <EmptyState /> : aboutBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "faq" && <Sub title="FAQ">{displayFaqs.length === 0 ? <EmptyState /> : faqBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "contact" && <Sub title="Contact">{((!store.address && !store.email && !store.phone && !store.whatsapp_phone)) ? <EmptyState /> : contactBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "returns" && <Sub title="Refunds">{returnsBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "terms" && <Sub title="Terms">{termsBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "privacy" && <Sub title="Privacy">{privacyBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
           </main>
         </div>
       )}
@@ -1897,7 +1897,7 @@ export default function BeautyStorefront({
                     <div className="pd-grid reviews">{displayReviews.slice(0, 3).map((rv, i) => <ReviewCard key={i} rv={rv} full />)}</div>
                   </div>
                 </div>
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </>
             )}
 
@@ -2071,7 +2071,7 @@ export default function BeautyStorefront({
                     </div>
                   </div>
                 )}
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
 
@@ -2091,7 +2091,7 @@ export default function BeautyStorefront({
                     {portfolioFollow()}
                   </aside>
                 </div>
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
 
@@ -2111,7 +2111,7 @@ export default function BeautyStorefront({
                     </div>
                   </aside>
                 </div>
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
 
@@ -2131,7 +2131,7 @@ export default function BeautyStorefront({
                   </aside>
                   <div className="faq-main">{faqSections()}</div>
                 </div>
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
 
@@ -2149,7 +2149,7 @@ export default function BeautyStorefront({
                   </div>
                   <aside className="ct-rail">{contactVisit()}</aside>
                 </div>
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
           </div>
@@ -2588,7 +2588,7 @@ function LockedFrontstorePanel({ title, body, link }: { title: string; body: str
   );
 }
 
-function StoreFoot({ onNav }: { onNav: (p: string) => void }) {
+function StoreFoot({ onNav, slug }: { onNav: (p: string) => void, slug?: string }) {
   return (
     <footer className="ps-foot">
       <span className="ps-foot-secure"><Lock size={13} /> Secured by Frontstore</span>
@@ -2597,6 +2597,8 @@ function StoreFoot({ onNav }: { onNav: (p: string) => void }) {
         <button onClick={() => onNav("returns")}>Refunds</button>
         <button onClick={() => onNav("terms")}>Terms</button>
         <button onClick={() => onNav("privacy")}>Privacy</button>
+        <button onClick={() => window.open('/terms', '_self')}>Platform terms</button>
+        <button onClick={() => window.open(`mailto:hello@frontstore.app?subject=Reporting Store: ${slug || 'store'}`, '_self')}>Report this store</button>
       </div>
     </footer>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { Store, ArrowRight, Search, Instagram, ShieldCheck, MapPin, Star, Package, Sparkles, X } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import { PublicSiteNav, PublicSiteFooter } from '../../components/PublicSiteChrome';
@@ -289,8 +290,6 @@ function StoreDirectoryCard({ store }: { store: StoreItem }) {
         <div style={{ display: 'flex', gap: 2 }}>
           <a
             href={`https://wa.me/${(store.whatsapp_phone || '').replace(/\D/g, '')}`}
-            target="_blank"
-            rel="noopener noreferrer"
             className="clickable"
             style={{ padding: 6, color: '#25d366' }}
             title="Chat on WhatsApp"
@@ -300,8 +299,6 @@ function StoreDirectoryCard({ store }: { store: StoreItem }) {
           {store.instagram_handle && (
             <a
               href={`https://instagram.com/${store.instagram_handle}`}
-              target="_blank"
-              rel="noopener noreferrer"
               className="clickable"
               style={{ padding: 6, color: 'var(--text-muted)' }}
               title="Instagram"
@@ -311,15 +308,13 @@ function StoreDirectoryCard({ store }: { store: StoreItem }) {
           )}
         </div>
 
-        <a
+        <Link
           href={storeUrl}
-          target="_blank"
-          rel="noopener noreferrer"
           className="btn btn-primary clickable"
-          style={{ padding: '7px 14px', fontSize: 12.5, borderRadius: 'var(--r-sm)' }}
+          style={{ padding: '7px 14px', fontSize: 12.5, borderRadius: 'var(--r-sm)', textDecoration: 'none' }}
         >
           Visit store <ArrowRight size={12} />
-        </a>
+        </Link>
       </div>
     </div>
   );

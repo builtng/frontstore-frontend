@@ -962,7 +962,7 @@ export default function ThriftStorefront({
           <h2 className="pv-look-h">More finds</h2>
           <div className="ps-grid">{look.map((x) => <ProductCard key={x.id} p={x} onOpen={() => openProduct(x)} />)}</div>
         </div>
-        <StoreFoot onNav={go} />
+        <StoreFoot onNav={go} slug={store.username} />
       </div>
     );
   };
@@ -1423,7 +1423,7 @@ export default function ThriftStorefront({
             {related.map((b) => <BlogCard key={b.title} b={b} colour={`c${displayBlog.indexOf(b) % 3}`} onOpen={() => openPost(b)} />)}
           </div>
         </div>
-        <StoreFoot onNav={go} />
+        <StoreFoot onNav={go} slug={store.username} />
       </div>
     );
   };
@@ -1845,22 +1845,22 @@ export default function ThriftStorefront({
                 <SectionHead title="Good to know" />
                 <Accordion items={FAQ_PREVIEW} open={openFaq} setOpen={setOpenFaq} />
               </>)}
-              <StoreFoot onNav={go} />
+              <StoreFoot onNav={go} slug={store.username} />
             </>)}
 
-            {page === "services" && <Sub title="Services">{SERVICES.length === 0 ? <EmptyState /> : servicesGrid("ps-grid", SERVICES)}<StoreFoot onNav={go} /></Sub>}
-            {page === "products" && <Sub title="Products">{PRODUCTS.length === 0 ? <EmptyState /> : productsGrid("ps-grid", PRODUCTS)}<StoreFoot onNav={go} /></Sub>}
-            {page === "portfolio" && <Sub title="Portfolio">{displayPortfolio.length === 0 ? <EmptyState /> : portfolioBody()}<StoreFoot onNav={go} /></Sub>}
+            {page === "services" && <Sub title="Services">{SERVICES.length === 0 ? <EmptyState /> : servicesGrid("ps-grid", SERVICES)}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "products" && <Sub title="Products">{PRODUCTS.length === 0 ? <EmptyState /> : productsGrid("ps-grid", PRODUCTS)}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "portfolio" && <Sub title="Portfolio">{displayPortfolio.length === 0 ? <EmptyState /> : portfolioBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
             {page === "post" && articleView()}
             {page === "product" && productView()}
-            {page === "reviews" && <Sub title="Reviews">{displayReviews.length === 0 ? <EmptyState /> : reviewsBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "blog" && <Sub title="Blog">{displayBlog.length === 0 ? <EmptyState /> : blogBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "about" && <Sub title="About">{(!store.store_bio && ABOUT_FACTS.length === 0 && RECOGNITION.length === 0) ? <EmptyState /> : aboutBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "faq" && <Sub title="FAQ">{displayFaqs.length === 0 ? <EmptyState /> : faqBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "contact" && <Sub title="Contact">{(!store.address && !store.email && !store.phone && !store.whatsapp_phone) ? <EmptyState /> : contactBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "returns" && <Sub title="Refunds">{returnsBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "terms" && <Sub title="Terms">{termsBody()}<StoreFoot onNav={go} /></Sub>}
-            {page === "privacy" && <Sub title="Privacy">{privacyBody()}<StoreFoot onNav={go} /></Sub>}
+            {page === "reviews" && <Sub title="Reviews">{displayReviews.length === 0 ? <EmptyState /> : reviewsBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "blog" && <Sub title="Blog">{displayBlog.length === 0 ? <EmptyState /> : blogBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "about" && <Sub title="About">{(!store.store_bio && ABOUT_FACTS.length === 0 && RECOGNITION.length === 0) ? <EmptyState /> : aboutBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "faq" && <Sub title="FAQ">{displayFaqs.length === 0 ? <EmptyState /> : faqBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "contact" && <Sub title="Contact">{(!store.address && !store.email && !store.phone && !store.whatsapp_phone) ? <EmptyState /> : contactBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "returns" && <Sub title="Refunds">{returnsBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "terms" && <Sub title="Terms">{termsBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
+            {page === "privacy" && <Sub title="Privacy">{privacyBody()}<StoreFoot onNav={go} slug={store.username} /></Sub>}
           </main>
         </div>
       )}
@@ -1969,7 +1969,7 @@ export default function ThriftStorefront({
                   <div className="pd-grid reviews">{displayReviews.slice(0, 3).map((rv, i) => <ReviewCard key={i} rv={rv} full />)}</div>
                 </div>
               </div>
-              <StoreFoot onNav={go} />
+              <StoreFoot onNav={go} slug={store.username} />
             </>)}
 
             {(page === "services" || page === "products" || page === "reviews" || page === "blog") && (
@@ -2241,7 +2241,7 @@ export default function ThriftStorefront({
                   </div>
                 )
               )}
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
 
@@ -2269,7 +2269,7 @@ export default function ThriftStorefront({
                     </aside>
                   </div>
                 </>)}
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
 
@@ -2335,7 +2335,7 @@ export default function ThriftStorefront({
                     </aside>
                   </div>
                 )}
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
 
@@ -2367,7 +2367,7 @@ export default function ThriftStorefront({
                     </div>
                   </>
                 )}
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
 
@@ -2389,7 +2389,7 @@ export default function ThriftStorefront({
                     </aside>
                   </div>
                 )}
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
 
@@ -2411,7 +2411,7 @@ export default function ThriftStorefront({
                     {refundsRelated()}
                   </aside>
                 </div>
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
 
@@ -2439,7 +2439,7 @@ export default function ThriftStorefront({
                     {policyRelated([["Terms", "terms"], ["Refunds", "returns"]])}
                   </aside>
                 </div>
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
 
@@ -2467,7 +2467,7 @@ export default function ThriftStorefront({
                     {policyRelated([["Refunds", "returns"], ["FAQ", "faq"]])}
                   </aside>
                 </div>
-                <StoreFoot onNav={go} />
+                <StoreFoot onNav={go} slug={store.username} />
               </div>
             )}
           </div>
@@ -2802,7 +2802,7 @@ function LockedFrontstorePanel({ title, body, link }: { title: string; body: str
   );
 }
 
-function StoreFoot({ onNav }: { onNav: (p: string) => void }) {
+function StoreFoot({ onNav, slug }: { onNav: (p: string) => void, slug?: string }) {
   const LEGAL = [["returns", "Refunds"], ["terms", "Terms"], ["privacy", "Privacy"]];
   return (
     <footer className="ps-foot">
@@ -2810,8 +2810,8 @@ function StoreFoot({ onNav }: { onNav: (p: string) => void }) {
       <p>Buyer protection and platform terms apply to every order on this store.</p>
       <div className="ps-foot-links">
         {LEGAL.map(([id, label]) => <button key={id} onClick={() => onNav(id)}>{label}</button>)}
-        <button type="button">Platform terms</button>
-        <button type="button">Report this store</button>
+        <button type="button" onClick={() => window.open('/terms', '_self')}>Platform terms</button>
+        <button type="button" onClick={() => window.open(`mailto:hello@frontstore.app?subject=Reporting Store: ${slug || 'store'}`, '_self')}>Report this store</button>
       </div>
     </footer>
   );

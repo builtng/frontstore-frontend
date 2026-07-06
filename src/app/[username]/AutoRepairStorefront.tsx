@@ -193,8 +193,20 @@ const MOCK_SERVICE_FAQS = [
 ];
 const MOCK_FAQ_GROUPS: any[] = [];
 const MOCK_FAQS_PREVIEW = MOCK_FAQ_GROUPS.map((g: any) => g.items[0]);
-const MOCK_TERMS: any[] = [];
-const MOCK_PRIVACY: any[] = [];
+const MOCK_TERMS: any[] = [
+  { t: "Who these terms are between", p: ["These terms are an agreement between you and the store owner, who sells the products and services on this store. The store runs on Frontstore, which provides the platform and buyer protection but is not the seller."] },
+  { t: "Bookings and calls", p: ["Appointments and coaching sessions are booked through this store. Where a deposit or full payment applies, it secures your slot. Your slot is confirmed once payment is received."] },
+  { t: "Pricing and payment", p: ["Prices are shown in Nigerian naira (or the local currency of the store). You can pay securely through Frontstore at checkout, or by bank transfer where the merchant offers it. Your receipt always arrives on WhatsApp or by email."] },
+  { t: "Cancellations and refunds", p: ["You can cancel or reschedule bookings, and request returns/refunds for products under the conditions set out on the Refunds page. Digital downloads, templates, and courses are non-refundable once accessed."] },
+  { t: "The Frontstore platform", p: [], locked: { title: "Frontstore platform terms", body: "Every Frontstore store also operates under the Frontstore platform terms and buyer protection policy. These apply alongside the store's own policies and cannot be removed by the vendor.", link: "Read the Frontstore platform terms" } },
+];
+const MOCK_PRIVACY: any[] = [
+  { t: "What we collect", p: ["When you book, buy or get in touch, the store collects the details you give: your name, contact details such as a WhatsApp number, phone or email, booking and order details, and reviews you choose to share."] },
+  { t: "How we use it", p: ["We use your details to take and confirm bookings and orders, reply to your enquiries, deliver products and services, process payments, show verified reviews, and improve the store."] },
+  { t: "Payments", p: ["Payments made through Frontstore are handled by Frontstore and its payment providers under buyer protection, and the store does not see or store your card details. Bank transfers are made directly to the store."] },
+  { t: "WhatsApp and messaging", p: ["When you message us, the conversation takes place on WhatsApp or email and is subject to WhatsApp's own privacy terms."] },
+  { t: "Who we share it with", p: ["We share only what is needed: with payment providers to take payment, and with Frontstore as the platform the store runs on. We never sell your data."] },
+];
 const MOCK_PORTFOLIO: any[] = [];
 const MOCK_NOTIFY_TOPICS = [["services", "Service reminders"], ["offers", "Deals and slots"], ["tips", "Car care tips"], ["news", "Announcements"]];
 const MOCK_HOURS = [
@@ -2779,7 +2791,13 @@ function StoreFoot({ onNav, slug }: { onNav?: (p: string) => void, slug?: string
   return (<footer className="ps-foot">
     <span className="ps-foot-secure"><Lock size={13} /> Secured by Frontstore</span>
     <p>Buyer protection and platform terms apply to every order on this store.</p>
-    <div className="ps-foot-links">{MOCK_LEGAL.map(([id, label]: any) => <button key={id} onClick={() => onNav && onNav(id)}>{label}</button>)}<button>Platform terms</button><button>Report this store</button></div>
+    <div className="ps-foot-links">
+      {MOCK_LEGAL.map(([id, label]: any) => (
+        <button key={id} onClick={() => onNav && onNav(id)}>{label}</button>
+      ))}
+      <button onClick={() => window.open('/terms', '_self')}>Platform terms</button>
+      <button onClick={() => window.open(`mailto:hello@frontstore.app?subject=Reporting Store: ${slug || 'store'}`, '_self')}>Report this store</button>
+    </div>
     <small>frontstore.app/{slug || 'store'}</small></footer>);
 }
 function Sub({ title, children, slug }: { title: string, children: React.ReactNode, slug?: string }) {
