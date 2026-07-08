@@ -31,15 +31,12 @@
   font-weight: 800;
   font-size: 19px;
   letter-spacing: -.02em;
-  color: var(--ink);
+  color: var(--primary);
   flex: 1;
   text-align: left;
   display: inline-flex;
   align-items: center;
   gap: 7px;
-}
-.ps-logo-text span {
-  color: var(--brand);
 }
 .ps-logo.as-btn {
   cursor: pointer;
@@ -1951,6 +1948,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  text-shadow: 0 1px 2px rgba(255,255,255,.9), 0 0 14px rgba(255,255,255,.55);
 }
 .pd-identity-main p {
   display: flex;
@@ -1960,6 +1958,7 @@
   font-size: 13.5px;
   color: var(--muted);
   margin-top: 6px;
+  text-shadow: 0 1px 2px rgba(255,255,255,.9), 0 0 14px rgba(255,255,255,.55);
 }
 .pd-identity-main p > span {
   display: inline-flex;

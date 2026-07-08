@@ -24,6 +24,14 @@ interface StoreLink {
 }
 
 interface StoreType {
+  reviews_intro_text?: string | null;
+  faq_help_text?: string | null;
+  about_intro_text?: string | null;
+  portfolio_intro_text?: string | null;
+  policy_bookings?: string | null;
+  policy_products?: string | null;
+  policy_refunds?: string | null;
+
   id: string;
   username: string;
   store_name: string;
@@ -306,7 +314,7 @@ export default function TechStorefront({
     name: store.store_name,
     initial: (store.store_name || "T").charAt(0).toUpperCase(),
     slug: store.username || username,
-    category: store.business_persona?.replace(/-/g, ' ') || 'Tech & Repairs',
+    category: store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || 'Tech & Repairs',
     location: store.location || 'Online store',
     rating: store.rating || 4.8,
     reviews: store.review_count || 0,
@@ -1295,7 +1303,7 @@ export default function TechStorefront({
   const faqHelp = () => (
     <div className="faq-help">
       <b>Still need help?</b>
-      <p>Message the shop directly and we will get back to you{(store.storefront_sections || []).includes("replies_approximation") && (store.reply_time_minutes || 0) > 0 ? `, usually in ${STORE.reply}` : ''}.</p>
+      <p>{store.faq_help_text || <>Message the shop directly and we will get back to you{(store.storefront_sections || []).includes("replies_approximation") && (store.reply_time_minutes || 0) > 0 ? `, usually in ${STORE.reply}` : ""}.</>}</p>
       <button className="faq-help-cta" onClick={() => handleWa(`Hi ${STORE.name}! I need help with...`)}><WhatsAppIcon size={15} /> Message on WhatsApp</button>
     </div>
   );
@@ -1473,7 +1481,7 @@ export default function TechStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">{appName.toLowerCase()}<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">{appName.toLowerCase()}</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1562,7 +1570,7 @@ export default function TechStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">{appName.toLowerCase()}<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">{appName.toLowerCase()}</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -2262,15 +2270,12 @@ const css = `
   font-weight: 800;
   font-size: 19px;
   letter-spacing: -.02em;
-  color: var(--ink);
+  color: var(--primary);
   flex: 1;
   text-align: left;
   display: inline-flex;
   align-items: center;
   gap: 7px;
-}
-.ps-logo-text span {
-  color: var(--brand);
 }
 .ps-logo.as-btn {
   cursor: pointer;
@@ -3969,6 +3974,7 @@ const css = `
   display: flex;
   align-items: center;
   gap: 8px;
+  text-shadow: 0 1px 2px rgba(255,255,255,.9), 0 0 14px rgba(255,255,255,.55);
 }
 .pd-identity-main p {
   font-size: 13px;
@@ -3978,6 +3984,7 @@ const css = `
   align-items: center;
   flex-wrap: wrap;
   margin-top: 4px;
+  text-shadow: 0 1px 2px rgba(255,255,255,.9), 0 0 14px rgba(255,255,255,.55);
 }
 .pd-identity-actions {
   display: flex;

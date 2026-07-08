@@ -348,15 +348,8 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
         localStorage.setItem('store', JSON.stringify(setupJson.data?.store));
       }
 
-      const storeUrl = typeof window !== 'undefined'
-        ? `${window.location.origin}/${username.toLowerCase().replace(/[^a-z0-9_-]/g, '')}`
-        : `https://frontstore.app/${username.toLowerCase().replace(/[^a-z0-9_-]/g, '')}`;
-
-      setSuccessData({
-        storeName: setupJson.data?.store?.store_name ?? storeName,
-        username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
-        storeUrl,
-      });
+      toast.success('Store created successfully! Redirecting to dashboard...');
+      window.location.replace('/dashboard');
 
     } catch (err: any) {
       toast.error(err.message || 'An error occurred. Please try again.');

@@ -19,6 +19,14 @@ interface StoreLink {
 }
 
 interface StoreType {
+  reviews_intro_text?: string | null;
+  faq_help_text?: string | null;
+  about_intro_text?: string | null;
+  portfolio_intro_text?: string | null;
+  policy_bookings?: string | null;
+  policy_products?: string | null;
+  policy_refunds?: string | null;
+
   id: string;
   username: string;
   store_name: string;
@@ -288,6 +296,13 @@ export default function WhatsAppTVStorefront({
 }: WhatsAppTVStorefrontProps) {
   const router = useRouter();
 
+  const NAV = useMemo(() => {
+    return MOCK_NAV.filter(([id]) => {
+      if (id === 'home') return true;
+      return (store.storefront_sections || ['reviews', 'replies_approximation', 'products', 'services', 'portfolio', 'about', 'faq', 'contact', 'blog']).includes(id);
+    });
+  }, [store.storefront_sections]);
+
   // --- UI State Variables ---
   const [bag, setBag] = useState(false);
   const [toast, setToast] = useState("");
@@ -487,7 +502,7 @@ export default function WhatsAppTVStorefront({
     name: store.store_name || MOCK_STORE.name,
     initial: store.store_name ? store.store_name[0].toUpperCase() : MOCK_STORE.initial,
     slug: username,
-    category: store.business_persona ? store.business_persona.replace(/-/g, ' ') : MOCK_STORE.category,
+    category: store.business_persona ? store.business_persona.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) : MOCK_STORE.category,
     location: store.location || MOCK_STORE.location,
     rating: store.rating || MOCK_STORE.rating,
     reviews: store.review_count || MOCK_STORE.reviews,
@@ -1119,7 +1134,9 @@ export default function WhatsAppTVStorefront({
     return (
       <div className="sv-wrap">
         <style>{svCss}</style>
-        <button className="sv-back" onClick={() => go("services")}><ChevronLeft size={16} /> All rates</button>
+        {(store.storefront_sections || []).includes("services") && (
+          <button className="sv-back" onClick={() => go("services")}><ChevronLeft size={16} /> All rates</button>
+        )}
         <div className="sv-head">
           <span className={`sv-cat ${catColor(s.cat)}`}>{s.cat}</span>
           <h1>{s.name}</h1>
@@ -1385,7 +1402,9 @@ export default function WhatsAppTVStorefront({
             <span className="ab-review-av">{r.name[0]}</span>
             <div><b>{r.name}</b><span className="ab-review-tag"><BadgeCheck size={13} /> Verified order · {r.service}</span></div>
           </div>
+          {(store.storefront_sections || []).includes("reviews") && (
           <button className="ab-review-all" onClick={() => go("reviews")}>Read all {DUMMY_STORE.reviews} reviews <ChevronRight size={14} /></button>
+        )}
         </div>
       </div>
     );
@@ -1410,7 +1429,7 @@ export default function WhatsAppTVStorefront({
   );
   const aboutBody = () => (<>
     <p className="ps-prose">{DUMMY_STORE.bio}</p>
-    <p className="ab-para">What began in 2021 as campus gist to a few hundred contacts is now one of Delta's most watched WhatsApp TVs, trusted by hundreds of local brands to reach the right people.</p>
+    <p className="ab-para">{store.about_intro_text || "What began in 2021 as campus gist to a few hundred contacts is now one of Delta's most watched WhatsApp TVs, trusted by hundreds of local brands to reach the right people."}</p>
     <div className="ab-founder ab-founder-m">
       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
       <div className="ab-founder-body">{aboutFounderBody()}</div>
@@ -1480,7 +1499,7 @@ export default function WhatsAppTVStorefront({
   const faqHelp = () => (
     <div className="faq-help">
       <b>Still need help?</b>
-      <p>Message the team directly and we will get back to you, usually in {DUMMY_STORE.reply}.</p>
+      <p>{store.faq_help_text || "Message the team directly and we will get back to you" + (DUMMY_STORE.reply ? ", usually in " + DUMMY_STORE.reply : "") + "."}</p>
       <button className="faq-help-cta" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={15} /> Message on WhatsApp</button>
     </div>
   );
@@ -1563,24 +1582,48 @@ export default function WhatsAppTVStorefront({
       <div className="rf-section">
         <h3 className="rf-section-head"><Calendar size={17} /> Bookings</h3>
         <ul className="rf-list">
-          <li><Check size={15} /> Reschedule or cancel up to 24 hours before your advert is due to go live for a full refund of your deposit.</li>
-          <li><Check size={15} /> Within 24 hours of go live, the deposit is held against the booking and is not refunded. Once an advert has run it cannot be refunded.</li>
-          <li><Check size={15} /> Need a different day? You can reschedule once at no cost up to 48 hours before, subject to availability.</li>
+          {store.policy_bookings ? (
+            store.policy_bookings.split('\n').filter(Boolean).map((line: string, idx: number) => (
+              <li key={idx}><Check size={15} /> {line}</li>
+            ))
+          ) : (
+            <>
+              <li><Check size={15} /> Reschedule or cancel up to 24 hours before your advert is due to go live for a full refund of your deposit.</li>
+              <li><Check size={15} /> Within 24 hours of go live, the deposit is held against the booking and is not refunded. Once an advert has run it cannot be refunded.</li>
+              <li><Check size={15} /> Need a different day? You can reschedule once at no cost up to 48 hours before, subject to availability.</li>
+            </>
+          )}
         </ul>
       </div>
       <div className="rf-section">
         <h3 className="rf-section-head"><ShoppingBag size={17} /> Products</h3>
         <ul className="rf-list">
-          <li><Check size={15} /> Add-ons not yet started can be cancelled for a full refund.</li>
-          <li><Check size={15} /> Design add-ons that have already been started or delivered cannot be refunded, since the work is done.</li>
-          <li><Check size={15} /> If a design is wrong or not as agreed, we redo it at no cost to you.</li>
+          {store.policy_products ? (
+            store.policy_products.split('\n').filter(Boolean).map((line: string, idx: number) => (
+              <li key={idx}><Check size={15} /> {line}</li>
+            ))
+          ) : (
+            <>
+              <li><Check size={15} /> Add-ons not yet started can be cancelled for a full refund.</li>
+              <li><Check size={15} /> Design add-ons that have already been started or delivered cannot be refunded, since the work is done.</li>
+              <li><Check size={15} /> If a design is wrong or not as agreed, we redo it at no cost to you.</li>
+            </>
+          )}
         </ul>
       </div>
       <div className="rf-section">
         <h3 className="rf-section-head"><RotateCcw size={17} /> Refunds</h3>
         <ul className="rf-list">
-          <li><Check size={15} /> Orders paid through Frontstore are refunded to your original payment method, usually within a few working days.</li>
-          <li><Check size={15} /> For bank transfer orders, the team arranges your refund directly, since those funds are paid straight to them.</li>
+          {store.policy_refunds ? (
+            store.policy_refunds.split('\n').filter(Boolean).map((line: string, idx: number) => (
+              <li key={idx}><Check size={15} /> {line}</li>
+            ))
+          ) : (
+            <>
+              <li><Check size={15} /> Orders paid through Frontstore are refunded to your original payment method, usually within a few working days.</li>
+              <li><Check size={15} /> For bank transfer orders, the team arranges your refund directly, since those funds are paid straight to them.</li>
+            </>
+          )}
         </ul>
       </div>
     </div>
@@ -1740,7 +1783,9 @@ export default function WhatsAppTVStorefront({
               <b>Enjoyed the read?</b>
               <p>Book a slot, or let us design the advert for you.</p>
               <button className="blog-convert-cta" onClick={() => openBooking()}><Calendar size={15} /> Book a slot</button>
-              <button className="blog-convert-ghost" onClick={() => go("products")}>View add-ons</button>
+              {(store.storefront_sections || []).includes("products") && (
+          <button className="blog-convert-ghost" onClick={() => go("products")}>View add-ons</button>
+        )}
             </div>
           </aside>
         </div>
@@ -1777,7 +1822,7 @@ export default function WhatsAppTVStorefront({
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1789,7 +1834,7 @@ export default function WhatsAppTVStorefront({
         </span>
       </button>
       <nav className="ps-nav">
-        {MOCK_NAV.map(([id, label]: any) => (
+        {NAV.map(([id, label]: any) => (
           <button key={id} className={page === id ? "on" : ""} onClick={() => go(id)}>
             {label}{page === id && <ChevronRight size={16} />}
           </button>
@@ -1854,7 +1899,7 @@ export default function WhatsAppTVStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1890,16 +1935,22 @@ export default function WhatsAppTVStorefront({
 
               <SectionHead title="Rates" action={`See all ${SERVICES.length}`} onAction={() => go("services")} />
               {servicesGrid("ps-grid", homeServices.slice(0, 4))}
-              <button className="ps-seeall" onClick={() => go("services")}>See all {SERVICES.length} services <ChevronRight size={16} /></button>
+              {(store.storefront_sections || []).includes("services") && (
+          <button className="ps-seeall" onClick={() => go("services")}>See all {SERVICES.length} services <ChevronRight size={16} /></button>
+        )}
 
               <SectionHead title="Add-ons" action={`See all ${PRODUCTS.length}`} onAction={() => go("products")} />
               {productsGrid("ps-grid", homeProducts.slice(0, 4))}
-              <button className="ps-seeall" onClick={() => go("products")}>See all {PRODUCTS.length} products <ChevronRight size={16} /></button>
+              {(store.storefront_sections || []).includes("products") && (
+          <button className="ps-seeall" onClick={() => go("products")}>See all {PRODUCTS.length} products <ChevronRight size={16} /></button>
+        )}
 
               <SectionHead title="Reviews" />
               <RatingSummary rating={DUMMY_STORE.rating} reviews={DUMMY_STORE.reviews} />
               <div className="ps-reviews-row">{displayReviews.slice(0, 3).map((rv: any, i: number) => <ReviewCard key={i} rv={rv} />)}</div>
-              <button className="ps-seeall" onClick={() => go("reviews")}>See all reviews <ChevronRight size={16} /></button>
+              {(store.storefront_sections || []).includes("reviews") && (
+          <button className="ps-seeall" onClick={() => go("reviews")}>See all reviews <ChevronRight size={16} /></button>
+        )}
 
               <SectionHead title="Find us" />
               <div className="ps-visit">
@@ -1937,7 +1988,7 @@ export default function WhatsAppTVStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -1971,7 +2022,7 @@ export default function WhatsAppTVStorefront({
             </section>
 
             <nav className="pd-tabs">
-              {MOCK_NAV.map(([id, label]: any) => (
+              {NAV.map(([id, label]: any) => (
                 <button key={id} className={page === id ? "on" : ""} onClick={() => go(id)}>{label}</button>
               ))}
             </nav>
@@ -2003,11 +2054,17 @@ export default function WhatsAppTVStorefront({
 
                 <div className="pd-feed">
                   {featured}
-                  <div className="pd-sec-head"><h2>Rates</h2><button onClick={() => go("services")}>See all {SERVICES.length}</button></div>
+                  <div className="pd-sec-head"><h2>Rates</h2>{(store.storefront_sections || []).includes("services") && (
+          <button onClick={() => go("services")}>See all {SERVICES.length}</button>
+        )}</div>
                   {servicesGrid("pd-grid", homeServices.slice(0, 6))}
-                  <div className="pd-sec-head"><h2>Add-ons</h2><button onClick={() => go("products")}>See all {PRODUCTS.length}</button></div>
+                  <div className="pd-sec-head"><h2>Add-ons</h2>{(store.storefront_sections || []).includes("products") && (
+          <button onClick={() => go("products")}>See all {PRODUCTS.length}</button>
+        )}</div>
                   {productsGrid("pd-grid", homeProducts.slice(0, 6))}
-                  <div className="pd-sec-head"><h2>Reviews</h2><button onClick={() => go("reviews")}>See all</button></div>
+                  <div className="pd-sec-head"><h2>Reviews</h2>{(store.storefront_sections || []).includes("reviews") && (
+          <button onClick={() => go("reviews")}>See all</button>
+        )}</div>
                   <RatingSummary rating={DUMMY_STORE.rating} reviews={DUMMY_STORE.reviews} />
                   <div className="pd-grid reviews">{displayReviews.slice(0, 3).map((rv: any, i: number) => <ReviewCard key={i} rv={rv} full />)}</div>
                 </div>
@@ -2018,7 +2075,7 @@ export default function WhatsAppTVStorefront({
             {(page === "services" || page === "products" || page === "reviews" || page === "blog") && (
               <div className="pd-listing">
                 <div className="pd-page-head">
-                  <h1>{MOCK_NAV.find(([id]: any) => id === page)?.[1]}</h1>
+                  <h1>{NAV.find(([id]: any) => id === page)?.[1]}</h1>
                   <span>frontstore.app/{username}</span>
                 </div>
                 {page === "services" && (
@@ -2270,7 +2327,9 @@ export default function WhatsAppTVStorefront({
                           <b>Enjoyed the read?</b>
                           <p>Book a slot, or let us design the advert for you.</p>
                           <button className="blog-convert-cta" onClick={() => openBooking()}><Calendar size={15} /> Book a slot</button>
-                          <button className="blog-convert-ghost" onClick={() => go("products")}>View add-ons</button>
+                          {(store.storefront_sections || []).includes("products") && (
+          <button className="blog-convert-ghost" onClick={() => go("products")}>View add-ons</button>
+        )}
                         </div>
                       </aside>
                     </div>
@@ -2298,7 +2357,9 @@ export default function WhatsAppTVStorefront({
                       <b>Like what you see?</b>
                       <p>Book your next slot with the team.</p>
                       <button className="blog-convert-cta" onClick={() => openBooking()}><Calendar size={15} /> Book a slot</button>
-                      <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+                      {(store.storefront_sections || []).includes("services") && (
+          <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+        )}
                     </div>
                     {portfolioFollow()}
                     <div className="pd-railcard trust">
@@ -2394,7 +2455,9 @@ export default function WhatsAppTVStorefront({
                       <b>Ready when you are</b>
                       <p>Book a slot, or browse the full list of rates.</p>
                       <button className="blog-convert-cta" onClick={() => openBooking()}><Calendar size={15} /> Book a slot</button>
-                      <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+                      {(store.storefront_sections || []).includes("services") && (
+          <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+        )}
                     </div>
 
                     <div className="pd-railcard trust">
@@ -2457,7 +2520,9 @@ export default function WhatsAppTVStorefront({
                       <b>Prefer to book?</b>
                       <p>Skip the message and book a slot in a couple of taps.</p>
                       <button className="blog-convert-cta" onClick={() => openBooking()}><Calendar size={15} /> Book a slot</button>
-                      <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+                      {(store.storefront_sections || []).includes("services") && (
+          <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+        )}
                     </div>
                     <div className="pd-railcard trust">
                       <div className="pd-trust-h"><ShieldCheck size={15} /> Secured by Frontstore</div>
@@ -2561,10 +2626,16 @@ export default function WhatsAppTVStorefront({
       {!isDesktop && (
         <nav className="ps-bottom">
           <button className={page === "home" ? "on" : ""} onClick={() => go("home")}><StoreIcon size={21} /><span>Home</span></button>
+          {(store.storefront_sections || []).includes("services") && (
           <button className={page === "services" ? "on" : ""} onClick={() => go("services")}><Sparkles size={21} /><span>Rates</span></button>
+        )}
           <button className="ps-fab" onClick={() => setBag(true)} aria-label="Cart"><span className="ps-fab-ring" /><ShoppingBag size={22} />{bagCount > 0 && <i className="ps-fab-badge">{bagCount}</i>}</button>
+          {(store.storefront_sections || []).includes("products") && (
           <button className={page === "products" ? "on" : ""} onClick={() => go("products")}><Package size={21} /><span>Add-ons</span></button>
+        )}
+          {(store.storefront_sections || []).includes("reviews") && (
           <button className={page === "reviews" ? "on" : ""} onClick={() => go("reviews")}><Star size={21} /><span>Reviews</span></button>
+        )}
         </nav>
       )}
 
@@ -2614,7 +2685,7 @@ export default function WhatsAppTVStorefront({
 
       {reviewOpen && (
         <Sheet onClose={() => setReviewOpen(false)} title="Leave a review">
-          <p className="rev-form-note"><ShieldCheck size={13} /> Reviews come from verified orders. Add your order reference so we can confirm it.</p>
+          <p className="rev-form-note"><ShieldCheck size={13} /> {store.reviews_intro_text || "Reviews come from verified orders. Add your order reference so we can confirm it."}</p>
           <p className="ps-field-lbl">Your rating</p>
           <div className="rev-rate">{Array.from({ length: 5 }).map((_: any, i: number) => (
             <button key={i} onClick={() => setRevRating(i + 1)} aria-label={(i + 1) + " star"}><Star size={28} className={i < revRating ? "f" : ""} /></button>
@@ -2803,8 +2874,8 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
-.ps-logo-text span{color:var(--brand);}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--primary);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
+
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
 .ps-star{color:var(--gold);fill:var(--gold);}
@@ -3103,8 +3174,8 @@ const css = `
 .pd-identity{display:flex;align-items:flex-end;gap:22px;padding:0 28px;margin-top:-46px;position:relative;}
 .pd-avatar{width:128px;height:128px;border-radius:30px;flex:0 0 auto;background:linear-gradient(150deg,var(--brand),var(--brand-deep));color:#fff;font-family:'Fraunces';font-weight:700;font-size:56px;display:grid;place-items:center;border:6px solid var(--bg);box-shadow:0 10px 28px rgba(76,29,149,.22);}
 .pd-identity-main{flex:1;padding-bottom:8px;min-width:0;}
-.pd-identity-main h1{font-family:'Fraunces';font-weight:700;font-size:32px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;}
-.pd-identity-main p{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:13.5px;color:var(--muted);margin-top:6px;}
+.pd-identity-main h1{font-family:'Fraunces';font-weight:700;font-size:32px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;text-shadow:0 1px 2px rgba(255,255,255,.9),0 0 14px rgba(255,255,255,.55);}
+.pd-identity-main p{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:13.5px;color:var(--muted);margin-top:6px;text-shadow:0 1px 2px rgba(255,255,255,.9),0 0 14px rgba(255,255,255,.55);}
 .pd-identity-main p>span{display:inline-flex;align-items:center;gap:4px;}
 .pd-identity-actions{display:flex;gap:10px;padding-bottom:10px;flex:0 0 auto;}
 .pd-book{display:flex;align-items:center;gap:7px;background:var(--brand);color:#fff;font-weight:700;font-size:14.5px;padding:12px 22px;border-radius:12px;box-shadow:0 6px 16px rgba(109,40,217,.3);}

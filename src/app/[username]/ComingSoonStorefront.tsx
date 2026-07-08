@@ -118,7 +118,7 @@ export default function ComingSoonStorefront({
   const initial = storeName.charAt(0).toUpperCase();
   const categoryLabel = useMemo(() => {
     if (store.business_persona) {
-      return store.business_persona.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      return store.business_persona.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase());
     }
     const nameLower = username.toLowerCase();
     if (nameLower.includes('beauty') || nameLower.includes('skincare') || nameLower.includes('salon') || nameLower.includes('glow') || nameLower.includes('hair') || nameLower.includes('makeup') || nameLower.includes('cosmetics') || nameLower.includes('spa') || nameLower.includes('lash') || nameLower.includes('brow')) {

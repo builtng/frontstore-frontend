@@ -4,8 +4,7 @@
 .ps-root *{box-sizing:border-box;}
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
-.ps-logo-text span{color:var(--brand);}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--primary);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
 .ps-star{color:var(--gold);fill:var(--gold);}
@@ -304,8 +303,8 @@
 .pd-identity{display:flex;align-items:flex-end;gap:22px;padding:16px 28px 0;position:relative;}
 .pd-avatar{width:128px;height:128px;border-radius:30px;flex:0 0 auto;background:linear-gradient(150deg,var(--brand),var(--brand-deep));color:#fff;font-family:'Fraunces';font-weight:700;font-size:56px;display:grid;place-items:center;border:6px solid var(--bg);box-shadow:0 10px 28px rgba(81,23,37,.22);margin-top:-92px;}
 .pd-identity-main{flex:1;padding-bottom:8px;min-width:0;}
-.pd-identity-main h1{font-family:'Fraunces';font-weight:700;font-size:30px;line-height:1.12;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.pd-identity-main p{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:13.5px;color:var(--muted);margin-top:6px;}
+.pd-identity-main h1{font-family:'Fraunces';font-weight:700;font-size:30px;line-height:1.12;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;flex-wrap:wrap;text-shadow:0 1px 2px rgba(255,255,255,.9),0 0 14px rgba(255,255,255,.55);}
+.pd-identity-main p{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:13.5px;color:var(--muted);margin-top:6px;text-shadow:0 1px 2px rgba(255,255,255,.9),0 0 14px rgba(255,255,255,.55);}
 .pd-identity-main p>span{display:inline-flex;align-items:center;gap:4px;}
 .pd-identity-actions{display:flex;gap:10px;padding-bottom:10px;flex:0 0 auto;}
 .pd-book{display:flex;align-items:center;gap:7px;background:var(--brand);color:#fff;font-weight:700;font-size:14.5px;padding:12px 22px;border-radius:12px;box-shadow:0 6px 16px rgba(122,38,56,.3);}

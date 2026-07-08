@@ -26,6 +26,14 @@ interface StoreLink {
 }
 
 interface StoreType {
+  reviews_intro_text?: string | null;
+  faq_help_text?: string | null;
+  about_intro_text?: string | null;
+  portfolio_intro_text?: string | null;
+  policy_bookings?: string | null;
+  policy_products?: string | null;
+  policy_refunds?: string | null;
+
   id: string;
   username: string;
   store_name: string;
@@ -1140,11 +1148,15 @@ export default function ThriftStorefront({
     <div className="faq-help">
       <b>Still need help?</b>
       <p>
-        Message the store directly and we will get back to you
-        {((store.storefront_sections || []).includes("replies_approximation") && (store.reply_time_minutes || 0) > 0) ? (
-          `, usually in ~${store.reply_time_minutes} min.`
-        ) : (
-          "."
+        {store.faq_help_text || (
+          <>
+            Message the store directly and we will get back to you
+            {((store.storefront_sections || []).includes("replies_approximation") && (store.reply_time_minutes || 0) > 0) ? (
+              `, usually in ~${store.reply_time_minutes} min.`
+            ) : (
+              "."
+            )}
+          </>
         )}
       </p>
       <button className="faq-help-cta" onClick={() => handleWa("Hi " + store.store_name + "! I need help with...")}><WhatsAppIcon size={15} /> Message on WhatsApp</button>
@@ -1464,7 +1476,7 @@ export default function ThriftStorefront({
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1766,7 +1778,7 @@ export default function ThriftStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1783,7 +1795,7 @@ export default function ThriftStorefront({
                 <h1 className="ps-name">{store.store_name} {store.is_verified ? <BadgeCheck size={20} className="ps-verif" /> : null}</h1>
                 {(store.business_persona || store.location) && (
                   <p className="ps-meta">
-                    {store.business_persona ? store.business_persona.replace(/-/g, ' ') : ""}
+                    {store.business_persona ? store.business_persona.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) : ""}
                     {store.business_persona && store.location && <span className="ps-dot">•</span>}
                     {store.location && <><MapPin size={13} /> {store.location}</>}
                   </p>
@@ -1869,7 +1881,7 @@ export default function ThriftStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {store.store_name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -1894,7 +1906,7 @@ export default function ThriftStorefront({
                   <p>
                     {store.business_persona && (
                       <>
-                        <span>{store.business_persona.replace(/-/g, ' ')}</span>
+                        <span>{store.business_persona.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())}</span>
                         {(store.location || store.rating || store.review_count) && <span className="ps-dot">•</span>}
                       </>
                     )}
@@ -2561,7 +2573,7 @@ export default function ThriftStorefront({
 
       {reviewOpen && (
         <Sheet onClose={() => setReviewOpen(false)} title="Leave a review">
-          <p className="rev-form-note"><ShieldCheck size={13} /> Reviews come from verified orders. Add your order reference so we can confirm it.</p>
+          <p className="rev-form-note"><ShieldCheck size={13} /> {store.reviews_intro_text || "Reviews come from verified orders. Add your order reference so we can confirm it."}</p>
           <p className="ps-field-lbl">Your rating</p>
           <div className="rev-rate">{Array.from({ length: 5 }).map((_, i) => (
             <button key={i} onClick={() => setRevRating(i + 1)} aria-label={(i + 1) + " star"} type="button"><Star size={28} className={i < revRating ? "f" : ""} /></button>

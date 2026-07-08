@@ -18,6 +18,7 @@ export interface StoreItem {
   tiktok_handle?: string | null;
   location?: string | null;
   category_label?: string | null;
+  business_persona?: string | null;
   is_verified?: boolean;
   items_count?: number;
   reviews_avg_rating?: number | null;
@@ -229,7 +230,7 @@ export default function StoresClient({ initialStores }: { initialStores: StoreIt
   );
 }
 
-function StoreDirectoryCard({ store }: { store: StoreItem }) {
+export function StoreDirectoryCard({ store }: { store: StoreItem }) {
   const storeUrl = `/${store.username}`;
   const initials = (store.store_name || store.username || 'S').charAt(0).toUpperCase();
   const rating = typeof store.reviews_avg_rating === 'number' ? store.reviews_avg_rating : null;

@@ -155,7 +155,7 @@ export default async function Page({ params }: PageProps) {
                 color: 'var(--primary)',
                 letterSpacing: '-0.03em'
               }}>
-                frontstore<span style={{ color: 'var(--wa-green)' }}>.app</span>
+                frontstore
               </span>
             </a>
           </div>
@@ -274,19 +274,46 @@ export default async function Page({ params }: PageProps) {
   const storeName = rawStoreName.includes('-') || rawStoreName.includes('_') || rawStoreName === rawStoreName.toLowerCase()
     ? rawStoreName.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
     : rawStoreName;
+  const storeReviews: Array<{ rating: number }> = Array.isArray(data.reviews) ? data.reviews : [];
+  const validReviews = storeReviews.filter((r) => Number.isFinite(r.rating) && r.rating > 0);
+  const aggregateRating = validReviews.length > 0 ? {
+    '@type': 'AggregateRating',
+    ratingValue: (validReviews.reduce((sum, r) => sum + r.rating, 0) / validReviews.length).toFixed(1),
+    reviewCount: validReviews.length,
+  } : undefined;
+
+  const sameAs = [
+    data.store.instagram_handle ? `https://instagram.com/${safePathSegment(data.store.instagram_handle).replace(/^@/, '')}` : null,
+    data.store.tiktok_handle ? `https://tiktok.com/@${safePathSegment(data.store.tiktok_handle).replace(/^@/, '')}` : null,
+    data.store.twitter_handle ? `https://x.com/${safePathSegment(data.store.twitter_handle).replace(/^@/, '')}` : null,
+  ].filter(Boolean);
+
+  const storeUrl = `https://${systemDomain}/${storeUsername}`;
+
   const jsonLd = data && data.store ? {
     '@context': 'https://schema.org',
     '@type': 'Store',
     'name': storeName,
     'description': safeText(data.store.store_bio, '') || undefined,
-    'url': `https://${systemDomain}/${storeUsername}`,
+    'url': storeUrl,
     'image': data.store.logo_url || undefined,
     'telephone': data.store.whatsapp_phone || undefined,
+    ...(sameAs.length > 0 ? { sameAs } : {}),
+    ...(aggregateRating ? { aggregateRating } : {}),
     'address': {
       '@type': 'PostalAddress',
       'addressCountry': 'NG'
     }
   } : null;
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `https://${systemDomain}/` },
+      { '@type': 'ListItem', position: 2, name: storeName, item: storeUrl },
+    ],
+  };
 
   return (
     <>
@@ -296,6 +323,10 @@ export default async function Page({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <StorefrontClientNoSsr username={username} initialData={data} />
     </>
   );

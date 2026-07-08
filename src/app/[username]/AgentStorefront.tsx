@@ -19,6 +19,14 @@ interface StoreLink {
 }
 
 interface StoreType {
+  reviews_intro_text?: string | null;
+  faq_help_text?: string | null;
+  about_intro_text?: string | null;
+  portfolio_intro_text?: string | null;
+  policy_bookings?: string | null;
+  policy_products?: string | null;
+  policy_refunds?: string | null;
+
   id: string;
   username: string;
   store_name: string;
@@ -288,6 +296,13 @@ export default function AgentStorefront({
 }: AgentStorefrontProps) {
   const router = useRouter();
 
+  const NAV = useMemo(() => {
+    return MOCK_NAV.filter(([id]) => {
+      if (id === 'home') return true;
+      return (store.storefront_sections || ['reviews', 'replies_approximation', 'products', 'services', 'portfolio', 'about', 'faq', 'contact', 'blog']).includes(id);
+    });
+  }, [store.storefront_sections]);
+
   // --- UI State Variables ---
   const [bag, setBag] = useState(false);
   const [toast, setToast] = useState("");
@@ -487,7 +502,7 @@ export default function AgentStorefront({
     name: store.store_name || MOCK_STORE.name,
     initial: store.store_name ? store.store_name[0].toUpperCase() : MOCK_STORE.initial,
     slug: username,
-    category: store.business_persona ? store.business_persona.replace(/-/g, ' ') : MOCK_STORE.category,
+    category: store.business_persona ? store.business_persona.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) : MOCK_STORE.category,
     location: store.location || MOCK_STORE.location,
     rating: store.rating || MOCK_STORE.rating,
     reviews: store.review_count || MOCK_STORE.reviews,
@@ -1294,7 +1309,9 @@ export default function AgentStorefront({
             <span className="ab-review-av">{r.name[0]}</span>
             <div><b>{r.name}</b><span className="ab-review-tag"><BadgeCheck size={13} /> Verified order · {r.service}</span></div>
           </div>
+          {(store.storefront_sections || []).includes("reviews") && (
           <button className="ab-review-all" onClick={() => go("reviews")}>Read all {DUMMY_STORE.reviews} reviews <ChevronRight size={14} /></button>
+        )}
         </div>
       </div>
     );
@@ -1319,7 +1336,7 @@ export default function AgentStorefront({
   );
   const aboutBody = () => (<>
     <p className="ps-prose">{DUMMY_STORE.bio}</p>
-    <p className="ab-para">What began in 2014 as one agent with a phone and a patch of Lekki is now a small, trusted practice across Lekki and Ikoyi, known for honest advice and properties that hold their value.</p>
+    <p className="ab-para">{store.about_intro_text || "What began in 2014 as one agent with a phone and a patch of Lekki is now a small, trusted practice across Lekki and Ikoyi, known for honest advice and properties that hold their value."}</p>
     <div className="ab-founder ab-founder-m">
       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Agent</span></div>
       <div className="ab-founder-body">{aboutFounderBody()}</div>
@@ -1389,7 +1406,7 @@ export default function AgentStorefront({
   const faqHelp = () => (
     <div className="faq-help">
       <b>Still need help?</b>
-      <p>Message the agent directly and we will get back to you, usually in {DUMMY_STORE.reply}.</p>
+      <p>{store.faq_help_text || "Message the agent directly and we will get back to you" + (DUMMY_STORE.reply ? ", usually in " + DUMMY_STORE.reply : "") + "."}</p>
       <button className="faq-help-cta" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={15} /> Message on WhatsApp</button>
     </div>
   );
@@ -1488,8 +1505,16 @@ export default function AgentStorefront({
       <div className="rf-section">
         <h3 className="rf-section-head"><RotateCcw size={17} /> Refunds</h3>
         <ul className="rf-list">
-          <li><Check size={15} /> Orders paid through Frontstore are refunded to your original payment method, usually within a few working days.</li>
-          <li><Check size={15} /> For bank transfer orders, the agent arranges your refund directly, since those funds are paid straight to them.</li>
+          {store.policy_refunds ? (
+            store.policy_refunds.split('\n').filter(Boolean).map((line: string, idx: number) => (
+              <li key={idx}><Check size={15} /> {line}</li>
+            ))
+          ) : (
+            <>
+              <li><Check size={15} /> Orders paid through Frontstore are refunded to your original payment method, usually within a few working days.</li>
+              <li><Check size={15} /> For bank transfer orders, the agent arranges your refund directly, since those funds are paid straight to them.</li>
+            </>
+          )}
         </ul>
       </div>
     </div>
@@ -1684,7 +1709,9 @@ export default function AgentStorefront({
               <b>Enjoyed the read?</b>
               <p>Book a viewing, or pick up one of the guides.</p>
               <button className="blog-convert-cta" onClick={() => openBooking()}><Calendar size={15} /> Book a viewing</button>
-              <button className="blog-convert-ghost" onClick={() => go("products")}>View guides</button>
+              {(store.storefront_sections || []).includes("products") && (
+          <button className="blog-convert-ghost" onClick={() => go("products")}>View guides</button>
+        )}
             </div>
           </aside>
         </div>
@@ -1801,7 +1828,7 @@ export default function AgentStorefront({
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1813,7 +1840,7 @@ export default function AgentStorefront({
         </span>
       </button>
       <nav className="ps-nav">
-        {MOCK_NAV.map(([id, label]: any) => (
+        {NAV.map(([id, label]: any) => (
           <button key={id} className={page === id ? "on" : ""} onClick={() => go(id)}>
             {label}{page === id && <ChevronRight size={16} />}
           </button>
@@ -1878,7 +1905,7 @@ export default function AgentStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1917,16 +1944,22 @@ export default function AgentStorefront({
 
               <SectionHead title="Services" action={`See all ${SERVICES.length}`} onAction={() => go("services")} />
               {servicesGrid("ps-grid", homeServices.slice(0, 4))}
-              <button className="ps-seeall" onClick={() => go("services")}>See all {SERVICES.length} services <ChevronRight size={16} /></button>
+              {(store.storefront_sections || []).includes("services") && (
+          <button className="ps-seeall" onClick={() => go("services")}>See all {SERVICES.length} services <ChevronRight size={16} /></button>
+        )}
 
               <SectionHead title="Guides" action={`See all ${PRODUCTS.length}`} onAction={() => go("products")} />
               {productsGrid("ps-grid", homeProducts.slice(0, 4))}
-              <button className="ps-seeall" onClick={() => go("products")}>See all {PRODUCTS.length} guides <ChevronRight size={16} /></button>
+              {(store.storefront_sections || []).includes("products") && (
+          <button className="ps-seeall" onClick={() => go("products")}>See all {PRODUCTS.length} guides <ChevronRight size={16} /></button>
+        )}
 
               <SectionHead title="Reviews" />
               <RatingSummary rating={DUMMY_STORE.rating} reviews={DUMMY_STORE.reviews} />
               <div className="ps-reviews-row">{displayReviews.slice(0, 3).map((rv: any, i: number) => <ReviewCard key={i} rv={rv} />)}</div>
-              <button className="ps-seeall" onClick={() => go("reviews")}>See all reviews <ChevronRight size={16} /></button>
+              {(store.storefront_sections || []).includes("reviews") && (
+          <button className="ps-seeall" onClick={() => go("reviews")}>See all reviews <ChevronRight size={16} /></button>
+        )}
 
               <SectionHead title="Visit the office" />
               <div className="ps-visit">
@@ -1964,7 +1997,7 @@ export default function AgentStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -1998,7 +2031,7 @@ export default function AgentStorefront({
             </section>
 
             <nav className="pd-tabs">
-              {MOCK_NAV.map(([id, label]: any) => (
+              {NAV.map(([id, label]: any) => (
                 <button key={id} className={page === id ? "on" : ""} onClick={() => go(id)}>{label}</button>
               ))}
             </nav>
@@ -2031,11 +2064,17 @@ export default function AgentStorefront({
                 <div className="pd-feed">
                   <div className="pd-sec-head"><h2>Latest listings</h2><button onClick={() => go("portfolio")}>See all {homeListings.length}</button></div>
                   {listingCards(homeListings.slice(0, 6))}
-                  <div className="pd-sec-head"><h2>Services</h2><button onClick={() => go("services")}>See all {SERVICES.length}</button></div>
+                  <div className="pd-sec-head"><h2>Services</h2>{(store.storefront_sections || []).includes("services") && (
+          <button onClick={() => go("services")}>See all {SERVICES.length}</button>
+        )}</div>
                   {servicesGrid("pd-grid", homeServices.slice(0, 6))}
-                  <div className="pd-sec-head"><h2>Guides</h2><button onClick={() => go("products")}>See all {PRODUCTS.length}</button></div>
+                  <div className="pd-sec-head"><h2>Guides</h2>{(store.storefront_sections || []).includes("products") && (
+          <button onClick={() => go("products")}>See all {PRODUCTS.length}</button>
+        )}</div>
                   {productsGrid("pd-grid", homeProducts.slice(0, 6))}
-                  <div className="pd-sec-head"><h2>Reviews</h2><button onClick={() => go("reviews")}>See all</button></div>
+                  <div className="pd-sec-head"><h2>Reviews</h2>{(store.storefront_sections || []).includes("reviews") && (
+          <button onClick={() => go("reviews")}>See all</button>
+        )}</div>
                   <RatingSummary rating={DUMMY_STORE.rating} reviews={DUMMY_STORE.reviews} />
                   <div className="pd-grid reviews">{displayReviews.slice(0, 3).map((rv: any, i: number) => <ReviewCard key={i} rv={rv} full />)}</div>
                 </div>
@@ -2046,7 +2085,7 @@ export default function AgentStorefront({
             {(page === "services" || page === "products" || page === "reviews" || page === "blog") && (
               <div className="pd-listing">
                 <div className="pd-page-head">
-                  <h1>{MOCK_NAV.find(([id]: any) => id === page)?.[1]}</h1>
+                  <h1>{NAV.find(([id]: any) => id === page)?.[1]}</h1>
                   <span>frontstore.app/{username}</span>
                 </div>
                 {page === "services" && (
@@ -2298,7 +2337,9 @@ export default function AgentStorefront({
                           <b>Enjoyed the read?</b>
                           <p>Book a viewing, or pick up one of the guides.</p>
                           <button className="blog-convert-cta" onClick={() => openBooking()}><Calendar size={15} /> Book a viewing</button>
-                          <button className="blog-convert-ghost" onClick={() => go("products")}>View guides</button>
+                          {(store.storefront_sections || []).includes("products") && (
+          <button className="blog-convert-ghost" onClick={() => go("products")}>View guides</button>
+        )}
                         </div>
                       </aside>
                     </div>
@@ -2327,7 +2368,9 @@ export default function AgentStorefront({
                       <b>Like what you see?</b>
                       <p>Book a viewing of any property that catches your eye.</p>
                       <button className="blog-convert-cta" onClick={() => openBooking()}><Calendar size={15} /> Book a viewing</button>
-                      <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+                      {(store.storefront_sections || []).includes("services") && (
+          <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+        )}
                     </div>
                     {portfolioFollow()}
                     <div className="pd-railcard trust">
@@ -2423,7 +2466,9 @@ export default function AgentStorefront({
                       <b>Ready when you are</b>
                       <p>Book a viewing, or browse the full list of services.</p>
                       <button className="blog-convert-cta" onClick={() => openBooking()}><Calendar size={15} /> Book a viewing</button>
-                      <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+                      {(store.storefront_sections || []).includes("services") && (
+          <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+        )}
                     </div>
 
                     <div className="pd-railcard trust">
@@ -2486,7 +2531,9 @@ export default function AgentStorefront({
                       <b>Prefer to book?</b>
                       <p>Skip the message and book a viewing in a couple of taps.</p>
                       <button className="blog-convert-cta" onClick={() => openBooking()}><Calendar size={15} /> Book a viewing</button>
-                      <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+                      {(store.storefront_sections || []).includes("services") && (
+          <button className="blog-convert-ghost" onClick={() => go("services")}>Browse services</button>
+        )}
                     </div>
                     <div className="pd-railcard trust">
                       <div className="pd-trust-h"><ShieldCheck size={15} /> Secured by Frontstore</div>
@@ -2592,8 +2639,12 @@ export default function AgentStorefront({
           <button className={page === "home" ? "on" : ""} onClick={() => go("home")}><StoreIcon size={21} /><span>Home</span></button>
           <button className={page === "portfolio" ? "on" : ""} onClick={() => go("portfolio")}><Building2 size={21} /><span>Listings</span></button>
           <button className="ps-fab" onClick={() => setBag(true)} aria-label="Cart"><span className="ps-fab-ring" /><ShoppingBag size={22} />{bagCount > 0 && <i className="ps-fab-badge">{bagCount}</i>}</button>
+          {(store.storefront_sections || []).includes("products") && (
           <button className={page === "products" ? "on" : ""} onClick={() => go("products")}><Package size={21} /><span>Products</span></button>
+        )}
+          {(store.storefront_sections || []).includes("reviews") && (
           <button className={page === "reviews" ? "on" : ""} onClick={() => go("reviews")}><Star size={21} /><span>Reviews</span></button>
+        )}
         </nav>
       )}
 
@@ -2656,7 +2707,7 @@ export default function AgentStorefront({
 
       {reviewOpen && (
         <Sheet onClose={() => setReviewOpen(false)} title="Leave a review">
-          <p className="rev-form-note"><ShieldCheck size={13} /> Reviews come from verified orders. Add your order reference so we can confirm it.</p>
+          <p className="rev-form-note"><ShieldCheck size={13} /> {store.reviews_intro_text || "Reviews come from verified orders. Add your order reference so we can confirm it."}</p>
           <p className="ps-field-lbl">Your rating</p>
           <div className="rev-rate">{Array.from({ length: 5 }).map((_: any, i: number) => (
             <button key={i} onClick={() => setRevRating(i + 1)} aria-label={(i + 1) + " star"}><Star size={28} className={i < revRating ? "f" : ""} /></button>
@@ -2875,8 +2926,8 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
-.ps-logo-text span{color:var(--brand);}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--primary);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
+
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
 .ps-star{color:var(--gold);fill:var(--gold);}
@@ -3175,8 +3226,8 @@ const css = `
 .pd-identity{display:flex;align-items:flex-end;gap:22px;padding:0 28px;position:relative;}
 .pd-avatar{width:128px;height:128px;border-radius:30px;flex:0 0 auto;background:linear-gradient(150deg,var(--brand),var(--brand-deep));color:#fff;font-family:'Fraunces';font-weight:700;font-size:56px;display:grid;place-items:center;border:6px solid var(--bg);box-shadow:0 10px 28px rgba(18,48,90,.22);margin-top:-46px;}
 .pd-identity-main{flex:1;align-self:flex-start;padding-top:14px;min-width:0;}
-.pd-identity-main h1{font-family:'Fraunces';font-weight:700;font-size:32px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;}
-.pd-identity-main p{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:13.5px;color:var(--muted);margin-top:6px;}
+.pd-identity-main h1{font-family:'Fraunces';font-weight:700;font-size:32px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;text-shadow:0 1px 2px rgba(255,255,255,.9),0 0 14px rgba(255,255,255,.55);}
+.pd-identity-main p{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:13.5px;color:var(--muted);margin-top:6px;text-shadow:0 1px 2px rgba(255,255,255,.9),0 0 14px rgba(255,255,255,.55);}
 .pd-identity-main p>span{display:inline-flex;align-items:center;gap:4px;}
 .pd-identity-actions{display:flex;gap:10px;padding-bottom:10px;flex:0 0 auto;align-self:flex-end;}
 .pd-book{display:flex;align-items:center;gap:7px;background:var(--brand);color:#fff;font-weight:700;font-size:14.5px;padding:12px 22px;border-radius:12px;box-shadow:0 6px 16px rgba(31,78,135,.3);}

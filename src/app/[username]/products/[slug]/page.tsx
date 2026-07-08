@@ -37,6 +37,28 @@ async function getProductData(username: string, slug: string) {
   }
 }
 
+interface ProductReview {
+  id: string;
+  reviewer_name: string;
+  body: string;
+  rating: number;
+  created_at?: string | null;
+}
+
+async function getProductReviews(username: string, slug: string): Promise<ProductReview[]> {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  try {
+    const res = await fetch(`${API_URL}/v1/public/store/${username}/products/${slug}/reviews`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    const { data } = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
 function currencySymbol(code: string): string {
   const normalizedCode = typeof code === 'string' ? code.trim().toUpperCase() : '';
   if (!normalizedCode || normalizedCode === 'UNDEFINED' || normalizedCode === 'NULL') {
@@ -141,9 +163,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { username, slug } = await params;
-  const [storeData, product] = await Promise.all([
+  const [storeData, product, productReviews] = await Promise.all([
     getStoreData(username),
     getProductData(username, slug),
+    getProductReviews(username, slug),
   ]);
 
   if (!storeData?.store || !product) {
@@ -164,6 +187,14 @@ export default async function ProductPage({ params }: PageProps) {
   const storeName = safeText(store.store_name, productUsername || 'Store');
   const productName = safeText(product.name, safePathSegment(slug) || 'Product');
   const productUrl = `https://${systemDomain}/${productUsername}/products/${safePathSegment(product.slug) || slug}`;
+
+  const validReviews = productReviews.filter((r) => Number.isFinite(r.rating) && r.rating > 0);
+  const aggregateRating = validReviews.length > 0 ? {
+    '@type': 'AggregateRating',
+    ratingValue: (validReviews.reduce((sum, r) => sum + r.rating, 0) / validReviews.length).toFixed(1),
+    reviewCount: validReviews.length,
+  } : undefined;
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -175,6 +206,16 @@ export default async function ProductPage({ params }: PageProps) {
       '@type': 'Brand',
       name: storeName,
     },
+    ...(aggregateRating ? { aggregateRating } : {}),
+    ...(validReviews.length > 0 ? {
+      review: validReviews.slice(0, 10).map((r) => ({
+        '@type': 'Review',
+        author: { '@type': 'Person', name: safeText(r.reviewer_name, 'Anonymous') },
+        reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5 },
+        reviewBody: r.body || undefined,
+        datePublished: r.created_at || undefined,
+      })),
+    } : {}),
     offers: {
       '@type': 'Offer',
       price: product.price,
@@ -190,14 +231,26 @@ export default async function ProductPage({ params }: PageProps) {
     },
   };
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `https://${systemDomain}/` },
+      { '@type': 'ListItem', position: 2, name: storeName, item: `https://${systemDomain}/${productUsername}` },
+      { '@type': 'ListItem', position: 3, name: productName, item: productUrl },
+    ],
+  };
+
   return (
     <>
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <ProductDetailClient
         initialProduct={product}
         store={storeData.store}

@@ -54,7 +54,7 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
         if (!active) return;
 
         if (!response.ok) {
-          if (response.status === 401 || response.status === 403) {
+          if (response.status === 401) {
             destroySession('Your session has expired or is invalid. Please log in again.');
             return;
           } else if (response.status === 404) {
@@ -90,7 +90,7 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
       const isBackendApi = url.includes('/v1/');
 
       if (isBackendApi && active) {
-        if (response.status === 401 || response.status === 403) {
+        if (response.status === 401) {
           destroySession('Your session has expired. Please log in again.');
         } else if (response.status === 404 && url.includes('/v1/auth/me')) {
           destroySession('Your account no longer exists. Please register again.');

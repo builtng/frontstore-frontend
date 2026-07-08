@@ -926,6 +926,13 @@ export default function DashboardPage() {
   const [setStoreSince, setSetStoreSince] = useState('');
   const [deliveryInfo, setDeliveryInfo] = useState('');
   const [returnPolicy, setReturnPolicy] = useState('');
+  const [reviewsIntroText, setReviewsIntroText] = useState('');
+  const [faqHelpText, setFaqHelpText] = useState('');
+  const [aboutIntroText, setAboutIntroText] = useState('');
+  const [portfolioIntroText, setPortfolioIntroText] = useState('');
+  const [policyBookings, setPolicyBookings] = useState('');
+  const [policyProducts, setPolicyProducts] = useState('');
+  const [policyRefunds, setPolicyRefunds] = useState('');
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementBody, setAnnouncementBody] = useState('');
   const [announcementCtaLabel, setAnnouncementCtaLabel] = useState('');
@@ -1178,15 +1185,16 @@ export default function DashboardPage() {
           });
 
           if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
+            if (response.status === 401) {
               triggerRedirect('Unauthorized access - token invalid or expired');
               return false;
             } else if (response.status === 404) {
               triggerRedirect('Account not found - account may have been deleted');
               return false;
             } else {
-              triggerRedirect(`Account verification failed with status ${response.status}`);
-              return false;
+              // Transient/non-auth error (403 permission gate, 429, 5xx) - don't log the user out
+              console.warn(`Account verification returned status ${response.status} - proceeding without logout`);
+              return true;
             }
           }
 
@@ -1238,6 +1246,13 @@ export default function DashboardPage() {
               setSetStoreSince(parsedStore.since || '');
               setDeliveryInfo(parsedStore.delivery_info || '');
               setReturnPolicy(parsedStore.return_policy || '');
+              setReviewsIntroText(parsedStore.reviews_intro_text || '');
+              setFaqHelpText(parsedStore.faq_help_text || '');
+              setAboutIntroText(parsedStore.about_intro_text || '');
+              setPortfolioIntroText(parsedStore.portfolio_intro_text || '');
+              setPolicyBookings(parsedStore.policy_bookings || '');
+              setPolicyProducts(parsedStore.policy_products || '');
+              setPolicyRefunds(parsedStore.policy_refunds || '');
               setAnnouncementTitle(parsedStore.announcement_title || '');
               setAnnouncementBody(parsedStore.announcement_body || '');
               setAnnouncementCtaLabel(parsedStore.announcement_cta_label || '');
@@ -1634,6 +1649,13 @@ export default function DashboardPage() {
           setBookingCapacityPerDay(Number(liveStore.booking_capacity_per_day));
         }
         setReturnPolicy(liveStore.return_policy || '');
+        setReviewsIntroText(liveStore.reviews_intro_text || '');
+        setFaqHelpText(liveStore.faq_help_text || '');
+        setAboutIntroText(liveStore.about_intro_text || '');
+        setPortfolioIntroText(liveStore.portfolio_intro_text || '');
+        setPolicyBookings(liveStore.policy_bookings || '');
+        setPolicyProducts(liveStore.policy_products || '');
+        setPolicyRefunds(liveStore.policy_refunds || '');
         setAnnouncementTitle(liveStore.announcement_title || '');
         setAnnouncementBody(liveStore.announcement_body || '');
         setAnnouncementCtaLabel(liveStore.announcement_cta_label || '');
@@ -2814,6 +2836,13 @@ export default function DashboardPage() {
             .map(r => ({ min_subtotal: Number(r.min_subtotal), fee: Number(r.fee) })),
           delivery_info: deliveryInfo || null,
           return_policy: returnPolicy || null,
+          reviews_intro_text: reviewsIntroText || null,
+          faq_help_text: faqHelpText || null,
+          about_intro_text: aboutIntroText || null,
+          portfolio_intro_text: portfolioIntroText || null,
+          policy_bookings: policyBookings || null,
+          policy_products: policyProducts || null,
+          policy_refunds: policyRefunds || null,
           announcement_title: announcementTitle || null,
           announcement_body: announcementBody || null,
           announcement_cta_label: announcementCtaLabel || null,
@@ -2853,6 +2882,13 @@ export default function DashboardPage() {
         setSetStoreSince(json.data.since || '');
         setDeliveryInfo(json.data.delivery_info || '');
         setReturnPolicy(json.data.return_policy || '');
+        setReviewsIntroText(json.data.reviews_intro_text || '');
+        setFaqHelpText(json.data.faq_help_text || '');
+        setAboutIntroText(json.data.about_intro_text || '');
+        setPortfolioIntroText(json.data.portfolio_intro_text || '');
+        setPolicyBookings(json.data.policy_bookings || '');
+        setPolicyProducts(json.data.policy_products || '');
+        setPolicyRefunds(json.data.policy_refunds || '');
         setAnnouncementTitle(json.data.announcement_title || '');
         setAnnouncementBody(json.data.announcement_body || '');
         setAnnouncementCtaLabel(json.data.announcement_cta_label || '');
@@ -5793,6 +5829,94 @@ export default function DashboardPage() {
                                 className="input-field"
                                 placeholder="Limited offers"
                                 maxLength={120}
+                              />
+                            </div>
+                          </div>
+
+                          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 8, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <h4 style={{ fontSize: 13, fontWeight: 900, color: 'var(--text)', margin: 0 }}>Custom Storefront Write-ups & Policies</h4>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Reviews Section Notice</label>
+                              <textarea
+                                rows={2}
+                                value={reviewsIntroText}
+                                onChange={e => setReviewsIntroText(e.target.value)}
+                                className="input-field"
+                                style={{ resize: 'vertical' }}
+                                placeholder="e.g. Reviews come from verified orders. Add your order reference so we can confirm it."
+                                maxLength={1000}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>FAQ Help Card Text</label>
+                              <textarea
+                                rows={2}
+                                value={faqHelpText}
+                                onChange={e => setFaqHelpText(e.target.value)}
+                                className="input-field"
+                                style={{ resize: 'vertical' }}
+                                placeholder="e.g. Message the studio directly and we will get back to you."
+                                maxLength={1000}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>About Section Description</label>
+                              <textarea
+                                rows={4}
+                                value={aboutIntroText}
+                                onChange={e => setAboutIntroText(e.target.value)}
+                                className="input-field"
+                                style={{ resize: 'vertical' }}
+                                placeholder="e.g. What began in 2018 with one van and one cleaner is now a vetted team..."
+                                maxLength={2000}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Portfolio Section Subtitle</label>
+                              <textarea
+                                rows={2}
+                                value={portfolioIntroText}
+                                onChange={e => setPortfolioIntroText(e.target.value)}
+                                className="input-field"
+                                style={{ resize: 'vertical' }}
+                                placeholder="e.g. Before and after from real jobs, from kitchens and bathrooms to offices..."
+                                maxLength={1000}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Bookings Policy</label>
+                              <textarea
+                                rows={3}
+                                value={policyBookings}
+                                onChange={e => setPolicyBookings(e.target.value)}
+                                className="input-field"
+                                style={{ resize: 'vertical' }}
+                                placeholder="e.g. Reschedule or cancel up to 24 hours before your clean for a full refund..."
+                                maxLength={2000}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Products Policy</label>
+                              <textarea
+                                rows={3}
+                                value={policyProducts}
+                                onChange={e => setPolicyProducts(e.target.value)}
+                                className="input-field"
+                                style={{ resize: 'vertical' }}
+                                placeholder="e.g. Unopened products can be returned within 7 days of delivery..."
+                                maxLength={2000}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Refunds Policy</label>
+                              <textarea
+                                rows={3}
+                                value={policyRefunds}
+                                onChange={e => setPolicyRefunds(e.target.value)}
+                                className="input-field"
+                                style={{ resize: 'vertical' }}
+                                placeholder="e.g. Orders paid through Frontstore are refunded to your original payment method..."
+                                maxLength={2000}
                               />
                             </div>
                           </div>

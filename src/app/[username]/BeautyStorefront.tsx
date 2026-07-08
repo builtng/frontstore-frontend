@@ -43,6 +43,13 @@ interface StoreLink {
 }
 
 interface Store {
+  reviews_intro_text?: string | null;
+  faq_help_text?: string | null;
+  about_intro_text?: string | null;
+  portfolio_intro_text?: string | null;
+  policy_bookings?: string | null;
+  policy_products?: string | null;
+  policy_refunds?: string | null;
   id: string;
   username: string;
   store_name: string;
@@ -1293,7 +1300,7 @@ export default function BeautyStorefront({
   const faqHelp = () => (
     <div className="faq-help">
       <b style={{ fontFamily: 'Fraunces' }}>Still need help?</b>
-      <p>Message the studio directly and we will get back to you, usually in ~10 min.</p>
+      <p>{store.faq_help_text || "Message the studio directly and we will get back to you, usually in ~10 min."}</p>
       <button className="faq-help-cta" onClick={() => openWhatsAppChat("Hello, I have a question about my booking.")}><WhatsApp size={15} /> Message on WhatsApp</button>
     </div>
   );
@@ -1652,7 +1659,7 @@ export default function BeautyStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><SearchIcon size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1786,7 +1793,7 @@ export default function BeautyStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><SearchIcon size={17} /> <span>Search {store.store_name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={copyUrl} aria-label="Share"><Share2 size={18} /></button>
@@ -2162,7 +2169,7 @@ export default function BeautyStorefront({
           <div className="ps-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="ps-panel">
               <div className="ps-panel-top">
-                <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></span>
+                <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></span>
                 <button className="ps-x" onClick={() => setDrawer(false)} aria-label="Close"><X size={20} /></button>
               </div>
               <button className="ps-id" onClick={() => go("home")}>
@@ -2410,7 +2417,7 @@ export default function BeautyStorefront({
       {/* review submission sheet (shared) */}
       {reviewOpen && (
         <Sheet onClose={() => setReviewOpen(false)} title="Leave a review">
-          <p className="rev-form-note"><ShieldCheck size={13} /> Reviews come from verified orders. Add your order reference so we can confirm it.</p>
+          <p className="rev-form-note"><ShieldCheck size={13} /> {store.reviews_intro_text || "Reviews come from verified orders. Add your order reference so we can confirm it."}</p>
           <p className="ps-field-lbl">Your rating</p>
           <div className="rev-rate" style={{ display: 'flex', gap: 6 }}>
             {Array.from({ length: 5 }).map((_, i) => (
@@ -2638,8 +2645,8 @@ const css = `
 .ps-root *{box-sizing:border-box;}
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
-.ps-logo-text span{color:var(--brand);}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--primary);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
+
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
 .ps-star{color:var(--gold);fill:var(--gold);}
@@ -2921,8 +2928,8 @@ const css = `
 .pd-avatar{width:112px;height:112px;border-radius:28px;background:linear-gradient(150deg,var(--brand),var(--brand-deep));
   color:#fff;font-family:'Fraunces';font-weight:700;font-size:48px;display:grid;place-items:center;border:6px solid var(--card);margin-top:-56px;z-index:2;position:relative;}
 .pd-identity-main{flex:1;min-width:0;}
-.pd-identity-main h1{font-family:'Fraunces';font-weight:700;font-size:28px;letter-spacing:-.02em;line-height:1.2;display:flex;align-items:center;gap:8px;}
-.pd-identity-main p{font-size:13.5px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.pd-identity-main h1{font-family:'Fraunces';font-weight:700;font-size:28px;letter-spacing:-.02em;line-height:1.2;display:flex;align-items:center;gap:8px;text-shadow:0 1px 2px rgba(255,255,255,.9),0 0 14px rgba(255,255,255,.55);}
+.pd-identity-main p{font-size:13.5px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;text-shadow:0 1px 2px rgba(255,255,255,.9),0 0 14px rgba(255,255,255,.55);}
 .pd-identity-actions{display:flex;gap:10px;}
 .pd-book{background:var(--brand);color:#fff;font-weight:700;font-size:13.5px;padding:11px 18px;border-radius:11px;}
 .pd-ghost{border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:600;font-size:13.5px;padding:11px 18px;border-radius:11px;}

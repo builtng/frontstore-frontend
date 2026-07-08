@@ -19,6 +19,14 @@ interface StoreLink {
 }
 
 interface StoreType {
+  reviews_intro_text?: string | null;
+  faq_help_text?: string | null;
+  about_intro_text?: string | null;
+  portfolio_intro_text?: string | null;
+  policy_bookings?: string | null;
+  policy_products?: string | null;
+  policy_refunds?: string | null;
+
   id: string;
   username: string;
   store_name: string;
@@ -291,6 +299,13 @@ export default function SchoolStorefront({
 }: SchoolStorefrontProps) {
   const router = useRouter();
 
+  const NAV = useMemo(() => {
+    return MOCK_NAV.filter(([id]) => {
+      if (id === 'home') return true;
+      return (store.storefront_sections || ['reviews', 'replies_approximation', 'products', 'services', 'portfolio', 'about', 'faq', 'contact', 'blog']).includes(id);
+    });
+  }, [store.storefront_sections]);
+
   // --- UI State Variables ---
   const [bag, setBag] = useState(false);
   const [toast, setToast] = useState("");
@@ -490,7 +505,7 @@ export default function SchoolStorefront({
     name: store.store_name || "",
     initial: store.store_name ? store.store_name[0].toUpperCase() : "",
     slug: username,
-    category: store.business_persona ? store.business_persona.replace(/-/g, ' ') : "",
+    category: store.business_persona ? store.business_persona.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) : "",
     location: store.location || "",
     rating: (store.rating || undefined) ?? undefined,
     reviews: store.review_count || 0,
@@ -1423,7 +1438,7 @@ export default function SchoolStorefront({
 
   const aboutBody = () => (<>
     <p className="ps-prose">{DUMMY_STORE.bio}</p>
-    <p className="ab-para">What began in 2018 with one van and one cleaner is now a vetted team that homes and offices across Lagos genuinely trust, known for turning up on time and doing the job properly.</p>
+    <p className="ab-para">{store.about_intro_text || "What began in 2018 with one van and one cleaner is now a vetted team that homes and offices across Lagos genuinely trust, known for turning up on time and doing the job properly."}</p>
     <div className="ab-founder ab-founder-m">
       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
       <div className="ab-founder-body">{aboutFounderBody()}</div>
@@ -1493,7 +1508,7 @@ export default function SchoolStorefront({
   const faqHelp = () => (
     <div className="faq-help">
       <b>Still need help?</b>
-      <p>Message the studio directly and we will get back to you, usually in {DUMMY_STORE.reply}.</p>
+      <p>{store.faq_help_text || "Message the studio directly and we will get back to you" + (DUMMY_STORE.reply ? ", usually in " + DUMMY_STORE.reply : "") + "."}</p>
       <button className="faq-help-cta" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={15} /> Message on WhatsApp</button>
     </div>
   );
@@ -1576,24 +1591,48 @@ export default function SchoolStorefront({
       <div className="rf-section">
         <h3 className="rf-section-head"><Calendar size={17} /> Bookings</h3>
         <ul className="rf-list">
-          <li><Check size={15} /> Reschedule or cancel up to 24 hours before your clean for a full refund of your deposit.</li>
-          <li><Check size={15} /> Within 24 hours of your clean, the deposit is held against the booking and is not refunded.</li>
-          <li><Check size={15} /> Need a different day? You can reschedule once at no cost up to 48 hours before, subject to availability.</li>
+          {store.policy_bookings ? (
+            store.policy_bookings.split('\n').filter(Boolean).map((line: string, idx: number) => (
+              <li key={idx}><Check size={15} /> {line}</li>
+            ))
+          ) : (
+            <>
+              <li><Check size={15} /> Reschedule or cancel up to 24 hours before your clean for a full refund of your deposit.</li>
+              <li><Check size={15} /> Within 24 hours of your clean, the deposit is held against the booking and is not refunded.</li>
+              <li><Check size={15} /> Need a different day? You can reschedule once at no cost up to 48 hours before, subject to availability.</li>
+            </>
+          )}
         </ul>
       </div>
       <div className="rf-section">
         <h3 className="rf-section-head"><ShoppingBag size={17} /> Products</h3>
         <ul className="rf-list">
-          <li><Check size={15} /> Unopened products can be returned within 7 days of delivery, in their original packaging, for a refund.</li>
-          <li><Check size={15} /> Opened products and used items cannot be returned unless they are faulty.</li>
-          <li><Check size={15} /> Faulty or incorrect items are put right at no cost to you, including return delivery.</li>
+          {store.policy_products ? (
+            store.policy_products.split('\n').filter(Boolean).map((line: string, idx: number) => (
+              <li key={idx}><Check size={15} /> {line}</li>
+            ))
+          ) : (
+            <>
+              <li><Check size={15} /> Unopened products can be returned within 7 days of delivery, in their original packaging, for a refund.</li>
+              <li><Check size={15} /> Opened products and used items cannot be returned unless they are faulty.</li>
+              <li><Check size={15} /> Faulty or incorrect items are put right at no cost to you, including return delivery.</li>
+            </>
+          )}
         </ul>
       </div>
       <div className="rf-section">
         <h3 className="rf-section-head"><RotateCcw size={17} /> Refunds</h3>
         <ul className="rf-list">
-          <li><Check size={15} /> Orders paid through Frontstore are refunded to your original payment method, usually within a few working days.</li>
-          <li><Check size={15} /> For bank transfer orders, the studio arranges your refund directly, since those funds are paid straight to them.</li>
+          {store.policy_refunds ? (
+            store.policy_refunds.split('\n').filter(Boolean).map((line: string, idx: number) => (
+              <li key={idx}><Check size={15} /> {line}</li>
+            ))
+          ) : (
+            <>
+              <li><Check size={15} /> Orders paid through Frontstore are refunded to your original payment method, usually within a few working days.</li>
+              <li><Check size={15} /> For bank transfer orders, the studio arranges your refund directly, since those funds are paid straight to them.</li>
+            </>
+          )}
         </ul>
       </div>
     </div>
@@ -1697,7 +1736,7 @@ export default function SchoolStorefront({
     </div>
   );
   const portfolioBody = () => (<>
-    <p className="svc-intro">Before and after from real jobs, from kitchens and bathrooms to offices and post-construction.</p>
+    <p className="svc-intro">{store.portfolio_intro_text || "Before and after from real jobs, from kitchens and bathrooms to offices and post-construction."}</p>
     {portfolioChips()}
     {portfolioGrid()}
     <button className="ab-book-m" onClick={() => openBooking()}><Calendar size={16} /> Book a clean</button>
@@ -1790,7 +1829,7 @@ export default function SchoolStorefront({
   const Panel = ({ onClose }: { onClose?: () => void }) => (
     <div className="ps-panel">
       <div className="ps-panel-top">
-        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></span>
+        <span className="ps-logo"><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></span>
         {onClose && <button className="ps-x" onClick={onClose} aria-label="Close"><X size={20} /></button>}
       </div>
       <button className="ps-id" onClick={() => go("home")}>
@@ -1802,7 +1841,7 @@ export default function SchoolStorefront({
         </span>
       </button>
       <nav className="ps-nav">
-        {MOCK_NAV.map(([id, label]: any) => (
+        {NAV.map(([id, label]: any) => (
           <button key={id} className={page === id ? "on" : ""} onClick={() => go(id)}>
             {label}{page === id && <ChevronRight size={16} />}
           </button>
@@ -1867,7 +1906,7 @@ export default function SchoolStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1950,7 +1989,7 @@ export default function SchoolStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {DUMMY_STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
@@ -1984,7 +2023,7 @@ export default function SchoolStorefront({
             </section>
 
             <nav className="pd-tabs">
-              {MOCK_NAV.map(([id, label]: any) => (
+              {NAV.map(([id, label]: any) => (
                 <button key={id} className={page === id ? "on" : ""} onClick={() => go(id)}>{label}</button>
               ))}
             </nav>
@@ -2576,10 +2615,16 @@ export default function SchoolStorefront({
       {!isDesktop && (
         <nav className="ps-bottom">
           <button className={page === "home" ? "on" : ""} onClick={() => go("home")}><StoreIcon size={21} /><span>Home</span></button>
-          <button className={page === "services" ? "on" : ""} onClick={() => go("services")}><Sparkles size={21} /><span>Services</span></button>
+          {(store.storefront_sections || []).includes("services") && (
+            <button className={page === "services" ? "on" : ""} onClick={() => go("services")}><Sparkles size={21} /><span>Services</span></button>
+          )}
           <button className="ps-fab" onClick={() => setBag(true)} aria-label="Cart"><span className="ps-fab-ring" /><ShoppingBag size={22} />{bagCount > 0 && <i className="ps-fab-badge">{bagCount}</i>}</button>
-          <button className={page === "products" ? "on" : ""} onClick={() => go("products")}><Package size={21} /><span>Products</span></button>
-          <button className={page === "reviews" ? "on" : ""} onClick={() => go("reviews")}><Star size={21} /><span>Reviews</span></button>
+          {(store.storefront_sections || []).includes("products") && (
+            <button className={page === "products" ? "on" : ""} onClick={() => go("products")}><Package size={21} /><span>Products</span></button>
+          )}
+          {(store.storefront_sections || []).includes("reviews") && (
+            <button className={page === "reviews" ? "on" : ""} onClick={() => go("reviews")}><Star size={21} /><span>Reviews</span></button>
+          )}
         </nav>
       )}
 
@@ -2629,7 +2674,7 @@ export default function SchoolStorefront({
 
       {reviewOpen && (
         <Sheet onClose={() => setReviewOpen(false)} title="Leave a review">
-          <p className="rev-form-note"><ShieldCheck size={13} /> Reviews come from verified orders. Add your order reference so we can confirm it.</p>
+          <p className="rev-form-note"><ShieldCheck size={13} /> {store.reviews_intro_text || "Reviews come from verified orders. Add your order reference so we can confirm it."}</p>
           <p className="ps-field-lbl">Your rating</p>
           <div className="rev-rate">{Array.from({ length: 5 }).map((_: any, i: number) => (
             <button key={i} onClick={() => setRevRating(i + 1)} aria-label={(i + 1) + " star"}><Star size={28} className={i < revRating ? "f" : ""} /></button>
@@ -2818,8 +2863,8 @@ const css = `
 .ps-root :where(button){font-family:inherit;background:none;border:none;color:inherit;cursor:pointer;padding:0;}
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
-.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--ink);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
-.ps-logo-text span{color:var(--brand);}
+.ps-logo{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--primary);flex:1;text-align:left;display:inline-flex;align-items:center;gap:7px;}
+
 .ps-logo.as-btn{cursor:pointer;}
 .ps-verif{color:var(--brand);vertical-align:-2px;}
 .ps-star{color:var(--gold);fill:var(--gold);}
@@ -3118,8 +3163,8 @@ const css = `
 .pd-identity{display:flex;align-items:flex-end;gap:22px;padding:0 28px;margin-top:-46px;position:relative;}
 .pd-avatar{width:128px;height:128px;border-radius:30px;flex:0 0 auto;background:linear-gradient(150deg,var(--brand),var(--brand-deep));color:#fff;font-family:'Fraunces';font-weight:700;font-size:56px;display:grid;place-items:center;border:6px solid var(--bg);box-shadow:0 10px 28px rgba(10,102,93,.22);}
 .pd-identity-main{flex:1;padding-bottom:8px;min-width:0;}
-.pd-identity-main h1{font-family:'Fraunces';font-weight:700;font-size:32px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;}
-.pd-identity-main p{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:13.5px;color:var(--muted);margin-top:6px;}
+.pd-identity-main h1{font-family:'Fraunces';font-weight:700;font-size:32px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;text-shadow:0 1px 2px rgba(255,255,255,.9),0 0 14px rgba(255,255,255,.55);}
+.pd-identity-main p{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:13.5px;color:var(--muted);margin-top:6px;text-shadow:0 1px 2px rgba(255,255,255,.9),0 0 14px rgba(255,255,255,.55);}
 .pd-identity-main p>span{display:inline-flex;align-items:center;gap:4px;}
 .pd-identity-actions{display:flex;gap:10px;padding-bottom:10px;flex:0 0 auto;}
 .pd-book{display:flex;align-items:center;gap:7px;background:var(--brand);color:#fff;font-weight:700;font-size:14.5px;padding:12px 22px;border-radius:12px;box-shadow:0 6px 16px rgba(15,157,142,.3);}

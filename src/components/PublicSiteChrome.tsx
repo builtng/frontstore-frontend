@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, ChevronRight, HelpCircle, Menu, Newspaper, PlayCircle, Store, X } from 'lucide-react';
+import { ArrowRight, Calculator, ChevronRight, HelpCircle, Menu, Newspaper, PlayCircle, Store, X } from 'lucide-react';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 
 const NAV_LINKS = [
   { href: '/stores', label: 'Stores', icon: Store },
   { href: '/demo', label: 'Live Demo', icon: PlayCircle },
+  { href: '/tools', label: 'Free Tools', icon: Calculator },
   { href: '/blog', label: 'Blog', icon: Newspaper },
   { href: '/docs', label: 'Help', icon: HelpCircle },
 ];
@@ -212,6 +213,9 @@ export function PublicSiteFooter() {
         <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Stores</a>
         <a href="/business" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>For Business</a>
         <a href="/demo" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Live Demo</a>
+        <a href="/solutions" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Guides</a>
+        <a href="/vs" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Compare</a>
+        <a href="/tools" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Free Tools</a>
         <a href="/blog" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Blog</a>
         <a href={isLoggedIn ? '/dashboard' : '/signup'} style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>{isLoggedIn ? 'Dashboard' : 'Sign up'}</a>
         <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>

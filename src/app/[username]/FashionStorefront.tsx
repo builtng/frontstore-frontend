@@ -465,7 +465,7 @@ export default function FashionStorefront({
       <section className="ps-hero">
         {store.banner_url && <div className="ps-hero-bg" style={{ backgroundImage: `url(${store.banner_url})` }} />}
         <div className="ps-hero-content">
-          <div className="ps-hero-tag"><Award size={12} /> {store.business_persona?.replace(/-/g, ' ') || 'Fashion & Clothing'}</div>
+          <div className="ps-hero-tag"><Award size={12} /> {store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || 'Fashion & Clothing'}</div>
           <h1 className="ps-hero-name">{store.store_name}</h1>
           {store.store_bio && <p className="ps-hero-bio">{store.store_bio}</p>}
           <div className="ps-hero-meta">
@@ -873,7 +873,7 @@ export default function FashionStorefront({
             <div className="ab-av">{initials(store.store_name)}</div>
           )}
           <h1 className="ab-store-name">{store.store_name}</h1>
-          {store.business_persona && <div className="ab-persona">{store.business_persona.replace(/-/g, ' ')}</div>}
+          {store.business_persona && <div className="ab-persona">{store.business_persona.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())}</div>}
           {store.founder_quote && <div className="ab-quote"><Quote size={16} /> {store.founder_quote}</div>}
         </div>
       </div>

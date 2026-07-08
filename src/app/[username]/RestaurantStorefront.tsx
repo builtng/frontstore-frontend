@@ -25,6 +25,14 @@ interface StoreLink {
 }
 
 interface StoreType {
+  reviews_intro_text?: string | null;
+  faq_help_text?: string | null;
+  about_intro_text?: string | null;
+  portfolio_intro_text?: string | null;
+  policy_bookings?: string | null;
+  policy_products?: string | null;
+  policy_refunds?: string | null;
+
   id: string;
   username: string;
   store_name: string;
@@ -1319,7 +1327,7 @@ export default function RestaurantStorefront({
         <div className="ps-col">
           <header className="ps-top">
             <button className="ps-burger" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
-            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo as-btn" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <button className="ps-top-icon" onClick={() => setSearch(true)} aria-label="Search"><Search size={20} /></button>
             <button className="ps-top-share" onClick={() => setShare(true)} aria-label="Share"><Share2 size={19} /></button>
           </header>
@@ -1333,7 +1341,7 @@ export default function RestaurantStorefront({
                   </div>
                   <span className="ps-avatar">{store.logo_url ? <img src={store.logo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} /> : store.store_name.charAt(0).toUpperCase()}</span>
                   <h1 className="ps-name">{store.store_name} {store.is_verified ? <BadgeCheck size={20} className="ps-verif" /> : null}</h1>
-                  <p className="ps-meta">{store.business_persona?.replace(/-/g, ' ') || "Restaurant & bar"} <span className="ps-dot">·</span> <MapPin size={13} /> {store.location || "Victoria Island, Lagos"}</p>
+                  <p className="ps-meta">{store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || "Restaurant & bar"} <span className="ps-dot">·</span> <MapPin size={13} /> {store.location || "Victoria Island, Lagos"}</p>
                   
                   <div className="ps-id-actions-row">
                     <button className="ps-url" onClick={copyUrl}>frontstore.app/{store.username} <Copy size={13} /></button>
@@ -1696,14 +1704,14 @@ export default function RestaurantStorefront({
               <div className="ps-drawer">
                 <div className="ps-panel">
                   <div className="ps-panel-top">
-                    <button className="ps-logo" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+                    <button className="ps-logo" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
                     <button className="ps-x" onClick={() => setDrawer(false)} aria-label="Close menu"><X size={20} /></button>
                   </div>
                   <div className="ps-id">
                     <span className="ps-id-av">{store.store_name.charAt(0).toUpperCase()}</span>
                     <div className="ps-id-main">
                       <b>{store.store_name}</b>
-                      <i>{store.business_persona?.replace(/-/g, ' ') || "Restaurant & bar"}</i>
+                      <i>{store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || "Restaurant & bar"}</i>
                     </div>
                   </div>
                   <div className="ps-nav">
@@ -1723,7 +1731,7 @@ export default function RestaurantStorefront({
       {isDesktop && (
         <div className="pd-wrap">
           <header className="pd-header">
-            <button className="ps-logo" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore<span>.app</span></span></button>
+            <button className="ps-logo" onClick={() => go("home")}><img src="/logo.png" alt="Frontstore" width={20} height={20} style={{ objectFit: "contain", flexShrink: 0 }} /><span className="ps-logo-text">frontstore</span></button>
             <div className="pd-search" style={{ border: '1px solid var(--line)' }}>
               <Search size={16} />
               <input value={prodQuery} onChange={(e) => { setProdQuery(e.target.value); if (page !== "products" && page !== "product") go("products"); }} placeholder="Search dishes, drinks..." style={{ border: 'none', outline: 'none', background: 'none', width: '100%', fontSize: 13 }} />
@@ -1749,7 +1757,7 @@ export default function RestaurantStorefront({
                     <div className="pd-identity-main">
                       <h1>{store.store_name} {store.is_verified ? <BadgeCheck size={24} className="ps-verif" /> : null}</h1>
                       <p>
-                        <span>{store.business_persona?.replace(/-/g, ' ') || "Restaurant & bar"}</span>
+                        <span>{store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || "Restaurant & bar"}</span>
                         <span className="ps-dot">·</span>
                         <MapPin size={13} /> {store.location || "Victoria Island, Lagos"}
                       </p>

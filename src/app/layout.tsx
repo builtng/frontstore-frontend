@@ -115,6 +115,33 @@ export default function RootLayout({
         {/* llm.txt — AI crawler discoverability (llmstxt.org spec) */}
         <link rel="llms-txt" href="/llm.txt" />
         <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'Frontstore',
+              legalName: 'Frontstore Technologies',
+              url: 'https://frontstore.app',
+              logo: 'https://frontstore.app/icon.png',
+              description: 'Conversational commerce platform helping African merchants sell on WhatsApp and social media.',
+              sameAs: ['https://twitter.com/frontstore'],
+              areaServed: ['Nigeria', 'Ghana', 'Kenya'],
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'Frontstore',
+              url: 'https://frontstore.app',
+            }),
+          }}
+        />
+        <script
           dangerouslySetInnerHTML={{
             __html: `
               (function () {
