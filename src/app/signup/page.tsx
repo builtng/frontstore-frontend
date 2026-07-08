@@ -217,11 +217,19 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
         throw new Error(json.message || 'Failed to send verification code. Please check your number.');
       }
 
+      if (json.is_new_user === false) {
+        const errorMsg = 'An account with this phone number already exists. Please log in instead.';
+        toast.error(errorMsg);
+        setError(errorMsg);
+        return;
+      }
+
       toast.success(json.message || 'Verification code sent to your WhatsApp!');
       setLastSentPhone(normalizedPhone);
       setResendCooldown(60); // 60s default cooldown
       setCurrentStep(2);
     } catch (err: any) {
+      toast.error(err.message || 'An error occurred. Please try again.');
       setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -249,10 +257,18 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
         throw new Error(json.message || 'Failed to resend code.');
       }
 
+      if (json.is_new_user === false) {
+        const errorMsg = 'An account with this phone number already exists. Please log in instead.';
+        toast.error(errorMsg);
+        setError(errorMsg);
+        return;
+      }
+
       toast.success('A new verification code has been sent to your WhatsApp!');
       setLastSentPhone(normalizedPhone);
       setResendCooldown(60); // Reset cooldown
     } catch (err: any) {
+      toast.error(err.message || 'An error occurred. Please try again.');
       setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -343,6 +359,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
       });
 
     } catch (err: any) {
+      toast.error(err.message || 'An error occurred. Please try again.');
       setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
