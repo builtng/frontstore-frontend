@@ -12,13 +12,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const apiHost = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   const now = new Date();
 
-  // ── Static pages ──────────────────────────────────────────────────────────
+  // ── Static core pages ─────────────────────────────────────────────────────
   const routes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: now,
       changeFrequency: 'daily',
       priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/marketplace`,
+      lastModified: now,
+      changeFrequency: 'hourly',
+      priority: 0.95,
     },
     {
       url: `${baseUrl}/stores`,
@@ -30,28 +36,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/blog`,
       lastModified: now,
       changeFrequency: 'daily',
-      priority: 0.8,
+      priority: 0.85,
     },
     {
-      url: `${baseUrl}/marketplace`,
-      lastModified: now,
-      changeFrequency: 'hourly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/compare`,
+      url: `${baseUrl}/solutions`,
       lastModified: now,
       changeFrequency: 'weekly',
-      priority: 0.6,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/vs`,
       lastModified: now,
       changeFrequency: 'weekly',
-      priority: 0.6,
+      priority: 0.75,
     },
     {
-      url: `${baseUrl}/solutions`,
+      url: `${baseUrl}/compare`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.7,
@@ -60,72 +60,82 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/tools`,
       lastModified: now,
       changeFrequency: 'weekly',
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/signup`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/business`,
+      lastModified: now,
+      changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
       url: `${baseUrl}/about`,
       lastModified: now,
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.6,
     },
     {
-      url: `${baseUrl}/business`,
+      url: `${baseUrl}/demo`,
       lastModified: now,
       changeFrequency: 'monthly',
-      priority: 0.6,
+      priority: 0.65,
     },
     {
       url: `${baseUrl}/docs`,
       lastModified: now,
       changeFrequency: 'weekly',
-      priority: 0.5,
+      priority: 0.55,
     },
     {
       url: `${baseUrl}/docs/merchant`,
       lastModified: now,
       changeFrequency: 'weekly',
-      priority: 0.5,
+      priority: 0.55,
     },
     {
       url: `${baseUrl}/docs/buyer`,
       lastModified: now,
       changeFrequency: 'weekly',
-      priority: 0.4,
-    },
-    {
-      url: `${baseUrl}/signup`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.7,
+      priority: 0.45,
     },
     {
       url: `${baseUrl}/login`,
       lastModified: now,
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.4,
     },
     {
       url: `${baseUrl}/privacy`,
       lastModified: now,
-      changeFrequency: 'monthly',
+      changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
       url: `${baseUrl}/terms`,
       lastModified: now,
-      changeFrequency: 'monthly',
+      changeFrequency: 'yearly',
       priority: 0.3,
     },
   ];
 
-  // ── PSEO Blog Articles ──────────────────────────────────────────────────
+  // ── PSEO Blog Articles ────────────────────────────────────────────────────
+  // Grouped by recency — newer articles get a slight priority bump
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   BLOG_ARTICLES.forEach((article) => {
     const countrySlug = article.country.toLowerCase().replace(/\s+/g, '-');
+    const lastMod = article.updatedAt ? new Date(article.updatedAt) : now;
+    const isRecent = lastMod > thirtyDaysAgo;
     routes.push({
       url: `${baseUrl}/blog/${countrySlug}/${article.slug}`,
-      lastModified: article.updatedAt ? new Date(article.updatedAt) : now,
-      changeFrequency: 'weekly',
-      priority: 0.7,
+      lastModified: lastMod,
+      changeFrequency: isRecent ? 'daily' : 'weekly',
+      priority: isRecent ? 0.75 : 0.7,
     });
   });
 
@@ -135,7 +145,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/vs/${competitor.slug}`,
       lastModified: now,
       changeFrequency: 'monthly',
-      priority: 0.65,
+      priority: 0.7,
     });
   });
 
@@ -145,7 +155,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/solutions/${solution.slug}`,
       lastModified: now,
       changeFrequency: 'monthly',
-      priority: 0.7,
+      priority: 0.75,
     });
   });
 
@@ -155,14 +165,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/tools/${tool.slug}`,
       lastModified: now,
       changeFrequency: 'monthly',
-      priority: 0.65,
+      priority: 0.7,
     });
   });
 
   // ── Dynamic merchant storefronts ──────────────────────────────────────────
   try {
     const res = await fetch(`${apiHost}/v1/public/stores`, {
-      next: { revalidate: 3600 }, // revalidate once per hour in Next.js ISR
+      next: { revalidate: 3600 },
     });
 
     if (res.ok) {
@@ -173,11 +183,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       stores.forEach((store) => {
         if (!store.username) return;
 
+        const lastMod = store.updated_at ? new Date(store.updated_at) : now;
+        const isActive = store.updated_at
+          ? new Date(store.updated_at) > thirtyDaysAgo
+          : false;
+
+        // Storefront home
         routes.push({
           url: `${baseUrl}/${store.username}`,
-          lastModified: store.updated_at ? new Date(store.updated_at) : now,
-          changeFrequency: 'daily',
-          priority: 0.8,
+          lastModified: lastMod,
+          changeFrequency: isActive ? 'daily' : 'weekly',
+          priority: isActive ? 0.85 : 0.75,
         });
       });
     }
@@ -185,9 +201,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('[sitemap] Failed to fetch dynamic storefronts:', error);
   }
 
-  // ── Category × state merchant directory pages ────────────────────────────
-  // Only listed once a combination has at least one real match, to avoid
-  // submitting thin/empty pages to search engines.
+  // ── Category × state merchant directory pages ─────────────────────────────
   try {
     const res = await fetch(`${apiHost}/v1/public/stores`, {
       next: { revalidate: 3600 },
@@ -210,7 +224,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
               url: `${baseUrl}/stores/${persona.id}/${state.slug}`,
               lastModified: now,
               changeFrequency: 'weekly',
-              priority: 0.55,
+              priority: 0.6,
             });
           }
         });
@@ -220,7 +234,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('[sitemap] Failed to fetch directory pages:', error);
   }
 
-  // ── Individual product pages ─────────────────────────────────────────────
+  // ── Individual product pages ──────────────────────────────────────────────
   try {
     const res = await fetch(`${apiHost}/v1/public/sitemap/products`, {
       next: { revalidate: 3600 },
@@ -238,7 +252,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           url: `${baseUrl}/${product.username}/products/${product.slug}`,
           lastModified: product.updated_at ? new Date(product.updated_at) : now,
           changeFrequency: 'weekly',
-          priority: 0.7,
+          priority: 0.75,
         });
       });
     }
@@ -246,7 +260,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('[sitemap] Failed to fetch product pages:', error);
   }
 
-  // ── PSEO price-comparison pages ──────────────────────────────────────────
+  // ── PSEO price-comparison pages ───────────────────────────────────────────
   try {
     const res = await fetch(`${apiHost}/v1/public/sitemap/compare`, {
       next: { revalidate: 3600 },
@@ -264,7 +278,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           url: `${baseUrl}/compare/${entry.product_slug}/${entry.state_slug}`,
           lastModified: entry.updated_at ? new Date(entry.updated_at) : now,
           changeFrequency: 'weekly',
-          priority: 0.6,
+          priority: 0.65,
         });
       });
     }
@@ -272,5 +286,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('[sitemap] Failed to fetch compare pages:', error);
   }
 
-  return routes;
+  // ── Deduplicate (safety guard — prevents duplicate URL submissions) ────────
+  const seen = new Set<string>();
+  const deduped = routes.filter((entry) => {
+    if (seen.has(entry.url)) return false;
+    seen.add(entry.url);
+    return true;
+  });
+
+  return deduped;
 }

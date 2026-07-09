@@ -1,16 +1,19 @@
 {
   "name": "Frontstore — Africa's WhatsApp Commerce Platform",
   "short_name": "Frontstore",
-  "description": "Create a stunning mobile storefront in under 2 minutes and sell directly via WhatsApp. Built for African small businesses.",
+  "description": "Create a stunning mobile storefront in under 2 minutes and sell directly via WhatsApp. Built for African small businesses, creators, and institutions. No website required.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#020C1B",
   "theme_color": "#25D366",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["business", "shopping", "productivity"],
+  "id": "frontstore-app",
+  "categories": ["business", "shopping", "productivity", "finance"],
+  "iarc_rating_id": "",
   "icons": [
     {
       "src": "/icon.png",
@@ -23,9 +26,49 @@
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/logo-mark.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "monochrome"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Browse Stores",
+      "short_name": "Stores",
+      "description": "Explore Frontstore merchants",
+      "url": "/stores",
+      "icons": [{ "src": "/icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Marketplace",
+      "short_name": "Market",
+      "description": "Discover products across Africa",
+      "url": "/marketplace",
+      "icons": [{ "src": "/icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Create Store",
+      "short_name": "Sign Up",
+      "description": "Start your free Frontstore in 2 minutes",
+      "url": "/signup",
+      "icons": [{ "src": "/icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Merchant Dashboard",
+      "short_name": "Dashboard",
+      "description": "Manage your store, orders, and customers",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icon.png", "sizes": "96x96" }]
     }
   ],
   "screenshots": [],
   "related_applications": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "handle_links": "preferred",
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }

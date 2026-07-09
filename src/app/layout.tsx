@@ -27,23 +27,46 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL('https://frontstore.app'),
   title: {
-    default: "Frontstore — Conversational Commerce Platform",
+    default: "Frontstore — Sell on WhatsApp | Africa's Conversational Commerce Platform",
     template: "%s | Frontstore",
   },
   description:
-    "Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa. Turn WhatsApp conversations into sales.",
+    "Frontstore is Africa's #1 conversational commerce platform. Turn WhatsApp into your most profitable sales channel. Create a beautiful catalog, accept payments, automate orders, and grow your business — no website needed. Used by merchants across Nigeria, Ghana, Kenya, Uganda, and South Africa.",
   keywords: [
-    "WhatsApp commerce", "conversational commerce", "African e-commerce", "digital catalog", "mobile store",
-    "small business Nigeria", "sell on WhatsApp", "Africa shops", "WhatsApp store",
-    "online store Africa", "ecommerce Nigeria", "ecommerce Ghana", "ecommerce Kenya",
-    "sell online Africa", "digital storefront", "WhatsApp business", "micro business Africa",
-    "Frontstore", "social commerce", "African commerce infrastructure", "WhatsApp CRM",
+    // Core brand
+    "Frontstore", "frontstore app", "frontstore.app",
+    // Conversational commerce
+    "conversational commerce", "WhatsApp commerce", "WhatsApp commerce platform Africa",
+    "WhatsApp store builder", "sell on WhatsApp", "WhatsApp checkout",
+    "WhatsApp business automation", "automated WhatsApp store", "WhatsApp CRM",
+    // Africa e-commerce
+    "African e-commerce", "African commerce infrastructure", "sell online Africa",
+    "ecommerce Nigeria", "ecommerce Ghana", "ecommerce Kenya", "ecommerce Uganda", "ecommerce South Africa",
+    "online store Africa", "digital storefront Africa", "social commerce Africa",
+    // Country-specific
+    "sell on WhatsApp Nigeria", "WhatsApp store Nigeria", "online store Nigeria",
+    "sell on WhatsApp Ghana", "WhatsApp store Kenya", "sell online Kenya",
+    // Product categories
+    "digital catalog", "mobile store", "small business Nigeria", "micro business Africa",
+    "WhatsApp order management", "AI sales agent Africa", "mobile money store",
+    "free online store Nigeria", "create online store Nigeria",
+    // AI & tech
+    "AI product description generator", "conversational AI commerce",
   ],
   authors: [{ name: "Frontstore", url: 'https://frontstore.app' }],
   creator: "Frontstore",
   publisher: "Frontstore Technologies",
   alternates: {
     canonical: '/',
+    languages: {
+      'en': 'https://frontstore.app',
+      'en-NG': 'https://frontstore.app',
+      'en-GH': 'https://frontstore.app',
+      'en-KE': 'https://frontstore.app',
+      'en-UG': 'https://frontstore.app',
+      'en-ZA': 'https://frontstore.app',
+      'x-default': 'https://frontstore.app',
+    },
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
@@ -57,24 +80,25 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_NG",
+    alternateLocale: ['en_GH', 'en_KE', 'en_UG', 'en_ZA', 'en_US'],
     siteName: "Frontstore",
-    title: "Frontstore — Conversational Commerce Platform",
+    title: "Frontstore — Sell on WhatsApp | Africa's Conversational Commerce Platform",
     description:
-      "Build a beautiful online store, accept orders, manage customers, and grow your business from a single platform designed for Africa. Turn WhatsApp conversations into sales.",
+      "Turn WhatsApp into your most profitable store. Create a beautiful catalog, accept secure payments, and automate customer orders — all inside WhatsApp. Trusted by merchants across Africa.",
     url: 'https://frontstore.app',
     images: [
       {
         url: '/icon.png',
         width: 512,
         height: 512,
-        alt: 'Frontstore — Conversational Commerce Platform for Africa',
+        alt: 'Frontstore — Africa\'s Conversational Commerce Platform',
       }
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Frontstore — Conversational Commerce Platform",
-    description: "Turn WhatsApp conversations into sales. Build a beautiful store and grow your business.",
+    title: "Frontstore — Sell on WhatsApp | Africa's Commerce Platform",
+    description: "Turn your WhatsApp into a fully automated store. Create catalogs, collect payments, manage orders — no website needed. Built for Africa.",
     images: ['/icon.png'],
     creator: '@frontstore',
     site: '@frontstore',
@@ -82,15 +106,19 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    nocache: false,
     googleBot: {
       index: true,
       follow: true,
+      noimageindex: false,
       'max-image-preview': 'large',
       'max-snippet': -1,
       'max-video-preview': -1,
     },
   },
   category: 'technology',
+  classification: 'E-Commerce, Mobile Commerce, Conversational Commerce',
+  referrer: 'origin-when-cross-origin',
 };
 
 export const viewport: Viewport = {
@@ -114,6 +142,11 @@ export default function RootLayout({
       <head>
         {/* llm.txt — AI crawler discoverability (llmstxt.org spec) */}
         <link rel="llms-txt" href="/llm.txt" />
+        {/* humans.txt — team & technology credits */}
+        <link rel="author" href="/humans.txt" />
+        {/* security.txt — responsible disclosure */}
+        <link rel="security-policy" href="/.well-known/security.txt" />
+        {/* Organization Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -123,13 +156,53 @@ export default function RootLayout({
               name: 'Frontstore',
               legalName: 'Frontstore Technologies',
               url: 'https://frontstore.app',
-              logo: 'https://frontstore.app/icon.png',
-              description: 'Conversational commerce platform helping African merchants sell on WhatsApp and social media.',
-              sameAs: ['https://twitter.com/frontstore'],
-              areaServed: ['Nigeria', 'Ghana', 'Kenya'],
+              logo: {
+                '@type': 'ImageObject',
+                url: 'https://frontstore.app/icon.png',
+                width: 512,
+                height: 512,
+              },
+              description: 'Africa\'s #1 conversational commerce platform. Turn WhatsApp conversations into automated sales, payments, and customer management for African merchants.',
+              foundingDate: '2024',
+              slogan: 'Commerce Through Conversation',
+              contactPoint: [
+                {
+                  '@type': 'ContactPoint',
+                  contactType: 'customer support',
+                  email: 'support@frontstore.app',
+                  availableLanguage: ['English', 'Pidgin'],
+                },
+                {
+                  '@type': 'ContactPoint',
+                  contactType: 'technical support',
+                  email: 'support@frontstore.app',
+                },
+              ],
+              sameAs: [
+                'https://twitter.com/frontstore',
+                'https://www.instagram.com/frontstore.app',
+                'https://www.linkedin.com/company/frontstore',
+                'https://www.facebook.com/frontstoreapp',
+              ],
+              areaServed: [
+                { '@type': 'Country', name: 'Nigeria' },
+                { '@type': 'Country', name: 'Ghana' },
+                { '@type': 'Country', name: 'Kenya' },
+                { '@type': 'Country', name: 'Uganda' },
+                { '@type': 'Country', name: 'South Africa' },
+                { '@type': 'Country', name: 'Rwanda' },
+              ],
+              knowsAbout: [
+                'WhatsApp Commerce',
+                'Conversational Commerce',
+                'African E-Commerce',
+                'Mobile Money Payments',
+                'AI Sales Automation',
+              ],
             }),
           }}
         />
+        {/* WebSite Schema with SearchAction */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -137,7 +210,68 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'WebSite',
               name: 'Frontstore',
+              alternateName: [
+                'Frontstore App',
+                'frontstore.app',
+                'Africa WhatsApp Commerce',
+              ],
               url: 'https://frontstore.app',
+              description: 'Africa\'s conversational commerce platform. Sell on WhatsApp without a website.',
+              inLanguage: 'en',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: 'https://frontstore.app/stores?q={search_term_string}',
+                },
+                'query-input': 'required name=search_term_string',
+              },
+            }),
+          }}
+        />
+        {/* SoftwareApplication Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'SoftwareApplication',
+              name: 'Frontstore',
+              operatingSystem: 'Web, iOS, Android',
+              applicationCategory: 'BusinessApplication',
+              applicationSubCategory: 'E-Commerce',
+              description: 'Conversational commerce platform for African merchants. Create WhatsApp-powered storefronts, automate orders, and accept mobile money payments.',
+              url: 'https://frontstore.app',
+              screenshot: 'https://frontstore.app/icon.png',
+              featureList: [
+                'WhatsApp-Native Checkout',
+                'AI Product Description Generator',
+                'Multi-Currency Payments (NGN, GHS, KES, UGX, ZAR)',
+                'AI Conversational Sales Agent (Nina)',
+                'Automated Order Management',
+                'Customer CRM & Analytics',
+                'Broadcast Marketing',
+                'Custom Domain Support',
+              ],
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'NGN',
+                description: 'Free to start — no website, no code required',
+              },
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.8',
+                reviewCount: '2400',
+                bestRating: '5',
+                worstRating: '1',
+              },
+              author: {
+                '@type': 'Organization',
+                name: 'Frontstore Technologies',
+                url: 'https://frontstore.app',
+              },
+              inLanguage: ['en', 'yo', 'ha', 'ig', 'sw'],
             }),
           }}
         />

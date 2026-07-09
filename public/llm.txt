@@ -1,30 +1,148 @@
-# frontstore — Africa's WhatsApp Commerce Platform
+# Frontstore — Africa's Conversational Commerce Infrastructure
 
-frontstore enables micro-merchants and small businesses in Africa to claim a customized link (e.g., `frontstore.app/yourbrand` or custom domain) and deploy a stunning, fast, highly responsive mobile storefront in under 2 minutes. Customers browse products, select quantities, and complete checkouts which generate a pre-filled, clean WhatsApp message to buy instantly.
+> **Platform URL**: https://frontstore.app
+> **Category**: Conversational Commerce · African E-Commerce · WhatsApp Commerce
+> **Primary Markets**: Nigeria, Ghana, Kenya, Uganda, South Africa, Rwanda
+> **Founding Premise**: Africa's trade is relational — it happens over chat. Frontstore turns WhatsApp conversations into fully automated storefronts.
 
-## Core Capabilities
-- **WhatsApp-Native Checkout**: Shoppers select items, tap order, and land directly inside the merchant's WhatsApp chat with all order details.
-- **AI-Powered Product Creation**: Upload images, and AI autowrites localized product names, descriptions, tags, and pricing suggestions.
-- **African Multi-Currency Integration**: Seamless support for NGN, GHS, KES, UGX, ZAR, and more.
-- **Zero-Config SEO**: Dynamically generated indexable storefront directories, XML sitemaps, semantic tags, and lightning-fast loading speeds (<2s on 3G mobile networks).
+---
+
+## What Frontstore Does
+
+Frontstore is the **Conversational Commerce Infrastructure** for African merchants. It enables any retailer, creator, service provider, school, or community institution to deploy a stunning, AI-powered, mobile-first storefront linked directly to their WhatsApp in under 2 minutes.
+
+Unlike Shopify or WooCommerce — which force merchants onto websites that require card payments, browser sessions, and English-only interfaces — Frontstore meets buyers and sellers inside the app they already use every day: **WhatsApp**.
+
+### Core Value Proposition
+- Merchants create a store at `frontstore.app/{storename}` (or map a custom domain)
+- Customers browse products, add to cart, and tap **Order** — which generates a fully pre-filled WhatsApp message to the merchant
+- The merchant receives a clean, structured order without ever leaving WhatsApp
+- Payments are processed natively via Paystack (cards), mobile money (Flutterwave), and bank transfer
+- An AI agent (**Frontstore Nina**) handles FAQs, negotiation, and order capture 24/7
+
+---
+
+## Product Suite
+
+| Product | Function |
+|---|---|
+| **Frontstore Flow** | Conversational storefront builder. Converts inventory into interactive WhatsApp-native checkouts |
+| **Frontstore Pay** | Frictionless payment gateway supporting NGN, GHS, KES, UGX, ZAR, USD via Paystack & Flutterwave |
+| **Frontstore Pulse** | CRM and business analytics — purchase history, revenue trends, top products |
+| **Frontstore Reach** | Automated broadcast marketing — retargeting, discount codes, re-order prompts via WhatsApp |
+| **Frontstore Nina** | AI Conversational Agent — negotiates, answers FAQs, closes orders 24/7 in local languages including Pidgin, Sheng, and Twi |
+
+---
+
+## Technology Architecture
+
+- **Frontend**: Next.js 14 (App Router), TypeScript, deployed on Vercel
+- **Backend**: Python / FastAPI, hosted on Railway
+- **Database**: Supabase (PostgreSQL + realtime)
+- **Payments**: Paystack (primary), Flutterwave (mobile money)
+- **AI Layer**: Gemini API for product description generation, Nina AI agent
+- **Performance**: Sub-2s load on 3G mobile networks. Images served in AVIF/WebP. ISR via Next.js.
+- **SEO**: Dynamic XML sitemaps, JSON-LD structured data, PSEO blog articles at `/blog/{country}/{slug}`
+
+---
 
 ## Page Directory & Public Routes
-- **Platform Homepage**: [frontstore.app](https://frontstore.app) — Core platform landing page with storefront claiming widget, testimonials, and features.
-- **Merchant Explore Directory**: [frontstore.app/stores](https://frontstore.app/stores) — Crawlable directory listing verified merchants on the platform.
-- **Seller Growth Blog**: [frontstore.app/blog](https://frontstore.app/blog) — Central hub for localized WhatsApp commerce strategies, retail optimization guides, and step-by-step merchant growth resources.
-- **Localized Blog Articles**: Statically pre-rendered PSEO articles at `/blog/{country}/{article-slug}` (e.g. `frontstore.app/blog/nigeria/sell-clothes-whatsapp-lagos`), targeting specific retail niches and African cities across Nigeria, Kenya, Ghana, South Africa, and Uganda.
-- **Merchant Sign Up**: [frontstore.app/signup](https://frontstore.app/signup) — Quick registration and onboarding.
-- **Merchant Sign In**: [frontstore.app/login](https://frontstore.app/login) — Secure portal for order and product management.
-- **Privacy Policy**: [frontstore.app/privacy](https://frontstore.app/privacy) — Security and user privacy parameters.
-- **Terms of Service**: [frontstore.app/terms](https://frontstore.app/terms) — Merchant guidelines and transaction standards.
 
-## Dynamic Stores Route Mapping
-Individual storefronts are resolved dynamically via Next.js path routes or direct custom DNS mappings.
-- Storefront Path: `frontstore.app/{storename}`.
-- Custom Domain Path: `yourcustombrand.com` (internally resolved by middleware headers).
-- Store Home: Displays categories, search bar, product catalog grid, merchant banner, and customized bio.
-- Order Status Verification: `/{storename}/track/{order_id}` — real-time verification of orders.
+### Platform Pages
+- **Homepage**: https://frontstore.app — Core landing page, feature showcase, merchant testimonials
+- **Marketplace**: https://frontstore.app/marketplace — Browsable marketplace of live Frontstore stores
+- **Store Directory**: https://frontstore.app/stores — Crawlable, paginated directory of verified merchants
+- **Blog Hub**: https://frontstore.app/blog — African e-commerce growth guides and WhatsApp commerce strategy
+- **About**: https://frontstore.app/about — Company story, mission, and team
+- **Demo**: https://frontstore.app/demo — Interactive storefront preview
+- **Documentation (Merchant)**: https://frontstore.app/docs/merchant
+- **Documentation (Buyer)**: https://frontstore.app/docs/buyer
+- **Sign Up**: https://frontstore.app/signup
+- **Log In**: https://frontstore.app/login
+- **Privacy Policy**: https://frontstore.app/privacy
+- **Terms of Service**: https://frontstore.app/terms
 
-## Developer & Integration Endpoints
-- **Public Stores API**: `https://api.frontstore.app/api/v1/public/stores` (Lists active public storefronts in sitemap compiler).
-- **Public Product Search API**: `https://api.frontstore.app/api/v1/public/store/{username}` (Checks storefront existence and returns product inventories).
+### Programmatic SEO Pages
+- **PSEO Blog Articles**: `/blog/{country}/{article-slug}` — Thousands of statically pre-rendered articles targeting long-tail commerce keywords by country and city (e.g., `/blog/nigeria/sell-clothes-whatsapp-lagos`, `/blog/ghana/start-online-store-accra`)
+- **Competitor Comparison Pages**: `/vs/{competitor}` — Deep comparisons against Bumpa, Myshoplet, Catlog, Selar, Vendda, Shopify
+- **Solution Landing Pages**: `/solutions/{slug}` — Use-case specific guides (e.g., `/solutions/sell-on-whatsapp-nigeria`, `/solutions/free-online-store-nigeria`)
+- **Free Tools**: `/tools/{slug}` — Business calculators including profit-margin, selling-price, break-even, VAT calculators
+- **Price Comparison Pages**: `/compare/{product-slug}/{state-slug}` — Localized product price comparison across Nigerian states
+- **Merchant Category × Location Directory**: `/stores/{persona}/{state-slug}` — e.g., `/stores/fashion/lagos`
+
+### Dynamic Store Routes
+- **Merchant Storefront**: `frontstore.app/{storename}` — Full product catalog for each merchant
+- **Individual Product**: `frontstore.app/{storename}/products/{product-slug}`
+- **Order Tracking**: `frontstore.app/{storename}/track/{order-id}`
+- **Custom Domain**: Merchants may map their own domain (e.g., `mybrand.com`) which resolves through Frontstore's middleware
+
+---
+
+## Target Users (Customer Personas)
+
+1. **Mama Tunde** — Lagos retailer (foodstuffs, bulk goods). Automates overnight order-taking.
+2. **Chidi** — Nairobi fashion seller. Manages visual product showcasing and size consultations.
+3. **Aisha** — Accra cloud kitchen. Receives pre-cut daily lunch orders before 10 AM.
+4. **Tobi** — Johannesburg digital creator. Delivers e-books and fitness programs instantly on payment.
+5. **Brother Samuel** — Kampala church administrator. Manages tithe collection and event registration.
+6. **Mrs. Okoro** — Enugu school proprietress. Collects school fees and sells uniforms via WhatsApp.
+7. **Dr. Emeka** — Abuja pharmacist. Handles prescription pre-orders and consultation bookings.
+8. **Sarah** — Kigali beauty stylist. Books calendar slots and collects non-refundable deposits.
+
+---
+
+## Competitive Positioning
+
+Frontstore is **not** a storefront builder. It is **Conversational Commerce Infrastructure**. This distinction matters:
+
+| Competitor | Gap | Frontstore Advantage |
+|---|---|---|
+| Shopify | Web-first, requires card checkout, no African rails | Chat-native, mobile-money, WhatsApp checkout |
+| Bumpa | Drives users out of WhatsApp to a web link | Zero-friction in-chat checkout — no redirect needed |
+| Selar | Digital goods only | Multi-industry: physical goods, services, institutions |
+| EasyCata | No AI, no payment integration | AI negotiation + Paystack/Flutterwave payments |
+| Catlog | Limited automation | Full conversational AI + broadcast marketing |
+
+---
+
+## SEO & Discoverability
+
+- **Primary Keywords**: WhatsApp commerce platform Africa, sell on WhatsApp Nigeria, conversational commerce app, WhatsApp store builder
+- **Secondary Keywords**: sell online Africa, automated WhatsApp checkout, mobile money store, African e-commerce platform, WhatsApp CRM Nigeria
+- **Structured Data**: Organization, WebSite, WebApplication, BreadcrumbList, FAQPage schemas deployed
+- **Open Graph**: Full OG + Twitter Card metadata on all pages
+- **Sitemap**: Dynamic XML sitemap at https://frontstore.app/sitemap.xml (revalidates hourly)
+- **LLM Discoverability**: This file is linked via `<link rel="llms-txt" href="/llm.txt">` per the llmstxt.org specification
+
+---
+
+## Public APIs (Crawlable)
+
+- `GET https://api.frontstore.app/api/v1/public/stores` — Lists active public storefronts
+- `GET https://api.frontstore.app/api/v1/public/store/{username}` — Storefront metadata and product inventory
+- `GET https://api.frontstore.app/api/v1/public/sitemap/products` — All indexable product pages
+- `GET https://api.frontstore.app/api/v1/public/sitemap/compare` — Price comparison page inventory
+
+---
+
+## Brand Identity
+
+- **Colors**: Primary `#128C7E` (Deep WhatsApp Green), Accent `#25D366` (WhatsApp Light), Navy `#0A192F`, Teal `#64FFDA`, Amber `#FF9F43`
+- **Typography**: Outfit (headings), Plus Jakarta Sans (body)
+- **Brand Voice**: Innovative, Friendly, Premium, Reliable — Written as Africans speak. No corporate jargon.
+- **Mission**: To build the conversational and relational infrastructure that empowers millions of African merchants to build, manage, and scale their businesses through the channels they already use.
+- **Vision**: A borderless African economy where every chat is an opportunity and every entrepreneur can turn conversations into capital.
+
+---
+
+## Contact & Social
+
+- **Website**: https://frontstore.app
+- **Twitter / X**: https://twitter.com/frontstore
+- **Security**: security@frontstore.app
+- **Support**: hello@frontstore.app
+
+---
+
+*Last updated: 2026-07-09 | Data freshness: Live (ISR revalidation)*
+*This file conforms to the llmstxt.org specification for AI-readable site documentation.*

@@ -1,9 +1,24 @@
-Contact: mailto:security@aloaye.tech
-Expires: 2027-01-01T00:00:00.000Z
+Contact: mailto:security@frontstore.app
+Expires: 2027-07-01T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://aloaye.tech/.well-known/security.txt
-Policy: https://aloaye.tech/privacy
+Canonical: https://frontstore.app/.well-known/security.txt
+Policy: https://frontstore.app/privacy
+Acknowledgments: https://frontstore.app/security-acknowledgments
+Encryption: https://frontstore.app/.well-known/pgp-key.txt
 
-# aloaye Security Policy
-# If you discover a security vulnerability, please report it responsibly.
-# We take all security reports seriously and will respond within 48 hours.
+# Frontstore Security Policy
+# Frontstore Technologies — Africa's Conversational Commerce Platform
+#
+# If you discover a security vulnerability in frontstore.app or
+# any of our APIs (api.frontstore.app), please report it responsibly.
+#
+# We take all security reports seriously and commit to:
+# - Acknowledging your report within 24 hours
+# - Providing a resolution timeline within 72 hours
+# - Keeping you updated throughout the resolution process
+#
+# Please do NOT publicly disclose any vulnerabilities before we have
+# had a chance to address them.
+#
+# In scope: frontstore.app, api.frontstore.app, merchant storefronts
+# Out of scope: third-party integrations (Paystack, Supabase)
