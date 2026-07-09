@@ -477,6 +477,169 @@ img, video {
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
+/* ── form-control + .input — used in dashboard modals ────────────── */
+/* These mirror .input-field for a consistent design system.         */
+.form-control,
+.input {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--bg-2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  box-sizing: border-box;
+}
+
+.form-control::placeholder,
+.input::placeholder { color: var(--text-faint); }
+
+.form-control:focus,
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+  background: var(--surface);
+  outline: none;
+}
+
+.form-control:disabled,
+.input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Textarea variant */
+textarea.form-control,
+textarea.input {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.55;
+}
+
+/* Select variant — hide OS arrow, use custom one via wrapper */
+select.form-control,
+select.input {
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888ea8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+
+/* ── Form field labels inside modals ────────────────────────────── */
+.form-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 7px;
+}
+
+/* ── Modal structural helpers ───────────────────────────────────── */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  background: var(--primary-light);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.modal-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+
+.modal-close-btn:hover {
+  background: var(--bg-2);
+  color: var(--text-2);
+}
+
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.modal-footer .btn {
+  flex: 1;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Field group: label + input stacked */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Checkbox row used in roles/permissions */
+.permission-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-2);
+  border: 1.5px solid transparent;
+}
+
+.permission-row:hover {
+  background: var(--bg-2);
+}
+
+.permission-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.permission-row.checked {
+  background: var(--primary-light);
+  border-color: color-mix(in srgb, var(--primary) 25%, transparent);
+  color: var(--primary);
+  font-weight: 700;
+}
+
 /* Category Chips */
 .category-chip {
   display: inline-flex;

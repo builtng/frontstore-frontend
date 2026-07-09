@@ -40,7 +40,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 };
 
 const getCurrencySymbol = (code?: string): string => {
-  if (!code) return CURRENCY_SYMBOLS['USD'];
+  if (!code) return CURRENCY_SYMBOLS['NGN'];
   return CURRENCY_SYMBOLS[code.toUpperCase()] ?? `${code} `;
 };
 
@@ -956,7 +956,7 @@ export default function DashboardPage() {
   const [setInstagram, setSetInstagram] = useState('');
   const [setTiktok, setSetTiktok] = useState('');
   const [setTwitter, setSetTwitter] = useState('');
-  const [setCurrency, setSetCurrency] = useState('USD');
+  const [setCurrency, setSetCurrency] = useState('NGN');
   const [setStoreCountryCode, setSetStoreCountryCode] = useState('');
   const [setPaymentProvider, setSetPaymentProvider] = useState('');
   const [availableProviders, setAvailableProviders] = useState<string[]>([]);
@@ -1265,7 +1265,7 @@ export default function DashboardPage() {
               setSetInstagram(parsedStore.instagram_handle || '');
               setSetTiktok(parsedStore.tiktok_handle || '');
               setSetTwitter(parsedStore.twitter_handle || '');
-              setSetCurrency(parsedStore.currency_code || 'USD');
+              setSetCurrency(parsedStore.currency_code || 'NGN');
               setSetStoreCountryCode(parsedStore.country_code || '');
               setSetPaymentProvider(parsedStore.payment_provider || '');
               setAvailableProviders(parsedStore.available_payment_providers || []);
@@ -1399,7 +1399,7 @@ export default function DashboardPage() {
       : undefined;
     if (match) {
       setSetStoreCountryCode(match.code);
-      setSetCurrency(match.default_currency || detectedCurrencyCode || 'USD');
+      setSetCurrency(match.default_currency || detectedCurrencyCode || 'NGN');
     } else {
       setCountryDetectionFailed(true);
     }
@@ -1670,7 +1670,7 @@ export default function DashboardPage() {
         setSetInstagram(liveStore.instagram_handle || '');
         setSetTiktok(liveStore.tiktok_handle || '');
         setSetTwitter(liveStore.twitter_handle || '');
-        setSetCurrency(liveStore.currency_code || 'USD');
+        setSetCurrency(liveStore.currency_code || 'NGN');
         setSetStoreCountryCode(liveStore.country_code || '');
         setSetPaymentProvider(liveStore.payment_provider || '');
         setAvailableProviders(liveStore.available_payment_providers || []);
@@ -7297,7 +7297,7 @@ export default function DashboardPage() {
                           Withdrawal & Payout Account
                         </h2>
                         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                          Connect your Stripe account to receive checkout payments and payouts in {(store?.currency_code || 'USD').toUpperCase()}.
+                          Connect your Stripe account to receive checkout payments and payouts in {(store?.currency_code || 'NGN').toUpperCase()}.
                         </p>
                       </div>
                     </div>
