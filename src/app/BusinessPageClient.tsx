@@ -86,150 +86,60 @@ const STORE_SHOWCASE = [
     name: 'Ankara & Co',
     slug: 'ankaraco',
     emoji: '👗',
-    gradient: 'linear-gradient(135deg, hsl(340, 70%, 78%), hsl(28, 78%, 76%))',
+    gradient: 'linear-gradient(135deg, #0A192F, #1B3A5C)',
     products: [
-      { bg: 'hsl(340, 60%, 80%)', price: '₦18,500' },
-      { bg: 'hsl(28, 70%, 80%)', price: '₦24,000' },
-    ],
-  },
-  {
-    name: "Mama's Kitchen",
-    slug: 'mamaskitchen',
-    emoji: '🍲',
-    gradient: 'linear-gradient(135deg, hsl(38, 80%, 76%), hsl(142, 50%, 76%))',
-    products: [
-      { bg: 'hsl(38, 70%, 78%)', price: '₦4,500' },
-      { bg: 'hsl(142, 45%, 78%)', price: '₦6,000' },
-    ],
-  },
-  {
-    name: 'Glow Studio',
-    slug: 'glowstudio',
-    emoji: '💄',
-    gradient: 'linear-gradient(135deg, hsl(280, 55%, 80%), hsl(200, 65%, 78%))',
-    products: [
-      { bg: 'hsl(280, 50%, 80%)', price: '₦12,000' },
-      { bg: 'hsl(200, 60%, 80%)', price: '₦8,500' },
+      { bg: '#EEF1F4', price: '₦18,500' },
+      { bg: '#E4E9ED', price: '₦24,000' },
     ],
   },
   {
     name: 'Techville Gadgets',
     slug: 'techville',
     emoji: '🎧',
-    gradient: 'linear-gradient(135deg, hsl(210, 60%, 78%), hsl(230, 55%, 80%))',
+    gradient: 'linear-gradient(135deg, #1E293B, #3B4A5F)',
     products: [
-      { bg: 'hsl(210, 55%, 78%)', price: '₦35,000' },
-      { bg: 'hsl(230, 50%, 80%)', price: '₦52,000' },
+      { bg: '#EEF1F4', price: '₦35,000' },
+      { bg: '#E4E9ED', price: '₦52,000' },
+    ],
+  },
+  {
+    name: 'Glow Studio',
+    slug: 'glowstudio',
+    emoji: '💄',
+    gradient: 'linear-gradient(135deg, #0F3D3E, #128C7E)',
+    products: [
+      { bg: '#EEF1F4', price: '₦12,000' },
+      { bg: '#E4E9ED', price: '₦8,500' },
     ],
   },
   {
     name: 'Sole Kicks',
     slug: 'solekicks',
     emoji: '👟',
-    gradient: 'linear-gradient(135deg, hsl(0, 70%, 78%), hsl(45, 85%, 76%))',
+    gradient: 'linear-gradient(135deg, #0A192F, #1B3A5C)',
     products: [
-      { bg: 'hsl(0, 60%, 80%)', price: '₦28,000' },
-      { bg: 'hsl(45, 75%, 78%)', price: '₦19,500' },
-    ],
-  },
-  {
-    name: 'Bloom Florist',
-    slug: 'bloomflorist',
-    emoji: '💐',
-    gradient: 'linear-gradient(135deg, hsl(330, 60%, 82%), hsl(150, 50%, 78%))',
-    products: [
-      { bg: 'hsl(330, 55%, 82%)', price: '₦9,500' },
-      { bg: 'hsl(150, 45%, 78%)', price: '₦15,000' },
+      { bg: '#EEF1F4', price: '₦28,000' },
+      { bg: '#E4E9ED', price: '₦19,500' },
     ],
   },
   {
     name: 'Spice Route',
     slug: 'spiceroute',
     emoji: '🌶️',
-    gradient: 'linear-gradient(135deg, hsl(15, 80%, 76%), hsl(50, 80%, 76%))',
+    gradient: 'linear-gradient(135deg, #1E293B, #3B4A5F)',
     products: [
-      { bg: 'hsl(15, 65%, 78%)', price: '₦3,200' },
-      { bg: 'hsl(50, 70%, 78%)', price: '₦5,800' },
-    ],
-  },
-  {
-    name: 'Leather Craft NG',
-    slug: 'leathercraft',
-    emoji: '👜',
-    gradient: 'linear-gradient(135deg, hsl(30, 45%, 74%), hsl(20, 40%, 68%))',
-    products: [
-      { bg: 'hsl(30, 40%, 76%)', price: '₦42,000' },
-      { bg: 'hsl(20, 35%, 70%)', price: '₦31,500' },
-    ],
-  },
-  {
-    name: 'Little Sprouts',
-    slug: 'littlesprouts',
-    emoji: '🍼',
-    gradient: 'linear-gradient(135deg, hsl(195, 65%, 80%), hsl(50, 75%, 80%))',
-    products: [
-      { bg: 'hsl(195, 55%, 80%)', price: '₦7,000' },
-      { bg: 'hsl(50, 65%, 80%)', price: '₦11,200' },
-    ],
-  },
-  {
-    name: 'Fit Gear Africa',
-    slug: 'fitgear',
-    emoji: '🏋️',
-    gradient: 'linear-gradient(135deg, hsl(260, 55%, 80%), hsl(320, 55%, 78%))',
-    products: [
-      { bg: 'hsl(260, 50%, 80%)', price: '₦14,500' },
-      { bg: 'hsl(320, 50%, 80%)', price: '₦22,000' },
-    ],
-  },
-  {
-    name: 'Golden Braids Salon',
-    slug: 'goldenbraids',
-    emoji: '💇🏾‍♀️',
-    gradient: 'linear-gradient(135deg, hsl(45, 75%, 76%), hsl(340, 65%, 78%))',
-    products: [
-      { bg: 'hsl(45, 65%, 78%)', price: '₦8,000' },
-      { bg: 'hsl(340, 55%, 80%)', price: '₦13,500' },
-    ],
-  },
-  {
-    name: 'Naija Book Nook',
-    slug: 'bookNook',
-    emoji: '📚',
-    gradient: 'linear-gradient(135deg, hsl(220, 55%, 78%), hsl(170, 55%, 74%))',
-    products: [
-      { bg: 'hsl(220, 50%, 80%)', price: '₦3,500' },
-      { bg: 'hsl(170, 45%, 76%)', price: '₦6,200' },
-    ],
-  },
-  {
-    name: 'Suya Spot',
-    slug: 'suyaspot',
-    emoji: '🍢',
-    gradient: 'linear-gradient(135deg, hsl(10, 75%, 74%), hsl(35, 80%, 72%))',
-    products: [
-      { bg: 'hsl(10, 60%, 78%)', price: '₦2,500' },
-      { bg: 'hsl(35, 65%, 78%)', price: '₦4,000' },
-    ],
-  },
-  {
-    name: 'Coastal Weaves',
-    slug: 'coastalweaves',
-    emoji: '🧺',
-    gradient: 'linear-gradient(135deg, hsl(160, 45%, 76%), hsl(190, 50%, 78%))',
-    products: [
-      { bg: 'hsl(160, 40%, 78%)', price: '₦16,000' },
-      { bg: 'hsl(190, 45%, 80%)', price: '₦21,500' },
+      { bg: '#EEF1F4', price: '₦3,200' },
+      { bg: '#E4E9ED', price: '₦5,800' },
     ],
   },
   {
     name: 'Phone Doctor NG',
     slug: 'phonedoctor',
     emoji: '📱',
-    gradient: 'linear-gradient(135deg, hsl(240, 45%, 78%), hsl(260, 50%, 76%))',
+    gradient: 'linear-gradient(135deg, #0F3D3E, #128C7E)',
     products: [
-      { bg: 'hsl(240, 40%, 80%)', price: '₦8,500' },
-      { bg: 'hsl(260, 45%, 78%)', price: '₦45,000' },
+      { bg: '#EEF1F4', price: '₦8,500' },
+      { bg: '#E4E9ED', price: '₦45,000' },
     ],
   },
 ] as const;
@@ -780,8 +690,8 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
             {STORE_SHOWCASE.map((store, i) => (
               <div
                 key={store.slug}
-                className={`storefront-card animate-fade-in ${i % 2 === 0 ? 'storefront-card--tilt-left' : 'storefront-card--tilt-right'}`}
-                style={{ marginTop: i % 2 === 1 ? -20 : 0, animationDelay: `${i * 100}ms` }}
+                className="storefront-card animate-fade-in"
+                style={{ animationDelay: `${i * 80}ms` }}
               >
                 <div className="storefront-card__bar">
                   <span className="storefront-card__dot" />

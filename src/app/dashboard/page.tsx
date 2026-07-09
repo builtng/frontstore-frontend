@@ -2324,10 +2324,10 @@ export default function DashboardPage() {
 
   // --- Add / Edit Product CRUD Handlers ---
   const openAddProductModal = () => {
-    if (!isPro && products.length >= 3) {
+    if (!isPro && products.length >= 5) {
       openUpgradePrompt(
         'Unlimited products require Pro',
-        'Free stores can publish up to 3 products. Upgrade to Pro when you are ready to list more products and scale your catalog.'
+        'Free stores can publish up to 5 products. Upgrade to Pro when you are ready to list more products and scale your catalog.'
       );
       return;
     }
@@ -8127,7 +8127,7 @@ export default function DashboardPage() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
-                          <span>Limit of 3 products total</span>
+                          <span>Limit of 5 products total</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
