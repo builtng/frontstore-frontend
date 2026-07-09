@@ -12,7 +12,8 @@ import {
   TrendingUp, RefreshCw, Smartphone, Camera, Image as ImageIcon, ChevronDown,
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck, BookOpen,
   ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer, Inbox, MessageSquare, Mail,
-  Briefcase, CreditCard, Landmark, PenLine, Truck, Scale, Sparkles, LineChart, Archive
+  Briefcase, CreditCard, Landmark, PenLine, Truck, Scale, Sparkles, LineChart, Archive,
+  UserPlus, ShieldCheck
 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
@@ -11822,11 +11823,19 @@ export default function DashboardPage() {
       {/* ── MODAL: CREATE INVOICE ── */}
       {isAddInvoiceOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsAddInvoiceOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 600, padding: 24, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create New Invoice</h3>
-              <button onClick={() => setIsAddInvoiceOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+          <div onClick={() => setIsAddInvoiceOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 600, padding: 28, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+
+            {/* Header */}
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon"><FileText size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Create New Invoice</h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>Fill in customer and item details</p>
+                </div>
+              </div>
+              <button onClick={() => setIsAddInvoiceOpen(false)} className="modal-close-btn clickable"><X size={16} /></button>
             </div>
 
             <form onSubmit={async (e) => {
@@ -11848,149 +11857,72 @@ export default function DashboardPage() {
                   body: JSON.stringify(payload)
                 });
                 if (res.ok) {
-                  toast.success("Invoice created successfully.");
+                  toast.success('Invoice created successfully.');
                   setIsAddInvoiceOpen(false);
                   fetchInvoicesData();
                 } else {
                   const errorJson = await res.json();
-                  toast.error(errorJson.message || "Failed to create invoice.");
+                  toast.error(errorJson.message || 'Failed to create invoice.');
                 }
               } catch {
-                toast.error("Network error creating invoice.");
+                toast.error('Network error creating invoice.');
               }
             }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              {/* Customer Name */}
+              <div className="field-group">
+                <label className="form-label">Customer Name <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <input type="text" required value={newInvoiceData.customer_name} onChange={e => setNewInvoiceData({ ...newInvoiceData, customer_name: e.target.value })} className="form-control" placeholder="e.g. Amaka Obi" />
+              </div>
+
+              {/* Email + Phone */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="field-group">
+                  <label className="form-label">Customer Email</label>
+                  <input type="email" value={newInvoiceData.customer_email} onChange={e => setNewInvoiceData({ ...newInvoiceData, customer_email: e.target.value })} className="form-control" placeholder="email@example.com" />
+                </div>
+                <div className="field-group">
+                  <label className="form-label">Customer Phone <span style={{ color: 'var(--danger)' }}>*</span></label>
+                  <input type="text" required value={newInvoiceData.customer_phone} onChange={e => setNewInvoiceData({ ...newInvoiceData, customer_phone: e.target.value })} className="form-control" placeholder="+234 800 000 0000" />
+                </div>
+              </div>
+
+              {/* Due Date */}
+              <div className="field-group">
+                <label className="form-label">Due Date <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <input type="date" required value={newInvoiceData.due_date} onChange={e => setNewInvoiceData({ ...newInvoiceData, due_date: e.target.value })} className="form-control" />
+              </div>
+
+              {/* Invoice Items */}
               <div>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>Customer Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={newInvoiceData.customer_name}
-                  onChange={e => setNewInvoiceData({ ...newInvoiceData, customer_name: e.target.value })}
-                  className="form-control"
-                  style={{ marginTop: 6 }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700 }}>Customer Email</label>
-                  <input
-                    type="email"
-                    value={newInvoiceData.customer_email}
-                    onChange={e => setNewInvoiceData({ ...newInvoiceData, customer_email: e.target.value })}
-                    className="form-control"
-                    style={{ marginTop: 6 }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700 }}>Customer Phone *</label>
-                  <input
-                    type="text"
-                    required
-                    value={newInvoiceData.customer_phone}
-                    onChange={e => setNewInvoiceData({ ...newInvoiceData, customer_phone: e.target.value })}
-                    className="form-control"
-                    style={{ marginTop: 6 }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700 }}>Due Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={newInvoiceData.due_date}
-                    onChange={e => setNewInvoiceData({ ...newInvoiceData, due_date: e.target.value })}
-                    className="form-control"
-                    style={{ marginTop: 6 }}
-                  />
-                </div>
-              </div>
-
-              {/* Items Section */}
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 8 }}>Invoice Items</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <label className="form-label">Invoice Items</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {invoiceItems.map((item, idx) => (
-                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1.2fr auto', gap: 10, alignItems: 'center' }}>
-                      <input
-                        type="text"
-                        placeholder="Item name"
-                        value={item.name}
-                        required
-                        onChange={e => {
-                          const next = [...invoiceItems];
-                          next[idx].name = e.target.value;
-                          setInvoiceItems(next);
-                        }}
-                        className="form-control"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Qty"
-                        value={item.quantity}
-                        min={1}
-                        required
-                        onChange={e => {
-                          const next = [...invoiceItems];
-                          next[idx].quantity = parseInt(e.target.value) || 1;
-                          setInvoiceItems(next);
-                        }}
-                        className="form-control"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Price"
-                        value={item.price}
-                        min={0}
-                        required
-                        onChange={e => {
-                          const next = [...invoiceItems];
-                          next[idx].price = parseFloat(e.target.value) || 0;
-                          setInvoiceItems(next);
-                        }}
-                        className="form-control"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (invoiceItems.length > 1) {
-                            setInvoiceItems(invoiceItems.filter((_, i) => i !== idx));
-                          }
-                        }}
-                        style={{ border: 'none', background: 'none', color: 'var(--danger)' }}
-                        className="clickable"
-                      >
-                        <Trash2 size={16} />
+                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 80px 110px 32px', gap: 8, alignItems: 'center' }}>
+                      <input type="text" placeholder="Item name" value={item.name} required onChange={e => { const next = [...invoiceItems]; next[idx].name = e.target.value; setInvoiceItems(next); }} className="form-control" />
+                      <input type="number" placeholder="Qty" value={item.quantity} min={1} required onChange={e => { const next = [...invoiceItems]; next[idx].quantity = parseInt(e.target.value) || 1; setInvoiceItems(next); }} className="form-control" style={{ textAlign: 'center' }} />
+                      <input type="number" placeholder="Price" value={item.price} min={0} required onChange={e => { const next = [...invoiceItems]; next[idx].price = parseFloat(e.target.value) || 0; setInvoiceItems(next); }} className="form-control" />
+                      <button type="button" onClick={() => { if (invoiceItems.length > 1) setInvoiceItems(invoiceItems.filter((_, i) => i !== idx)); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 'var(--r-sm)', border: '1px solid var(--danger)', background: 'var(--danger-light)', color: 'var(--danger)', cursor: 'pointer' }}>
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setInvoiceItems([...invoiceItems, { name: '', quantity: 1, price: 0 }])}
-                  className="btn btn-outline clickable"
-                  style={{ marginTop: 12, padding: '4px 10px', fontSize: 12 }}
-                >
-                  + Add Item
+                <button type="button" onClick={() => setInvoiceItems([...invoiceItems, { name: '', quantity: 1, price: 0 }])} style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 'var(--r-md)', border: '1.5px dashed var(--border)', background: 'transparent', color: 'var(--primary)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', transition: 'all var(--t-fast)' }}>
+                  <Plus size={13} /> Add Line Item
                 </button>
               </div>
 
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>Notes / Instructions</label>
-                <textarea
-                  value={newInvoiceData.notes}
-                  onChange={e => setNewInvoiceData({ ...newInvoiceData, notes: e.target.value })}
-                  className="form-control"
-                  style={{ marginTop: 6, height: 60 }}
-                />
+              {/* Notes */}
+              <div className="field-group">
+                <label className="form-label">Notes / Instructions</label>
+                <textarea value={newInvoiceData.notes} onChange={e => setNewInvoiceData({ ...newInvoiceData, notes: e.target.value })} className="form-control" placeholder="Payment terms, delivery notes..." style={{ height: 72 }} />
               </div>
 
-              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                <button type="button" onClick={() => setIsAddInvoiceOpen(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
-                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1, padding: 12 }}>Save Invoice</button>
+              {/* Footer */}
+              <div className="modal-footer">
+                <button type="button" onClick={() => setIsAddInvoiceOpen(false)} className="btn btn-outline clickable">Cancel</button>
+                <button type="submit" className="btn btn-primary clickable">Save Invoice</button>
               </div>
             </form>
           </div>
@@ -12000,21 +11932,31 @@ export default function DashboardPage() {
       {/* ── MODAL: ADJUST INVENTORY STOCK ── */}
       {isAdjustStockOpen && adjustingProduct && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsAdjustStockOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 450, padding: 24, zIndex: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Adjust Stock Count</h3>
-              <button onClick={() => setIsAdjustStockOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+          <div onClick={() => setIsAdjustStockOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 450, padding: 28, zIndex: 10 }}>
+
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon"><Package size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Adjust Stock Count</h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>Update inventory for this product</p>
+                </div>
+              </div>
+              <button onClick={() => setIsAdjustStockOpen(false)} className="modal-close-btn clickable"><X size={16} /></button>
             </div>
 
-            <div style={{ marginBottom: 14 }}>
-              <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>PRODUCT</span>
-              <div style={{ fontSize: 14, fontWeight: 800, marginTop: 4 }}>{adjustingProduct.name}</div>
-              {adjustingVariant && (
-                <div style={{ fontSize: 12.5, color: 'var(--primary)', marginTop: 2, fontWeight: 700 }}>
-                  Variant: {adjustingVariant.size ? `Size ${adjustingVariant.size}` : ''} {adjustingVariant.color ? `Color ${adjustingVariant.color}` : ''}
-                </div>
-              )}
+            {/* Product info chip */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-2)', padding: '10px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', marginBottom: 20 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Product</div>
+                <div style={{ fontSize: 14, fontWeight: 800, marginTop: 2, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{adjustingProduct.name}</div>
+                {adjustingVariant && (
+                  <div style={{ fontSize: 12, color: 'var(--primary)', marginTop: 2, fontWeight: 700 }}>
+                    {adjustingVariant.size ? `Size ${adjustingVariant.size}` : ''}{adjustingVariant.color ? ` · Color ${adjustingVariant.color}` : ''}
+                  </div>
+                )}
+              </div>
             </div>
 
             <form onSubmit={async (e) => {
@@ -12049,50 +11991,34 @@ export default function DashboardPage() {
               } catch {
                 toast.error("Network error adjusting stock.");
               }
-            }} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>Adjustment Type</label>
-                <select
+            }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              <div className="field-group">
+                <label className="form-label">Adjustment Type</label>
+                <SearchableSelect
                   value={adjustType}
-                  onChange={e => setAdjustType(e.target.value as any)}
-                  className="form-control"
-                  style={{ marginTop: 6 }}
-                >
-                  <option value="restock">Restock (Add to stock count)</option>
-                  <option value="manual">Manual Adjustment (Set new exact count or deduct)</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>
-                  Quantity change value (e.g. 10 to add, -5 to deduct) *
-                </label>
-                <input
-                  type="number"
-                  required
-                  value={adjustQty}
-                  onChange={e => setAdjustQty(e.target.value)}
-                  placeholder="e.g. 5 or -2"
-                  className="form-control"
-                  style={{ marginTop: 6 }}
+                  onChange={val => setAdjustType(val as any)}
+                  options={[
+                    { value: 'restock', label: 'Restock', sublabel: 'Add units to current stock count' },
+                    { value: 'manual', label: 'Manual Adjustment', sublabel: 'Set exact count or deduct units' },
+                  ]}
+                  placeholder="Select adjustment type"
                 />
               </div>
 
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700 }}>Reason / Note</label>
-                <input
-                  type="text"
-                  value={adjustReason}
-                  onChange={e => setAdjustReason(e.target.value)}
-                  placeholder="e.g. Damaged inventory or Restocking new batch"
-                  className="form-control"
-                  style={{ marginTop: 6 }}
-                />
+              <div className="field-group">
+                <label className="form-label">Quantity <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <input type="number" required value={adjustQty} onChange={e => setAdjustQty(e.target.value)} placeholder="e.g. 10 to add, -5 to deduct" className="form-control" />
               </div>
 
-              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                <button type="button" onClick={() => setIsAdjustStockOpen(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
-                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1, padding: 12 }}>Adjust Stock</button>
+              <div className="field-group">
+                <label className="form-label">Reason / Note</label>
+                <input type="text" value={adjustReason} onChange={e => setAdjustReason(e.target.value)} placeholder="e.g. Damaged goods, New batch restocked" className="form-control" />
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" onClick={() => setIsAdjustStockOpen(false)} className="btn btn-outline clickable">Cancel</button>
+                <button type="submit" className="btn btn-primary clickable">Adjust Stock</button>
               </div>
             </form>
           </div>
@@ -13645,12 +13571,20 @@ export default function DashboardPage() {
       {/* ── MODAL: INVITE STAFF MEMBER ── */}
       {isInviteStaffOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsInviteStaffOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 450, padding: 24, zIndex: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Invite Staff Member</h3>
-              <button onClick={() => setIsInviteStaffOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+          <div onClick={() => setIsInviteStaffOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 460, padding: 28, zIndex: 10 }}>
+
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon"><UserPlus size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Invite Staff Member</h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>Send an email invite to join your team</p>
+                </div>
+              </div>
+              <button onClick={() => setIsInviteStaffOpen(false)} className="modal-close-btn clickable"><X size={16} /></button>
             </div>
+
             <form onSubmit={async (e) => {
               e.preventDefault();
               try {
@@ -13671,29 +13605,34 @@ export default function DashboardPage() {
                   toast.error(json.message || 'Failed to send invite.');
                 }
               } catch { toast.error('Error sending invitation.'); }
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Email Address</label>
-                  <input type="email" value={inviteEmail} onChange={(e: any) => setInviteEmail(e.target.value)} required className="input" style={{ width: '100%' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>WhatsApp Phone (Optional)</label>
-                  <input type="text" value={invitePhone} onChange={(e: any) => setInvitePhone(e.target.value)} className="input" style={{ width: '100%' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Select Role</label>
-                  <select value={inviteRoleId} onChange={(e: any) => setInviteRoleId(e.target.value)} required className="input" style={{ width: '100%' }}>
-                    <option value="">-- Choose Role --</option>
-                    {teamRoles.map((role: any) => (
-                      <option key={role.id} value={role.id}>{role.name}</option>
-                    ))}
-                  </select>
-                </div>
+            }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              <div className="field-group">
+                <label className="form-label">Email Address <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <input type="email" value={inviteEmail} onChange={(e: any) => setInviteEmail(e.target.value)} required className="form-control" placeholder="teammate@example.com" />
               </div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button type="button" onClick={() => setIsInviteStaffOpen(false)} className="btn btn-outline clickable" style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1 }}>Send Invite</button>
+
+              <div className="field-group">
+                <label className="form-label">WhatsApp Phone <span style={{ color: 'var(--text-faint)', fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>(Optional)</span></label>
+                <input type="text" value={invitePhone} onChange={(e: any) => setInvitePhone(e.target.value)} className="form-control" placeholder="+234 800 000 0000" />
+              </div>
+
+              <div className="field-group">
+                <label className="form-label">Assign Role <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <SearchableSelect
+                  value={inviteRoleId}
+                  onChange={val => setInviteRoleId(val)}
+                  options={[
+                    { value: '', label: '— Choose a role —' },
+                    ...teamRoles.map((role: any) => ({ value: role.id, label: role.name, sublabel: role.description || undefined }))
+                  ]}
+                  placeholder="Search roles..."
+                />
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" onClick={() => setIsInviteStaffOpen(false)} className="btn btn-outline clickable">Cancel</button>
+                <button type="submit" className="btn btn-primary clickable">Send Invite</button>
               </div>
             </form>
           </div>
@@ -13703,18 +13642,23 @@ export default function DashboardPage() {
       {/* ── MODAL: CREATE CUSTOM ROLE ── */}
       {isCreateRoleOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsCreateRoleOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 450, padding: 24, zIndex: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create Custom Role</h3>
-              <button onClick={() => setIsCreateRoleOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+          <div onClick={() => setIsCreateRoleOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 460, padding: 28, zIndex: 10 }}>
+
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon"><ShieldCheck size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Create Custom Role</h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>Define a role and select its permissions</p>
+                </div>
+              </div>
+              <button onClick={() => setIsCreateRoleOpen(false)} className="modal-close-btn clickable"><X size={16} /></button>
             </div>
+
             <form onSubmit={async (e) => {
               e.preventDefault();
-              if (newRolePermissions.length === 0) {
-                toast.warning('Please select at least one permission.');
-                return;
-              }
+              if (newRolePermissions.length === 0) { toast.warning('Please select at least one permission.'); return; }
               try {
                 const res = await fetch(`${apiUrl}/v1/team/roles`, {
                   method: 'POST',
@@ -13732,43 +13676,56 @@ export default function DashboardPage() {
                   toast.error(json.message || 'Failed to create role.');
                 }
               } catch { toast.error('Error creating custom role.'); }
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Role Name</label>
-                  <input type="text" value={newRoleName} onChange={(e: any) => setNewRoleName(e.target.value)} required placeholder="e.g. Sales Representative" className="input" style={{ width: '100%' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 6 }}>Select Permissions</label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 150, overflowY: 'auto' }}>
-                    {[
-                      { id: 'manage team members', label: 'Manage Team Members' },
-                      { id: 'view orders', label: 'View Orders' },
-                      { id: 'edit orders', label: 'Edit / Process Orders & Refunds' },
-                      { id: 'access analytics', label: 'View Profit & Expenses' },
-                      { id: 'access customer data', label: 'Access Inbox & Customer Profile' }
-                    ].map(p => (
-                      <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={newRolePermissions.includes(p.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setNewRolePermissions(prev => [...prev, p.id]);
-                            } else {
-                              setNewRolePermissions(prev => prev.filter(x => x !== p.id));
-                            }
-                          }}
-                        />
-                        {p.label}
-                      </label>
-                    ))}
-                  </div>
+            }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              <div className="field-group">
+                <label className="form-label">Role Name <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <input type="text" value={newRoleName} onChange={(e: any) => setNewRoleName(e.target.value)} required placeholder="e.g. Sales Representative" className="form-control" />
+              </div>
+
+              <div>
+                <label className="form-label">Permissions <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 2 }}>
+                  {[
+                    { id: 'manage team members', label: 'Manage Team Members', desc: 'Invite, edit, and remove staff' },
+                    { id: 'view orders', label: 'View Orders', desc: 'Read-only access to order data' },
+                    { id: 'edit orders', label: 'Edit / Process Orders & Refunds', desc: 'Update statuses and process refunds' },
+                    { id: 'access analytics', label: 'View Profit & Expenses', desc: 'Access financial reports' },
+                    { id: 'access customer data', label: 'Inbox & Customer Profiles', desc: 'Read and reply to customer messages' },
+                  ].map(p => {
+                    const checked = newRolePermissions.includes(p.id);
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => {
+                          if (checked) setNewRolePermissions(prev => prev.filter(x => x !== p.id));
+                          else setNewRolePermissions(prev => [...prev, p.id]);
+                        }}
+                        className={`permission-row${checked ? ' checked' : ''}`}
+                        style={{ cursor: 'pointer', justifyContent: 'space-between' }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13 }}>{p.label}</div>
+                          <div style={{ fontSize: 11.5, opacity: 0.75, marginTop: 2 }}>{p.desc}</div>
+                        </div>
+                        <span onClick={e => e.stopPropagation()}>
+                          <Toggle
+                            checked={checked}
+                            onChange={(val) => {
+                              if (val) setNewRolePermissions(prev => [...prev, p.id]);
+                              else setNewRolePermissions(prev => prev.filter(x => x !== p.id));
+                            }}
+                          />
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button type="button" onClick={() => setIsCreateRoleOpen(false)} className="btn btn-outline clickable" style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1 }}>Create Role</button>
+
+              <div className="modal-footer">
+                <button type="button" onClick={() => setIsCreateRoleOpen(false)} className="btn btn-outline clickable">Cancel</button>
+                <button type="submit" className="btn btn-primary clickable">Create Role</button>
               </div>
             </form>
           </div>
@@ -13778,12 +13735,20 @@ export default function DashboardPage() {
       {/* ── MODAL: LOG EXPENSE ── */}
       {isAddExpenseOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsAddExpenseOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 450, padding: 24, zIndex: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Log Business Expense</h3>
-              <button onClick={() => setIsAddExpenseOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+          <div onClick={() => setIsAddExpenseOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 460, padding: 28, zIndex: 10 }}>
+
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon" style={{ background: 'var(--danger-light)', color: 'var(--danger)' }}><Receipt size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Log Business Expense</h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>Track spending for profit calculations</p>
+                </div>
+              </div>
+              <button onClick={() => setIsAddExpenseOpen(false)} className="modal-close-btn clickable"><X size={16} /></button>
             </div>
+
             <form onSubmit={async (e) => {
               e.preventDefault();
               try {
@@ -13802,34 +13767,43 @@ export default function DashboardPage() {
                   toast.error(json.message || 'Failed to log expense.');
                 }
               } catch { toast.error('Error logging expense.'); }
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Amount ({store?.currency_code})</label>
-                  <input type="number" step="0.01" min="0.01" value={newExpense.amount} onChange={(e: any) => setNewExpense(prev => ({ ...prev, amount: e.target.value }))} required className="input" style={{ width: '100%' }} />
+            }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="field-group">
+                  <label className="form-label">Amount ({store?.currency_code}) <span style={{ color: 'var(--danger)' }}>*</span></label>
+                  <input type="number" step="0.01" min="0.01" value={newExpense.amount} onChange={(e: any) => setNewExpense(prev => ({ ...prev, amount: e.target.value }))} required className="form-control" placeholder="0.00" />
                 </div>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Category</label>
-                  <select value={newExpense.category} onChange={(e: any) => setNewExpense(prev => ({ ...prev, category: e.target.value }))} required className="input" style={{ width: '100%' }}>
-                    <option value="inventory">Inventory / Product Sourcing</option>
-                    <option value="marketing">Marketing & Ads</option>
-                    <option value="operations">Operations & Utilities</option>
-                    <option value="staff">Staff Wages</option>
-                    <option value="miscellaneous">Miscellaneous</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Date Incurred</label>
-                  <input type="date" value={newExpense.incurred_at} onChange={(e: any) => setNewExpense(prev => ({ ...prev, incurred_at: e.target.value }))} required className="input" style={{ width: '100%' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Description / Note</label>
-                  <textarea value={newExpense.description} onChange={(e: any) => setNewExpense(prev => ({ ...prev, description: e.target.value }))} className="input" style={{ width: '100%', height: 60, resize: 'none' }} placeholder="e.g. Paid for Facebook ads campaign" />
+                <div className="field-group">
+                  <label className="form-label">Date Incurred <span style={{ color: 'var(--danger)' }}>*</span></label>
+                  <input type="date" value={newExpense.incurred_at} onChange={(e: any) => setNewExpense(prev => ({ ...prev, incurred_at: e.target.value }))} required className="form-control" />
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button type="button" onClick={() => setIsAddExpenseOpen(false)} className="btn btn-outline clickable" style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1 }}>Log Expense</button>
+
+              <div className="field-group">
+                <label className="form-label">Category <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <SearchableSelect
+                  value={newExpense.category}
+                  onChange={val => setNewExpense(prev => ({ ...prev, category: val }))}
+                  options={[
+                    { value: 'inventory', label: 'Inventory / Product Sourcing', sublabel: 'Goods purchased for resale' },
+                    { value: 'marketing', label: 'Marketing & Ads', sublabel: 'Paid promotions, social media ads' },
+                    { value: 'operations', label: 'Operations & Utilities', sublabel: 'Rent, power, internet, tools' },
+                    { value: 'staff', label: 'Staff Wages', sublabel: 'Salaries, commissions, bonuses' },
+                    { value: 'miscellaneous', label: 'Miscellaneous', sublabel: 'Other business costs' },
+                  ]}
+                  placeholder="Select a category"
+                />
+              </div>
+
+              <div className="field-group">
+                <label className="form-label">Description / Note</label>
+                <textarea value={newExpense.description} onChange={(e: any) => setNewExpense(prev => ({ ...prev, description: e.target.value }))} className="form-control" placeholder="e.g. Paid for Facebook ads campaign" style={{ height: 72 }} />
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" onClick={() => setIsAddExpenseOpen(false)} className="btn btn-outline clickable">Cancel</button>
+                <button type="submit" className="btn btn-primary clickable">Log Expense</button>
               </div>
             </form>
           </div>
@@ -13940,12 +13914,20 @@ export default function DashboardPage() {
       {/* ── MODAL: CREATE QUICK REPLY ── */}
       {isAddQuickReplyOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsAddQuickReplyOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 400, padding: 24, zIndex: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create Quick Reply</h3>
-              <button onClick={() => setIsAddQuickReplyOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+          <div onClick={() => setIsAddQuickReplyOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 420, padding: 28, zIndex: 10 }}>
+
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon"><Zap size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Create Quick Reply</h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>Save a shortcut for fast WhatsApp responses</p>
+                </div>
+              </div>
+              <button onClick={() => setIsAddQuickReplyOpen(false)} className="modal-close-btn clickable"><X size={16} /></button>
             </div>
+
             <form onSubmit={async (e) => {
               e.preventDefault();
               try {
@@ -13962,20 +13944,22 @@ export default function DashboardPage() {
                   fetchInboxData();
                 }
               } catch { toast.error('Error saving quick reply'); }
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Shortcut Keyword</label>
-                  <input type="text" placeholder="/thanks" value={newQuickReplyShortcut} onChange={(e: any) => setNewQuickReplyShortcut(e.target.value)} required className="input" style={{ width: '100%' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Reply Message Content</label>
-                  <textarea value={newQuickReplyMessage} onChange={(e: any) => setNewQuickReplyMessage(e.target.value)} required className="input" style={{ width: '100%', height: 80, resize: 'none' }} />
-                </div>
+            }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              <div className="field-group">
+                <label className="form-label">Shortcut Keyword <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <input type="text" placeholder="/thanks, /hours, /price" value={newQuickReplyShortcut} onChange={(e: any) => setNewQuickReplyShortcut(e.target.value)} required className="form-control" />
+                <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 5 }}>Type this keyword in inbox to instantly paste the reply.</p>
               </div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button type="button" onClick={() => setIsAddQuickReplyOpen(false)} className="btn btn-outline clickable" style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1 }}>Save</button>
+
+              <div className="field-group">
+                <label className="form-label">Reply Message <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <textarea value={newQuickReplyMessage} onChange={(e: any) => setNewQuickReplyMessage(e.target.value)} required className="form-control" placeholder="Thank you for your order! We'll get back to you shortly." style={{ height: 100 }} />
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" onClick={() => setIsAddQuickReplyOpen(false)} className="btn btn-outline clickable">Cancel</button>
+                <button type="submit" className="btn btn-primary clickable">Save Reply</button>
               </div>
             </form>
           </div>
@@ -13985,12 +13969,20 @@ export default function DashboardPage() {
       {/* ── MODAL: CREATE MESSAGE TEMPLATE ── */}
       {isAddTemplateOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsAddTemplateOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} />
-          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 400, padding: 24, zIndex: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create Message Template</h3>
-              <button onClick={() => setIsAddTemplateOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }} className="clickable"><X size={18} /></button>
+          <div onClick={() => setIsAddTemplateOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 420, padding: 28, zIndex: 10 }}>
+
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon"><MessageSquare size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Create Message Template</h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>Reusable messages for customer comms</p>
+                </div>
+              </div>
+              <button onClick={() => setIsAddTemplateOpen(false)} className="modal-close-btn clickable"><X size={16} /></button>
             </div>
+
             <form onSubmit={async (e) => {
               e.preventDefault();
               try {
@@ -14007,20 +13999,21 @@ export default function DashboardPage() {
                   fetchInboxData();
                 }
               } catch { toast.error('Error saving message template'); }
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Template Name</label>
-                  <input type="text" placeholder="Greeting / FAQ" value={newTemplateName} onChange={(e: any) => setNewTemplateName(e.target.value)} required className="input" style={{ width: '100%' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, display: 'block', marginBottom: 4 }}>Template Content</label>
-                  <textarea value={newTemplateContent} onChange={(e: any) => setNewTemplateContent(e.target.value)} required className="input" style={{ width: '100%', height: 100, resize: 'none' }} />
-                </div>
+            }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              <div className="field-group">
+                <label className="form-label">Template Name <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <input type="text" placeholder="e.g. Greeting, Order Confirmation, FAQ" value={newTemplateName} onChange={(e: any) => setNewTemplateName(e.target.value)} required className="form-control" />
               </div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button type="button" onClick={() => setIsAddTemplateOpen(false)} className="btn btn-outline clickable" style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn btn-primary clickable" style={{ flex: 1 }}>Save</button>
+
+              <div className="field-group">
+                <label className="form-label">Message Content <span style={{ color: 'var(--danger)' }}>*</span></label>
+                <textarea value={newTemplateContent} onChange={(e: any) => setNewTemplateContent(e.target.value)} required className="form-control" placeholder="Hello! Thanks for reaching out to {store_name}..." style={{ height: 110 }} />
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" onClick={() => setIsAddTemplateOpen(false)} className="btn btn-outline clickable">Cancel</button>
+                <button type="submit" className="btn btn-primary clickable">Save Template</button>
               </div>
             </form>
           </div>
