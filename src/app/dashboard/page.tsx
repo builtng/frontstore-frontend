@@ -466,6 +466,7 @@ export default function DashboardPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [proMonthlyPrice, setProMonthlyPrice] = useState(1500);
   const [proYearlyPrice, setProYearlyPrice] = useState(15000);
+  const [freeProductLimit, setFreeProductLimit] = useState(5);
 
 
   // --- Active Dialog/Modal States ---
@@ -1334,6 +1335,8 @@ export default function DashboardPage() {
         const yearly = Number(json?.data?.pro_yearly_price);
         if (!Number.isNaN(monthly) && monthly > 0) setProMonthlyPrice(monthly);
         if (!Number.isNaN(yearly) && yearly > 0) setProYearlyPrice(yearly);
+        const productLimit = Number(json?.data?.free_plan_product_limit);
+        if (!Number.isNaN(productLimit) && productLimit > 0) setFreeProductLimit(productLimit);
         if (json?.data?.domain_target_cname) setDomainTargetCname(json.data.domain_target_cname);
         if (json?.data?.domain_target_ip) setDomainTargetIp(json.data.domain_target_ip);
       })
@@ -2324,10 +2327,10 @@ export default function DashboardPage() {
 
   // --- Add / Edit Product CRUD Handlers ---
   const openAddProductModal = () => {
-    if (!isPro && products.length >= 5) {
+    if (!isPro && products.length >= freeProductLimit) {
       openUpgradePrompt(
         'Unlimited products require Pro',
-        'Free stores can publish up to 5 products. Upgrade to Pro when you are ready to list more products and scale your catalog.'
+        `Free stores can publish up to ${freeProductLimit} products. Upgrade to Pro when you are ready to list more products and scale your catalog.`
       );
       return;
     }
@@ -8127,7 +8130,7 @@ export default function DashboardPage() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
-                          <span>Limit of 5 products total</span>
+                          <span>Limit of {freeProductLimit} products total</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />

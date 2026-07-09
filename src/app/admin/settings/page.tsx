@@ -409,6 +409,15 @@ export default function AdminSettingsPage() {
                   description="Price charged for the Pro Yearly plan, in Naira."
                   required
                 />
+                <Field
+                  label="Free Plan Product Limit"
+                  type="number"
+                  value={String(settings.free_plan_product_limit)}
+                  onChange={(value) => setSettings({ ...settings, free_plan_product_limit: value })}
+                  placeholder="e.g. 5"
+                  description="Maximum number of products a Free plan store can list before being prompted to upgrade to Pro."
+                  required
+                />
               </SettingsGroup>
             )}
 
