@@ -322,10 +322,10 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
 
   const [appName, setAppName] = useState(initialSettings?.app_name || 'Frontstore');
   const [logoUrl, setLogoUrl] = useState(initialSettings?.logo_url || '');
-  const [systemDomain, setSystemDomain] = useState(initialSettings?.system_domain || 'frontstore.app');
+  const [systemDomain, setSystemDomain] = useState(initialSettings?.system_domain || 'frontstore.ng');
   const [homeContent, setHomeContent] = useState<HomeContent>(() => mergeHomeContent(initialSettings?.homepage_content));
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
   useEffect(() => {
     setMounted(true);
@@ -685,7 +685,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
                   <span className="storefront-card__dot" />
                   <span className="storefront-card__dot" />
                   <span className="storefront-card__dot" />
-                  <span className="storefront-card__url">frontstore.app/{store.slug}</span>
+                  <span className="storefront-card__url">frontstore.ng/{store.slug}</span>
                 </div>
                 <div className="storefront-card__banner" style={{ background: store.gradient }}>
                   <div className="storefront-card__logo">{store.emoji}</div>

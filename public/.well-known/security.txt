@@ -1,16 +1,16 @@
-Contact: mailto:security@frontstore.app
+Contact: mailto:security@frontstore.ng
 Expires: 2027-07-01T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://frontstore.app/.well-known/security.txt
-Policy: https://frontstore.app/privacy
-Acknowledgments: https://frontstore.app/security-acknowledgments
-Encryption: https://frontstore.app/.well-known/pgp-key.txt
+Canonical: https://frontstore.ng/.well-known/security.txt
+Policy: https://frontstore.ng/privacy
+Acknowledgments: https://frontstore.ng/security-acknowledgments
+Encryption: https://frontstore.ng/.well-known/pgp-key.txt
 
 # Frontstore Security Policy
 # Frontstore Technologies — Africa's Conversational Commerce Platform
 #
-# If you discover a security vulnerability in frontstore.app or
-# any of our APIs (api.frontstore.app), please report it responsibly.
+# If you discover a security vulnerability in frontstore.ng or
+# any of our APIs (api.frontstore.ng), please report it responsibly.
 #
 # We take all security reports seriously and commit to:
 # - Acknowledging your report within 24 hours
@@ -20,5 +20,5 @@ Encryption: https://frontstore.app/.well-known/pgp-key.txt
 # Please do NOT publicly disclose any vulnerabilities before we have
 # had a chance to address them.
 #
-# In scope: frontstore.app, api.frontstore.app, merchant storefronts
+# In scope: frontstore.ng, api.frontstore.ng, merchant storefronts
 # Out of scope: third-party integrations (Paystack, Supabase)

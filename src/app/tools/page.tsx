@@ -8,7 +8,7 @@ import { FREE_TOOLS } from '@/utils/toolsData';
 export const metadata: Metadata = {
   title: 'Free Business Calculators for Nigerian & African Merchants – Frontstore',
   description: 'Free profit margin, selling price, break-even, and VAT calculators built for small business owners selling on WhatsApp and social media in Africa.',
-  alternates: { canonical: 'https://frontstore.app/tools' },
+  alternates: { canonical: 'https://frontstore.ng/tools' },
 };
 
 export default function ToolsIndexPage() {

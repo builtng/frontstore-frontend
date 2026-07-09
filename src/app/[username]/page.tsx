@@ -9,7 +9,7 @@ interface PageProps {
 }
 
 async function getStoreData(username: string) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/store/${username}`, {
       next: { revalidate: 60 }, // Cache store details for 60 seconds
@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const { store } = data;
-  const systemDomain = data.system_domain || 'frontstore.app';
+  const systemDomain = data.system_domain || 'frontstore.ng';
   const appName = safeText(data.app_name, 'Front Store');
   const routeUsername = safePathSegment(username);
   const storeUsername = safePathSegment(store.username) || routeUsername;
@@ -111,7 +111,7 @@ export default async function Page({ params }: PageProps) {
   const data = await getStoreData(username);
   
   if (!data || !data.store) {
-    const supportEmail = data?.support_email || 'hello@frontstore.app';
+    const supportEmail = data?.support_email || 'hello@frontstore.ng';
     return (
       <div style={{
         minHeight: '100vh',
@@ -267,7 +267,7 @@ export default async function Page({ params }: PageProps) {
   }
 
   // Inject Google Schema.org structured data (JSON-LD)
-  const systemDomain = data?.system_domain || 'frontstore.app';
+  const systemDomain = data?.system_domain || 'frontstore.ng';
   const routeUsername = safePathSegment(username);
   const storeUsername = safePathSegment(data?.store?.username) || routeUsername;
   const rawStoreName = safeText(data?.store?.store_name, storeUsername || 'Store');

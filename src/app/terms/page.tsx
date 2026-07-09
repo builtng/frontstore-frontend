@@ -54,7 +54,7 @@ export default function TermsPage() {
                 <Globe size={20} style={{ color: 'var(--primary)' }} /> 1. Overview & Infrastructure Scope
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                These Terms of Service (&quot;Terms&quot;) govern your access to and use of the applications, APIs, subdomains (e.g., yourbrand.frontstore.app), WhatsApp integrations, and services operated by <strong>Frontstore</strong> (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;). 
+                These Terms of Service (&quot;Terms&quot;) govern your access to and use of the applications, APIs, subdomains (e.g., yourbrand.frontstore.ng), WhatsApp integrations, and services operated by <strong>Frontstore</strong> (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;). 
               </p>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 Frontstore is a comprehensive <strong>Conversational Commerce Infrastructure</strong> designed to convert informal chat-based interactions into structured business flows. By creating a merchant account, you establish a contract with us to access this infrastructure.
@@ -232,7 +232,7 @@ export default function TermsPage() {
                 Need help clarifying our terms, setting up merchant verification, or resolving an escrow transaction dispute?
               </p>
               <a
-                href="mailto:compliance@frontstore.app"
+                href="mailto:compliance@frontstore.ng"
                 className="btn btn-outline"
                 style={{ width: '100%', padding: '10px', fontSize: 12.5, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}
               >

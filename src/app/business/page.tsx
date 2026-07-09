@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import BusinessPageClient from '../BusinessPageClient';
 
 async function getPublicSettings() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/settings`, {
       next: { revalidate: 60 },
@@ -20,8 +20,8 @@ async function getPublicSettings() {
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings();
   const appName = settings?.app_name || 'Frontstore';
-  const logoUrl = settings?.logo_url || 'https://frontstore.app/icon.png';
-  const systemDomain = settings?.system_domain || 'frontstore.app';
+  const logoUrl = settings?.logo_url || 'https://frontstore.ng/icon.png';
+  const systemDomain = settings?.system_domain || 'frontstore.ng';
 
   const title = `${appName} for Business - Conversational Commerce Platform`;
   const description = 'Build a beautiful online store, accept orders, manage customers, and grow your business from a single WhatsApp-first platform.';

@@ -11,7 +11,7 @@ const tool = getTool('vat-calculator')!;
 export const metadata: Metadata = {
   title: tool.metaTitle,
   description: tool.metaDescription,
-  alternates: { canonical: 'https://frontstore.app/tools/vat-calculator' },
+  alternates: { canonical: 'https://frontstore.ng/tools/vat-calculator' },
 };
 
 const FAQS = [
@@ -34,7 +34,7 @@ const FAQS = [
 ];
 
 export default function VatCalculatorPage() {
-  const url = 'https://frontstore.app/tools/vat-calculator';
+  const url = 'https://frontstore.ng/tools/vat-calculator';
 
   const faqJsonLd = {
     '@context': 'https://schema.org',

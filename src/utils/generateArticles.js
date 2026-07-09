@@ -46,7 +46,7 @@ const ORIGINAL_ARTICLES = [
     faqs: [
       {
         question: 'Do I need a website domain to sell clothes on WhatsApp in Lagos?',
-        answer: 'No, you do not need a custom domain or hosting. Platforms like frontstore give you a direct storefront link (e.g. frontstore.app/yourboutique) where customers can browse and order instantly.'
+        answer: 'No, you do not need a custom domain or hosting. Platforms like frontstore give you a direct storefront link (e.g. frontstore.ng/yourboutique) where customers can browse and order instantly.'
       },
       {
         question: 'How do I collect payments from customers in Lagos?',
@@ -859,7 +859,7 @@ function buildStateArticle(state) {
   const faqs = [
     {
       question: `Do I need a website to sell online in ${displayName}?`,
-      answer: `No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it.`
+      answer: `No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it.`
     },
     {
       question: `How do buyers in ${displayName} usually pay?`,

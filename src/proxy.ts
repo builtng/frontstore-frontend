@@ -31,6 +31,8 @@ const RESERVED_SUBDOMAINS = new Set([
   'security', 'abuse', 'compliance', 'copyright',
 ]);
 
+// frontstore.ng is the default platform domain; frontstore.app is kept running
+// alongside it (not redirected) so existing links and bookmarks keep working.
 export function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const hostname = request.headers.get('host') || '';
@@ -63,18 +65,21 @@ export function proxy(request: NextRequest) {
   }
 
   // Identify platform domains & local hosts to distinguish custom domains
-  const isMainDomain = cleanHost === 'frontstore.app' || cleanHost === 'www.frontstore.app';
+  const isMainDomain =
+    cleanHost === 'frontstore.ng' || cleanHost === 'www.frontstore.ng' ||
+    cleanHost === 'frontstore.app' || cleanHost === 'www.frontstore.app';
   const isLocalMain = cleanHost === 'localhost' || cleanHost === 'lvh.me' || cleanHost === 'www.localhost' || cleanHost === 'www.lvh.me';
 
   // Any *.localhost or *.lvh.me host is a loopback host — never a custom domain.
   const isLoopbackHost = isLocal;
 
   // A domain is a platform domain if it's one of our main domains, a loopback host,
-  // or ends with one of our domain suffixes (meaning it's a subdomain like admin.frontstore.app).
+  // or ends with one of our domain suffixes (meaning it's a subdomain like admin.frontstore.ng).
   const isPlatformDomain =
     isMainDomain ||
     isLocalMain ||
     isLoopbackHost ||
+    cleanHost.endsWith('.frontstore.ng') ||
     cleanHost.endsWith('.frontstore.app') ||
     cleanHost.endsWith('.localhost') ||
     cleanHost.endsWith('.lvh.me');

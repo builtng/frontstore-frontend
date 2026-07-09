@@ -72,7 +72,7 @@ const DEMO_CHAT = [
   { from: 'customer', text: 'Hi! Is the Ankara Wrap Dress still available in size M?' },
   { from: 'merchant', text: 'Yes it is 🙌 Size M, ₦18,500. Want me to send the payment link?' },
   { from: 'customer', text: 'Yes please' },
-  { from: 'merchant', text: "Here you go: frontstore.app/pay/ord-1042 — once paid I'll ship same day 📦" },
+  { from: 'merchant', text: "Here you go: frontstore.ng/pay/ord-1042 — once paid I'll ship same day 📦" },
   { from: 'customer', text: 'Just paid ✅' },
 ] as const;
 
@@ -247,7 +247,7 @@ export default function DemoPage() {
                 <span className="demo-desktop-text">Sync Live</span>
               </button>
               <button
-                onClick={() => locked('Your store gets a real shareable link like frontstore.app/yourstore.')}
+                onClick={() => locked('Your store gets a real shareable link like frontstore.ng/yourstore.')}
                 className="btn btn-primary clickable"
                 style={{ padding: '8px 16px', fontSize: 12, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
               >

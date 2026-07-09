@@ -366,7 +366,7 @@ export default function AdminSettingsPage() {
                   label="System Domain"
                   value={settings.system_domain}
                   onChange={(value) => setSettings({ ...settings, system_domain: value })}
-                  placeholder="e.g. frontstore.app"
+                  placeholder="e.g. frontstore.ng"
                   description="The main platform domain used for link generation and routing."
                   required
                 />
@@ -374,7 +374,7 @@ export default function AdminSettingsPage() {
                   label="Support Email"
                   value={settings.support_email}
                   onChange={(value) => setSettings({ ...settings, support_email: value })}
-                  placeholder="e.g. hello@frontstore.app"
+                  placeholder="e.g. hello@frontstore.ng"
                   description="Support email address displayed on error/help screens."
                   type="email"
                 />
@@ -579,7 +579,7 @@ export default function AdminSettingsPage() {
                       label="Didit Callback URL"
                       value={settings.didit_callback_url}
                       onChange={(value) => setSettings({ ...settings, didit_callback_url: value })}
-                      placeholder="https://frontstore.app"
+                      placeholder="https://frontstore.ng"
                       description="Where the merchant's browser lands after finishing the hosted KYC flow. Not the webhook — register that separately in the Didit console."
                       full={true}
                     />

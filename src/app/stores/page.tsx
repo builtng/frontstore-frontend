@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import StoresClient from './StoresClient';
 
 async function getStores() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/stores`, {
       next: { revalidate: 60 }, // Cache store list for 60 seconds
@@ -30,13 +30,13 @@ export default async function StoresDirectoryPage() {
     '@type': 'CollectionPage',
     name: 'Explore Stores on Frontstore',
     description: 'Directory of verified WhatsApp-native stores on Frontstore.',
-    url: 'https://frontstore.app/stores',
+    url: 'https://frontstore.ng/stores',
     mainEntity: {
       '@type': 'ItemList',
       itemListElement: stores.slice(0, 100).map((store: { username: string; store_name: string }, index: number) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: `https://frontstore.app/${store.username}`,
+        url: `https://frontstore.ng/${store.username}`,
         name: store.store_name,
       })),
     },

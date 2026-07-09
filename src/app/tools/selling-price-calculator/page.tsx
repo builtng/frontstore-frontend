@@ -11,7 +11,7 @@ const tool = getTool('selling-price-calculator')!;
 export const metadata: Metadata = {
   title: tool.metaTitle,
   description: tool.metaDescription,
-  alternates: { canonical: 'https://frontstore.app/tools/selling-price-calculator' },
+  alternates: { canonical: 'https://frontstore.ng/tools/selling-price-calculator' },
 };
 
 const FAQS = [
@@ -30,7 +30,7 @@ const FAQS = [
 ];
 
 export default function SellingPriceCalculatorPage() {
-  const url = 'https://frontstore.app/tools/selling-price-calculator';
+  const url = 'https://frontstore.ng/tools/selling-price-calculator';
 
   const faqJsonLd = {
     '@context': 'https://schema.org',

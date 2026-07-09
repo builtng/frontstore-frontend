@@ -481,7 +481,7 @@ export default function RestaurantStorefront({
   const fetchAvailableSlots = async (svcId?: string) => {
     setLoadingSlots(true);
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
       const url = svcId && svcId !== 'default-table-reservation'
         ? `${API_URL}/v1/public/store/${username}/slots?product_id=${svcId}`
         : `${API_URL}/v1/public/store/${username}/slots`;
@@ -550,7 +550,7 @@ export default function RestaurantStorefront({
       return;
     }
     setCheckoutLoading(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     
     const selectedSlotObj = getDaySlots(bookDate).find(s => s.time === bookTime);
     const isVirtual = selectedSlotObj?.id.startsWith('virtual-');
@@ -602,7 +602,7 @@ export default function RestaurantStorefront({
       return;
     }
     setCheckoutLoading(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
 
     // Compile options and notes into delivery address so merchant sees choices
     const itemsDetail = bagItems.map(item => `${item.name} (${item.opts || 'No options'})`).join('; ');
@@ -663,7 +663,7 @@ export default function RestaurantStorefront({
   const handlePayOnline = async () => {
     if (!orderReceipt) return;
     setIsPaying(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     try {
       const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
@@ -1344,7 +1344,7 @@ export default function RestaurantStorefront({
                   <p className="ps-meta">{store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || "Restaurant & bar"} <span className="ps-dot">·</span> <MapPin size={13} /> {store.location || "Victoria Island, Lagos"}</p>
                   
                   <div className="ps-id-actions-row">
-                    <button className="ps-url" onClick={copyUrl}>frontstore.app/{store.username} <Copy size={13} /></button>
+                    <button className="ps-url" onClick={copyUrl}>frontstore.ng/{store.username} <Copy size={13} /></button>
                     <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                   </div>
                   
@@ -1763,7 +1763,7 @@ export default function RestaurantStorefront({
                       </p>
                     </div>
                     <div className="pd-identity-actions">
-                      <button className="pd-ghost" onClick={copyUrl}>frontstore.app/{store.username} <Copy size={13} /></button>
+                      <button className="pd-ghost" onClick={copyUrl}>frontstore.ng/{store.username} <Copy size={13} /></button>
                       <button className="pd-ghost" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                     </div>
                   </div>

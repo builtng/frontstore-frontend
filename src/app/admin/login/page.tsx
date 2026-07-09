@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [appName, setAppName] = useState('Frontstore');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
   // Redirect if already logged in as admin
   useEffect(() => {
@@ -187,7 +187,7 @@ export default function AdminLoginPage() {
                   id="admin-email"
                   type="email"
                   required
-                  placeholder="admin@frontstore.app"
+                  placeholder="admin@frontstore.ng"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   onFocus={() => setFocusedInput('email')}

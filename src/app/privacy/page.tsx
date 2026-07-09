@@ -160,7 +160,7 @@ export default function PrivacyPage() {
                   <strong>Right to Erasure (Deletion):</strong> You have the right to request that we delete your store, customer lists, and all associated personal data from our servers. Once verified, deletion will occur within 30 business days.
                 </li>
                 <li>
-                  <strong>Data Protection Officer:</strong> For any compliance inquiries, Data Subject Access Requests (DSAR), or privacy questions, contact our Data Protection Officer at `privacy@frontstore.app`.
+                  <strong>Data Protection Officer:</strong> For any compliance inquiries, Data Subject Access Requests (DSAR), or privacy questions, contact our Data Protection Officer at `privacy@frontstore.ng`.
                 </li>
               </ul>
             </section>
@@ -204,7 +204,7 @@ export default function PrivacyPage() {
                 Have questions about how your order records are stored, or want to submit an account deletion request?
               </p>
               <a
-                href="mailto:privacy@frontstore.app"
+                href="mailto:privacy@frontstore.ng"
                 className="btn btn-outline"
                 style={{ width: '100%', padding: '10px', fontSize: 12.5, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}
               >

@@ -408,7 +408,7 @@ export default function ThriftStorefront({
       return;
     }
     setLoadingSlots(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     fetch(`${API_URL}/v1/public/store/${username}/slots?product_id=${bookSvc.id}`)
       .then(res => res.ok ? res.json() : null)
       .then(json => {
@@ -733,7 +733,7 @@ export default function ThriftStorefront({
     setValidatingCoupon(true);
     setCouponError(null);
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
       const res = await fetch(`${API_URL}/v1/public/store/${username}/coupons/${couponCodeInput.trim()}/validate`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
@@ -846,7 +846,7 @@ export default function ThriftStorefront({
       return;
     }
     setCheckoutLoading(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
 
     // 1. Submit slot bookings first if there are services in the cart
     const serviceItems = bagItems.filter(item => item.type === 'service');
@@ -922,7 +922,7 @@ export default function ThriftStorefront({
   const handlePayOnline = async () => {
     if (!orderReceipt) return;
     setIsPaying(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     try {
       const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
@@ -1223,7 +1223,7 @@ export default function ThriftStorefront({
     <div className="ct-channels">
       <button className="ct-wa" onClick={() => handleWa("Hi " + store.store_name + "! I have an enquiry.")}><WhatsAppIcon size={18} /> Chat on WhatsApp</button>
       <div className="ct-alt">
-        <button onClick={() => ping("Opening email")}><Mail size={15} /> {store.email || `${store.username || 'hello'}@frontstore.app`}</button>
+        <button onClick={() => ping("Opening email")}><Mail size={15} /> {store.email || `${store.username || 'hello'}@frontstore.ng`}</button>
         <button onClick={() => ping("Opening phone")}><Phone size={15} /> {store.whatsapp_phone}</button>
       </div>
     </div>
@@ -1534,7 +1534,7 @@ export default function ThriftStorefront({
         </span>
         <span className="ps-id-main">
           <b>{store.store_name} {store.is_verified ? <BadgeCheck size={14} className="ps-verif" /> : null}</b>
-          <i>frontstore.app/{username}</i>
+          <i>frontstore.ng/{username}</i>
           {store.rating && <em><Star size={12} className="ps-star" /> {store.rating} ({store.review_count || 0})</em>}
         </span>
       </button>
@@ -1934,7 +1934,7 @@ export default function ThriftStorefront({
                   </p>
                 )}
                 <div className="ps-id-actions-row">
-                  <button className="ps-url" onClick={copyUrl}>frontstore.app/{username} <Copy size={13} /></button>
+                  <button className="ps-url" onClick={copyUrl}>frontstore.ng/{username} <Copy size={13} /></button>
                   <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                 </div>
                 <div className="ps-stats">
@@ -2121,7 +2121,7 @@ export default function ThriftStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>{NAV.find(([id]) => id === page)?.[1] || page}</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 {page === "services" && (
                   SERVICES.length === 0 ? <EmptyState /> : (
@@ -2397,7 +2397,7 @@ export default function ThriftStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Portfolio</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 {displayPortfolio.length === 0 ? <EmptyState /> : (<>
                   <p className="svc-intro">A look at recent finds from the store, from vintage denim to one off finds. Tap any image to see it larger.</p>
@@ -2422,7 +2422,7 @@ export default function ThriftStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>About</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 {(!store.store_bio && ABOUT_FACTS.length === 0 && RECOGNITION.length === 0) ? <EmptyState /> : (
                   <div className="ab-wrap">
@@ -2488,7 +2488,7 @@ export default function ThriftStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>FAQ</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 {displayFaqs.length === 0 ? <EmptyState /> : (
                   <>
@@ -2520,7 +2520,7 @@ export default function ThriftStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Contact</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 {(!store.address && !store.email && !store.phone && !store.whatsapp_phone) ? <EmptyState /> : (
                   <div className="ct-wrap">
@@ -2542,7 +2542,7 @@ export default function ThriftStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Refunds</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 <div className="rf-wrap">
                   <div className="rf-main">
@@ -2564,7 +2564,7 @@ export default function ThriftStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Privacy</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 <div className="tm-wrap">
                   <div className="tm-main">
@@ -2592,7 +2592,7 @@ export default function ThriftStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Terms</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 <div className="tm-wrap">
                   <div className="tm-main">
@@ -2956,7 +2956,7 @@ function StoreFoot({ onNav, slug }: { onNav: (p: string) => void, slug?: string 
       <div className="ps-foot-links">
         {LEGAL.map(([id, label]) => <button key={id} onClick={() => onNav(id)}>{label}</button>)}
         <button type="button" onClick={() => window.open('/terms', '_self')}>Platform terms</button>
-        <button type="button" onClick={() => window.open(`mailto:hello@frontstore.app?subject=Reporting Store: ${slug || 'store'}`, '_self')}>Report this store</button>
+        <button type="button" onClick={() => window.open(`mailto:hello@frontstore.ng?subject=Reporting Store: ${slug || 'store'}`, '_self')}>Report this store</button>
       </div>
     </footer>
   );

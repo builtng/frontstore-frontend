@@ -7,7 +7,7 @@ import CompareSearchClient from './CompareSearchClient';
 export const metadata: Metadata = {
   title: 'Compare Prices – Find the Best Deals Near You',
   description: 'Search a product and location to compare prices from verified sellers on Frontstore and find the best deal near you.',
-  alternates: { canonical: 'https://frontstore.app/compare' },
+  alternates: { canonical: 'https://frontstore.ng/compare' },
 };
 
 const TRUST_POINTS = [

@@ -25,7 +25,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://frontstore.app'),
+  metadataBase: new URL('https://frontstore.ng'),
   title: {
     default: "Frontstore — Sell on WhatsApp | Africa's Conversational Commerce Platform",
     template: "%s | Frontstore",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     "Frontstore is Africa's #1 conversational commerce platform. Turn WhatsApp into your most profitable sales channel. Create a beautiful catalog, accept payments, automate orders, and grow your business — no website needed. Used by merchants across Nigeria, Ghana, Kenya, Uganda, and South Africa.",
   keywords: [
     // Core brand
-    "Frontstore", "frontstore app", "frontstore.app",
+    "Frontstore", "frontstore app", "frontstore.ng",
     // Conversational commerce
     "conversational commerce", "WhatsApp commerce", "WhatsApp commerce platform Africa",
     "WhatsApp store builder", "sell on WhatsApp", "WhatsApp checkout",
@@ -53,19 +53,19 @@ export const metadata: Metadata = {
     // AI & tech
     "AI product description generator", "conversational AI commerce",
   ],
-  authors: [{ name: "Frontstore", url: 'https://frontstore.app' }],
+  authors: [{ name: "Frontstore", url: 'https://frontstore.ng' }],
   creator: "Frontstore",
   publisher: "Frontstore Technologies",
   alternates: {
     canonical: '/',
     languages: {
-      'en': 'https://frontstore.app',
-      'en-NG': 'https://frontstore.app',
-      'en-GH': 'https://frontstore.app',
-      'en-KE': 'https://frontstore.app',
-      'en-UG': 'https://frontstore.app',
-      'en-ZA': 'https://frontstore.app',
-      'x-default': 'https://frontstore.app',
+      'en': 'https://frontstore.ng',
+      'en-NG': 'https://frontstore.ng',
+      'en-GH': 'https://frontstore.ng',
+      'en-KE': 'https://frontstore.ng',
+      'en-UG': 'https://frontstore.ng',
+      'en-ZA': 'https://frontstore.ng',
+      'x-default': 'https://frontstore.ng',
     },
   },
   verification: {
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     title: "Frontstore — Sell on WhatsApp | Africa's Conversational Commerce Platform",
     description:
       "Turn WhatsApp into your most profitable store. Create a beautiful catalog, accept secure payments, and automate customer orders — all inside WhatsApp. Trusted by merchants across Africa.",
-    url: 'https://frontstore.app',
+    url: 'https://frontstore.ng',
     images: [
       {
         url: '/icon.png',
@@ -155,10 +155,10 @@ export default function RootLayout({
               '@type': 'Organization',
               name: 'Frontstore',
               legalName: 'Frontstore Technologies',
-              url: 'https://frontstore.app',
+              url: 'https://frontstore.ng',
               logo: {
                 '@type': 'ImageObject',
-                url: 'https://frontstore.app/icon.png',
+                url: 'https://frontstore.ng/icon.png',
                 width: 512,
                 height: 512,
               },
@@ -169,18 +169,18 @@ export default function RootLayout({
                 {
                   '@type': 'ContactPoint',
                   contactType: 'customer support',
-                  email: 'support@frontstore.app',
+                  email: 'support@frontstore.ng',
                   availableLanguage: ['English', 'Pidgin'],
                 },
                 {
                   '@type': 'ContactPoint',
                   contactType: 'technical support',
-                  email: 'support@frontstore.app',
+                  email: 'support@frontstore.ng',
                 },
               ],
               sameAs: [
                 'https://twitter.com/frontstore',
-                'https://www.instagram.com/frontstore.app',
+                'https://www.instagram.com/frontstore.ng',
                 'https://www.linkedin.com/company/frontstore',
                 'https://www.facebook.com/frontstoreapp',
               ],
@@ -212,17 +212,17 @@ export default function RootLayout({
               name: 'Frontstore',
               alternateName: [
                 'Frontstore App',
-                'frontstore.app',
+                'frontstore.ng',
                 'Africa WhatsApp Commerce',
               ],
-              url: 'https://frontstore.app',
+              url: 'https://frontstore.ng',
               description: 'Africa\'s conversational commerce platform. Sell on WhatsApp without a website.',
               inLanguage: 'en',
               potentialAction: {
                 '@type': 'SearchAction',
                 target: {
                   '@type': 'EntryPoint',
-                  urlTemplate: 'https://frontstore.app/stores?q={search_term_string}',
+                  urlTemplate: 'https://frontstore.ng/stores?q={search_term_string}',
                 },
                 'query-input': 'required name=search_term_string',
               },
@@ -241,8 +241,8 @@ export default function RootLayout({
               applicationCategory: 'BusinessApplication',
               applicationSubCategory: 'E-Commerce',
               description: 'Conversational commerce platform for African merchants. Create WhatsApp-powered storefronts, automate orders, and accept mobile money payments.',
-              url: 'https://frontstore.app',
-              screenshot: 'https://frontstore.app/icon.png',
+              url: 'https://frontstore.ng',
+              screenshot: 'https://frontstore.ng/icon.png',
               featureList: [
                 'WhatsApp-Native Checkout',
                 'AI Product Description Generator',
@@ -269,7 +269,7 @@ export default function RootLayout({
               author: {
                 '@type': 'Organization',
                 name: 'Frontstore Technologies',
-                url: 'https://frontstore.app',
+                url: 'https://frontstore.ng',
               },
               inLanguage: ['en', 'yo', 'ha', 'ig', 'sw'],
             }),

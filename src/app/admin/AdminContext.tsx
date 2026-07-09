@@ -221,8 +221,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const [token, setToken] = useState<string | null>(null);
-  const [apiUrl, setApiUrl] = useState('https://api.frontstore.app/api');
-  const [adminEmail, setAdminEmail] = useState('admin@frontstore.app');
+  const [apiUrl, setApiUrl] = useState('https://api.frontstore.ng/api');
+  const [adminEmail, setAdminEmail] = useState('admin@frontstore.ng');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
@@ -295,7 +295,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       newUser?.is_admin === 'true' ||
       newUser?.is_admin === '1';
 
-    setAdminEmail(newUser?.email || newUser?.phone_number || 'admin@frontstore.app');
+    setAdminEmail(newUser?.email || newUser?.phone_number || 'admin@frontstore.ng');
     setToken(newToken);
     setIsAuthenticated(true);
     setIsAdmin(userIsAdmin);
@@ -464,7 +464,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-    const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+    const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
     setApiUrl(savedApiUrl);
 
@@ -481,7 +481,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         parsedUser?.is_admin === 'true' ||
         parsedUser?.is_admin === '1';
 
-      setAdminEmail(parsedUser?.email || parsedUser?.phone_number || 'admin@frontstore.app');
+      setAdminEmail(parsedUser?.email || parsedUser?.phone_number || 'admin@frontstore.ng');
       setToken(storedToken);
       setIsAuthenticated(true);
       setIsAdmin(userIsAdmin);

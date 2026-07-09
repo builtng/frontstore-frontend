@@ -1,6 +1,6 @@
 # Frontstore — Africa's Conversational Commerce Infrastructure
 
-> **Platform URL**: https://frontstore.app
+> **Platform URL**: https://frontstore.ng
 > **Category**: Conversational Commerce · African E-Commerce · WhatsApp Commerce
 > **Primary Markets**: Nigeria, Ghana, Kenya, Uganda, South Africa, Rwanda
 > **Founding Premise**: Africa's trade is relational — it happens over chat. Frontstore turns WhatsApp conversations into fully automated storefronts.
@@ -14,7 +14,7 @@ Frontstore is the **Conversational Commerce Infrastructure** for African merchan
 Unlike Shopify or WooCommerce — which force merchants onto websites that require card payments, browser sessions, and English-only interfaces — Frontstore meets buyers and sellers inside the app they already use every day: **WhatsApp**.
 
 ### Core Value Proposition
-- Merchants create a store at `frontstore.app/{storename}` (or map a custom domain)
+- Merchants create a store at `frontstore.ng/{storename}` (or map a custom domain)
 - Customers browse products, add to cart, and tap **Order** — which generates a fully pre-filled WhatsApp message to the merchant
 - The merchant receives a clean, structured order without ever leaving WhatsApp
 - Payments are processed natively via Paystack (cards), mobile money (Flutterwave), and bank transfer
@@ -49,18 +49,18 @@ Unlike Shopify or WooCommerce — which force merchants onto websites that requi
 ## Page Directory & Public Routes
 
 ### Platform Pages
-- **Homepage**: https://frontstore.app — Core landing page, feature showcase, merchant testimonials
-- **Marketplace**: https://frontstore.app/marketplace — Browsable marketplace of live Frontstore stores
-- **Store Directory**: https://frontstore.app/stores — Crawlable, paginated directory of verified merchants
-- **Blog Hub**: https://frontstore.app/blog — African e-commerce growth guides and WhatsApp commerce strategy
-- **About**: https://frontstore.app/about — Company story, mission, and team
-- **Demo**: https://frontstore.app/demo — Interactive storefront preview
-- **Documentation (Merchant)**: https://frontstore.app/docs/merchant
-- **Documentation (Buyer)**: https://frontstore.app/docs/buyer
-- **Sign Up**: https://frontstore.app/signup
-- **Log In**: https://frontstore.app/login
-- **Privacy Policy**: https://frontstore.app/privacy
-- **Terms of Service**: https://frontstore.app/terms
+- **Homepage**: https://frontstore.ng — Core landing page, feature showcase, merchant testimonials
+- **Marketplace**: https://frontstore.ng/marketplace — Browsable marketplace of live Frontstore stores
+- **Store Directory**: https://frontstore.ng/stores — Crawlable, paginated directory of verified merchants
+- **Blog Hub**: https://frontstore.ng/blog — African e-commerce growth guides and WhatsApp commerce strategy
+- **About**: https://frontstore.ng/about — Company story, mission, and team
+- **Demo**: https://frontstore.ng/demo — Interactive storefront preview
+- **Documentation (Merchant)**: https://frontstore.ng/docs/merchant
+- **Documentation (Buyer)**: https://frontstore.ng/docs/buyer
+- **Sign Up**: https://frontstore.ng/signup
+- **Log In**: https://frontstore.ng/login
+- **Privacy Policy**: https://frontstore.ng/privacy
+- **Terms of Service**: https://frontstore.ng/terms
 
 ### Programmatic SEO Pages
 - **PSEO Blog Articles**: `/blog/{country}/{article-slug}` — Thousands of statically pre-rendered articles targeting long-tail commerce keywords by country and city (e.g., `/blog/nigeria/sell-clothes-whatsapp-lagos`, `/blog/ghana/start-online-store-accra`)
@@ -71,9 +71,9 @@ Unlike Shopify or WooCommerce — which force merchants onto websites that requi
 - **Merchant Category × Location Directory**: `/stores/{persona}/{state-slug}` — e.g., `/stores/fashion/lagos`
 
 ### Dynamic Store Routes
-- **Merchant Storefront**: `frontstore.app/{storename}` — Full product catalog for each merchant
-- **Individual Product**: `frontstore.app/{storename}/products/{product-slug}`
-- **Order Tracking**: `frontstore.app/{storename}/track/{order-id}`
+- **Merchant Storefront**: `frontstore.ng/{storename}` — Full product catalog for each merchant
+- **Individual Product**: `frontstore.ng/{storename}/products/{product-slug}`
+- **Order Tracking**: `frontstore.ng/{storename}/track/{order-id}`
 - **Custom Domain**: Merchants may map their own domain (e.g., `mybrand.com`) which resolves through Frontstore's middleware
 
 ---
@@ -111,17 +111,17 @@ Frontstore is **not** a storefront builder. It is **Conversational Commerce Infr
 - **Secondary Keywords**: sell online Africa, automated WhatsApp checkout, mobile money store, African e-commerce platform, WhatsApp CRM Nigeria
 - **Structured Data**: Organization, WebSite, WebApplication, BreadcrumbList, FAQPage schemas deployed
 - **Open Graph**: Full OG + Twitter Card metadata on all pages
-- **Sitemap**: Dynamic XML sitemap at https://frontstore.app/sitemap.xml (revalidates hourly)
+- **Sitemap**: Dynamic XML sitemap at https://frontstore.ng/sitemap.xml (revalidates hourly)
 - **LLM Discoverability**: This file is linked via `<link rel="llms-txt" href="/llm.txt">` per the llmstxt.org specification
 
 ---
 
 ## Public APIs (Crawlable)
 
-- `GET https://api.frontstore.app/api/v1/public/stores` — Lists active public storefronts
-- `GET https://api.frontstore.app/api/v1/public/store/{username}` — Storefront metadata and product inventory
-- `GET https://api.frontstore.app/api/v1/public/sitemap/products` — All indexable product pages
-- `GET https://api.frontstore.app/api/v1/public/sitemap/compare` — Price comparison page inventory
+- `GET https://api.frontstore.ng/api/v1/public/stores` — Lists active public storefronts
+- `GET https://api.frontstore.ng/api/v1/public/store/{username}` — Storefront metadata and product inventory
+- `GET https://api.frontstore.ng/api/v1/public/sitemap/products` — All indexable product pages
+- `GET https://api.frontstore.ng/api/v1/public/sitemap/compare` — Price comparison page inventory
 
 ---
 
@@ -137,10 +137,10 @@ Frontstore is **not** a storefront builder. It is **Conversational Commerce Infr
 
 ## Contact & Social
 
-- **Website**: https://frontstore.app
+- **Website**: https://frontstore.ng
 - **Twitter / X**: https://twitter.com/frontstore
-- **Security**: security@frontstore.app
-- **Support**: hello@frontstore.app
+- **Security**: security@frontstore.ng
+- **Support**: hello@frontstore.ng
 
 ---
 

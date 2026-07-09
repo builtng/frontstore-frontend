@@ -121,7 +121,7 @@ export default function BuyerDocsPage() {
             <div style={{ marginTop: 24, padding: 20, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)' }}>
               <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, color: 'var(--text)' }}>Have an Order Dispute?</h4>
               <p style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>Contact our customer support team to resolve payment or delivery issues.</p>
-              <a href="mailto:hello@frontstore.app" className="btn btn-outline" style={{ width: '100%', padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-sm)' }}>
+              <a href="mailto:hello@frontstore.ng" className="btn btn-outline" style={{ width: '100%', padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-sm)' }}>
                 Email Support
               </a>
             </div>
@@ -136,7 +136,7 @@ export default function BuyerDocsPage() {
                 <Eye size={22} style={{ color: 'var(--primary)' }} /> 1. Finding & Browsing Stores
               </h2>
               <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Every merchant on Frontstore operates a clean, dedicated storefront link (e.g. `frontstore.app/ade` or a custom brand domain like `mybrand.com`). These storefronts are fully responsive and optimized for mobile devices, working flawlessly even in low-bandwidth areas.
+                Every merchant on Frontstore operates a clean, dedicated storefront link (e.g. `frontstore.ng/ade` or a custom brand domain like `mybrand.com`). These storefronts are fully responsive and optimized for mobile devices, working flawlessly even in low-bandwidth areas.
               </p>
               <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 When visiting a store, you can browse items grouped by category collections, search for specific products via the search bar, and view pinned &quot;Signature Treatments&quot; representing the vendor's featured offerings.

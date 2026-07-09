@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const loc = locationLabel(data.location);
   const title = `${data.product.name} Price in ${loc} – Compare Prices & Best Deals`;
   const description = `Compare ${data.product.name} prices from trusted stores in ${loc}. Find the lowest prices, top-rated sellers, and best deals.`;
-  const url = `https://frontstore.app/compare/${data.product.slug}/${location.join('/')}`;
+  const url = `https://frontstore.ng/compare/${data.product.slug}/${location.join('/')}`;
 
   return {
     title,
@@ -115,7 +115,7 @@ export default async function ComparePage({ params }: PageProps) {
   const about = buildAboutContent(data);
   const buyingGuide = buildBuyingGuide(data);
   const faqs = buildFaqs(data);
-  const pageUrl = `https://frontstore.app/compare/${data.product.slug}/${location.join('/')}`;
+  const pageUrl = `https://frontstore.ng/compare/${data.product.slug}/${location.join('/')}`;
 
   const productJsonLd = {
     '@context': 'https://schema.org',
@@ -139,7 +139,7 @@ export default async function ComparePage({ params }: PageProps) {
           : m.stock_status === 'low_stock'
             ? 'https://schema.org/LimitedAvailability'
             : 'https://schema.org/OutOfStock',
-        url: `https://frontstore.app/${m.store.username}/products/${m.product_slug}`,
+        url: `https://frontstore.ng/${m.store.username}/products/${m.product_slug}`,
         seller: { '@type': 'Organization', name: m.store.store_name },
       })),
     },
@@ -156,13 +156,13 @@ export default async function ComparePage({ params }: PageProps) {
   };
 
   const breadcrumbItems = [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://frontstore.app/' },
-    { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://frontstore.app/compare' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://frontstore.ng/' },
+    { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://frontstore.ng/compare' },
     {
       '@type': 'ListItem',
       position: 3,
       name: data.location.state,
-      item: `https://frontstore.app/compare/${data.product.slug}/${data.location.state_slug}`,
+      item: `https://frontstore.ng/compare/${data.product.slug}/${data.location.state_slug}`,
     },
   ];
   if (data.location.city) {
@@ -170,7 +170,7 @@ export default async function ComparePage({ params }: PageProps) {
       '@type': 'ListItem',
       position: 4,
       name: data.location.city,
-      item: `https://frontstore.app/compare/${data.product.slug}/${data.location.state_slug}/${data.location.city_slug}`,
+      item: `https://frontstore.ng/compare/${data.product.slug}/${data.location.state_slug}/${data.location.city_slug}`,
     });
   }
   if (data.location.lga) {
@@ -191,7 +191,7 @@ export default async function ComparePage({ params }: PageProps) {
       item: {
         '@type': 'Organization',
         name: m.store.store_name,
-        url: `https://frontstore.app/${m.store.username}`,
+        url: `https://frontstore.ng/${m.store.username}`,
       },
     })),
   };

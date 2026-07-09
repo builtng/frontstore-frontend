@@ -95,7 +95,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
 
   const [referredBy, setReferredBy] = useState<string>('');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
   useEffect(() => {
     setMounted(true);
@@ -702,7 +702,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                   transition: 'color var(--t-fast)'
                 }} />
                 <span style={{ padding: '0 0 0 44px', color: 'var(--text-muted)', fontSize: 13.5, fontWeight: 600, whiteSpace: 'nowrap', userSelect: 'none' }}>
-                  frontstore.app/
+                  frontstore.ng/
                 </span>
                 <input
                   id="store-username"
@@ -743,7 +743,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
               </div>
               {username && (
                 <span style={{ fontSize: 11.5, color: 'var(--primary)', display: 'block', marginTop: 6, fontWeight: 700 }}>
-                  Live link: frontstore.app/{username.toLowerCase()}
+                  Live link: frontstore.ng/{username.toLowerCase()}
                 </span>
               )}
             </div>
@@ -1145,7 +1145,7 @@ export default function SignupPage() {
   useEffect(() => {
     const loadPublicSettings = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
         const res = await fetch(`${apiUrl}/v1/public/settings`);
         if (!res.ok) return;
         const json = await res.json();

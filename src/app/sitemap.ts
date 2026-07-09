@@ -8,8 +8,8 @@ import { NIGERIAN_STATES } from '@/utils/nigerianStates';
 import { locationMatchesState, normalizePersonaId } from '@/utils/directoryContent';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://frontstore.app';
-  const apiHost = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://frontstore.ng';
+  const apiHost = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   const now = new Date();
 
   // ── Static core pages ─────────────────────────────────────────────────────

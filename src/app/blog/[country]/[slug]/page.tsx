@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   );
   if (!article) return {};
 
-  const url = `https://frontstore.app/blog/${getCountrySlug(article.country)}/${article.slug}`;
+  const url = `https://frontstore.ng/blog/${getCountrySlug(article.country)}/${article.slug}`;
 
   return {
     title: `${article.title} | frontstore Blog`,
@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       siteName: 'frontstore',
       images: [
         {
-          url: 'https://frontstore.app/icon.png',
+          url: 'https://frontstore.ng/icon.png',
           width: 512,
           height: 512,
           alt: article.title,
@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image',
       title: article.title,
       description: article.metaDescription,
-      images: ['https://frontstore.app/icon.png'],
+      images: ['https://frontstore.ng/icon.png'],
     },
   };
 }
@@ -77,7 +77,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
   if (!article) return notFound();
 
   const relatedArticles = BLOG_ARTICLES.filter((a) => a.slug !== article.slug).slice(0, 2);
-  const canonicalUrl = `https://frontstore.app/blog/${getCountrySlug(article.country)}/${article.slug}`;
+  const canonicalUrl = `https://frontstore.ng/blog/${getCountrySlug(article.country)}/${article.slug}`;
 
   const blogJsonLd = {
     '@context': 'https://schema.org',
@@ -88,7 +88,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
     },
     'headline': article.title,
     'description': article.metaDescription,
-    'image': 'https://frontstore.app/icon.png',
+    'image': 'https://frontstore.ng/icon.png',
     'datePublished': article.publishedAt,
     'dateModified': article.updatedAt,
     'author': {
@@ -100,7 +100,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
       'name': 'frontstore Technologies',
       'logo': {
         '@type': 'ImageObject',
-        'url': 'https://frontstore.app/icon.png',
+        'url': 'https://frontstore.ng/icon.png',
       },
     },
   };

@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const data = getVsCompetitor(competitor);
   if (!data) return {};
 
-  const url = `https://frontstore.app/vs/${data.slug}`;
+  const url = `https://frontstore.ng/vs/${data.slug}`;
 
   return {
     title: data.metaTitle,
@@ -38,13 +38,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: 'website',
       locale: 'en_NG',
       siteName: 'Frontstore',
-      images: [{ url: 'https://frontstore.app/icon.png', width: 512, height: 512, alt: data.metaTitle }],
+      images: [{ url: 'https://frontstore.ng/icon.png', width: 512, height: 512, alt: data.metaTitle }],
     },
     twitter: {
       card: 'summary_large_image',
       title: data.metaTitle,
       description: data.metaDescription,
-      images: ['https://frontstore.app/icon.png'],
+      images: ['https://frontstore.ng/icon.png'],
     },
   };
 }
@@ -54,7 +54,7 @@ export default async function VsCompetitorPage({ params }: PageProps) {
   const data = getVsCompetitor(competitor);
   if (!data) return notFound();
 
-  const url = `https://frontstore.app/vs/${data.slug}`;
+  const url = `https://frontstore.ng/vs/${data.slug}`;
   const others = VS_COMPETITORS.filter((c) => c.slug !== data.slug).slice(0, 3);
 
   const faqJsonLd = {
@@ -71,8 +71,8 @@ export default async function VsCompetitorPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://frontstore.app/' },
-      { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://frontstore.app/vs' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://frontstore.ng/' },
+      { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://frontstore.ng/vs' },
       { '@type': 'ListItem', position: 3, name: `Frontstore vs ${data.name}`, item: url },
     ],
   };

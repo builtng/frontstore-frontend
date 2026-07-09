@@ -1,11 +1,11 @@
 /* TEAM */
 
 Developer: Frontstore Engineering Team
-Contact: engineering@frontstore.app
+Contact: engineering@frontstore.ng
 Location: Lagos, Nigeria / Remote, Africa
 
 Designer: Frontstore Product Design
-Contact: design@frontstore.app
+Contact: design@frontstore.ng
 
 /* TECHNOLOGY */
 
@@ -35,4 +35,4 @@ trust, and conversation. We're building the rails that turn everyday
 WhatsApp chats into structured, automated commerce.
 
 "Commerce Through Conversation."
-— frontstore.app
+— frontstore.ng

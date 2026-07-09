@@ -745,7 +745,7 @@ export default function PhotographerStorefront({
     if (!orderReceipt || isPaying) return;
     setIsPaying(true);
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
       const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -771,7 +771,7 @@ export default function PhotographerStorefront({
     setCheckoutLoading(true);
     setCheckoutError(null);
 
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
 
     // Formulate notes with booking info if any
     let compiledAddress = deliveryAddress;
@@ -851,7 +851,7 @@ export default function PhotographerStorefront({
   const fetchAvailableSlots = async (svcId?: string) => {
     setLoadingSlots(true);
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
       const url = svcId
         ? `${API_URL}/v1/public/store/${username}/slots?product_id=${svcId}`
         : `${API_URL}/v1/public/store/${username}/slots`;
@@ -911,7 +911,7 @@ export default function PhotographerStorefront({
       return;
     }
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
       const res = await fetch(`${API_URL}/v1/public/orders/${revRef}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1831,7 +1831,7 @@ export default function PhotographerStorefront({
         <span className="ps-id-av">{DUMMY_STORE.initial}</span>
         <span className="ps-id-main">
           <b>{DUMMY_STORE.name} <BadgeCheck size={14} className="ps-verif" /></b>
-          <i>frontstore.app/{username}</i>
+          <i>frontstore.ng/{username}</i>
           <em><Star size={12} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</em>
         </span>
       </button>
@@ -1865,8 +1865,8 @@ export default function PhotographerStorefront({
     "@type": ["ProfessionalService", "LocalBusiness"],
     name: DUMMY_STORE.name,
     description: DUMMY_STORE.bio,
-    url: `https://frontstore.app/${DUMMY_STORE.slug}`,
-    image: `https://frontstore.app/${DUMMY_STORE.slug}/cover.jpg`,
+    url: `https://frontstore.ng/${DUMMY_STORE.slug}`,
+    image: `https://frontstore.ng/${DUMMY_STORE.slug}/cover.jpg`,
     priceRange: "$$",
     address: { "@type": "PostalAddress", streetAddress: DUMMY_STORE.address, addressLocality: "Lekki", addressRegion: "Lagos", addressCountry: "NG" },
     telephone: DUMMY_STORE.phone,
@@ -1914,7 +1914,7 @@ export default function PhotographerStorefront({
                 <h1 className="ps-name">{DUMMY_STORE.name} <BadgeCheck size={20} className="ps-verif" /></h1>
                 <p className="ps-meta">{DUMMY_STORE.category} <span className="ps-dot">•</span> <MapPin size={13} /> {DUMMY_STORE.location}</p>
                 <div className="ps-id-actions-row">
-                  <button className="ps-url" onClick={copyUrl}>frontstore.app/{username} <Copy size={13} /></button>
+                  <button className="ps-url" onClick={copyUrl}>frontstore.ng/{username} <Copy size={13} /></button>
                   <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                 </div>
                 <div className="ps-stats">
@@ -2078,7 +2078,7 @@ export default function PhotographerStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>{NAV.find(([id]: any) => id === page)?.[1]}</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 {page === "services" && (
                   <div className="svc-page">
@@ -2348,7 +2348,7 @@ export default function PhotographerStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Portfolio</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 <p className="svc-intro">A selection of recent work across weddings, portraits, brands and events. Tap any image to see it larger.</p>
                 {portfolioChips()}
@@ -2378,7 +2378,7 @@ export default function PhotographerStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>About</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 <div className="ab-wrap">
                   <div className="ab-main">
@@ -2476,7 +2476,7 @@ export default function PhotographerStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>FAQ</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 <p className="svc-intro">Answers to the questions we are asked most. If you cannot find yours, the team is a message away.</p>
                 <div className="faq-wrap">
@@ -2508,7 +2508,7 @@ export default function PhotographerStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Contact</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 <div className="ct-wrap">
                   <div className="ct-main">
@@ -2540,7 +2540,7 @@ export default function PhotographerStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Refunds</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 <div className="rf-wrap">
                   <div className="rf-main">
@@ -2562,7 +2562,7 @@ export default function PhotographerStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Privacy</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 <div className="tm-wrap">
                   <div className="tm-main">
@@ -2590,7 +2590,7 @@ export default function PhotographerStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Terms</h1>
-                  <span>frontstore.app/{username}</span>
+                  <span>frontstore.ng/{username}</span>
                 </div>
                 <div className="tm-wrap">
                   <div className="tm-main">
@@ -2661,7 +2661,7 @@ export default function PhotographerStorefront({
       {/* share sheet (shared) */}
       {share && (
         <Sheet onClose={() => setShare(false)} title="Share this store">
-          <div className="ps-share-url"><span>frontstore.app/{username}</span><button onClick={() => { navigator.clipboard?.writeText(`frontstore.app/${DUMMY_STORE.slug}`); ping("Link copied"); }}><Copy size={15} /></button></div>
+          <div className="ps-share-url"><span>frontstore.ng/{username}</span><button onClick={() => { navigator.clipboard?.writeText(`frontstore.ng/${DUMMY_STORE.slug}`); ping("Link copied"); }}><Copy size={15} /></button></div>
           <button className="ps-share-wa" onClick={() => { setShare(false); ping("Sharing to WhatsApp"); }}><WhatsApp size={18} /> Share on WhatsApp</button>
           <div className="ps-share-row"><button onClick={() => ping("Instagram")}><Instagram size={18} /> Instagram</button><button onClick={() => ping("Facebook")}><Facebook size={18} /> Facebook</button></div>
         </Sheet>
@@ -2854,12 +2854,12 @@ function StoreFoot({ onNav, slug }: { onNav?: (p: string) => void, slug?: string
         <button key={id} onClick={() => onNav && onNav(id)}>{label}</button>
       ))}
       <button onClick={() => window.open('/terms', '_self')}>Platform terms</button>
-      <button onClick={() => window.open(`mailto:hello@frontstore.app?subject=Reporting Store: ${slug || 'store'}`, '_self')}>Report this store</button>
+      <button onClick={() => window.open(`mailto:hello@frontstore.ng?subject=Reporting Store: ${slug || 'store'}`, '_self')}>Report this store</button>
     </div>
-    <small>frontstore.app/{slug || 'store'}</small></footer>);
+    <small>frontstore.ng/{slug || 'store'}</small></footer>);
 }
 function Sub({ title, children, slug }: { title: string, children: React.ReactNode, slug?: string }) {
-  return (<div className="ps-sub"><div className="ps-sub-head"><h1>{title}</h1><span>frontstore.app/{slug || 'store'}</span></div>{children}</div>);
+  return (<div className="ps-sub"><div className="ps-sub-head"><h1>{title}</h1><span>frontstore.ng/{slug || 'store'}</span></div>{children}</div>);
 }
 function Sheet({ title, children, onClose, onBack }: { title: string, children: React.ReactNode, onClose: () => void, onBack?: () => void }) {
   return (<div className="ps-overlay" onClick={onClose}>

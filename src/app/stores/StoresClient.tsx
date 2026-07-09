@@ -40,7 +40,7 @@ export default function StoresClient({ initialStores }: { initialStores: StoreIt
   const [sortBy, setSortBy] = useState<SortKey>('featured');
   const [loading, setLoading] = useState(!initialStores || initialStores.length === 0);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
   useEffect(() => {
     // Skip client-side fetch on mount if stores are already loaded from the server

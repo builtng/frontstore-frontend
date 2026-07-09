@@ -41,7 +41,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     headline: 'How to Sell on WhatsApp',
     headlineHighlight: 'in Nigeria',
     subhead: 'From a chat full of screenshots to an organized store customers can browse and order from in one tap.',
-    directAnswer: 'To sell on WhatsApp in Nigeria, a merchant needs a way to show products, take orders, and get paid without spamming customers with dozens of images in a single chat thread. The fastest route is a dedicated storefront link — like frontstore.app/yourbrand — that customers browse before ordering, where the order itself becomes a formatted WhatsApp message straight to the seller.',
+    directAnswer: 'To sell on WhatsApp in Nigeria, a merchant needs a way to show products, take orders, and get paid without spamming customers with dozens of images in a single chat thread. The fastest route is a dedicated storefront link — like frontstore.ng/yourbrand — that customers browse before ordering, where the order itself becomes a formatted WhatsApp message straight to the seller.',
     sections: [
       {
         heading: 'Why WhatsApp Status and Group Chats Stop Working',
@@ -63,13 +63,13 @@ export const SOLUTION_PAGES: SolutionPage[] = [
       },
     ],
     steps: [
-      { title: 'Claim a store link', body: 'Pick a name and get a link like frontstore.app/yourbrand — this takes under a minute.' },
+      { title: 'Claim a store link', body: 'Pick a name and get a link like frontstore.ng/yourbrand — this takes under a minute.' },
       { title: 'Add products', body: 'Upload photos and let AI write the name, description, and suggested price for each item.' },
       { title: 'Share the link', body: 'Post it to WhatsApp Status, your Instagram bio, and any group chats where customers already find you.' },
       { title: 'Receive orders in chat', body: 'Every order lands as a formatted WhatsApp message with the buyer\'s selections, ready to confirm and fulfil.' },
     ],
     faqs: [
-      { question: 'Do I need a website to sell on WhatsApp in Nigeria?', answer: 'No. A storefront link like frontstore.app/yourbrand works entirely on a phone and doesn\'t require a domain, hosting, or any technical setup — customers browse it in their mobile browser before their order opens in WhatsApp.' },
+      { question: 'Do I need a website to sell on WhatsApp in Nigeria?', answer: 'No. A storefront link like frontstore.ng/yourbrand works entirely on a phone and doesn\'t require a domain, hosting, or any technical setup — customers browse it in their mobile browser before their order opens in WhatsApp.' },
       { question: 'Is it free to start selling on WhatsApp with Frontstore?', answer: 'Yes, merchants can claim a store and start listing products for free, with a flat ₦1,500/month or ₦15,000/year for the full feature set once the store is live.' },
       { question: 'How do buyers pay after messaging on WhatsApp?', answer: 'A buyer can pay by bank transfer, Paystack, Flutterwave, or mobile money — whichever the merchant has enabled — directly from the order flow, without leaving the chat context.' },
       { question: 'Can I still use my Instagram bio link for WhatsApp sales?', answer: 'Yes. Most sellers put the same storefront link in their Instagram bio, WhatsApp Status, and TikTok profile, so every channel drives to one organized catalog.' },
@@ -106,14 +106,14 @@ export const SOLUTION_PAGES: SolutionPage[] = [
       },
     ],
     steps: [
-      { title: 'Choose your store name', body: 'This becomes your link — frontstore.app/yourbusinessname.' },
+      { title: 'Choose your store name', body: 'This becomes your link — frontstore.ng/yourbusinessname.' },
       { title: 'Upload your first products', body: 'AI writes the listing copy from each photo, so there\'s no blank-page problem.' },
       { title: 'Connect a payment method', body: 'Add Paystack, Flutterwave, or bank transfer details so orders convert into confirmed payments.' },
       { title: 'Share and go live', body: 'Post the link everywhere your customers already are — no separate marketing push needed to launch.' },
     ],
     faqs: [
       { question: 'How much does it cost to create an online store in Nigeria?', answer: 'With Frontstore, listing products and setting up a storefront is free to start, with a flat ₦1,500/month or ₦15,000/year once live — considerably less than the $19+/month typical of global website builders.' },
-      { question: 'Do I need a domain name to create an online store?', answer: 'No. A storefront link (frontstore.app/yourbrand) works without buying a separate domain, though merchants who already own one can connect it later.' },
+      { question: 'Do I need a domain name to create an online store?', answer: 'No. A storefront link (frontstore.ng/yourbrand) works without buying a separate domain, though merchants who already own one can connect it later.' },
       { question: 'Is CAC business registration required to sell online in Nigeria?', answer: 'It\'s not required to launch a storefront and start taking orders. CAC registration becomes more relevant as a business scales, opens a corporate bank account, or needs higher payment processing limits.' },
       { question: 'How long does it actually take to create a store?', answer: 'Claiming a link and publishing a basic storefront takes under 2 minutes. Building out a full catalog depends on how many products a merchant is listing, but AI-generated descriptions remove most of the manual typing.' },
     ],

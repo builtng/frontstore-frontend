@@ -75,7 +75,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website domain to sell clothes on WhatsApp in Lagos?",
-        "answer": "No, you do not need a custom domain or hosting. Platforms like frontstore give you a direct storefront link (e.g. frontstore.app/yourboutique) where customers can browse and order instantly."
+        "answer": "No, you do not need a custom domain or hosting. Platforms like frontstore give you a direct storefront link (e.g. frontstore.ng/yourboutique) where customers can browse and order instantly."
       },
       {
         "question": "How do I collect payments from customers in Lagos?",
@@ -2479,7 +2479,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Abia State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Abia State usually pay?",
@@ -2535,7 +2535,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Adamawa State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Adamawa State usually pay?",
@@ -2591,7 +2591,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Akwa Ibom State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Akwa Ibom State usually pay?",
@@ -2647,7 +2647,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Anambra State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Anambra State usually pay?",
@@ -2703,7 +2703,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Bauchi State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Bauchi State usually pay?",
@@ -2759,7 +2759,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Bayelsa State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Bayelsa State usually pay?",
@@ -2815,7 +2815,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Benue State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Benue State usually pay?",
@@ -2871,7 +2871,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Borno State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Borno State usually pay?",
@@ -2927,7 +2927,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Cross River State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Cross River State usually pay?",
@@ -2983,7 +2983,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Delta State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Delta State usually pay?",
@@ -3039,7 +3039,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Ebonyi State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Ebonyi State usually pay?",
@@ -3095,7 +3095,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Edo State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Edo State usually pay?",
@@ -3151,7 +3151,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Ekiti State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Ekiti State usually pay?",
@@ -3207,7 +3207,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Enugu State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Enugu State usually pay?",
@@ -3263,7 +3263,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in the FCT?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in the FCT usually pay?",
@@ -3319,7 +3319,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Gombe State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Gombe State usually pay?",
@@ -3375,7 +3375,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Imo State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Imo State usually pay?",
@@ -3431,7 +3431,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Jigawa State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Jigawa State usually pay?",
@@ -3487,7 +3487,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Kaduna State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Kaduna State usually pay?",
@@ -3543,7 +3543,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Kano State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Kano State usually pay?",
@@ -3599,7 +3599,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Katsina State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Katsina State usually pay?",
@@ -3655,7 +3655,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Kebbi State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Kebbi State usually pay?",
@@ -3711,7 +3711,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Kogi State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Kogi State usually pay?",
@@ -3767,7 +3767,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Kwara State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Kwara State usually pay?",
@@ -3823,7 +3823,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Lagos State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Lagos State usually pay?",
@@ -3879,7 +3879,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Nasarawa State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Nasarawa State usually pay?",
@@ -3935,7 +3935,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Niger State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Niger State usually pay?",
@@ -3991,7 +3991,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Ogun State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Ogun State usually pay?",
@@ -4047,7 +4047,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Ondo State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Ondo State usually pay?",
@@ -4103,7 +4103,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Osun State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Osun State usually pay?",
@@ -4159,7 +4159,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Oyo State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Oyo State usually pay?",
@@ -4215,7 +4215,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Plateau State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Plateau State usually pay?",
@@ -4271,7 +4271,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Rivers State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Rivers State usually pay?",
@@ -4327,7 +4327,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Sokoto State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Sokoto State usually pay?",
@@ -4383,7 +4383,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Taraba State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Taraba State usually pay?",
@@ -4439,7 +4439,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Yobe State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Yobe State usually pay?",
@@ -4495,7 +4495,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "faqs": [
       {
         "question": "Do I need a website to sell online in Zamfara State?",
-        "answer": "No. A storefront link (e.g. frontstore.app/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
+        "answer": "No. A storefront link (e.g. frontstore.ng/yourshop) works entirely through the browser — no app download or domain purchase needed — and it opens directly inside WhatsApp when you share it."
       },
       {
         "question": "How do buyers in Zamfara State usually pay?",

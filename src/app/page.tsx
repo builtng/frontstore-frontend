@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import HomePageClient from './HomePageClient';
 
 async function getPublicSettings() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/settings`, {
       next: { revalidate: 60 },
@@ -20,8 +20,8 @@ async function getPublicSettings() {
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings();
   const appName = settings?.app_name || 'Frontstore';
-  const logoUrl = settings?.logo_url || 'https://frontstore.app/icon.png';
-  const systemDomain = settings?.system_domain || 'frontstore.app';
+  const logoUrl = settings?.logo_url || 'https://frontstore.ng/icon.png';
+  const systemDomain = settings?.system_domain || 'frontstore.ng';
 
   const title = `${appName} - Conversational Commerce Engine for Africa`;
   const description = `Build your store in under 2 minutes. Automate order taking, handle checkout inside WhatsApp, and manage payments and delivery with ${appName}.`;
@@ -70,7 +70,7 @@ export default async function HomePage() {
   const settings = await getPublicSettings();
 
   const appName = settings?.app_name || 'Frontstore';
-  const systemDomain = settings?.system_domain || 'frontstore.app';
+  const systemDomain = settings?.system_domain || 'frontstore.ng';
   const logoUrl = settings?.logo_url || `https://${systemDomain}/icon.png`;
 
   const jsonLd = {

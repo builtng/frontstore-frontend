@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const data = getSolutionPage(slug);
   if (!data) return {};
 
-  const url = `https://frontstore.app/solutions/${data.slug}`;
+  const url = `https://frontstore.ng/solutions/${data.slug}`;
 
   return {
     title: data.metaTitle,
@@ -33,13 +33,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: 'article',
       locale: 'en_NG',
       siteName: 'Frontstore',
-      images: [{ url: 'https://frontstore.app/icon.png', width: 512, height: 512, alt: data.metaTitle }],
+      images: [{ url: 'https://frontstore.ng/icon.png', width: 512, height: 512, alt: data.metaTitle }],
     },
     twitter: {
       card: 'summary_large_image',
       title: data.metaTitle,
       description: data.metaDescription,
-      images: ['https://frontstore.app/icon.png'],
+      images: ['https://frontstore.ng/icon.png'],
     },
   };
 }
@@ -49,7 +49,7 @@ export default async function SolutionPage({ params }: PageProps) {
   const data = getSolutionPage(slug);
   if (!data) return notFound();
 
-  const url = `https://frontstore.app/solutions/${data.slug}`;
+  const url = `https://frontstore.ng/solutions/${data.slug}`;
   const related = SOLUTION_PAGES.filter((s) => s.slug !== data.slug && s.category === data.category).slice(0, 3);
 
   const articleJsonLd = {
@@ -58,11 +58,11 @@ export default async function SolutionPage({ params }: PageProps) {
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     headline: data.metaTitle,
     description: data.metaDescription,
-    image: 'https://frontstore.app/icon.png',
+    image: 'https://frontstore.ng/icon.png',
     publisher: {
       '@type': 'Organization',
       name: 'Frontstore Technologies',
-      logo: { '@type': 'ImageObject', url: 'https://frontstore.app/icon.png' },
+      logo: { '@type': 'ImageObject', url: 'https://frontstore.ng/icon.png' },
     },
   };
 

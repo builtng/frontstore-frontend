@@ -368,7 +368,7 @@ export default function ProductDetailClient({
     setCheckoutLoading(true);
     setCheckoutError(null);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
     
     // Address compilation
     let finalAddress = deliveryAddress;
@@ -429,7 +429,7 @@ export default function ProductDetailClient({
   const handlePayOnline = async () => {
     if (!orderReceipt) return;
     setIsPaying(true);
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
     try {
       const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',

@@ -171,7 +171,7 @@ export default function StorefrontClient({
 
   const categories: Category[] = useMemo(() => initialData?.categories || [], [initialData]);
   const products: Product[] = useMemo(() => initialData?.products || [], [initialData]);
-  const systemDomain = initialData?.system_domain || 'frontstore.app';
+  const systemDomain = initialData?.system_domain || 'frontstore.ng';
   const storeDisclaimer = initialData?.store_disclaimer || '';
   const appName = initialData?.app_name || 'Frontstore';
 

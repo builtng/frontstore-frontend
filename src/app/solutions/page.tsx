@@ -8,7 +8,7 @@ import { SOLUTION_PAGES, SolutionPage } from '@/utils/solutionsData';
 export const metadata: Metadata = {
   title: 'Guides – Selling on WhatsApp, By Business Type, and AI Tools',
   description: 'Practical guides for African merchants: how to sell on WhatsApp, set up an online store, run a fashion, grocery, or pharmacy storefront, and use AI listing tools.',
-  alternates: { canonical: 'https://frontstore.app/solutions' },
+  alternates: { canonical: 'https://frontstore.ng/solutions' },
 };
 
 const CATEGORY_ORDER: SolutionPage['category'][] = ['Getting Started', 'By Business Type', 'AI & Automation'];

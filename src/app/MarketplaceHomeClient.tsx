@@ -157,7 +157,7 @@ function StoreCard({ s }: { s: any }) {
       </span>
       {s.location && <span className="store-loc"><MapPin size={11} />{s.location}</span>}
       {isRising && <span className="rising-tag">Rising</span>}
-      <span className="store-url">frontstore.app/{slug}</span>
+      <span className="store-url">frontstore.ng/{slug}</span>
     </a>
   );
 }
@@ -276,7 +276,7 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer, b
         <div className="drawer-sell">
           <p>Got something to sell?</p>
           <button className="ds-btn">Open your free store <ArrowRight size={14} /></button>
-          <span>frontstore.app/yourname</span>
+          <span>frontstore.ng/yourname</span>
         </div>
       </aside>
 
@@ -509,7 +509,7 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
             <h2>Selling something? Your store is two minutes away.</h2>
             <p>Claim your link, add products, and share it anywhere. We handle payments and receipts.</p>
             <button className="sell-cta">Open your free store <ArrowRight size={15} /></button>
-            <span className="sell-url">frontstore.app/yourname</span>
+            <span className="sell-url">frontstore.ng/yourname</span>
           </div>
           <div className="sell-blob" />
         </div>
@@ -560,7 +560,7 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
                   links: [
                     { label: "Help centre", href: "/docs" },
                     { label: "WhatsApp", href: "https://wa.me/2348030000000", target: "_blank", rel: "noopener noreferrer" },
-                    { label: "Contact", href: "mailto:hello@frontstore.app" }
+                    { label: "Contact", href: "mailto:hello@frontstore.ng" }
                   ]
                 }
               ] as { h: string; links: { label: string; href: string; onClick?: (e: React.MouseEvent) => void; target?: string; rel?: string; }[] }[]
@@ -737,7 +737,7 @@ interface PageAccountProps {
   setTab: (t: string) => void;
 }
 function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buyerAuthChecked, setTab }: PageAccountProps) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   const SUPPORT_WHATSAPP = '2348030000000'; // Real support WhatsApp number
   const [section, setSection] = useState("main"); // main | orders | settings | password | help | edit-profile
   const [mktOpen, setMktOpen] = useState(false);
@@ -987,7 +987,7 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
           <span>Chat on WhatsApp</span>
           <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
         </button>
-        <button className="settings-row" onClick={() => window.open('mailto:hello@frontstore.app')}>
+        <button className="settings-row" onClick={() => window.open('mailto:hello@frontstore.ng')}>
           <AlertCircle size={15} style={{ color:"var(--brand)" }} />
           <span>Report a problem</span>
           <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
@@ -1097,7 +1097,7 @@ function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buye
           <span>Chat on WhatsApp</span>
           <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
         </button>
-        <button className="settings-row" onClick={() => window.open('mailto:hello@frontstore.app')}>
+        <button className="settings-row" onClick={() => window.open('mailto:hello@frontstore.ng')}>
           <AlertCircle size={15} style={{ color:"var(--brand)" }} />
           <span>Report a problem</span>
           <ChevronRight size={14} style={{ marginLeft:"auto", color:"var(--muted)" }} />
@@ -1250,7 +1250,7 @@ export default function MarketplaceHomeClient({ initialData, initialSettings }: 
   useEffect(() => {
     const token = localStorage.getItem('buyer_token');
     if (!token) return;
-    const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+    const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
     fetch(`${configuredApiUrl}/v1/buyer/auth/me`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -1367,7 +1367,7 @@ export default function MarketplaceHomeClient({ initialData, initialSettings }: 
   // Fetch live marketplace records on mount
   useEffect(() => {
     const fetchMarketplace = async () => {
-      const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+      const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
       try {
         const res = await fetch(`${configuredApiUrl}/v1/public/marketplace`);
         if (res.ok) {

@@ -654,7 +654,7 @@ export default function BeautyStorefront({
       return;
     }
     setLoadingSlots(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     fetch(`${API_URL}/v1/public/store/${store.username}/slots?product_id=${bookSvc.id}`)
       .then(res => res.ok ? res.json() : null)
       .then(json => {
@@ -875,7 +875,7 @@ export default function BeautyStorefront({
     setCheckoutLoading(true);
     setCheckoutError(null);
 
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     const serviceItems = bag.filter(x => x.type === 'service');
     let compiledAddress = deliveryAddress;
     if (serviceItems.length > 0) {
@@ -954,7 +954,7 @@ export default function BeautyStorefront({
   const handlePayOnline = async () => {
     if (!orderReceipt) return;
     setIsPaying(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     try {
       const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
@@ -983,7 +983,7 @@ export default function BeautyStorefront({
       ping("Add a rating and your order reference");
       return;
     }
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     try {
       const res = await fetch(`${API_URL}/v1/public/orders/${revRef}/reviews`, {
         method: 'POST',
@@ -1070,7 +1070,7 @@ export default function BeautyStorefront({
     setValidatingCoupon(true);
     setCouponError(null);
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
       const res = await fetch(`${API_URL}/v1/public/store/${store.username}/coupons/${couponCodeInput.trim()}/validate`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
@@ -1367,7 +1367,7 @@ export default function BeautyStorefront({
     <div className="ct-channels">
       <button className="ct-wa" onClick={() => openWhatsAppChat("Hi! I have a question about your treatments.")}><WhatsApp size={18} /> Chat on WhatsApp</button>
       <div className="ct-alt">
-        <button onClick={() => ping("Opening email")}><Mail size={15} /> {store.email || `${store.username || 'hello'}@frontstore.app`}</button>
+        <button onClick={() => ping("Opening email")}><Mail size={15} /> {store.email || `${store.username || 'hello'}@frontstore.ng`}</button>
         <button onClick={() => ping("Opening phone")}><Phone size={15} /> {store.whatsapp_phone}</button>
       </div>
     </div>
@@ -1726,7 +1726,7 @@ export default function BeautyStorefront({
                   <h1 className="ps-name">{store.store_name} {store.is_verified ? <BadgeCheck size={20} className="ps-verif" /> : null}</h1>
                   <p className="ps-meta">Beauty &amp; Skincare <span className="ps-dot">•</span> <MapPin size={13} /> {store.location || "Lekki, Lagos"}</p>
                   <div className="ps-id-actions-row">
-                    <button className="ps-url" onClick={copyUrl}>frontstore.app/{store.username} <Copy size={13} /></button>
+                    <button className="ps-url" onClick={copyUrl}>frontstore.ng/{store.username} <Copy size={13} /></button>
                     <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                   </div>
                   <div className="ps-stats">
@@ -1959,7 +1959,7 @@ export default function BeautyStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>{page === "services" ? "Services" : page === "products" ? "Products" : page === "reviews" ? "Reviews" : page === "blog" ? "Blog" : page === "portfolio" ? "Portfolio" : page === "about" ? "About" : page === "faq" ? "FAQ" : "Contact"}</h1>
-                  <span>frontstore.app/{store.username}</span>
+                  <span>frontstore.ng/{store.username}</span>
                 </div>
                 {page === "services" && (SERVICES.length === 0 ? <EmptyState /> : (
                   <div className="svc-page">
@@ -2135,7 +2135,7 @@ export default function BeautyStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Portfolio</h1>
-                  <span>frontstore.app/{store.username}</span>
+                  <span>frontstore.ng/{store.username}</span>
                 </div>
                 <p className="svc-intro">A look at recent work from the studio, from bridal glam to skin and hair. Tap any image to see it larger.</p>
                 {portfolioChips()}
@@ -2153,7 +2153,7 @@ export default function BeautyStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>About</h1>
-                  <span>frontstore.app/{store.username}</span>
+                  <span>frontstore.ng/{store.username}</span>
                 </div>
                 <div className="ab-wrap">
                   <div className="ab-main">{aboutBody()}</div>
@@ -2173,7 +2173,7 @@ export default function BeautyStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>FAQ</h1>
-                  <span>frontstore.app/{store.username}</span>
+                  <span>frontstore.ng/{store.username}</span>
                 </div>
                 <div className="faq-wrap">
                   <aside className="faq-rail">
@@ -2193,7 +2193,7 @@ export default function BeautyStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head">
                   <h1>Contact</h1>
-                  <span>frontstore.app/{store.username}</span>
+                  <span>frontstore.ng/{store.username}</span>
                 </div>
                 <div className="ct-wrap">
                   <div className="ct-main">
@@ -2223,7 +2223,7 @@ export default function BeautyStorefront({
                 <span className="ps-id-av">{store.store_name[0].toUpperCase()}</span>
                 <span className="ps-id-main">
                   <b>{store.store_name} {store.is_verified ? <BadgeCheck size={14} className="ps-verif" /> : null}</b>
-                  <i>frontstore.app/{store.username}</i>
+                  <i>frontstore.ng/{store.username}</i>
                 </span>
               </button>
               <nav className="ps-nav">
@@ -2540,10 +2540,10 @@ export default function BeautyStorefront({
       {share && (
         <Sheet onClose={() => setShare(false)} title="Share this store">
           <div className="ps-share-url">
-            <span>frontstore.app/{store.username}</span>
+            <span>frontstore.ng/{store.username}</span>
             <button onClick={copyUrl}><Copy size={15} /></button>
           </div>
-          <button className="ps-share-wa" onClick={() => { setShare(false); openWhatsAppChat(`Take a look at this shop: ${store.store_name} (frontstore.app/${store.username})`); }}><WhatsApp size={18} /> Share on WhatsApp</button>
+          <button className="ps-share-wa" onClick={() => { setShare(false); openWhatsAppChat(`Take a look at this shop: ${store.store_name} (frontstore.ng/${store.username})`); }}><WhatsApp size={18} /> Share on WhatsApp</button>
         </Sheet>
       )}
 
@@ -2756,7 +2756,7 @@ function StoreFoot({ onNav, slug }: { onNav: (p: string) => void, slug?: string 
         <button onClick={() => onNav("terms")}>Terms</button>
         <button onClick={() => onNav("privacy")}>Privacy</button>
         <button onClick={() => window.open('/terms', '_self')}>Platform terms</button>
-        <button onClick={() => window.open(`mailto:hello@frontstore.app?subject=Reporting Store: ${slug || 'store'}`, '_self')}>Report this store</button>
+        <button onClick={() => window.open(`mailto:hello@frontstore.ng?subject=Reporting Store: ${slug || 'store'}`, '_self')}>Report this store</button>
       </div>
     </footer>
   );

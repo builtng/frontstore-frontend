@@ -171,7 +171,7 @@ export default function MerchantDocsPage() {
               </p>
               <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14, color: 'var(--text-2)' }}>
                 <li><strong>Store Name:</strong> The customer-facing title of your shop.</li>
-                <li><strong>Store Link Name (Username):</strong> The path that defines your URL, yielding `frontstore.app/yourname`.</li>
+                <li><strong>Store Link Name (Username):</strong> The path that defines your URL, yielding `frontstore.ng/yourname`.</li>
                 <li><strong>WhatsApp Phone Number:</strong> The linked business phone where WhatsApp order receipts and buyer notifications land.</li>
               </ul>
 

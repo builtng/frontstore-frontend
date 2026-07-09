@@ -117,7 +117,7 @@ export default function BlogCTA({ city, category, ctaText }: BlogCTAProps) {
           )}
 
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>
-            Your URL will be: frontstore.app/yourname
+            Your URL will be: frontstore.ng/yourname
           </p>
         </form>
       </div>

@@ -14,7 +14,7 @@ interface PageProps {
 }
 
 async function getMatchingStores(categorySlug: string, stateSlug: string): Promise<StoreItem[]> {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   const state = NIGERIAN_STATES.find((s) => s.slug === stateSlug);
   if (!state) return [];
 
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const stores = await getMatchingStores(category, stateSlug);
   const content = getDirectoryContent(persona, state, stores.length);
-  const url = `https://frontstore.app/stores/${category}/${stateSlug}`;
+  const url = `https://frontstore.ng/stores/${category}/${stateSlug}`;
 
   return {
     title: content.metaTitle,
@@ -58,13 +58,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: 'website',
       locale: 'en_NG',
       siteName: 'Frontstore',
-      images: [{ url: 'https://frontstore.app/icon.png', width: 512, height: 512, alt: content.metaTitle }],
+      images: [{ url: 'https://frontstore.ng/icon.png', width: 512, height: 512, alt: content.metaTitle }],
     },
     twitter: {
       card: 'summary_large_image',
       title: content.metaTitle,
       description: content.metaDescription,
-      images: ['https://frontstore.app/icon.png'],
+      images: ['https://frontstore.ng/icon.png'],
     },
   };
 }
@@ -77,7 +77,7 @@ export default async function DirectoryPage({ params }: PageProps) {
 
   const stores = await getMatchingStores(category, stateSlug);
   const content = getDirectoryContent(persona, state, stores.length);
-  const url = `https://frontstore.app/stores/${category}/${stateSlug}`;
+  const url = `https://frontstore.ng/stores/${category}/${stateSlug}`;
 
   const otherStates = NIGERIAN_STATES.filter((s) => s.slug !== state.slug).slice(0, 8);
   const otherCategories = businessPersonas.filter((p) => p.id !== persona.id).slice(0, 8);
@@ -86,9 +86,9 @@ export default async function DirectoryPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://frontstore.app/' },
-      { '@type': 'ListItem', position: 2, name: 'Stores', item: 'https://frontstore.app/stores' },
-      { '@type': 'ListItem', position: 3, name: persona.name, item: `https://frontstore.app/stores/${category}` },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://frontstore.ng/' },
+      { '@type': 'ListItem', position: 2, name: 'Stores', item: 'https://frontstore.ng/stores' },
+      { '@type': 'ListItem', position: 3, name: persona.name, item: `https://frontstore.ng/stores/${category}` },
       { '@type': 'ListItem', position: 4, name: state.name, item: url },
     ],
   };
@@ -114,7 +114,7 @@ export default async function DirectoryPage({ params }: PageProps) {
       itemListElement: stores.map((store, index) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: `https://frontstore.app/${store.username}`,
+        url: `https://frontstore.ng/${store.username}`,
         name: store.store_name,
       })),
     },

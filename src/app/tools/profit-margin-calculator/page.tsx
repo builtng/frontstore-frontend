@@ -11,7 +11,7 @@ const tool = getTool('profit-margin-calculator')!;
 export const metadata: Metadata = {
   title: tool.metaTitle,
   description: tool.metaDescription,
-  alternates: { canonical: 'https://frontstore.app/tools/profit-margin-calculator' },
+  alternates: { canonical: 'https://frontstore.ng/tools/profit-margin-calculator' },
 };
 
 const FAQS = [
@@ -30,7 +30,7 @@ const FAQS = [
 ];
 
 export default function ProfitMarginCalculatorPage() {
-  const url = 'https://frontstore.app/tools/profit-margin-calculator';
+  const url = 'https://frontstore.ng/tools/profit-margin-calculator';
 
   const faqJsonLd = {
     '@context': 'https://schema.org',

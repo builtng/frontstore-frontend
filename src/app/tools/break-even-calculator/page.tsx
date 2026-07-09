@@ -11,7 +11,7 @@ const tool = getTool('break-even-calculator')!;
 export const metadata: Metadata = {
   title: tool.metaTitle,
   description: tool.metaDescription,
-  alternates: { canonical: 'https://frontstore.app/tools/break-even-calculator' },
+  alternates: { canonical: 'https://frontstore.ng/tools/break-even-calculator' },
 };
 
 const FAQS = [
@@ -30,7 +30,7 @@ const FAQS = [
 ];
 
 export default function BreakEvenCalculatorPage() {
-  const url = 'https://frontstore.app/tools/break-even-calculator';
+  const url = 'https://frontstore.ng/tools/break-even-calculator';
 
   const faqJsonLd = {
     '@context': 'https://schema.org',

@@ -8,7 +8,7 @@ import { VS_COMPETITORS } from '@/utils/vsData';
 export const metadata: Metadata = {
   title: 'Frontstore Comparisons – See How We Stack Up Against the Alternatives',
   description: 'Compare Frontstore against Bumpa, MyShoplet, Catlog, Selar, Vendda, and Shopify on WhatsApp checkout, AI product listings, pricing, and setup time.',
-  alternates: { canonical: 'https://frontstore.app/vs' },
+  alternates: { canonical: 'https://frontstore.ng/vs' },
 };
 
 interface QuickFacts {
