@@ -93,6 +93,8 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
     storeUrl: string;
   } | null>(null);
 
+  const [referredBy, setReferredBy] = useState<string>('');
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   useEffect(() => {
@@ -154,6 +156,14 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
         .join(' ');
       setStoreName(guessed);
       setIsUsernameManuallyEdited(true);
+    }
+  }, [searchParams]);
+
+  // Load B2B referral username
+  useEffect(() => {
+    const refParam = searchParams.get('ref') || localStorage.getItem('referrer_username');
+    if (refParam) {
+      setReferredBy(refParam);
     }
   }, [searchParams]);
 
@@ -332,7 +342,8 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
           username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
           business_persona: selectedPersona,
           email: email.trim() || undefined,
-          country_dial_code: selectedCountry.dialCode
+          country_dial_code: selectedCountry.dialCode,
+          referred_by: referredBy || undefined
         })
       });
 

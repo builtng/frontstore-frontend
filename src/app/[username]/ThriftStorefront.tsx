@@ -288,6 +288,10 @@ export default function ThriftStorefront({
   const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">("delivery");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [orderNote, setOrderNote] = useState("");
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   const ping = (m: string) => {
     setToast(m);
@@ -724,6 +728,48 @@ export default function ThriftStorefront({
   const subtotal = bagItems.reduce((n, b) => n + b.price * b.qty, 0);
   const shippingPreview = calculateShippingFee(store, subtotal);
 
+  const handleApplyCoupon = async () => {
+    if (!couponCodeInput.trim()) return;
+    setValidatingCoupon(true);
+    setCouponError(null);
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+      const res = await fetch(`${API_URL}/v1/public/store/${username}/coupons/${couponCodeInput.trim()}/validate`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const json = await res.json();
+      if (res.ok && json.data) {
+        const minOrder = parseFloat(json.data.min_order_amount);
+        if (minOrder > 0 && subtotal < minOrder) {
+          setCouponError(`This coupon requires a minimum order of ${money(minOrder)}`);
+          setAppliedCoupon(null);
+        } else {
+          setAppliedCoupon(json.data);
+          ping('Coupon applied!');
+        }
+      } else {
+        setCouponError(json.message || 'Invalid or expired coupon code.');
+        setAppliedCoupon(null);
+      }
+    } catch (err: any) {
+      setCouponError('Error validating coupon. Please try again.');
+      setAppliedCoupon(null);
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  useEffect(() => {
+    if (appliedCoupon) {
+      const minOrder = parseFloat(appliedCoupon.min_order_amount);
+      if (minOrder > 0 && subtotal < minOrder) {
+        setAppliedCoupon(null);
+        setCouponError(`Coupon removed: subtotal is below minimum order.`);
+      }
+    }
+  }, [subtotal, appliedCoupon]);
+
   const durTest = (m: number) => svcDur === "All" || (svcDur === "short" && m < 60) || (svcDur === "mid" && m >= 60 && m <= 120) || (svcDur === "long" && m > 120);
   const svcFiltered = SERVICES
     .filter((s) => (svcCat === "All" || s.cat === svcCat) && durTest(s.durMin) &&
@@ -839,7 +885,8 @@ export default function ThriftStorefront({
           items: bagItems.map(item => ({
             product_id: item.id,
             quantity: item.qty
-          }))
+          })),
+          coupon_code: appliedCoupon ? appliedCoupon.code : undefined
         })
       });
 
@@ -1730,11 +1777,97 @@ export default function ThriftStorefront({
             <label className="th-label">Order Notes / Sizing preference (optional)</label>
             <textarea className="bk-input bk-textarea" value={orderNote} onChange={e => setOrderNote(e.target.value)} placeholder="Specific details, preferred sizing details..." style={{ marginBottom: 14 }} />
 
+            {/* Coupon Form */}
+            <div style={{ marginTop: 12, marginBottom: 12 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="text"
+                  placeholder="Coupon Code"
+                  value={couponCodeInput}
+                  onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
+                  disabled={!!appliedCoupon || validatingCoupon}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    border: '1px solid var(--line)',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    background: 'var(--bg)',
+                    textTransform: 'uppercase'
+                  }}
+                />
+                {appliedCoupon ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAppliedCoupon(null);
+                      setCouponCodeInput('');
+                    }}
+                    className="btn clickable"
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      borderRadius: 8,
+                      background: '#fde8e8',
+                      color: '#e53e3e',
+                      border: '1px solid #f8b4b4'
+                    }}
+                  >
+                    Remove
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={validatingCoupon || !couponCodeInput.trim()}
+                    className="btn clickable"
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      borderRadius: 8,
+                      background: 'var(--primary)',
+                      color: '#fff',
+                      border: 'none',
+                      opacity: (!couponCodeInput.trim() || validatingCoupon) ? 0.6 : 1
+                    }}
+                  >
+                    {validatingCoupon ? 'Checking...' : 'Apply'}
+                  </button>
+                )}
+              </div>
+              {couponError && (
+                <p style={{ fontSize: 11, color: '#e53e3e', marginTop: 4, margin: 0 }}>{couponError}</p>
+              )}
+              {appliedCoupon && (
+                <p style={{ fontSize: 11, color: '#2f855a', marginTop: 4, margin: 0, fontWeight: 700 }}>
+                  Coupon "{appliedCoupon.code}" applied: {appliedCoupon.discount_type === 'percentage' ? `${parseFloat(appliedCoupon.discount_value)}%` : money(parseFloat(appliedCoupon.discount_value))} discount
+                </p>
+              )}
+            </div>
+
             <p style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}><Lock size={12} /> Secured checkout. Your details are safe with {appName}.</p>
 
-            <button type="submit" className="ps-sheet-cta" disabled={checkoutLoading}>
-              {checkoutLoading ? 'Placing Order...' : `Place Order · ${money(deliveryMethod === 'delivery' ? shippingPreview.total : subtotal)}`}
-            </button>
+            {(() => {
+              let discountAmount = 0;
+              if (appliedCoupon) {
+                if (appliedCoupon.discount_type === 'percentage') {
+                  discountAmount = Math.round(subtotal * (parseFloat(appliedCoupon.discount_value) / 100));
+                } else {
+                  discountAmount = Math.round(parseFloat(appliedCoupon.discount_value));
+                }
+                discountAmount = Math.min(discountAmount, subtotal);
+              }
+              const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+              const finalTotal = deliveryMethod === 'delivery' ? (shippingPreview.total - discountAmount) : discountedSubtotal;
+
+              return (
+                <button type="submit" className="ps-sheet-cta" disabled={checkoutLoading}>
+                  {checkoutLoading ? 'Placing Order...' : `Place Order · ${money(finalTotal)}`}
+                </button>
+              );
+            })()}
           </form>
         )}
 

@@ -235,9 +235,9 @@ interface BroadcastCampaign {
   created_at: string;
 }
 
-type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings' | 'invoices' | 'receipts' | 'inventory' | 'automations' | 'analytics' | 'team' | 'finance' | 'refunds' | 'inbox';
+type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings' | 'invoices' | 'receipts' | 'inventory' | 'automations' | 'analytics' | 'team' | 'finance' | 'refunds' | 'inbox' | 'coupons';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings', 'invoices', 'receipts', 'inventory', 'automations', 'analytics', 'team', 'finance', 'refunds', 'inbox'];
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings', 'invoices', 'receipts', 'inventory', 'automations', 'analytics', 'team', 'finance', 'refunds', 'inbox', 'coupons'];
 
 const BROADCAST_AUDIENCES: Array<{ id: 'all' | 'repeat' | 'unpaid_whatsapp'; label: string; description: string }> = [
   { id: 'all', label: 'All customers', description: 'Everyone who has ever placed an order with your store.' },
@@ -905,7 +905,6 @@ export default function DashboardPage() {
   const [prodTagInput, setProdTagInput] = useState('');
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
-  const [aiImageGenerating, setAiImageGenerating] = useState(false);
   const [productPublishing, setProductPublishing] = useState(false);
   // Digital product states
   const [prodIsDigital, setProdIsDigital] = useState(false);
@@ -919,6 +918,19 @@ export default function DashboardPage() {
   const [prodMobileFee, setProdMobileFee] = useState('');
   const [prodMobileFeeLabel, setProdMobileFeeLabel] = useState('');
   const [prodCustomFact, setProdCustomFact] = useState('');
+
+  // Storefront Coupons
+  const [storeCoupons, setStoreCoupons] = useState<any[]>([]);
+  const [storeCouponsLoading, setStoreCouponsLoading] = useState(false);
+  const [isStoreCouponModalOpen, setIsStoreCouponModalOpen] = useState(false);
+  const [editingStoreCoupon, setEditingStoreCoupon] = useState<any>(null);
+  const [storeCouponCode, setStoreCouponCode] = useState('');
+  const [storeCouponType, setStoreCouponType] = useState<'percentage' | 'fixed'>('percentage');
+  const [storeCouponValue, setStoreCouponValue] = useState('');
+  const [storeCouponMinOrderAmount, setStoreCouponMinOrderAmount] = useState('');
+  const [storeCouponMaxUses, setStoreCouponMaxUses] = useState('');
+  const [storeCouponExpiresAt, setStoreCouponExpiresAt] = useState('');
+  const [storeCouponSaving, setStoreCouponSaving] = useState(false);
 
   // Settings Form
   const [setStoreUsername, setSetStoreUsername] = useState('');
@@ -1598,14 +1610,15 @@ export default function DashboardPage() {
       if (!silent) setDataLoading(true);
       else setIsRefreshing(true);
 
-      const [statsRes, productsRes, ordersRes, categoriesRes, storeRes, reviewsRes, blogRes] = await Promise.all([
+      const [statsRes, productsRes, ordersRes, categoriesRes, storeRes, reviewsRes, blogRes, couponsRes] = await Promise.all([
         fetch(`${apiUrl}/v1/orders/stats`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/products`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/orders`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/categories`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/store`, { headers: getAuthHeaders() }),
         fetch(`${apiUrl}/v1/store/reviews`, { headers: getAuthHeaders() }),
-        fetch(`${apiUrl}/v1/blog`, { headers: getAuthHeaders() })
+        fetch(`${apiUrl}/v1/blog`, { headers: getAuthHeaders() }),
+        fetch(`${apiUrl}/v1/store-coupons`, { headers: getAuthHeaders() })
       ]);
 
       const statsJson = await statsRes.json();
@@ -1615,6 +1628,7 @@ export default function DashboardPage() {
       const storeJson = await storeRes.json();
       const reviewsJson = await reviewsRes.json();
       const blogJson = await blogRes.json();
+      const couponsJson = await couponsRes.json();
 
       if (statsRes.ok) setStats(statsJson.data);
       if (productsRes.ok) setProducts(productsJson.data?.data || productsJson.data || []);
@@ -1622,6 +1636,7 @@ export default function DashboardPage() {
       if (categoriesRes.ok) setCategories(categoriesJson.data || []);
       if (reviewsRes.ok) setReviews(reviewsJson.data || []);
       if (blogRes.ok) setBlogPosts(blogJson.data || []);
+      if (couponsRes.ok) setStoreCoupons(couponsJson.data || []);
 
       if (storeRes.ok && storeJson.data) {
         const liveStore = storeJson.data;
@@ -1724,6 +1739,118 @@ export default function DashboardPage() {
   const [verificationUploading, setVerificationUploading] = useState(false);
   const [isSubmittingVerification, setIsSubmittingVerification] = useState(false);
   const [verificationRedirectUrl, setVerificationRedirectUrl] = useState<string | null>(null);
+
+  const loadStoreCoupons = async () => {
+    if (!token) return;
+    try {
+      setStoreCouponsLoading(true);
+      const res = await fetch(`${apiUrl}/v1/store-coupons`, { headers: getAuthHeaders() });
+      if (res.ok) {
+        const json = await res.json();
+        setStoreCoupons(json.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to load store coupons:', err);
+    } finally {
+      setStoreCouponsLoading(false);
+    }
+  };
+
+  const handleToggleStoreCouponStatus = async (id: string) => {
+    try {
+      const res = await fetch(`${apiUrl}/v1/store-coupons/${id}/toggle-status`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        toast.success(json.message || 'Coupon status updated.');
+        loadStoreCoupons();
+      } else {
+        const json = await res.json();
+        toast.error(json.message || 'Failed to update coupon status.');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred.');
+    }
+  };
+
+  const handleDeleteStoreCoupon = async (id: string, code: string) => {
+    if (!window.confirm(`Are you sure you want to delete coupon code "${code}"?`)) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/store-coupons/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        toast.success('Coupon deleted successfully.');
+        loadStoreCoupons();
+      } else {
+        const json = await res.json();
+        toast.error(json.message || 'Failed to delete coupon.');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred.');
+    }
+  };
+
+  const handleCreateStoreCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!storeCouponCode.trim() || !storeCouponValue) {
+      toast.warning('Please fill in coupon code and discount value.');
+      return;
+    }
+
+    try {
+      setStoreCouponSaving(true);
+      const url = editingStoreCoupon 
+        ? `${apiUrl}/v1/store-coupons/${editingStoreCoupon.id}`
+        : `${apiUrl}/v1/store-coupons`;
+      const method = editingStoreCoupon ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method: method,
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          code: storeCouponCode.trim(),
+          discount_type: storeCouponType,
+          discount_value: parseFloat(storeCouponValue),
+          min_order_amount: storeCouponMinOrderAmount ? parseFloat(storeCouponMinOrderAmount) : 0,
+          max_uses: storeCouponMaxUses ? parseInt(storeCouponMaxUses) : null,
+          expires_at: storeCouponExpiresAt || null,
+        }),
+      });
+
+      const json = await res.json();
+      if (res.ok) {
+        toast.success(json.message || 'Coupon saved successfully.');
+        setIsStoreCouponModalOpen(false);
+        setEditingStoreCoupon(null);
+        setStoreCouponCode('');
+        setStoreCouponType('percentage');
+        setStoreCouponValue('');
+        setStoreCouponMinOrderAmount('');
+        setStoreCouponMaxUses('');
+        setStoreCouponExpiresAt('');
+        loadStoreCoupons();
+      } else {
+        toast.error(json.message || 'Failed to save coupon.');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred.');
+    } finally {
+      setStoreCouponSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'coupons') {
+      loadStoreCoupons();
+    }
+  }, [activeTab]);
 
   const fetchWalletData = async () => {
     if (!token) return;
@@ -2434,53 +2561,6 @@ export default function DashboardPage() {
       console.warn('AI image analysis failed (non-blocking):', err);
     } finally {
       setAiAnalyzing(false);
-    }
-  };
-
-  const handleGenerateAIImage = async () => {
-    if (user?.plan === 'free' || !user?.plan) {
-      openUpgradePrompt(
-        'AI image generation requires Pro',
-        'Create product images with AI from your product name and description. You can still upload your own images on Free.'
-      );
-      return;
-    }
-
-    if (!prodName.trim()) {
-      toast.warning('Enter a product name first to generate an image!');
-      return;
-    }
-
-    // Check if an AI generated image is already present in the list
-    const hasAiImage = prodImageUrls.some(url => url.includes('/products/ai_'));
-    if (hasAiImage) {
-      toast.warning('Pro plan is limited to generating exactly 1 AI image per product.');
-      return;
-    }
-
-    try {
-      setAiImageGenerating(true);
-      const res = await fetch(`${apiUrl}/v1/ai/generate-image`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          product_name: prodName,
-          description: prodDesc
-        })
-      });
-
-      const json = await res.json();
-      if (res.ok && json.url) {
-        setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
-        toast.success('Product image generated by AI! 🎨✨');
-      } else {
-        throw new Error(json.message || 'Image generation failed.');
-      }
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || 'AI Image generation failed.');
-    } finally {
-      setAiImageGenerating(false);
     }
   };
 
@@ -3566,6 +3646,7 @@ export default function DashboardPage() {
             { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={18} /> },
             { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
             { id: 'products', label: 'My Products', icon: <Package size={18} /> },
+            { id: 'coupons', label: 'Store Coupons', icon: <Tag size={18} /> },
             { id: 'inventory', label: 'Inventory', icon: <Archive size={18} />, badge: isPro ? undefined : 'Pro' },
             { id: 'invoices', label: 'Invoices', icon: <FileText size={18} />, badge: isPro ? undefined : 'Pro' },
             { id: 'receipts', label: 'Receipts', icon: <Receipt size={18} />, badge: isPro ? undefined : 'Pro' },
@@ -10176,6 +10257,154 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* ── TAB: STOREFRONT COUPONS ── */}
+              {activeTab === 'coupons' && (
+                <div className="card animate-fade-in" style={{ padding: 24 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+                    <div>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Store Coupons</h2>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Create and manage discount codes for your customers to use at checkout.</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setEditingStoreCoupon(null);
+                        setStoreCouponCode('');
+                        setStoreCouponType('percentage');
+                        setStoreCouponValue('');
+                        setStoreCouponMinOrderAmount('');
+                        setStoreCouponMaxUses('');
+                        setStoreCouponExpiresAt('');
+                        setIsStoreCouponModalOpen(true);
+                      }}
+                      className="btn btn-primary clickable"
+                      style={{
+                        padding: '10px 20px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        borderRadius: 'var(--r-md)',
+                        backgroundColor: 'var(--primary)',
+                        color: '#fff',
+                        border: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6
+                      }}
+                    >
+                      <Plus size={16} /> Create Coupon
+                    </button>
+                  </div>
+
+                  {storeCouponsLoading && storeCoupons.length === 0 ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}><Loader2 className="animate-spin" size={24} /></div>
+                  ) : storeCoupons.length === 0 ? (
+                    <div className="empty-state" style={{ padding: '60px 0', textAlign: 'center' }}>
+                      <div className="empty-state__icon" style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-2)', color: 'var(--text-faint)', marginBottom: 16 }}>
+                        <Tag size={28} strokeWidth={1.25} />
+                      </div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '6px', color: 'var(--text)' }}>No storefront coupons yet</h3>
+                      <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', maxWidth: '320px', margin: '0 auto', lineHeight: 1.5 }}>
+                        Create a discount code (e.g. SAVE10) to reward your customers and increase sales.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="admin-table-wrap" style={{ border: 'none', boxShadow: 'none', background: 'transparent' }}>
+                      <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Code</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Discount</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Min Order</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Usage</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Expires</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {storeCoupons.map((coupon) => (
+                            <tr key={coupon.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                              <td style={{ padding: 12 }}>
+                                <span className="admin-chip admin-chip--gray" style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', background: 'var(--surface-2)', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                                  {coupon.code}
+                                </span>
+                              </td>
+                              <td style={{ padding: 12, fontWeight: 700 }}>
+                                {coupon.discount_type === 'percentage'
+                                  ? `${parseFloat(coupon.discount_value)}%`
+                                  : `${getCurrencySymbol(store?.currency_code)}${formatVal(coupon.discount_value)}`}
+                              </td>
+                              <td style={{ padding: 12, color: 'var(--text-muted)', fontSize: 13 }}>
+                                {parseFloat(coupon.min_order_amount) > 0
+                                  ? `${getCurrencySymbol(store?.currency_code)}${formatVal(coupon.min_order_amount)}`
+                                  : 'None'}
+                              </td>
+                              <td style={{ padding: 12, fontSize: 13 }}>
+                                {coupon.uses_count} {coupon.max_uses ? `/ ${coupon.max_uses}` : 'uses'}
+                              </td>
+                              <td style={{ padding: 12, color: 'var(--text-muted)', fontSize: 13 }}>
+                                {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : 'Never'}
+                              </td>
+                              <td style={{ padding: 12 }}>
+                                <button
+                                  onClick={() => handleToggleStoreCouponStatus(coupon.id)}
+                                  className="clickable"
+                                  style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <span className={`admin-chip admin-chip--${coupon.is_active ? 'green' : 'gray'}`} style={{
+                                    display: 'inline-block',
+                                    fontSize: 11,
+                                    fontWeight: 800,
+                                    padding: '2px 8px',
+                                    borderRadius: 999,
+                                    color: coupon.is_active ? '#10b981' : 'var(--text-muted)',
+                                    background: coupon.is_active ? 'rgba(16, 185, 129, 0.1)' : 'var(--surface-2)'
+                                  }}>
+                                    {coupon.is_active ? 'Active' : 'Inactive'}
+                                  </span>
+                                </button>
+                              </td>
+                              <td style={{ padding: 12, textAlign: 'right' }}>
+                                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                  <button
+                                    onClick={() => {
+                                      setEditingStoreCoupon(coupon);
+                                      setStoreCouponCode(coupon.code);
+                                      setStoreCouponType(coupon.discount_type);
+                                      setStoreCouponValue(String(coupon.discount_value));
+                                      setStoreCouponMinOrderAmount(String(coupon.min_order_amount));
+                                      setStoreCouponMaxUses(coupon.max_uses ? String(coupon.max_uses) : '');
+                                      setStoreCouponExpiresAt(coupon.expires_at ? coupon.expires_at.split('T')[0] : '');
+                                      setIsStoreCouponModalOpen(true);
+                                    }}
+                                    className="btn btn-ghost clickable"
+                                    style={{ padding: 6, display: 'inline-flex', background: 'transparent', border: 'none', color: 'var(--text-2)' }}
+                                  >
+                                    <Edit2 size={15} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteStoreCoupon(coupon.id, coupon.code)}
+                                    className="btn btn-ghost clickable"
+                                    style={{ padding: 6, display: 'inline-flex', background: 'transparent', border: 'none', color: 'var(--danger)' }}
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* ── TAB 13: AVAILABILITY ── */}
               {activeTab === 'availability' && (
                 <div className="card animate-fade-in" style={{ padding: 28 }}>
@@ -11734,44 +11963,38 @@ export default function DashboardPage() {
 
                 {blogImageMode === 'url' ? (
                   <input
-                    type="text"
-                    placeholder="https://images.unsplash.com/..."
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
                     value={blogImageUrl}
                     onChange={e => setBlogImageUrl(e.target.value)}
                     className="input-field"
                     style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 10, fontSize: 13 }}
                   />
                 ) : (
-                  <div>
-                    <label
-                      htmlFor="blog-image-upload"
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 8,
-                        padding: '24px 16px',
-                        border: '2px dashed var(--border)',
-                        borderRadius: 'var(--r-md)',
-                        cursor: blogImageUploading ? 'not-allowed' : 'pointer',
-                        background: 'var(--bg)',
-                        transition: 'border-color 0.2s',
-                        opacity: blogImageUploading ? 0.7 : 1,
-                      }}
-                    >
+                  <div style={{
+                    border: '2px dashed var(--border)',
+                    borderRadius: 'var(--r-md)',
+                    padding: '24px 16px',
+                    textAlign: 'center',
+                    background: 'var(--bg)'
+                  }}>
+                    <label htmlFor="blog-image-upload" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
                       {blogImageUploading ? (
-                        <><Loader2 size={20} className="spinner" style={{ color: 'var(--primary)' }} /><span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Uploading...</span></>
-                      ) : blogImageUrl && blogImageMode === 'upload' ? (
                         <>
-                          <img src={blogImageUrl} alt="Preview" style={{ width: '100%', maxHeight: 120, objectFit: 'cover', borderRadius: 'var(--r-sm)' }} />
-                          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Click to replace</span>
+                          <Loader2 size={24} className="animate-spin" color="var(--primary)" />
+                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)' }}>Uploading cover image...</span>
+                        </>
+                      ) : blogImageUrl ? (
+                        <>
+                          <div style={{ position: 'relative', width: 80, height: 80, borderRadius: 'var(--r-sm)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                            <img src={blogImageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--success)' }}>Image uploaded successfully</span>
                         </>
                       ) : (
                         <>
                           <ImageIcon size={24} color="var(--text-muted)" />
                           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)' }}>Click to upload cover image</span>
-                          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>JPG, PNG, WebP — max 5MB</span>
                         </>
                       )}
                     </label>
@@ -11787,7 +12010,7 @@ export default function DashboardPage() {
                         e.target.value = '';
                       }}
                     />
-                    {blogImageUrl && blogImageMode === 'upload' && (
+                    {blogImageUrl && (
                       <button type="button" onClick={() => setBlogImageUrl('')} style={{ marginTop: 6, fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>
                         Remove image
                       </button>
@@ -11795,7 +12018,6 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
-
 
               <div>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Body Paragraphs</label>
@@ -11813,6 +12035,105 @@ export default function DashboardPage() {
                 <button type="button" onClick={() => setShowBlogForm(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
                 <button type="submit" disabled={blogSubmitting} className="btn btn-primary clickable" style={{ flex: 1, padding: 12 }}>
                   {blogSubmitting ? 'Publishing...' : 'Publish Post'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CREATE/EDIT STOREFRONT COUPON ── */}
+      {isStoreCouponModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsStoreCouponModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 500, padding: 28, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Tag size={18} style={{ color: 'var(--primary)' }} /> {editingStoreCoupon ? 'Edit Store Coupon' : 'Create Store Coupon'}
+              </h3>
+              <button onClick={() => setIsStoreCouponModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
+            </div>
+
+            <form onSubmit={handleCreateStoreCoupon} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Coupon Code</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="e.g. SAVE10"
+                  value={storeCouponCode}
+                  onChange={(e) => setStoreCouponCode(e.target.value.toUpperCase())}
+                  style={{ width: '100%', padding: 11, border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--card)' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Discount Type</label>
+                  <select
+                    value={storeCouponType}
+                    onChange={(e) => setStoreCouponType(e.target.value as 'percentage' | 'fixed')}
+                    style={{ width: '100%', padding: 11, border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--card)' }}
+                  >
+                    <option value="percentage">Percentage (%)</option>
+                    <option value="fixed">Fixed Amount</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Discount Value</label>
+                  <input
+                    required
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    placeholder="e.g. 10"
+                    value={storeCouponValue}
+                    onChange={(e) => setStoreCouponValue(e.target.value)}
+                    style={{ width: '100%', padding: 11, border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--card)' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Min Order ({getCurrencySymbol(store?.currency_code)})</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="e.g. 1000 (optional)"
+                    value={storeCouponMinOrderAmount}
+                    onChange={(e) => setStoreCouponMinOrderAmount(e.target.value)}
+                    style={{ width: '100%', padding: 11, border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--card)' }}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Max Uses</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="e.g. 100 (optional)"
+                    value={storeCouponMaxUses}
+                    onChange={(e) => setStoreCouponMaxUses(e.target.value)}
+                    style={{ width: '100%', padding: 11, border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--card)' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Expiry Date</label>
+                <input
+                  type="date"
+                  value={storeCouponExpiresAt}
+                  onChange={(e) => setStoreCouponExpiresAt(e.target.value)}
+                  style={{ width: '100%', padding: 11, border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--card)' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <button type="button" onClick={() => setIsStoreCouponModalOpen(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
+                <button type="submit" disabled={storeCouponSaving} className="btn btn-primary clickable" style={{ flex: 1, padding: 12 }}>
+                  {storeCouponSaving ? <Loader2 size={16} className="animate-spin" /> : (editingStoreCoupon ? 'Save Changes' : 'Create Coupon')}
                 </button>
               </div>
             </form>
@@ -12383,19 +12704,19 @@ export default function DashboardPage() {
                   {prodImageUrls.length < 3 && (
                     <button
                       type="button"
-                      disabled={prodImageUploading || aiImageGenerating}
-                      onClick={handleGenerateAIImage}
+                      disabled
                       style={{
                         width: 80, height: 80, borderRadius: 'var(--r-md)', flexShrink: 0,
                         border: '2.5px dashed #d97706', display: 'flex', flexDirection: 'column',
                         alignItems: 'center', justifyContent: 'center', gap: 4,
-                        cursor: (prodImageUploading || aiImageGenerating) ? 'not-allowed' : 'pointer',
-                        background: 'var(--bg-2)', color: '#d97706', opacity: (prodImageUploading || aiImageGenerating) ? 0.6 : 1,
+                        cursor: 'not-allowed',
+                        background: 'var(--bg-2)', color: '#d97706', opacity: 0.5,
                         transition: 'all var(--t-fast)'
                       }}
-                      title="Generate AI Image"
+                      title="AI image generation — coming soon"
                     >
-                      {aiImageGenerating ? <Loader2 size={18} className="spinner" /> : <><ImageIcon size={18} /><span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>AI Gen</span></>}
+                      <ImageIcon size={18} />
+                      <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>Soon</span>
                     </button>
                   )}
                 </div>
@@ -12852,19 +13173,19 @@ export default function DashboardPage() {
                   {prodImageUrls.length < 3 && (
                     <button
                       type="button"
-                      disabled={prodImageUploading || aiImageGenerating}
-                      onClick={handleGenerateAIImage}
+                      disabled
                       style={{
                         width: 80, height: 80, borderRadius: 'var(--r-md)', flexShrink: 0,
                         border: '2.5px dashed #d97706', display: 'flex', flexDirection: 'column',
                         alignItems: 'center', justifyContent: 'center', gap: 4,
-                        cursor: (prodImageUploading || aiImageGenerating) ? 'not-allowed' : 'pointer',
-                        background: 'var(--bg-2)', color: '#d97706', opacity: (prodImageUploading || aiImageGenerating) ? 0.6 : 1,
+                        cursor: 'not-allowed',
+                        background: 'var(--bg-2)', color: '#d97706', opacity: 0.5,
                         transition: 'all var(--t-fast)'
                       }}
-                      title="Generate AI Image"
+                      title="AI image generation — coming soon"
                     >
-                      {aiImageGenerating ? <Loader2 size={18} className="spinner" /> : <><ImageIcon size={18} /><span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>AI Gen</span></>}
+                      <ImageIcon size={18} />
+                      <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>Soon</span>
                     </button>
                   )}
                 </div>
