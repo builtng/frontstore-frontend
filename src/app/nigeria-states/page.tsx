@@ -147,7 +147,6 @@ export default function NigeriaStatesIndexPage() {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 8,
-                    borderLeft: `3px solid ${REGION_COLOURS[region] ?? 'var(--primary)'}`,
                     transition: 'transform 150ms ease, box-shadow 150ms ease',
                   }}
                 >
