@@ -1330,7 +1330,7 @@ export default function HomeServicesStorefront({
     <div className={g}>{(list || SERVICES).map((s: any) => <ServiceCard key={s.id} s={s} onBook={() => openService(s)} />)}</div>
   );
   const productsGrid = (g: any, list: any) => (
-    <div className={g}>{(list || PRODUCTS).map((p: any) => <ProductCard key={p.id} p={p} onBuy={() => addBag(p.name)} />)}</div>
+    <div className={g}>{(list || PRODUCTS).map((p: any) => <ProductCard key={p.id} p={p} onBuy={() => addBag(p.name)} onView={() => router.push(`/${username}/products/${p.slug}`)} />)}</div>
   );
   const reviewsBody = () => (<>
     <p className="svc-intro">Every review here comes from a verified order on Frontstore. The team can respond, but cannot remove genuine reviews.</p>
@@ -2168,7 +2168,7 @@ export default function HomeServicesStorefront({
                     <div className="pd-sec-head"><h2>Best sellers</h2></div>
                     <div className="svc-feat-grid">
                       {PRODUCTS.filter((p) => p.popular).slice(0, 3).map((p: any) => (
-                        <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} badge="Best seller" onView={() => ping("Opening product")} onBuy={() => addBag(p.name)} />
+                        <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} badge="Best seller" onView={() => router.push(`/${username}/products/${p.slug}`)} onBuy={() => addBag(p.name)} />
                       ))}
                     </div>
 
@@ -2222,7 +2222,7 @@ export default function HomeServicesStorefront({
                         </div>
                         {prodFiltered.length > 0 ? (
                           <div className="svc-grid">
-                            {prodFiltered.map((p: any) => <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} onView={() => ping("Opening product")} onBuy={() => addBag(p.name)} />)}
+                            {prodFiltered.map((p: any) => <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} onView={() => router.push(`/${username}/products/${p.slug}`)} onBuy={() => addBag(p.name)} />)}
                           </div>
                         ) : (
                           <div className="svc-empty">No products match your filters.<button onClick={clearProd}>Clear filters</button></div>
@@ -2741,10 +2741,13 @@ function ServiceCard({ s, onBook }: { s: any, onBook: () => void }) {
     <div className="ps-card-body"><b>{s.name}</b><span className="ps-card-sub"><Clock size={12} /> {s.dur}</span>
       <div className="ps-card-foot"><em>{money(s.price)}</em><button className="ps-mini book" onClick={onBook}>View</button></div></div></div>);
 }
-function ProductCard({ p, onBuy }: { p: any, onBuy: () => void }) {
-  return (<div className="ps-card"><div className="ps-card-thumb prod"><ShoppingBag size={22} /></div>
+function ProductCard({ p, onBuy, onView }: { p: any, onBuy: () => void, onView?: () => void }) {
+  return (<div className="ps-card" onClick={onView} style={onView ? { cursor: 'pointer' } : undefined}>
+    <div className="ps-card-thumb prod">
+      {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={22} />}
+    </div>
     <div className="ps-card-body"><b>{p.name}</b>
-      <div className="ps-card-foot"><em>{money(p.price)}</em><button className="ps-mini buy" onClick={onBuy}>Buy</button></div></div></div>);
+      <div className="ps-card-foot"><em>{money(p.price)}</em><button className="ps-mini buy" onClick={(e) => { e.stopPropagation(); onBuy(); }}>Buy</button></div></div></div>);
 }
 function BlogCard({ b, colour, onOpen, authorName }: { b: any, colour: string, onOpen: (b: any) => void, authorName?: string }) {
   return (
@@ -2781,7 +2784,7 @@ function ProductCardRich({ p, onView, onBuy, colour, badge }: { p: any, onView: 
   return (
     <div className="svc-card" onClick={onView}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
-        <ShoppingBag size={24} />
+        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={24} />}
         {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
         <span className="svc-card-cat">{p.cat}</span>
       </div>

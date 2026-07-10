@@ -2792,7 +2792,9 @@ function ServiceCard({ s, onBook }: { s: any, onBook: () => void }) {
       <div className="ps-card-foot"><em>{money(s.price)}</em><button className="ps-mini book" onClick={onBook}>Book</button></div></div></div>);
 }
 function ProductCard({ p, onOpen }: { p: any, onOpen: () => void }) {
-  return (<div className="ps-card prod-card" onClick={onOpen}><div className="ps-card-thumb prod"><UtensilsCrossed size={22} /></div>
+  return (<div className="ps-card prod-card" onClick={onOpen}><div className="ps-card-thumb prod">
+      {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <UtensilsCrossed size={22} />}
+    </div>
     <div className="ps-card-body"><b>{p.name}</b>
       <div className="ps-card-foot"><em>{money(p.price)}</em><span className="ps-mini buy">View</span></div></div></div>);
 }
@@ -2831,7 +2833,7 @@ function ProductCardRich({ p, onView, onBuy, colour, badge }: { p: any, onView: 
   return (
     <div className="svc-card" onClick={onView}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
-        <ShoppingBag size={24} />
+        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={24} />}
         {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
         <span className="svc-card-cat">{p.cat}</span>
       </div>

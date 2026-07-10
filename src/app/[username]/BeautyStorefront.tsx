@@ -2019,7 +2019,7 @@ export default function BeautyStorefront({
                     <div className="pd-sec-head"><h2>Best sellers</h2></div>
                     <div className="svc-feat-grid">
                       {PRODUCTS.slice(0, 3).map((p) => (
-                        <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} badge="Best seller" onView={() => addBag(p)} onBuy={() => addBag(p)} />
+                        <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} badge="Best seller" onView={() => router.push(`/${username}/products/${p.slug}`)} onBuy={() => addBag(p)} />
                       ))}
                     </div>
                     <div className="svc-body">
@@ -2054,7 +2054,7 @@ export default function BeautyStorefront({
                         </div>
                         {prodFiltered.length > 0 ? (
                           <div className="svc-grid">
-                            {prodFiltered.map((p) => <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} onView={() => addBag(p)} onBuy={() => addBag(p)} />)}
+                            {prodFiltered.map((p) => <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} onView={() => router.push(`/${username}/products/${p.slug}`)} onBuy={() => addBag(p)} />)}
                           </div>
                         ) : <div className="svc-empty">No products match your filters.<button onClick={clearProd}>Clear filters</button></div>}
                       </div>
