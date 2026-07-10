@@ -6848,43 +6848,40 @@ export default function DashboardPage() {
                               At your domain registrar (GoDaddy, Namecheap, etc.), add this record. Your existing email and other DNS records stay untouched.
                             </p>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                              {domainTargetCname ? (
+                              {(domainTargetCname || domainTargetIp) ? (
                                 <>
                                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                                     <span style={{ width: 60 }}>Type</span>
                                     <span style={{ flex: 1 }}>Value</span>
                                   </div>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
-                                    <span style={{ width: 60, opacity: 0.7 }}>CNAME</span>
-                                    <span style={{ flex: 1 }}>{domainTargetCname}</span>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        navigator.clipboard.writeText(domainTargetCname);
-                                        toast.success(`Copied ${domainTargetCname}`);
-                                      }}
-                                      style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
-                                    >Copy</button>
-                                  </div>
-                                </>
-                              ) : domainTargetIp ? (
-                                <>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 10.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                                    <span style={{ width: 60 }}>Type</span>
-                                    <span style={{ flex: 1 }}>Value</span>
-                                  </div>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
-                                    <span style={{ width: 60, opacity: 0.7 }}>A</span>
-                                    <span style={{ flex: 1 }}>{domainTargetIp}</span>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        navigator.clipboard.writeText(domainTargetIp);
-                                        toast.success(`Copied ${domainTargetIp}`);
-                                      }}
-                                      style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
-                                    >Copy</button>
-                                  </div>
+                                  {domainTargetCname && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
+                                      <span style={{ width: 60, opacity: 0.7 }}>CNAME</span>
+                                      <span style={{ flex: 1 }}>{domainTargetCname}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(domainTargetCname);
+                                          toast.success(`Copied ${domainTargetCname}`);
+                                        }}
+                                        style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                                      >Copy</button>
+                                    </div>
+                                  )}
+                                  {domainTargetIp && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '6px 12px', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', fontSize: 12.5, fontFamily: 'monospace' }}>
+                                      <span style={{ width: 60, opacity: 0.7 }}>A</span>
+                                      <span style={{ flex: 1 }}>{domainTargetIp}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(domainTargetIp);
+                                          toast.success(`Copied ${domainTargetIp}`);
+                                        }}
+                                        style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                                      >Copy</button>
+                                    </div>
+                                  )}
                                 </>
                               ) : (
                                 <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
@@ -6893,7 +6890,10 @@ export default function DashboardPage() {
                               )}
                             </div>
                             <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5, marginTop: 12 }}>
-                              Using the domain's root (e.g. <code>mybrand.com</code> instead of <code>www</code>)? Some registrars don't allow a CNAME at the root — use an ALIAS/ANAME record with the same value, or ask your registrar for CNAME flattening.
+                              {domainTargetCname && domainTargetIp
+                                ? <>Using the domain's root (e.g. <code>mybrand.com</code> instead of <code>www</code>)? Use the <strong>A</strong> record above — a CNAME can't be set at the root. Using <code>www</code>? Use the <strong>CNAME</strong> record instead.</>
+                                : <>Using the domain's root (e.g. <code>mybrand.com</code> instead of <code>www</code>)? Some registrars don't allow a CNAME at the root — use an ALIAS/ANAME record with the same value, or ask your registrar for CNAME flattening.</>
+                              }
                             </p>
                           </div>
                         </div>
