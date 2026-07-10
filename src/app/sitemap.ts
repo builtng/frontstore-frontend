@@ -5,7 +5,8 @@ import { SOLUTION_PAGES } from '@/utils/solutionsData';
 import { FREE_TOOLS } from '@/utils/toolsData';
 import { businessPersonas } from '@/utils/businessPersonas';
 import { NIGERIAN_STATES } from '@/utils/nigerianStates';
-import { locationMatchesState, normalizePersonaId } from '@/utils/directoryContent';
+import { NIGERIAN_CITIES } from '@/utils/nigerianCities';
+import { locationMatchesState, normalizePersonaId, locationMatchesCity } from '@/utils/directoryContent';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://frontstore.ng';
@@ -227,6 +228,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
               priority: 0.6,
             });
           }
+        });
+      });
+
+      // ── Category × state × city merchant directory pages ─────────────────────
+      businessPersonas.forEach((persona) => {
+        NIGERIAN_STATES.forEach((state) => {
+          const cities = NIGERIAN_CITIES[state.slug] || [];
+          cities.forEach((city) => {
+            // For Delta, Edo, Rivers, Lagos, Abuja (FCT), Kaduna, Kano, Abia, Anambra, Imo, and Enugu States, we always include the URL in the sitemap to ensure indexing
+            // For other states, we include if there is at least one local matching store
+            const isAlwaysIndexed = state.slug === 'delta' || state.slug === 'edo' || state.slug === 'rivers' || state.slug === 'lagos' || state.slug === 'fct-abuja' || state.slug === 'kaduna' || state.slug === 'kano' || state.slug === 'abia' || state.slug === 'anambra' || state.slug === 'imo' || state.slug === 'enugu';
+            const hasMatch = isAlwaysIndexed || stores.some((store) =>
+              normalizePersonaId(store.business_persona) === persona.id &&
+              locationMatchesCity(store.location, city)
+            );
+
+            if (hasMatch) {
+              routes.push({
+                url: `${baseUrl}/stores/${persona.id}/${state.slug}/${city.slug}`,
+                lastModified: now,
+                changeFrequency: 'weekly',
+                priority: 0.55,
+              });
+            }
+          });
         });
       });
     }

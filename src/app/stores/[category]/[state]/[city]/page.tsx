@@ -4,20 +4,23 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, HelpCircle, MapPin, Store as StoreIcon } from 'lucide-react';
 import { PublicSiteFooter, PublicSiteNav } from '@/components/PublicSiteChrome';
-import { StoreDirectoryCard, StoreItem } from '../../StoresClient';
+import { StoreDirectoryCard, StoreItem } from '../../../StoresClient';
 import { businessPersonas } from '@/utils/businessPersonas';
 import { NIGERIAN_STATES } from '@/utils/nigerianStates';
 import { NIGERIAN_CITIES } from '@/utils/nigerianCities';
-import { getDirectoryContent, locationMatchesState, normalizePersonaId } from '@/utils/directoryContent';
+import { getCityDirectoryContent, locationMatchesCity, normalizePersonaId } from '@/utils/directoryContent';
 
 interface PageProps {
-  params: Promise<{ category: string; state: string }>;
+  params: Promise<{ category: string; state: string; city: string }>;
 }
 
-async function getMatchingStores(categorySlug: string, stateSlug: string): Promise<StoreItem[]> {
+async function getMatchingStores(categorySlug: string, stateSlug: string, citySlug: string): Promise<StoreItem[]> {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   const state = NIGERIAN_STATES.find((s) => s.slug === stateSlug);
   if (!state) return [];
+  const stateCities = NIGERIAN_CITIES[stateSlug] || [];
+  const city = stateCities.find((c) => c.slug === citySlug);
+  if (!city) return [];
 
   try {
     const res = await fetch(`${API_URL}/v1/public/stores`, {
@@ -29,29 +32,32 @@ async function getMatchingStores(categorySlug: string, stateSlug: string): Promi
 
     return stores.filter((store) =>
       normalizePersonaId(store.business_persona) === categorySlug &&
-      locationMatchesState(store.location, state)
+      locationMatchesCity(store.location, city)
     );
   } catch (err) {
-    console.error('Error fetching directory stores:', err);
+    console.error('Error fetching city directory stores:', err);
     return [];
   }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { category, state: stateSlug } = await params;
+  const { category, state: stateSlug, city: citySlug } = await params;
   const persona = businessPersonas.find((p) => p.id === category);
   const state = NIGERIAN_STATES.find((s) => s.slug === stateSlug);
   if (!persona || !state) return {};
+  const stateCities = NIGERIAN_CITIES[stateSlug] || [];
+  const city = stateCities.find((c) => c.slug === citySlug);
+  if (!city) return {};
 
-  const stores = await getMatchingStores(category, stateSlug);
-  const content = getDirectoryContent(persona, state, stores.length);
-  const url = `https://frontstore.ng/stores/${category}/${stateSlug}`;
+  const stores = await getMatchingStores(category, stateSlug, citySlug);
+  const content = getCityDirectoryContent(persona, state, city, stores.length);
+  const url = `https://frontstore.ng/stores/${category}/${stateSlug}/${citySlug}`;
 
   return {
     title: content.metaTitle,
     description: content.metaDescription,
     alternates: { canonical: url },
-    robots: stores.length > 0 ? undefined : { index: false, follow: true },
+    robots: { index: true, follow: true },
     openGraph: {
       title: content.metaTitle,
       description: content.metaDescription,
@@ -70,19 +76,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function DirectoryPage({ params }: PageProps) {
-  const { category, state: stateSlug } = await params;
+export default async function DirectoryCityPage({ params }: PageProps) {
+  const { category, state: stateSlug, city: citySlug } = await params;
   const persona = businessPersonas.find((p) => p.id === category);
   const state = NIGERIAN_STATES.find((s) => s.slug === stateSlug);
   if (!persona || !state) return notFound();
-
-  const stores = await getMatchingStores(category, stateSlug);
-  const content = getDirectoryContent(persona, state, stores.length);
-  const url = `https://frontstore.ng/stores/${category}/${stateSlug}`;
-
-  const otherStates = NIGERIAN_STATES.filter((s) => s.slug !== state.slug).slice(0, 8);
-  const otherCategories = businessPersonas.filter((p) => p.id !== persona.id).slice(0, 8);
   const stateCities = NIGERIAN_CITIES[stateSlug] || [];
+  const city = stateCities.find((c) => c.slug === citySlug);
+  if (!city) return notFound();
+
+  const stores = await getMatchingStores(category, stateSlug, citySlug);
+  const content = getCityDirectoryContent(persona, state, city, stores.length);
+  const url = `https://frontstore.ng/stores/${category}/${stateSlug}/${citySlug}`;
+
+  const otherCities = stateCities.filter((c) => c.slug !== city.slug).slice(0, 8);
+  const otherCategories = businessPersonas.filter((p) => p.id !== persona.id).slice(0, 8);
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -91,7 +99,8 @@ export default async function DirectoryPage({ params }: PageProps) {
       { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://frontstore.ng/' },
       { '@type': 'ListItem', position: 2, name: 'Stores', item: 'https://frontstore.ng/stores' },
       { '@type': 'ListItem', position: 3, name: persona.name, item: `https://frontstore.ng/stores/${category}` },
-      { '@type': 'ListItem', position: 4, name: state.name, item: url },
+      { '@type': 'ListItem', position: 4, name: state.name, item: `https://frontstore.ng/stores/${category}/${stateSlug}` },
+      { '@type': 'ListItem', position: 5, name: city.name, item: url },
     ],
   };
 
@@ -136,15 +145,15 @@ export default async function DirectoryPage({ params }: PageProps) {
         <div className="hero-blob" style={{ top: '-22%', right: '-10%', width: 340, height: 340, background: 'rgba(255,255,255,0.05)' }} />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
           <Link
-            href="/stores"
+            href={`/stores/${category}/${stateSlug}`}
             className="clickable"
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13, color: 'rgba(255,255,255,0.75)', fontWeight: 700, textDecoration: 'none', marginBottom: 24 }}
           >
-            <ArrowLeft size={14} /> All Stores
+            <ArrowLeft size={14} /> {state.name} Directory
           </Link>
 
           <div className="hero-eyebrow" style={{ justifyContent: 'center', marginBottom: 16 }}>
-            <MapPin size={12} color="var(--accent)" /> <b>{state.name}</b>
+            <MapPin size={12} color="var(--accent)" /> <b>{city.name}, {state.name}</b>
           </div>
 
           <h1 className="text-display" style={{ fontSize: 'clamp(24px, 5vw, 38px)', color: '#fff', lineHeight: 1.18 }}>
@@ -165,7 +174,7 @@ export default async function DirectoryPage({ params }: PageProps) {
         {stores.length > 0 ? (
           <>
             <div style={{ marginBottom: 20, fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
-              {stores.length} store{stores.length === 1 ? '' : 's'} found
+              {stores.length} store{stores.length === 1 ? '' : 's'} found in {city.name}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 20, marginBottom: 48 }}>
               {stores.map((store) => (
@@ -177,17 +186,17 @@ export default async function DirectoryPage({ params }: PageProps) {
           <div className="card" style={{ padding: '48px 20px', textAlign: 'center', marginBottom: 48 }}>
             <StoreIcon size={28} style={{ color: 'var(--text-faint)', marginBottom: 12 }} />
             <p style={{ fontWeight: 700, fontSize: 15, marginBottom: 4, color: 'var(--text)' }}>
-              No {persona.name.toLowerCase()} sellers listed in {state.name} yet
+              No {persona.name.toLowerCase()} sellers listed in {city.name} yet
             </p>
             <p style={{ color: 'var(--text-muted)', fontSize: 13.5, maxWidth: 400, margin: '0 auto' }}>
-              New stores join every week — check the <Link href="/stores" style={{ color: 'var(--primary)', fontWeight: 700 }}>full directory</Link> in the meantime.
+              Are you a local business? Sign up to be the first listed in {city.name}! Or check the <Link href={`/stores/${category}/${stateSlug}`} style={{ color: 'var(--primary)', fontWeight: 700 }}>{state.name} directory</Link>.
             </p>
           </div>
         )}
 
         <section className="card" style={{ padding: 'clamp(20px, 3vw, 28px)', background: 'var(--surface)', marginBottom: 40 }}>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 800, marginBottom: 16, color: 'var(--text)' }}>
-            Buying from a {persona.name.toLowerCase()} seller in {state.name}
+            Buying from a {persona.name.toLowerCase()} seller in {city.name}
           </h2>
           <ul style={{ display: 'grid', gap: 10, listStyle: 'none', padding: 0, margin: 0 }}>
             {content.guideBullets.map((b, i) => (
@@ -219,7 +228,7 @@ export default async function DirectoryPage({ params }: PageProps) {
 
         <section className="hero-dark" style={{ borderRadius: 24, padding: 'clamp(32px, 5vw, 48px) 24px', textAlign: 'center', marginBottom: 40 }}>
           <h2 className="text-display" style={{ fontSize: 'clamp(18px, 3vw, 24px)', color: '#fff', marginBottom: 10 }}>
-            Sell as a {persona.name.toLowerCase()} business in {state.name}
+            Sell as a {persona.name.toLowerCase()} business in {city.name}
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.78)', fontSize: 13.5, marginBottom: 20 }}>
             Claim your storefront link in under 2 minutes. Free to start.
@@ -230,13 +239,13 @@ export default async function DirectoryPage({ params }: PageProps) {
         </section>
 
         <div style={{ display: 'grid', gap: 24 }}>
-          {stateCities.length > 0 && (
+          {otherCities.length > 0 && (
             <div>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 800, marginBottom: 12, color: 'var(--text)' }}>
-                {persona.name} in {state.name} cities
+                {persona.name} in other {state.name} cities
               </h3>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-                {stateCities.map((c) => (
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {otherCities.map((c) => (
                   <Link
                     key={c.slug}
                     href={`/stores/${category}/${stateSlug}/${c.slug}`}
@@ -252,31 +261,13 @@ export default async function DirectoryPage({ params }: PageProps) {
 
           <div>
             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 800, marginBottom: 12, color: 'var(--text)' }}>
-              {persona.name} in other states
-            </h3>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              {otherStates.map((s) => (
-                <Link
-                  key={s.slug}
-                  href={`/stores/${category}/${s.slug}`}
-                  className="card clickable"
-                  style={{ padding: '9px 14px', fontSize: 12.5, fontWeight: 700, color: 'var(--text)', textDecoration: 'none', background: 'var(--surface)' }}
-                >
-                  {s.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 800, marginBottom: 12, color: 'var(--text)' }}>
-              Other categories in {state.name}
+              Other categories in {city.name}
             </h3>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               {otherCategories.map((p) => (
                 <Link
                   key={p.id}
-                  href={`/stores/${p.id}/${stateSlug}`}
+                  href={`/stores/${p.id}/${stateSlug}/${citySlug}`}
                   className="card clickable"
                   style={{ padding: '9px 14px', fontSize: 12.5, fontWeight: 700, color: 'var(--text)', textDecoration: 'none', background: 'var(--surface)' }}
                 >

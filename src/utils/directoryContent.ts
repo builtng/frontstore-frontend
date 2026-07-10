@@ -1,4 +1,5 @@
 import { BusinessPersona } from './businessPersonas';
+import { City } from './nigerianCities';
 
 interface StateLike {
   slug: string;
@@ -82,6 +83,67 @@ export function getDirectoryContent(
     },
     {
       question: `Can I sell as a ${groupLabel} business in ${state.name} on Frontstore?`,
+      answer: `Yes — signing up takes under 2 minutes, and choosing the "${persona.name}" business type sets up your storefront, catalog labels, and checkout flow for you automatically.`,
+    },
+  ];
+
+  return { metaTitle, metaDescription, headline, intro, guideBullets, faqs };
+}
+
+export function locationMatchesCity(
+  location: string | null | undefined,
+  city: City
+): boolean {
+  if (!location) return false;
+  const loc = location.toLowerCase();
+  const aliases = city.aliases || [city.name.toLowerCase()];
+  return aliases.some((alias) => loc.includes(alias));
+}
+
+export function getCityDirectoryContent(
+  persona: BusinessPersona,
+  state: StateLike,
+  city: City,
+  storeCount: number
+): DirectoryContent {
+  const catalogWord = persona.catalogLabel;
+  const groupLabel = persona.name.toLowerCase();
+
+  const metaTitle = `Best ${persona.name} Sellers in ${city.name}, ${state.name} | Frontstore`;
+  const metaDescription = storeCount > 0
+    ? `Browse ${storeCount} verified ${groupLabel} store${storeCount === 1 ? '' : 's'} in ${city.name}, ${state.name} on Frontstore. Order directly on WhatsApp — no middlemen.`
+    : `Find ${groupLabel} sellers in ${city.name}, ${state.name} on Frontstore. Every store on this list takes orders directly on WhatsApp.`;
+
+  const headline = `${persona.name} in ${city.name}, ${state.name}`;
+
+  const intro = storeCount > 0
+    ? `${persona.summary} Below are ${storeCount} verified ${groupLabel} store${storeCount === 1 ? '' : 's'} operating out of ${city.name}, ${state.name}, each running their own Frontstore storefront with WhatsApp checkout built in — no marketplace commission, no middleman.`
+    : `${persona.summary} Frontstore doesn't yet have a ${groupLabel} store listed with ${city.name}, ${state.name} as their location, but new stores join every week. Check the full state directory or explore other categories in ${city.name}.`;
+
+  const guideBullets = [
+    `Confirm the seller's exact base within ${city.name} and whether they deliver to your area or require pickup.`,
+    `Ask about ${catalogWord} availability and lead time directly on WhatsApp before paying — stock changes faster than any directory can track.`,
+    `Look for the "Verified Seller" badge — Frontstore checks a merchant's identity documents before granting it.`,
+    `Compare more than one seller where possible; price and turnaround time both vary within the same city.`,
+  ];
+
+  const faqs = [
+    {
+      question: `How many ${groupLabel} sellers are on Frontstore in ${city.name}?`,
+      answer: storeCount > 0
+        ? `There are currently ${storeCount} ${groupLabel} store${storeCount === 1 ? '' : 's'} on Frontstore listing ${city.name} as their base. This list updates automatically as new merchants join and set their location.`
+        : `None yet have ${city.name} set as their location, but the ${persona.name.toLowerCase()} category is active across other cities — check the full directory or check back soon.`,
+    },
+    {
+      question: `How do I order from a ${groupLabel} seller in ${city.name}?`,
+      answer: `Open the seller's storefront, add what you want to your order, and checkout — it opens a pre-filled WhatsApp message straight to the seller with your order details. No app download or account needed.`,
+    },
+    {
+      question: `Are sellers on this page verified?`,
+      answer: `Some are — look for the "Verified Seller" badge, which Frontstore only grants after checking a merchant's identity documents. Unverified sellers can still be legitimate; use normal buyer caution either way.`,
+    },
+    {
+      question: `Can I sell as a ${groupLabel} business in ${city.name} on Frontstore?`,
       answer: `Yes — signing up takes under 2 minutes, and choosing the "${persona.name}" business type sets up your storefront, catalog labels, and checkout flow for you automatically.`,
     },
   ];

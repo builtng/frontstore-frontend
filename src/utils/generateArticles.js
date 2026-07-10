@@ -498,9 +498,343 @@ const CITIES_METADATA = {
   'Kampala': { country: 'Uganda', currency: 'UGX', gateway: 'MTN MoMo and Airtel Money', hubs: 'Kololo and Ntinda', logistics: 'SafeBoda riders', textSnippet: 'the central hubs of Kampala Road and Kololo' },
   'Mombasa': { country: 'Kenya', currency: 'KES', gateway: 'M-Pesa', hubs: 'Nyali and Bamburi', logistics: 'local coastal couriers', textSnippet: 'the historic streets of Mombasa Old Town and Nyali' },
   'Cape Town': { country: 'South Africa', currency: 'ZAR', gateway: 'PayFast and Yoco', hubs: 'Woodstock and Green Point', logistics: 'local express deliveries', textSnippet: 'the scenic avenues of Sea Point and Camps Bay' },
-  'Port Harcourt': { country: 'Nigeria', currency: 'NGN', gateway: 'Flutterwave and Direct Transfer', hubs: 'GRA and Peter Odili Road', logistics: 'reliable PH riders', textSnippet: 'the busy commercial blocks of GRA Phase II' },
+  'Port Harcourt': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Flutterwave and Direct Transfer', 
+    hubs: 'GRA, Peter Odili Road, and RSU Campus', logistics: 'reliable PH riders', 
+    textSnippet: 'the busy commercial blocks of GRA Phase II',
+    school: 'Rivers State University (RSU)',
+    campuses: 'Nkpolu-Oroworukwo campus',
+    faculties: 'Law, Engineering, and Environmental Sciences',
+    departments: 'Mechanical Engineering and Business Administration'
+  },
   'Abuja': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Wuse II and Garki', logistics: 'car dispatch and bike couriers', textSnippet: 'the high-end boutiques of Wuse II and Maitama' },
-  'Kumasi': { country: 'Ghana', currency: 'GHS', gateway: 'MTN MoMo', hubs: 'KNUST and Kejetia', logistics: 'hostel shuttle riders', textSnippet: 'the busy markets of Kejetia and KNUST campus' }
+  'Kumasi': { country: 'Ghana', currency: 'GHS', gateway: 'MTN MoMo', hubs: 'KNUST and Kejetia', logistics: 'hostel shuttle riders', textSnippet: 'the busy markets of Kejetia and KNUST campus' },
+  'Asaba': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Nnebisi Road and Summit Junction', logistics: 'local Asaba dispatch riders', textSnippet: 'the busy commercial blocks of Nnebisi Road' },
+  'Warri': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Effurun Roundabout and Jakpa Road', logistics: 'Warri dispatch bikes', textSnippet: 'the lively markets around Effurun Roundabout' },
+  'Abraka': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'DELSU Campus and Express Junction', logistics: 'campus shuttle dispatchers', 
+    textSnippet: 'the student-filled streets near DELSU Campus',
+    school: 'Delta State University (DELSU)',
+    campuses: 'Site I, Site II, and Site III campuses',
+    faculties: 'Education, Arts, Social Sciences, and Science',
+    departments: 'Fine and Applied Arts, Business Administration, and Computer Science'
+  },
+  'Ughelli': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Otovwodo and Market Road', logistics: 'Ughelli delivery riders', textSnippet: 'the commercial shops around Otovwodo Junction' },
+  'Sapele': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Sapele Main Market and Okpe Road', logistics: 'Sapele dispatch riders', textSnippet: 'the timber and port trade areas of Sapele' },
+  'Agbor': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Agbor Obi and Express Junction', logistics: 'Agbor delivery bikes', textSnippet: 'the active trade blocks of Agbor' },
+  'Oghara': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Oghara Junction and Delta State Polytechnic', logistics: 'local Oghara dispatchers', 
+    textSnippet: 'the busy student zones of Oghara',
+    school: 'Delta State Polytechnic, Otefe-Oghara',
+    campuses: 'the Otefe campus',
+    faculties: 'Business Studies, Computing, and Engineering',
+    departments: 'Accountancy, Computer Science, and Electrical Engineering'
+  },
+  'Oleh': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Oleh Roundabout and Oleh Market', logistics: 'Oleh delivery riders', textSnippet: 'the agricultural and educational hub of Oleh' },
+  'Kwale': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Kwale Market and Utagba-Uno Road', logistics: 'Kwale local couriers', textSnippet: 'the gas and farming zones of Kwale' },
+  'Ozoro': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Ozoro Polytechnic and Market Road', logistics: 'local Ozoro dispatchers', 
+    textSnippet: 'the active student blocks of Ozoro',
+    school: 'Delta State University of Science and Technology (DSUST)',
+    campuses: 'the main Ozoro campus',
+    faculties: 'Computing, Engineering, and Environmental Sciences',
+    departments: 'Civil Engineering, Computer Science, and Food Science'
+  },
+  'Ogwashi-Uku': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Ogwashi-Uku Polytechnic and Express Road', logistics: 'Ogwashi dispatch riders', 
+    textSnippet: 'the busy commercial blocks around Ogwashi-Uku',
+    school: 'Delta State Polytechnic, Ogwashi-Uku',
+    campuses: 'the main polytechnic campus',
+    faculties: 'Engineering, Applied Sciences, and Art & Design',
+    departments: 'Mass Communication, Fashion Design, and Computer Engineering'
+  },
+  'Ibusa': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Ibusa Junction and Express Road', logistics: 'Asaba-Ibusa dispatch riders', textSnippet: 'the residential blocks of Ibusa' },
+  'Effurun': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Effurun Roundabout and Jakpa Road', logistics: 'Effurun bike couriers', textSnippet: 'the bustling commercial spaces of Effurun' },
+  'Agbarho': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Agbarho Market and Express Road', logistics: 'Agbarho dispatch bikes', textSnippet: 'the local commercial avenues of Agbarho' },
+  'Koko': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Koko Port and Market Square', logistics: 'Koko shipping delivery', textSnippet: 'the port side trade blocks of Koko' },
+  'Obiaruku': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Obiaruku market and Novena University', logistics: 'Obiaruku dispatchers', 
+    textSnippet: 'the university-linked avenues of Obiaruku',
+    school: 'Novena University',
+    campuses: 'the main Obiaruku campus',
+    faculties: 'Law, Natural and Applied Sciences, and Management Sciences',
+    departments: 'Public Health, Computer Science, and Accounting'
+  },
+  'Issele-Uku': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Issele-Uku Junction and Palace Road', logistics: 'local Issele riders', textSnippet: 'the historic trade ways of Issele-Uku' },
+  'Burutu': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Burutu Port and water terminals', logistics: 'river transport cargo boats', textSnippet: 'the delta water trades of Burutu' },
+  'Bomadi': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Bomadi Bridge and Market Road', logistics: 'Bomadi riverfront dispatch', textSnippet: 'the riverside trade blocks of Bomadi' },
+  'Patani': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Patani Bridge and East-West Road', logistics: 'East-West road couriers', textSnippet: 'the transit trade shops of Patani' },
+  'Orerokpe': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Orerokpe Palace and Market Junction', logistics: 'Orerokpe local dispatch', textSnippet: 'the trade squares of Orerokpe' },
+  'Benin City': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', 
+    hubs: 'UNIBEN, Ring Road, and King\'s Square', logistics: 'Benin City dispatch riders', 
+    textSnippet: 'the active campus paths of UNIBEN and Ring Road',
+    school: 'University of Benin (UNIBEN)',
+    campuses: 'Ugbowo and Ekenwan campuses',
+    faculties: 'Engineering, Medicine, Pharmacy, and Law',
+    departments: 'Mechanical Engineering, Pharmacy, and Law departments'
+  },
+  'Auchi': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Auchi Polytechnic and Market Road', logistics: 'local Auchi dispatchers', 
+    textSnippet: 'the student markets near Auchi Polytechnic',
+    school: 'Federal Polytechnic, Auchi',
+    campuses: 'the main campus',
+    faculties: 'Engineering, Information Technology, and Environmental Studies',
+    departments: 'Business Administration, Mass Communication, and Electrical Electronics'
+  },
+  'Ekpoma': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'AAU Campus and Ekpoma Market', logistics: 'AAU campus shuttle dispatch', 
+    textSnippet: 'the university student rows of Ekpoma',
+    school: 'Ambrose Alli University (AAU)',
+    campuses: 'the main AAU campus',
+    faculties: 'Clinical Sciences, Law, Engineering, and Social Sciences',
+    departments: 'Medicine, Law, and Economics'
+  },
+  'Uromi': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Uromi Market and Mission Road', logistics: 'Uromi delivery riders', textSnippet: 'the commercial avenues of Uromi' },
+  'Okada': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Igbinedion University (IUO) and Okada Junction', logistics: 'Okada student riders', 
+    textSnippet: 'the university hub of Okada',
+    school: 'Igbinedion University, Okada (IUO)',
+    campuses: 'the Okada main campus',
+    faculties: 'Medical Sciences, Law, and Engineering',
+    departments: 'Nursing, Law, and Civil Engineering'
+  },
+  'Igarra': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Igarra Market and Palace Road', logistics: 'Igarra local dispatch', textSnippet: 'the trade squares of Igarra' },
+  'Sabongida-Ora': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Sabongida Market and Main Road', logistics: 'Ora delivery bikes', textSnippet: 'the local commercial avenues of Sabongida-Ora' },
+  'Agenegbode': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Agenegbode port and Market Road', logistics: 'local riverfront transport', textSnippet: 'the riverside trade blocks of Agenegbode' },
+  'Igueben': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Igueben Market and College Road', logistics: 'Igueben dispatch riders', textSnippet: 'the agricultural trade avenues of Igueben' },
+  'Fugar': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Fugar Market and Express Road', logistics: 'Fugar local couriers', textSnippet: 'the commercial zones of Fugar' },
+  'Obio-Akpor': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Rumuokoro Junction and IAUE Campus', logistics: 'Obio-Akpor dispatch riders', 
+    textSnippet: 'the busy commercial intersections of Rumuokoro',
+    school: 'Ignatius Ajuru University of Education (IAUE)',
+    campuses: 'Rumuolumeni campus',
+    faculties: 'Education and Social Sciences',
+    departments: 'Educational Management and Political Science'
+  },
+  'Choba': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'UNIPORT Campus and Choba Junction', logistics: 'Choba campus shuttle riders', 
+    textSnippet: 'the student-filled streets near UNIPORT',
+    school: 'University of Port Harcourt (UNIPORT)',
+    campuses: 'Abuja, Line, and Choba campuses',
+    faculties: 'Humanities, Science, and Clinical Sciences',
+    departments: 'Medicine, Computer Science, and Theatre Arts'
+  },
+  'Bori': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Ken Poly Campus and Bori Market', logistics: 'local Bori riders', 
+    textSnippet: 'the active student markets around Ken Poly',
+    school: 'Kenule Beeson Saro-Wiwa Polytechnic',
+    campuses: 'Bori campus',
+    faculties: 'Applied Sciences and Engineering Technology',
+    departments: 'Science Laboratory Technology and Civil Engineering'
+  },
+  'Eleme': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Eleme Junction and Refinery Road', logistics: 'Eleme industrial couriers', textSnippet: 'the refinery trade blocks of Eleme' },
+  'Bonny': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Bonny Island Town and Coal Beach', logistics: 'Bonny marine and bike dispatch', textSnippet: 'the coastal trading blocks of Bonny Island' },
+  'Omoku': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Omoku Town and Federal College of Education', logistics: 'Omoku local dispatch', textSnippet: 'the oil-producing hubs of Omoku' },
+  'Ahoada': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Ahoada Market and Express Way', logistics: 'Ahoada transit couriers', textSnippet: 'the transit trade corridors of Ahoada' },
+  'Degema': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Degema Island and water terminal', logistics: 'Degema boat couriers', textSnippet: 'the riverine channels of Degema' },
+  'Ikeja': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', 
+    hubs: 'Computer Village and Allen Avenue', logistics: 'Ikeja dispatch bikes', 
+    textSnippet: 'the busy electronics and fashion blocks of Computer Village',
+    school: 'Lagos State University (LASU Ikeja)',
+    campuses: 'Ikeja campus',
+    faculties: 'Clinical Sciences and Management Sciences',
+    departments: 'Medicine and Business Administration'
+  },
+  'Lekki': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Lekki Phase 1 and Admiralty Way', logistics: 'Lekki express riders', textSnippet: 'the upscale boutiques along Admiralty Way' },
+  'Victoria Island': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Adeola Odeku and Victoria Island', logistics: 'VI corporate couriers', textSnippet: 'the high-end retail hubs of VI' },
+  'Surulere': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Adeniran Ogunsanya and Bode Thomas', logistics: 'Surulere dispatch riders', textSnippet: 'the commercial rows of Adeniran Ogunsanya' },
+  'Yaba': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', 
+    hubs: 'UNILAG Campus and YABATECH', logistics: 'Yaba delivery bikes', 
+    textSnippet: 'the active tech and student hub of Yaba',
+    school: 'University of Lagos (UNILAG)',
+    campuses: 'Akoka main campus',
+    faculties: 'Engineering, Social Sciences, Law, and Science',
+    departments: 'Computer Science, Creative Arts, and Law'
+  },
+  'Ikorodu': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Ikorodu Roundabout and LASUSTECH Campus', logistics: 'Ikorodu local dispatch', 
+    textSnippet: 'the residential and commercial zones of Ikorodu',
+    school: 'Lagos State University of Science and Technology',
+    campuses: 'Ikorodu campus',
+    faculties: 'Engineering and Computing',
+    departments: 'Computer Science and Mechanical Engineering'
+  },
+  'Ojo': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'LASU Main Campus and Alaba International Market', logistics: 'Ojo local couriers', 
+    textSnippet: 'the high-volume trade zones of Alaba and Ojo',
+    school: 'Lagos State University (LASU)',
+    campuses: 'Ojo main campus',
+    faculties: 'Law, Clinical Sciences, and Social Sciences',
+    departments: 'Law, Nursing, and Economics'
+  },
+  'Lagos Island': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Balogun Market and Broad Street', logistics: 'Island cart riders and dispatch', textSnippet: 'the wholesale trade lanes of Balogun Market' },
+  'Epe': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Epe Marina and LASUSTECH Epe Campus', logistics: 'Epe delivery bikes', 
+    textSnippet: 'the growing agricultural and educational blocks of Epe',
+    school: 'Lagos State University of Science and Technology (Epe)',
+    campuses: 'Epe campus',
+    faculties: 'Agricultural Sciences and Technology',
+    departments: 'Agricultural Engineering and Food Science'
+  },
+  'Badagry': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Badagry Roundabout and LASU Badagry Campus', logistics: 'Badagry local dispatchers', 
+    textSnippet: 'the historic trade zones of Badagry',
+    school: 'Lagos State University (Badagry)',
+    campuses: 'Badagry campus',
+    faculties: 'Education and Humanities',
+    departments: 'Educational Foundations and History'
+  },
+  'Gbagada': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Gbagada Phase 2 and Anthony', logistics: 'Gbagada dispatch riders', textSnippet: 'the residential and trade avenues of Gbagada' },
+  'Festac': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Festac Town and Mile 2', logistics: 'Festac dispatch bikes', textSnippet: 'the vibrant estate markets of Festac' },
+  'Apapa': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Apapa Port and Wharf Road', logistics: 'Apapa shipping and port dispatch', textSnippet: 'the industrial shipping lines of Apapa' },
+  'Oshodi': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Oshodi Interchange and Arena Market', logistics: 'Oshodi dispatch riders', textSnippet: 'the central transit hub of Oshodi' },
+  'Wuse': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Wuse II and Wuse Market', logistics: 'Wuse dispatch riders', textSnippet: 'the busy shopping plazas of Wuse II' },
+  'Garki': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Garki Area 11 and Garki Market', logistics: 'Garki local couriers', textSnippet: 'the commercial blocks of Garki' },
+  'Maitama': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Maitama Shopping Complex and Transcorp area', logistics: 'Maitama express riders', textSnippet: 'the high-end boutiques of Maitama' },
+  'Gwarinpa': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Gwarinpa Estate and 3rd Avenue', logistics: 'Gwarinpa dispatch bikes', textSnippet: 'the commercial plazas along Gwarinpa 3rd Avenue' },
+  'Asokoro': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Asokoro Shopping Center and Yakubu Gowon Way', logistics: 'Asokoro delivery riders', textSnippet: 'the exclusive residential and retail blocks of Asokoro' },
+  'Jabi': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Jabi Lake Mall and Jabi District', logistics: 'Jabi dispatch couriers', textSnippet: 'the lakeside retail plazas of Jabi' },
+  'Utako': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Utako Market and Transport Terminals', logistics: 'Utako bus and bike riders', textSnippet: 'the high-volume transit trade zones of Utako' },
+  'Kubwa': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Kubwa Market and Federal Housing', logistics: 'Kubwa local couriers', textSnippet: 'the residential and commercial hub of Kubwa' },
+  'Karu': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Karu Market and Nyanya Expressway', logistics: 'Karu delivery riders', textSnippet: 'the high-density trade sectors of Karu' },
+  'Lugbe': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Lugbe Federal Housing and Airport Road', logistics: 'Lugbe dispatch bikes', textSnippet: 'the growing residential blocks along Airport Road' },
+  'Gwagwalada': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'UNIABUJA Campus and Gwagwalada Market', logistics: 'Gwagwalada campus shuttles', 
+    textSnippet: 'the active student markets around Gwagwalada',
+    school: 'University of Abuja (UNIABUJA)',
+    campuses: 'Gwagwalada main campus',
+    faculties: 'Engineering, Social Sciences, Law, and Agriculture',
+    departments: 'Computer Science, Economics, and Law'
+  },
+  'Kuje': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Kuje Market and Forest Road', logistics: 'Kuje local dispatchers', textSnippet: 'the agricultural and retail squares of Kuje' },
+  'Kaduna': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Kaduna Central Market and KASU Campus', logistics: 'Kaduna dispatch riders', 
+    textSnippet: 'the central trade zones of Kaduna North and South',
+    school: 'Kaduna State University (KASU)',
+    campuses: 'Kaduna main campus',
+    faculties: 'Social Sciences and Science',
+    departments: 'Computer Science and Economics'
+  },
+  'Zaria': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'ABU Kongo Campus and Sabon Gari Market', logistics: 'Zaria local dispatch', 
+    textSnippet: 'the academic and retail lanes of Zaria Kongo',
+    school: 'Ahmadu Bello University (ABU)',
+    campuses: 'Kongo campus',
+    faculties: 'Law and Administration',
+    departments: 'Law and Business Administration'
+  },
+  'Kafanchan': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Kafanchan Junction and KASU Campus', logistics: 'Kafanchan local riders', textSnippet: 'the active railway trade lanes of Kafanchan' },
+  'Samaru': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'ABU Samaru Campus and Main Gate', logistics: 'Samaru student riders', 
+    textSnippet: 'the student-filled pathways of Samaru',
+    school: 'Ahmadu Bello University (ABU)',
+    campuses: 'Samaru main campus',
+    faculties: 'Engineering, Social Sciences, and Science',
+    departments: 'Computer Science and Mechanical Engineering'
+  },
+  'Kano': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'Singa Market, Kurmi Market, and BUK Campus', logistics: 'Kano dispatch riders', 
+    textSnippet: 'the historic and wholesale markets of Sabon Gari and Singa',
+    school: 'Bayero University Kano (BUK)',
+    campuses: 'New and Old campuses',
+    faculties: 'Clinical Sciences, Social Sciences, and Law',
+    departments: 'Medicine, Law, and Economics'
+  },
+  'Wudil': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'ADUSTECH Campus and Wudil Market', logistics: 'Wudil local riders', 
+    textSnippet: 'the academic and farming sectors of Wudil',
+    school: 'Aliko Dangote University of Science and Technology',
+    campuses: 'Wudil campus',
+    faculties: 'Computing and Engineering',
+    departments: 'Computer Science and Civil Engineering'
+  },
+  'Bichi': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Bichi Market and College Road', logistics: 'Bichi delivery bikes', textSnippet: 'the trade squares of Bichi' },
+  'Gezawa': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Gezawa Market and Main Road', logistics: 'Gezawa delivery bikes', textSnippet: 'the regional trading blocks of Gezawa' },
+  'Aba': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Ariaria International Market and Cemetery Road', logistics: 'Aba dispatch riders', textSnippet: 'the wholesale fashion and leatherware rows of Ariaria Market' },
+  'Umuahia': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'MOUAU Campus and Isi Gate', logistics: 'Umuahia local riders', 
+    textSnippet: 'the commercial blocks around Isi Gate',
+    school: 'Michael Okpara University of Agriculture (MOUAU)',
+    campuses: 'Umudike campus',
+    faculties: 'Agricultural Sciences and Engineering',
+    departments: 'Agricultural Economics and Food Science'
+  },
+  'Ohafia': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Ohafia Market and Palace Road', logistics: 'local Ohafia dispatchers', textSnippet: 'the trade squares of Ohafia' },
+  'Awka': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', 
+    hubs: 'UNIZIK Campus and Awka Main Market', logistics: 'Awka dispatch bikes', 
+    textSnippet: 'the active student markets of Awka',
+    school: 'Nnamdi Azikiwe University (UNIZIK)',
+    campuses: 'Awka main campus',
+    faculties: 'Engineering, Social Sciences, and Science',
+    departments: 'Computer Science, Economics, and Law'
+  },
+  'Onitsha': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Onitsha Main Market and Head Bridge', logistics: 'Onitsha local dispatchers', textSnippet: 'the massive wholesale trade lanes of Onitsha Main Market' },
+  'Nnewi': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', hubs: 'Nkwo Nnewi Market and Auto Parts Zone', logistics: 'Nnewi dispatch riders', textSnippet: 'the industrial auto parts rows of Nkwo Nnewi' },
+  'Ihiala': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'COOU Uli Campus and Ihiala Market', logistics: 'Ihiala delivery riders', 
+    textSnippet: 'the student-filled pathways near COOU Uli campus',
+    school: 'Chukwuemeka Odumegwu Ojukwu University (COOU)',
+    campuses: 'Uli campus',
+    faculties: 'Engineering and Environmental Sciences',
+    departments: 'Civil Engineering and Computer Engineering'
+  },
+  'Owerri': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', 
+    hubs: 'FUTO Campus, IMSU, and Douglas Road', logistics: 'Owerri dispatch riders', 
+    textSnippet: 'the busy student rows of Owerri and Nekede',
+    school: 'Federal University of Technology, Owerri (FUTO)',
+    campuses: 'Ihiagwa campus',
+    faculties: 'Engineering, Computing, and Physical Sciences',
+    departments: 'Computer Science and Mechanical Engineering'
+  },
+  'Orlu': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Orlu Market and IMSU Teaching Hospital', logistics: 'Orlu local dispatch', textSnippet: 'the trading blocks of Orlu town' },
+  'Okigwe': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Okigwe Roundabout and Okigwe Market', logistics: 'Okigwe transit couriers', textSnippet: 'the transit trade corridors of Okigwe' },
+  'Enugu': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer and Paystack', 
+    hubs: 'UNEC Campus, ESUT, and Coal Camp', logistics: 'Enugu dispatch riders', 
+    textSnippet: 'the active trade blocks of Coal Camp and Independence Layout',
+    school: 'University of Nigeria, Enugu Campus (UNEC)',
+    campuses: 'Enugu campus',
+    faculties: 'Law, Business Administration, and Medical Sciences',
+    departments: 'Law, Accounting, and Medicine'
+  },
+  'Nsukka': { 
+    country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', 
+    hubs: 'UNN Campus and Nsukka Market', logistics: 'Nsukka local dispatchers', 
+    textSnippet: 'the student avenues of UNN Nsukka',
+    school: 'University of Nigeria, Nsukka (UNN)',
+    campuses: 'Nsukka main campus',
+    faculties: 'Engineering, Social Sciences, and Physical Sciences',
+    departments: 'Computer Science, Economics, and Sociology'
+  },
+  'Ogurute': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Ogurute Market and Express Road', logistics: 'Ogurute local couriers', textSnippet: 'the local agricultural trade squares of Ogurute' }
 };
 
 const AUTHORS = [
@@ -549,11 +883,13 @@ function buildArticle(city, category) {
     author = city === 'Johannesburg' ? AUTHORS.find(a => a.name === 'Naledi Dlamini') : AUTHORS.find(a => a.name === 'Sarah van der Merwe');
   } else if (country === 'Uganda') {
     author = AUTHORS.find(a => a.name === 'Grace Akot') || AUTHORS[6];
-  } else if (country === 'Nigeria' && city === 'Port Harcourt') {
-    author = AUTHORS.find(a => a.name === 'Zainab Musa') || AUTHORS[4];
+  } else if (country === 'Nigeria') {
+    author = city === 'Lagos' || city === 'Abuja'
+      ? AUTHORS[0]
+      : AUTHORS.find(a => a.name === 'Zainab Musa') || AUTHORS[4];
   }
 
-  const slug = `how-to-scale-${category.toLowerCase()}-whatsapp-${city.toLowerCase()}`;
+  const slug = `how-to-scale-${category.toLowerCase()}-whatsapp-${city.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
   
   // Custom templates per Category & City details to ensure high quality
   let title = '';
@@ -723,6 +1059,26 @@ function buildArticle(city, category) {
       }
     ];
     ctaText = `Set Up Your ${city} Retail Shop`;
+  }
+
+  if (meta.school) {
+    introduction += ` Selling to the large student population at ${meta.school} requires a fast, mobile-friendly shopfront. Whether distributing to hostels across ${meta.campuses}, or marketing products directly to students in the Faculties of ${meta.faculties} and departments like ${meta.departments}, a single storefront link shared in student WhatsApp groups makes ordering seamless.`;
+
+    if (sections[0]) {
+      sections[0].body += ` This is especially true when serving students and staff at ${meta.school}. By organizing your catalog by popular student collections, you make it easy for buyers in different departments to find what they need.`;
+      if (!sections[0].bullets) sections[0].bullets = [];
+      sections[0].bullets.push(`Hostel & Campus Delivery: Map out specific drop-off locations across ${meta.campuses} to make delivery seamless for student buyers.`);
+      sections[0].bullets.push(`Faculty & Course Specials: Run targeted campaigns tailored for students in the departments of ${meta.departments}.`);
+    }
+
+    faqs.push({
+      question: `Can I deliver orders directly to hostels in ${meta.school}?`,
+      answer: `Yes! You can specify delivery locations for various campuses (${meta.campuses}) in your checkout settings so students can select their exact hostel or department building.`
+    });
+    faqs.push({
+      question: `Is Frontstore popular among students in different faculties?`,
+      answer: `Absolutely. Students across the Faculties of ${meta.faculties} prefer buying through WhatsApp links because it is faster than traditional e-commerce and works on low mobile data connections.`
+    });
   }
 
   const gradient = CATEGORY_GRADIENTS[category];
@@ -937,7 +1293,7 @@ const completeCode = `export interface BlogArticle {
 export const BLOG_ARTICLES: BlogArticle[] = ${JSON.stringify(ALL_ARTICLES, null, 2)};
 
 export const CATEGORIES = ['All', 'State Guide', 'Fashion', 'Beauty', 'Food', 'Electronics', 'Retail'];
-export const CITIES = ['All', 'Lagos', 'Nairobi', 'Accra', 'Johannesburg', 'Kampala', 'Mombasa', 'Cape Town', 'Port Harcourt', 'Abuja', 'Kumasi'];
+export const CITIES = ['All', 'Lagos', 'Nairobi', 'Accra', 'Johannesburg', 'Kampala', 'Mombasa', 'Cape Town', 'Port Harcourt', 'Abuja', 'Kumasi', 'Asaba', 'Warri', 'Abraka', 'Ughelli', 'Sapele', 'Agbor', 'Oghara', 'Oleh', 'Kwale', 'Ozoro', 'Ogwashi-Uku', 'Ibusa', 'Effurun', 'Agbarho', 'Koko', 'Obiaruku', 'Issele-Uku', 'Burutu', 'Bomadi', 'Patani', 'Orerokpe', 'Benin City', 'Auchi', 'Ekpoma', 'Uromi', 'Okada', 'Igarra', 'Sabongida-Ora', 'Agenegbode', 'Igueben', 'Fugar', 'Obio-Akpor', 'Choba', 'Eleme', 'Bonny', 'Omoku', 'Bori', 'Ahoada', 'Degema', 'Ikeja', 'Lekki', 'Victoria Island', 'Surulere', 'Yaba', 'Ikorodu', 'Ojo', 'Lagos Island', 'Epe', 'Badagry', 'Gbagada', 'Festac', 'Apapa', 'Oshodi', 'Wuse', 'Garki', 'Maitama', 'Gwarinpa', 'Asokoro', 'Jabi', 'Utako', 'Kubwa', 'Karu', 'Lugbe', 'Gwagwalada', 'Kuje', 'Kaduna', 'Zaria', 'Kafanchan', 'Samaru', 'Kano', 'Wudil', 'Bichi', 'Gezawa', 'Aba', 'Umuahia', 'Ohafia', 'Awka', 'Onitsha', 'Nnewi', 'Ihiala', 'Owerri', 'Orlu', 'Okigwe', 'Enugu', 'Nsukka', 'Ogurute'];
 `;
 
 fs.writeFileSync(outputPath, completeCode, 'utf8');
