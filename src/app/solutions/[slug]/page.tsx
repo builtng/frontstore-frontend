@@ -244,6 +244,17 @@ export default async function SolutionPage({ params }: PageProps) {
             </div>
           </section>
         )}
+
+        {/* AI Credit & Editor Review */}
+        <div style={{
+          marginTop: 40,
+          textAlign: 'center',
+          fontSize: 10.5,
+          color: 'var(--text-faint)',
+          letterSpacing: '0.01em',
+        }}>
+          This guide was assisted by AI and reviewed by our editor.
+        </div>
       </main>
 
       <PublicSiteFooter />

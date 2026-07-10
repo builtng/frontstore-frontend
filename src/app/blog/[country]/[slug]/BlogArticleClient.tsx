@@ -277,6 +277,17 @@ export default function BlogArticleClient({ article, relatedArticles, canonicalU
                   <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{article.author.role} at frontstore</p>
                 </div>
               </div>
+              <div style={{
+                marginTop: 20,
+                paddingTop: 16,
+                borderTop: '1px dashed var(--border)',
+                textAlign: 'center',
+                fontSize: 10.5,
+                color: 'var(--text-faint)',
+                letterSpacing: '0.01em',
+              }}>
+                This article was assisted by AI and reviewed by our editor.
+              </div>
             </article>
 
             <BlogCTA city={article.city} category={article.category} ctaText={article.ctaText} />
