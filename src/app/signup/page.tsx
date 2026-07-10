@@ -95,7 +95,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
 
   const [referredBy, setReferredBy] = useState<string>('');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   useEffect(() => {
     setMounted(true);
@@ -1145,7 +1145,7 @@ export default function SignupPage() {
   useEffect(() => {
     const loadPublicSettings = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
         const res = await fetch(`${apiUrl}/v1/public/settings`);
         if (!res.ok) return;
         const json = await res.json();

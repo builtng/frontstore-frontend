@@ -147,7 +147,7 @@ export default function FashionStorefront({
     setValidatingCoupon(true);
     setCouponError(null);
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
       const res = await fetch(`${API_URL}/v1/public/store/${username}/coupons/${couponCodeInput.trim()}/validate`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }

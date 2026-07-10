@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import StoresClient from './StoresClient';
 
 async function getStores() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/stores`, {
       next: { revalidate: 60 }, // Cache store list for 60 seconds

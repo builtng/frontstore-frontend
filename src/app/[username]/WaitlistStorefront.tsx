@@ -143,7 +143,7 @@ export default function WaitlistStorefront({
     }
 
     setChecking(true);
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
     const handler = setTimeout(async () => {
       try {
@@ -197,7 +197,7 @@ export default function WaitlistStorefront({
       }
 
       // Persist to database (fire-and-forget — don't block the UX)
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
       fetch(`${API_URL}/v1/public/waitlist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

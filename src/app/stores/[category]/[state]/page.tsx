@@ -14,7 +14,7 @@ interface PageProps {
 }
 
 async function getMatchingStores(categorySlug: string, stateSlug: string): Promise<StoreItem[]> {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   const state = NIGERIAN_STATES.find((s) => s.slug === stateSlug);
   if (!state) return [];
 

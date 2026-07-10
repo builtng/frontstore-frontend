@@ -33,7 +33,7 @@ export function PublicSiteNav() {
   useEffect(() => {
     const loadPublicSettings = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
         const res = await fetch(`${apiUrl}/v1/public/settings`);
         if (!res.ok) return;
         const json = await res.json();
@@ -179,7 +179,7 @@ export function PublicSiteFooter() {
   useEffect(() => {
     const loadPublicSettings = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
         const res = await fetch(`${apiUrl}/v1/public/settings`);
         if (!res.ok) return;
         const json = await res.json();

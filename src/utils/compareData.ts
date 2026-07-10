@@ -76,7 +76,7 @@ export async function getComparisonData(
   productSlug: string,
   locationSegments: string[]
 ): Promise<CompareData | null> {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   const path = [productSlug, ...locationSegments].map(encodeURIComponent).join('/');
 
   try {

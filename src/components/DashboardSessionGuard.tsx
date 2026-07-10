@@ -34,7 +34,7 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
     const verifyAccount = async () => {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
-      const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+      const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
       if (!storedToken || !storedUser || storedUser === 'undefined' || storedUser === 'null') {
         destroySession('Your session has expired. Please log in again.');

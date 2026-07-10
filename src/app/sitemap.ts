@@ -9,7 +9,7 @@ import { locationMatchesState, normalizePersonaId } from '@/utils/directoryConte
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://frontstore.ng';
-  const apiHost = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const apiHost = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   const now = new Date();
 
   // ── Static core pages ─────────────────────────────────────────────────────

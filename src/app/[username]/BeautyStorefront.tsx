@@ -654,7 +654,7 @@ export default function BeautyStorefront({
       return;
     }
     setLoadingSlots(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
     fetch(`${API_URL}/v1/public/store/${store.username}/slots?product_id=${bookSvc.id}`)
       .then(res => res.ok ? res.json() : null)
       .then(json => {
@@ -875,7 +875,7 @@ export default function BeautyStorefront({
     setCheckoutLoading(true);
     setCheckoutError(null);
 
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
     const serviceItems = bag.filter(x => x.type === 'service');
     let compiledAddress = deliveryAddress;
     if (serviceItems.length > 0) {
@@ -954,7 +954,7 @@ export default function BeautyStorefront({
   const handlePayOnline = async () => {
     if (!orderReceipt) return;
     setIsPaying(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
     try {
       const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
@@ -983,7 +983,7 @@ export default function BeautyStorefront({
       ping("Add a rating and your order reference");
       return;
     }
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
     try {
       const res = await fetch(`${API_URL}/v1/public/orders/${revRef}/reviews`, {
         method: 'POST',
@@ -1070,7 +1070,7 @@ export default function BeautyStorefront({
     setValidatingCoupon(true);
     setCouponError(null);
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
       const res = await fetch(`${API_URL}/v1/public/store/${store.username}/coupons/${couponCodeInput.trim()}/validate`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }

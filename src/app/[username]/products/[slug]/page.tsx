@@ -10,7 +10,7 @@ interface PageProps {
 }
 
 async function getStoreData(username: string) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/store/${username}`, {
       next: { revalidate: 60 },
@@ -24,7 +24,7 @@ async function getStoreData(username: string) {
 }
 
 async function getProductData(username: string, slug: string) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/store/${username}/products/${slug}`, {
       next: { revalidate: 60 },
@@ -46,7 +46,7 @@ interface ProductReview {
 }
 
 async function getProductReviews(username: string, slug: string): Promise<ProductReview[]> {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/store/${username}/products/${slug}/reviews`, {
       next: { revalidate: 300 },

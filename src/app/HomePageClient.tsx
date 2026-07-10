@@ -325,7 +325,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
   const [systemDomain, setSystemDomain] = useState(initialSettings?.system_domain || 'frontstore.ng');
   const [homeContent, setHomeContent] = useState<HomeContent>(() => mergeHomeContent(initialSettings?.homepage_content));
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
 
   useEffect(() => {
     setMounted(true);

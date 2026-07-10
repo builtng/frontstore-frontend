@@ -481,7 +481,7 @@ export default function RestaurantStorefront({
   const fetchAvailableSlots = async (svcId?: string) => {
     setLoadingSlots(true);
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
       const url = svcId && svcId !== 'default-table-reservation'
         ? `${API_URL}/v1/public/store/${username}/slots?product_id=${svcId}`
         : `${API_URL}/v1/public/store/${username}/slots`;
@@ -550,7 +550,7 @@ export default function RestaurantStorefront({
       return;
     }
     setCheckoutLoading(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
     
     const selectedSlotObj = getDaySlots(bookDate).find(s => s.time === bookTime);
     const isVirtual = selectedSlotObj?.id.startsWith('virtual-');
@@ -602,7 +602,7 @@ export default function RestaurantStorefront({
       return;
     }
     setCheckoutLoading(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
 
     // Compile options and notes into delivery address so merchant sees choices
     const itemsDetail = bagItems.map(item => `${item.name} (${item.opts || 'No options'})`).join('; ');
@@ -663,7 +663,7 @@ export default function RestaurantStorefront({
   const handlePayOnline = async () => {
     if (!orderReceipt) return;
     setIsPaying(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
     try {
       const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
