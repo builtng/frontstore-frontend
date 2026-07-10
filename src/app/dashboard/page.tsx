@@ -1240,7 +1240,8 @@ export default function DashboardPage() {
             setToken(storedToken);
             setUser(parsedUser);
 
-            const storedSystemDomain = localStorage.getItem('system_domain') || 'frontstore.ng';
+            const rawSystemDomain = localStorage.getItem('system_domain') || 'frontstore.ng';
+            const storedSystemDomain = rawSystemDomain === 'frontstore.app' ? 'frontstore.ng' : rawSystemDomain;
             setSystemDomain(storedSystemDomain);
 
             if (storedStore && storedStore !== 'undefined' && storedStore !== 'null') {
@@ -1496,8 +1497,9 @@ export default function DashboardPage() {
             localStorage.setItem('store', JSON.stringify(json.data.store));
           }
           if (json.system_domain) {
-            setSystemDomain(json.system_domain);
-            localStorage.setItem('system_domain', json.system_domain);
+            const domain = json.system_domain === 'frontstore.app' ? 'frontstore.ng' : json.system_domain;
+            setSystemDomain(domain);
+            localStorage.setItem('system_domain', domain);
           }
           toast.success('🎉 Payment verified! Your Pro plan is now active.');
           navigateDashboardTab('billing', true);
@@ -1643,8 +1645,9 @@ export default function DashboardPage() {
         setStore(liveStore);
         localStorage.setItem('store', JSON.stringify(liveStore));
         if (storeJson.system_domain) {
-          setSystemDomain(storeJson.system_domain);
-          localStorage.setItem('system_domain', storeJson.system_domain);
+          const domain = storeJson.system_domain === 'frontstore.app' ? 'frontstore.ng' : storeJson.system_domain;
+          setSystemDomain(domain);
+          localStorage.setItem('system_domain', domain);
         }
         setSetStoreUsername(liveStore.username || '');
         setSetStoreName(liveStore.store_name || '');

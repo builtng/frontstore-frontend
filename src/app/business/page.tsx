@@ -21,7 +21,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings();
   const appName = settings?.app_name || 'Frontstore';
   const logoUrl = settings?.logo_url || 'https://frontstore.ng/icon.png';
-  const systemDomain = settings?.system_domain || 'frontstore.ng';
+  const rawDomain = settings?.system_domain || 'frontstore.ng';
+  const systemDomain = rawDomain === 'frontstore.app' ? 'frontstore.ng' : rawDomain;
 
   const title = `${appName} for Business - Conversational Commerce Platform`;
   const description = 'Build a beautiful online store, accept orders, manage customers, and grow your business from a single WhatsApp-first platform.';

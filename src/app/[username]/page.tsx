@@ -61,7 +61,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const { store } = data;
-  const systemDomain = data.system_domain || 'frontstore.ng';
+  const rawDomain = data.system_domain || 'frontstore.ng';
+  const systemDomain = rawDomain === 'frontstore.app' ? 'frontstore.ng' : rawDomain;
   const appName = safeText(data.app_name, 'Front Store');
   const routeUsername = safePathSegment(username);
   const storeUsername = safePathSegment(store.username) || routeUsername;
@@ -267,7 +268,8 @@ export default async function Page({ params }: PageProps) {
   }
 
   // Inject Google Schema.org structured data (JSON-LD)
-  const systemDomain = data?.system_domain || 'frontstore.ng';
+  const rawDomain = data?.system_domain || 'frontstore.ng';
+  const systemDomain = rawDomain === 'frontstore.app' ? 'frontstore.ng' : rawDomain;
   const routeUsername = safePathSegment(username);
   const storeUsername = safePathSegment(data?.store?.username) || routeUsername;
   const rawStoreName = safeText(data?.store?.store_name, storeUsername || 'Store');

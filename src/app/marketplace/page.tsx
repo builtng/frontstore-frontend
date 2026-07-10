@@ -38,7 +38,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings();
   const appName = settings?.app_name || 'Frontstore';
   const logoUrl = settings?.logo_url || 'https://frontstore.ng/icon.png';
-  const systemDomain = settings?.system_domain || 'frontstore.ng';
+  const rawDomain = settings?.system_domain || 'frontstore.ng';
+  const systemDomain = rawDomain === 'frontstore.app' ? 'frontstore.ng' : rawDomain;
 
   const title = `${appName} Marketplace - Shop Products from Local Businesses`;
   const description = `Discover products uploaded by businesses on ${appName}. Browse by category, see the business behind each product, and shop directly from trusted storefronts.`;
@@ -90,7 +91,8 @@ export default async function MarketplacePage() {
   ]);
 
   const appName = settings?.app_name || 'Frontstore';
-  const systemDomain = settings?.system_domain || 'frontstore.ng';
+  const rawDomain = settings?.system_domain || 'frontstore.ng';
+  const systemDomain = rawDomain === 'frontstore.app' ? 'frontstore.ng' : rawDomain;
   const logoUrl = settings?.logo_url || `https://${systemDomain}/icon.png`;
 
   const jsonLd = {

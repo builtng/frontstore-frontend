@@ -334,7 +334,10 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
 
   const [appName, setAppName] = useState(initialSettings?.app_name || 'Frontstore');
   const [logoUrl, setLogoUrl] = useState(initialSettings?.logo_url || '');
-  const [systemDomain, setSystemDomain] = useState(initialSettings?.system_domain || 'frontstore.ng');
+  const [systemDomain, setSystemDomain] = useState(() => {
+    const val = initialSettings?.system_domain || 'frontstore.ng';
+    return val === 'frontstore.app' ? 'frontstore.ng' : val;
+  });
   const [homeContent, setHomeContent] = useState<HomeContent>(() => mergeHomeContent(initialSettings?.homepage_content));
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
@@ -358,7 +361,10 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
           if (json.data) {
             if (json.data.app_name) setAppName(json.data.app_name);
             if (json.data.logo_url) setLogoUrl(json.data.logo_url);
-            if (json.data.system_domain) setSystemDomain(json.data.system_domain);
+            if (json.data.system_domain) {
+              const domain = json.data.system_domain;
+              setSystemDomain(domain === 'frontstore.app' ? 'frontstore.ng' : domain);
+            }
             setHomeContent(mergeHomeContent(json.data.homepage_content));
           }
         })

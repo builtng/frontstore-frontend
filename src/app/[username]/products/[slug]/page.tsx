@@ -107,7 +107,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const store = storeData.store;
-  const systemDomain = storeData.system_domain || 'frontstore.ng';
+  const rawDomain = storeData.system_domain || 'frontstore.ng';
+  const systemDomain = rawDomain === 'frontstore.app' ? 'frontstore.ng' : rawDomain;
   const appName = safeText(storeData.app_name, 'Front Store');
   const productUsername = productPathUsername(store.username, username);
   const storeName = safeText(store.store_name, productUsername || 'Store');
@@ -181,7 +182,8 @@ export default async function ProductPage({ params }: PageProps) {
     );
   }
 
-  const systemDomain = storeData.system_domain || 'frontstore.ng';
+  const rawDomain = storeData.system_domain || 'frontstore.ng';
+  const systemDomain = rawDomain === 'frontstore.app' ? 'frontstore.ng' : rawDomain;
   const store = storeData.store;
   const productUsername = productPathUsername(store.username, username);
   const storeName = safeText(store.store_name, productUsername || 'Store');
