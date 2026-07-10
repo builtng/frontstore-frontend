@@ -57,7 +57,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https: http:",
-              `connect-src 'self' https://api.frontstore.app https://*.supabase.co https://*.supabase.in https://api.paystack.co https://fonts.googleapis.com https://ipapi.co https://vercel.live wss://ws-us3.pusher.com wss://*.vercel.live https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com${devOrigins}${envApiOrigin}`,
+              `connect-src 'self' https://api.frontstore.ng https://*.supabase.co https://*.supabase.in https://api.paystack.co https://fonts.googleapis.com https://ipapi.co https://vercel.live wss://ws-us3.pusher.com wss://*.vercel.live https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com${devOrigins}${envApiOrigin}`,
               "frame-src https://checkout.paystack.com https://vercel.live",
               "object-src 'none'",
               "base-uri 'self'",
