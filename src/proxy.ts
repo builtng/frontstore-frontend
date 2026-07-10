@@ -114,7 +114,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/track') ||
     /\.(png|jpg|jpeg|gif|svg|ico|css|js|json|txt|xml|woff|woff2|ttf|otf)$/i.test(pathname);
 
-  // Platform storefronts now live on path URLs (e.g. frontstore.app/ade).
+  // Platform storefronts now live on path URLs (e.g. frontstore.ng/ade).
   // Redirect old subdomain links so shared legacy URLs resolve to the canonical path.
   if (subdomain && isPlatformDomain && !isSystemPath) {
     const mainUrl = request.nextUrl.clone();

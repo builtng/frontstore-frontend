@@ -746,7 +746,7 @@ export default function WhatsAppTVStorefront({
     if (!orderReceipt || isPaying) return;
     setIsPaying(true);
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
       const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -772,7 +772,7 @@ export default function WhatsAppTVStorefront({
     setCheckoutLoading(true);
     setCheckoutError(null);
 
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
 
     // Formulate notes with booking info if any
     let compiledAddress = deliveryAddress;
@@ -852,7 +852,7 @@ export default function WhatsAppTVStorefront({
   const fetchAvailableSlots = async (svcId?: string) => {
     setLoadingSlots(true);
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
       const url = svcId
         ? `${API_URL}/v1/public/store/${username}/slots?product_id=${svcId}`
         : `${API_URL}/v1/public/store/${username}/slots`;
@@ -912,7 +912,7 @@ export default function WhatsAppTVStorefront({
       return;
     }
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
       const res = await fetch(`${API_URL}/v1/public/orders/${revRef}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

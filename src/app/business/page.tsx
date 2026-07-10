@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import BusinessPageClient from '../BusinessPageClient';
 
 async function getPublicSettings() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/settings`, {
       next: { revalidate: 60 },

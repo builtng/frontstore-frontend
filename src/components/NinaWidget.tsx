@@ -24,9 +24,9 @@ const WELCOME: Message = {
 
 function getApiUrl(): string {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+    return localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  return process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 }
 
 function getToken(): string | null {

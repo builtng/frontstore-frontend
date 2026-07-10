@@ -69,7 +69,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
   useEffect(() => {
     setMounted(true);
@@ -619,7 +619,7 @@ export default function LoginPage() {
   useEffect(() => {
     const loadPublicSettings = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
         const res = await fetch(`${apiUrl}/v1/public/settings`);
         if (!res.ok) return;
         const json = await res.json();

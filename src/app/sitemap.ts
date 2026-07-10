@@ -7,6 +7,7 @@ import { businessPersonas } from '@/utils/businessPersonas';
 import { NIGERIAN_STATES } from '@/utils/nigerianStates';
 import { NIGERIAN_CITIES } from '@/utils/nigerianCities';
 import { locationMatchesState, normalizePersonaId, locationMatchesCity } from '@/utils/directoryContent';
+import { NIGERIAN_STATES_DATA } from '@/utils/nigerianStatesData';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://frontstore.ng';
@@ -123,7 +124,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
+    // ── Nigeria States hub page ─────────────────────────────────────────
+    {
+      url: `${baseUrl}/nigeria-states`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.85,
+    },
   ];
+
+  // ── Individual Nigerian state pages ─────────────────────────────────────
+  NIGERIAN_STATES_DATA.forEach((state) => {
+    routes.push({
+      url: `${baseUrl}/nigeria-states/${state.slug}`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    });
+  });
 
   // ── PSEO Blog Articles ────────────────────────────────────────────────────
   // Grouped by recency — newer articles get a slight priority bump

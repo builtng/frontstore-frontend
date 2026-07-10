@@ -34,7 +34,7 @@ const normalizePhone = (input: string, dialCode: string) => {
 
 export default function BuyerSignupPage() {
   const router = useRouter();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
   const [name, setName] = useState('');
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);

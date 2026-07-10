@@ -68,7 +68,7 @@ interface FashionStorefrontProps {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const normalizeApiUrl = (url?: string | null) => (url || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+const normalizeApiUrl = (url?: string | null) => (url || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
 const fmtCurrency = (amount: number, code: string) => {
   const syms: Record<string, string> = { NGN: '₦', USD: '$', GBP: '£', EUR: '€', GHS: 'GH₵', KES: 'KSh' };
   return `${syms[code] || code + ' '}${amount.toLocaleString()}`;
@@ -147,7 +147,7 @@ export default function FashionStorefront({
     setValidatingCoupon(true);
     setCouponError(null);
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
       const res = await fetch(`${API_URL}/v1/public/store/${username}/coupons/${couponCodeInput.trim()}/validate`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }

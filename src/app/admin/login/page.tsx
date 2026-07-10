@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [appName, setAppName] = useState('Frontstore');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
   // Redirect if already logged in as admin
   useEffect(() => {

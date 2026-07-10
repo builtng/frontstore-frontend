@@ -59,7 +59,7 @@ function strength(pw: string): { score: number; label: string; color: string } {
 /* ── component ──────────────────────────────────────────────────────────── */
 export default function ConfirmLaunchClient({ token }: Props) {
   const router = useRouter();
-  const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');

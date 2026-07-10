@@ -719,7 +719,7 @@ export default function TechStorefront({
       return;
     }
     setLoadingSlots(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     fetch(`${API_URL}/v1/public/store/${STORE.slug}/slots?product_id=${bookSvc.id}`)
       .then(res => res.ok ? res.json() : null)
       .then(json => {
@@ -776,7 +776,7 @@ export default function TechStorefront({
       return;
     }
     setCheckoutLoading(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     
     // Submit slots bookings first
     const bookingItems = bag.filter(x => x.type === 'service' && x.slotId);
@@ -849,7 +849,7 @@ export default function TechStorefront({
   const handlePayOnline = async () => {
     if (!orderReceipt) return;
     setIsPaying(true);
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api').replace(/\/+$/, '');
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     try {
       const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',

@@ -405,7 +405,7 @@ export default function DashboardPage() {
   const [systemDomain, setSystemDomain] = useState('frontstore.ng');
   const [domainTargetCname, setDomainTargetCname] = useState('');
   const [domainTargetIp, setDomainTargetIp] = useState('');
-  const [apiUrl, setApiUrl] = useState('https://api.frontstore.app/api');
+  const [apiUrl, setApiUrl] = useState('https://api.frontstore.ng/api');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
@@ -1166,7 +1166,7 @@ export default function DashboardPage() {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
       const storedStore = localStorage.getItem('store');
-      const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+      const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
       setApiUrl(savedApiUrl);
       setDevApiInput(savedApiUrl);
@@ -1453,7 +1453,7 @@ export default function DashboardPage() {
 
   // Fetch Paystack bank list from backend
   useEffect(() => {
-    const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+    const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
     fetch(`${url}/v1/payments/banks`)
       .then(r => r.json())
       .then(json => {
@@ -1481,7 +1481,7 @@ export default function DashboardPage() {
     const verifyPayment = async () => {
       setIsVerifyingPayment(true);
       try {
-        const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+        const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
         const res = await fetch(`${url}/v1/payments/verify-subscription`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -1531,7 +1531,7 @@ export default function DashboardPage() {
 
     const refreshStripeStatus = async () => {
       try {
-        const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+        const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
         const res = await fetch(`${url}/v1/payments/stripe/return`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

@@ -737,7 +737,7 @@ interface PageAccountProps {
   setTab: (t: string) => void;
 }
 function PageAccount({ market, setMarket, products, liked, buyer, setBuyer, buyerAuthChecked, setTab }: PageAccountProps) {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   const SUPPORT_WHATSAPP = '2348030000000'; // Real support WhatsApp number
   const [section, setSection] = useState("main"); // main | orders | settings | password | help | edit-profile
   const [mktOpen, setMktOpen] = useState(false);
@@ -1250,7 +1250,7 @@ export default function MarketplaceHomeClient({ initialData, initialSettings }: 
   useEffect(() => {
     const token = localStorage.getItem('buyer_token');
     if (!token) return;
-    const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+    const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
     fetch(`${configuredApiUrl}/v1/buyer/auth/me`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -1367,7 +1367,7 @@ export default function MarketplaceHomeClient({ initialData, initialSettings }: 
   // Fetch live marketplace records on mount
   useEffect(() => {
     const fetchMarketplace = async () => {
-      const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.app/api';
+      const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
       try {
         const res = await fetch(`${configuredApiUrl}/v1/public/marketplace`);
         if (res.ok) {
