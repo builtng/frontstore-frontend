@@ -64,6 +64,8 @@ Unlike Shopify or WooCommerce — which force merchants onto websites that requi
 
 ### Programmatic SEO Pages
 - **PSEO Blog Articles**: `/blog/{country}/{article-slug}` — 517 dynamically compiled articles targeting localized long-tail commerce keywords across Nigerian states (Lagos, Abuja FCT, Delta, Edo, Rivers, Kaduna, Kano, Abia, Anambra, Imo, Enugu) and major cities (Aba, Onitsha, Nnewi, Awka, Owerri, Zaria, Samaru, Warri, Benin City).
+- **Nigeria States Directory**: `/nigeria-states` — Directory of all 36 states and FCT Abuja, listing cultural, economic, and tourism summaries.
+- **Individual State Pages**: `/nigeria-states/{slug}` — Comprehensive state-specific guides with detailed descriptions, cities, languages, and local e-commerce resources.
 - **Competitor Comparison Pages**: `/vs/{competitor}` — Deep comparisons against Bumpa, Myshoplet, Catlog, Selar, Vendda, Shopify
 - **Solution Landing Pages**: `/solutions/{slug}` — Use-case specific guides (e.g., `/solutions/sell-on-whatsapp-nigeria`, `/solutions/free-online-store-nigeria`)
 - **Free Tools**: `/tools/{slug}` — Business calculators including profit-margin, selling-price, break-even, VAT calculators

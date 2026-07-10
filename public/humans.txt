@@ -4,7 +4,7 @@ AI Pair Programmer: Antigravity (AI coding assistant by Google DeepMind)
 Contact: hello@frontstore.ng
 
 /* THANKS */
-Special thanks to all our pioneering merchants in Lagos, Abuja (FCT), Delta, Edo, Rivers, Kaduna, Kano, Abia, Anambra, Imo, and Enugu states.
+Special thanks to all our pioneering merchants across all 36 Nigerian states and the Federal Capital Territory (FCT) — including Lagos, Abuja (FCT), Delta, Edo, Rivers, Kaduna, Kano, Abia, Anambra, Imo, and Enugu.
 
 /* SITE */
 Last update: 2026-07-10

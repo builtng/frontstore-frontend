@@ -191,6 +191,18 @@ export default function NigeriaStatesIndexPage() {
         </div>
       </main>
 
+      {/* AI Credit */}
+      <div style={{
+        maxWidth: 960,
+        margin: '0 auto',
+        padding: '0 20px 32px',
+      }}>
+        <p style={{ fontSize: 11.5, color: 'var(--text-faint)', margin: 0, lineHeight: 1.6 }}>
+          <strong style={{ color: 'var(--text-muted)', fontWeight: 700 }}>Content credit:</strong>{' '}
+          State information on this page was written with AI assistance and edited &amp; reviewed by a human editor for accuracy and quality.
+        </p>
+      </div>
+
       <PublicSiteFooter />
     </div>
   );

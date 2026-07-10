@@ -233,16 +233,12 @@ export default async function NigerianStatePage({ params }: { params: Promise<{ 
 
         {/* AI Credit */}
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '12px 16px',
+          padding: '10px 16px',
           marginBottom: 32,
           background: 'var(--surface)',
           border: '1px dashed var(--border)',
           borderRadius: 10,
         }}>
-          <span style={{ fontSize: 18, flexShrink: 0 }}>🤖</span>
           <p style={{ fontSize: 12, color: 'var(--text-faint)', margin: 0, lineHeight: 1.6 }}>
             <strong style={{ color: 'var(--text-muted)', fontWeight: 700 }}>Content credit:</strong>{' '}
             This page was written with AI assistance and edited &amp; reviewed by a human editor for accuracy and quality.
