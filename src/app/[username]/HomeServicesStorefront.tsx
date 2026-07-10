@@ -4,6 +4,7 @@ import { toast as sonnerToast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
+import { storePath } from "../../utils/storePath";
 import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon } from "../../components/SocialIcons";
 
 import { Menu, X, BadgeCheck, MapPin, Star, Clock, Share2, Store as StoreIcon, Search, ShoppingBag, Calendar, ChevronRight, ChevronDown, ChevronLeft, Megaphone, Truck, Sparkles, ShieldCheck, Navigation, Lock, Plus, Minus, Copy, Instagram, Facebook, Award, Check, Quote, Phone, Mail, RotateCcw, Package, Bell, MessageCircle, Wrench, Hammer, Home as HomeIcon, Receipt } from "lucide-react";
@@ -945,7 +946,7 @@ export default function HomeServicesStorefront({
   };
 
   const copyUrl = () => {
-    navigator.clipboard?.writeText(`${window.location.origin}/${username}`);
+    navigator.clipboard?.writeText(`${window.location.origin}${storePath(username)}`);
     ping("Store link copied");
   };
   
@@ -1330,7 +1331,7 @@ export default function HomeServicesStorefront({
     <div className={g}>{(list || SERVICES).map((s: any) => <ServiceCard key={s.id} s={s} onBook={() => openService(s)} />)}</div>
   );
   const productsGrid = (g: any, list: any) => (
-    <div className={g}>{(list || PRODUCTS).map((p: any) => <ProductCard key={p.id} p={p} onBuy={() => addBag(p.name)} onView={() => router.push(`/${username}/products/${p.slug}`)} />)}</div>
+    <div className={g}>{(list || PRODUCTS).map((p: any) => <ProductCard key={p.id} p={p} onBuy={() => addBag(p.name)} onView={() => router.push(storePath(username, `/products/${p.slug}`))} />)}</div>
   );
   const reviewsBody = () => (<>
     <p className="svc-intro">Every review here comes from a verified order on Frontstore. The team can respond, but cannot remove genuine reviews.</p>
@@ -2168,7 +2169,7 @@ export default function HomeServicesStorefront({
                     <div className="pd-sec-head"><h2>Best sellers</h2></div>
                     <div className="svc-feat-grid">
                       {PRODUCTS.filter((p) => p.popular).slice(0, 3).map((p: any) => (
-                        <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} badge="Best seller" onView={() => router.push(`/${username}/products/${p.slug}`)} onBuy={() => addBag(p.name)} />
+                        <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} badge="Best seller" onView={() => router.push(storePath(username, `/products/${p.slug}`))} onBuy={() => addBag(p.name)} />
                       ))}
                     </div>
 
@@ -2222,7 +2223,7 @@ export default function HomeServicesStorefront({
                         </div>
                         {prodFiltered.length > 0 ? (
                           <div className="svc-grid">
-                            {prodFiltered.map((p: any) => <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} onView={() => router.push(`/${username}/products/${p.slug}`)} onBuy={() => addBag(p.name)} />)}
+                            {prodFiltered.map((p: any) => <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} onView={() => router.push(storePath(username, `/products/${p.slug}`))} onBuy={() => addBag(p.name)} />)}
                           </div>
                         ) : (
                           <div className="svc-empty">No products match your filters.<button onClick={clearProd}>Clear filters</button></div>

@@ -12,6 +12,7 @@ import { toast as sonnerToast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
+import { storePath } from "../../utils/storePath";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 
 const EXTENSION_SUBSTRING_ERROR = "Cannot read properties of undefined (reading 'substring')";
@@ -2019,7 +2020,7 @@ export default function BeautyStorefront({
                     <div className="pd-sec-head"><h2>Best sellers</h2></div>
                     <div className="svc-feat-grid">
                       {PRODUCTS.slice(0, 3).map((p) => (
-                        <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} badge="Best seller" onView={() => router.push(`/${username}/products/${p.slug}`)} onBuy={() => addBag(p)} />
+                        <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} badge="Best seller" onView={() => router.push(storePath(username, `/products/${p.slug}`))} onBuy={() => addBag(p)} />
                       ))}
                     </div>
                     <div className="svc-body">
@@ -2054,7 +2055,7 @@ export default function BeautyStorefront({
                         </div>
                         {prodFiltered.length > 0 ? (
                           <div className="svc-grid">
-                            {prodFiltered.map((p) => <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} onView={() => router.push(`/${username}/products/${p.slug}`)} onBuy={() => addBag(p)} />)}
+                            {prodFiltered.map((p) => <ProductCardRich key={p.id} p={p} colour={prodColor(p.cat)} onView={() => router.push(storePath(username, `/products/${p.slug}`))} onBuy={() => addBag(p)} />)}
                           </div>
                         ) : <div className="svc-empty">No products match your filters.<button onClick={clearProd}>Clear filters</button></div>}
                       </div>

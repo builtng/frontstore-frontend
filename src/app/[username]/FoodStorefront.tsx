@@ -4,6 +4,7 @@ import { toast as sonnerToast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
+import { storePath } from "../../utils/storePath";
 import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon } from "../../components/SocialIcons";
 
 import { Menu, X, BadgeCheck, MapPin, Star, Clock, Share2, Store as StoreIcon, Search, ShoppingBag, Calendar, ChevronRight, ChevronDown, ChevronLeft, Megaphone, Truck, Sparkles, ShieldCheck, Navigation, Lock, Plus, Minus, Copy, Instagram, Facebook, Award, Check, Quote, Phone, Mail, RotateCcw, Package, Bell, UtensilsCrossed, MessageCircle, Receipt } from "lucide-react";
@@ -1082,7 +1083,7 @@ export default function FoodStorefront({
   };
 
   const copyUrl = () => {
-    navigator.clipboard?.writeText(`${window.location.origin}/${username}`);
+    navigator.clipboard?.writeText(`${window.location.origin}${storePath(username)}`);
     ping("Store link copied");
   };
   
