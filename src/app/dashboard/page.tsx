@@ -6700,6 +6700,7 @@ export default function DashboardPage() {
                   {settingsSubTab === 'social' && (
                   <>
                   {/* ── CUSTOM DOMAIN CONFIGURATION CARD ── */}
+                  {false && (
                   <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24, position: 'relative', overflow: 'hidden' }}>
 
                     {/* Lock Overlay if Free */}
@@ -6902,6 +6903,7 @@ export default function DashboardPage() {
                       </div>
                     )}
                   </div>
+                  )}
 
                   {/* ── CUSTOM LINKS / LINKTREE SECTION ── */}
                   <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24 }}>
@@ -8163,7 +8165,7 @@ export default function DashboardPage() {
                         Subscription Plans & Billing
                       </h2>
                       <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
-                        Unlock custom domain, store bio profile description, product details, and AI features.
+                        Unlock store bio profile description, product details, and AI features.
                       </p>
                     </div>
                   </div>
@@ -8226,10 +8228,12 @@ export default function DashboardPage() {
                           <CheckCircle2 size={16} color="var(--primary)" />
                           <span>Manually upload product images</span>
                         </div>
+                        {/*
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, opacity: 0.5 }}>
                           <span style={{ color: 'var(--danger)', fontWeight: 900, marginRight: 6 }}>✕</span>
                           <span style={{ textDecoration: 'line-through' }}>Custom domain name mapping</span>
                         </div>
+                        */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, opacity: 0.5 }}>
                           <span style={{ color: 'var(--danger)', fontWeight: 900, marginRight: 6 }}>✕</span>
                           <span style={{ textDecoration: 'line-through' }}>AI description auto-write</span>
@@ -8382,10 +8386,12 @@ export default function DashboardPage() {
                           <CheckCircle2 size={16} color="#d97706" />
                           <span><strong>Unlimited products</strong> (unlimited listings)</span>
                         </div>
+                        {/*
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
                           <span><strong>Custom domain name</strong> (e.g. <code>mybrand.com</code>)</span>
                         </div>
+                        */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
                           <span><strong>AI auto-write</strong> — generate title, bio &amp; descriptions instantly</span>

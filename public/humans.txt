@@ -1,38 +1,13 @@
 /* TEAM */
+Main Developers: Frontstore Engineering Team
+AI Pair Programmer: Antigravity (AI coding assistant by Google DeepMind)
+Contact: hello@frontstore.ng
 
-Developer: Frontstore Engineering Team
-Contact: engineering@frontstore.ng
-Location: Lagos, Nigeria / Remote, Africa
-
-Designer: Frontstore Product Design
-Contact: design@frontstore.ng
-
-/* TECHNOLOGY */
-
-Platform: Next.js 14 (App Router)
-Language: TypeScript
-Backend: Python / FastAPI
-Database: Supabase (PostgreSQL + Realtime)
-Payments: Paystack, Flutterwave
-AI: Google Gemini API
-Hosting: Vercel (Frontend), Railway (Backend)
-CDN: Vercel Edge Network
-Fonts: Outfit, Plus Jakarta Sans (Google Fonts)
+/* THANKS */
+Special thanks to all our pioneering merchants in Lagos, Abuja (FCT), Delta, Edo, Rivers, Kaduna, Kano, Abia, Anambra, Imo, and Enugu states.
 
 /* SITE */
-
-Last update: 2026/07/09
-Standards: HTML5, CSS3, WCAG 2.1 AA
-Components: Next.js App Router, React Server Components
-Performance: <2s on 3G mobile networks
-Languages: English (en-NG, en-GH, en-KE, en-UG, en-ZA)
-
-/* MISSION */
-
-Frontstore is Africa's conversational commerce infrastructure.
-We believe business in Africa is relational — built on greetings,
-trust, and conversation. We're building the rails that turn everyday
-WhatsApp chats into structured, automated commerce.
-
-"Commerce Through Conversation."
-— frontstore.ng
+Last update: 2026-07-10
+Standards: Next.js (App Router), TypeScript, Tailwind CSS, Vanilla CSS HSL tokens
+Software: React 19, Turbopack, Supabase
+Target Devices: Mobile-first optimized for low-bandwidth African networks (MTN, Airtel, Glo, Telecel, Safaricom)

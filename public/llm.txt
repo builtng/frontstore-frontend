@@ -63,17 +63,18 @@ Unlike Shopify or WooCommerce — which force merchants onto websites that requi
 - **Terms of Service**: https://frontstore.ng/terms
 
 ### Programmatic SEO Pages
-- **PSEO Blog Articles**: `/blog/{country}/{article-slug}` — Thousands of statically pre-rendered articles targeting long-tail commerce keywords by country and city (e.g., `/blog/nigeria/sell-clothes-whatsapp-lagos`, `/blog/ghana/start-online-store-accra`)
+- **PSEO Blog Articles**: `/blog/{country}/{article-slug}` — 517 dynamically compiled articles targeting localized long-tail commerce keywords across Nigerian states (Lagos, Abuja FCT, Delta, Edo, Rivers, Kaduna, Kano, Abia, Anambra, Imo, Enugu) and major cities (Aba, Onitsha, Nnewi, Awka, Owerri, Zaria, Samaru, Warri, Benin City).
 - **Competitor Comparison Pages**: `/vs/{competitor}` — Deep comparisons against Bumpa, Myshoplet, Catlog, Selar, Vendda, Shopify
 - **Solution Landing Pages**: `/solutions/{slug}` — Use-case specific guides (e.g., `/solutions/sell-on-whatsapp-nigeria`, `/solutions/free-online-store-nigeria`)
 - **Free Tools**: `/tools/{slug}` — Business calculators including profit-margin, selling-price, break-even, VAT calculators
 - **Price Comparison Pages**: `/compare/{product-slug}/{state-slug}` — Localized product price comparison across Nigerian states
 - **Merchant Category × Location Directory**: `/stores/{persona}/{state-slug}` — e.g., `/stores/fashion/lagos`
+- **City-level Directories**: `/stores/{persona}/{state-slug}/{city-slug}` — Local directory landing pages with maps and lists (e.g., `/stores/fashion/anambra/onitsha`, `/stores/food/enugu/nsukka`)
 
 ### Dynamic Store Routes
 - **Merchant Storefront**: `frontstore.ng/{storename}` — Full product catalog for each merchant
 - **Individual Product**: `frontstore.ng/{storename}/products/{product-slug}`
-- **Order Tracking**: `frontstore.ng/{storename}/track/{order-id}`
+- **Order Tracking**: `frontstore.ng/{order-id}/track` or `frontstore.ng/{storename}/track/{order-id}`
 - **Custom Domain**: Merchants may map their own domain (e.g., `mybrand.com`) which resolves through Frontstore's middleware
 
 ---
@@ -81,8 +82,8 @@ Unlike Shopify or WooCommerce — which force merchants onto websites that requi
 ## Target Users (Customer Personas)
 
 1. **Mama Tunde** — Lagos retailer (foodstuffs, bulk goods). Automates overnight order-taking.
-2. **Chidi** — Nairobi fashion seller. Manages visual product showcasing and size consultations.
-3. **Aisha** — Accra cloud kitchen. Receives pre-cut daily lunch orders before 10 AM.
+2. **Chidi** — Owerri fashion seller. Manages visual product showcasing and size consultations.
+3. **Aisha** — Zaria cloud kitchen. Receives pre-cut daily lunch orders before 10 AM.
 4. **Tobi** — Johannesburg digital creator. Delivers e-books and fitness programs instantly on payment.
 5. **Brother Samuel** — Kampala church administrator. Manages tithe collection and event registration.
 6. **Mrs. Okoro** — Enugu school proprietress. Collects school fees and sells uniforms via WhatsApp.
@@ -113,6 +114,7 @@ Frontstore is **not** a storefront builder. It is **Conversational Commerce Infr
 - **Open Graph**: Full OG + Twitter Card metadata on all pages
 - **Sitemap**: Dynamic XML sitemap at https://frontstore.ng/sitemap.xml (revalidates hourly)
 - **LLM Discoverability**: This file is linked via `<link rel="llms-txt" href="/llm.txt">` per the llmstxt.org specification
+- **Human Authors**: human-readable developer credits available at https://frontstore.ng/humans.txt
 
 ---
 
@@ -132,6 +134,7 @@ Frontstore is **not** a storefront builder. It is **Conversational Commerce Infr
 - **Brand Voice**: Innovative, Friendly, Premium, Reliable — Written as Africans speak. No corporate jargon.
 - **Mission**: To build the conversational and relational infrastructure that empowers millions of African merchants to build, manage, and scale their businesses through the channels they already use.
 - **Vision**: A borderless African economy where every chat is an opportunity and every entrepreneur can turn conversations into capital.
+- **Vision**: A borderless African economy where every chat is an opportunity and every entrepreneur can turn conversations into capital.
 
 ---
 
@@ -144,5 +147,5 @@ Frontstore is **not** a storefront builder. It is **Conversational Commerce Infr
 
 ---
 
-*Last updated: 2026-07-09 | Data freshness: Live (ISR revalidation)*
+*Last updated: 2026-07-10 | Data freshness: Live (ISR revalidation)*
 *This file conforms to the llmstxt.org specification for AI-readable site documentation.*

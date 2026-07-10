@@ -106,7 +106,7 @@ export default function BlogCTA({ city, category, ctaText }: BlogCTAProps) {
                 background: 'var(--primary-dark)',
               }}
             >
-              {ctaText} <ArrowRight size={12} />
+              Setup your Store <ArrowRight size={12} />
             </button>
           </div>
 
