@@ -6829,15 +6829,17 @@ export default function DashboardPage() {
                               </button>
                             </div>
 
-                            {/* Bypass toggle */}
-                            <div style={{ marginTop: 12 }}>
-                              <Toggle
-                                id="bypass-dns-checkbox"
-                                checked={customDomainBypassDNS}
-                                onChange={setCustomDomainBypassDNS}
-                                label={<span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Simulate DNS check (local/testing)</span>}
-                              />
-                            </div>
+                            {/* Bypass toggle — dev/testing only; backend also rejects this outside local/testing envs */}
+                            {process.env.NODE_ENV === 'development' && (
+                              <div style={{ marginTop: 12 }}>
+                                <Toggle
+                                  id="bypass-dns-checkbox"
+                                  checked={customDomainBypassDNS}
+                                  onChange={setCustomDomainBypassDNS}
+                                  label={<span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>Simulate DNS check (local/testing)</span>}
+                                />
+                              </div>
+                            )}
                           </div>
 
                           <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 18 }}>
