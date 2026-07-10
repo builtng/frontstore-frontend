@@ -125,7 +125,7 @@ interface StorefrontClientProps {
 
 // --- Helpers ---
 function normalizeApiUrl(url: string | undefined): string {
-  if (!url) return '';
+  if (!url) return 'https://api.frontstore.app/api';
   return url.replace(/\/+$/, '');
 }
 

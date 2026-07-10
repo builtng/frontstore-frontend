@@ -68,7 +68,7 @@ interface FashionStorefrontProps {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const normalizeApiUrl = (url?: string | null) => (url || '').replace(/\/+$/, '');
+const normalizeApiUrl = (url?: string | null) => (url || 'https://api.frontstore.app/api').replace(/\/+$/, '');
 const fmtCurrency = (amount: number, code: string) => {
   const syms: Record<string, string> = { NGN: '₦', USD: '$', GBP: '£', EUR: '€', GHS: 'GH₵', KES: 'KSh' };
   return `${syms[code] || code + ' '}${amount.toLocaleString()}`;
