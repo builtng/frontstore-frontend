@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Power,
   Search,
+  Trash2,
 } from 'lucide-react';
 import { TableSkeleton, StatusChip, EmptyState } from '../components';
 
@@ -66,6 +67,21 @@ export default function AdminStoresPage() {
       setStores((items) =>
         items.map((store) => (store.id === storeId ? { ...store, is_active: !store.is_active } : store))
       );
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    }
+  };
+
+  const handleDeleteStore = async (storeId: string) => {
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      });
+      const json = await handleFetchResponse(res, 'Failed to delete store.');
+      toast.success(json.message);
+      setStores((items) => items.filter((store) => store.id !== storeId));
+      setSelectedStore((prev) => (prev?.id === storeId ? null : prev));
     } catch (error: any) {
       if (error.message !== 'Session expired') toast.error(error.message);
     }
@@ -208,6 +224,23 @@ export default function AdminStoresPage() {
                     >
                       <Power size={15} />
                       {store.is_active ? 'Suspend' : 'Activate'}
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-action danger"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openConfirmationDialog(
+                          'Delete store',
+                          `This permanently deletes "${store.store_name}" and logs the merchant out of their dashboard. This cannot be undone.`,
+                          async () => {
+                            await handleDeleteStore(store.id);
+                          }
+                        );
+                      }}
+                    >
+                      <Trash2 size={15} />
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -363,6 +396,22 @@ export default function AdminStoresPage() {
                 }}
               >
                 {selectedStore.is_active ? 'Suspend Store' : 'Activate Store'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-danger-tone"
+                onClick={() => {
+                  openConfirmationDialog(
+                    'Delete store',
+                    `This permanently deletes "${selectedStore.store_name}" and logs the merchant out of their dashboard. This cannot be undone.`,
+                    async () => {
+                      await handleDeleteStore(selectedStore.id);
+                    }
+                  );
+                }}
+              >
+                <Trash2 size={15} />
+                Delete Store
               </button>
             </div>
           </div>
