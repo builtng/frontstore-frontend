@@ -2544,8 +2544,8 @@ export default function DashboardPage() {
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 500; // 500px is perfect for gpt-4o-mini low-res detail vision analysis
-            const MAX_HEIGHT = 500;
+            const MAX_WIDTH = 1024; // higher res so brand/model text on the item or box stays legible to the vision model
+            const MAX_HEIGHT = 1024;
             let width = img.width;
             let height = img.height;
 
@@ -2566,7 +2566,7 @@ export default function DashboardPage() {
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(img, 0, 0, width, height);
-              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
               resolve({ base64: compressedBase64, mime: 'image/jpeg' });
             } else {
               resolve({ base64: e.target?.result as string, mime: file.type });
