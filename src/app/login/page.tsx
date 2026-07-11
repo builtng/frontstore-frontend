@@ -151,13 +151,14 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
       const phoneVal = isEmail ? trimmed : normalizePhone(trimmed, selectedCountry.dialCode);
       setNormalizedPhone(phoneVal);
 
-      const res = await fetch(`${API_URL}/v1/auth/send-otp`, {
+      const res = await fetch(`${API_URL}/v1/auth/${isEmail ? 'send-email-otp' : 'send-otp'}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          phone_number: phoneVal,
-          country_dial_code: selectedCountry.dialCode,
-        }),
+        body: JSON.stringify(
+          isEmail
+            ? { email: trimmed }
+            : { phone_number: phoneVal, country_dial_code: selectedCountry.dialCode }
+        ),
       });
 
       const json = await res.json();
@@ -189,14 +190,15 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
 
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/v1/auth/verify-otp`, {
+      const isEmail = isAdminMode || loginMethod === 'email' || normalizedPhone.includes('@');
+      const res = await fetch(`${API_URL}/v1/auth/${isEmail ? 'verify-email-otp' : 'verify-otp'}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          phone_number: normalizedPhone,
-          otp: otp.trim(),
-          country_dial_code: selectedCountry.dialCode,
-        }),
+        body: JSON.stringify(
+          isEmail
+            ? { email: normalizedPhone, otp: otp.trim() }
+            : { phone_number: normalizedPhone, otp: otp.trim(), country_dial_code: selectedCountry.dialCode }
+        ),
       });
 
       const json = await res.json();
