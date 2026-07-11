@@ -62,6 +62,7 @@ interface UserInfo {
   email?: string | null;
   plan?: string;
   has_password?: boolean;
+  ai_analyses_used?: number;
 }
 
 interface StoreLink {
@@ -2532,22 +2533,66 @@ export default function DashboardPage() {
   };
 
   const handleAutoAnalyzeImage = async (file: File) => {
-    if (!isPro) return; // Pro-only feature
+    // Available to all merchants — AI pre-fill on first image upload with client-side compression for speed
     try {
       setAiAnalyzing(true);
-      // Convert file to base64
-      const base64 = await new Promise<string>((resolve, reject) => {
+      
+      // Client-side image compression to speed up transfer & processing
+      const compressed: { base64: string; mime: string } = await new Promise((resolve) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 500; // 500px is perfect for gpt-4o-mini low-res detail vision analysis
+            const MAX_HEIGHT = 500;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+              resolve({ base64: compressedBase64, mime: 'image/jpeg' });
+            } else {
+              resolve({ base64: e.target?.result as string, mime: file.type });
+            }
+          };
+          img.onerror = () => {
+            resolve({ base64: e.target?.result as string, mime: file.type });
+          };
+          img.src = e.target?.result as string;
+        };
+        reader.onerror = () => {
+          resolve({ base64: '', mime: file.type });
+        };
         reader.readAsDataURL(file);
       });
+
+      if (!compressed.base64) {
+        throw new Error('Could not read image file.');
+      }
+
       const res = await fetch(`${apiUrl}/v1/ai/generate-description`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          image_base64: base64,
-          image_mime: file.type,
+          image_base64: compressed.base64,
+          image_mime: compressed.mime,
         })
       });
       const json = await res.json();
@@ -2557,11 +2602,19 @@ export default function DashboardPage() {
         if (data.description) setProdDesc(data.description);
         if (data.recommended_price) setProdPrice(String(data.recommended_price));
         if (Array.isArray(data.tags) && data.tags.length > 0) setProdTags(data.tags.slice(0, 10));
+        
+        // Update user state with the new quota used counter
+        if (typeof json.quota_used !== 'undefined') {
+          setUser(prev => prev ? { ...prev, ai_analyses_used: json.quota_used } : null);
+        }
+
         toast.success('AI analyzed your photo! Fields pre-filled ✨');
+      } else {
+        toast.error(json.message || 'AI image analysis failed.');
       }
-    } catch (err) {
-      // Fail silently — the image was already uploaded successfully
-      console.warn('AI image analysis failed (non-blocking):', err);
+    } catch (err: any) {
+      console.warn('AI image analysis failed:', err);
+      toast.error(err.message || 'Failed to analyze product image.');
     } finally {
       setAiAnalyzing(false);
     }
@@ -12350,6 +12403,121 @@ export default function DashboardPage() {
             </div>
 
             <form onSubmit={handleCreateProductSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              {/* ── STEP 1: Primary Image Upload (Full-width, prominent) ── */}
+              <div style={{ background: 'linear-gradient(135deg, rgba(217,119,6,0.05), rgba(245,158,11,0.02))', border: '2px dashed rgba(217,119,6,0.3)', borderRadius: 'var(--r-lg)', padding: 18 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <span style={{ fontSize: 18 }}>📸</span>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase' }}>Product Photo</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
+                      Upload your main image — AI will auto-fill title, description & tags. 
+                      <span style={{ color: 'var(--primary)', fontWeight: 700, marginLeft: 4 }}>
+                        ({user?.plan === 'pro_yearly' 
+                          ? 'Unlimited AI credits' 
+                          : `${Math.max(0, (user?.plan === 'pro_monthly' ? 15 : 3) - (user?.ai_analyses_used ?? 0))} AI credit(s) remaining`})
+                      </span>
+                    </div>
+                  </div>
+                  {aiAnalyzing && (
+                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(217,119,6,0.1)', border: '1px solid rgba(217,119,6,0.2)', borderRadius: 'var(--r-full)', padding: '4px 10px' }}>
+                      <Loader2 size={12} className="spinner" style={{ color: '#d97706' }} />
+                      <span style={{ fontSize: 11, color: '#d97706', fontWeight: 700 }}>AI analyzing...</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                  {prodImageUrls.map((url, idx) => (
+                    <div key={idx} className="fu-tile-img" style={{ position: 'relative', width: idx === 0 ? 120 : 80, height: idx === 0 ? 120 : 80 }}>
+                      <img src={url} alt={`Product image ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--r-md)' }} />
+                      {idx === 0 && <span style={{ position: 'absolute', top: 4, left: 4, fontSize: 9, fontWeight: 900, background: '#d97706', color: '#fff', padding: '2px 6px', borderRadius: 4, textTransform: 'uppercase' }}>Main</span>}
+                      <button
+                        type="button"
+                        onClick={() => setProdImageUrls(prev => prev.filter((_, i) => i !== idx))}
+                        className="fu-tile-img__remove"
+                        title="Remove image"
+                      >✕</button>
+                    </div>
+                  ))}
+                  {prodImageUrls.length < 3 && (
+                    <FileUpload
+                      variant="tile"
+                      accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                      uploading={prodImageUploading}
+                      disabled={prodImageUploading}
+                      onFile={async (file) => {
+                        try {
+                          setProdImageUploading(true);
+                          const fd = new FormData();
+                          fd.append('image', file);
+                          const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                            body: fd
+                          });
+                          const json = await res.json();
+                          if (res.ok && json.url) {
+                            const isFirstImage = prodImageUrls.length === 0;
+                            setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
+                            toast.success('Image uploaded! 📸');
+                            if (isFirstImage) {
+                              handleAutoAnalyzeImage(file);
+                            }
+                          } else throw new Error(json.message || 'Upload failed');
+                        } catch (err: any) {
+                          toast.error(err.message || 'Image upload error');
+                        } finally {
+                          setProdImageUploading(false);
+                        }
+                      }}
+                    />
+                  )}
+                </div>
+                <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8 }}>
+                  {prodImageUrls.length === 0
+                    ? 'Add your first photo to unlock AI auto-fill for title, price, description & tags.'
+                    : `${prodImageUrls.length}/3 photos added. ${prodImageUrls.length < 3 ? 'You can add ' + (3 - prodImageUrls.length) + ' more.' : 'All slots filled.'}`
+                  }
+                </p>
+              </div>
+
+              {/* ── STEP 2: Product Type Selector ── */}
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>What are you selling?</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                  {[
+                    { id: 'physical', icon: '🛍️', label: 'Physical', sublabel: 'Shipped or handed over', active: !prodIsDigital && prodType !== 'service' },
+                    { id: 'digital', icon: '💻', label: 'Digital', sublabel: 'Downloads, files, links', active: prodIsDigital },
+                    { id: 'service', icon: '🛎️', label: 'Service', sublabel: 'Sessions, bookings, jobs', active: prodType === 'service' },
+                  ].map(opt => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        if (opt.id === 'physical') { setProdIsDigital(false); setProdType('product'); }
+                        if (opt.id === 'digital') { setProdIsDigital(true); setProdType('product'); setProdStock('in_stock'); }
+                        if (opt.id === 'service') { setProdIsDigital(false); setProdType('service'); }
+                      }}
+                      style={{
+                        padding: '12px 8px',
+                        border: opt.active ? '2px solid var(--primary)' : '1.5px solid var(--border)',
+                        borderRadius: 'var(--r-md)',
+                        background: opt.active ? 'var(--primary-light)' : 'var(--surface)',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        transition: 'all var(--t-fast)',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4
+                      }}
+                    >
+                      <span style={{ fontSize: 22 }}>{opt.icon}</span>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: opt.active ? 'var(--primary)' : 'var(--text)' }}>{opt.label}</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-faint)', lineHeight: 1.3 }}>{opt.sublabel}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── STEP 3: Pre-filled fields (AI fills these) ── */}
               <div>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Product Title</label>
                 <input
@@ -12411,122 +12579,79 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Digital Product Settings */}
-              <div style={{
-                background: 'rgba(16, 185, 129, 0.04)',
-                border: '1.5px dashed rgba(16, 185, 129, 0.3)',
-                borderRadius: 'var(--r-md)',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12
-              }}>
-                <Toggle
-                  checked={prodIsDigital}
-                  onChange={(next) => {
-                    setProdIsDigital(next);
-                    if (next) {
-                      setProdStock('in_stock');
-                    }
-                  }}
-                  label={
-                    <div>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Digital Product</span>
-                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Sell eBooks, courses, templates, music, PDFs, etc.</span>
-                    </div>
-                  }
-                />
 
-                {prodIsDigital && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(16, 185, 129, 0.15)', paddingTop: 14 }} className="animate-fade-in">
+              {/* Digital Product Extras — shown when Digital type is selected */}
+              {prodIsDigital && (
+                <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px solid rgba(16, 185, 129, 0.2)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 14 }} className="animate-fade-in">
+                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--primary)' }}>💻 Digital Product Details</div>
 
-                    {/* File Upload Slot */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
-                        Digital File (Optional, max 20MB)
-                      </label>
-                      <FileUpload
-                        variant="default"
-                        accept="*"
-                        label="Upload Product File"
-                        hint="eBooks, courses, templates, music, PDFs, etc. (max 20MB)"
-                        previewUrl={prodDigitalFileUrl || undefined}
-                        uploading={prodDigitalUploading}
-                        onRemove={() => setProdDigitalFileUrl('')}
-                        maxSize={20 * 1024 * 1024}
-                        onFile={async (file) => {
-                          try {
-                            setProdDigitalUploading(true);
-                            const fd = new FormData();
-                            fd.append('file', file);
-                            const res = await fetch(`${apiUrl}/v1/products/upload-file`, {
-                              method: 'POST',
-                              headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                              body: fd
-                            });
-                            const json = await res.json();
-                            if (res.ok && json.url) {
-                              setProdDigitalFileUrl(json.url);
-                              toast.success('Digital file uploaded successfully! 📁');
-                            } else throw new Error(json.message || 'File upload failed');
-                          } catch (err: any) {
-                            toast.error(err.message || 'File upload error');
-                          } finally {
-                            setProdDigitalUploading(false);
-                          }
-                        }}
-                      />
-                    </div>
-
-                    {/* External Link */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
-                        Download / Access Link (Optional)
-                      </label>
-                      <div style={{ position: 'relative' }}>
-                        <input
-                          type="url"
-                          placeholder="e.g. https://drive.google.com/..."
-                          value={prodDigitalLink}
-                          onChange={e => setProdDigitalLink(e.target.value)}
-                          className="input-field"
-                          style={{ paddingLeft: 34 }}
-                        />
-                        <ExternalLink size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)' }} />
-                      </div>
-                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>
-                        Or provide a URL to a Google Drive folder, Notion page, private video, etc.
-                      </p>
-                    </div>
-
+                  {/* File Upload Slot */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                      Digital File (Optional, max 20MB)
+                    </label>
+                    <FileUpload
+                      variant="default"
+                      accept="*"
+                      label="Upload Product File"
+                      hint="eBooks, courses, templates, music, PDFs, etc. (max 20MB)"
+                      previewUrl={prodDigitalFileUrl || undefined}
+                      uploading={prodDigitalUploading}
+                      onRemove={() => setProdDigitalFileUrl('')}
+                      maxSize={20 * 1024 * 1024}
+                      onFile={async (file) => {
+                        try {
+                          setProdDigitalUploading(true);
+                          const fd = new FormData();
+                          fd.append('file', file);
+                          const res = await fetch(`${apiUrl}/v1/products/upload-file`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                            body: fd
+                          });
+                          const json = await res.json();
+                          if (res.ok && json.url) {
+                            setProdDigitalFileUrl(json.url);
+                            toast.success('Digital file uploaded successfully! 📁');
+                          } else throw new Error(json.message || 'File upload failed');
+                        } catch (err: any) {
+                          toast.error(err.message || 'File upload error');
+                        } finally {
+                          setProdDigitalUploading(false);
+                        }
+                      }}
+                    />
                   </div>
-                )}
-              </div>
 
-              {/* Service Settings */}
-              <div style={{
-                background: 'rgba(129, 0, 209, 0.04)',
-                border: '1.5px dashed rgba(129, 0, 209, 0.25)',
-                borderRadius: 'var(--r-md)',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12
-              }}>
-                <Toggle
-                  checked={prodType === 'service'}
-                  onChange={(next) => setProdType(next ? 'service' : 'product')}
-                  label={
-                    <div>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>This is a Service</span>
-                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Bookable services like appointments, sessions, or consultations.</span>
+                  {/* External Link */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                      Download / Access Link (Optional)
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="url"
+                        placeholder="e.g. https://drive.google.com/..."
+                        value={prodDigitalLink}
+                        onChange={e => setProdDigitalLink(e.target.value)}
+                        className="input-field"
+                        style={{ paddingLeft: 34 }}
+                      />
+                      <ExternalLink size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)' }} />
                     </div>
-                  }
-                />
+                    <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>
+                      Or provide a URL to a Google Drive folder, Notion page, private video, etc.
+                    </p>
+                  </div>
+                </div>
+              )}
 
-                {prodType === 'service' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(129, 0, 209, 0.15)', paddingTop: 14 }} className="animate-fade-in">
-                    <div>
+
+              {/* Service Extras — shown when Service type is selected */}
+              {prodType === 'service' && (
+                <div style={{ background: 'rgba(129, 0, 209, 0.04)', border: '1.5px solid rgba(129, 0, 209, 0.2)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 14 }} className="animate-fade-in">
+                  <div style={{ fontSize: 12, fontWeight: 800, color: '#8100d1' }}>🛎️ Service Details</div>
+                  <div>
                       <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
                         Duration (Optional)
                       </label>
@@ -12638,82 +12763,12 @@ export default function DashboardPage() {
                       </div>
                       <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>Extra charge added when a customer selects Mobile Session. Give it a name so they know what it covers (e.g. &ldquo;Bike Fee&rdquo;, &ldquo;Travel Fee&rdquo;).</p>
                     </div>
+
                   </div>
-                )}
-              </div>
+              )}
 
 
-              {/* Multi-Image Upload Slots (up to 3) */}
-              <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
-                  Product Images ({prodImageUrls.length}/3)
-                </label>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  {prodImageUrls.map((url, idx) => (
-                    <div key={idx} className="fu-tile-img">
-                      <img src={url} alt={`Product image ${idx + 1}`} />
-                      <button
-                        type="button"
-                        onClick={() => setProdImageUrls(prev => prev.filter((_, i) => i !== idx))}
-                        className="fu-tile-img__remove"
-                        title="Remove image"
-                      >✕</button>
-                    </div>
-                  ))}
-                  {prodImageUrls.length < 3 && (
-                    <FileUpload
-                      variant="tile"
-                      accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                      uploading={prodImageUploading}
-                      disabled={prodImageUploading}
-                      onFile={async (file) => {
-                        try {
-                          setProdImageUploading(true);
-                          const fd = new FormData();
-                          fd.append('image', file);
-                          const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
-                            method: 'POST',
-                            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                            body: fd
-                          });
-                          const json = await res.json();
-                          if (res.ok && json.url) {
-                            const isFirstImage = prodImageUrls.length === 0;
-                            setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
-                            toast.success('Image uploaded! 📸');
-                            if (isFirstImage && isPro) {
-                              handleAutoAnalyzeImage(file);
-                            }
-                          } else throw new Error(json.message || 'Upload failed');
-                        } catch (err: any) {
-                          toast.error(err.message || 'Image upload error');
-                        } finally {
-                          setProdImageUploading(false);
-                        }
-                      }}
-                    />
-                  )}
-                  {prodImageUrls.length < 3 && (
-                    <button
-                      type="button"
-                      disabled
-                      style={{
-                        width: 80, height: 80, borderRadius: 'var(--r-md)', flexShrink: 0,
-                        border: '2.5px dashed #d97706', display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', justifyContent: 'center', gap: 4,
-                        cursor: 'not-allowed',
-                        background: 'var(--bg-2)', color: '#d97706', opacity: 0.5,
-                        transition: 'all var(--t-fast)'
-                      }}
-                      title="AI image generation — coming soon"
-                    >
-                      <ImageIcon size={18} />
-                      <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>Soon</span>
-                    </button>
-                  )}
-                </div>
-                <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>Upload up to 3 photos. First image is the main product thumbnail.</p>
-              </div>
+              
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -13162,24 +13217,7 @@ export default function DashboardPage() {
                       }}
                     />
                   )}
-                  {prodImageUrls.length < 3 && (
-                    <button
-                      type="button"
-                      disabled
-                      style={{
-                        width: 80, height: 80, borderRadius: 'var(--r-md)', flexShrink: 0,
-                        border: '2.5px dashed #d97706', display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', justifyContent: 'center', gap: 4,
-                        cursor: 'not-allowed',
-                        background: 'var(--bg-2)', color: '#d97706', opacity: 0.5,
-                        transition: 'all var(--t-fast)'
-                      }}
-                      title="AI image generation — coming soon"
-                    >
-                      <ImageIcon size={18} />
-                      <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase' }}>Soon</span>
-                    </button>
-                  )}
+
                 </div>
                 <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>Upload up to 3 photos. First image is the main product thumbnail.</p>
               </div>

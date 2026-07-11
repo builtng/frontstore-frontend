@@ -17,6 +17,7 @@ import {
   Users,
   DollarSign,
   LayoutDashboard,
+  Lock,
 } from 'lucide-react';
 import { SkeletonGrid, Field, TextAreaField, SelectField, SettingsGroup } from '../components';
 
@@ -43,6 +44,7 @@ export default function AdminSettingsPage() {
   const [logoUploading, setLogoUploading] = useState(false);
   const logoFileInputRef = React.useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('branding');
+  const [countries, setCountries] = useState<Array<{ code: string; name: string }>>([]);
 
   // Visual helper states for homepage_content and mobile_hero JSON configs
   const [visualHomeHeroPrefix, setVisualHomeHeroPrefix] = useState('');
@@ -62,6 +64,19 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     if (token) {
       loadSettings();
+      // Fetch available countries
+      const fetchCountries = async () => {
+        try {
+          const res = await fetch(`${apiUrl}/v1/meta/countries`);
+          if (res.ok) {
+            const json = await res.json();
+            setCountries(json.data || []);
+          }
+        } catch (err) {
+          console.error('Error fetching countries:', err);
+        }
+      };
+      fetchCountries();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
@@ -218,6 +233,16 @@ export default function AdminSettingsPage() {
             >
               <Globe size={15} />
               Branding
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'access'}
+              onClick={() => setActiveTab('access')}
+              className={`admin-settings-nav-item ${activeTab === 'access' ? 'is-active' : ''}`}
+            >
+              <Lock size={15} />
+              Access Control
             </button>
             <button
               type="button"
@@ -386,6 +411,87 @@ export default function AdminSettingsPage() {
                   description="The disclaimer message shown to buyers across storefronts."
                   full={true}
                 />
+              </SettingsGroup>
+            )}
+
+            {activeTab === 'access' && (
+              <SettingsGroup icon={<Lock size={17} />} title="Access Control & Geo-Restriction" id="settings-access">
+                <SelectField
+                  label="Access Mode"
+                  value={settings.access_control_mode || 'everyone'}
+                  onChange={(value) => setSettings({ ...settings, access_control_mode: value as any })}
+                  options={[
+                    { value: 'everyone', label: 'Allow Everyone (Default)' },
+                    { value: 'particular_country', label: 'Allow Particular Country Only' },
+                    { value: 'restrict_countries', label: 'Block Selected Countries' },
+                  ]}
+                  description="Determine who is allowed to access the public storefronts and main website."
+                  full={true}
+                />
+
+                {settings.access_control_mode === 'particular_country' && (
+                  <SelectField
+                    label="Whitelisted Country"
+                    value={settings.access_control_allowed_country || ''}
+                    onChange={(value) => setSettings({ ...settings, access_control_allowed_country: value })}
+                    options={[
+                      { value: '', label: 'Select a country...' },
+                      ...countries.map(c => ({ value: c.code, label: c.name }))
+                    ]}
+                    description="Only visitors from this country will be permitted access."
+                    full={true}
+                  />
+                )}
+
+                {settings.access_control_mode === 'restrict_countries' && (
+                  <label className="admin-field admin-field--full" style={{ display: 'block', marginTop: '16px' }}>
+                    <span style={{ display: 'block', marginBottom: '4px', fontWeight: 600, fontSize: '14px', color: 'var(--text)' }}>Blacklisted Countries</span>
+                    <small className="admin-field-desc" style={{ display: 'block', marginBottom: '12px', fontSize: '12px', color: 'var(--text-muted)' }}>Select which countries should be blocked from accessing the site.</small>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                      gap: '12px',
+                      maxHeight: '260px',
+                      overflowY: 'auto',
+                      padding: '16px',
+                      background: 'var(--surface-2)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      marginTop: '8px'
+                    }}>
+                      {countries.map((c) => {
+                        const restrictedList = (settings.access_control_restricted_countries || '')
+                          .split(',')
+                          .map((x: string) => x.trim())
+                          .filter(Boolean);
+                        const isChecked = restrictedList.includes(c.code);
+
+                        return (
+                          <label key={c.code} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                              onChange={(e) => {
+                                let newList;
+                                if (e.target.checked) {
+                                  newList = [...restrictedList, c.code];
+                                } else {
+                                  newList = restrictedList.filter((x: string) => x !== c.code);
+                                }
+                                setSettings({
+                                  ...settings,
+                                  access_control_restricted_countries: newList.join(','),
+                                });
+                              }}
+                            />
+                            {c.name}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </label>
+                )}
               </SettingsGroup>
             )}
 

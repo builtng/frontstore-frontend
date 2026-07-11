@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import ToastProvider from '@/components/ToastProvider';
+import AccessGuard from '@/components/AccessGuard';
 
 // ── Fonts via next/font — zero render-blocking, automatic preload ────────────
 const inter = Inter({
@@ -345,7 +346,9 @@ export default function RootLayout({
             gtag('config', 'G-T4VQBGFXJN');
           `}
         </Script>
-        {children}
+        <AccessGuard>
+          {children}
+        </AccessGuard>
         <ToastProvider />
       </body>
     </html>

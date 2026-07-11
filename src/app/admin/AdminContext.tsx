@@ -93,6 +93,9 @@ export interface SystemSettings {
   didit_workflow_id: string;
   didit_callback_url: string;
   modules: Record<string, string>;
+  access_control_mode?: 'everyone' | 'particular_country' | 'restrict_countries';
+  access_control_allowed_country?: string;
+  access_control_restricted_countries?: string;
 }
 
 export interface PaymentProviderCountry {
@@ -137,6 +140,9 @@ export const defaultSettings: SystemSettings = {
   didit_workflow_id: '',
   didit_callback_url: '',
   modules: {},
+  access_control_mode: 'everyone',
+  access_control_allowed_country: '',
+  access_control_restricted_countries: '',
 };
 
 export interface ConfirmationDialogState {

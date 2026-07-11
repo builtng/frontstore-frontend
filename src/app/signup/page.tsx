@@ -61,20 +61,21 @@ const parsePhoneNumber = (fullPhone: string) => {
 function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appName: string; registrationMethod?: 'email' | 'whatsapp' | 'both' }) {
   const searchParams = useSearchParams();
 
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [storeName, setStoreName] = useState('');
   const [username, setUsername] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
+  const [setupToken, setSetupToken] = useState('');
   const [selectedPersona, setSelectedPersona] = useState('general-store');
   const [mounted, setMounted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
   const [isUsernameManuallyEdited, setIsUsernameManuallyEdited] = useState(false);
-  const [lastSentPhone, setLastSentPhone] = useState<string | null>(null);
+  const [lastSentEmail, setLastSentEmail] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const [loading, setLoading] = useState(false);
@@ -180,15 +181,155 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
     return `+${cleanDial}${cleaned}`;
   };
 
-  // ── Step 1 Submit (Send OTP) ───────────────────────────────────────────────
+  // ── Step 1 Submit (Email + Store Info → Send Email OTP) ──────────────────────
   const handleSubmitStep1 = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !email.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
     if (!storeName.trim()) {
       setError('Please enter your Store Name.');
       return;
     }
     if (!username.trim()) {
       setError('Please choose a Store Link Name.');
+      return;
+    }
+
+    // Token Saver: Avoid resending if email hasn't changed
+    if (lastSentEmail === email.trim().toLowerCase()) {
+      setCurrentStep(2);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const res = await fetch(`${API_URL}/v1/auth/send-email-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          store_name: storeName.trim(),
+          username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+        })
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to send verification code. Please check your email.');
+      }
+
+      if (json.is_new_user === false) {
+        const errorMsg = 'An account with this email already exists. Please log in instead.';
+        toast.error(errorMsg);
+        setError(errorMsg);
+        return;
+      }
+
+      toast.success(json.message || 'Verification code sent to your email! Check your inbox.');
+      setLastSentEmail(email.trim().toLowerCase());
+      setResendCooldown(60);
+      setCurrentStep(2);
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred. Please try again.');
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper to resend OTP via email
+  const handleResendOtp = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const res = await fetch(`${API_URL}/v1/auth/send-email-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          store_name: storeName.trim(),
+          username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+        })
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.message || 'Failed to resend code.');
+      }
+
+      toast.success('A new verification code has been sent to your email!');
+      setLastSentEmail(email.trim().toLowerCase());
+      setResendCooldown(60);
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred. Please try again.');
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Step 2 Submit (Verify Email OTP) ─────────────────────────────────────────
+  const handleSubmitStep2 = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp.trim() || otp.length !== 6) {
+      setError('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const verifyRes = await fetch(`${API_URL}/v1/auth/verify-email-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          otp: otp,
+          store_name: storeName.trim(),
+          username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+        })
+      });
+
+      const verifyJson = await verifyRes.json();
+      if (!verifyRes.ok) {
+        throw new Error(verifyJson.message || 'Incorrect verification code. Please check and try again.');
+      }
+
+      // Existing user → log in immediately
+      if (!verifyJson.is_new_user) {
+        if (typeof window !== 'undefined' && verifyJson.token) {
+          localStorage.setItem('token', verifyJson.token);
+          localStorage.setItem('user', JSON.stringify(verifyJson.data?.user));
+          localStorage.setItem('store', JSON.stringify(verifyJson.data?.user?.store));
+        }
+        toast.success(`Welcome back, ${verifyJson.data?.user?.name || 'Merchant'}!`);
+        window.location.replace('/dashboard');
+        return;
+      }
+
+      // New user → save setup token and move to step 3 (WhatsApp phone)
+      setSetupToken(verifyJson.setup_token);
+      toast.success('Email verified! Now add your WhatsApp number.');
+      setCurrentStep(3);
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred. Please try again.');
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Step 3 Submit (WhatsApp + Name → Complete Setup) ─────────────────────────
+  const handleSubmitStep3 = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError('Please enter your Full Name.');
       return;
     }
     if (!phone.trim()) {
@@ -203,145 +344,21 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
       return;
     }
 
-    // Token Saver: Avoid sending a new OTP if phone number hasn't changed
-    if (lastSentPhone === normalizedPhone) {
-      setCurrentStep(2);
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
 
-      const res = await fetch(`${API_URL}/v1/auth/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          phone_number: normalizedPhone,
-          country_dial_code: selectedCountry.dialCode
-        })
-      });
-
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.message || 'Failed to send verification code. Please check your number.');
-      }
-
-      if (json.is_new_user === false) {
-        const errorMsg = 'An account with this phone number already exists. Please log in instead.';
-        toast.error(errorMsg);
-        setError(errorMsg);
-        return;
-      }
-
-      toast.success(json.message || 'Verification code sent to your WhatsApp!');
-      setLastSentPhone(normalizedPhone);
-      setResendCooldown(60); // 60s default cooldown
-      setCurrentStep(2);
-    } catch (err: any) {
-      toast.error(err.message || 'An error occurred. Please try again.');
-      setError(err.message || 'An error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Helper to resend OTP code manually
-  const handleResendOtp = async () => {
-    const normalizedPhone = getNormalizedPhone();
-    try {
-      setLoading(true);
-      setError(null);
-
-      const res = await fetch(`${API_URL}/v1/auth/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          phone_number: normalizedPhone,
-          country_dial_code: selectedCountry.dialCode
-        })
-      });
-
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.message || 'Failed to resend code.');
-      }
-
-      if (json.is_new_user === false) {
-        const errorMsg = 'An account with this phone number already exists. Please log in instead.';
-        toast.error(errorMsg);
-        setError(errorMsg);
-        return;
-      }
-
-      toast.success('A new verification code has been sent to your WhatsApp!');
-      setLastSentPhone(normalizedPhone);
-      setResendCooldown(60); // Reset cooldown
-    } catch (err: any) {
-      toast.error(err.message || 'An error occurred. Please try again.');
-      setError(err.message || 'An error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ── Step 2 Submit (Verify OTP & Complete Setup) ────────────────────────────
-  const handleSubmitStep2 = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otp.trim() || otp.length !== 6) {
-      setError('Please enter the 6-digit verification code.');
-      return;
-    }
-    if (!name.trim()) {
-      setError('Please enter your Full Name.');
-      return;
-    }
-
-    const normalizedPhone = getNormalizedPhone();
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      // 1. Verify OTP code
-      const verifyRes = await fetch(`${API_URL}/v1/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          phone_number: normalizedPhone,
-          otp: otp,
-          country_dial_code: selectedCountry.dialCode
-        })
-      });
-
-      const verifyJson = await verifyRes.json();
-      if (!verifyRes.ok) {
-        throw new Error(verifyJson.message || 'Incorrect verification code. Please check and try again.');
-      }
-
-      // If existing user, log in immediately
-      if (!verifyJson.is_new_user) {
-        if (typeof window !== 'undefined' && verifyJson.token) {
-          localStorage.setItem('token', verifyJson.token);
-          localStorage.setItem('user', JSON.stringify(verifyJson.data?.user));
-          localStorage.setItem('store', JSON.stringify(verifyJson.data?.user?.store));
-        }
-        toast.success(`Welcome back, ${verifyJson.data?.user?.name || 'Merchant'}!`);
-        window.location.replace('/dashboard');
-        return;
-      }
-
-      // 2. New user: Complete onboarding/setup
       const setupRes = await fetch(`${API_URL}/v1/auth/complete-setup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
-          setup_token: verifyJson.setup_token,
-          name: name,
-          store_name: storeName,
+          setup_token: setupToken,
+          name: name.trim(),
+          store_name: storeName.trim(),
           username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
           business_persona: selectedPersona,
           email: email.trim() || undefined,
+          phone_number: normalizedPhone,
           country_dial_code: selectedCountry.dialCode,
           referred_by: referredBy || undefined
         })
@@ -413,128 +430,37 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
           borderRadius: 'var(--r-xl)',
           padding: '24px 20px',
           textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
             <Globe size={12} /> Your Live Digital Storefront
           </div>
-
           <a
             href={successData.storeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              fontSize: 18,
-              fontWeight: 800,
-              color: 'var(--primary-dark)',
-              textDecoration: 'underline',
-              wordBreak: 'break-all',
-              fontFamily: 'var(--font-heading)'
-            }}
+            style={{ fontSize: 18, fontWeight: 800, color: 'var(--primary-dark)', textDecoration: 'underline', wordBreak: 'break-all', fontFamily: 'var(--font-heading)' }}
           >
             {successData.storeUrl.replace(/^https?:\/\//, '')}
           </a>
-
           <button
-            onClick={() => {
-              navigator.clipboard.writeText(successData.storeUrl);
-              toast.success('Storefront link copied! 📋');
-            }}
+            onClick={() => { navigator.clipboard.writeText(successData.storeUrl); toast.success('Storefront link copied! 📋'); }}
             id="copy-url-btn"
             className="btn btn-outline clickable"
-            style={{
-              marginTop: 16,
-              padding: '10px 16px',
-              fontSize: 13,
-              width: '100%',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              borderRadius: 'var(--r-lg)',
-              background: 'var(--surface)',
-              fontWeight: 700
-            }}
+            style={{ marginTop: 16, padding: '10px 16px', fontSize: 13, width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 'var(--r-lg)', background: 'var(--surface)', fontWeight: 700 }}
           >
             <Copy size={14} /> Copy Store Link
           </button>
         </div>
 
-
-        {/* WhatsApp Nudge */}
-        <div style={{
-          background: 'linear-gradient(135deg, var(--primary-dark), var(--primary))',
-          borderRadius: 'var(--r-xl)',
-          padding: 24,
-          color: '#fff',
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          boxShadow: 'var(--shadow-lg)'
-        }}>
-          <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 16, marginBottom: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <Share2 size={16} /> Share & Start Selling
-          </p>
-          <p style={{ fontSize: 13.5, opacity: 0.9, marginBottom: 18, lineHeight: 1.5 }}>
-            Put your store link on your WhatsApp Status or Instagram Bio to receive your first order today!
-          </p>
-          <button
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({
-                  title: successData.storeName,
-                  text: `Visit my new store: ${successData.storeName}!`,
-                  url: successData.storeUrl,
-                });
-              } else {
-                navigator.clipboard.writeText(successData.storeUrl);
-              }
-            }}
-            className="btn clickable"
-            style={{
-              background: 'rgba(255, 255, 255, 0.2)',
-              color: '#fff',
-              border: '1px solid rgba(255, 255, 255, 0.35)',
-              padding: '12px 20px',
-              width: '100%',
-              borderRadius: 'var(--r-lg)',
-              fontWeight: 800,
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              backdropFilter: 'blur(8px)'
-            }}
-          >
-            <Share2 size={15} /> Share Store Link
-          </button>
-        </div>
-
         {/* Primary Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <a
-            href="/dashboard"
-            className="btn btn-primary clickable"
-            style={{ padding: '16px', fontSize: 15, textDecoration: 'none', borderRadius: 'var(--r-lg)', fontFamily: 'var(--font-heading)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-          >
+          <a href="/dashboard" className="btn btn-primary clickable" style={{ padding: '16px', fontSize: 15, textDecoration: 'none', borderRadius: 'var(--r-lg)', fontFamily: 'var(--font-heading)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <ArrowRight size={18} /> Go to Web Dashboard
           </a>
-          <a
-            href={successData.storeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-outline clickable"
-            style={{ padding: '14px', fontSize: 14, textDecoration: 'none', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-          >
+          <a href={successData.storeUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline clickable" style={{ padding: '14px', fontSize: 14, textDecoration: 'none', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <Store size={18} /> View Your Storefront
           </a>
-          <a
-            href="/"
-            className="btn btn-ghost clickable"
-            style={{ padding: '12px', fontSize: 13.5, textDecoration: 'none', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-          >
+          <a href="/" className="btn btn-ghost clickable" style={{ padding: '12px', fontSize: 13.5, textDecoration: 'none', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
             Go Back Home
           </a>
         </div>
@@ -545,6 +471,8 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
 
   // ── SIGNUP FORM ─────────────────────────────────────────────────────────────
 
+  const stepOnSubmit = currentStep === 1 ? handleSubmitStep1 : currentStep === 2 ? handleSubmitStep2 : handleSubmitStep3;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       {/* Header */}
@@ -553,17 +481,12 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
           href="/"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', marginBottom: 12 }}
         >
-          <img 
-            src="/logo.png" 
+          <img
+            src="/logo.png"
             alt="Logo"
             width={28}
             height={28}
-            style={{
-              width: 28,
-              height: 28,
-              objectFit: 'contain',
-              flexShrink: 0,
-            }}
+            style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }}
           />
           <span>{appName}</span>
         </a>
@@ -571,7 +494,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
           Create Your Storefront
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 14.5, lineHeight: 1.5 }}>
-          Launch your digital shop and start taking orders directly on WhatsApp in under 2 minutes.
+          Launch your digital shop and start taking orders in under 2 minutes.
         </p>
       </header>
 
@@ -592,9 +515,10 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
       {/* Step Indicators */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
         {[
-          { label: '1. Store & WhatsApp', active: currentStep === 1, done: currentStep > 1 },
-          { label: '2. Verify & Setup', active: currentStep === 2, done: false }
-        ].map((step, i) => (
+          { label: '1. Email & Store', active: currentStep === 1, done: currentStep > 1 },
+          { label: '2. Verify Code', active: currentStep === 2, done: currentStep > 2 },
+          { label: '3. WhatsApp', active: currentStep === 3, done: false },
+        ].map((step) => (
           <div key={step.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{
               height: 4, width: '100%', borderRadius: 99,
@@ -603,7 +527,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
               transition: 'all 0.3s var(--ease)'
             }} />
             <span style={{
-              fontSize: 11,
+              fontSize: 10,
               color: step.done || step.active ? 'var(--primary)' : 'var(--text-muted)',
               fontWeight: 700,
               textTransform: 'uppercase',
@@ -617,25 +541,48 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
       </div>
 
       {/* Form Container */}
-      <form onSubmit={currentStep === 1 ? handleSubmitStep1 : handleSubmitStep2} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <form onSubmit={stepOnSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        {/* Screen 1: Store Setup */}
+        {/* ── STEP 1: Email + Store Info ── */}
         {currentStep === 1 && (
           <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 'var(--r-xl)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 4 }}>
               <div style={{ background: 'var(--primary-light)', padding: 6, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
-                <Store size={16} />
+                <Mail size={16} />
               </div>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Store Information</h3>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Store & Email Setup</h3>
+            </div>
+
+            {/* Email Address */}
+            <div>
+              <label htmlFor="email-signup" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                Email Address <span style={{ color: 'var(--danger)' }}>*</span>
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="email-signup"
+                  type="email"
+                  required
+                  placeholder="e.g. name@example.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  onFocus={() => setFocusedInput('email')}
+                  onBlur={() => setFocusedInput(null)}
+                  className="input-field"
+                  style={{ paddingLeft: 44, borderColor: focusedInput === 'email' ? 'var(--primary)' : 'var(--border)' }}
+                  autoComplete="email"
+                />
+                <Mail size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focusedInput === 'email' ? 'var(--primary)' : 'var(--text-faint)', transition: 'color var(--t-fast)' }} />
+              </div>
+              <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                We will send a verification code to this email.
+              </span>
             </div>
 
             {/* Store Name */}
             <div>
-              <label
-                htmlFor="store-name"
-                style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
-              >
-                Store Name
+              <label htmlFor="store-name" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                Store Name <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -659,30 +606,17 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                   onFocus={() => setFocusedInput('store-name')}
                   onBlur={() => setFocusedInput(null)}
                   className="input-field"
-                  style={{
-                    paddingLeft: 44,
-                    borderColor: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--border)'
-                  }}
+                  style={{ paddingLeft: 44, borderColor: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--border)' }}
                   autoComplete="organization"
                 />
-                <Store size={18} style={{
-                  position: 'absolute',
-                  left: 14,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--text-faint)',
-                  transition: 'color var(--t-fast)'
-                }} />
+                <Store size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--text-faint)', transition: 'color var(--t-fast)' }} />
               </div>
             </div>
 
             {/* Store URL */}
             <div>
-              <label
-                htmlFor="store-username"
-                style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
-              >
-                Store Link Name
+              <label htmlFor="store-username" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                Store Link Name <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <div style={{
                 display: 'flex', alignItems: 'center',
@@ -693,14 +627,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                 transition: 'all var(--t-fast)',
                 position: 'relative'
               }}>
-                <Globe size={18} style={{
-                  position: 'absolute',
-                  left: 14,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: focusedInput === 'store-username' ? 'var(--primary)' : 'var(--text-faint)',
-                  transition: 'color var(--t-fast)'
-                }} />
+                <Globe size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focusedInput === 'store-username' ? 'var(--primary)' : 'var(--text-faint)', transition: 'color var(--t-fast)' }} />
                 <span style={{ padding: '0 0 0 44px', color: 'var(--text-muted)', fontSize: 13.5, fontWeight: 600, whiteSpace: 'nowrap', userSelect: 'none' }}>
                   frontstore.ng/
                 </span>
@@ -714,29 +641,10 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                   onChange={(e) => {
                     const val = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
                     setUsername(val);
-                    if (val === '') {
-                      setIsUsernameManuallyEdited(false);
-                      const slug = storeName
-                        .toLowerCase()
-                        .replace(/[^a-z0-9\s_-]/g, '')
-                        .trim()
-                        .replace(/\s+/g, '-');
-                      setUsername(slug);
-                    } else {
-                      setIsUsernameManuallyEdited(true);
-                    }
+                    setIsUsernameManuallyEdited(val !== '');
                   }}
                   placeholder="yourname"
-                  style={{
-                    flex: 1,
-                    border: 'none',
-                    padding: '14px 14px 14px 0',
-                    fontSize: 15,
-                    outline: 'none',
-                    background: 'transparent',
-                    color: 'var(--text)',
-                    minWidth: 0,
-                  }}
+                  style={{ flex: 1, border: 'none', padding: '14px 14px 14px 0', fontSize: 15, outline: 'none', background: 'transparent', color: 'var(--text)', minWidth: 0 }}
                   autoComplete="off"
                   spellCheck={false}
                 />
@@ -748,213 +656,59 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
               )}
             </div>
 
-            {/* Phone Number */}
+            {/* Business Category */}
             <div>
-              <label
-                htmlFor="phone"
-                style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
-              >
-                WhatsApp Phone Number
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                Business Category
               </label>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                border: focusedInput === 'phone' ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
-                borderRadius: 'var(--r-md)',
-                background: 'var(--surface)',
-                boxShadow: focusedInput === 'phone' ? '0 0 0 3px var(--primary-glow)' : 'none',
-                transition: 'all var(--t-fast)',
-                position: 'relative'
-              }}>
-                <button
-                  type="button"
-                  onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '0 14px',
-                    height: '100%',
-                    minHeight: 46,
-                    background: 'none',
-                    border: 'none',
-                    borderRight: '1px solid var(--border)',
-                    cursor: 'pointer',
-                    fontSize: 15,
-                    color: 'var(--text)',
-                    fontWeight: 600,
-                    userSelect: 'none'
-                  }}
-                >
-                  <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
-                  <span>{selectedCountry.dialCode}</span>
-                  <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
-                </button>
-
-                <input
-                  id="phone"
-                  type="tel"
-                  required
-                  placeholder="e.g. 803 123 4567"
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
-                  onFocus={() => setFocusedInput('phone')}
-                  onBlur={() => setFocusedInput(null)}
-                  style={{
-                    flex: 1,
-                    padding: '13px 14px',
-                    border: 'none',
-                    fontSize: 15,
-                    outline: 'none',
-                    background: 'transparent',
-                    color: 'var(--text)',
-                    minWidth: 0,
-                  }}
-                  autoComplete="tel"
-                />
-
-                {isCountryDropdownOpen && (
-                  <div className="glass animate-scale-in" style={{
-                    position: 'absolute',
-                    top: '110%',
-                    left: 0,
-                    width: 280,
-                    maxHeight: 250,
-                    overflowY: 'auto',
-                    borderRadius: 'var(--r-lg)',
-                    border: '1px solid var(--border)',
-                    background: 'var(--surface)',
-                    boxShadow: 'var(--shadow-lg)',
-                    zIndex: 100,
-                    padding: '6px 0'
-                  }}>
-                    {countries.map((c, idx) => (
-                      <button
-                        key={c.code}
-                        type="button"
-                        onMouseEnter={() => setHoveredCountryIndex(idx)}
-                        onMouseLeave={() => setHoveredCountryIndex(null)}
-                        onClick={() => {
-                          setSelectedCountry(c);
-                          setIsCountryDropdownOpen(false);
-                        }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          width: '100%',
-                          padding: '10px 14px',
-                          background: selectedCountry.code === c.code
-                            ? 'var(--primary-light)'
-                            : hoveredCountryIndex === idx
-                              ? 'var(--bg-2)'
-                              : 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          fontSize: 14,
-                          textAlign: 'left',
-                          color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)',
-                          fontWeight: selectedCountry.code === c.code ? 750 : 600,
-                          transition: 'background var(--t-fast)'
-                        }}
-                      >
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontSize: 18 }}>{c.flag}</span>
-                          <span>{c.name}</span>
-                        </span>
-                        <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{c.dialCode}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <SearchableSelect
+                options={businessPersonaOptions}
+                value={selectedPersona}
+                onChange={setSelectedPersona}
+                placeholder="Select your business category"
+                searchPlaceholder="Search category..."
+                style={{ zIndex: 20 }}
+              />
             </div>
-            
-            {/* Submit Step 1 Button */}
+
+            {/* Submit Step 1 */}
             <button
               type="submit"
               disabled={loading}
               className="btn btn-primary clickable"
-              style={{
-                padding: '16px',
-                fontSize: 16,
-                borderRadius: 'var(--r-xl)',
-                marginTop: 12,
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 800,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                boxShadow: 'var(--shadow-primary)',
-                width: '100%'
-              }}
+              style={{ padding: '16px', fontSize: 16, borderRadius: 'var(--r-xl)', marginTop: 4, fontFamily: 'var(--font-heading)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: 'var(--shadow-primary)', width: '100%' }}
             >
-              {loading ? (
-                <Loader2 size={18} className="animate-spin" />
-              ) : null}
-              <span>
-                {loading ? 'Sending Code...' : 'Send Code via WhatsApp'}
-              </span>
-              {!loading ? (
-                <ArrowRight size={18} />
-              ) : null}
+              {loading ? <Loader2 size={18} className="animate-spin" /> : null}
+              <span>{loading ? 'Sending Code...' : 'Send Verification Code'}</span>
+              {!loading ? <ArrowRight size={18} /> : null}
             </button>
           </div>
         )}
 
-        {/* Screen 2: Details & Verification */}
+        {/* ── STEP 2: Verify Email OTP ── */}
         {currentStep === 2 && (
           <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 'var(--r-xl)' }}>
-            
+
             {/* Back Button */}
             <button
               type="button"
-              onClick={() => {
-                setError(null);
-                setCurrentStep(1);
-              }}
-              style={{
-                alignSelf: 'flex-start',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                background: 'none',
-                border: 'none',
-                color: 'var(--primary)',
-                fontSize: 13.5,
-                fontWeight: 700,
-                cursor: 'pointer',
-                marginBottom: 4,
-                padding: '4px 0'
-              }}
+              onClick={() => { setError(null); setCurrentStep(1); }}
+              style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'var(--primary)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', padding: '4px 0' }}
             >
-              ← Edit Store Name / Phone
+              ← Edit Email / Store
             </button>
 
-            {/* Welcome banner */}
-            <div style={{
-              background: 'linear-gradient(135deg, var(--primary-light), rgba(16, 185, 129, 0.05))',
-              color: 'var(--primary-dark)',
-              padding: '14px 18px',
-              borderRadius: 'var(--r-xl)',
-              fontSize: 14,
-              fontWeight: 700,
-              lineHeight: 1.5,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              border: '1px solid rgba(16, 185, 129, 0.15)'
-            }}>
+            {/* Info Banner */}
+            <div style={{ background: 'linear-gradient(135deg, var(--primary-light), rgba(16, 185, 129, 0.05))', color: 'var(--primary-dark)', padding: '14px 18px', borderRadius: 'var(--r-xl)', fontSize: 14, fontWeight: 700, lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: 10, border: '1px solid rgba(16, 185, 129, 0.15)' }}>
               <CheckCircle2 size={18} style={{ flexShrink: 0, color: 'var(--primary)' }} />
-              <span>Welcome, <strong>{storeName}</strong>! We sent a 6-digit verification code to {getNormalizedPhone()} on WhatsApp.</span>
+              <span>Check your inbox at <strong>{email}</strong> for a 6-digit verification code.</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 4 }}>
               <div style={{ background: 'var(--primary-light)', padding: 6, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
-                <Phone size={16} />
+                <ShieldCheck size={16} />
               </div>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Onboarding & Verification</h3>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Verify Your Email</h3>
             </div>
 
             {/* OTP Code */}
@@ -968,6 +722,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                   type="text"
                   required
                   maxLength={6}
+                  inputMode="numeric"
                   pattern="\d{6}"
                   placeholder="Enter 6-digit code"
                   value={otp}
@@ -975,30 +730,68 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                   onFocus={() => setFocusedInput('otp-code')}
                   onBlur={() => setFocusedInput(null)}
                   className="input-field"
-                  style={{
-                    paddingLeft: 44,
-                    borderColor: focusedInput === 'otp-code' ? 'var(--primary)' : 'var(--border)',
-                    letterSpacing: otp ? '0.3em' : 'normal',
-                    fontSize: otp ? 18 : 15,
-                    fontWeight: otp ? 'bold' : 'normal'
-                  }}
+                  style={{ paddingLeft: 44, borderColor: focusedInput === 'otp-code' ? 'var(--primary)' : 'var(--border)', letterSpacing: otp ? '0.3em' : 'normal', fontSize: otp ? 18 : 15, fontWeight: otp ? 'bold' : 'normal' }}
                   autoComplete="one-time-code"
+                  autoFocus
                 />
-                <Phone size={18} style={{
-                  position: 'absolute',
-                  left: 14,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: focusedInput === 'otp-code' ? 'var(--primary)' : 'var(--text-faint)',
-                  transition: 'color var(--t-fast)'
-                }} />
+                <Mail size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focusedInput === 'otp-code' ? 'var(--primary)' : 'var(--text-faint)', transition: 'color var(--t-fast)' }} />
               </div>
+              {/* Resend link */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginTop: 8 }}>
+                {resendCooldown > 0 ? (
+                  <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>Resend in {resendCooldown}s</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={loading}
+                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                  >
+                    Resend Code
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Submit Step 2 */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary clickable"
+              style={{ padding: '16px', fontSize: 16, borderRadius: 'var(--r-xl)', marginTop: 4, fontFamily: 'var(--font-heading)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: 'var(--shadow-primary)', width: '100%' }}
+            >
+              {loading ? <Loader2 size={18} className="animate-spin" /> : null}
+              <span>{loading ? 'Verifying...' : 'Verify & Continue'}</span>
+              {!loading ? <ArrowRight size={18} /> : null}
+            </button>
+          </div>
+        )}
+
+        {/* ── STEP 3: WhatsApp Phone + Name → Complete ── */}
+        {currentStep === 3 && (
+          <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 'var(--r-xl)' }}>
+
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 4 }}>
+              <div style={{ background: 'var(--primary-light)', padding: 6, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
+                <Phone size={16} />
+              </div>
+              <div>
+                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Add Your WhatsApp Number</h3>
+                <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>Required for order alerts and customer messages</p>
+              </div>
+            </div>
+
+            {/* Info nudge */}
+            <div style={{ background: 'rgba(16, 185, 129, 0.07)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: 'var(--r-md)', padding: '10px 14px', fontSize: 12.5, color: 'var(--primary-dark)', fontWeight: 600, display: 'flex', gap: 8, alignItems: 'center' }}>
+              <Lock size={13} style={{ flexShrink: 0 }} />
+              Email verified! ✅ Now set up your merchant WhatsApp so customers can reach you.
             </div>
 
             {/* Full Name */}
             <div>
               <label htmlFor="full-name" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
-                Full Name
+                Your Full Name <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -1011,143 +804,86 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                   onFocus={() => setFocusedInput('full-name')}
                   onBlur={() => setFocusedInput(null)}
                   className="input-field"
-                  style={{
-                    paddingLeft: 44,
-                    borderColor: focusedInput === 'full-name' ? 'var(--primary)' : 'var(--border)'
-                  }}
+                  style={{ paddingLeft: 44, borderColor: focusedInput === 'full-name' ? 'var(--primary)' : 'var(--border)' }}
                   autoComplete="name"
+                  autoFocus
                 />
-                <User size={18} style={{
-                  position: 'absolute',
-                  left: 14,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: focusedInput === 'full-name' ? 'var(--primary)' : 'var(--text-faint)',
-                  transition: 'color var(--t-fast)'
-                }} />
+                <User size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focusedInput === 'full-name' ? 'var(--primary)' : 'var(--text-faint)', transition: 'color var(--t-fast)' }} />
               </div>
             </div>
 
-            {/* Email Address */}
+            {/* WhatsApp Phone Number */}
             <div>
-              <label htmlFor="email" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
-                Email Address (Optional)
+              <label htmlFor="phone-wa" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                WhatsApp Phone Number <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
-              <div style={{ position: 'relative' }}>
+              <div style={{
+                display: 'flex', alignItems: 'center',
+                border: focusedInput === 'phone' ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
+                borderRadius: 'var(--r-md)', background: 'var(--surface)',
+                boxShadow: focusedInput === 'phone' ? '0 0 0 3px var(--primary-glow)' : 'none',
+                transition: 'all var(--t-fast)', position: 'relative'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 14px', height: '100%', minHeight: 46, background: 'none', border: 'none', borderRight: '1px solid var(--border)', cursor: 'pointer', fontSize: 15, color: 'var(--text)', fontWeight: 600, userSelect: 'none' }}
+                >
+                  <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
+                  <span>{selectedCountry.dialCode}</span>
+                  <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
+                </button>
+
                 <input
-                  id="email"
-                  type="email"
-                  placeholder="e.g. name@example.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  onFocus={() => setFocusedInput('email')}
+                  id="phone-wa"
+                  type="tel"
+                  required
+                  placeholder="e.g. 803 123 4567"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  onFocus={() => setFocusedInput('phone')}
                   onBlur={() => setFocusedInput(null)}
-                  className="input-field"
-                  style={{
-                    paddingLeft: 44,
-                    borderColor: focusedInput === 'email' ? 'var(--primary)' : 'var(--border)'
-                  }}
-                  autoComplete="email"
+                  style={{ flex: 1, padding: '13px 14px', border: 'none', fontSize: 15, outline: 'none', background: 'transparent', color: 'var(--text)', minWidth: 0 }}
+                  autoComplete="tel"
                 />
-                <Mail size={18} style={{
-                  position: 'absolute',
-                  left: 14,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: focusedInput === 'email' ? 'var(--primary)' : 'var(--text-faint)',
-                  transition: 'color var(--t-fast)'
-                }} />
+
+                {isCountryDropdownOpen && (
+                  <div className="glass animate-scale-in" style={{ position: 'absolute', top: '110%', left: 0, width: 280, maxHeight: 250, overflowY: 'auto', borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', background: 'var(--surface)', boxShadow: 'var(--shadow-lg)', zIndex: 100, padding: '6px 0' }}>
+                    {countries.map((c, idx) => (
+                      <button
+                        key={c.code}
+                        type="button"
+                        onMouseEnter={() => setHoveredCountryIndex(idx)}
+                        onMouseLeave={() => setHoveredCountryIndex(null)}
+                        onClick={() => { setSelectedCountry(c); setIsCountryDropdownOpen(false); }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 14px', background: selectedCountry.code === c.code ? 'var(--primary-light)' : hoveredCountryIndex === idx ? 'var(--bg-2)' : 'none', border: 'none', cursor: 'pointer', fontSize: 14, textAlign: 'left', color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)', fontWeight: selectedCountry.code === c.code ? 750 : 600, transition: 'background var(--t-fast)' }}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontSize: 18 }}>{c.flag}</span>
+                          <span>{c.name}</span>
+                        </span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{c.dialCode}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 6 }}>
-                We will use this to send order summaries, weekly store analytics, and account recovery instructions.
+                Customers will send orders directly to this WhatsApp number.
               </span>
             </div>
 
-            {/* Business Category Selector */}
-            <div>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
-                Business Category
-              </label>
-              <SearchableSelect
-                options={businessPersonaOptions}
-                value={selectedPersona}
-                onChange={setSelectedPersona}
-                placeholder="Select your business category"
-                searchPlaceholder="Search category..."
-                style={{ zIndex: 20 }}
-              />
-              <div style={{
-                marginTop: 10,
-                padding: '12px 14px',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--r-md)',
-                background: 'var(--bg-2)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 14,
-                alignItems: 'flex-start',
-              }}>
-                <div style={{ minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 10.5, color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', marginBottom: 4 }}>
-                    {selectedPersonaDetails.persona} · {selectedPersonaDetails.templateName}
-                  </span>
-                  <strong style={{ display: 'block', color: 'var(--text)', fontSize: 13.5, marginBottom: 3 }}>
-                    {selectedPersonaDetails.name}
-                  </strong>
-                  <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: 11.5, lineHeight: 1.45 }}>
-                    {selectedPersonaDetails.summary}
-                  </span>
-                </div>
-                <span style={{
-                  flexShrink: 0,
-                  fontSize: 10.5,
-                  fontWeight: 900,
-                  color: 'var(--primary)',
-                  background: 'var(--primary-light)',
-                  border: '1px solid var(--primary)',
-                  borderRadius: 999,
-                  padding: '5px 8px',
-                  textTransform: 'uppercase',
-                  whiteSpace: 'nowrap',
-                }}>
-                  Template
-                </span>
-              </div>
-              <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 8 }}>
-                We will activate the best default template and storefront copy for this business type. You can change everything later in your dashboard.
-              </span>
-            </div>
-
-            {/* Submit Step 2 Button */}
+            {/* Submit Step 3 */}
             <button
               type="submit"
               disabled={loading}
               className="btn btn-primary clickable"
-              style={{
-                padding: '16px',
-                fontSize: 16,
-                borderRadius: 'var(--r-xl)',
-                marginTop: 12,
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 800,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                boxShadow: 'var(--shadow-primary)',
-                width: '100%'
-              }}
               id="create-store-btn"
+              style={{ padding: '16px', fontSize: 16, borderRadius: 'var(--r-xl)', marginTop: 8, fontFamily: 'var(--font-heading)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: 'var(--shadow-primary)', width: '100%' }}
             >
-              {loading ? (
-                <Loader2 size={18} className="animate-spin" />
-              ) : null}
-              <span>
-                {loading ? 'Launching Your Store...' : 'Create My Live Store'}
-              </span>
-              {!loading ? (
-                <ArrowRight size={18} />
-              ) : null}
+              {loading ? <Loader2 size={18} className="animate-spin" /> : null}
+              <span>{loading ? 'Launching Your Store...' : 'Create My Live Store 🚀'}</span>
+              {!loading ? <ArrowRight size={18} /> : null}
             </button>
           </div>
         )}
@@ -1160,9 +896,9 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
         </p>
 
         <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
-          Just here to shop, not sell?{' '}
-          <a href="/buyer/register" style={{ color: 'var(--text-muted)', fontWeight: 700, textDecoration: 'underline' }}>
-            Create a buyer account
+          Already have an account?{' '}
+          <a href="/login" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>
+            Log in
           </a>
         </p>
 
@@ -1170,6 +906,9 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
     </div>
   );
 }
+
+// ── Page wrapper ──────────────────────────────────────────────────────────────
+
 
 // ── Page wrapper ──────────────────────────────────────────────────────────────
 
