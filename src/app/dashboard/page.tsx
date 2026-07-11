@@ -13,7 +13,7 @@ import {
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck, BookOpen,
   ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer, Inbox, MessageSquare, Mail,
   Briefcase, CreditCard, Landmark, PenLine, Truck, Scale, Sparkles, LineChart, Archive,
-  UserPlus, ShieldCheck
+  UserPlus, ShieldCheck, Laptop, Bell
 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
@@ -2602,7 +2602,18 @@ export default function DashboardPage() {
         if (data.description) setProdDesc(data.description);
         if (data.recommended_price) setProdPrice(String(data.recommended_price));
         if (Array.isArray(data.tags) && data.tags.length > 0) setProdTags(data.tags.slice(0, 10));
-        
+        if (data.listing_type === 'digital') {
+          setProdIsDigital(true);
+          setProdType('product');
+          setProdStock('in_stock');
+        } else if (data.listing_type === 'service') {
+          setProdIsDigital(false);
+          setProdType('service');
+        } else if (data.listing_type === 'physical') {
+          setProdIsDigital(false);
+          setProdType('product');
+        }
+
         // Update user state with the new quota used counter
         if (typeof json.quota_used !== 'undefined') {
           setUser(prev => prev ? { ...prev, ai_analyses_used: json.quota_used } : null);
@@ -12481,14 +12492,20 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              {/* ── STEP 2: Product Type Selector ── */}
+              {/* ── STEP 2+: Rest of the form — revealed once the main image is uploaded & analyzed ── */}
+              {prodImageUrls.length === 0 ? (
+                <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center', padding: '4px 0' }}>
+                  Upload a product photo above to continue.
+                </p>
+              ) : aiAnalyzing ? null : (
+              <>
               <div>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>What are you selling?</label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                   {[
-                    { id: 'physical', icon: '🛍️', label: 'Physical', sublabel: 'Shipped or handed over', active: !prodIsDigital && prodType !== 'service' },
-                    { id: 'digital', icon: '💻', label: 'Digital', sublabel: 'Downloads, files, links', active: prodIsDigital },
-                    { id: 'service', icon: '🛎️', label: 'Service', sublabel: 'Sessions, bookings, jobs', active: prodType === 'service' },
+                    { id: 'physical', icon: ShoppingBag, label: 'Physical', sublabel: 'Shipped or handed over', active: !prodIsDigital && prodType !== 'service' },
+                    { id: 'digital', icon: Laptop, label: 'Digital', sublabel: 'Downloads, files, links', active: prodIsDigital },
+                    { id: 'service', icon: Bell, label: 'Service', sublabel: 'Sessions, bookings, jobs', active: prodType === 'service' },
                   ].map(opt => (
                     <button
                       key={opt.id}
@@ -12509,7 +12526,7 @@ export default function DashboardPage() {
                         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4
                       }}
                     >
-                      <span style={{ fontSize: 22 }}>{opt.icon}</span>
+                      <opt.icon size={22} strokeWidth={2} color={opt.active ? 'var(--primary)' : 'var(--text-faint)'} />
                       <span style={{ fontSize: 12, fontWeight: 800, color: opt.active ? 'var(--primary)' : 'var(--text)' }}>{opt.label}</span>
                       <span style={{ fontSize: 10, color: 'var(--text-faint)', lineHeight: 1.3 }}>{opt.sublabel}</span>
                     </button>
@@ -12799,12 +12816,6 @@ export default function DashboardPage() {
                   className="input-field"
                   style={{ resize: 'vertical' }}
                 />
-                {aiAnalyzing && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, padding: '8px 12px', borderRadius: 'var(--r-sm)', background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.2)' }}>
-                    <Loader2 size={13} className="spinner" style={{ color: '#d97706' }} />
-                    <span style={{ fontSize: 11.5, color: '#d97706', fontWeight: 600 }}>AI is analyzing your photo and pre-filling product details...</span>
-                  </div>
-                )}
               </div>
 
               {/* Tags editor */}
@@ -12826,7 +12837,7 @@ export default function DashboardPage() {
                       </button>
                     </span>
                   ))}
-                  {prodTags.length === 0 && !aiAnalyzing && (
+                  {prodTags.length === 0 && (
                     <span style={{ fontSize: 11, color: 'var(--text-faint)', fontStyle: 'italic' }}>{isPro ? 'Upload a photo and AI will suggest tags automatically.' : 'Add up to 10 tags to help buyers find your product.'}</span>
                   )}
                 </div>
@@ -12851,6 +12862,8 @@ export default function DashboardPage() {
                   />
                 )}
               </div>
+              </>
+              )}
 
               <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
                 <button type="button" onClick={() => setIsAddProductOpen(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
