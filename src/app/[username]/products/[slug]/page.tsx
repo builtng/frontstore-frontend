@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import ProductDetailClient from './ProductDetailClient';
+import { calculateShippingFee } from '../../../../utils/shippingFee';
 
 interface PageProps {
   params: Promise<{
@@ -197,6 +198,26 @@ export default async function ProductPage({ params }: PageProps) {
     reviewCount: validReviews.length,
   } : undefined;
 
+  const shippingFeeInfo = calculateShippingFee(store, product.price);
+
+  const returnPolicyText = store.return_policy || "Return unopened, unused items within 7 days. Secured by Frontstore.";
+  let returnPolicyCategory = 'https://schema.org/MerchantReturnFiniteReturnWindow';
+  let merchantReturnDays = 7;
+
+  if (returnPolicyText.toLowerCase().includes('no return') || returnPolicyText.toLowerCase().includes('no refund') || returnPolicyText.toLowerCase().includes('non-returnable')) {
+    returnPolicyCategory = 'https://schema.org/MerchantReturnNotPermitted';
+    merchantReturnDays = 0;
+  } else {
+    const match = returnPolicyText.match(/(\d+)\s*day/i);
+    if (match) {
+      merchantReturnDays = parseInt(match[1], 10);
+    }
+  }
+
+  const returnFees = returnPolicyText.toLowerCase().includes('free return')
+    ? 'https://schema.org/FreeReturn'
+    : 'https://schema.org/ReturnFeesCustomerResponsibility';
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -229,6 +250,26 @@ export default async function ProductPage({ params }: PageProps) {
       seller: {
         '@type': 'Store',
         name: storeName,
+      },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          value: shippingFeeInfo.shippingFee,
+          currency: store.currency_code || 'NGN',
+        },
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: store.country_code || 'NG',
+        },
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: store.country_code || 'NG',
+        returnPolicyCategory,
+        ...(returnPolicyCategory !== 'https://schema.org/MerchantReturnNotPermitted' ? { merchantReturnDays } : {}),
+        returnFees,
+        returnMethod: 'https://schema.org/ReturnByMail',
       },
     },
   };

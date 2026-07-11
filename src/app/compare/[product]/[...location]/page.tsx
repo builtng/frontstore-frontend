@@ -130,18 +130,63 @@ export default async function ComparePage({ params }: PageProps) {
       lowPrice: data.insights.lowest_price,
       highPrice: data.insights.highest_price,
       offerCount: data.insights.merchant_count,
-      offers: data.merchants.map((m) => ({
-        '@type': 'Offer',
-        price: m.price,
-        priceCurrency: m.store.currency_code,
-        availability: m.stock_status === 'in_stock'
-          ? 'https://schema.org/InStock'
-          : m.stock_status === 'low_stock'
-            ? 'https://schema.org/LimitedAvailability'
-            : 'https://schema.org/OutOfStock',
-        url: `https://frontstore.ng/${m.store.username}/products/${m.product_slug}`,
-        seller: { '@type': 'Organization', name: m.store.store_name },
-      })),
+      offers: data.merchants.map((m) => {
+        const currencyToCountry: Record<string, string> = {
+          NGN: 'NG',
+          GHS: 'GH',
+          KES: 'KE',
+          ZAR: 'ZA',
+          USD: 'US',
+          GBP: 'GB',
+        };
+        const countryCode = currencyToCountry[m.store.currency_code.toUpperCase()] || 'NG';
+
+        let shippingRate = 0;
+        if (m.store.delivery_info) {
+          const rateMatch = m.store.delivery_info.replace(/,/g, '').match(/(?:₦|GH₵|KSh|R|\$|£|NGN|GHS|KES|ZAR|USD|GBP)\s*(\d+)/i);
+          if (rateMatch) {
+            shippingRate = parseInt(rateMatch[1], 10);
+          } else {
+            const numMatch = m.store.delivery_info.replace(/,/g, '').match(/(\d+)/);
+            if (numMatch && m.store.delivery_info.toLowerCase().includes('delivery')) {
+              shippingRate = parseInt(numMatch[1], 10);
+            }
+          }
+        }
+
+        return {
+          '@type': 'Offer',
+          price: m.price,
+          priceCurrency: m.store.currency_code,
+          availability: m.stock_status === 'in_stock'
+            ? 'https://schema.org/InStock'
+            : m.stock_status === 'low_stock'
+              ? 'https://schema.org/LimitedAvailability'
+              : 'https://schema.org/OutOfStock',
+          url: `https://frontstore.ng/${m.store.username}/products/${m.product_slug}`,
+          seller: { '@type': 'Organization', name: m.store.store_name },
+          shippingDetails: {
+            '@type': 'OfferShippingDetails',
+            shippingRate: {
+              '@type': 'MonetaryAmount',
+              value: shippingRate,
+              currency: m.store.currency_code,
+            },
+            shippingDestination: {
+              '@type': 'DefinedRegion',
+              addressCountry: countryCode,
+            },
+          },
+          hasMerchantReturnPolicy: {
+            '@type': 'MerchantReturnPolicy',
+            applicableCountry: countryCode,
+            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            merchantReturnDays: 7,
+            returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
+            returnMethod: 'https://schema.org/ReturnByMail',
+          },
+        };
+      }),
     },
   };
 
