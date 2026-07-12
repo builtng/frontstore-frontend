@@ -2520,7 +2520,7 @@ export default function CreatorStorefront({
                         {store.working_hours && <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>}
                         <div className="pd-railbtns">
                           {DUMMY_STORE.address && DUMMY_STORE.address.toLowerCase() !== 'remote' && DUMMY_STORE.address.toLowerCase() !== 'online' && (
-                            {DUMMY_STORE.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
+                            <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={14} /> Directions</button>
                           )}
                           <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
                         </div>

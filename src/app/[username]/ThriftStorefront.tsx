@@ -1067,8 +1067,8 @@ export default function ThriftStorefront({
     </div>
     <p className="ab-quote">{AUTHOR.quote}</p>
     <div className="ab-socials">
-      <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>
-      <button onClick={() => ping("Opening TikTok")}><TikTokIcon size={16} /> {AUTHOR.socials.tiktok}</button>
+      {AUTHOR.socials.instagram && <button onClick={() => window.open(`https://instagram.com/${AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>}
+      {AUTHOR.socials.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><TikTokIcon size={16} /> {AUTHOR.socials.tiktok}</button>}
     </div>
   </>);
 
@@ -1162,8 +1162,8 @@ export default function ThriftStorefront({
     <div className="ab-follow">
       <span className="ab-follow-h">Follow the store</span>
       <div className="ab-socials">
-        <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>
-        <button onClick={() => ping("Opening TikTok")}><TikTokIcon size={16} /> {AUTHOR.socials.tiktok}</button>
+        {AUTHOR.socials.instagram && <button onClick={() => window.open(`https://instagram.com/${AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>}
+        {AUTHOR.socials.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><TikTokIcon size={16} /> {AUTHOR.socials.tiktok}</button>}
         <button onClick={() => handleWa("Hi " + store.store_name + "! I'm visiting from your website.")}><WhatsAppIcon size={16} /> WhatsApp</button>
       </div>
     </div>
@@ -1226,8 +1226,8 @@ export default function ThriftStorefront({
     <div className="ct-channels">
       <button className="ct-wa" onClick={() => handleWa("Hi " + store.store_name + "! I have an enquiry.")}><WhatsAppIcon size={18} /> Chat on WhatsApp</button>
       <div className="ct-alt">
-        <button onClick={() => ping("Opening email")}><Mail size={15} /> {store.email || `${store.username || 'hello'}@frontstore.ng`}</button>
-        <button onClick={() => ping("Opening phone")}><Phone size={15} /> {store.whatsapp_phone}</button>
+        <button onClick={() => window.location.href = `mailto:${store.email || `${store.username || 'hello'}@frontstore.ng`}`}><Mail size={15} /> {store.email || `${store.username || 'hello'}@frontstore.ng`}</button>
+        {store.whatsapp_phone && <button onClick={() => window.location.href = `tel:${store.whatsapp_phone}`}><Phone size={15} /> {store.whatsapp_phone}</button>}
       </div>
     </div>
   );
@@ -1246,7 +1246,7 @@ export default function ThriftStorefront({
       </div>
       <input className="ct-input" value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Your name" />
       <textarea className="ct-input ct-textarea" rows={4} value={cMsg} onChange={(e) => setCMsg(e.target.value)} placeholder="Any details, like your preferred size, style, or request details." />
-      <button className="ct-send" onClick={() => { if (!cName.trim() || !cMsg.trim()) { ping("Please add your name and a short note"); return; } ping("Opening email client"); }}><Mail size={16} /> Send email</button>
+      <button className="ct-send" onClick={() => { if (!cName.trim() || !cMsg.trim()) { ping("Please add your name and a short note"); return; } window.location.href = `mailto:${store.email || `${store.username || 'hello'}@frontstore.ng`}`; }}><Mail size={16} /> Send email</button>
     </div>
   );
 
@@ -1261,7 +1261,7 @@ export default function ThriftStorefront({
         {store.address && (
           <>
             <p className="ab-addr">{store.address}</p>
-            <button className="ps-dir" onClick={() => ping("Opening directions")}><Navigation size={15} /> Directions</button>
+            <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={15} /> Directions</button>
           </>
         )}
         <div className="ct-hours">
@@ -1420,8 +1420,8 @@ export default function ThriftStorefront({
     <div className="ab-follow">
       <span className="ab-follow-h">More on social</span>
       <div className="ab-socials">
-        <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>
-        <button onClick={() => ping("Opening TikTok")}><TikTokIcon size={16} /> {AUTHOR.socials.tiktok}</button>
+        {AUTHOR.socials.instagram && <button onClick={() => window.open(`https://instagram.com/${AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>}
+        {AUTHOR.socials.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><TikTokIcon size={16} /> {AUTHOR.socials.tiktok}</button>}
       </div>
     </div>
   );
@@ -1982,7 +1982,7 @@ export default function ThriftStorefront({
                   {store.address && (
                     <>
                       <p className="ps-addr"><MapPin size={15} /> {store.address}</p>
-                      <button className="ps-dir" onClick={() => ping("Opening directions")}><Navigation size={15} /> Directions</button>
+                      <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={15} /> Directions</button>
                     </>
                   )}
                   <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
@@ -2091,7 +2091,7 @@ export default function ThriftStorefront({
                     <div className="pd-railmap"><MapPin size={22} /></div>
                     {store.address && <p className="ps-addr"><MapPin size={14} /> {store.address}</p>}
                     <div className="pd-railbtns">
-                      {store.address && <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>}
+                      {store.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                       <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsAppIcon size={14} /> Message</button>
                     </div>
                     <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
@@ -2476,7 +2476,7 @@ export default function ThriftStorefront({
                         {store.address && <p className="ab-addr">{store.address}</p>}
                         <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>
                         <div className="pd-railbtns">
-                          <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
+                          <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={14} /> Directions</button>
                           <button onClick={() => handleWa(`Hi ${store.store_name}!`)}><WhatsAppIcon size={14} /> Message</button>
                         </div>
                       </div>

@@ -1190,8 +1190,8 @@ export default function BeautyStorefront({
       </div>
       <p className="ab-quote">"{AUTHOR.quote}"</p>
       <div className="ab-socials">
-        <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>
-        <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {AUTHOR.socials.tiktok}</button>
+        {AUTHOR.socials.instagram && <button onClick={() => window.open(`https://instagram.com/${AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>}
+        {AUTHOR.socials.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {AUTHOR.socials.tiktok}</button>}
       </div>
     </>
   );
@@ -1311,8 +1311,8 @@ export default function BeautyStorefront({
       <div className="ab-follow">
         <span className="ab-follow-h">Follow the studio</span>
         <div className="ab-socials">
-          <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {store.instagram_handle ? `@${store.instagram_handle.replace(/^@/, '')}` : AUTHOR.socials.instagram}</button>
-          <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {store.tiktok_handle ? `@${store.tiktok_handle.replace(/^@/, '')}` : AUTHOR.socials.tiktok}</button>
+          {(store.instagram_handle || AUTHOR.socials.instagram) && <button onClick={() => window.open(`https://instagram.com/${(store.instagram_handle || AUTHOR.socials.instagram).replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {store.instagram_handle ? `@${store.instagram_handle.replace(/^@/, '')}` : AUTHOR.socials.instagram}</button>}
+          {(store.tiktok_handle || AUTHOR.socials.tiktok) && <button onClick={() => window.open(`https://tiktok.com/@${(store.tiktok_handle || AUTHOR.socials.tiktok).replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {store.tiktok_handle ? `@${store.tiktok_handle.replace(/^@/, '')}` : AUTHOR.socials.tiktok}</button>}
           <button onClick={() => openWhatsAppChat("Hi!")}><WhatsApp size={16} /> WhatsApp</button>
         </div>
       </div>
@@ -1371,8 +1371,8 @@ export default function BeautyStorefront({
     <div className="ct-channels">
       <button className="ct-wa" onClick={() => openWhatsAppChat("Hi! I have a question about your treatments.")}><WhatsApp size={18} /> Chat on WhatsApp</button>
       <div className="ct-alt">
-        <button onClick={() => ping("Opening email")}><Mail size={15} /> {store.email || `${store.username || 'hello'}@frontstore.ng`}</button>
-        <button onClick={() => ping("Opening phone")}><Phone size={15} /> {store.whatsapp_phone}</button>
+        <button onClick={() => window.location.href = `mailto:${store.email || `${store.username || 'hello'}@frontstore.ng`}`}><Mail size={15} /> {store.email || `${store.username || 'hello'}@frontstore.ng`}</button>
+        {store.whatsapp_phone && <button onClick={() => window.location.href = `tel:${store.whatsapp_phone}`}><Phone size={15} /> {store.whatsapp_phone}</button>}
       </div>
     </div>
   );
@@ -1391,7 +1391,7 @@ export default function BeautyStorefront({
       </div>
       <input className="ct-input" value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Your name" />
       <textarea className="ct-input ct-textarea" rows={4} value={cMsg} onChange={(e) => setCMsg(e.target.value)} placeholder="Any details, like your preferred time or the look you have in mind." />
-      <button className="ct-send" onClick={() => { if (!cName.trim() || !cMsg.trim()) { ping("Please add your name and a short note"); return; } ping("Opening your email app"); }}><Mail size={16} /> Send email</button>
+      <button className="ct-send" onClick={() => { if (!cName.trim() || !cMsg.trim()) { ping("Please add your name and a short note"); return; } window.location.href = `mailto:${store.email || `${store.username || 'hello'}@frontstore.ng`}`; }}><Mail size={16} /> Send email</button>
       <p className="ct-form-note">This opens your email app with the details ready to send.</p>
     </div>
   );
@@ -1404,7 +1404,7 @@ export default function BeautyStorefront({
         <div className="ab-rail-h"><MapPin size={15} /> Visit the studio</div>
         <div className="ct-map"><span className="ct-map-pin"><MapPin size={15} /></span><span className="ct-map-label">Lekki Phase 1</span></div>
         <p className="ab-addr">{store.address || "12 Admiralty Way, Lekki Phase 1, Lagos"}</p>
-        <button className="ps-dir" onClick={() => ping("Opening directions")}><Navigation size={15} /> Directions</button>
+        {store.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={15} /> Directions</button>}
         <div className="ct-hours">
           <div className="ct-hours-head">
             <b>Opening hours</b>
@@ -1422,7 +1422,7 @@ export default function BeautyStorefront({
         <div className="ab-follow-rail">
           <span>Follow the studio</span>
           <div className="ab-follow-icons">
-            <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
+            {(store.instagram_handle || AUTHOR.socials.instagram) && <button onClick={() => window.open(`https://instagram.com/${(store.instagram_handle || AUTHOR.socials.instagram).replace(/^@/, '')}`, '_blank')} aria-label="Instagram"><Instagram size={17} /></button>}
             <button onClick={() => openWhatsAppChat("Hi!")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
           </div>
         </div>
@@ -1583,7 +1583,7 @@ export default function BeautyStorefront({
     <div className="ab-follow">
       <span className="ab-follow-h">More on social</span>
       <div className="ab-socials">
-        <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {store.instagram_handle ? `@${store.instagram_handle.replace(/^@/, '')}` : AUTHOR.socials.instagram}</button>
+        {(store.instagram_handle || AUTHOR.socials.instagram) && <button onClick={() => window.open(`https://instagram.com/${(store.instagram_handle || AUTHOR.socials.instagram).replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {store.instagram_handle ? `@${store.instagram_handle.replace(/^@/, '')}` : AUTHOR.socials.instagram}</button>}
         <button onClick={() => openWhatsAppChat("Hi!")}><WhatsApp size={16} /> WhatsApp</button>
       </div>
     </div>
@@ -1811,7 +1811,7 @@ export default function BeautyStorefront({
                   <div className="ps-map"><MapPin size={26} /><span>Map preview</span></div>
                   <div className="ps-visit-info">
                     <p className="ps-addr"><MapPin size={15} /> {store.address || "12 Admiralty Way, Lekki Phase 1, Lagos"}</p>
-                    <button className="ps-dir" onClick={() => ping("Opening directions")}><Navigation size={15} /> Directions</button>
+                    {store.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={15} /> Directions</button>}
                     <ul className="ps-hours">
                       {hours.map(([d, h], i) => (
                         <li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>
@@ -1920,7 +1920,7 @@ export default function BeautyStorefront({
                       <div className="pd-railmap"><MapPin size={22} /></div>
                       <p className="ps-addr"><MapPin size={14} /> {store.address || "12 Admiralty Way, Lekki Phase 1, Lagos"}</p>
                       <div className="pd-railbtns">
-                        <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
+                        {store.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                         <button onClick={() => openWhatsAppChat("Hi!")}><WhatsApp size={14} /> Message</button>
                       </div>
                       <ul className="ps-hours">{hours.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
