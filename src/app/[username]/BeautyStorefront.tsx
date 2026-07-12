@@ -1404,7 +1404,7 @@ export default function BeautyStorefront({
         <div className="ab-rail-h"><MapPin size={15} /> Visit the studio</div>
         <div className="ct-map"><span className="ct-map-pin"><MapPin size={15} /></span><span className="ct-map-label">Lekki Phase 1</span></div>
         <p className="ab-addr">{store.address || "12 Admiralty Way, Lekki Phase 1, Lagos"}</p>
-        {store.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={15} /> Directions</button>}
+        {store.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={15} /> Directions</button>}
         <div className="ct-hours">
           <div className="ct-hours-head">
             <b>Opening hours</b>
@@ -1811,7 +1811,7 @@ export default function BeautyStorefront({
                   <div className="ps-map"><MapPin size={26} /><span>Map preview</span></div>
                   <div className="ps-visit-info">
                     <p className="ps-addr"><MapPin size={15} /> {store.address || "12 Admiralty Way, Lekki Phase 1, Lagos"}</p>
-                    {store.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={15} /> Directions</button>}
+                    {store.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={15} /> Directions</button>}
                     <ul className="ps-hours">
                       {hours.map(([d, h], i) => (
                         <li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>
@@ -1920,7 +1920,7 @@ export default function BeautyStorefront({
                       <div className="pd-railmap"><MapPin size={22} /></div>
                       <p className="ps-addr"><MapPin size={14} /> {store.address || "12 Admiralty Way, Lekki Phase 1, Lagos"}</p>
                       <div className="pd-railbtns">
-                        {store.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
+                        {store.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                         <button onClick={() => openWhatsAppChat("Hi!")}><WhatsApp size={14} /> Message</button>
                       </div>
                       <ul className="ps-hours">{hours.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>

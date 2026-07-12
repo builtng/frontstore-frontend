@@ -1261,7 +1261,7 @@ export default function ThriftStorefront({
         {store.address && (
           <>
             <p className="ab-addr">{store.address}</p>
-            <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={15} /> Directions</button>
+            <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={15} /> Directions</button>
           </>
         )}
         <div className="ct-hours">
@@ -1982,7 +1982,7 @@ export default function ThriftStorefront({
                   {store.address && (
                     <>
                       <p className="ps-addr"><MapPin size={15} /> {store.address}</p>
-                      <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={15} /> Directions</button>
+                      <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={15} /> Directions</button>
                     </>
                   )}
                   <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
@@ -2091,7 +2091,7 @@ export default function ThriftStorefront({
                     <div className="pd-railmap"><MapPin size={22} /></div>
                     {store.address && <p className="ps-addr"><MapPin size={14} /> {store.address}</p>}
                     <div className="pd-railbtns">
-                      {store.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
+                      {store.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                       <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsAppIcon size={14} /> Message</button>
                     </div>
                     <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
@@ -2476,7 +2476,7 @@ export default function ThriftStorefront({
                         {store.address && <p className="ab-addr">{store.address}</p>}
                         <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>
                         <div className="pd-railbtns">
-                          <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank')}><Navigation size={14} /> Directions</button>
+                          {store.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                           <button onClick={() => handleWa(`Hi ${store.store_name}!`)}><WhatsAppIcon size={14} /> Message</button>
                         </div>
                       </div>

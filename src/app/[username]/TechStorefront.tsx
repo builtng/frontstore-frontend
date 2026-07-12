@@ -2141,7 +2141,7 @@ export default function TechStorefront({
           <b>{STORE.rating}</b>
           <div className="rev-stars">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} size={15} fill={i < Math.round(STORE.rating) ? "var(--gold)" : "none"} color={i < Math.round(STORE.rating) ? "var(--gold)" : "var(--line)"} />
+              <Star key={i} size={15} fill={i < Math.round(STORE.rating ?? 0) ? "var(--gold)" : "none"} color={i < Math.round(STORE.rating ?? 0) ? "var(--gold)" : "var(--line)"} />
             ))}
           </div>
           <span>Based on {STORE.reviews} reviews</span>
