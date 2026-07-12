@@ -64,6 +64,7 @@ interface UserInfo {
   plan?: string;
   has_password?: boolean;
   ai_analyses_used?: number;
+  is_admin?: boolean | number | string;
 }
 
 interface StoreLink {
@@ -350,6 +351,7 @@ export default function DashboardPage() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserInfo | null>(null);
   const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly' || user?.plan === 'legend_monthly' || user?.plan === 'legend_yearly';
+  const isAdminUser = user?.is_admin === true || user?.is_admin === 1 || user?.is_admin === 'true' || user?.is_admin === '1';
   const isLegend = user?.plan === 'legend_monthly' || user?.plan === 'legend_yearly';
 
   // State wrapper helper for functional & direct updates
@@ -2720,7 +2722,7 @@ export default function DashboardPage() {
     if (isAuthenticated) {
       if (activeTab === 'invoices') fetchInvoicesData();
       if (activeTab === 'payment-links') fetchPaymentLinksData();
-      if (activeTab === 'giveaways') fetchGiveawaysData();
+      if (activeTab === 'giveaways' && isAdminUser) fetchGiveawaysData();
       if (activeTab === 'receipts') fetchReceiptsData();
       if (activeTab === 'inventory') fetchInventoryLogsData();
       if (activeTab === 'automations') fetchAutomationSettingsData();
@@ -4274,7 +4276,7 @@ export default function DashboardPage() {
             { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
             { id: 'integrations', label: 'Integrations', icon: <Plug size={18} />, badge: !isPro ? 'Pro' : undefined },
             { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
-          ].filter(item => item.id === 'overview' || item.id === 'settings' || !hiddenDashboardItems.includes(item.id)).map(item => {
+          ].filter(item => item.id !== 'giveaways' || isAdminUser).filter(item => item.id === 'overview' || item.id === 'settings' || !hiddenDashboardItems.includes(item.id)).map(item => {
             const active = activeTab === item.id;
             return (
               <button
@@ -9888,7 +9890,7 @@ export default function DashboardPage() {
               )}
 
               {/* ── TAB: GIVEAWAYS ── */}
-              {activeTab === 'giveaways' && !isPro && (
+              {activeTab === 'giveaways' && isAdminUser && !isPro && (
                 <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
                   <div style={{ background: 'rgba(37, 211, 102, 0.15)', color: 'var(--primary)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                     <Gift size={32} />
@@ -9927,7 +9929,7 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {activeTab === 'giveaways' && isPro && (
+              {activeTab === 'giveaways' && isAdminUser && isPro && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
@@ -13589,7 +13591,7 @@ export default function DashboardPage() {
                 { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
                 { id: 'integrations', label: 'Integrations', icon: <Plug size={18} /> },
                 { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
-              ].filter(item => item.id === 'overview' || item.id === 'settings' || !hiddenDashboardItems.includes(item.id)).map(item => (
+              ].filter(item => item.id !== 'giveaways' || isAdminUser).filter(item => item.id === 'overview' || item.id === 'settings' || !hiddenDashboardItems.includes(item.id)).map(item => (
                 <button
                   key={item.id}
                   onClick={() => {
