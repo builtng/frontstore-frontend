@@ -61,6 +61,8 @@ interface UserInfo {
   name: string;
   phone_number: string;
   email?: string | null;
+  email_verified_at?: string | null;
+  phone_verified_at?: string | null;
   plan?: string;
   has_password?: boolean;
   ai_analyses_used?: number;
@@ -11053,19 +11055,35 @@ export default function DashboardPage() {
                             {/* Email Check */}
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <Check size={16} style={{ color: '#25D366' }} strokeWidth={3} />
+                                {user?.email_verified_at ? (
+                                  <Check size={16} style={{ color: '#25D366' }} strokeWidth={3} />
+                                ) : (
+                                  <AlertCircle size={16} style={{ color: 'var(--text-faint)' }} />
+                                )}
                                 <span>Email Address Verified</span>
                               </div>
-                              <span style={{ color: '#25D366', fontWeight: 700 }}>+10 pts</span>
+                              {user?.email_verified_at ? (
+                                <span style={{ color: '#25D366', fontWeight: 700 }}>+10 pts</span>
+                              ) : (
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Unverified</span>
+                              )}
                             </div>
 
                             {/* Phone Check */}
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <Check size={16} style={{ color: '#25D366' }} strokeWidth={3} />
+                                {(user?.phone_verified_at || store?.whatsapp_phone_updated_at) ? (
+                                  <Check size={16} style={{ color: '#25D366' }} strokeWidth={3} />
+                                ) : (
+                                  <AlertCircle size={16} style={{ color: 'var(--text-faint)' }} />
+                                )}
                                 <span>Phone / WhatsApp Connected</span>
                               </div>
-                              <span style={{ color: '#25D366', fontWeight: 700 }}>+10 pts</span>
+                              {(user?.phone_verified_at || store?.whatsapp_phone_updated_at) ? (
+                                <span style={{ color: '#25D366', fontWeight: 700 }}>+10 pts</span>
+                              ) : (
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Unverified</span>
+                              )}
                             </div>
 
                             {/* Selfie Liveness Check */}
