@@ -1146,7 +1146,7 @@ export default function CreatorStorefront({
           <h1>{s.name}</h1>
           <div className="sv-meta">
             <span><Clock size={14} /> {s.dur}</span>
-            <span><Star size={14} className="sv-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span>
+            {DUMMY_STORE.rating ? <span><Star size={14} className="sv-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span> : null}
             {s.popular && <span className="sv-pop"><Sparkles size={13} /> Most booked</span>}
           </div>
         </div>
@@ -1481,8 +1481,8 @@ export default function CreatorStorefront({
     {aboutReview()}
     {aboutJournal()}
     <div className="ps-about-grid">
-      <div><b>{DUMMY_STORE.orders}</b><span>subscribers</span></div>
-      <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
+      {DUMMY_STORE.orders ? <div><b>{DUMMY_STORE.orders}</b><span>subscribers</span></div> : null}
+      {DUMMY_STORE.rating ? <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div> : null}
       {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
@@ -1861,7 +1861,7 @@ export default function CreatorStorefront({
         <span className="ps-id-main">
           <b>{DUMMY_STORE.name} {store.is_verified ? <BadgeCheck size={14} className="ps-verif" /> : null}</b>
           <i>frontstore.ng/{username}</i>
-          <em><Star size={12} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</em>
+          {DUMMY_STORE.rating ? <em><Star size={12} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</em> : null}
         </span>
       </button>
       <nav className="ps-nav">
@@ -1889,6 +1889,7 @@ export default function CreatorStorefront({
   const tkH = (DUMMY_STORE.socials?.tiktok || '').replace(/^@/, "");
   const jIg = (DUMMY_AUTHOR.socials?.instagram || '').replace(/^@/, "");
   const jTk = (DUMMY_AUTHOR.socials?.tiktok || '').replace(/^@/, "");
+  const aggregateRating = DUMMY_STORE.rating && (DUMMY_STORE.reviews ?? 0) > 0 ? { "@type": "AggregateRating", ratingValue: DUMMY_STORE.rating, reviewCount: DUMMY_STORE.reviews, bestRating: 5 } : null;
   const schema = {
     "@context": "https://schema.org",
     "@type": ["Person", "ProfessionalService"],
@@ -1901,7 +1902,7 @@ export default function CreatorStorefront({
     telephone: DUMMY_STORE.phone,
     email: DUMMY_STORE.email,
     sameAs: [`https://instagram.com/${igH}`, `https://tiktok.com/@${tkH}`],
-    aggregateRating: { "@type": "AggregateRating", ratingValue: DUMMY_STORE.rating, reviewCount: DUMMY_STORE.reviews, bestRating: 5 },
+    ...(aggregateRating ? { aggregateRating } : {}),
     founder: { "@type": "Person", name: DUMMY_AUTHOR.name, jobTitle: DUMMY_AUTHOR.role, sameAs: [`https://instagram.com/${jIg}`, `https://tiktok.com/@${jTk}`] },
     review: displayReviews.slice(0, 3).map((rv: any) => ({ "@type": "Review", author: { "@type": "Person", name: rv.name }, reviewRating: { "@type": "Rating", ratingValue: rv.r, bestRating: 5 }, reviewBody: rv.text })),
     hasMerchantReturnPolicy: {
@@ -2909,11 +2910,12 @@ function ReviewCard({ rv, full }: { rv: any, full?: boolean }) {
     <p>{rv.text}</p></div>);
 }
 function RatingSummary({ rating, reviews }: { rating?: number, reviews?: number } = {}) {
+  if (!rating) return null;
   const bars = [["5", 80], ["4", 14], ["3", 3], ["2", 2], ["1", 1]];
   return (<div className="ps-rating">
-    <div className="ps-rating-score"><b>{rating || MOCK_STORE.rating}</b>
+    <div className="ps-rating-score"><b>{rating}</b>
       <div className="ps-rating-stars">{Array.from({ length: 5 }).map((_: any, i: number) => <Star key={i} size={15} className="f" />)}</div>
-      <span>Excellent</span><i>{reviews || MOCK_STORE.reviews} reviews</i></div>
+      <span>Excellent</span><i>{reviews || 0} reviews</i></div>
     <div className="ps-rating-bars">{bars.map(([n, w]: any) => (<div key={n} className="ps-bar"><span>{n}</span><div><i style={{ width: w + "%" }} /></div></div>))}</div></div>);
 }
 function Accordion({ items, open, setOpen }: { items: any[], open: boolean | number, setOpen: (open: any) => void }) {

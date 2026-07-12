@@ -1152,7 +1152,7 @@ export default function CleaningStorefront({
           <h1>{s.name}</h1>
           <div className="sv-meta">
             <span><Clock size={14} /> {s.dur}</span>
-            <span><Star size={14} className="sv-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span>
+            {DUMMY_STORE.rating ? <span><Star size={14} className="sv-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span> : null}
             {s.popular && <span className="sv-pop"><Sparkles size={13} /> Most booked</span>}
           </div>
         </div>
@@ -1468,8 +1468,8 @@ export default function CleaningStorefront({
     {aboutReview()}
     {aboutJournal()}
     <div className="ps-about-grid">
-      <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
-      <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
+      {DUMMY_STORE.orders ? <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div> : null}
+      {DUMMY_STORE.rating ? <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div> : null}
       {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
@@ -1839,7 +1839,7 @@ export default function CleaningStorefront({
         <span className="ps-id-main">
           <b>{DUMMY_STORE.name} {store.is_verified ? <BadgeCheck size={14} className="ps-verif" /> : null}</b>
           <i>frontstore.ng/{username}</i>
-          <em><Star size={12} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</em>
+          {DUMMY_STORE.rating ? <em><Star size={12} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</em> : null}
         </span>
       </button>
       <nav className="ps-nav">
@@ -1867,6 +1867,7 @@ export default function CleaningStorefront({
   const tkH = (DUMMY_STORE.socials?.tiktok || '').replace(/^@/, "");
   const jIg = (DUMMY_AUTHOR.socials?.instagram || '').replace(/^@/, "");
   const jTk = (DUMMY_AUTHOR.socials?.tiktok || '').replace(/^@/, "");
+  const aggregateRating = DUMMY_STORE.rating && (DUMMY_STORE.reviews ?? 0) > 0 ? { "@type": "AggregateRating", ratingValue: DUMMY_STORE.rating, reviewCount: DUMMY_STORE.reviews, bestRating: 5 } : null;
   const schema = {
     "@context": "https://schema.org",
     "@type": ["ProfessionalService", "LocalBusiness"],
@@ -1879,7 +1880,7 @@ export default function CleaningStorefront({
     telephone: DUMMY_STORE.phone,
     email: DUMMY_STORE.email,
     sameAs: [`https://instagram.com/${igH}`, `https://tiktok.com/@${tkH}`],
-    aggregateRating: { "@type": "AggregateRating", ratingValue: DUMMY_STORE.rating, reviewCount: DUMMY_STORE.reviews, bestRating: 5 },
+    ...(aggregateRating ? { aggregateRating } : {}),
     founder: { "@type": "Person", name: DUMMY_AUTHOR.name, jobTitle: DUMMY_AUTHOR.role, sameAs: [`https://instagram.com/${jIg}`, `https://tiktok.com/@${jTk}`] },
     review: displayReviews.slice(0, 3).map((rv: any) => ({ "@type": "Review", author: { "@type": "Person", name: rv.name }, reviewRating: { "@type": "Rating", ratingValue: rv.r, bestRating: 5 }, reviewBody: rv.text })),
     hasMerchantReturnPolicy: {
@@ -1925,8 +1926,8 @@ export default function CleaningStorefront({
                   <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                 </div>
                 <div className="ps-stats">
-                  <div><b><Star size={14} className="ps-star" /> {DUMMY_STORE.rating}</b><span>{DUMMY_STORE.reviews} reviews</span></div>
-                  <div><b>{DUMMY_STORE.orders}</b><span>cleans done</span></div>
+                  {DUMMY_STORE.rating ? <div><b><Star size={14} className="ps-star" /> {DUMMY_STORE.rating}</b><span>{DUMMY_STORE.reviews} reviews</span></div> : null}
+                  {DUMMY_STORE.orders ? <div><b>{DUMMY_STORE.orders}</b><span>cleans done</span></div> : null}
                   <div><b>{DUMMY_STORE.reply}</b><span>reply time</span></div>
                 </div>
                 <p className="ps-bio">{DUMMY_STORE.bio}</p>
@@ -2018,7 +2019,7 @@ export default function CleaningStorefront({
                   <p>
                     <span>{DUMMY_STORE.category}</span><span className="ps-dot">•</span>
                     <span><MapPin size={13} /> {DUMMY_STORE.location}</span><span className="ps-dot">•</span>
-                    <span><Star size={13} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span><span className="ps-dot">•</span>
+                    {DUMMY_STORE.rating ? <><span><Star size={13} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span><span className="ps-dot">•</span></> : null}
                     <span>Replies {DUMMY_STORE.reply}</span>
                   </p>
                 </div>
@@ -2235,6 +2236,7 @@ export default function CleaningStorefront({
                     <p className="svc-intro">Every review here comes from a verified order on Frontstore. The studio can respond, but cannot remove genuine reviews.</p>
                     <div className="svc-body">
                       <aside className="svc-rail">
+                        {DUMMY_STORE.rating ? (
                         <div className="rev-summary">
                           <div className="rev-score">
                             <b>{DUMMY_STORE.rating}</b>
@@ -2249,6 +2251,7 @@ export default function CleaningStorefront({
                             ))}
                           </div>
                         </div>
+                        ) : null}
                         <div className="svc-filters">
                           <div className="svc-fgroup">
                             <h4>Sort by</h4>
@@ -2433,8 +2436,8 @@ export default function CleaningStorefront({
                     </div>
 
                     <div className="ps-about-grid ab-stats">
-                      <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
-                      <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
+                      {DUMMY_STORE.orders ? <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div> : null}
+                      {DUMMY_STORE.rating ? <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div> : null}
                       {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
                     </div>
                   </div>
@@ -2836,11 +2839,12 @@ function ReviewCard({ rv, full }: { rv: any, full?: boolean }) {
     <p>{rv.text}</p></div>);
 }
 function RatingSummary({ rating, reviews }: { rating?: number, reviews?: number } = {}) {
+  if (!rating) return null;
   const bars = [["5", 80], ["4", 14], ["3", 3], ["2", 2], ["1", 1]];
   return (<div className="ps-rating">
-    <div className="ps-rating-score"><b>{rating || MOCK_STORE.rating}</b>
+    <div className="ps-rating-score"><b>{rating}</b>
       <div className="ps-rating-stars">{Array.from({ length: 5 }).map((_: any, i: number) => <Star key={i} size={15} className="f" />)}</div>
-      <span>Excellent</span><i>{reviews || MOCK_STORE.reviews} reviews</i></div>
+      <span>Excellent</span><i>{reviews || 0} reviews</i></div>
     <div className="ps-rating-bars">{bars.map(([n, w]: any) => (<div key={n} className="ps-bar"><span>{n}</span><div><i style={{ width: w + "%" }} /></div></div>))}</div></div>);
 }
 function Accordion({ items, open, setOpen }: { items: any[], open: boolean | number, setOpen: (open: any) => void }) {
