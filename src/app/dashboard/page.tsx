@@ -15061,12 +15061,11 @@ export default function DashboardPage() {
               {/* ── STEP 1: Primary Image Upload (Full-width, prominent) ── */}
               <div style={{ background: 'linear-gradient(135deg, rgba(217,119,6,0.05), rgba(245,158,11,0.02))', border: '2px dashed rgba(217,119,6,0.3)', borderRadius: 'var(--r-lg)', padding: 18 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <span style={{ fontSize: 18 }}>📸</span>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase' }}>Product Photo</div>
                     <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
-                      Upload your main image — AI will auto-fill title, description & tags. 
-                      <span style={{ color: 'var(--primary)', fontWeight: 700, marginLeft: 4 }}>
+                      Upload your main image — AI will auto-fill title, description & tags.
+                      <span style={{ color: '#25D366', fontWeight: 700, marginLeft: 4 }}>
                         ({(user?.plan === 'pro_yearly' || isLegend)
                           ? 'Unlimited AI credits'
                           : `${Math.max(0, (user?.plan === 'pro_monthly' ? 15 : 3) - (user?.ai_analyses_used ?? 0))} AI credit(s) remaining`})
@@ -15080,11 +15079,11 @@ export default function DashboardPage() {
                     </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: prodImageUrls.length === 0 ? 'center' : 'flex-start' }}>
                   {prodImageUrls.map((url, idx) => (
                     <div key={idx} className="fu-tile-img" style={{ position: 'relative', width: idx === 0 ? 120 : 80, height: idx === 0 ? 120 : 80 }}>
                       <img src={url} alt={`Product image ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--r-md)' }} />
-                      {idx === 0 && <span style={{ position: 'absolute', top: 4, left: 4, fontSize: 9, fontWeight: 900, background: '#d97706', color: '#fff', padding: '2px 6px', borderRadius: 4, textTransform: 'uppercase' }}>Main</span>}
+                      {idx === 0 && <span style={{ position: 'absolute', top: 4, left: 4, fontSize: 9, fontWeight: 900, background: '#25D366', color: '#fff', padding: '2px 6px', borderRadius: 4, textTransform: 'uppercase' }}>Main</span>}
                       <button
                         type="button"
                         onClick={() => setProdImageUrls(prev => prev.filter((_, i) => i !== idx))}
@@ -15113,7 +15112,7 @@ export default function DashboardPage() {
                           if (res.ok && json.url) {
                             const isFirstImage = prodImageUrls.length === 0;
                             setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
-                            toast.success('Image uploaded! 📸');
+                            toast.success('Image uploaded!');
                             if (isFirstImage) {
                               handleAutoAnalyzeImage(file);
                             }
