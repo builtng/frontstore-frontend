@@ -15059,7 +15059,7 @@ export default function DashboardPage() {
             <form onSubmit={handleCreateProductSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
               {/* ── STEP 1: Primary Image Upload (Full-width, prominent) ── */}
-              <div style={{ background: 'linear-gradient(135deg, rgba(217,119,6,0.05), rgba(245,158,11,0.02))', border: '2px dashed rgba(217,119,6,0.3)', borderRadius: 'var(--r-lg)', padding: 18 }}>
+              <div style={{ background: 'linear-gradient(135deg, rgba(37,211,102,0.05), rgba(37,211,102,0.02))', border: '2px dashed rgba(37,211,102,0.3)', borderRadius: 'var(--r-lg)', padding: 18 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase' }}>Product Photo</div>
@@ -15073,9 +15073,9 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   {aiAnalyzing && (
-                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(217,119,6,0.1)', border: '1px solid rgba(217,119,6,0.2)', borderRadius: 'var(--r-full)', padding: '4px 10px' }}>
-                      <Loader2 size={12} className="spinner" style={{ color: '#d97706' }} />
-                      <span style={{ fontSize: 11, color: '#d97706', fontWeight: 700 }}>AI analyzing...</span>
+                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(37,211,102,0.1)', border: '1px solid rgba(37,211,102,0.2)', borderRadius: 'var(--r-full)', padding: '4px 10px' }}>
+                      <Loader2 size={12} className="spinner" style={{ color: '#25D366' }} />
+                      <span style={{ fontSize: 11, color: '#25D366', fontWeight: 700 }}>AI analyzing...</span>
                     </div>
                   )}
                 </div>
