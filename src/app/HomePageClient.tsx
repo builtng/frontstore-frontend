@@ -9,8 +9,7 @@ import {
   UtensilsCrossed, Sparkles, Wrench, BookOpen, Camera, Building2,
   Smartphone, Recycle, HeartPulse, WashingMachine
 } from 'lucide-react';
-import Logo from '../components/Logo';
-import { PublicSiteNav } from '../components/PublicSiteChrome';
+import { PublicSiteNav, PublicSiteFooter } from '../components/PublicSiteChrome';
 import { RESERVED_SUBDOMAINS } from '../utils/reservedKeywords';
 
 // Testimonials default empty — real ones are supplied via admin-configured homepage_content.
@@ -318,7 +317,6 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'error' | 'success' | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [appName, setAppName] = useState(initialSettings?.app_name || 'Frontstore');
   const [logoUrl, setLogoUrl] = useState(initialSettings?.logo_url || '');
@@ -332,13 +330,6 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
 
   useEffect(() => {
     setMounted(true);
-    try {
-      const token = localStorage.getItem('token');
-      const user = localStorage.getItem('user');
-      setIsLoggedIn(Boolean(token && user && user !== 'undefined' && user !== 'null'));
-    } catch {
-      setIsLoggedIn(false);
-    }
   }, []);
 
   useEffect(() => {
@@ -1059,32 +1050,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer style={{
-        padding: '24px 20px',
-        borderTop: '1px solid var(--border)',
-        background: 'var(--surface)',
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 12,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <Logo size={20} textColor="var(--primary)" text={appName} />
-        <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-          © {new Date().getFullYear()} {appName}. Conversational Commerce Platform.
-        </p>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <a href="/" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Home</a>
-          <a href="/about" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>About</a>
-          <a href="#how-it-works" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>How it works</a>
-          <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Stores</a>
-          <a href="/blog" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Blog</a>
-          <a href={isLoggedIn ? '/dashboard' : '/signup'} style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>{isLoggedIn ? 'Dashboard' : 'Sign up'}</a>
-          <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
-          <a href="/terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
-        </div>
-      </footer>
+      <PublicSiteFooter />
 
     </div>
   );
