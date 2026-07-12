@@ -1304,8 +1304,8 @@ export default function BeautyStorefront({
       {aboutReview()}
       {displayBlog.length > 0 && aboutJournal()}
       <div className="ps-about-grid">
-        <div><b>{store.total_orders || "100+"}</b><span>orders delivered</span></div>
-        <div><b>{(store.rating || 4.9).toFixed(1)}</b><span>average rating</span></div>
+        {store.total_orders ? <div><b>{store.total_orders}</b><span>orders delivered</span></div> : null}
+        {store.rating ? <div><b>{store.rating.toFixed(1)}</b><span>average rating</span></div> : null}
         {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
       </div>
       <div className="ab-follow">
@@ -1673,6 +1673,8 @@ export default function BeautyStorefront({
     );
   };
 
+  const aggregateRating = store.rating && (store.review_count ?? 0) > 0 ? { "@type": "AggregateRating", ratingValue: store.rating, reviewCount: store.review_count, bestRating: 5 } : null;
+
   const schema = {
     "@context": "https://schema.org",
     "@type": ["HealthAndBeautyBusiness", "LocalBusiness"],
@@ -1683,7 +1685,7 @@ export default function BeautyStorefront({
     address: { "@type": "PostalAddress", streetAddress: store.address || "Lekki, Lagos", addressLocality: "Lekki", addressRegion: "Lagos", addressCountry: "NG" },
     telephone: store.whatsapp_phone,
     email: store.email,
-    aggregateRating: { "@type": "AggregateRating", ratingValue: store.rating || 4.9, reviewCount: store.review_count || displayReviews.length, bestRating: 5 },
+    ...(aggregateRating ? { aggregateRating } : {}),
   };
 
   const faqSchema = {
@@ -1734,8 +1736,8 @@ export default function BeautyStorefront({
                     <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                   </div>
                   <div className="ps-stats">
-                    <div><b><Star size={14} className="ps-star" /> {(store.rating || 4.9).toFixed(1)}</b><span>{store.review_count || displayReviews.length} reviews</span></div>
-                    <div><b>{store.total_orders || "100+"}</b><span>orders</span></div>
+                    {store.rating ? <div><b><Star size={14} className="ps-star" /> {store.rating.toFixed(1)}</b><span>{store.review_count || displayReviews.length} reviews</span></div> : null}
+                    {store.total_orders ? <div><b>{store.total_orders}</b><span>orders</span></div> : null}
                     <div><b>~10 min</b><span>reply time</span></div>
                   </div>
                   <p className="ps-bio">{store.store_bio || "Premium glams, skincare facials and bridal style consulting. Lagos based studio."}</p>
@@ -1870,8 +1872,8 @@ export default function BeautyStorefront({
                   <h1>{store.store_name} {store.is_verified ? <BadgeCheck size={22} className="ps-verif" /> : null}</h1>
                   <p>
                     <span>Beauty &amp; Skincare</span><span className="ps-dot">•</span>
-                    <span><MapPin size={13} /> {store.location || "Lekki, Lagos"}</span><span className="ps-dot">•</span>
-                    <span><Star size={13} className="ps-star" /> {(store.rating || 4.9).toFixed(1)} ({store.review_count || displayReviews.length})</span>
+                    <span><MapPin size={13} /> {store.location || "Lekki, Lagos"}</span>
+                    {store.rating ? <><span className="ps-dot">•</span><span><Star size={13} className="ps-star" /> {store.rating.toFixed(1)} ({store.review_count || displayReviews.length})</span></> : null}
                     {(store.storefront_sections || []).includes("replies_approximation") && (store.reply_time_minutes || 0) > 0 && (
                       <><span className="ps-dot">•</span><span>Replies ~{store.reply_time_minutes} min</span></>
                     )}

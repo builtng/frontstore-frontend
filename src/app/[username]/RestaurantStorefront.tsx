@@ -873,18 +873,21 @@ export default function RestaurantStorefront({
   };
 
   const RatingSummary = () => {
-    const score = store.rating || 4.8;
-    const count = store.review_count || 526;
+    if (!store.rating && !store.review_count) {
+      return <EmptyState />;
+    }
+    const score = store.rating;
+    const count = store.review_count || displayReviews.length;
     return (
       <div className="ps-rating">
         <div className="ps-rating-score">
-          <b>{score}</b>
+          {score ? <b>{score}</b> : null}
           <div className="ps-rating-stars">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star key={i} size={11} className="f" />
             ))}
           </div>
-          <span>{count} ratings</span>
+          {count ? <span>{count} ratings</span> : null}
           <i>Verified orders</i>
         </div>
         <div className="ps-rating-bars">
@@ -1352,8 +1355,8 @@ export default function RestaurantStorefront({
                   </div>
                   
                   <div className="ps-stats">
-                    <div><b><Star size={14} className="ps-star" /> {store.rating || 4.8}</b><span>{store.review_count || 526} reviews</span></div>
-                    <div><b>{store.total_orders || "30k+"}</b><span>diners</span></div>
+                    {store.rating ? <div><b><Star size={14} className="ps-star" /> {store.rating}</b><span>{store.review_count || displayReviews.length} reviews</span></div> : null}
+                    {store.total_orders ? <div><b>{store.total_orders}</b><span>diners</span></div> : null}
                     {(store.storefront_sections || []).includes("replies_approximation") && (store.reply_time_minutes || 0) > 0 && (
                       <div><b>{store.reply_time_minutes ? `${store.reply_time_minutes} min` : "~10 min"}</b><span>reply time</span></div>
                     )}

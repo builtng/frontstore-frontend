@@ -167,6 +167,8 @@ export default function PricingPageClient({ monthlyPrice, yearlyPrice, legendMon
                     type="button"
                     onClick={() => setActiveCurrency(i)}
                     className="btn"
+                    title={c.country}
+                    aria-label={c.country}
                     style={{
                       padding: '8px 14px',
                       fontSize: 13,
