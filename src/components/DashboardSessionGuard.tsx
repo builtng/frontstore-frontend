@@ -101,7 +101,9 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
           // re-checked on its own since it only runs once per dashboard mount.
           try {
             const body = await response.clone().json();
-            if (typeof body?.message === 'string' && body.message.includes('No query results for model') && body.message.includes('Store')) {
+            // Match the exact Store model only — StoreFaq, StorefrontCoupon, etc.
+            // also contain "Store" and 404 on ordinary, unrelated missing resources.
+            if (typeof body?.message === 'string' && body.message.includes('No query results for model [App\\Models\\Store]')) {
               destroySession('Your store no longer exists. Please register again.');
             }
           } catch {
