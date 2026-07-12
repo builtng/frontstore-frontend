@@ -699,8 +699,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
             </button>
 
             {/* Info Banner */}
-            <div style={{ background: 'linear-gradient(135deg, var(--primary-light), rgba(16, 185, 129, 0.05))', color: 'var(--primary-dark)', padding: '14px 18px', borderRadius: 'var(--r-xl)', fontSize: 14, fontWeight: 700, lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: 10, border: '1px solid rgba(16, 185, 129, 0.15)' }}>
-              <CheckCircle2 size={18} style={{ flexShrink: 0, color: 'var(--primary)' }} />
+            <div style={{ background: 'linear-gradient(135deg, var(--primary-light), rgba(16, 185, 129, 0.05))', color: 'var(--primary-dark)', padding: '14px 18px', borderRadius: 'var(--r-xl)', fontSize: 14, fontWeight: 700, lineHeight: 1.5, border: '1px solid rgba(16, 185, 129, 0.15)' }}>
               <span>Check your inbox at <strong>{email}</strong> for a 6-digit verification code.</span>
             </div>
 

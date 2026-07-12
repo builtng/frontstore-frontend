@@ -5540,11 +5540,6 @@ svg.spinner {
   }
 }
 
-@media (max-width: 480px) {
-  .site-footer__top {
-    grid-template-columns: 1fr;
-  }
-}
 
 @media (max-width: 640px) {
   .home-nav {
