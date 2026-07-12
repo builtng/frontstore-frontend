@@ -27,10 +27,12 @@ const formatMoney = (value?: number, currencyCode: string = 'NGN') =>
 const planLabel = (plan?: string | null) => {
   if (plan === 'pro_yearly') return 'Pro Yearly';
   if (plan === 'pro_monthly') return 'Pro Monthly';
+  if (plan === 'legend_yearly') return 'Legend Yearly';
+  if (plan === 'legend_monthly') return 'Legend Monthly';
   return 'Free';
 };
 
-const isProPlan = (plan?: string | null) => plan === 'pro_monthly' || plan === 'pro_yearly';
+const isProPlan = (plan?: string | null) => plan === 'pro_monthly' || plan === 'pro_yearly' || plan === 'legend_monthly' || plan === 'legend_yearly';
 
 export default function AdminOverviewPage() {
   const { token, apiUrl, getHeaders, handleFetchResponse } = useAdmin();

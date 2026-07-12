@@ -13,6 +13,7 @@ import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
+import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 
 import "./ThriftStorefront.css";
 
@@ -387,6 +388,7 @@ export default function ThriftStorefront({
 
   // Load customer profile details if saved locally
   useEffect(() => {
+    captureAffiliateRef();
     try {
       const profileStr = localStorage.getItem('frontstore_customer_profile');
       if (profileStr) {
@@ -886,7 +888,8 @@ export default function ThriftStorefront({
             product_id: item.id,
             quantity: item.qty
           })),
-          coupon_code: appliedCoupon ? appliedCoupon.code : undefined
+          coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
+          affiliate_code: getPersistedAffiliateRef()
         })
       });
 

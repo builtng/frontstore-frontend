@@ -82,6 +82,8 @@ export interface SystemSettings {
   registration_method: 'email' | 'whatsapp' | 'both';
   pro_monthly_price: string;
   pro_yearly_price: string;
+  legend_monthly_price: string;
+  legend_yearly_price: string;
   free_plan_product_limit: string;
   verification_provider: 'manual' | 'idenverify' | 'idanalyzer' | 'didit';
   idenverify_api_key: string;
@@ -129,6 +131,8 @@ export const defaultSettings: SystemSettings = {
   registration_method: 'whatsapp',
   pro_monthly_price: '1500',
   pro_yearly_price: '15000',
+  legend_monthly_price: '5000',
+  legend_yearly_price: '50000',
   free_plan_product_limit: '5',
   verification_provider: 'manual',
   idenverify_api_key: '',

@@ -33,11 +33,14 @@ interface Product {
   digital_file_url?: string | null;
   digital_link?: string | null;
   category?: Category | null;
-  type?: 'service' | 'product';
+  type?: 'service' | 'product' | 'ticket';
   duration_minutes?: number | null;
   service_facts?: string[] | null;
   mobile_fee?: number | string | null;
   mobile_fee_label?: string | null;
+  event_date?: string | null;
+  event_location?: string | null;
+  related_product_ids?: string[] | null;
 }
 
 interface Store {
@@ -138,7 +141,7 @@ function discountPercent(price: string, compare: string): number {
 // Classifier helper to determine if a product is a service
 function isProductService(product: Product, store: Store): boolean {
   if (product.type === 'service') return true;
-  if (product.type === 'product') return false;
+  if (product.type === 'product' || product.type === 'ticket') return false;
 
   // If product belongs to a service category
   const catName = (product.category?.name || '').toLowerCase();
@@ -258,7 +261,7 @@ export default function ProductDetailClient({
   const [checkoutWhatsapp, setCheckoutWhatsapp] = useState('');
   const [checkoutEmail, setCheckoutEmail] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup' | 'digital'>(
-    kind === 'service' ? 'pickup' : (initialProduct.is_digital ? 'digital' : 'delivery')
+    kind === 'service' || initialProduct.type === 'ticket' ? 'pickup' : (initialProduct.is_digital ? 'digital' : 'delivery')
   );
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -330,12 +333,25 @@ export default function ProductDetailClient({
   }, []);
   const slots = ["10:00 AM", "12:30 PM", "03:00 PM", "05:30 PM"];
 
-  // Filter other store products for Related Grid
+  // "You may also like" — merchant-curated picks first, then same-category,
+  // falling back to any other store product so the grid is never empty.
   const relatedProducts = useMemo(() => {
-    return allProducts
-      .filter(p => p.id !== initialProduct.id)
-      .slice(0, 4);
-  }, [allProducts, initialProduct.id]);
+    const others = allProducts.filter(p => p.id !== initialProduct.id);
+
+    if (initialProduct.related_product_ids && initialProduct.related_product_ids.length > 0) {
+      const curated = initialProduct.related_product_ids
+        .map(id => others.find(p => p.id === id))
+        .filter((p): p is Product => !!p);
+      if (curated.length > 0) return curated.slice(0, 4);
+    }
+
+    if (initialProduct.category_id) {
+      const sameCategory = others.filter(p => p.category_id === initialProduct.category_id);
+      if (sameCategory.length > 0) return sameCategory.slice(0, 4);
+    }
+
+    return others.slice(0, 4);
+  }, [allProducts, initialProduct.id, initialProduct.related_product_ids, initialProduct.category_id]);
 
   // Handle WhatsApp Question Link
   const handleAskQuestion = () => {
@@ -377,6 +393,8 @@ export default function ProductDetailClient({
       const selectedTime = bTime !== null ? slots[bTime] : 'Unspecified';
       const sessionType = deliveryMethod === 'delivery' ? 'Mobile Session' : 'Studio Session';
       finalAddress = `${sessionType} on ${selectedDay} at ${selectedTime}` + (deliveryMethod === 'delivery' ? ` | Address: ${deliveryAddress}` : '');
+    } else if (initialProduct.type === 'ticket') {
+      finalAddress = 'Event ticket — no delivery required';
     }
 
     try {
@@ -558,6 +576,30 @@ export default function ProductDetailClient({
                   {getIncludedList(initialProduct).map((x, i) => <li key={i}><Check size={15} /> {x}</li>)}
                 </ul>
               </section>
+            ) : initialProduct.type === "ticket" ? (
+              <section className="fs-sec">
+                <h2>Event details</h2>
+                <div className="fs-deliv">
+                  {initialProduct.event_date && (
+                    <div>
+                      <Calendar size={17} />
+                      <div>
+                        <b>Date &amp; time</b>
+                        <span>{new Date(initialProduct.event_date).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                      </div>
+                    </div>
+                  )}
+                  {initialProduct.event_location && (
+                    <div>
+                      <MapPin size={17} />
+                      <div>
+                        <b>Location</b>
+                        <span>{initialProduct.event_location}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
             ) : (
               <section className="fs-sec">
                 <h2>Delivery &amp; returns</h2>
@@ -627,6 +669,18 @@ export default function ProductDetailClient({
               {kind === "service" && <span className="fs-per" style={{ marginLeft: 6 }}>per session</span>}
             </div>
 
+            {/* Event details — shown for ticket-type products */}
+            {initialProduct.type === 'ticket' && (initialProduct.event_date || initialProduct.event_location) ? (
+              <div className="fs-facts">
+                {initialProduct.event_date ? (
+                  <div className="fs-fact"><Calendar size={16} /><span>{new Date(initialProduct.event_date).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' })}</span></div>
+                ) : null}
+                {initialProduct.event_location ? (
+                  <div className="fs-fact"><MapPin size={16} /><span>{initialProduct.event_location}</span></div>
+                ) : null}
+              </div>
+            ) : null}
+
             {/* Facts Panel for Service — only shown when merchant has set real data */}
             {kind === "service" && (initialProduct.duration_minutes || (initialProduct.service_facts && initialProduct.service_facts.length > 0)) ? (
               <div className="fs-facts">
@@ -664,8 +718,10 @@ export default function ProductDetailClient({
                   </div>
                 </div>
                 <div className="fs-stock">
-                  <Check size={13} /> 
-                  {initialProduct.stock_status === 'out_of_stock' ? "Special order request" : "In stock, ready to ship"}
+                  <Check size={13} />
+                  {initialProduct.type === 'ticket'
+                    ? (initialProduct.stock_status === 'out_of_stock' ? "Sold out" : "Tickets available")
+                    : (initialProduct.stock_status === 'out_of_stock' ? "Special order request" : "In stock, ready to ship")}
                 </div>
               </div>
             )}
@@ -777,6 +833,30 @@ export default function ProductDetailClient({
             <ul className="fs-incl">
               {getIncludedList(initialProduct).map((x, i) => <li key={i}><Check size={15} /> {x}</li>)}
             </ul>
+          </section>
+        ) : initialProduct.type === "ticket" ? (
+          <section className="fs-sec">
+            <h2>Event details</h2>
+            <div className="fs-deliv">
+              {initialProduct.event_date && (
+                <div>
+                  <Calendar size={17} />
+                  <div>
+                    <b>Date &amp; time</b>
+                    <span>{new Date(initialProduct.event_date).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                  </div>
+                </div>
+              )}
+              {initialProduct.event_location && (
+                <div>
+                  <MapPin size={17} />
+                  <div>
+                    <b>Location</b>
+                    <span>{initialProduct.event_location}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </section>
         ) : (
           <section className="fs-sec">
@@ -989,18 +1069,27 @@ export default function ProductDetailClient({
             <div>
               <label className="fs-opt-lbl">Fulfillment Method</label>
               <div className="fs-sizes" style={{ marginBottom: 10 }}>
-                {!initialProduct.is_digital && (
+                {initialProduct.type === 'ticket' ? (
+                  <button
+                    type="button"
+                    className="fs-size on"
+                    disabled
+                  >
+                    <b>Event Ticket</b>
+                    <span>No delivery needed</span>
+                  </button>
+                ) : !initialProduct.is_digital ? (
                   <>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className={`fs-size ${deliveryMethod === 'delivery' ? 'on' : ''}`}
                       onClick={() => setDeliveryMethod('delivery')}
                     >
                       <b>Door Delivery</b>
                       <span>Ship to my address</span>
                     </button>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className={`fs-size ${deliveryMethod === 'pickup' ? 'on' : ''}`}
                       onClick={() => setDeliveryMethod('pickup')}
                     >
@@ -1008,11 +1097,10 @@ export default function ProductDetailClient({
                       <span>Collect at store</span>
                     </button>
                   </>
-                )}
-                {initialProduct.is_digital && (
-                  <button 
-                    type="button" 
-                    className="fs-size on" 
+                ) : (
+                  <button
+                    type="button"
+                    className="fs-size on"
                     disabled
                   >
                     <b>Digital Delivery</b>

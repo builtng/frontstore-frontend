@@ -12,6 +12,7 @@ import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 import { calculateShippingFee } from "../../utils/shippingFee";
+import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface StoreData {
@@ -135,7 +136,7 @@ export default function FashionStorefront({
   useEffect(() => { if (!toastMsg) return; const t = setTimeout(() => setToastMsg(null), 2000); return () => clearTimeout(t); }, [toastMsg]);
 
   // Cart persistence
-  useEffect(() => { try { const s = localStorage.getItem(`frontstore_cart_${username}`); if (s) setBag(JSON.parse(s)); } catch { } }, [username]);
+  useEffect(() => { captureAffiliateRef(); try { const s = localStorage.getItem(`frontstore_cart_${username}`); if (s) setBag(JSON.parse(s)); } catch { } }, [username]);
   const saveCart = (b: CartItem[]) => { try { localStorage.setItem(`frontstore_cart_${username}`, JSON.stringify(b)); } catch { } };
 
   const bagCount = bag.reduce((n, b) => n + b.qty, 0);
@@ -255,6 +256,7 @@ export default function FashionStorefront({
           delivery_method: deliveryMethod, note: orderNote,
           items: bag.map(b => ({ product_id: b.id, quantity: b.qty })),
           coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
+          affiliate_code: getPersistedAffiliateRef(),
         }),
       });
       const json = await res.json();

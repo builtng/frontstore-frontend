@@ -516,6 +516,24 @@ export default function AdminSettingsPage() {
                   required
                 />
                 <Field
+                  label="Legend Monthly Price (NGN)"
+                  type="number"
+                  value={String(settings.legend_monthly_price)}
+                  onChange={(value) => setSettings({ ...settings, legend_monthly_price: value })}
+                  placeholder="e.g. 5000"
+                  description="Price charged for the Legend Monthly plan, in Naira."
+                  required
+                />
+                <Field
+                  label="Legend Yearly Price (NGN)"
+                  type="number"
+                  value={String(settings.legend_yearly_price)}
+                  onChange={(value) => setSettings({ ...settings, legend_yearly_price: value })}
+                  placeholder="e.g. 50000"
+                  description="Price charged for the Legend Yearly plan, in Naira."
+                  required
+                />
+                <Field
                   label="Free Plan Product Limit"
                   type="number"
                   value={String(settings.free_plan_product_limit)}

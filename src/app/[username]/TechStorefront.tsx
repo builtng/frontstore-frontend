@@ -13,6 +13,7 @@ import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
+import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 
 // --- Types & Interfaces ---
 interface StoreLink {
@@ -641,6 +642,7 @@ export default function TechStorefront({
 
   // Load Saved Client Profile
   useEffect(() => {
+    captureAffiliateRef();
     try {
       const savedProfile = localStorage.getItem('frontstore_customer_profile');
       if (savedProfile) {
@@ -803,6 +805,7 @@ export default function TechStorefront({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          affiliate_code: getPersistedAffiliateRef(),
           customer_name: customerName,
           customer_phone: customerPhone,
           customer_email: customerEmail || undefined,

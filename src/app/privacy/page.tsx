@@ -1,17 +1,22 @@
 'use client';
 
 import React from 'react';
-import { 
-  ArrowRight, 
-  ShieldCheck, 
-  Scale, 
-  FileText, 
-  Globe, 
-  MessageSquare, 
-  AlertTriangle, 
+import {
+  ArrowRight,
+  ShieldCheck,
+  Scale,
+  FileText,
+  Globe,
+  MessageSquare,
+  AlertTriangle,
   ArrowLeft,
   Database,
-  Eye
+  Eye,
+  Cookie,
+  Clock,
+  Lock,
+  Bell,
+  Mail
 } from 'lucide-react';
 import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
 
@@ -54,7 +59,7 @@ export default function PrivacyPage() {
                 <Globe size={20} style={{ color: 'var(--primary)' }} /> 1. Commitment to Data Privacy
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Frontstore (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) serves as a conversational commerce infrastructure. We handle data for two groups of users: **Merchants** (who create storefronts and sell products) and **Shoppers** (who browse stores, negotiate via chat, and place orders).
+Frontstore (&quot;Platform&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is owned and operated by <strong>Built Different LTD</strong>, and serves as a conversational commerce infrastructure. We handle data for two groups of users: **Merchants** (who create storefronts and sell products) and **Shoppers** (who browse stores, negotiate via chat, and place orders).
               </p>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 We are committed to operating in full compliance with regional privacy laws, including the <strong>Nigeria Data Protection Act (NDPR/NDPA)</strong>, Kenya&apos;s <strong>Data Protection Act</strong>, and South Africa&apos;s <strong>Protection of Personal Information Act (POPIA)</strong>, alongside international guidelines such as the General Data Protection Regulation (GDPR).
@@ -163,6 +168,87 @@ export default function PrivacyPage() {
                   <strong>Data Protection Officer:</strong> For any compliance inquiries, Data Subject Access Requests (DSAR), or privacy questions, contact our Data Protection Officer at `privacy@frontstore.ng`.
                 </li>
               </ul>
+            </section>
+
+            <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Cookie size={20} style={{ color: 'var(--primary)' }} /> 6. Cookies & Tracking Technologies
+              </h2>
+              <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
+                We use cookies and similar tracking technologies to keep storefronts fast and sessions secure on low-bandwidth connections.
+              </p>
+              <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55 }}>
+                <li>
+                  <strong>Essential Cookies:</strong> Maintain login sessions, cart contents, and authentication tokens. Disabling these will break checkout and dashboard access.
+                </li>
+                <li>
+                  <strong>Analytics Cookies:</strong> Help us understand storefront traffic and conversion patterns so we can improve page load times across markets.
+                </li>
+                <li>
+                  <strong>Preference Cookies:</strong> Remember display currency, language, and theme selections between visits.
+                </li>
+              </ul>
+              <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.55 }}>
+                You can disable non-essential cookies through your browser settings at any time.
+              </p>
+            </section>
+
+            <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Clock size={20} style={{ color: 'var(--primary)' }} /> 7. Data Retention
+              </h2>
+              <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55 }}>
+                <li>
+                  <strong>Active Accounts:</strong> Merchant and shopper data is retained for as long as the account remains active on the platform.
+                </li>
+                <li>
+                  <strong>Financial Records:</strong> Transaction and settlement records are kept for a minimum of 6 years to comply with tax and anti-money laundering obligations in the jurisdictions we operate in.
+                </li>
+                <li>
+                  <strong>Chat Transcripts:</strong> AI chat logs are retained for up to 12 months to support dispute resolution and quality review, after which they are anonymized or deleted.
+                </li>
+                <li>
+                  <strong>Account Closure:</strong> Personal data is purged within 30 business days of a verified deletion request, except where retention is required by law.
+                </li>
+              </ul>
+            </section>
+
+            <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Lock size={20} style={{ color: 'var(--primary)' }} /> 8. Security Measures
+              </h2>
+              <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
+                We apply industry-standard safeguards to protect merchant and shopper data:
+              </p>
+              <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55 }}>
+                <li>
+                  <strong>Encryption:</strong> Data is encrypted in transit via TLS and at rest for sensitive fields such as KYC documents and settlement details.
+                </li>
+                <li>
+                  <strong>Access Controls:</strong> Internal access to personal data is role-based and limited to staff who need it to perform their duties.
+                </li>
+                <li>
+                  <strong>Breach Notification:</strong> In the event of a data breach affecting your personal information, we will notify affected users and relevant regulators within the timeframes required by applicable law.
+                </li>
+              </ul>
+            </section>
+
+            <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Bell size={20} style={{ color: 'var(--primary)' }} /> 9. Changes to This Policy
+              </h2>
+              <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
+                We may update this policy as our practices evolve or as new legal requirements apply. Material changes will be communicated by email or dashboard notice at least 7 days before they take effect. The &quot;Last updated&quot; date at the top of this page always reflects the most recent revision, and continued use of Frontstore after changes take effect constitutes acceptance of the updated policy.
+              </p>
+            </section>
+
+            <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Mail size={20} style={{ color: 'var(--primary)' }} /> 10. Marketing Communications
+              </h2>
+              <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
+                With your consent, we may send product updates and promotional offers by email, SMS, or WhatsApp. You can opt out at any time using the unsubscribe link in any marketing message or by replying STOP. Opting out of marketing does not affect transactional notifications (order confirmations, delivery updates, account alerts), which are necessary for us to deliver the service.
+              </p>
             </section>
 
           </main>

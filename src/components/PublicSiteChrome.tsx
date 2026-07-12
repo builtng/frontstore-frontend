@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, Calculator, ChevronRight, HelpCircle, Menu, Newspaper, PlayCircle, Store, X } from 'lucide-react';
+import { ArrowRight, Calculator, ChevronRight, HelpCircle, Menu, Newspaper, PlayCircle, Store, Percent, X } from 'lucide-react';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 
 const NAV_LINKS = [
   { href: '/stores', label: 'Stores', icon: Store },
+  { href: '/pricing', label: 'Pricing', icon: Percent },
   { href: '/demo', label: 'Live Demo', icon: PlayCircle },
   { href: '/tools', label: 'Free Tools', icon: Calculator },
   { href: '/blog', label: 'Blog', icon: Newspaper },
@@ -192,35 +193,52 @@ export function PublicSiteFooter() {
   }, []);
 
   return (
-    <footer style={{
-      padding: '24px 20px',
-      borderTop: '1px solid var(--border)',
-      background: 'var(--surface)',
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: 12,
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginTop: 48
-    }}>
-      <a href="/" style={{ display: 'inline-flex' }}>
-        <Logo size={20} textColor="var(--primary)" text={appName} />
-      </a>
-      <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center' }}>
-        © {new Date().getFullYear()} {appName}. Africa's #1 WhatsApp commerce platform.
-      </p>
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <a href="/stores" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Stores</a>
-        <a href="/business" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>For Business</a>
-        <a href="/demo" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Live Demo</a>
-        <a href="/solutions" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Guides</a>
-        <a href="/vs" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Compare</a>
-        <a href="/tools" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Free Tools</a>
-        <a href="/blog" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Blog</a>
-        <a href={isLoggedIn ? '/dashboard' : '/signup'} style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>{isLoggedIn ? 'Dashboard' : 'Sign up'}</a>
-        <a href="/privacy" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
-        <a href="/terms" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
-        <a href="/docs" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Help</a>
+    <footer className="site-footer">
+      <img src="/logo-mark.png" alt="" aria-hidden="true" className="site-footer__watermark" />
+
+      <div className="site-footer__inner">
+        <div className="site-footer__top">
+          <div className="site-footer__brand">
+            <a href="/" style={{ display: 'inline-flex' }}>
+              <Logo size={22} textColor="var(--primary)" text={appName} />
+            </a>
+            <p>Africa's #1 WhatsApp commerce platform — sell, get paid, and manage orders without leaving the chat.</p>
+          </div>
+
+          <div className="site-footer__col">
+            <h4>Product</h4>
+            <a href="/stores">Stores</a>
+            <a href="/pricing">Pricing</a>
+            <a href="/demo">Live Demo</a>
+            <a href="/tools">Free Tools</a>
+            <a href="/integrations">Integrations</a>
+          </div>
+
+          <div className="site-footer__col">
+            <h4>Company</h4>
+            <a href="/business">For Business</a>
+            <a href="/solutions">Guides</a>
+            <a href="/vs">Compare</a>
+            <a href="/blog">Blog</a>
+          </div>
+
+          <div className="site-footer__col">
+            <h4>Account</h4>
+            <a href="/docs">Help</a>
+            <a href={isLoggedIn ? '/dashboard' : '/signup'}>{isLoggedIn ? 'Dashboard' : 'Sign up'}</a>
+          </div>
+
+          <div className="site-footer__col">
+            <h4>Legal</h4>
+            <a href="/privacy">Privacy</a>
+            <a href="/terms">Terms</a>
+            <a href="/dmca">DMCA</a>
+          </div>
+        </div>
+
+        <div className="site-footer__bottom">
+          <span>© {new Date().getFullYear()} {appName}. All rights reserved.</span>
+        </div>
       </div>
     </footer>
   );

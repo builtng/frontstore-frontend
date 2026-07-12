@@ -14,6 +14,7 @@ import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { storePath } from "../../utils/storePath";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
+import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 
 const EXTENSION_SUBSTRING_ERROR = "Cannot read properties of undefined (reading 'substring')";
 
@@ -605,6 +606,7 @@ export default function BeautyStorefront({
 
   // Load Saved Client Profile
   useEffect(() => {
+    captureAffiliateRef();
     try {
       const savedProfile = localStorage.getItem('frontstore_customer_profile');
       if (savedProfile) {
@@ -919,7 +921,8 @@ export default function BeautyStorefront({
             product_id: item.id,
             quantity: item.qty
           })),
-          coupon_code: appliedCoupon ? appliedCoupon.code : undefined
+          coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
+          affiliate_code: getPersistedAffiliateRef()
         })
       });
 

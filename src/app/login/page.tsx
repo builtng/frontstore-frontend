@@ -63,6 +63,8 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const [loginMethod, setLoginMethod] = useState<'phone' | 'email'>('phone');
+  const [needsEmail, setNeedsEmail] = useState(false);
+  const [otpEmail, setOtpEmail] = useState('');
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
@@ -157,12 +159,17 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
         body: JSON.stringify(
           isEmail
             ? { email: trimmed }
-            : { phone_number: phoneVal, country_dial_code: selectedCountry.dialCode }
+            : { phone_number: phoneVal, country_dial_code: selectedCountry.dialCode, email: needsEmail ? otpEmail.trim() : undefined }
         ),
       });
 
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'Failed to send verification code.');
+
+      if (json.needs_email) {
+        setNeedsEmail(true);
+        return;
+      }
 
       setSuccessMsg(json.message || 'Verification code sent!');
       setStep('otp');
@@ -329,7 +336,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
               <div style={{ display: 'flex', gap: 8, padding: 4, borderRadius: 'var(--r-md)', background: 'var(--bg-2)', border: '1px solid var(--border)' }}>
                 <button
                   type="button"
-                  onClick={() => { setLoginMethod('phone'); setLoginIdentifier(''); setError(null); }}
+                  onClick={() => { setLoginMethod('phone'); setLoginIdentifier(''); setError(null); setNeedsEmail(false); setOtpEmail(''); }}
                   style={{
                     flex: 1, padding: '8px 12px', borderRadius: 'var(--r-md)', border: 'none', cursor: 'pointer',
                     background: loginMethod === 'phone' ? 'var(--surface)' : 'transparent',
@@ -343,7 +350,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setLoginMethod('email'); setLoginIdentifier(''); setError(null); }}
+                  onClick={() => { setLoginMethod('email'); setLoginIdentifier(''); setError(null); setNeedsEmail(false); setOtpEmail(''); }}
                   style={{
                     flex: 1, padding: '8px 12px', borderRadius: 'var(--r-md)', border: 'none', cursor: 'pointer',
                     background: loginMethod === 'email' ? 'var(--surface)' : 'transparent',
@@ -459,14 +466,47 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
                 </div>
               )}
               <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-                {isAdminMode
+                {isAdminMode || loginMethod === 'email'
                   ? 'A one-time login code will be sent to your email.'
-                  : loginMethod === 'email'
-                    ? 'A one-time code will be sent to your registered email.'
-                    : 'A one-time code will be sent to your WhatsApp number.'
+                  : 'A one-time code will be sent to the email on your account.'
                 }
               </span>
             </div>
+
+            {!isAdminMode && loginMethod === 'phone' && needsEmail && (
+              <div>
+                <label
+                  htmlFor="otpEmail"
+                  style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
+                >
+                  Email Address
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="otpEmail"
+                    type="email"
+                    required
+                    placeholder="you@example.com"
+                    value={otpEmail}
+                    onChange={e => setOtpEmail(e.target.value)}
+                    onFocus={() => setFocusedInput('otpEmail')}
+                    onBlur={() => setFocusedInput(null)}
+                    className="input-field"
+                    style={{ paddingLeft: 44, borderColor: focusedInput === 'otpEmail' ? 'var(--primary)' : 'var(--border)' }}
+                    autoComplete="email"
+                    autoFocus
+                  />
+                  <Mail size={18} style={{
+                    position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                    color: focusedInput === 'otpEmail' ? 'var(--primary)' : 'var(--text-faint)',
+                    transition: 'color var(--t-fast)'
+                  }} />
+                </div>
+                <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                  We couldn't find an email on this account — enter one to receive your code.
+                </span>
+              </div>
+            )}
           </div>
 
           <button

@@ -237,7 +237,7 @@ const DEFAULT_COMPARISON_ROWS = [
   { feat: 'Mobile first Merchant Operations', alo: 'Manage store fully on 3G mobile network', sho: 'Complex desk oriented admin dashboard', oth: 'Limited mobile configuration' },
   { feat: 'African Payment Rails', alo: 'Escrow options + Paystack/Flutterwave/Mobile Money', sho: 'High card fees, complex setup for Africa', oth: 'Standard payments only, no escrow' },
   { feat: 'Setup Speed', alo: 'Under 2 minutes (claim & launch immediately)', sho: 'Hours/Days of theme editing', oth: '5-15 minutes configuration' },
-  { feat: 'Pricing', alo: '₦1,500/month or ₦15,000/year flat — no tiers', sho: '$5–$399+/month by tier, Plus from $2,300+/month', oth: 'Bumpa: ₦15k–30k+/quarter by tier · Selar: free to start + ~₦22,500/month premium' },
+  { feat: 'Pricing', alo: 'Free, Pro ₦1,500/mo, or Legend ₦5,000/mo — same flat 1.5% fee on every tier', sho: '$5–$399+/month by tier, Plus from $2,300+/month', oth: 'Bumpa: ₦15k–30k+/quarter by tier · Selar: free to start + ~₦22,500/month premium' },
 ];
 
 const DEFAULT_HOME_CONTENT = {

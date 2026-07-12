@@ -13,7 +13,7 @@ import {
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck, BookOpen,
   ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer, Inbox, MessageSquare, Mail,
   Briefcase, CreditCard, Landmark, PenLine, Truck, Scale, Sparkles, LineChart, Archive,
-  UserPlus, ShieldCheck, Laptop, Bell
+  UserPlus, ShieldCheck, Laptop, Bell, Ticket, Plug
 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
@@ -27,6 +27,7 @@ import FileUpload from '../../components/FileUpload';
 import ThemeToggle from '../../components/ThemeToggle';
 import Toggle from '../../components/Toggle';
 import NinaWidget from '../../components/NinaWidget';
+import IntegrationsTab from '../../components/dashboard/IntegrationsTab';
 import { businessPersonas } from '../../utils/businessPersonas';
 import { getServiceFactPresets } from '../../utils/serviceFactPresets';
 
@@ -90,6 +91,8 @@ interface StoreInfo {
   instagram_handle?: string | null;
   tiktok_handle?: string | null;
   twitter_handle?: string | null;
+  facebook_pixel_id?: string | null;
+  google_tag_manager_id?: string | null;
   is_active?: boolean;
   bank_name?: string | null;
   bank_account_number?: string | null;
@@ -159,7 +162,7 @@ interface Product {
   is_digital?: boolean;
   digital_file_url?: string | null;
   digital_link?: string | null;
-  type?: 'product' | 'service' | null;
+  type?: 'product' | 'service' | 'bundle' | 'ticket' | null;
   duration_minutes?: number | null;
   service_facts?: string[] | null;
   mobile_fee?: number | string | null;
@@ -169,6 +172,15 @@ interface Product {
   track_inventory?: boolean;
   inventory_quantity?: number;
   low_stock_threshold?: number | null;
+  expected_availability_date?: string | null;
+  event_date?: string | null;
+  event_location?: string | null;
+  bundle_items?: { id: string; child_product_id: string; quantity: number; child_product?: { id: string; name: string } }[];
+  related_product_ids?: string[] | null;
+  qr_code_url?: string | null;
+  digital_files?: { path: string; name: string }[] | null;
+  download_limit?: number | null;
+  read_online_only?: boolean;
 }
 
 interface OrderItem {
@@ -236,9 +248,9 @@ interface BroadcastCampaign {
   created_at: string;
 }
 
-type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings' | 'invoices' | 'receipts' | 'inventory' | 'automations' | 'analytics' | 'team' | 'finance' | 'refunds' | 'inbox' | 'coupons';
+type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings' | 'invoices' | 'receipts' | 'payment-links' | 'inventory' | 'automations' | 'analytics' | 'team' | 'finance' | 'refunds' | 'inbox' | 'coupons' | 'affiliates' | 'integrations' | 'customers';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings', 'invoices', 'receipts', 'inventory', 'automations', 'analytics', 'team', 'finance', 'refunds', 'inbox', 'coupons'];
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings', 'invoices', 'receipts', 'payment-links', 'inventory', 'automations', 'analytics', 'team', 'finance', 'refunds', 'inbox', 'coupons', 'affiliates', 'integrations', 'customers'];
 
 const BROADCAST_AUDIENCES: Array<{ id: 'all' | 'repeat' | 'unpaid_whatsapp'; label: string; description: string }> = [
   { id: 'all', label: 'All customers', description: 'Everyone who has ever placed an order with your store.' },
@@ -335,7 +347,8 @@ export default function DashboardPage() {
   // --- Auth & API Settings State ---
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserInfo | null>(null);
-  const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
+  const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly' || user?.plan === 'legend_monthly' || user?.plan === 'legend_yearly';
+  const isLegend = user?.plan === 'legend_monthly' || user?.plan === 'legend_yearly';
 
   // State wrapper helper for functional & direct updates
   const wrapSetter = <T,>(
@@ -468,7 +481,15 @@ export default function DashboardPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [proMonthlyPrice, setProMonthlyPrice] = useState(1500);
   const [proYearlyPrice, setProYearlyPrice] = useState(15000);
-  const [freeProductLimit, setFreeProductLimit] = useState(5);
+  const [freeProductLimit, setFreeProductLimit] = useState(40);
+
+  // Billing cycle + coupon state for the Legend Subscription Plan (independent of Pro's above)
+  const [legendBillingCycle, setLegendBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [legendMonthlyPrice, setLegendMonthlyPrice] = useState(5000);
+  const [legendYearlyPrice, setLegendYearlyPrice] = useState(50000);
+  const [legendCouponCode, setLegendCouponCode] = useState('');
+  const [isValidatingLegendCoupon, setIsValidatingLegendCoupon] = useState(false);
+  const [appliedLegendCoupon, setAppliedLegendCoupon] = useState<any>(null);
 
 
   // --- Active Dialog/Modal States ---
@@ -499,6 +520,19 @@ export default function DashboardPage() {
     due_date: '',
     notes: ''
   });
+
+  // Payment Links State
+  const [paymentLinks, setPaymentLinks] = useState<any[]>([]);
+  const [paymentLinksLoading, setPaymentLinksLoading] = useState(false);
+  const [isAddPaymentLinkOpen, setIsAddPaymentLinkOpen] = useState(false);
+  const [newPaymentLinkData, setNewPaymentLinkData] = useState({
+    title: '',
+    amount: '',
+    allow_custom_amount: false,
+    type: 'one_time' as 'one_time' | 'reusable',
+    expires_at: ''
+  });
+  const [createdPaymentLink, setCreatedPaymentLink] = useState<any>(null);
 
   // Receipts State
   const [receipts, setReceipts] = useState<any[]>([]);
@@ -912,13 +946,25 @@ export default function DashboardPage() {
   const [prodDigitalFileUrl, setProdDigitalFileUrl] = useState('');
   const [prodDigitalLink, setProdDigitalLink] = useState('');
   const [prodDigitalUploading, setProdDigitalUploading] = useState(false);
+  const [prodDigitalFiles, setProdDigitalFiles] = useState<{ path: string; name: string }[]>([]);
+  const [prodDownloadLimit, setProdDownloadLimit] = useState('');
+  const [prodReadOnlineOnly, setProdReadOnlineOnly] = useState(false);
   // Service product states
-  const [prodType, setProdType] = useState<'product' | 'service'>('product');
+  const [prodType, setProdType] = useState<'product' | 'service' | 'bundle' | 'ticket'>('product');
   const [prodDurationMinutes, setProdDurationMinutes] = useState('');
   const [prodServiceFacts, setProdServiceFacts] = useState<string[]>([]);
   const [prodMobileFee, setProdMobileFee] = useState('');
   const [prodMobileFeeLabel, setProdMobileFeeLabel] = useState('');
   const [prodCustomFact, setProdCustomFact] = useState('');
+  // Pre-order
+  const [prodExpectedAvailabilityDate, setProdExpectedAvailabilityDate] = useState('');
+  // Bundle product states
+  const [prodBundleItems, setProdBundleItems] = useState<{ product_id: string; quantity: number }[]>([]);
+  // Cross-sell (merchant-curated related products, optional — auto-falls back to same-category on the storefront)
+  const [prodRelatedProductIds, setProdRelatedProductIds] = useState<string[]>([]);
+  // Ticket (event) product states
+  const [prodEventDate, setProdEventDate] = useState('');
+  const [prodEventLocation, setProdEventLocation] = useState('');
 
   // Storefront Coupons
   const [storeCoupons, setStoreCoupons] = useState<any[]>([]);
@@ -932,6 +978,26 @@ export default function DashboardPage() {
   const [storeCouponMaxUses, setStoreCouponMaxUses] = useState('');
   const [storeCouponExpiresAt, setStoreCouponExpiresAt] = useState('');
   const [storeCouponSaving, setStoreCouponSaving] = useState(false);
+
+  // Affiliates
+  const [affiliates, setAffiliates] = useState<any[]>([]);
+  const [affiliatesLoading, setAffiliatesLoading] = useState(false);
+  const [isAffiliateModalOpen, setIsAffiliateModalOpen] = useState(false);
+  const [editingAffiliate, setEditingAffiliate] = useState<any>(null);
+  const [affiliateEmail, setAffiliateEmail] = useState('');
+  const [affiliateName, setAffiliateName] = useState('');
+  const [affiliateProductRates, setAffiliateProductRates] = useState<Record<string, string>>({});
+  const [affiliateSaving, setAffiliateSaving] = useState(false);
+
+  // Customers (CRM)
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [customersLoading, setCustomersLoading] = useState(false);
+  const [expandedCustomerId, setExpandedCustomerId] = useState<string | null>(null);
+  const [customerNotes, setCustomerNotes] = useState<Record<string, any[]>>({});
+  const [customerNotesLoading, setCustomerNotesLoading] = useState(false);
+  const [newCustomerNote, setNewCustomerNote] = useState('');
+  const [newCustomerTag, setNewCustomerTag] = useState('');
+  const [customerTagSaving, setCustomerTagSaving] = useState<string | null>(null);
 
   // Settings Form
   const [setStoreUsername, setSetStoreUsername] = useState('');
@@ -970,6 +1036,8 @@ export default function DashboardPage() {
   const [setInstagram, setSetInstagram] = useState('');
   const [setTiktok, setSetTiktok] = useState('');
   const [setTwitter, setSetTwitter] = useState('');
+  const [setFacebookPixelId, setSetFacebookPixelId] = useState('');
+  const [setGoogleTagManagerId, setSetGoogleTagManagerId] = useState('');
   const [setCurrency, setSetCurrency] = useState('NGN');
   const [setStoreCountryCode, setSetStoreCountryCode] = useState('');
   const [setPaymentProvider, setSetPaymentProvider] = useState('');
@@ -1014,6 +1082,12 @@ export default function DashboardPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [bookingActionId, setBookingActionId] = useState<string | null>(null);
+  const [ticketCheckInCode, setTicketCheckInCode] = useState('');
+  const [ticketCheckInLoading, setTicketCheckInLoading] = useState(false);
+  const [ticketCheckInResult, setTicketCheckInResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [ticketSearchQuery, setTicketSearchQuery] = useState('');
 
   // Blog posts management states
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
@@ -1280,6 +1354,8 @@ export default function DashboardPage() {
               setSetInstagram(parsedStore.instagram_handle || '');
               setSetTiktok(parsedStore.tiktok_handle || '');
               setSetTwitter(parsedStore.twitter_handle || '');
+              setSetFacebookPixelId(parsedStore.facebook_pixel_id || '');
+              setSetGoogleTagManagerId(parsedStore.google_tag_manager_id || '');
               setSetCurrency(parsedStore.currency_code || 'NGN');
               setSetStoreCountryCode(parsedStore.country_code || '');
               setSetPaymentProvider(parsedStore.payment_provider || '');
@@ -1350,6 +1426,10 @@ export default function DashboardPage() {
         const yearly = Number(json?.data?.pro_yearly_price);
         if (!Number.isNaN(monthly) && monthly > 0) setProMonthlyPrice(monthly);
         if (!Number.isNaN(yearly) && yearly > 0) setProYearlyPrice(yearly);
+        const legendMonthly = Number(json?.data?.legend_monthly_price);
+        const legendYearly = Number(json?.data?.legend_yearly_price);
+        if (!Number.isNaN(legendMonthly) && legendMonthly > 0) setLegendMonthlyPrice(legendMonthly);
+        if (!Number.isNaN(legendYearly) && legendYearly > 0) setLegendYearlyPrice(legendYearly);
         const productLimit = Number(json?.data?.free_plan_product_limit);
         if (!Number.isNaN(productLimit) && productLimit > 0) setFreeProductLimit(productLimit);
         if (json?.data?.domain_target_cname) setDomainTargetCname(json.data.domain_target_cname);
@@ -1690,6 +1770,8 @@ export default function DashboardPage() {
         setSetInstagram(liveStore.instagram_handle || '');
         setSetTiktok(liveStore.tiktok_handle || '');
         setSetTwitter(liveStore.twitter_handle || '');
+        setSetFacebookPixelId(liveStore.facebook_pixel_id || '');
+        setSetGoogleTagManagerId(liveStore.google_tag_manager_id || '');
         setSetCurrency(liveStore.currency_code || 'NGN');
         setSetStoreCountryCode(liveStore.country_code || '');
         setSetPaymentProvider(liveStore.payment_provider || '');
@@ -1854,7 +1936,107 @@ export default function DashboardPage() {
     if (activeTab === 'coupons') {
       loadStoreCoupons();
     }
+    if (activeTab === 'affiliates') {
+      loadAffiliates();
+    }
   }, [activeTab]);
+
+  const loadAffiliates = async () => {
+    if (!token) return;
+    try {
+      setAffiliatesLoading(true);
+      const res = await fetch(`${apiUrl}/v1/affiliates`, { headers: getAuthHeaders() });
+      if (res.ok) {
+        const json = await res.json();
+        setAffiliates(json.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to load affiliates:', err);
+    } finally {
+      setAffiliatesLoading(false);
+    }
+  };
+
+  const handleToggleAffiliateStatus = async (id: string) => {
+    try {
+      const res = await fetch(`${apiUrl}/v1/affiliates/${id}/toggle-status`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success(json.message || 'Affiliate status updated.');
+        loadAffiliates();
+      } else {
+        toast.error(json.message || 'Failed to update affiliate status.');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred.');
+    }
+  };
+
+  const handleSaveAffiliate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const productRates = Object.entries(affiliateProductRates)
+      .filter(([, percent]) => percent && parseFloat(percent) > 0)
+      .map(([product_id, percent]) => ({ product_id, commission_percent: parseFloat(percent) }));
+
+    if (productRates.length === 0) {
+      toast.warning('Set a commission rate for at least one product.');
+      return;
+    }
+
+    try {
+      setAffiliateSaving(true);
+
+      if (editingAffiliate) {
+        const res = await fetch(`${apiUrl}/v1/affiliates/${editingAffiliate.id}/products`, {
+          method: 'PUT',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ products: productRates }),
+        });
+        const json = await res.json();
+        if (res.ok) {
+          toast.success(json.message || 'Commission rates updated.');
+          setIsAffiliateModalOpen(false);
+          loadAffiliates();
+        } else {
+          toast.error(json.message || 'Failed to update commission rates.');
+        }
+        return;
+      }
+
+      if (!affiliateEmail.trim()) {
+        toast.warning('Please enter the affiliate\'s email address.');
+        return;
+      }
+
+      const res = await fetch(`${apiUrl}/v1/affiliates`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          email: affiliateEmail.trim(),
+          name: affiliateName.trim() || undefined,
+          products: productRates,
+        }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success(json.message || 'Affiliate invited successfully.');
+        setIsAffiliateModalOpen(false);
+        setAffiliateEmail('');
+        setAffiliateName('');
+        setAffiliateProductRates({});
+        loadAffiliates();
+      } else {
+        toast.error(json.message || 'Failed to invite affiliate.');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred.');
+    } finally {
+      setAffiliateSaving(false);
+    }
+  };
 
   const fetchWalletData = async () => {
     if (!token) return;
@@ -2071,6 +2253,39 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchPaymentLinksData = async () => {
+    try {
+      setPaymentLinksLoading(true);
+      const res = await fetch(`${apiUrl}/v1/payment-links`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setPaymentLinks(json.data || []);
+      }
+    } catch (e) {
+      toast.error("Failed to load payment links.");
+    } finally {
+      setPaymentLinksLoading(false);
+    }
+  };
+
+  const fetchTicketsData = async (q?: string) => {
+    try {
+      setTicketsLoading(true);
+      const query = q ? `?q=${encodeURIComponent(q)}` : '';
+      const res = await fetch(`${apiUrl}/v1/tickets${query}`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setTickets(json.data?.data || json.data || []);
+      } else {
+        toast.error(json.message || 'Failed to load tickets.');
+      }
+    } catch (e) {
+      toast.error("Failed to load tickets.");
+    } finally {
+      setTicketsLoading(false);
+    }
+  };
+
   const fetchReceiptsData = async () => {
     if (!isPro) return;
     try {
@@ -2250,9 +2465,109 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchCustomersData = async () => {
+    try {
+      setCustomersLoading(true);
+      const res = await fetch(`${apiUrl}/v1/customers`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setCustomers(json.data?.data || []);
+      } else {
+        toast.error(json.message || 'Failed to load customers.');
+      }
+    } catch (e) {
+      toast.error('Failed to load customers.');
+    } finally {
+      setCustomersLoading(false);
+    }
+  };
+
+  const fetchCustomerNotes = async (customerId: string) => {
+    try {
+      setCustomerNotesLoading(true);
+      const res = await fetch(`${apiUrl}/v1/customers/${customerId}/notes`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setCustomerNotes(prev => ({ ...prev, [customerId]: json.data || [] }));
+      }
+    } catch (e) {
+      toast.error('Failed to load customer notes.');
+    } finally {
+      setCustomerNotesLoading(false);
+    }
+  };
+
+  const handleAddCustomerNote = async (customerId: string) => {
+    if (!newCustomerNote.trim()) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/customers/${customerId}/notes`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ note: newCustomerNote.trim() }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setCustomerNotes(prev => ({ ...prev, [customerId]: [json.data, ...(prev[customerId] || [])] }));
+        setNewCustomerNote('');
+      } else {
+        toast.error(json.message || 'Failed to add note.');
+      }
+    } catch (e) {
+      toast.error('Failed to add note.');
+    }
+  };
+
+  const handleAddCustomerTag = async (customerId: string, currentTags: string[]) => {
+    const tag = newCustomerTag.trim();
+    if (!tag || currentTags.includes(tag)) return;
+    const updatedTags = [...currentTags, tag];
+    try {
+      setCustomerTagSaving(customerId);
+      const res = await fetch(`${apiUrl}/v1/customers/${customerId}/tags`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ tags: updatedTags }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setCustomers(prev => prev.map(c => c.id === customerId ? { ...c, tags: updatedTags } : c));
+        setNewCustomerTag('');
+      } else {
+        toast.error(json.message || 'Failed to update tags.');
+      }
+    } catch (e) {
+      toast.error('Failed to update tags.');
+    } finally {
+      setCustomerTagSaving(null);
+    }
+  };
+
+  const handleRemoveCustomerTag = async (customerId: string, currentTags: string[], tagToRemove: string) => {
+    const updatedTags = currentTags.filter(t => t !== tagToRemove);
+    try {
+      setCustomerTagSaving(customerId);
+      const res = await fetch(`${apiUrl}/v1/customers/${customerId}/tags`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ tags: updatedTags }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setCustomers(prev => prev.map(c => c.id === customerId ? { ...c, tags: updatedTags } : c));
+      } else {
+        toast.error(json.message || 'Failed to update tags.');
+      }
+    } catch (e) {
+      toast.error('Failed to update tags.');
+    } finally {
+      setCustomerTagSaving(null);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       if (activeTab === 'invoices') fetchInvoicesData();
+      if (activeTab === 'payment-links') fetchPaymentLinksData();
       if (activeTab === 'receipts') fetchReceiptsData();
       if (activeTab === 'inventory') fetchInventoryLogsData();
       if (activeTab === 'automations') fetchAutomationSettingsData();
@@ -2261,6 +2576,7 @@ export default function DashboardPage() {
       if (activeTab === 'finance') fetchFinanceData();
       if (activeTab === 'refunds') fetchRefundsData();
       if (activeTab === 'inbox') fetchInboxData();
+      if (activeTab === 'customers') fetchCustomersData();
     }
   }, [isAuthenticated, activeTab, isPro, financeRange]);
 
@@ -2274,7 +2590,7 @@ export default function DashboardPage() {
       const json = await res.json();
       if (res.ok) {
         setWithdrawalOtpSent(true);
-        toast.success(json.message || 'Verification code sent to your WhatsApp number.');
+        toast.success(json.message || 'Verification code sent to your email.');
       } else {
         toast.error(json.message || 'Failed to send verification code.');
       }
@@ -2483,6 +2799,14 @@ export default function DashboardPage() {
     setProdDurationMinutes('');
     setProdServiceFacts([]);
     setProdCustomFact('');
+    setProdExpectedAvailabilityDate('');
+    setProdBundleItems([]);
+    setProdRelatedProductIds([]);
+    setProdDigitalFiles([]);
+    setProdDownloadLimit('');
+    setProdReadOnlineOnly(false);
+    setProdEventDate('');
+    setProdEventLocation('');
     setIsAddProductOpen(true);
   };
 
@@ -2651,6 +2975,7 @@ export default function DashboardPage() {
         category_id: prodCategory || null,
         description: prodDesc || null,
         stock_status: prodIsDigital ? 'in_stock' : prodStock,
+        expected_availability_date: prodStock === 'preorder' && prodExpectedAvailabilityDate ? prodExpectedAvailabilityDate : null,
         is_draft: false,
         image_urls: prodImageUrls,
         is_digital: prodIsDigital,
@@ -2662,6 +2987,13 @@ export default function DashboardPage() {
         mobile_fee: prodType === 'service' && prodMobileFee ? parseFloat(prodMobileFee) : null,
         mobile_fee_label: prodType === 'service' && prodMobileFeeLabel ? prodMobileFeeLabel.trim() : null,
         tags: prodTags.length > 0 ? prodTags : null,
+        bundle_items: prodType === 'bundle' ? prodBundleItems : undefined,
+        related_product_ids: prodRelatedProductIds.length > 0 ? prodRelatedProductIds : null,
+        digital_files: prodDigitalFiles.length > 0 ? prodDigitalFiles : null,
+        download_limit: prodDigitalFiles.length > 0 && prodDownloadLimit ? parseInt(prodDownloadLimit, 10) : null,
+        read_online_only: prodDigitalFiles.length > 0 ? prodReadOnlineOnly : false,
+        event_date: prodType === 'ticket' ? (prodEventDate || null) : null,
+        event_location: prodType === 'ticket' ? (prodEventLocation || null) : null,
       };
 
       const res = await fetch(`${apiUrl}/v1/products`, {
@@ -2697,7 +3029,7 @@ export default function DashboardPage() {
     setProdIsDigital(product.is_digital ?? false);
     setProdDigitalFileUrl(product.digital_file_url || '');
     setProdDigitalLink(product.digital_link || '');
-    setProdType(product.type === 'service' ? 'service' : 'product');
+    setProdType(product.type === 'service' || product.type === 'bundle' || product.type === 'ticket' ? product.type : 'product');
     setProdDurationMinutes(product.duration_minutes ? String(product.duration_minutes) : '');
     setProdServiceFacts(Array.isArray(product.service_facts) ? product.service_facts : []);
     setProdMobileFee(product.mobile_fee != null ? String(product.mobile_fee) : '');
@@ -2706,6 +3038,14 @@ export default function DashboardPage() {
     setProdTags(Array.isArray(product.tags) ? product.tags : []);
     setProdTagInput('');
     setAiAnalyzing(false);
+    setProdExpectedAvailabilityDate(product.expected_availability_date ? product.expected_availability_date.slice(0, 10) : '');
+    setProdBundleItems(Array.isArray(product.bundle_items) ? product.bundle_items.map(bi => ({ product_id: bi.child_product_id, quantity: bi.quantity })) : []);
+    setProdRelatedProductIds(Array.isArray(product.related_product_ids) ? product.related_product_ids : []);
+    setProdDigitalFiles(Array.isArray(product.digital_files) ? product.digital_files : []);
+    setProdDownloadLimit(product.download_limit != null ? String(product.download_limit) : '');
+    setProdReadOnlineOnly(product.read_online_only ?? false);
+    setProdEventDate(product.event_date ? product.event_date.slice(0, 16) : '');
+    setProdEventLocation(product.event_location || '');
     setIsEditProductOpen(true);
   };
 
@@ -2726,6 +3066,7 @@ export default function DashboardPage() {
         category_id: prodCategory || null,
         description: prodDesc || null,
         stock_status: prodIsDigital ? 'in_stock' : prodStock,
+        expected_availability_date: prodStock === 'preorder' && prodExpectedAvailabilityDate ? prodExpectedAvailabilityDate : null,
         image_urls: prodImageUrls,
         is_digital: prodIsDigital,
         digital_file_url: prodIsDigital ? (prodDigitalFileUrl || null) : null,
@@ -2736,6 +3077,13 @@ export default function DashboardPage() {
         mobile_fee: prodType === 'service' && prodMobileFee ? parseFloat(prodMobileFee) : null,
         mobile_fee_label: prodType === 'service' && prodMobileFeeLabel ? prodMobileFeeLabel.trim() : null,
         tags: prodTags.length > 0 ? prodTags : null,
+        bundle_items: prodType === 'bundle' ? prodBundleItems : undefined,
+        related_product_ids: prodRelatedProductIds.length > 0 ? prodRelatedProductIds : null,
+        digital_files: prodDigitalFiles.length > 0 ? prodDigitalFiles : null,
+        download_limit: prodDigitalFiles.length > 0 && prodDownloadLimit ? parseInt(prodDownloadLimit, 10) : null,
+        read_online_only: prodDigitalFiles.length > 0 ? prodReadOnlineOnly : false,
+        event_date: prodType === 'ticket' ? (prodEventDate || null) : null,
+        event_location: prodType === 'ticket' ? (prodEventLocation || null) : null,
       };
 
       const res = await fetch(`${apiUrl}/v1/products/${selectedProduct.id}`, {
@@ -2952,7 +3300,7 @@ export default function DashboardPage() {
     e.preventDefault();
     try {
       setSettingsSaving(true);
-      const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
+      const isPro = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly' || user?.plan === 'legend_monthly' || user?.plan === 'legend_yearly';
       const personaPreset = getSelectedPersonaPreset();
       const res = await fetch(`${apiUrl}/v1/store`, {
         method: 'PUT',
@@ -2967,6 +3315,8 @@ export default function DashboardPage() {
           instagram_handle: setInstagram,
           tiktok_handle: setTiktok,
           twitter_handle: setTwitter,
+          facebook_pixel_id: setFacebookPixelId || null,
+          google_tag_manager_id: setGoogleTagManagerId || null,
           currency_code: setCurrency,
           country_code: setStoreCountryCode || null,
           payment_provider: setPaymentProvider || null,
@@ -3053,6 +3403,8 @@ export default function DashboardPage() {
         setSetInstagram(json.data.instagram_handle || '');
         setSetTiktok(json.data.tiktok_handle || '');
         setSetTwitter(json.data.twitter_handle || '');
+        setSetFacebookPixelId(json.data.facebook_pixel_id || '');
+        setSetGoogleTagManagerId(json.data.google_tag_manager_id || '');
         setPaymentBankName(json.data.bank_name || '');
         setPaymentBankCode(json.data.paystack_bank_code || '');
         setPaymentAccountNumber(json.data.bank_account_number || '');
@@ -3267,7 +3619,7 @@ export default function DashboardPage() {
   };
 
   const handleTemplateColorSave = async () => {
-    const isProUser = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly';
+    const isProUser = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly' || user?.plan === 'legend_monthly' || user?.plan === 'legend_yearly';
     if (!isProUser && primaryColor !== '#25D366') {
       openUpgradePrompt(
         'Custom storefront colors require Pro',
@@ -3386,8 +3738,39 @@ export default function DashboardPage() {
     setCouponCode('');
   }, [billingCycle]);
 
+  // --- Legend coupon code validation & application (mirrors handleApplyCoupon for Pro) ---
+  const handleApplyLegendCoupon = async () => {
+    if (!legendCouponCode.trim()) return;
+    try {
+      setIsValidatingLegendCoupon(true);
+      const targetPlan = legendBillingCycle === 'monthly' ? 'legend_monthly' : 'legend_yearly';
+      const res = await fetch(`${apiUrl}/v1/payments/validate-coupon`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ code: legendCouponCode.trim(), plan: targetPlan }),
+      });
+      const json = await res.json();
+      if (res.ok && json.data) {
+        setAppliedLegendCoupon(json.data);
+        toast.success('Coupon applied successfully! 🎉');
+      } else {
+        throw new Error(json.message || 'Invalid coupon code.');
+      }
+    } catch (e: any) {
+      setAppliedLegendCoupon(null);
+      toast.error(e.message || 'Could not validate coupon.');
+    } finally {
+      setIsValidatingLegendCoupon(false);
+    }
+  };
+
+  useEffect(() => {
+    setAppliedLegendCoupon(null);
+    setLegendCouponCode('');
+  }, [legendBillingCycle]);
+
   // --- Upgrade Plan via Real Paystack Payment ---
-  const handleUpgradePlan = async (targetPlan: 'free' | 'pro_monthly' | 'pro_yearly') => {
+  const handleUpgradePlan = async (targetPlan: 'free' | 'pro_monthly' | 'pro_yearly' | 'legend_monthly' | 'legend_yearly') => {
     if (targetPlan === 'free') {
       // Downgrade is free — no payment needed
       try {
@@ -3410,7 +3793,10 @@ export default function DashboardPage() {
       return;
     }
 
-    // Pro plans require real payment via Paystack
+    const isLegendTarget = targetPlan === 'legend_monthly' || targetPlan === 'legend_yearly';
+    const planLabel = isLegendTarget ? 'Legend' : 'Pro';
+
+    // Paid plans require real payment via Paystack
     try {
       setIsInitializingPayment(true);
       const callbackUrl = `${window.location.origin}/dashboard`;
@@ -3420,22 +3806,29 @@ export default function DashboardPage() {
         body: JSON.stringify({
           plan: targetPlan,
           redirect_url: callbackUrl,
-          coupon_code: appliedCoupon ? appliedCoupon.code : null
+          coupon_code: isLegendTarget
+            ? (appliedLegendCoupon ? appliedLegendCoupon.code : null)
+            : (appliedCoupon ? appliedCoupon.code : null)
         }),
       });
       const json = await res.json();
       if (res.ok) {
         if (json.data?.direct_activation) {
           // Direct upgrade via 100% discount coupon
-          toast.success(json.message || 'Plan upgraded to Pro successfully! 🎉');
+          toast.success(json.message || `Plan upgraded to ${planLabel} successfully! 🎉`);
           setUser(json.data.user);
           localStorage.setItem('user', JSON.stringify(json.data.user));
           if (json.data.store) {
             setStore(json.data.store);
             localStorage.setItem('store', JSON.stringify(json.data.store));
           }
-          setAppliedCoupon(null);
-          setCouponCode('');
+          if (isLegendTarget) {
+            setAppliedLegendCoupon(null);
+            setLegendCouponCode('');
+          } else {
+            setAppliedCoupon(null);
+            setCouponCode('');
+          }
         } else if (json.data?.authorization_url) {
           // Redirect to Paystack hosted checkout
           window.location.href = json.data.authorization_url;
@@ -3675,16 +4068,16 @@ export default function DashboardPage() {
                 fontWeight: 900,
                 padding: '2px 6px',
                 borderRadius: 4,
-                background: user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'var(--border)',
-                color: user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly' ? '#fff' : 'var(--text-muted)',
+                background: isLegend ? 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)' : isPro ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'var(--border)',
+                color: isPro ? '#fff' : 'var(--text-muted)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 4
               }}>
-                {(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') ? <Zap size={8} /> : null}
-                {user?.plan === 'pro_monthly' ? 'Pro Monthly' : user?.plan === 'pro_yearly' ? 'Pro Yearly' : 'Free Tier'}
+                {isPro ? <Zap size={8} /> : null}
+                {user?.plan === 'pro_monthly' ? 'Pro Monthly' : user?.plan === 'pro_yearly' ? 'Pro Yearly' : user?.plan === 'legend_monthly' ? 'Legend Monthly' : user?.plan === 'legend_yearly' ? 'Legend Yearly' : 'Free Tier'}
               </span>
               {(!user?.plan || user?.plan === 'free') && (
                 <button
@@ -3714,7 +4107,10 @@ export default function DashboardPage() {
             { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
             { id: 'products', label: 'My Products', icon: <Package size={18} /> },
             { id: 'coupons', label: 'Store Coupons', icon: <Tag size={18} /> },
+            { id: 'affiliates', label: 'Affiliates', icon: <UserPlus size={18} /> },
+            { id: 'customers', label: 'Customers', icon: <Users size={18} /> },
             { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
+                { id: 'payment-links', label: 'Payment Links', icon: <Link size={18} /> },
             { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} />, badge: !isPro ? 'Pro' : (waOrders.filter(o => o.payment_status === 'unpaid').length || undefined) },
             { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
             { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} />, badge: isPro ? undefined : 'Pro' },
@@ -3723,6 +4119,7 @@ export default function DashboardPage() {
             { id: 'availability', label: 'Availability', icon: <Clock size={18} /> },
             { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} />, badge: bookings.filter((b: any) => b.status === 'pending').length || undefined },
             { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
+            { id: 'integrations', label: 'Integrations', icon: <Plug size={18} /> },
             { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
           ].map(item => {
             const active = activeTab === item.id;
@@ -7050,6 +7447,30 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
+                        {/* Tracking Pixels (Facebook Pixel + Google Tag Manager) */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, background: 'var(--bg-2)', padding: 16, borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', marginBottom: 8 }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Facebook Pixel ID</label>
+                            <input
+                              type="text"
+                              value={setFacebookPixelId}
+                              onChange={e => setSetFacebookPixelId(e.target.value.trim())}
+                              className="input-field"
+                              placeholder="e.g. 1234567890123456"
+                            />
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Google Tag Manager ID</label>
+                            <input
+                              type="text"
+                              value={setGoogleTagManagerId}
+                              onChange={e => setSetGoogleTagManagerId(e.target.value.trim())}
+                              className="input-field"
+                              placeholder="e.g. GTM-XXXXXXX"
+                            />
+                          </div>
+                        </div>
+
                         {/* Inline Form to Add/Edit Link */}
                         {showLinkForm && (
                           <div className="glass" style={{ padding: 20, borderRadius: 'var(--r-lg)', border: '1px solid var(--primary)', background: 'var(--bg-2)', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -8213,6 +8634,12 @@ export default function DashboardPage() {
                 );
               })()}
 
+              {activeTab === 'integrations' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  <IntegrationsTab />
+                </div>
+              )}
+
               {/* ── TAB 7: PLANS & BILLING ── */}
               {activeTab === 'billing' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
@@ -8238,7 +8665,7 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Plan Card Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 24 }} className="responsive-settings-grid">
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr 1.1fr', gap: 24 }} className="responsive-settings-grid">
 
                     {/* Free Plan */}
                     <div className="card" style={{
@@ -8269,7 +8696,7 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
-                          <span><strong>Zero transaction fees</strong> on completed orders</span>
+                          <span><strong>Flat 1.5% transaction fee</strong> — same rate on every plan</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
@@ -8447,7 +8874,7 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
-                          <span><strong>Zero transaction fees</strong> on sales</span>
+                          <span><strong>Flat 1.5% transaction fee</strong> — same rate on every plan</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
@@ -8473,8 +8900,8 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* Coupon input for non-pro users */}
-                      {!(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') && (
+                      {/* Coupon input for non-pro users (also hidden for Legend, which already includes Pro) */}
+                      {!isPro && (
                         <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                           <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                             Promo / Coupon Code
@@ -8540,37 +8967,280 @@ export default function DashboardPage() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginTop: 24 }}>
                         <button
                           type="button"
-                          disabled={(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') || isInitializingPayment}
+                          disabled={isPro || isInitializingPayment}
                           onClick={() => handleUpgradePlan(billingCycle === 'monthly' ? 'pro_monthly' : 'pro_yearly')}
                           className={`btn clickable`}
                           style={{
                             padding: 12,
-                            background: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') 
-                              ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' 
+                            background: isPro
+                              ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
                               : appliedCoupon && appliedCoupon.final_price === 0
                                 ? 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)'
                                 : 'none',
-                            border: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') 
-                              ? '1.5px solid #d97706' 
+                            border: isPro
+                              ? '1.5px solid #d97706'
                               : appliedCoupon && appliedCoupon.final_price === 0
                                 ? '1.5px solid #25D366'
                                 : '1.5px solid #d97706',
-                            color: (user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') || (appliedCoupon && appliedCoupon.final_price === 0) ? '#fff' : '#d97706',
+                            color: isPro || (appliedCoupon && appliedCoupon.final_price === 0) ? '#fff' : '#d97706',
                             fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13,
-                            opacity: ((user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly') || isInitializingPayment) ? 0.7 : 1,
+                            opacity: (isPro || isInitializingPayment) ? 0.7 : 1,
                             display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center',
                           }}
                         >
                           {isInitializingPayment ? <Loader2 size={14} className="spinner animate-spin" /> : null}
-                          {(user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly')
+                          {user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly'
                             ? `✓ Active Plan (${user?.plan === 'pro_yearly' ? 'Yearly' : 'Monthly'})`
+                            : isLegend
+                              ? '✓ Included in Legend'
+                              : isInitializingPayment
+                                ? 'Processing...'
+                                : appliedCoupon && appliedCoupon.final_price === 0
+                                  ? 'Activate Plan Free'
+                                  : billingCycle === 'monthly'
+                                    ? 'Go Pro Monthly'
+                                    : 'Go Pro Yearly'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Legend Plan */}
+                    <div className="card" style={{
+                      padding: 28,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      border: isLegend ? '2.5px solid #7c3aed' : '1px solid var(--border)',
+                      position: 'relative',
+                      background: 'var(--surface)',
+                      boxShadow: '0 10px 25px -5px rgba(124,58,237,0.08)'
+                    }}>
+                      {isLegend && (
+                        <span style={{
+                          position: 'absolute', top: 12, right: 12,
+                          background: 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)', color: '#fff',
+                          fontSize: 10, fontWeight: 900, padding: '4px 10px',
+                          borderRadius: 'var(--r-full)', textTransform: 'uppercase', letterSpacing: '0.05em',
+                          display: 'flex', alignItems: 'center', gap: 4
+                        }}><Zap size={8} /> Active Legend ({user?.plan === 'legend_yearly' ? 'Yearly' : 'Monthly'})</span>
+                      )}
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--text)' }}>Legend Plan</h3>
+                        <span style={{ background: '#ede9fe', color: '#6d28d9', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4 }}>UNLIMITED AI</span>
+                      </div>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Everything in Pro, plus unlimited AI and a Legend storefront badge.</p>
+
+                      {/* Billing Cycle Toggle */}
+                      <div style={{
+                        display: 'flex',
+                        background: 'var(--bg-2)',
+                        padding: 4,
+                        borderRadius: 'var(--r-md)',
+                        marginTop: 16,
+                        marginBottom: 4,
+                        border: '1px solid var(--border)',
+                        width: 'fit-content'
+                      }}>
+                        <button
+                          type="button"
+                          onClick={() => setLegendBillingCycle('monthly')}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: 'var(--r-sm)',
+                            border: 'none',
+                            background: legendBillingCycle === 'monthly' ? 'var(--surface)' : 'transparent',
+                            color: legendBillingCycle === 'monthly' ? 'var(--text)' : 'var(--text-muted)',
+                            fontWeight: 700,
+                            fontSize: 12,
+                            cursor: 'pointer',
+                            boxShadow: legendBillingCycle === 'monthly' ? 'var(--shadow-sm)' : 'none',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          Monthly
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setLegendBillingCycle('yearly')}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: 'var(--r-sm)',
+                            border: 'none',
+                            background: legendBillingCycle === 'yearly' ? 'var(--surface)' : 'transparent',
+                            color: legendBillingCycle === 'yearly' ? 'var(--text)' : 'var(--text-muted)',
+                            fontWeight: 700,
+                            fontSize: 12,
+                            cursor: 'pointer',
+                            boxShadow: legendBillingCycle === 'yearly' ? 'var(--shadow-sm)' : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          Yearly
+                          <span style={{
+                            background: '#dcfce7',
+                            color: '#128C7E',
+                            fontSize: 9,
+                            fontWeight: 900,
+                            padding: '1px 5px',
+                            borderRadius: 4
+                          }}>
+                            Save 17%
+                          </span>
+                        </button>
+                      </div>
+
+                      <div style={{ marginTop: 16, marginBottom: 20 }}>
+                        {appliedLegendCoupon ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ fontSize: 14, color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 600 }}>
+                              {legendBillingCycle === 'monthly' ? `₦${legendMonthlyPrice.toLocaleString()}` : `₦${legendYearlyPrice.toLocaleString()}`}
+                            </span>
+                            <div>
+                              <span style={{ fontSize: 28, fontWeight: 900, color: '#7c3aed', fontFamily: 'var(--font-heading)' }}>
+                                ₦{(appliedLegendCoupon.final_price || 0).toLocaleString()}
+                              </span>
+                              <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+                                {legendBillingCycle === 'monthly' ? ' / month' : ' / year'}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <span style={{ fontSize: 28, fontWeight: 900, color: '#7c3aed', fontFamily: 'var(--font-heading)' }}>
+                              {legendBillingCycle === 'monthly' ? `₦${legendMonthlyPrice.toLocaleString()}` : `₦${legendYearlyPrice.toLocaleString()}`}
+                            </span>
+                            <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+                              {legendBillingCycle === 'monthly' ? ' / month' : ' / year'}
+                            </span>
+                          </>
+                        )}
+                        {legendBillingCycle === 'yearly' && !appliedLegendCoupon && (
+                          <div style={{ fontSize: 11.5, color: '#25D366', fontWeight: 700, marginTop: 4 }}>
+                            equivalent to ₦{Math.round(legendYearlyPrice / 12).toLocaleString()} / month (billed annually)
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="#7c3aed" />
+                          <span><strong>Flat 1.5% transaction fee</strong> — same rate on every plan</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="#7c3aed" />
+                          <span>Everything in Pro — unlimited products, AI auto-write, priority support</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="#7c3aed" />
+                          <span><strong>Unlimited AI analyses</strong> on any billing cycle (Pro Monthly caps at 15/mo)</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="#7c3aed" />
+                          <span><strong>Legend storefront badge</strong> — a status signal shown to buyers</span>
+                        </div>
+                      </div>
+
+                      {/* Coupon input for non-legend users */}
+                      {!isLegend && (
+                        <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                            Promo / Coupon Code
+                          </label>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <input
+                              type="text"
+                              placeholder="e.g. SAVE50"
+                              value={legendCouponCode}
+                              onChange={(e) => {
+                                setLegendCouponCode(e.target.value.toUpperCase());
+                                setAppliedLegendCoupon(null);
+                              }}
+                              disabled={isValidatingLegendCoupon || isInitializingPayment}
+                              style={{
+                                flex: 1,
+                                padding: '8px 10px',
+                                background: 'var(--bg-2)',
+                                border: '1.5px solid var(--border)',
+                                borderRadius: 'var(--r-sm)',
+                                color: 'var(--text)',
+                                textTransform: 'uppercase',
+                                fontSize: 12,
+                                fontWeight: 700,
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={handleApplyLegendCoupon}
+                              disabled={!legendCouponCode.trim() || isValidatingLegendCoupon || isInitializingPayment}
+                              className="btn btn-outline"
+                              style={{
+                                padding: '8px 14px',
+                                fontSize: 12,
+                                fontWeight: 700,
+                                borderRadius: 'var(--r-sm)',
+                                border: '1.5px solid #7c3aed',
+                                color: '#7c3aed',
+                                background: 'none',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {isValidatingLegendCoupon ? <Loader2 size={13} className="spinner animate-spin" /> : 'Apply'}
+                            </button>
+                          </div>
+
+                          {appliedLegendCoupon && (
+                            <div style={{ marginTop: 10, padding: '8px 10px', background: '#ede9fe', borderRadius: 'var(--r-sm)', fontSize: 11.5, border: '1px solid #7c3aed', color: 'var(--text)' }}>
+                              <p style={{ color: '#7c3aed', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <Tag size={12} />
+                                Code Applied: {appliedLegendCoupon.code}
+                              </p>
+                              <p style={{ color: 'var(--text-muted)', fontSize: 10.5, marginTop: 2 }}>
+                                Discount: {appliedLegendCoupon.discount_type === 'percentage'
+                                  ? `${parseFloat(appliedLegendCoupon.discount_value || '0') || 0}% Off`
+                                  : `₦${(parseFloat(appliedLegendCoupon.discount_value || '0') || 0).toLocaleString()} Off`}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginTop: 24 }}>
+                        <button
+                          type="button"
+                          disabled={isLegend || isInitializingPayment}
+                          onClick={() => handleUpgradePlan(legendBillingCycle === 'monthly' ? 'legend_monthly' : 'legend_yearly')}
+                          className={`btn clickable`}
+                          style={{
+                            padding: 12,
+                            background: isLegend
+                              ? 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)'
+                              : appliedLegendCoupon && appliedLegendCoupon.final_price === 0
+                                ? 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)'
+                                : 'none',
+                            border: isLegend
+                              ? '1.5px solid #6d28d9'
+                              : appliedLegendCoupon && appliedLegendCoupon.final_price === 0
+                                ? '1.5px solid #25D366'
+                                : '1.5px solid #7c3aed',
+                            color: isLegend || (appliedLegendCoupon && appliedLegendCoupon.final_price === 0) ? '#fff' : '#7c3aed',
+                            fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13,
+                            opacity: (isLegend || isInitializingPayment) ? 0.7 : 1,
+                            display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center',
+                          }}
+                        >
+                          {isInitializingPayment ? <Loader2 size={14} className="spinner animate-spin" /> : null}
+                          {isLegend
+                            ? `✓ Active Plan (${user?.plan === 'legend_yearly' ? 'Yearly' : 'Monthly'})`
                             : isInitializingPayment
                               ? 'Processing...'
-                              : appliedCoupon && appliedCoupon.final_price === 0
+                              : appliedLegendCoupon && appliedLegendCoupon.final_price === 0
                                 ? 'Activate Plan Free'
-                                : billingCycle === 'monthly'
-                                  ? 'Go Pro Monthly'
-                                  : 'Go Pro Yearly'}
+                                : legendBillingCycle === 'monthly'
+                                  ? 'Go Legend Monthly'
+                                  : 'Go Legend Yearly'}
                         </button>
                       </div>
                     </div>
@@ -8784,6 +9454,172 @@ export default function DashboardPage() {
                         </div>
                       )}
                     </>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB: PAYMENT LINKS ── */}
+              {activeTab === 'payment-links' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  {/* Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 'var(--r-md)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 16px rgba(16, 185, 129, 0.3)', flexShrink: 0
+                      }}>
+                        <Link size={22} color="#fff" />
+                      </div>
+                      <div>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                          Payment Links
+                        </h2>
+                        <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                          Generate a link customers can pay directly — no cart or storefront needed.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setNewPaymentLinkData({ title: '', amount: '', allow_custom_amount: false, type: 'one_time', expires_at: '' });
+                        setCreatedPaymentLink(null);
+                        setIsAddPaymentLinkOpen(true);
+                      }}
+                      className="btn btn-primary clickable"
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', fontSize: 13.5 }}
+                    >
+                      <Plus size={16} /> Create Payment Link
+                    </button>
+                  </div>
+
+                  {/* Payment Links List */}
+                  {paymentLinksLoading ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+                      <Loader2 className="spinner" size={32} />
+                    </div>
+                  ) : paymentLinks.length === 0 ? (
+                    <div className="card text-center" style={{ padding: 40 }}>
+                      <p style={{ color: 'var(--text-muted)' }}>No payment links yet. Click "Create Payment Link" to generate one.</p>
+                    </div>
+                  ) : (
+                    <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 700 }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Title</th>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Amount</th>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Type</th>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Status</th>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paymentLinks.map(pl => {
+                            const currencySymbols: Record<string, string> = { NGN: '₦', GHS: 'GH₵', KES: 'KSh', ZAR: 'R', USD: '$' };
+                            const symbol = currencySymbols[pl.currency_code || 'NGN'] || (pl.currency_code || '') + ' ';
+                            const linkUrl = typeof window !== 'undefined' ? `${window.location.origin}/pay/${pl.slug}` : `/pay/${pl.slug}`;
+                            return (
+                              <tr key={pl.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 800 }}>{pl.title}</td>
+                                <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 800 }}>{pl.allow_custom_amount ? 'From ' : ''}{symbol}{parseFloat(pl.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                <td style={{ padding: '14px 18px', fontSize: 13.5, color: 'var(--text-muted)', textTransform: 'capitalize' }}>
+                                  {pl.type === 'one_time' ? 'One-time' : 'Reusable'}
+                                  {pl.allow_custom_amount && <span style={{ display: 'block', fontSize: 11, color: 'var(--text-faint)' }}>Custom amount</span>}
+                                </td>
+                                <td style={{ padding: '14px 18px' }}>
+                                  <span style={{
+                                    fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 'var(--r-full)',
+                                    background: pl.status === 'paid' ? 'rgba(34,197,94,0.1)' : (pl.status === 'disabled' ? 'rgba(156,163,175,0.1)' : 'rgba(59,130,246,0.1)'),
+                                    color: pl.status === 'paid' ? 'var(--success)' : (pl.status === 'disabled' ? 'var(--text-muted)' : 'var(--primary)'),
+                                    textTransform: 'uppercase'
+                                  }}>
+                                    {pl.status}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '14px 18px' }}>
+                                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(linkUrl);
+                                        toast.success('Payment link copied! 📋');
+                                      }}
+                                      className="btn btn-outline clickable"
+                                      style={{ padding: '4px 8px', fontSize: 11.5, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                    >
+                                      <Copy size={12} /> Copy
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        const msg = encodeURIComponent(`💳 Pay ${symbol}${parseFloat(pl.amount).toLocaleString()} for "${pl.title}" here: ${linkUrl}`);
+                                        window.open(`https://wa.me/?text=${msg}`, '_blank');
+                                      }}
+                                      className="btn clickable"
+                                      style={{ background: '#25d366', color: '#fff', padding: '4px 8px', fontSize: 11.5, borderRadius: 'var(--r-sm)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                    >
+                                      <WhatsAppIcon size={12} color="#fff" /> Share
+                                    </button>
+                                    {pl.status !== 'paid' && (
+                                      <button
+                                        onClick={async () => {
+                                          try {
+                                            const res = await fetch(`${apiUrl}/v1/payment-links/${pl.id}`, {
+                                              method: 'PUT',
+                                              headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ status: pl.status === 'disabled' ? 'active' : 'disabled' })
+                                            });
+                                            if (res.ok) {
+                                              toast.success(pl.status === 'disabled' ? 'Payment link reactivated.' : 'Payment link disabled.');
+                                              fetchPaymentLinksData();
+                                            }
+                                          } catch {
+                                            toast.error('Failed to update payment link.');
+                                          }
+                                        }}
+                                        className="btn btn-outline clickable"
+                                        style={{ padding: '4px 8px', fontSize: 11.5 }}
+                                      >
+                                        {pl.status === 'disabled' ? 'Reactivate' : 'Disable'}
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={() => {
+                                        openConfirmationDialog(
+                                          'Delete Payment Link',
+                                          'Are you sure you want to delete this payment link? This action cannot be undone.',
+                                          async () => {
+                                            try {
+                                              const res = await fetch(`${apiUrl}/v1/payment-links/${pl.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+                                              const json = await res.json();
+                                              if (res.ok) {
+                                                toast.success('Payment link deleted.');
+                                                setPaymentLinks(prev => prev.filter(p => p.id !== pl.id));
+                                              } else {
+                                                toast.error(json.message || 'Failed to delete payment link.');
+                                              }
+                                            } catch {
+                                              toast.error('Failed to delete payment link.');
+                                            }
+                                            closeConfirmationDialog();
+                                          },
+                                          'Delete',
+                                          'Cancel'
+                                        );
+                                      }}
+                                      className="btn btn-outline clickable"
+                                      style={{ padding: '4px 8px', fontSize: 11.5, color: 'var(--danger)' }}
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               )}
@@ -10436,6 +11272,19 @@ export default function DashboardPage() {
                               </td>
                               <td style={{ padding: 12, textAlign: 'right' }}>
                                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                  {coupon.qr_code_url && (
+                                    <a
+                                      href={coupon.qr_code_url}
+                                      download={`coupon-${coupon.code}-qr.png`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      title="Download coupon QR code"
+                                      className="btn btn-ghost clickable"
+                                      style={{ padding: 6, display: 'inline-flex', background: 'transparent', border: 'none', color: 'var(--text-2)' }}
+                                    >
+                                      <QrCode size={15} />
+                                    </a>
+                                  )}
                                   <button
                                     onClick={() => {
                                       setEditingStoreCoupon(coupon);
@@ -10465,6 +11314,255 @@ export default function DashboardPage() {
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB: AFFILIATES ── */}
+              {activeTab === 'affiliates' && (
+                <div className="card animate-fade-in" style={{ padding: 24 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+                    <div>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>Affiliates</h2>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Invite affiliates to promote your products for a commission — they get their own dashboard and payout wallet.</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setEditingAffiliate(null);
+                        setAffiliateEmail('');
+                        setAffiliateName('');
+                        setAffiliateProductRates({});
+                        setIsAffiliateModalOpen(true);
+                      }}
+                      className="btn btn-primary clickable"
+                      style={{
+                        padding: '10px 20px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        borderRadius: 'var(--r-md)',
+                        backgroundColor: 'var(--primary)',
+                        color: '#fff',
+                        border: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6
+                      }}
+                    >
+                      <UserPlus size={16} /> Invite Affiliate
+                    </button>
+                  </div>
+
+                  {affiliatesLoading && affiliates.length === 0 ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}><Loader2 className="animate-spin" size={24} /></div>
+                  ) : affiliates.length === 0 ? (
+                    <div className="empty-state" style={{ padding: '60px 0', textAlign: 'center' }}>
+                      <div className="empty-state__icon" style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-2)', color: 'var(--text-faint)', marginBottom: 16 }}>
+                        <UserPlus size={28} strokeWidth={1.25} />
+                      </div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '6px', color: 'var(--text)' }}>No affiliates yet</h3>
+                      <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', maxWidth: '340px', margin: '0 auto', lineHeight: 1.5 }}>
+                        Invite someone by email, set a commission % per product, and they'll get a tracking link and their own payout dashboard.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="admin-table-wrap" style={{ border: 'none', boxShadow: 'none', background: 'transparent' }}>
+                      <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Affiliate</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Tracking Code</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Products</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Sales</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Earned</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</th>
+                            <th style={{ padding: 12, fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {affiliates.map((affiliate) => (
+                            <tr key={affiliate.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                              <td style={{ padding: 12 }}>
+                                <div style={{ fontWeight: 700 }}>{affiliate.name || affiliate.email}</div>
+                                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{affiliate.email}</div>
+                              </td>
+                              <td style={{ padding: 12 }}>
+                                <span className="admin-chip admin-chip--gray" style={{ fontWeight: 800, fontSize: 13, background: 'var(--surface-2)', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                                  {affiliate.tracking_code}
+                                </span>
+                              </td>
+                              <td style={{ padding: 12, fontSize: 13 }}>
+                                {affiliate.products?.length || 0} product{affiliate.products?.length === 1 ? '' : 's'}
+                              </td>
+                              <td style={{ padding: 12, fontSize: 13 }}>{affiliate.sales_count ?? 0}</td>
+                              <td style={{ padding: 12, fontSize: 13 }}>
+                                {getCurrencySymbol(store?.currency_code)}{formatVal(affiliate.total_earned ?? 0)}
+                                {(affiliate.total_pending ?? 0) > 0 && (
+                                  <span style={{ display: 'block', fontSize: 11, color: 'var(--text-muted)' }}>
+                                    +{getCurrencySymbol(store?.currency_code)}{formatVal(affiliate.total_pending)} pending
+                                  </span>
+                                )}
+                              </td>
+                              <td style={{ padding: 12 }}>
+                                <button
+                                  onClick={() => affiliate.status !== 'invited' && handleToggleAffiliateStatus(affiliate.id)}
+                                  className="clickable"
+                                  disabled={affiliate.status === 'invited'}
+                                  style={{ border: 'none', background: 'transparent', display: 'inline-flex', alignItems: 'center', cursor: affiliate.status === 'invited' ? 'default' : 'pointer' }}
+                                >
+                                  <span className={`admin-chip admin-chip--${affiliate.status === 'active' ? 'green' : 'gray'}`} style={{
+                                    display: 'inline-block',
+                                    fontSize: 11,
+                                    fontWeight: 800,
+                                    padding: '2px 8px',
+                                    borderRadius: 999,
+                                    color: affiliate.status === 'active' ? '#10b981' : 'var(--text-muted)',
+                                    background: affiliate.status === 'active' ? 'rgba(16, 185, 129, 0.1)' : 'var(--surface-2)'
+                                  }}>
+                                    {affiliate.status === 'invited' ? 'Invited' : affiliate.status === 'active' ? 'Active' : 'Removed'}
+                                  </span>
+                                </button>
+                              </td>
+                              <td style={{ padding: 12, textAlign: 'right' }}>
+                                <button
+                                  onClick={() => {
+                                    setEditingAffiliate(affiliate);
+                                    const rates: Record<string, string> = {};
+                                    (affiliate.products || []).forEach((p: any) => { rates[p.product_id] = String(p.commission_percent); });
+                                    setAffiliateProductRates(rates);
+                                    setIsAffiliateModalOpen(true);
+                                  }}
+                                  className="btn btn-ghost clickable"
+                                  style={{ padding: 6, display: 'inline-flex', background: 'transparent', border: 'none', color: 'var(--text-2)' }}
+                                  title="Edit commission rates"
+                                >
+                                  <Edit2 size={15} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB: CUSTOMERS (CRM) ── */}
+              {activeTab === 'customers' && (
+                <div className="card animate-fade-in" style={{ padding: 28 }}>
+                  <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 24 }}>
+                    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Users size={20} style={{ color: 'var(--primary)' }} /> Customers
+                    </h2>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>Everyone who has bought from your store, with tags, notes, and lifetime value.</p>
+                  </div>
+
+                  {customersLoading ? (
+                    <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+                      <Loader2 size={28} className="spin" style={{ marginBottom: 12 }} />
+                      <p style={{ fontSize: 13 }}>Loading customers…</p>
+                    </div>
+                  ) : customers.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                      <div style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-2)', color: 'var(--text-faint)', marginBottom: 16 }}>
+                        <Users size={28} strokeWidth={1.25} />
+                      </div>
+                      <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>No customers yet</h3>
+                      <p style={{ fontSize: 13.5, color: 'var(--text-muted)', maxWidth: 300, margin: '0 auto', lineHeight: 1.5 }}>Once someone completes a paid order, they'll show up here.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {customers.map((customer) => {
+                        const isExpanded = expandedCustomerId === customer.id;
+                        const tags: string[] = customer.tags || [];
+                        return (
+                          <div key={customer.id} style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 16 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', cursor: 'pointer' }}
+                              onClick={() => {
+                                const next = isExpanded ? null : customer.id;
+                                setExpandedCustomerId(next);
+                                if (next && !customerNotes[customer.id]) fetchCustomerNotes(customer.id);
+                              }}
+                            >
+                              <div>
+                                <div style={{ fontWeight: 700, fontSize: 14.5 }}>{customer.name || customer.phone_number}</div>
+                                <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>{customer.phone_number}{customer.email ? ` · ${customer.email}` : ''}</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                                  {tags.map(tag => (
+                                    <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 20, background: 'var(--primary-light)', color: 'var(--primary)', fontSize: 11, fontWeight: 700 }}>
+                                      {tag}
+                                      {isExpanded && (
+                                        <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveCustomerTag(customer.id, tags, tag); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--primary)', display: 'flex' }}>
+                                          <X size={10} />
+                                        </button>
+                                      )}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary)' }}>{getCurrencySymbol(store?.currency_code)}{Number(customer.lifetime_value || 0).toLocaleString()}</div>
+                                <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{customer.store_order_count} order{customer.store_order_count === 1 ? '' : 's'} here · LTV</div>
+                              </div>
+                            </div>
+
+                            {isExpanded && (
+                              <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 14 }} className="animate-fade-in">
+                                <div>
+                                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Add a tag</label>
+                                  <div style={{ display: 'flex', gap: 8 }}>
+                                    <input
+                                      type="text"
+                                      value={newCustomerTag}
+                                      onChange={e => setNewCustomerTag(e.target.value)}
+                                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomerTag(customer.id, tags); } }}
+                                      placeholder="e.g. VIP, wholesale, complained-once"
+                                      className="input-field"
+                                      style={{ flex: 1 }}
+                                    />
+                                    <button type="button" onClick={() => handleAddCustomerTag(customer.id, tags)} disabled={customerTagSaving === customer.id} className="btn btn-outline clickable" style={{ padding: '8px 16px' }}>
+                                      {customerTagSaving === customer.id ? <Loader2 size={14} className="spin" /> : 'Add'}
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Notes</label>
+                                  <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                                    <input
+                                      type="text"
+                                      value={newCustomerNote}
+                                      onChange={e => setNewCustomerNote(e.target.value)}
+                                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomerNote(customer.id); } }}
+                                      placeholder="Add a note about this customer..."
+                                      className="input-field"
+                                      style={{ flex: 1 }}
+                                    />
+                                    <button type="button" onClick={() => handleAddCustomerNote(customer.id)} className="btn btn-outline clickable" style={{ padding: '8px 16px' }}>
+                                      Save
+                                    </button>
+                                  </div>
+                                  {customerNotesLoading && !customerNotes[customer.id] ? (
+                                    <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Loading notes…</p>
+                                  ) : (customerNotes[customer.id] || []).length === 0 ? (
+                                    <p style={{ fontSize: 12, color: 'var(--text-faint)', fontStyle: 'italic' }}>No notes yet.</p>
+                                  ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                      {(customerNotes[customer.id] || []).map((note: any) => (
+                                        <div key={note.id} style={{ background: 'var(--surface-2)', borderRadius: 'var(--r-md)', padding: 10 }}>
+                                          <p style={{ fontSize: 13, margin: 0 }}>{note.note}</p>
+                                          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{note.user?.name || 'You'} · {new Date(note.created_at).toLocaleString()}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -10618,6 +11716,177 @@ export default function DashboardPage() {
               )}
 
               {/* ── TAB 14: BOOKINGS ── */}
+              {activeTab === 'bookings' && (
+                <div className="card animate-fade-in" style={{ padding: 28, marginBottom: 20 }}>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <Ticket size={18} style={{ color: 'var(--primary)' }} /> Ticket Check-In
+                  </h2>
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>Enter or scan the code shown on a customer's ticket to check them in at the door.</p>
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!ticketCheckInCode.trim() || !token) return;
+                      try {
+                        setTicketCheckInLoading(true);
+                        setTicketCheckInResult(null);
+                        const res = await fetch(`${apiUrl}/v1/tickets/check-in`, {
+                          method: 'POST',
+                          headers: getAuthHeaders(),
+                          body: JSON.stringify({ check_in_code: ticketCheckInCode.trim() }),
+                        });
+                        const json = await res.json();
+                        setTicketCheckInResult({ success: res.ok, message: json.message || (res.ok ? 'Checked in.' : 'Check-in failed.') });
+                        if (res.ok) {
+                          setTicketCheckInCode('');
+                          fetchTicketsData(ticketSearchQuery);
+                        }
+                      } catch {
+                        setTicketCheckInResult({ success: false, message: 'Network error.' });
+                      } finally {
+                        setTicketCheckInLoading(false);
+                      }
+                    }}
+                    style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}
+                  >
+                    <input
+                      type="text"
+                      value={ticketCheckInCode}
+                      onChange={e => setTicketCheckInCode(e.target.value)}
+                      placeholder="e.g. TKT-A1B2C3D4"
+                      className="input-field"
+                      style={{ flex: 1, minWidth: 220 }}
+                    />
+                    <button type="submit" disabled={ticketCheckInLoading || !ticketCheckInCode.trim()} className="btn btn-primary clickable" style={{ padding: '10px 20px' }}>
+                      {ticketCheckInLoading ? <Loader2 size={16} className="spin" /> : 'Check In'}
+                    </button>
+                  </form>
+                  {ticketCheckInResult && (
+                    <p style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: ticketCheckInResult.success ? 'var(--primary)' : '#dc2626' }}>
+                      {ticketCheckInResult.message}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'bookings' && (
+                <div className="card animate-fade-in" style={{ padding: 28, marginBottom: 20 }}>
+                  <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                    <div>
+                      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Ticket size={18} style={{ color: 'var(--primary)' }} /> Issued Tickets
+                      </h2>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>Everyone who has bought a ticket to one of your events.</p>
+                    </div>
+                    <button
+                      onClick={() => fetchTicketsData(ticketSearchQuery)}
+                      className="btn btn-outline clickable"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, padding: '9px 18px' }}
+                    >
+                      <RefreshCw size={14} /> Refresh
+                    </button>
+                  </div>
+
+                  <form
+                    onSubmit={(e) => { e.preventDefault(); fetchTicketsData(ticketSearchQuery); }}
+                    style={{ marginBottom: 16 }}
+                  >
+                    <input
+                      type="text"
+                      value={ticketSearchQuery}
+                      onChange={e => setTicketSearchQuery(e.target.value)}
+                      placeholder="Search by ticket code or customer name…"
+                      className="input-field"
+                      style={{ width: '100%' }}
+                    />
+                  </form>
+
+                  {ticketsLoading ? (
+                    <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+                      <Loader2 size={28} className="spin" style={{ marginBottom: 12 }} />
+                      <p style={{ fontSize: 13 }}>Loading tickets…</p>
+                    </div>
+                  ) : tickets.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                      <div style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', width: 64, height: 64, borderRadius: '50%', background: 'var(--surface-2)', color: 'var(--text-faint)', marginBottom: 16 }}>
+                        <Ticket size={28} strokeWidth={1.25} />
+                      </div>
+                      <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>No tickets issued yet</h3>
+                      <p style={{ fontSize: 13.5, color: 'var(--text-muted)', maxWidth: 300, margin: '0 auto', lineHeight: 1.5 }}>
+                        Tickets appear here once a customer pays for an event product. Click Refresh to load.
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {tickets.map((ticket: any) => {
+                        const isCheckedIn = !!ticket.checked_in_at;
+                        const isPaid = ticket.order?.payment_status === 'paid';
+                        const statusColor = isCheckedIn ? 'var(--primary)' : '#f59e0b';
+                        const statusBg = isCheckedIn ? 'var(--primary-light)' : 'rgba(245,158,11,0.1)';
+
+                        return (
+                          <div key={ticket.id} style={{
+                            background: 'var(--surface-2)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--r-md)',
+                            padding: '16px 20px',
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 12,
+                            alignItems: 'flex-start',
+                            justifyContent: 'space-between'
+                          }}>
+                            <div style={{ flex: 1, minWidth: 200 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 'var(--r-full)', background: statusBg, color: statusColor, border: `1px solid ${statusColor}22` }}>
+                                  {isCheckedIn ? 'CHECKED IN' : 'NOT CHECKED IN'}
+                                </span>
+                                <span style={{ fontSize: 12, fontFamily: 'monospace', color: 'var(--text-faint)' }}>{ticket.check_in_code}</span>
+                              </div>
+                              <p style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text)', margin: '2px 0' }}>
+                                {ticket.order?.customer_name || 'Customer'}
+                              </p>
+                              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0 }}>
+                                {ticket.product?.name || 'Event ticket'}
+                              </p>
+                              {!isPaid && (
+                                <p style={{ fontSize: 12, color: '#dc2626', marginTop: 4, fontWeight: 700 }}>Not paid yet</p>
+                              )}
+                            </div>
+                            {!isCheckedIn && isPaid && (
+                              <button
+                                onClick={async () => {
+                                  if (!token) return;
+                                  try {
+                                    const res = await fetch(`${apiUrl}/v1/tickets/check-in`, {
+                                      method: 'POST',
+                                      headers: getAuthHeaders(),
+                                      body: JSON.stringify({ check_in_code: ticket.check_in_code }),
+                                    });
+                                    const json = await res.json();
+                                    if (res.ok) {
+                                      toast.success(json.message || 'Checked in.');
+                                      fetchTicketsData(ticketSearchQuery);
+                                    } else {
+                                      toast.error(json.message || 'Check-in failed.');
+                                    }
+                                  } catch {
+                                    toast.error('Network error.');
+                                  }
+                                }}
+                                className="btn btn-primary clickable"
+                                style={{ fontSize: 12.5, padding: '8px 16px' }}
+                              >
+                                Check In
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {activeTab === 'bookings' && (
                 <div className="card animate-fade-in" style={{ padding: 28 }}>
                   <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
@@ -11708,7 +12977,9 @@ export default function DashboardPage() {
                 { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={18} /> },
                 { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} /> },
                 { id: 'products', label: 'My Products', icon: <Package size={18} /> },
+                { id: 'customers', label: 'Customers', icon: <Users size={18} /> },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
+                { id: 'payment-links', label: 'Payment Links', icon: <Link size={18} /> },
                 { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
                 { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} /> },
@@ -11717,6 +12988,7 @@ export default function DashboardPage() {
                 { id: 'availability', label: 'Availability', icon: <Clock size={18} /> },
                 { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} /> },
                 { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
+                { id: 'integrations', label: 'Integrations', icon: <Plug size={18} /> },
                 { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
               ].map(item => (
                 <button
@@ -11832,7 +13104,7 @@ export default function DashboardPage() {
               {withdrawalOtpSent && (
                 <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>
-                    WhatsApp OTP Code
+                    Email OTP Code
                   </label>
                   <input
                     type="text"
@@ -11846,7 +13118,7 @@ export default function DashboardPage() {
                     style={{ letterSpacing: '0.1em', fontWeight: 'bold' }}
                   />
                   <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
-                    <span>Check your WhatsApp for the verification code.</span>
+                    <span>Check your email for the verification code.</span>
                     <button
                       type="button"
                       onClick={handleSendWithdrawalOtp}
@@ -12197,6 +13469,87 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* ── MODAL: INVITE / EDIT AFFILIATE ── */}
+      {isAffiliateModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsAffiliateModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 520, padding: 28, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <UserPlus size={18} style={{ color: 'var(--primary)' }} /> {editingAffiliate ? `Commission Rates — ${editingAffiliate.name || editingAffiliate.email}` : 'Invite Affiliate'}
+              </h3>
+              <button onClick={() => setIsAffiliateModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
+            </div>
+
+            <form onSubmit={handleSaveAffiliate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {!editingAffiliate && (
+                <>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Affiliate Email</label>
+                    <input
+                      required
+                      type="email"
+                      placeholder="affiliate@example.com"
+                      value={affiliateEmail}
+                      onChange={(e) => setAffiliateEmail(e.target.value)}
+                      style={{ width: '100%', padding: 11, border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--card)' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Name (optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Amaka Obi"
+                      value={affiliateName}
+                      onChange={(e) => setAffiliateName(e.target.value)}
+                      style={{ width: '100%', padding: 11, border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--card)' }}
+                    />
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
+                  Commission % per product
+                </label>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>
+                  Leave a product blank to exclude it — the affiliate only earns commission on products with a rate set.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 260, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 10, padding: 10 }}>
+                  {products.length === 0 ? (
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)', padding: 8 }}>Add a product first before inviting affiliates.</p>
+                  ) : products.map((product) => (
+                    <div key={product.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{product.name}</span>
+                      <div style={{ position: 'relative', width: 90 }}>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          placeholder="0"
+                          value={affiliateProductRates[product.id] || ''}
+                          onChange={(e) => setAffiliateProductRates({ ...affiliateProductRates, [product.id]: e.target.value })}
+                          style={{ width: '100%', padding: '8px 24px 8px 8px', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, background: 'var(--card)' }}
+                        />
+                        <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'var(--text-muted)' }}>%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <button type="button" onClick={() => setIsAffiliateModalOpen(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
+                <button type="submit" disabled={affiliateSaving} className="btn btn-primary clickable" style={{ flex: 1, padding: 12 }}>
+                  {affiliateSaving ? <Loader2 size={16} className="animate-spin" /> : (editingAffiliate ? 'Save Rates' : 'Send Invite')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ── MODAL: CREATE INVOICE ── */}
       {isAddInvoiceOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
@@ -12302,6 +13655,172 @@ export default function DashboardPage() {
                 <button type="submit" className="btn btn-primary clickable">Save Invoice</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CREATE PAYMENT LINK ── */}
+      {isAddPaymentLinkOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsAddPaymentLinkOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 460, padding: 28, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+
+            {/* Header */}
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon"><Link size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>
+                    {createdPaymentLink ? 'Payment Link Ready' : 'Create Payment Link'}
+                  </h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>
+                    {createdPaymentLink ? 'Share this link to get paid' : 'Set an amount and get a shareable link'}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setIsAddPaymentLinkOpen(false)} className="modal-close-btn clickable"><X size={16} /></button>
+            </div>
+
+            {createdPaymentLink ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ background: 'var(--bg-2)', padding: '16px 20px', borderRadius: 'var(--r-xl)', border: '1px solid var(--border)' }}>
+                  <label style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payment Link</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, gap: 8 }}>
+                    <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--primary-dark)', wordBreak: 'break-all' }}>
+                      {typeof window !== 'undefined' ? `${window.location.origin}/pay/${createdPaymentLink.slug}` : `/pay/${createdPaymentLink.slug}`}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const url = `${window.location.origin}/pay/${createdPaymentLink.slug}`;
+                        navigator.clipboard.writeText(url);
+                        toast.success('Payment link copied! 📋');
+                      }}
+                      className="btn btn-outline clickable"
+                      style={{ padding: '6px 12px', fontSize: 11, borderRadius: 'var(--r-sm)', display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
+                    >
+                      <Copy size={12} /> Copy
+                    </button>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/pay/${createdPaymentLink.slug}`;
+                    const amountText = `${getCurrencySymbol(store?.currency_code)}${parseFloat(createdPaymentLink.amount).toLocaleString()}`;
+                    const msg = encodeURIComponent(
+                      createdPaymentLink.allow_custom_amount
+                        ? `💳 Support "${createdPaymentLink.title}" (from ${amountText}) here: ${url}`
+                        : `💳 Pay ${amountText} for "${createdPaymentLink.title}" here: ${url}`
+                    );
+                    window.open(`https://wa.me/?text=${msg}`, '_blank');
+                  }}
+                  className="btn clickable"
+                  style={{ background: '#25d366', color: '#fff', padding: '14px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}
+                >
+                  <WhatsAppIcon size={18} color="#fff" /> Share on WhatsApp
+                </button>
+                <div className="modal-footer">
+                  <button type="button" onClick={() => setIsAddPaymentLinkOpen(false)} className="btn btn-primary clickable">Done</button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const payload = {
+                    title: newPaymentLinkData.title,
+                    amount: parseFloat(newPaymentLinkData.amount),
+                    allow_custom_amount: newPaymentLinkData.allow_custom_amount,
+                    type: newPaymentLinkData.type,
+                    expires_at: newPaymentLinkData.expires_at || null,
+                  };
+                  const res = await fetch(`${apiUrl}/v1/payment-links`, {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                  });
+                  const json = await res.json();
+                  if (res.ok) {
+                    toast.success('Payment link created successfully.');
+                    setCreatedPaymentLink(json.data);
+                    fetchPaymentLinksData();
+                  } else {
+                    toast.error(json.message || 'Failed to create payment link.');
+                  }
+                } catch {
+                  toast.error('Network error creating payment link.');
+                }
+              }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                <div className="field-group">
+                  <label className="form-label">Title <span style={{ color: 'var(--danger)' }}>*</span></label>
+                  <input type="text" required value={newPaymentLinkData.title} onChange={e => setNewPaymentLinkData({ ...newPaymentLinkData, title: e.target.value })} className="form-control" placeholder="e.g. Consulting fee, Deposit" />
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">{newPaymentLinkData.allow_custom_amount ? 'Minimum Amount' : 'Amount'} ({store?.currency_code || 'NGN'}) <span style={{ color: 'var(--danger)' }}>*</span></label>
+                  <input type="number" required min={1} step="0.01" value={newPaymentLinkData.amount} onChange={e => setNewPaymentLinkData({ ...newPaymentLinkData, amount: e.target.value })} className="form-control" placeholder="e.g. 5000" />
+                </div>
+
+                <div className="field-group">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <div>
+                      <label className="form-label" style={{ marginBottom: 2 }}>Let payer choose their own amount</label>
+                      <p style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>Turn this on for tips, donations, or "pay what you want" links.</p>
+                    </div>
+                    <Toggle
+                      checked={newPaymentLinkData.allow_custom_amount}
+                      onChange={val => setNewPaymentLinkData({ ...newPaymentLinkData, allow_custom_amount: val })}
+                      id="payment-link-custom-amount-toggle"
+                    />
+                  </div>
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Link Type</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setNewPaymentLinkData({ ...newPaymentLinkData, type: 'one_time' })}
+                      className="clickable"
+                      style={{
+                        flex: 1, padding: '10px', borderRadius: 'var(--r-md)', fontSize: 13, fontWeight: 700,
+                        border: `1.5px solid ${newPaymentLinkData.type === 'one_time' ? 'var(--primary)' : 'var(--border)'}`,
+                        background: newPaymentLinkData.type === 'one_time' ? 'var(--primary-light)' : 'transparent',
+                        color: newPaymentLinkData.type === 'one_time' ? 'var(--primary)' : 'var(--text-muted)'
+                      }}
+                    >
+                      One-time
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewPaymentLinkData({ ...newPaymentLinkData, type: 'reusable' })}
+                      className="clickable"
+                      style={{
+                        flex: 1, padding: '10px', borderRadius: 'var(--r-md)', fontSize: 13, fontWeight: 700,
+                        border: `1.5px solid ${newPaymentLinkData.type === 'reusable' ? 'var(--primary)' : 'var(--border)'}`,
+                        background: newPaymentLinkData.type === 'reusable' ? 'var(--primary-light)' : 'transparent',
+                        color: newPaymentLinkData.type === 'reusable' ? 'var(--primary)' : 'var(--text-muted)'
+                      }}
+                    >
+                      Reusable
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 6 }}>
+                    {newPaymentLinkData.type === 'one_time' ? 'Link deactivates automatically after one payment.' : 'Link stays active and can be paid by many customers.'}
+                  </p>
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Expires On (optional)</label>
+                  <input type="date" value={newPaymentLinkData.expires_at} onChange={e => setNewPaymentLinkData({ ...newPaymentLinkData, expires_at: e.target.value })} className="form-control" />
+                </div>
+
+                <div className="modal-footer">
+                  <button type="button" onClick={() => setIsAddPaymentLinkOpen(false)} className="btn btn-outline clickable">Cancel</button>
+                  <button type="submit" className="btn btn-primary clickable">Create Link</button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -12424,8 +13943,8 @@ export default function DashboardPage() {
                     <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
                       Upload your main image — AI will auto-fill title, description & tags. 
                       <span style={{ color: 'var(--primary)', fontWeight: 700, marginLeft: 4 }}>
-                        ({user?.plan === 'pro_yearly' 
-                          ? 'Unlimited AI credits' 
+                        ({(user?.plan === 'pro_yearly' || isLegend)
+                          ? 'Unlimited AI credits'
                           : `${Math.max(0, (user?.plan === 'pro_monthly' ? 15 : 3) - (user?.ai_analyses_used ?? 0))} AI credit(s) remaining`})
                       </span>
                     </div>
@@ -12503,9 +14022,11 @@ export default function DashboardPage() {
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>What are you selling?</label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                   {[
-                    { id: 'physical', icon: ShoppingBag, label: 'Physical', sublabel: 'Shipped or handed over', active: !prodIsDigital && prodType !== 'service' },
+                    { id: 'physical', icon: ShoppingBag, label: 'Physical', sublabel: 'Shipped or handed over', active: !prodIsDigital && prodType !== 'service' && prodType !== 'bundle' && prodType !== 'ticket' },
                     { id: 'digital', icon: Laptop, label: 'Digital', sublabel: 'Downloads, files, links', active: prodIsDigital },
                     { id: 'service', icon: Bell, label: 'Service', sublabel: 'Sessions, bookings, jobs', active: prodType === 'service' },
+                    { id: 'bundle', icon: Package, label: 'Bundle', sublabel: 'Combo of other products', active: prodType === 'bundle' },
+                    { id: 'ticket', icon: Ticket, label: 'Ticket', sublabel: 'Event with check-in', active: prodType === 'ticket' },
                   ].map(opt => (
                     <button
                       key={opt.id}
@@ -12514,6 +14035,8 @@ export default function DashboardPage() {
                         if (opt.id === 'physical') { setProdIsDigital(false); setProdType('product'); }
                         if (opt.id === 'digital') { setProdIsDigital(true); setProdType('product'); setProdStock('in_stock'); }
                         if (opt.id === 'service') { setProdIsDigital(false); setProdType('service'); }
+                        if (opt.id === 'bundle') { setProdIsDigital(false); setProdType('bundle'); setProdStock('in_stock'); }
+                        if (opt.id === 'ticket') { setProdIsDigital(false); setProdType('ticket'); }
                       }}
                       style={{
                         padding: '12px 8px',
@@ -12586,16 +14109,99 @@ export default function DashboardPage() {
                   <SearchableSelect
                     options={[
                       { value: 'in_stock', label: `In Stock ${prodIsDigital ? '(Auto-Managed)' : ''}` },
-                      { value: 'out_of_stock', label: 'Out of Stock' }
+                      { value: 'out_of_stock', label: 'Out of Stock' },
+                      { value: 'low_stock', label: 'Low Stock' },
+                      { value: 'preorder', label: 'Pre-order' },
                     ]}
                     value={prodStock}
                     onChange={val => setProdStock(val)}
-                    disabled={prodIsDigital}
+                    disabled={prodIsDigital || prodType === 'bundle'}
                     placeholder="Select Status"
                   />
                 </div>
               </div>
 
+              {prodStock === 'preorder' && (
+                <div className="animate-fade-in">
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Expected Availability Date</label>
+                  <input
+                    type="date"
+                    value={prodExpectedAvailabilityDate}
+                    onChange={e => setProdExpectedAvailabilityDate(e.target.value)}
+                    className="input-field"
+                  />
+                </div>
+              )}
+
+              {/* Bundle Extras — shown when Bundle type is selected */}
+              {prodType === 'bundle' && (
+                <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px solid rgba(16, 185, 129, 0.2)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }} className="animate-fade-in">
+                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--primary)' }}>📦 Bundle Components</div>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>Pick the products included in this bundle and how many of each.</p>
+                  {products.filter(p => p.type !== 'bundle').map(p => {
+                    const selected = prodBundleItems.find(bi => bi.product_id === p.id);
+                    return (
+                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <input
+                          type="checkbox"
+                          checked={!!selected}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              setProdBundleItems(prev => [...prev, { product_id: p.id, quantity: 1 }]);
+                            } else {
+                              setProdBundleItems(prev => prev.filter(bi => bi.product_id !== p.id));
+                            }
+                          }}
+                        />
+                        <span style={{ fontSize: 13, flex: 1 }}>{p.name}</span>
+                        {selected && (
+                          <input
+                            type="number"
+                            min={1}
+                            value={selected.quantity}
+                            onChange={e => {
+                              const qty = Math.max(1, parseInt(e.target.value, 10) || 1);
+                              setProdBundleItems(prev => prev.map(bi => bi.product_id === p.id ? { ...bi, quantity: qty } : bi));
+                            }}
+                            className="input-field"
+                            style={{ width: 60, padding: '4px 8px' }}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                  {products.filter(p => p.type !== 'bundle').length === 0 && (
+                    <p style={{ fontSize: 12, color: 'var(--text-faint)' }}>Add other products first, then come back to bundle them.</p>
+                  )}
+                </div>
+              )}
+
+              {/* Ticket Extras — shown when Ticket type is selected */}
+              {prodType === 'ticket' && (
+                <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px solid rgba(16, 185, 129, 0.2)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 14 }} className="animate-fade-in">
+                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--primary)' }}>🎫 Event Details</div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Event Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={prodEventDate}
+                      onChange={e => setProdEventDate(e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Event Location</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. The Zone, Gbagada, Lagos or 'Online'"
+                      value={prodEventLocation}
+                      onChange={e => setProdEventLocation(e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>Turn on inventory tracking below to cap how many tickets can be sold.</p>
+                </div>
+              )}
 
               {/* Digital Product Extras — shown when Digital type is selected */}
               {prodIsDigital && (
@@ -12660,6 +14266,70 @@ export default function DashboardPage() {
                       Or provide a URL to a Google Drive folder, Notion page, private video, etc.
                     </p>
                   </div>
+
+                  {/* Extra files (multi-file delivery) */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                      Extra Files (Optional — e.g. bonus chapters, workbook)
+                    </label>
+                    {prodDigitalFiles.map((f, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                        <span style={{ fontSize: 12.5, flex: 1, wordBreak: 'break-all' }}>{f.name}</span>
+                        <button type="button" onClick={() => setProdDigitalFiles(prev => prev.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}>
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    <FileUpload
+                      variant="default"
+                      accept="*"
+                      label="Add another file"
+                      hint="Uploads here are added to the list above, not replaced."
+                      uploading={prodDigitalUploading}
+                      maxSize={20 * 1024 * 1024}
+                      onFile={async (file) => {
+                        try {
+                          setProdDigitalUploading(true);
+                          const fd = new FormData();
+                          fd.append('file', file);
+                          const res = await fetch(`${apiUrl}/v1/products/upload-file`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                            body: fd
+                          });
+                          const json = await res.json();
+                          if (res.ok && json.path) {
+                            setProdDigitalFiles(prev => [...prev, { path: json.path, name: file.name }]);
+                            toast.success('File added! 📁');
+                          } else throw new Error(json.message || 'File upload failed');
+                        } catch (err: any) {
+                          toast.error(err.message || 'File upload error');
+                        } finally {
+                          setProdDigitalUploading(false);
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {prodDigitalFiles.length > 0 && (
+                    <div className="responsive-form-row">
+                      <div>
+                        <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Download Limit (Optional)</label>
+                        <input
+                          type="number"
+                          min={1}
+                          placeholder="Unlimited"
+                          value={prodDownloadLimit}
+                          onChange={e => setProdDownloadLimit(e.target.value)}
+                          className="input-field"
+                        />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 20 }}>
+                        <input type="checkbox" id="prodReadOnlineOnly" checked={prodReadOnlineOnly} onChange={e => setProdReadOnlineOnly(e.target.checked)} />
+                        <label htmlFor="prodReadOnlineOnly" style={{ fontSize: 12.5, fontWeight: 600 }}>Read online only (no download link, e.g. for ebooks)</label>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -12862,6 +14532,39 @@ export default function DashboardPage() {
                   />
                 )}
               </div>
+
+              {/* Cross-sell picker — optional, storefront falls back to same-category automatically */}
+              {products.filter(p => p.id !== selectedProduct?.id).length > 0 && (
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                    "You May Also Like" Picks (Optional, up to 8)
+                  </label>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 8 }}>Leave unchecked and we'll auto-suggest same-category products instead.</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, maxHeight: 140, overflowY: 'auto' }}>
+                    {products.filter(p => p.id !== selectedProduct?.id).map(p => {
+                      const checked = prodRelatedProductIds.includes(p.id);
+                      return (
+                        <label key={p.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 20, border: checked ? '1.5px solid var(--primary)' : '1px solid var(--border)', background: checked ? 'var(--primary-light)' : 'var(--surface)', fontSize: 12, cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                if (prodRelatedProductIds.length >= 8) return;
+                                setProdRelatedProductIds(prev => [...prev, p.id]);
+                              } else {
+                                setProdRelatedProductIds(prev => prev.filter(id => id !== p.id));
+                              }
+                            }}
+                            style={{ display: 'none' }}
+                          />
+                          {p.name}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               </>
               )}
 
@@ -12887,6 +14590,18 @@ export default function DashboardPage() {
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Edit Product Settings</h3>
               <button onClick={() => setIsEditProductOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
             </div>
+
+            {selectedProduct?.qr_code_url && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, padding: 12, background: 'var(--surface-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+                <img src={selectedProduct.qr_code_url} alt="Product QR code" width={64} height={64} style={{ borderRadius: 6 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700 }}>Scan to view this product</div>
+                  <a href={selectedProduct.qr_code_url} download={`product-${selectedProduct.id}-qr.png`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 700 }}>
+                    Download QR code
+                  </a>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleUpdateProductSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
@@ -12938,14 +14653,122 @@ export default function DashboardPage() {
                   <SearchableSelect
                     options={[
                       { value: 'in_stock', label: `In Stock ${prodIsDigital ? '(Auto-Managed)' : ''}` },
-                      { value: 'out_of_stock', label: 'Out of Stock' }
+                      { value: 'out_of_stock', label: 'Out of Stock' },
+                      { value: 'low_stock', label: 'Low Stock' },
+                      { value: 'preorder', label: 'Pre-order' },
                     ]}
                     value={prodStock}
                     onChange={val => setProdStock(val)}
-                    disabled={prodIsDigital}
+                    disabled={prodIsDigital || prodType === 'bundle'}
                     placeholder="Select Status"
                   />
                 </div>
+              </div>
+
+              {prodStock === 'preorder' && (
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Expected Availability Date</label>
+                  <input
+                    type="date"
+                    value={prodExpectedAvailabilityDate}
+                    onChange={e => setProdExpectedAvailabilityDate(e.target.value)}
+                    className="input-field"
+                  />
+                </div>
+              )}
+
+              {/* Bundle Product Settings */}
+              <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px dashed rgba(16, 185, 129, 0.3)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <Toggle
+                  checked={prodType === 'bundle'}
+                  onChange={(next) => {
+                    setProdType(next ? 'bundle' : 'product');
+                    setProdIsDigital(false);
+                    if (next) setProdStock('in_stock');
+                  }}
+                  label={
+                    <div>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Bundle Product</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Combine other products into one discounted combo.</span>
+                    </div>
+                  }
+                />
+                {prodType === 'bundle' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} className="animate-fade-in">
+                    {products.filter(p => p.type !== 'bundle' && p.id !== selectedProduct?.id).map(p => {
+                      const selected = prodBundleItems.find(bi => bi.product_id === p.id);
+                      return (
+                        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <input
+                            type="checkbox"
+                            checked={!!selected}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setProdBundleItems(prev => [...prev, { product_id: p.id, quantity: 1 }]);
+                              } else {
+                                setProdBundleItems(prev => prev.filter(bi => bi.product_id !== p.id));
+                              }
+                            }}
+                          />
+                          <span style={{ fontSize: 13, flex: 1 }}>{p.name}</span>
+                          {selected && (
+                            <input
+                              type="number"
+                              min={1}
+                              value={selected.quantity}
+                              onChange={e => {
+                                const qty = Math.max(1, parseInt(e.target.value, 10) || 1);
+                                setProdBundleItems(prev => prev.map(bi => bi.product_id === p.id ? { ...bi, quantity: qty } : bi));
+                              }}
+                              className="input-field"
+                              style={{ width: 60, padding: '4px 8px' }}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Ticket (Event) Product Settings */}
+              <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px dashed rgba(16, 185, 129, 0.3)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <Toggle
+                  checked={prodType === 'ticket'}
+                  onChange={(next) => {
+                    setProdType(next ? 'ticket' : 'product');
+                    setProdIsDigital(false);
+                  }}
+                  label={
+                    <div>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Event Ticket</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Sell tickets with a QR check-in code.</span>
+                    </div>
+                  }
+                />
+                {prodType === 'ticket' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }} className="animate-fade-in">
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Event Date & Time</label>
+                      <input
+                        type="datetime-local"
+                        value={prodEventDate}
+                        onChange={e => setProdEventDate(e.target.value)}
+                        className="input-field"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Event Location</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. The Zone, Gbagada, Lagos or 'Online'"
+                        value={prodEventLocation}
+                        onChange={e => setProdEventLocation(e.target.value)}
+                        className="input-field"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Digital Product Settings */}
@@ -13035,6 +14858,70 @@ export default function DashboardPage() {
                         Or provide a URL to a Google Drive folder, Notion page, private video, etc.
                       </p>
                     </div>
+
+                    {/* Extra files (multi-file delivery) */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                        Extra Files (Optional — e.g. bonus chapters, workbook)
+                      </label>
+                      {prodDigitalFiles.map((f, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <span style={{ fontSize: 12.5, flex: 1, wordBreak: 'break-all' }}>{f.name}</span>
+                          <button type="button" onClick={() => setProdDigitalFiles(prev => prev.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}>
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                      <FileUpload
+                        variant="default"
+                        accept="*"
+                        label="Add another file"
+                        hint="Uploads here are added to the list above, not replaced."
+                        uploading={prodDigitalUploading}
+                        maxSize={20 * 1024 * 1024}
+                        onFile={async (file) => {
+                          try {
+                            setProdDigitalUploading(true);
+                            const fd = new FormData();
+                            fd.append('file', file);
+                            const res = await fetch(`${apiUrl}/v1/products/upload-file`, {
+                              method: 'POST',
+                              headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                              body: fd
+                            });
+                            const json = await res.json();
+                            if (res.ok && json.path) {
+                              setProdDigitalFiles(prev => [...prev, { path: json.path, name: file.name }]);
+                              toast.success('File added! 📁');
+                            } else throw new Error(json.message || 'File upload failed');
+                          } catch (err: any) {
+                            toast.error(err.message || 'File upload error');
+                          } finally {
+                            setProdDigitalUploading(false);
+                          }
+                        }}
+                      />
+                    </div>
+
+                    {prodDigitalFiles.length > 0 && (
+                      <div className="responsive-form-row">
+                        <div>
+                          <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Download Limit (Optional)</label>
+                          <input
+                            type="number"
+                            min={1}
+                            placeholder="Unlimited"
+                            value={prodDownloadLimit}
+                            onChange={e => setProdDownloadLimit(e.target.value)}
+                            className="input-field"
+                          />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 20 }}>
+                          <input type="checkbox" id="prodReadOnlineOnlyEdit" checked={prodReadOnlineOnly} onChange={e => setProdReadOnlineOnly(e.target.checked)} />
+                          <label htmlFor="prodReadOnlineOnlyEdit" style={{ fontSize: 12.5, fontWeight: 600 }}>Read online only (no download link, e.g. for ebooks)</label>
+                        </div>
+                      </div>
+                    )}
 
                   </div>
                 )}
@@ -13316,6 +15203,39 @@ export default function DashboardPage() {
                   />
                 )}
               </div>
+
+              {/* Cross-sell picker — optional, storefront falls back to same-category automatically */}
+              {products.filter(p => p.id !== selectedProduct?.id).length > 0 && (
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                    "You May Also Like" Picks (Optional, up to 8)
+                  </label>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 8 }}>Leave unchecked and we'll auto-suggest same-category products instead.</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, maxHeight: 140, overflowY: 'auto' }}>
+                    {products.filter(p => p.id !== selectedProduct?.id).map(p => {
+                      const checked = prodRelatedProductIds.includes(p.id);
+                      return (
+                        <label key={p.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 20, border: checked ? '1.5px solid var(--primary)' : '1px solid var(--border)', background: checked ? 'var(--primary-light)' : 'var(--surface)', fontSize: 12, cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                if (prodRelatedProductIds.length >= 8) return;
+                                setProdRelatedProductIds(prev => [...prev, p.id]);
+                              } else {
+                                setProdRelatedProductIds(prev => prev.filter(id => id !== p.id));
+                              }
+                            }}
+                            style={{ display: 'none' }}
+                          />
+                          {p.name}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
                 <button type="button" onClick={() => setIsEditProductOpen(false)} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>

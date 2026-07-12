@@ -13,11 +13,19 @@ interface OrderItem {
   product_name: string;
   product_price: string;
   quantity: number;
+  bundle_parent_id?: string | null;
+  is_preorder?: boolean;
+  expected_ship_date?: string | null;
+  check_in_code?: string | null;
+  checked_in_at?: string | null;
+  ticket_qr_code_url?: string | null;
+  digital_download_links?: { name: string | null; url: string; read_online_only: boolean }[];
   product?: {
     id: string;
     is_digital: boolean;
     digital_file_url?: string | null;
     digital_link?: string | null;
+    type?: string;
   } | null;
 }
 
@@ -1049,12 +1057,45 @@ export default function OrderTrackingPage() {
                         </a>
                       )}
 
-                      {!item.product?.digital_file_url && !item.product?.digital_link && (
+                      {!item.product?.digital_file_url && !item.product?.digital_link && (!item.digital_download_links || item.digital_download_links.length === 0) && (
                         <span style={{ fontSize: '12px', color: 'var(--text-faint)' }}>
                           No file or link provided by seller.
                         </span>
                       )}
                     </div>
+
+                    {item.digital_download_links && item.digital_download_links.length > 0 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {item.digital_download_links.map((file, i) => (
+                          file.read_online_only ? (
+                            <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              <span style={{ fontSize: '12.5px', fontWeight: 600 }}>{file.name || `File ${i + 1}`} — read online only</span>
+                              <iframe
+                                src={file.url}
+                                title={file.name || `File ${i + 1}`}
+                                style={{ width: '100%', height: 480, border: '1px solid var(--border)', borderRadius: 8 }}
+                              />
+                            </div>
+                          ) : (
+                            <a
+                              key={i}
+                              href={file.url}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                padding: '8px 14px', background: 'var(--primary)', color: '#fff', borderRadius: '8px',
+                                fontWeight: 700, fontSize: '12.5px', textDecoration: 'none', display: 'inline-flex',
+                                alignItems: 'center', gap: 5, width: 'fit-content'
+                              }}
+                              className="clickable"
+                            >
+                              <Download size={13} /> {file.name || `Download File ${i + 1}`}
+                            </a>
+                          )
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
 
@@ -1274,19 +1315,42 @@ export default function OrderTrackingPage() {
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {order.items.map(item => (
-              <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px' }}>
-                <div>
-                  <div style={{ fontWeight: 600 }}>{item.product_name}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    {item.quantity} x {currencySymbol}{parseFloat(item.product_price || '0').toLocaleString()}
+            {order.items.filter(item => !item.bundle_parent_id).map(item => {
+              const bundleChildren = order.items.filter(child => child.bundle_parent_id === item.id);
+              return (
+                <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{item.product_name}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {item.quantity} x {currencySymbol}{parseFloat(item.product_price || '0').toLocaleString()}
+                      </div>
+                      {item.is_preorder && (
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#b45309', marginTop: '4px' }}>
+                          Pre-order{item.expected_ship_date ? ` — ships around ${new Date(item.expected_ship_date).toLocaleDateString()}` : ''}
+                        </div>
+                      )}
+                      {bundleChildren.length > 0 && (
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                          Includes: {bundleChildren.map(c => `${c.product_name}${c.quantity > 1 ? ` x${c.quantity}` : ''}`).join(', ')}
+                        </div>
+                      )}
+                      {item.product?.type === 'ticket' && item.ticket_qr_code_url && (
+                        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
+                          <img src={item.ticket_qr_code_url} alt="Ticket check-in QR code" width={120} height={120} style={{ borderRadius: '8px', border: '1px solid var(--border)' }} />
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: item.checked_in_at ? 'var(--primary)' : 'var(--text-muted)' }}>
+                            {item.checked_in_at ? `Checked in ${new Date(item.checked_in_at).toLocaleString()}` : `Show this at the door — code: ${item.check_in_code}`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <span style={{ fontWeight: 700 }}>
+                      {currencySymbol}{(parseFloat(item.product_price || '0') * item.quantity).toLocaleString()}
+                    </span>
                   </div>
                 </div>
-                <span style={{ fontWeight: 700 }}>
-                  {currencySymbol}{(parseFloat(item.product_price || '0') * item.quantity).toLocaleString()}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '10px' }}>

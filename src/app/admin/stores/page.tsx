@@ -24,10 +24,12 @@ const formatMoney = (value?: number, currencyCode: string = 'NGN') =>
 const planLabel = (plan?: string | null) => {
   if (plan === 'pro_yearly') return 'Pro Yearly';
   if (plan === 'pro_monthly') return 'Pro Monthly';
+  if (plan === 'legend_yearly') return 'Legend Yearly';
+  if (plan === 'legend_monthly') return 'Legend Monthly';
   return 'Free';
 };
 
-const isProPlan = (plan?: string | null) => plan === 'pro_monthly' || plan === 'pro_yearly';
+const isProPlan = (plan?: string | null) => plan === 'pro_monthly' || plan === 'pro_yearly' || plan === 'legend_monthly' || plan === 'legend_yearly';
 
 export default function AdminStoresPage() {
   const { token, apiUrl, getHeaders, handleFetchResponse, openConfirmationDialog } = useAdmin();
@@ -199,6 +201,8 @@ export default function AdminStoresPage() {
                           <option value="free">Free</option>
                           <option value="pro_monthly">Pro Monthly</option>
                           <option value="pro_yearly">Pro Yearly</option>
+                          <option value="legend_monthly">Legend Monthly</option>
+                          <option value="legend_yearly">Legend Yearly</option>
                         </select>
                         <ChevronDown size={14} />
                       </label>

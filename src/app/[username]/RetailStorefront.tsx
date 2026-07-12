@@ -6,6 +6,7 @@ import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { storePath } from "../../utils/storePath";
 import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon } from "../../components/SocialIcons";
+import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 
 import { Menu, X, BadgeCheck, MapPin, Star, Clock, Share2, Store as StoreIcon, Search, ShoppingBag, Calendar, ChevronRight, ChevronDown, ChevronLeft, Megaphone, Truck, Sparkles, ShieldCheck, Navigation, Lock, Plus, Minus, Copy, Instagram, Facebook, Award, Check, Quote, Phone, Mail, RotateCcw, Package, Bell, MessageCircle, UtensilsCrossed, Receipt } from "lucide-react";
 
@@ -367,6 +368,7 @@ export default function RetailStorefront({
   const [selectedColor, setSelectedColor] = useState<string>("");
 
   useEffect(() => {
+    captureAffiliateRef();
     try {
       const savedProfile = localStorage.getItem('frontstore_customer_profile');
       if (savedProfile) {
@@ -1034,7 +1036,8 @@ export default function RetailStorefront({
             color: item.colour || undefined,
           })),
           frontstore_protect: frontstoreProtect,
-          coupon_code: appliedCoupon ? appliedCoupon.code : undefined
+          coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
+          affiliate_code: getPersistedAffiliateRef()
         })
       });
 

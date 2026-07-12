@@ -5,6 +5,7 @@ import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { storePath } from "../../utils/storePath";
+import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon } from "../../components/SocialIcons";
 
 import { Menu, X, BadgeCheck, MapPin, Star, Clock, Share2, Store as StoreIcon, Search, ShoppingBag, Calendar, ChevronRight, ChevronDown, ChevronLeft, Megaphone, Truck, Sparkles, ShieldCheck, Navigation, Lock, Plus, Minus, Copy, Instagram, Facebook, Award, Check, Quote, Phone, Mail, RotateCcw, Package, Bell, MessageCircle, UtensilsCrossed, Receipt } from "lucide-react";
@@ -361,6 +362,7 @@ export default function CleaningStorefront({
   const [loadingSlots, setLoadingSlots] = useState(false);
 
   useEffect(() => {
+    captureAffiliateRef();
     try {
       const savedProfile = localStorage.getItem('frontstore_customer_profile');
       if (savedProfile) {
@@ -814,6 +816,7 @@ export default function CleaningStorefront({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          affiliate_code: getPersistedAffiliateRef(),
           customer_name: customerName,
           customer_phone: customerPhone,
           customer_email: customerEmail || undefined,
