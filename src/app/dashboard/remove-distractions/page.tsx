@@ -397,7 +397,7 @@ export default function RemoveDistractionsPage() {
         </header>
 
         <div style={{ padding: 'clamp(16px, 4vw, 32px)', flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ maxWidth: 720, width: '100%', margin: '0 auto' }}>
+          <div style={{ maxWidth: 900, width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
               <div style={{ width: 40, height: 40, borderRadius: 'var(--r-lg)', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <EyeOff size={20} style={{ color: 'var(--primary)' }} />
