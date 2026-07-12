@@ -103,9 +103,9 @@ export default function AffiliatePortalPage() {
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
       });
       const json = await res.json();
-      if (res.ok && json.token) {
-        localStorage.setItem('token', json.token);
-        setToken(json.token);
+      if (res.ok && json.data?.token) {
+        localStorage.setItem('token', json.data.token);
+        setToken(json.data.token);
       } else {
         toast.error(json.message || 'Login failed.');
       }

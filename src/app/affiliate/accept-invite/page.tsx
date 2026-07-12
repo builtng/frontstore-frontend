@@ -101,16 +101,17 @@ function AcceptInviteContent() {
         body: JSON.stringify({ email: invite.email, password: loginPassword }),
       });
       const loginJson = await loginRes.json();
-      if (!loginRes.ok || !loginJson.token) {
+      const loginToken = loginJson.data?.token;
+      if (!loginRes.ok || !loginToken) {
         toast.error(loginJson.message || 'Login failed.');
         return;
       }
 
-      localStorage.setItem('token', loginJson.token);
+      localStorage.setItem('token', loginToken);
 
       const claimRes = await fetch(`${API_URL}/v1/affiliate-invitations/${token}/claim`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${loginJson.token}`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `Bearer ${loginToken}`, 'Content-Type': 'application/json' },
       });
       const claimJson = await claimRes.json();
       if (claimRes.ok) {
