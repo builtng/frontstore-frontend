@@ -317,9 +317,9 @@ export default function TechStorefront({
     slug: store.username || username,
     category: store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || 'Tech & Repairs',
     location: store.location || 'Online store',
-    rating: store.rating || 4.8,
-    reviews: store.review_count || 0,
-    orders: store.total_orders || '0',
+    rating: store.rating || undefined,
+    reviews: store.review_count || undefined,
+    orders: store.total_orders || undefined,
     reply: store.reply_time_minutes ? `~${store.reply_time_minutes} min` : '~10 min',
     bio: store.store_bio || 'Quality gadgets and device repairs.',
     address: store.address || 'Computer Village, Ikeja, Lagos',
@@ -1444,6 +1444,8 @@ export default function TechStorefront({
     </div>
   );
 
+  const aggregateRating = STORE.rating && (STORE.reviews ?? 0) > 0 ? { "@type": "AggregateRating", ratingValue: STORE.rating, reviewCount: STORE.reviews, bestRating: 5 } : null;
+
   const schema = {
     "@context": "https://schema.org",
     "@type": ["ElectronicsStore", "LocalBusiness"],
@@ -1456,7 +1458,7 @@ export default function TechStorefront({
     telephone: STORE.phone,
     email: STORE.email,
     sameAs: [],
-    aggregateRating: { "@type": "AggregateRating", ratingValue: STORE.rating, reviewCount: STORE.reviews, bestRating: 5 },
+    ...(aggregateRating ? { aggregateRating } : {}),
     founder: { "@type": "Person", name: AUTHOR.name, jobTitle: AUTHOR.role, sameAs: [] },
   };
 
@@ -1501,8 +1503,8 @@ export default function TechStorefront({
                   <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                 </div>
                 <div className="ps-stats">
-                  <div><b><Star size={14} className="ps-star" /> {STORE.rating}</b><span>{STORE.reviews} reviews</span></div>
-                  <div><b>{STORE.orders}</b><span>orders</span></div>
+                  {STORE.rating ? <div><b><Star size={14} className="ps-star" /> {STORE.rating}</b><span>{STORE.reviews} reviews</span></div> : null}
+                  {STORE.orders ? <div><b>{STORE.orders}</b><span>orders</span></div> : null}
                   {(store.storefront_sections || []).includes("replies_approximation") && (store.reply_time_minutes || 0) > 0 && (
                     <div><b>{STORE.reply}</b><span>reply time</span></div>
                   )}
@@ -1985,7 +1987,7 @@ export default function TechStorefront({
           <span className="ps-id-main">
             <b>{STORE.name} {store.is_verified ? <BadgeCheck size={14} className="ps-verif" /> : null}</b>
             <i>{systemDomain}/{STORE.slug}</i>
-            <em><Star size={12} className="ps-star" /> {STORE.rating} ({STORE.reviews})</em>
+            {STORE.rating ? <em><Star size={12} className="ps-star" /> {STORE.rating} ({STORE.reviews})</em> : null}
           </span>
         </button>
         <nav className="ps-nav">
@@ -2130,6 +2132,9 @@ export default function TechStorefront({
   }
 
   function RatingSummary() {
+    if (!STORE.rating) {
+      return <EmptyState />;
+    }
     return (
       <div className="rev-sum">
         <div className="rev-sum-main">

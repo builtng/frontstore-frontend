@@ -1370,8 +1370,8 @@ export default function AgentStorefront({
     {aboutReview()}
     {aboutJournal()}
     <div className="ps-about-grid">
-      <div><b>{DUMMY_STORE.orders}</b><span>deals closed</span></div>
-      <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
+      {DUMMY_STORE.orders ? <div><b>{DUMMY_STORE.orders}</b><span>deals closed</span></div> : null}
+      {DUMMY_STORE.rating ? <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div> : null}
       {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
@@ -1840,7 +1840,7 @@ export default function AgentStorefront({
         <span className="ps-id-main">
           <b>{DUMMY_STORE.name} {store.is_verified ? <BadgeCheck size={14} className="ps-verif" /> : null}</b>
           <i>frontstore.ng/{username}</i>
-          <em><Star size={12} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</em>
+          {DUMMY_STORE.rating ? <em><Star size={12} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</em> : null}
         </span>
       </button>
       <nav className="ps-nav">
@@ -2884,11 +2884,12 @@ function ReviewCard({ rv, full }: { rv: any, full?: boolean }) {
     <p>{rv.text}</p></div>);
 }
 function RatingSummary({ rating, reviews }: { rating?: number, reviews?: number } = {}) {
+  if (!rating) return null;
   const bars = [["5", 80], ["4", 14], ["3", 3], ["2", 2], ["1", 1]];
   return (<div className="ps-rating">
-    <div className="ps-rating-score"><b>{rating || MOCK_STORE.rating}</b>
+    <div className="ps-rating-score"><b>{rating}</b>
       <div className="ps-rating-stars">{Array.from({ length: 5 }).map((_: any, i: number) => <Star key={i} size={15} className="f" />)}</div>
-      <span>Excellent</span><i>{reviews || MOCK_STORE.reviews} reviews</i></div>
+      <span>Excellent</span><i>{reviews || 0} reviews</i></div>
     <div className="ps-rating-bars">{bars.map(([n, w]: any) => (<div key={n} className="ps-bar"><span>{n}</span><div><i style={{ width: w + "%" }} /></div></div>))}</div></div>);
 }
 function Accordion({ items, open, setOpen }: { items: any[], open: boolean | number, setOpen: (open: any) => void }) {
