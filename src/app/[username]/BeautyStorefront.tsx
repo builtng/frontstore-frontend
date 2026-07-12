@@ -1700,7 +1700,7 @@ export default function BeautyStorefront({
 
       <WhatsAppDisclaimerModal
         open={!!pendingWaUrl}
-        storeName={store.store_name}
+        storeName={store.store_name} isVerified={!!store.is_verified}
         onConfirm={() => { window.open(pendingWaUrl!, '_blank'); setPendingWaUrl(null); }}
         onCancel={() => setPendingWaUrl(null)}
       />

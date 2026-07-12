@@ -1905,7 +1905,7 @@ export default function ThriftStorefront({
       '--brand': primaryColor,
       '--brand-deep': `color-mix(in srgb, ${primaryColor} 80%, black)`,
     } as React.CSSProperties}>
-      <WhatsAppDisclaimerModal open={!!pendingWaUrl} storeName={store.store_name}
+      <WhatsAppDisclaimerModal open={!!pendingWaUrl} storeName={store.store_name} isVerified={!!store.is_verified}
         onConfirm={() => { window.open(pendingWaUrl!, '_blank'); setPendingWaUrl(null); }}
         onCancel={() => setPendingWaUrl(null)} />
 

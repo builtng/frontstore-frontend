@@ -94,6 +94,7 @@ interface StoreInfo {
   facebook_pixel_id?: string | null;
   google_tag_manager_id?: string | null;
   is_active?: boolean;
+  is_verified?: boolean;
   bank_name?: string | null;
   bank_account_number?: string | null;
   bank_account_name?: string | null;
@@ -250,7 +251,7 @@ interface BroadcastCampaign {
 
 type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings' | 'invoices' | 'receipts' | 'payment-links' | 'inventory' | 'automations' | 'analytics' | 'team' | 'finance' | 'refunds' | 'inbox' | 'coupons' | 'affiliates' | 'integrations' | 'customers';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings', 'invoices', 'receipts', 'payment-links', 'inventory', 'automations', 'analytics', 'team', 'finance', 'refunds', 'inbox', 'coupons', 'affiliates', 'integrations', 'customers'];
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings', 'invoices', 'receipts', 'payment-links', 'inventory', 'automations', 'analytics', 'team', 'finance', 'refunds', 'inbox', 'coupons', 'integrations', 'customers'];
 
 const BROADCAST_AUDIENCES: Array<{ id: 'all' | 'repeat' | 'unpaid_whatsapp'; label: string; description: string }> = [
   { id: 'all', label: 'All customers', description: 'Everyone who has ever placed an order with your store.' },
@@ -4107,7 +4108,6 @@ export default function DashboardPage() {
             { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
             { id: 'products', label: 'My Products', icon: <Package size={18} /> },
             { id: 'coupons', label: 'Store Coupons', icon: <Tag size={18} /> },
-            { id: 'affiliates', label: 'Affiliates', icon: <UserPlus size={18} /> },
             { id: 'customers', label: 'Customers', icon: <Users size={18} /> },
             { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
                 { id: 'payment-links', label: 'Payment Links', icon: <Link size={18} /> },

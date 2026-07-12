@@ -129,6 +129,7 @@ function ProductCard({ p, market, liked, onLike }: { p: any; market: any; liked:
           >
             {storeName}
           </span>
+          {(p.store?.is_verified || p.store?.verified) && <BadgeCheck size={11} color="#25D366" fill="#dcfce7" />}
           {storeLoc && <><span className="dot">•</span>{storeLoc}</>}
         </div>
       </div>

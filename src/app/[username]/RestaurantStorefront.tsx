@@ -1321,7 +1321,7 @@ export default function RestaurantStorefront({
       '--brand': primaryColor,
       '--brand-deep': `color-mix(in srgb, ${primaryColor} 80%, black)`,
     } as React.CSSProperties}>
-      <WhatsAppDisclaimerModal open={!!pendingWaUrl} storeName={store.store_name}
+      <WhatsAppDisclaimerModal open={!!pendingWaUrl} storeName={store.store_name} isVerified={!!store.is_verified}
         onConfirm={() => { window.open(pendingWaUrl!, '_blank'); setPendingWaUrl(null); }}
         onCancel={() => setPendingWaUrl(null)} />
 
@@ -1713,7 +1713,7 @@ export default function RestaurantStorefront({
                   <div className="ps-id">
                     <span className="ps-id-av">{store.store_name.charAt(0).toUpperCase()}</span>
                     <div className="ps-id-main">
-                      <b>{store.store_name}</b>
+                      <b>{store.store_name} {store.is_verified ? <BadgeCheck size={14} className="ps-verif" /> : null}</b>
                       <i>{store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || "Restaurant & bar"}</i>
                     </div>
                   </div>

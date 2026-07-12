@@ -182,7 +182,10 @@ export default function AdminStoresPage() {
                   className="admin-table-row-hoverable"
                 >
                   <td>
-                    <strong>{store.store_name}</strong>
+                    <strong>
+                      {store.store_name}
+                      {store.is_verified && <BadgeCheck size={13} style={{ verticalAlign: 'middle', marginLeft: 4, color: '#25D366' }} />}
+                    </strong>
                     <a
                       href={
                         store.custom_domain

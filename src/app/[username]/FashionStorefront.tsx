@@ -605,7 +605,7 @@ export default function FashionStorefront({
         {store.banner_url && <div className="ps-hero-bg" style={{ backgroundImage: `url(${store.banner_url})` }} />}
         <div className="ps-hero-content">
           <div className="ps-hero-tag"><Award size={12} /> {store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || 'Fashion & Clothing'}</div>
-          <h1 className="ps-hero-name">{store.store_name}</h1>
+          <h1 className="ps-hero-name">{store.store_name} {store.is_verified && <BadgeCheck size={20} style={{ color: 'var(--brand)', verticalAlign: 'middle' }} />}</h1>
           {store.store_bio && <p className="ps-hero-bio">{store.store_bio}</p>}
           <div className="ps-hero-meta">
             {store.location && <span><MapPin size={12} /> {store.location}</span>}
@@ -1157,7 +1157,7 @@ export default function FashionStorefront({
 
       <WhatsAppDisclaimerModal
         open={!!pendingWaUrl}
-        storeName={store.store_name}
+        storeName={store.store_name} isVerified={!!store.is_verified}
         onConfirm={() => { window.open(pendingWaUrl!, '_blank'); setPendingWaUrl(null); }}
         onCancel={() => setPendingWaUrl(null)}
       />

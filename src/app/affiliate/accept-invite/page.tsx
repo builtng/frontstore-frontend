@@ -11,6 +11,16 @@ interface InviteInfo {
   has_account: boolean;
 }
 
+const AFFILIATE_PROGRAM_LIVE = false;
+
+function AffiliateComingSoon() {
+  return (
+    <div style={{ maxWidth: 420, margin: '80px auto', padding: 24, textAlign: 'center' }}>
+      <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>The affiliate program isn't open yet. Check back soon.</p>
+    </div>
+  );
+}
+
 function AcceptInviteContent() {
   const params = useSearchParams();
   const router = useRouter();
@@ -126,6 +136,10 @@ function AcceptInviteContent() {
       setSubmitting(false);
     }
   };
+
+  if (!AFFILIATE_PROGRAM_LIVE) {
+    return <AffiliateComingSoon />;
+  }
 
   if (loading) {
     return <div style={{ padding: 60, textAlign: 'center' }}><Loader2 className="animate-spin" size={24} /></div>;

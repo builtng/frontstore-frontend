@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock, Star, Truck, PartyPopper, ShieldCheck, MapPin, User, Phone, Send, MessageSquare, AlertTriangle, ShieldAlert, Scale } from 'lucide-react';
+import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock, Star, Truck, PartyPopper, ShieldCheck, MapPin, User, Phone, Send, MessageSquare, AlertTriangle, ShieldAlert, Scale, BadgeCheck } from 'lucide-react';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
 
@@ -33,6 +33,7 @@ interface Store {
   store_name: string;
   whatsapp_phone: string;
   currency_code: string;
+  is_verified?: boolean;
 }
 
 interface Order {
@@ -461,8 +462,9 @@ export default function OrderTrackingPage() {
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: '15px', fontWeight: 800, color: 'var(--text)', lineHeight: 1.2 }}>
               Track Order
             </span>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
               {store.store_name}
+              {store.is_verified && <BadgeCheck size={12} style={{ color: 'var(--primary)' }} />}
             </span>
           </div>
         </div>

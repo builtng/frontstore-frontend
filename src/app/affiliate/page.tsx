@@ -34,6 +34,19 @@ const getCurrencySymbol = (code?: string) => {
 
 const formatVal = (val: number | string) => Number(val || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+const AFFILIATE_PROGRAM_LIVE = false;
+
+function AffiliateComingSoon() {
+  return (
+    <div style={{ maxWidth: 420, margin: '80px auto', padding: 24 }}>
+      <div className="card" style={{ padding: 28, textAlign: 'center' }}>
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900, marginBottom: 8 }}>Affiliate Dashboard</h1>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>The affiliate program isn't open yet. Check back soon.</p>
+      </div>
+    </div>
+  );
+}
+
 export default function AffiliatePortalPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
@@ -186,6 +199,10 @@ export default function AffiliatePortalPage() {
     navigator.clipboard.writeText(full);
     toast.success('Link copied.');
   };
+
+  if (!AFFILIATE_PROGRAM_LIVE) {
+    return <AffiliateComingSoon />;
+  }
 
   if (checkingAuth) {
     return <div style={{ padding: 60, textAlign: 'center' }}><Loader2 className="animate-spin" size={24} /></div>;

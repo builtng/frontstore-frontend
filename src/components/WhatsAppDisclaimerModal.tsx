@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, BadgeCheck } from 'lucide-react';
 import { WhatsAppIcon } from './WhatsAppIcon';
 
 export interface WhatsAppDisclaimerModalProps {
     open: boolean;
     storeName?: string;
+    isVerified?: boolean;
     onConfirm: () => void;
     onCancel: () => void;
 }
@@ -14,6 +15,7 @@ export interface WhatsAppDisclaimerModalProps {
 export default function WhatsAppDisclaimerModal({
     open,
     storeName,
+    isVerified,
     onConfirm,
     onCancel,
 }: WhatsAppDisclaimerModalProps) {
@@ -103,7 +105,7 @@ export default function WhatsAppDisclaimerModal({
 
                 <div id="wa-disclaimer-description" style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--text-muted, #475569)' }}>
                     <p style={{ margin: '0 0 10px' }}>
-                        You're about to chat with {storeName ? <strong style={{ color: 'var(--text, #111827)' }}>{storeName}</strong> : 'this seller'} on WhatsApp, outside of Frontstore.
+                        You're about to chat with {storeName ? <strong style={{ color: 'var(--text, #111827)' }}>{storeName} {isVerified && <BadgeCheck size={14} style={{ verticalAlign: 'middle', color: 'var(--brand, #25D366)' }} />}</strong> : 'this seller'} on WhatsApp, outside of Frontstore.
                     </p>
                     <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
                         <li>Frontstore can't see or moderate this conversation.</li>

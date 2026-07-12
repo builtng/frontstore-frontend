@@ -1834,7 +1834,7 @@ export default function PhotographerStorefront({
       <button className="ps-id" onClick={() => go("home")}>
         <span className="ps-id-av">{DUMMY_STORE.initial}</span>
         <span className="ps-id-main">
-          <b>{DUMMY_STORE.name} <BadgeCheck size={14} className="ps-verif" /></b>
+          <b>{DUMMY_STORE.name} {store.is_verified ? <BadgeCheck size={14} className="ps-verif" /> : null}</b>
           <i>frontstore.ng/{username}</i>
           <em><Star size={12} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</em>
         </span>
@@ -1915,7 +1915,7 @@ export default function PhotographerStorefront({
               <section className="ps-cover-wrap">
                 <div className="ps-cover"><StoreIcon className="ps-cover-icn" strokeWidth={1.1} /></div>
                 <span className="ps-avatar">{DUMMY_STORE.initial}</span>
-                <h1 className="ps-name">{DUMMY_STORE.name} <BadgeCheck size={20} className="ps-verif" /></h1>
+                <h1 className="ps-name">{DUMMY_STORE.name} {store.is_verified ? <BadgeCheck size={20} className="ps-verif" /> : null}</h1>
                 <p className="ps-meta">{DUMMY_STORE.category} <span className="ps-dot">•</span> <MapPin size={13} /> {DUMMY_STORE.location}</p>
                 <div className="ps-id-actions-row">
                   <button className="ps-url" onClick={copyUrl}>frontstore.ng/{username} <Copy size={13} /></button>
@@ -2011,7 +2011,7 @@ export default function PhotographerStorefront({
               <div className="pd-identity">
                 <span className="pd-avatar">{DUMMY_STORE.initial}</span>
                 <div className="pd-identity-main">
-                  <h1>{DUMMY_STORE.name} <BadgeCheck size={22} className="ps-verif" /></h1>
+                  <h1>{DUMMY_STORE.name} {store.is_verified ? <BadgeCheck size={22} className="ps-verif" /> : null}</h1>
                   <p>
                     <span>{DUMMY_STORE.category}</span><span className="ps-dot">•</span>
                     <span><MapPin size={13} /> {DUMMY_STORE.location}</span><span className="ps-dot">•</span>
@@ -2715,7 +2715,7 @@ export default function PhotographerStorefront({
     
       <WhatsAppDisclaimerModal
         open={!!pendingWaUrl}
-        storeName={store.store_name}
+        storeName={store.store_name} isVerified={!!store.is_verified}
         onConfirm={() => { window.open(pendingWaUrl!, '_blank'); setPendingWaUrl(null); }}
         onCancel={() => setPendingWaUrl(null)}
       />

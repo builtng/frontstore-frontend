@@ -479,7 +479,7 @@ export default function ProductDetailClient({
 
       <WhatsAppDisclaimerModal
         open={!!pendingWaUrl}
-        storeName={store.store_name}
+        storeName={store.store_name} isVerified={!!store.is_verified}
         onConfirm={() => { window.open(pendingWaUrl!, '_blank'); setPendingWaUrl(null); }}
         onCancel={() => setPendingWaUrl(null)}
       />
@@ -490,7 +490,7 @@ export default function ProductDetailClient({
           <button className="fs-back" onClick={() => window.location.href = `/${store.username}`}>
             <ChevronLeft size={18} /> {store.store_name.split(' ')[0]}
           </button>
-          <span className="fs-nav-store">{store.store_name}</span>
+          <span className="fs-nav-store">{store.store_name} {store.is_verified ? <BadgeCheck size={13} className="fs-verif" /> : null}</span>
           <div className="fs-nav-right">
             <button className="fs-icn" onClick={handleShareProduct} aria-label="Share product page"><Share2 size={18} /></button>
             <button className="fs-icn" onClick={() => {

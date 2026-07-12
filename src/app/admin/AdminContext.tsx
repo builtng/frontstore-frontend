@@ -36,6 +36,7 @@ export interface StoreInfo {
   currency_code: string;
   custom_domain?: string | null;
   verification_status?: string | null;
+  is_verified?: boolean;
   withdrawable_balance?: number;
   pending_balance?: number;
   bank_name?: string | null;
