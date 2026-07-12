@@ -1948,8 +1948,8 @@ export default function CreatorStorefront({
                   <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Free checklist</button>
                 </div>
                 <div className="ps-stats">
-                  <div><b><Star size={14} className="ps-star" /> {DUMMY_STORE.rating}</b><span>{DUMMY_STORE.reviews} reviews</span></div>
-                  <div><b>{DUMMY_STORE.orders}</b><span>subscribers</span></div>
+                  {DUMMY_STORE.rating ? <div><b><Star size={14} className="ps-star" /> {DUMMY_STORE.rating}</b><span>{DUMMY_STORE.reviews} reviews</span></div> : null}
+                  {DUMMY_STORE.orders ? <div><b>{DUMMY_STORE.orders}</b><span>subscribers</span></div> : null}
                   <div><b>{DUMMY_STORE.reply}</b><span>reply time</span></div>
                 </div>
                 <p className="ps-bio">{DUMMY_STORE.bio}</p>
@@ -2062,7 +2062,7 @@ export default function CreatorStorefront({
                   <p>
                     <span>{DUMMY_STORE.category}</span><span className="ps-dot">•</span>
                     <span><MapPin size={13} /> {DUMMY_STORE.location}</span><span className="ps-dot">•</span>
-                    <span><Star size={13} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span><span className="ps-dot">•</span>
+                    {DUMMY_STORE.rating ? <><span><Star size={13} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span><span className="ps-dot">•</span></> : null}
                     <span>Replies {DUMMY_STORE.reply}</span>
                   </p>
                 </div>
