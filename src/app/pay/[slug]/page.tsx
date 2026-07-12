@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Search, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -40,6 +40,8 @@ export default function PaymentLinkPage() {
   const [supporterName, setSupporterName] = useState('');
   const [supporterMessage, setSupporterMessage] = useState('');
   const [amountTouched, setAmountTouched] = useState(false);
+
+  const confettiRef = useRef<HTMLCanvasElement | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
@@ -105,6 +107,63 @@ export default function PaymentLinkPage() {
 
     verifyPaymentReference();
   }, [slug, API_URL]);
+
+  // Confetti burst the moment a payment is confirmed
+  useEffect(() => {
+    if (!justPaid || typeof window === 'undefined') return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const canvas = confettiRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let W = 0, H = 0, raf = 0;
+    const size = () => {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    size();
+
+    const colors = ['#25d366', '#ffffff', '#c79a4b', '#34d77a', '#1da851'];
+    const parts = Array.from({ length: 160 }, () => ({
+      x: W / 2 + (Math.random() - 0.5) * W * 0.4,
+      y: H * 0.32 + (Math.random() - 0.5) * 40,
+      vx: (Math.random() - 0.5) * 9,
+      vy: Math.random() * -9 - 3,
+      g: 0.22 + Math.random() * 0.1,
+      s: 5 + Math.random() * 6,
+      rot: Math.random() * Math.PI,
+      vr: (Math.random() - 0.5) * 0.3,
+      c: colors[Math.floor(Math.random() * colors.length)],
+    }));
+
+    const start = performance.now();
+    const frame = (t: number) => {
+      const e = t - start;
+      ctx.clearRect(0, 0, W, H);
+      parts.forEach(p => {
+        p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.vx *= 0.99;
+        const a = e > 1200 ? Math.max(0, 1 - (e - 1200) / 750) : 1;
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.c;
+        ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.62);
+        ctx.restore();
+      });
+      if (e < 1980) raf = requestAnimationFrame(frame); else ctx.clearRect(0, 0, W, H);
+    };
+    raf = requestAnimationFrame(frame);
+
+    const onResize = () => size();
+    window.addEventListener('resize', onResize);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize); };
+  }, [justPaid]);
 
   const handlePayNow = async () => {
     if (!slug) return;
@@ -191,10 +250,25 @@ export default function PaymentLinkPage() {
   const customAmountBelowMin = paymentLink.allow_custom_amount && amountTouched && (parseFloat(customAmount || '0') || 0) < minAmount;
   const isAmountInvalid = paymentLink.allow_custom_amount && (parseFloat(customAmount || '0') || 0) < minAmount;
   const quickAmounts = Array.from(new Set([minAmount, minAmount * 2, minAmount * 5])).filter(a => a > 0);
+  const storeInitial = (store.store_name || 'F').charAt(0).toUpperCase();
 
   return (
     <div style={{ maxWidth: '440px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', position: 'relative' }}>
-      <header style={{ padding: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--surface)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 20 }}>
+      {justPaid && (
+        <canvas
+          ref={confettiRef}
+          style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 100 }}
+        />
+      )}
+
+      <header style={{ padding: '16px 20px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 20 }}>
+        <span style={{
+          width: 24, height: 24, borderRadius: '7px', background: 'var(--primary)', color: '#fff',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800,
+          fontFamily: 'var(--font-heading)', flexShrink: 0,
+        }}>
+          {storeInitial}
+        </span>
         <span style={{ fontFamily: 'var(--font-heading)', fontSize: '15px', fontWeight: 800, color: 'var(--text)' }}>
           {store.store_name}
         </span>
@@ -202,8 +276,13 @@ export default function PaymentLinkPage() {
 
       <main style={{ padding: '32px 16px 100px', flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ textAlign: 'center', padding: '4px 0 4px' }}>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '6px' }}>{paymentLink.title}</p>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+          {!showPaidState && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '6px' }}>{paymentLink.title}</p>
+          )}
+          <h1 style={{
+            fontFamily: 'var(--font-heading)', fontSize: '32px', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em',
+            transition: 'transform 0.3s ease', transform: showPaidState ? 'scale(1.03)' : 'scale(1)',
+          }}>
             {showPaidState ? paidAmountLabel : headlineAmount}
           </h1>
           {paymentLink.allow_custom_amount && canPay && (
@@ -225,14 +304,27 @@ export default function PaymentLinkPage() {
         )}
 
         {showPaidState && (
-          <div className="card" style={{ padding: '22px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', textAlign: 'center' }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CheckCircle2 size={19} style={{ color: 'var(--primary)' }} />
+          <div
+            className="card"
+            style={{
+              padding: '28px 22px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', textAlign: 'center',
+              animation: 'pay-success-in 0.45s cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+          >
+            <div style={{
+              width: 52, height: 52, borderRadius: '50%', background: 'var(--primary-light)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              animation: 'pay-success-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both',
+            }}>
+              <CheckCircle2 size={26} style={{ color: 'var(--primary)' }} />
             </div>
-            <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--text)' }}>Payment Received</h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-              Thank you! Your payment of {paidAmountLabel} to {store.store_name} was successful.
+            <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text)' }}>Payment Received</h3>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5, maxWidth: '300px' }}>
+              Thank you! Your payment of <strong style={{ color: 'var(--text)' }}>{paidAmountLabel}</strong> to <strong style={{ color: 'var(--text)' }}>{store.store_name}</strong> was successful.
             </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-faint)', fontSize: '11.5px', marginTop: '4px' }}>
+              <ShieldCheck size={13} /> Secured by Paystack
+            </div>
           </div>
         )}
 
@@ -361,6 +453,18 @@ export default function PaymentLinkPage() {
           </div>
         )}
       </main>
+
+      <style>{`
+        @keyframes pay-success-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pay-success-pop {
+          0% { transform: scale(0.4); opacity: 0; }
+          60% { transform: scale(1.12); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

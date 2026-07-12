@@ -1362,7 +1362,7 @@ export default function RetailStorefront({
           <h1>{s.name}</h1>
           <div className="sv-meta">
             <span><Clock size={14} /> {s.dur}</span>
-            <span><Star size={14} className="sv-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span>
+            {DUMMY_STORE.rating ? <span><Star size={14} className="sv-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span> : null}
             {s.popular && <span className="sv-pop"><Sparkles size={13} /> Most booked</span>}
           </div>
         </div>
@@ -1585,8 +1585,8 @@ export default function RetailStorefront({
     </div>
     <p className="ab-quote">{DUMMY_AUTHOR.quote}</p>
     <div className="ab-socials">
-      <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {(DUMMY_AUTHOR.socials?.instagram || '')}</button>
-      <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {(DUMMY_AUTHOR.socials?.tiktok || '')}</button>
+      {DUMMY_AUTHOR.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {DUMMY_AUTHOR.socials.instagram}</button>}
+      {DUMMY_AUTHOR.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {DUMMY_AUTHOR.socials.tiktok}</button>}
     </div>
   </>);
   const aboutWork = () => {
@@ -1689,15 +1689,15 @@ export default function RetailStorefront({
     {aboutReview()}
     {aboutJournal()}
     <div className="ps-about-grid">
-      <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
-      <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
+      {DUMMY_STORE.orders ? <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div> : null}
+      {DUMMY_STORE.rating ? <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div> : null}
       {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
     </div>
     <div className="ab-follow">
       <span className="ab-follow-h">Follow the studio</span>
       <div className="ab-socials">
-        <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {(DUMMY_STORE.socials?.instagram || '')}</button>
-        <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {(DUMMY_STORE.socials?.tiktok || '')}</button>
+        {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {DUMMY_STORE.socials.instagram}</button>}
+        {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {DUMMY_STORE.socials.tiktok}</button>}
         <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={16} /> WhatsApp</button>
       </div>
     </div>
@@ -1745,8 +1745,8 @@ export default function RetailStorefront({
     <div className="ct-channels">
       <button className="ct-wa" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={18} /> Chat on WhatsApp</button>
       <div className="ct-alt">
-        <button onClick={() => ping("Opening email")}><Mail size={15} /> {DUMMY_STORE.email}</button>
-        <button onClick={() => ping("Opening phone")}><Phone size={15} /> {DUMMY_STORE.phone}</button>
+        {DUMMY_STORE.email && <button onClick={() => window.location.href = `mailto:${DUMMY_STORE.email}`}><Mail size={15} /> {DUMMY_STORE.email}</button>}
+        {DUMMY_STORE.phone && <button onClick={() => window.location.href = `tel:${DUMMY_STORE.phone}`}><Phone size={15} /> {DUMMY_STORE.phone}</button>}
       </div>
     </div>
   );
@@ -1764,7 +1764,7 @@ export default function RetailStorefront({
       </div>
       <input className="ct-input" value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Your name" />
       <textarea className="ct-input ct-textarea" rows={4} value={cMsg} onChange={(e) => setCMsg(e.target.value)} placeholder="Any details, like your preferred time or the look you have in mind." />
-      <button className="ct-send" onClick={() => { if (!cName.trim() || !cMsg.trim()) { ping("Please add your name and a short note"); return; } ping("Opening your email app"); }}><Mail size={16} /> Send email</button>
+      <button className="ct-send" onClick={() => { if (!cName.trim() || !cMsg.trim()) { ping("Please add your name and a short note"); return; } window.location.href = `mailto:${DUMMY_STORE.email}`; }}><Mail size={16} /> Send email</button>
       <p className="ct-form-note">This opens your email app with the details ready to send to {DUMMY_STORE.email}.</p>
     </div>
   );
@@ -1775,7 +1775,7 @@ export default function RetailStorefront({
         <div className="ab-rail-h"><MapPin size={15} /> Visit the studio</div>
         <div className="ct-map"><span className="ct-map-pin"><MapPin size={15} /></span><span className="ct-map-label">Lekki Phase 1</span></div>
         <p className="ab-addr">{DUMMY_STORE.address}</p>
-        <button className="ps-dir" onClick={() => ping("Opening directions")}><Navigation size={15} /> Directions</button>
+        {DUMMY_STORE.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={15} /> Directions</button>}
         <div className="ct-hours">
           <div className="ct-hours-head">
             <b>Opening hours</b>
@@ -1793,8 +1793,8 @@ export default function RetailStorefront({
         <div className="ab-follow-rail">
           <span>Follow the studio</span>
           <div className="ab-follow-icons">
-            <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
-            <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
+            {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')} aria-label="Instagram"><Instagram size={17} /></button>}
+            {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')} aria-label="TikTok"><Tiktok size={17} /></button>}
             <button onClick={() => handleWa("Hello! I'm interested in your services.")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
           </div>
         </div>
@@ -1951,8 +1951,8 @@ export default function RetailStorefront({
     <div className="ab-follow">
       <span className="ab-follow-h">More on social</span>
       <div className="ab-socials">
-        <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {(DUMMY_STORE.socials?.instagram || '')}</button>
-        <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {(DUMMY_STORE.socials?.tiktok || '')}</button>
+        {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {DUMMY_STORE.socials.instagram}</button>}
+        {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {DUMMY_STORE.socials.tiktok}</button>}
       </div>
     </div>
   );
@@ -2060,7 +2060,7 @@ export default function RetailStorefront({
         <span className="ps-id-main">
           <b>{DUMMY_STORE.name} {store.is_verified ? <BadgeCheck size={14} className="ps-verif" /> : null}</b>
           <i>frontstore.ng/{username}</i>
-          <em><Star size={12} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</em>
+          {DUMMY_STORE.rating ? <em><Star size={12} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</em> : null}
         </span>
       </button>
       <nav className="ps-nav">
@@ -2088,6 +2088,7 @@ export default function RetailStorefront({
   const tkH = (DUMMY_STORE.socials?.tiktok || '').replace(/^@/, "");
   const jIg = (DUMMY_AUTHOR.socials?.instagram || '').replace(/^@/, "");
   const jTk = (DUMMY_AUTHOR.socials?.tiktok || '').replace(/^@/, "");
+  const aggregateRating = DUMMY_STORE.rating && (DUMMY_STORE.reviews ?? 0) > 0 ? { "@type": "AggregateRating", ratingValue: DUMMY_STORE.rating, reviewCount: DUMMY_STORE.reviews, bestRating: 5 } : null;
   const schema = {
     "@context": "https://schema.org",
     "@type": ["ProfessionalService", "LocalBusiness"],
@@ -2100,7 +2101,7 @@ export default function RetailStorefront({
     telephone: DUMMY_STORE.phone,
     email: DUMMY_STORE.email,
     sameAs: [`https://instagram.com/${igH}`, `https://tiktok.com/@${tkH}`],
-    aggregateRating: { "@type": "AggregateRating", ratingValue: DUMMY_STORE.rating, reviewCount: DUMMY_STORE.reviews, bestRating: 5 },
+    ...(aggregateRating ? { aggregateRating } : {}),
     founder: { "@type": "Person", name: DUMMY_AUTHOR.name, jobTitle: DUMMY_AUTHOR.role, sameAs: [`https://instagram.com/${jIg}`, `https://tiktok.com/@${jTk}`] },
     review: displayReviews.slice(0, 3).map((rv: any) => ({ "@type": "Review", author: { "@type": "Person", name: rv.name }, reviewRating: { "@type": "Rating", ratingValue: rv.r, bestRating: 5 }, reviewBody: rv.text })),
     hasMerchantReturnPolicy: {
@@ -2146,8 +2147,8 @@ export default function RetailStorefront({
                   <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                 </div>
                 <div className="ps-stats">
-                  <div><b><Star size={14} className="ps-star" /> {DUMMY_STORE.rating}</b><span>{DUMMY_STORE.reviews} reviews</span></div>
-                  <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
+                  {DUMMY_STORE.rating ? <div><b><Star size={14} className="ps-star" /> {DUMMY_STORE.rating}</b><span>{DUMMY_STORE.reviews} reviews</span></div> : null}
+                  {DUMMY_STORE.orders ? <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div> : null}
                   <div><b>{DUMMY_STORE.reply}</b><span>reply time</span></div>
                 </div>
                 <p className="ps-bio">{DUMMY_STORE.bio}</p>
@@ -2187,7 +2188,7 @@ export default function RetailStorefront({
                 <div className="ps-map"><MapPin size={26} /><span>Map preview</span></div>
                 <div className="ps-visit-info">
                   <p className="ps-addr"><MapPin size={15} /> {DUMMY_STORE.address}</p>
-                  <button className="ps-dir" onClick={() => ping("Opening directions")}><Navigation size={15} /> Directions</button>
+                  {DUMMY_STORE.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={15} /> Directions</button>}
                   <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
                 </div>
               </div>
@@ -2239,7 +2240,7 @@ export default function RetailStorefront({
                   <p>
                     <span>{DUMMY_STORE.category}</span><span className="ps-dot">•</span>
                     <span><MapPin size={13} /> {DUMMY_STORE.location}</span><span className="ps-dot">•</span>
-                    <span><Star size={13} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span><span className="ps-dot">•</span>
+                    {DUMMY_STORE.rating ? <><span><Star size={13} className="ps-star" /> {DUMMY_STORE.rating} ({DUMMY_STORE.reviews})</span><span className="ps-dot">•</span></> : null}
                     <span>Replies {DUMMY_STORE.reply}</span>
                   </p>
                 </div>
@@ -2271,7 +2272,7 @@ export default function RetailStorefront({
                     <div className="pd-railmap"><MapPin size={22} /></div>
                     <p className="ps-addr"><MapPin size={14} /> {DUMMY_STORE.address}</p>
                     <div className="pd-railbtns">
-                      <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
+                      {DUMMY_STORE.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                       <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
                     </div>
                     <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
@@ -2464,6 +2465,7 @@ export default function RetailStorefront({
                     <p className="svc-intro">Every review here comes from a verified order on Frontstore. The studio can respond, but cannot remove genuine reviews.</p>
                     <div className="svc-body">
                       <aside className="svc-rail">
+                        {DUMMY_STORE.rating ? (
                         <div className="rev-summary">
                           <div className="rev-score">
                             <b>{DUMMY_STORE.rating}</b>
@@ -2478,6 +2480,7 @@ export default function RetailStorefront({
                             ))}
                           </div>
                         </div>
+                        ) : null}
                         <div className="svc-filters">
                           <div className="svc-fgroup">
                             <h4>Sort by</h4>
@@ -2665,8 +2668,8 @@ export default function RetailStorefront({
                     </div>
 
                     <div className="ps-about-grid ab-stats">
-                      <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div>
-                      <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div>
+                      {DUMMY_STORE.orders ? <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div> : null}
+                      {DUMMY_STORE.rating ? <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div> : null}
                       {store.since && <div><b>{new Date().getFullYear() - parseInt(store.since)} yrs</b><span>in practice</span></div>}
                     </div>
                   </div>
@@ -2678,14 +2681,14 @@ export default function RetailStorefront({
                       <p className="ab-addr">{DUMMY_STORE.address}</p>
                       <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>
                       <div className="pd-railbtns">
-                        <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
+                        {DUMMY_STORE.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                         <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
                       </div>
                       <div className="ab-follow-rail">
                         <span>Follow the studio</span>
                         <div className="ab-follow-icons">
-                          <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
-                          <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
+                          {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')} aria-label="Instagram"><Instagram size={17} /></button>}
+                          {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')} aria-label="TikTok"><Tiktok size={17} /></button>}
                           <button onClick={() => handleWa("Hello! I'm interested in your services.")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
                         </div>
                       </div>
@@ -3174,11 +3177,12 @@ function ReviewCard({ rv, full }: { rv: any, full?: boolean }) {
     <p>{rv.text}</p></div>);
 }
 function RatingSummary({ rating, reviews }: { rating?: number, reviews?: number } = {}) {
+  if (!rating) return null;
   const bars = [["5", 80], ["4", 14], ["3", 3], ["2", 2], ["1", 1]];
   return (<div className="ps-rating">
-    <div className="ps-rating-score"><b>{rating || MOCK_STORE.rating}</b>
+    <div className="ps-rating-score"><b>{rating}</b>
       <div className="ps-rating-stars">{Array.from({ length: 5 }).map((_: any, i: number) => <Star key={i} size={15} className="f" />)}</div>
-      <span>Excellent</span><i>{reviews || MOCK_STORE.reviews} reviews</i></div>
+      <span>Excellent</span><i>{reviews || 0} reviews</i></div>
     <div className="ps-rating-bars">{bars.map(([n, w]: any) => (<div key={n} className="ps-bar"><span>{n}</span><div><i style={{ width: w + "%" }} /></div></div>))}</div></div>);
 }
 function Accordion({ items, open, setOpen }: { items: any[], open: boolean | number, setOpen: (open: any) => void }) {

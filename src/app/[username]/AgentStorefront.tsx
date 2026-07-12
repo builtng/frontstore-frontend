@@ -1276,8 +1276,8 @@ export default function AgentStorefront({
     </div>
     <p className="ab-quote">{DUMMY_AUTHOR.quote}</p>
     <div className="ab-socials">
-      <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {(DUMMY_AUTHOR.socials?.instagram || '')}</button>
-      <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {(DUMMY_AUTHOR.socials?.tiktok || '')}</button>
+      {DUMMY_AUTHOR.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {DUMMY_AUTHOR.socials.instagram}</button>}
+      {DUMMY_AUTHOR.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {DUMMY_AUTHOR.socials.tiktok}</button>}
     </div>
   </>);
   const aboutWork = () => (
@@ -1377,8 +1377,8 @@ export default function AgentStorefront({
     <div className="ab-follow">
       <span className="ab-follow-h">Follow the agent</span>
       <div className="ab-socials">
-        <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {(DUMMY_STORE.socials?.instagram || '')}</button>
-        <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {(DUMMY_STORE.socials?.tiktok || '')}</button>
+        {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {DUMMY_STORE.socials.instagram}</button>}
+        {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {DUMMY_STORE.socials.tiktok}</button>}
         <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={16} /> WhatsApp</button>
       </div>
     </div>
@@ -1426,8 +1426,8 @@ export default function AgentStorefront({
     <div className="ct-channels">
       <button className="ct-wa" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={18} /> Chat on WhatsApp</button>
       <div className="ct-alt">
-        <button onClick={() => ping("Opening email")}><Mail size={15} /> {DUMMY_STORE.email}</button>
-        <button onClick={() => ping("Opening phone")}><Phone size={15} /> {DUMMY_STORE.phone}</button>
+        {DUMMY_STORE.email && <button onClick={() => window.location.href = `mailto:${DUMMY_STORE.email}`}><Mail size={15} /> {DUMMY_STORE.email}</button>}
+        {DUMMY_STORE.phone && <button onClick={() => window.location.href = `tel:${DUMMY_STORE.phone}`}><Phone size={15} /> {DUMMY_STORE.phone}</button>}
       </div>
     </div>
   );
@@ -1445,7 +1445,7 @@ export default function AgentStorefront({
       </div>
       <input className="ct-input" value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Your name" />
       <textarea className="ct-input ct-textarea" rows={4} value={cMsg} onChange={(e) => setCMsg(e.target.value)} placeholder="Any details, like your preferred time or the look you have in mind." />
-      <button className="ct-send" onClick={() => { if (!cName.trim() || !cMsg.trim()) { ping("Please add your name and a short note"); return; } ping("Opening your email app"); }}><Mail size={16} /> Send email</button>
+      <button className="ct-send" onClick={() => { if (!cName.trim() || !cMsg.trim()) { ping("Please add your name and a short note"); return; } window.location.href = `mailto:${DUMMY_STORE.email}`; }}><Mail size={16} /> Send email</button>
       <p className="ct-form-note">This opens your email app with the details ready to send to {DUMMY_STORE.email}.</p>
     </div>
   );
@@ -1456,7 +1456,7 @@ export default function AgentStorefront({
         <div className="ab-rail-h"><MapPin size={15} /> Visit the office</div>
         <div className="ct-map"><span className="ct-map-pin"><MapPin size={15} /></span><span className="ct-map-label">Lekki Phase 1</span></div>
         <p className="ab-addr">{DUMMY_STORE.address}</p>
-        <button className="ps-dir" onClick={() => ping("Opening directions")}><Navigation size={15} /> Directions</button>
+        {DUMMY_STORE.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={15} /> Directions</button>}
         <div className="ct-hours">
           <div className="ct-hours-head">
             <b>Opening hours</b>
@@ -1474,8 +1474,8 @@ export default function AgentStorefront({
         <div className="ab-follow-rail">
           <span>Follow the agent</span>
           <div className="ab-follow-icons">
-            <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
-            <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
+            {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')} aria-label="Instagram"><Instagram size={17} /></button>}
+            {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')} aria-label="TikTok"><Tiktok size={17} /></button>}
             <button onClick={() => handleWa("Hello! I'm interested in your services.")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
           </div>
         </div>
@@ -1650,8 +1650,8 @@ export default function AgentStorefront({
     <div className="ab-follow">
       <span className="ab-follow-h">More on social</span>
       <div className="ab-socials">
-        <button onClick={() => ping("Opening Instagram")}><Instagram size={16} /> {(DUMMY_STORE.socials?.instagram || '')}</button>
-        <button onClick={() => ping("Opening TikTok")}><Tiktok size={16} /> {(DUMMY_STORE.socials?.tiktok || '')}</button>
+        {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {DUMMY_STORE.socials.instagram}</button>}
+        {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {DUMMY_STORE.socials.tiktok}</button>}
       </div>
     </div>
   );
@@ -1971,7 +1971,7 @@ export default function AgentStorefront({
                 <div className="ps-map"><MapPin size={26} /><span>Map preview</span></div>
                 <div className="ps-visit-info">
                   <p className="ps-addr"><MapPin size={15} /> {DUMMY_STORE.address}</p>
-                  <button className="ps-dir" onClick={() => ping("Opening directions")}><Navigation size={15} /> Directions</button>
+                  {DUMMY_STORE.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={15} /> Directions</button>}
                   <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
                 </div>
               </div>
@@ -2055,7 +2055,7 @@ export default function AgentStorefront({
                     <div className="pd-railmap"><MapPin size={22} /></div>
                     <p className="ps-addr"><MapPin size={14} /> {DUMMY_STORE.address}</p>
                     <div className="pd-railbtns">
-                      <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
+                      {DUMMY_STORE.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                       <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
                     </div>
                     <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
@@ -2456,14 +2456,14 @@ export default function AgentStorefront({
                       <p className="ab-addr">{DUMMY_STORE.address}</p>
                       <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>
                       <div className="pd-railbtns">
-                        <button onClick={() => ping("Opening directions")}><Navigation size={14} /> Directions</button>
+                        {DUMMY_STORE.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                         <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
                       </div>
                       <div className="ab-follow-rail">
                         <span>Follow the agent</span>
                         <div className="ab-follow-icons">
-                          <button onClick={() => ping("Opening Instagram")} aria-label="Instagram"><Instagram size={17} /></button>
-                          <button onClick={() => ping("Opening TikTok")} aria-label="TikTok"><Tiktok size={17} /></button>
+                          {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')} aria-label="Instagram"><Instagram size={17} /></button>}
+                          {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')} aria-label="TikTok"><Tiktok size={17} /></button>}
                           <button onClick={() => handleWa("Hello! I'm interested in your services.")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
                         </div>
                       </div>

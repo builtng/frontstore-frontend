@@ -13,7 +13,7 @@ import {
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck, BookOpen,
   ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer, Inbox, MessageSquare, Mail,
   Briefcase, CreditCard, Landmark, PenLine, Truck, Scale, Sparkles, LineChart, Archive,
-  UserPlus, ShieldCheck, Laptop, Bell, Ticket, Plug
+  UserPlus, ShieldCheck, Laptop, Bell, Ticket, Plug, Gift, Trophy, ListChecks
 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
@@ -249,9 +249,9 @@ interface BroadcastCampaign {
   created_at: string;
 }
 
-type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings' | 'invoices' | 'receipts' | 'payment-links' | 'inventory' | 'automations' | 'analytics' | 'team' | 'finance' | 'refunds' | 'inbox' | 'coupons' | 'affiliates' | 'integrations' | 'customers';
+type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability' | 'bookings' | 'invoices' | 'receipts' | 'payment-links' | 'giveaways' | 'inventory' | 'automations' | 'analytics' | 'team' | 'finance' | 'refunds' | 'inbox' | 'coupons' | 'affiliates' | 'integrations' | 'customers';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings', 'invoices', 'receipts', 'payment-links', 'inventory', 'automations', 'analytics', 'team', 'finance', 'refunds', 'inbox', 'coupons', 'integrations', 'customers'];
+const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'blog', 'availability', 'bookings', 'invoices', 'receipts', 'payment-links', 'giveaways', 'inventory', 'automations', 'analytics', 'team', 'finance', 'refunds', 'inbox', 'coupons', 'integrations', 'customers'];
 
 const BROADCAST_AUDIENCES: Array<{ id: 'all' | 'repeat' | 'unpaid_whatsapp'; label: string; description: string }> = [
   { id: 'all', label: 'All customers', description: 'Everyone who has ever placed an order with your store.' },
@@ -534,6 +534,32 @@ export default function DashboardPage() {
     expires_at: ''
   });
   const [createdPaymentLink, setCreatedPaymentLink] = useState<any>(null);
+  const [statsModalLink, setStatsModalLink] = useState<any>(null);
+  const [statsData, setStatsData] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsSaving, setStatsSaving] = useState(false);
+  const [statsSettingsDraft, setStatsSettingsDraft] = useState<any>(null);
+
+  // Giveaways State
+  const [giveaways, setGiveaways] = useState<any[]>([]);
+  const [giveawaysLoading, setGiveawaysLoading] = useState(false);
+  const [giveawayStats, setGiveawayStats] = useState<{ giveaways_count: number; total_entries: number; total_value_given: number }>({ giveaways_count: 0, total_entries: 0, total_value_given: 0 });
+  const [isAddGiveawayOpen, setIsAddGiveawayOpen] = useState(false);
+  const [newGiveawayData, setNewGiveawayData] = useState({
+    title: '',
+    prize: '',
+    prize_value: '',
+    description: '',
+    winner_count: '1',
+    selection_method: 'random' as 'random' | 'manual',
+    entry_ends_at: '',
+    tasks: [] as { label: string; url: string }[]
+  });
+  const [createdGiveaway, setCreatedGiveaway] = useState<any>(null);
+  const [entriesModalGiveaway, setEntriesModalGiveaway] = useState<any>(null);
+  const [giveawayEntries, setGiveawayEntries] = useState<any[]>([]);
+  const [giveawayEntriesLoading, setGiveawayEntriesLoading] = useState(false);
+  const [selectedWinnerIds, setSelectedWinnerIds] = useState<string[]>([]);
 
   // Receipts State
   const [receipts, setReceipts] = useState<any[]>([]);
@@ -2269,6 +2295,129 @@ export default function DashboardPage() {
     }
   };
 
+  const openStatsModal = async (pl: any) => {
+    setStatsModalLink(pl);
+    setStatsData(null);
+    setStatsLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/payment-links/${pl.id}/stats`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setStatsData(json.data);
+        setStatsSettingsDraft({ stats_public: json.data.stats_public, ...json.data.page_settings });
+      } else {
+        toast.error(json.message || 'Failed to load payment link stats.');
+        setStatsModalLink(null);
+      }
+    } catch {
+      toast.error('Network error loading stats.');
+      setStatsModalLink(null);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  const saveStatsSettings = async () => {
+    if (!statsModalLink || !statsSettingsDraft) return;
+    setStatsSaving(true);
+    try {
+      const { stats_public, ...pageSettings } = statsSettingsDraft;
+      const res = await fetch(`${apiUrl}/v1/payment-links/${statsModalLink.id}`, {
+        method: 'PUT',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stats_public, page_settings: pageSettings })
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success('Stats page settings saved.');
+        setStatsData((prev: any) => prev ? { ...prev, stats_public, page_settings: pageSettings } : prev);
+        fetchPaymentLinksData();
+      } else {
+        toast.error(json.message || 'Failed to save settings.');
+      }
+    } catch {
+      toast.error('Network error saving settings.');
+    } finally {
+      setStatsSaving(false);
+    }
+  };
+
+  const fetchGiveawaysData = async () => {
+    try {
+      setGiveawaysLoading(true);
+      const res = await fetch(`${apiUrl}/v1/giveaways`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setGiveaways(json.data || []);
+        if (json.stats) setGiveawayStats(json.stats);
+      }
+    } catch {
+      toast.error("Failed to load giveaways.");
+    } finally {
+      setGiveawaysLoading(false);
+    }
+  };
+
+  const openGiveawayEntries = async (giveaway: any) => {
+    setEntriesModalGiveaway(giveaway);
+    setGiveawayEntries([]);
+    setSelectedWinnerIds([]);
+    setGiveawayEntriesLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/giveaways/${giveaway.id}/entries`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok) {
+        setGiveawayEntries(json.data || []);
+      } else {
+        toast.error(json.message || 'Failed to load entries.');
+      }
+    } catch {
+      toast.error('Network error loading entries.');
+    } finally {
+      setGiveawayEntriesLoading(false);
+    }
+  };
+
+  const drawGiveawayWinners = async (giveaway: any) => {
+    try {
+      const res = await fetch(`${apiUrl}/v1/giveaways/${giveaway.id}/draw`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success(`Winner${json.data.winners.length > 1 ? 's' : ''} selected! 🎉`);
+        fetchGiveawaysData();
+        if (entriesModalGiveaway?.id === giveaway.id) openGiveawayEntries(json.data.giveaway);
+      } else {
+        toast.error(json.message || 'Failed to select winners.');
+      }
+    } catch {
+      toast.error('Network error selecting winners.');
+    }
+  };
+
+  const submitManualWinners = async () => {
+    if (!entriesModalGiveaway || selectedWinnerIds.length === 0) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/giveaways/${entriesModalGiveaway.id}/select-winners`, {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entry_ids: selectedWinnerIds })
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success(`Winner${selectedWinnerIds.length > 1 ? 's' : ''} confirmed! 🎉`);
+        fetchGiveawaysData();
+        openGiveawayEntries(json.data.giveaway);
+      } else {
+        toast.error(json.message || 'Failed to confirm winners.');
+      }
+    } catch {
+      toast.error('Network error confirming winners.');
+    }
+  };
+
   const fetchTicketsData = async (q?: string) => {
     try {
       setTicketsLoading(true);
@@ -2569,6 +2718,7 @@ export default function DashboardPage() {
     if (isAuthenticated) {
       if (activeTab === 'invoices') fetchInvoicesData();
       if (activeTab === 'payment-links') fetchPaymentLinksData();
+      if (activeTab === 'giveaways') fetchGiveawaysData();
       if (activeTab === 'receipts') fetchReceiptsData();
       if (activeTab === 'inventory') fetchInventoryLogsData();
       if (activeTab === 'automations') fetchAutomationSettingsData();
@@ -4107,10 +4257,11 @@ export default function DashboardPage() {
             { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={18} /> },
             { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
             { id: 'products', label: 'My Products', icon: <Package size={18} /> },
-            { id: 'coupons', label: 'Store Coupons', icon: <Tag size={18} /> },
-            { id: 'customers', label: 'Customers', icon: <Users size={18} /> },
+            { id: 'coupons', label: 'Store Coupons', icon: <Tag size={18} />, badge: !isPro ? 'Pro' : undefined },
+            { id: 'customers', label: 'Customers', icon: <Users size={18} />, badge: !isPro ? 'Pro' : undefined },
             { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
-                { id: 'payment-links', label: 'Payment Links', icon: <Link size={18} /> },
+                { id: 'payment-links', label: 'Payment Links', icon: <Link size={18} />, badge: !isPro ? 'Pro' : undefined },
+            { id: 'giveaways', label: 'Giveaways', icon: <Gift size={18} />, badge: !isPro ? 'Pro' : undefined },
             { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} />, badge: !isPro ? 'Pro' : (waOrders.filter(o => o.payment_status === 'unpaid').length || undefined) },
             { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
             { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} />, badge: isPro ? undefined : 'Pro' },
@@ -4119,7 +4270,7 @@ export default function DashboardPage() {
             { id: 'availability', label: 'Availability', icon: <Clock size={18} /> },
             { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} />, badge: bookings.filter((b: any) => b.status === 'pending').length || undefined },
             { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
-            { id: 'integrations', label: 'Integrations', icon: <Plug size={18} /> },
+            { id: 'integrations', label: 'Integrations', icon: <Plug size={18} />, badge: !isPro ? 'Pro' : undefined },
             { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
           ].map(item => {
             const active = activeTab === item.id;
@@ -8634,7 +8785,46 @@ export default function DashboardPage() {
                 );
               })()}
 
-              {activeTab === 'integrations' && (
+              {activeTab === 'integrations' && !isPro && (
+                <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
+                  <div style={{ background: 'rgba(37, 211, 102, 0.15)', color: 'var(--primary)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Plug size={32} />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Integrations</h2>
+                  <p style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Marketing & Automation</p>
+                  <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+                    Connect Facebook Pixel, Google Tag Manager, and other marketing tools to track conversions and automate your storefront.
+                  </p>
+
+                  <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Facebook Pixel & Google Tag Manager</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Marketing & automation tool connections</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Track ad conversions across your storefront</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => openUpgradePrompt(
+                      'Integrations requires Pro',
+                      'Connecting marketing pixels and automation tools is available on Pro. You can review the plan before upgrading.'
+                    )}
+                    className="btn btn-primary clickable"
+                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
+                  >
+                    <Zap size={16} /> Upgrade to Pro to Unlock Integrations
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'integrations' && isPro && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
                   <IntegrationsTab />
                 </div>
@@ -9459,7 +9649,46 @@ export default function DashboardPage() {
               )}
 
               {/* ── TAB: PAYMENT LINKS ── */}
-              {activeTab === 'payment-links' && (
+              {activeTab === 'payment-links' && !isPro && (
+                <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
+                  <div style={{ background: 'rgba(37, 211, 102, 0.15)', color: 'var(--primary)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Link size={32} />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Payment Links</h2>
+                  <p style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Get Paid Instantly</p>
+                  <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+                    Generate a shareable link customers can pay directly — no cart or storefront needed. Perfect for one-off sales, deposits, and tips.
+                  </p>
+
+                  <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Fixed-price or custom-amount links</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>One-time or reusable payment links</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Share anywhere — no storefront required</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => openUpgradePrompt(
+                      'Payment Links requires Pro',
+                      'Shareable payment links for instant checkout are available on Pro. You can review the plan before upgrading.'
+                    )}
+                    className="btn btn-primary clickable"
+                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
+                  >
+                    <Zap size={16} /> Upgrade to Pro to Unlock Payment Links
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'payment-links' && isPro && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
@@ -9510,6 +9739,7 @@ export default function DashboardPage() {
                           <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
                             <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Title</th>
                             <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Amount</th>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Received</th>
                             <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Type</th>
                             <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Status</th>
                             <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Actions</th>
@@ -9524,6 +9754,7 @@ export default function DashboardPage() {
                               <tr key={pl.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                 <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 800 }}>{pl.title}</td>
                                 <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 800 }}>{pl.allow_custom_amount ? 'From ' : ''}{symbol}{parseFloat(pl.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 800, color: 'var(--success)' }}>{symbol}{parseFloat(pl.amount_received || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                 <td style={{ padding: '14px 18px', fontSize: 13.5, color: 'var(--text-muted)', textTransform: 'capitalize' }}>
                                   {pl.type === 'one_time' ? 'One-time' : 'Reusable'}
                                   {pl.allow_custom_amount && <span style={{ display: 'block', fontSize: 11, color: 'var(--text-faint)' }}>Custom amount</span>}
@@ -9540,6 +9771,13 @@ export default function DashboardPage() {
                                 </td>
                                 <td style={{ padding: '14px 18px' }}>
                                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                    <button
+                                      onClick={() => openStatsModal(pl)}
+                                      className="btn btn-outline clickable"
+                                      style={{ padding: '4px 8px', fontSize: 11.5, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                    >
+                                      <BarChart3 size={12} /> Stats
+                                    </button>
                                     <button
                                       onClick={() => {
                                         navigator.clipboard.writeText(linkUrl);
@@ -9612,6 +9850,263 @@ export default function DashboardPage() {
                                     >
                                       <Trash2 size={12} />
                                     </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB: GIVEAWAYS ── */}
+              {activeTab === 'giveaways' && !isPro && (
+                <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
+                  <div style={{ background: 'rgba(37, 211, 102, 0.15)', color: 'var(--primary)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Gift size={32} />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Giveaways</h2>
+                  <p style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Show Your Followers Some Love</p>
+                  <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+                    Run a giveaway with a shareable entry link, set tasks for followers to complete, and let Frontstore auto-select your winners for you.
+                  </p>
+
+                  <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>A branded, customizable entry page — just like Payment Links</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Add tasks (follow, share, tag friends) entrants must complete</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Auto-select winners at random, or choose them yourself</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => openUpgradePrompt(
+                      'Giveaways requires Pro',
+                      'Running giveaways for your followers is available on Pro. You can review the plan before upgrading.'
+                    )}
+                    className="btn btn-primary clickable"
+                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
+                  >
+                    <Zap size={16} /> Upgrade to Pro to Unlock Giveaways
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'giveaways' && isPro && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+                  {/* Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 'var(--r-md)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 16px rgba(16, 185, 129, 0.3)', flexShrink: 0
+                      }}>
+                        <Gift size={22} color="#fff" />
+                      </div>
+                      <div>
+                        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
+                          Giveaways
+                        </h2>
+                        <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                          Share a link for followers to enter, then auto-select or hand-pick your winners.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setNewGiveawayData({ title: '', prize: '', prize_value: '', description: '', winner_count: '1', selection_method: 'random', entry_ends_at: '', tasks: [] });
+                        setCreatedGiveaway(null);
+                        setIsAddGiveawayOpen(true);
+                      }}
+                      className="btn btn-primary clickable"
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', fontSize: 13.5 }}
+                    >
+                      <Plus size={16} /> Create Giveaway
+                    </button>
+                  </div>
+
+                  {/* Love shown stats */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+                    <div className="card" style={{ padding: 16 }}>
+                      <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Love Shown</p>
+                      <p style={{ fontSize: 22, fontWeight: 900, fontFamily: 'var(--font-heading)', marginTop: 4, color: 'var(--primary)' }}>
+                        {getCurrencySymbol(store?.currency_code)}{giveawayStats.total_value_given.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </p>
+                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>Value given away to followers so far</p>
+                    </div>
+                    <div className="card" style={{ padding: 16 }}>
+                      <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Entries</p>
+                      <p style={{ fontSize: 22, fontWeight: 900, fontFamily: 'var(--font-heading)', marginTop: 4 }}>{giveawayStats.total_entries.toLocaleString()}</p>
+                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>Across all giveaways</p>
+                    </div>
+                    <div className="card" style={{ padding: 16 }}>
+                      <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Giveaways Run</p>
+                      <p style={{ fontSize: 22, fontWeight: 900, fontFamily: 'var(--font-heading)', marginTop: 4 }}>{giveawayStats.giveaways_count.toLocaleString()}</p>
+                      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>Total giveaways created</p>
+                    </div>
+                  </div>
+
+                  {/* Giveaways List */}
+                  {giveawaysLoading ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+                      <Loader2 className="spinner" size={32} />
+                    </div>
+                  ) : giveaways.length === 0 ? (
+                    <div className="card text-center" style={{ padding: 40 }}>
+                      <p style={{ color: 'var(--text-muted)' }}>No giveaways yet. Click "Create Giveaway" to show your followers some love.</p>
+                    </div>
+                  ) : (
+                    <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 780 }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--card-hover)' }}>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Title</th>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Prize</th>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Entries</th>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Winners</th>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Status</th>
+                            <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 800, color: 'var(--text-muted)' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {giveaways.map(gw => {
+                            const linkUrl = typeof window !== 'undefined' ? `${window.location.origin}/giveaway/${gw.slug}` : `/giveaway/${gw.slug}`;
+                            return (
+                              <tr key={gw.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 800 }}>{gw.title}</td>
+                                <td style={{ padding: '14px 18px', fontSize: 13.5 }}>
+                                  {gw.prize}
+                                  {gw.prize_value && (
+                                    <span style={{ display: 'block', fontSize: 11, color: 'var(--text-faint)' }}>
+                                      {getCurrencySymbol(gw.currency_code || store?.currency_code)}{parseFloat(gw.prize_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    </span>
+                                  )}
+                                </td>
+                                <td style={{ padding: '14px 18px', fontSize: 14, fontWeight: 700 }}>{gw.entries_count ?? 0}</td>
+                                <td style={{ padding: '14px 18px', fontSize: 13.5, color: 'var(--text-muted)' }}>
+                                  {gw.drawn_at ? `${gw.winner_count} selected` : `${gw.winner_count} to pick`}
+                                  <span style={{ display: 'block', fontSize: 11, color: 'var(--text-faint)', textTransform: 'capitalize' }}>{gw.selection_method} pick</span>
+                                </td>
+                                <td style={{ padding: '14px 18px' }}>
+                                  <span style={{
+                                    fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 'var(--r-full)',
+                                    background: gw.status === 'ended' ? 'rgba(34,197,94,0.1)' : (gw.status === 'disabled' ? 'rgba(156,163,175,0.1)' : 'rgba(59,130,246,0.1)'),
+                                    color: gw.status === 'ended' ? 'var(--success)' : (gw.status === 'disabled' ? 'var(--text-muted)' : 'var(--primary)'),
+                                    textTransform: 'uppercase'
+                                  }}>
+                                    {gw.status}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '14px 18px' }}>
+                                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(linkUrl);
+                                        toast.success('Giveaway link copied! 📋');
+                                      }}
+                                      className="btn btn-outline clickable"
+                                      style={{ padding: '4px 8px', fontSize: 11.5, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                    >
+                                      <Copy size={12} /> Copy
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        const msg = encodeURIComponent(`🎁 Enter to win "${gw.prize}" — ${gw.title}! ${linkUrl}`);
+                                        window.open(`https://wa.me/?text=${msg}`, '_blank');
+                                      }}
+                                      className="btn clickable"
+                                      style={{ background: '#25d366', color: '#fff', padding: '4px 8px', fontSize: 11.5, borderRadius: 'var(--r-sm)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                    >
+                                      <WhatsAppIcon size={12} color="#fff" /> Share
+                                    </button>
+                                    <button
+                                      onClick={() => openGiveawayEntries(gw)}
+                                      className="btn btn-outline clickable"
+                                      style={{ padding: '4px 8px', fontSize: 11.5, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                    >
+                                      <Users size={12} /> Entries
+                                    </button>
+                                    {!gw.drawn_at && gw.selection_method === 'random' && (
+                                      <button
+                                        onClick={() => openConfirmationDialog(
+                                          'Auto-Select Winner(s)',
+                                          `Frontstore will randomly pick ${gw.winner_count} winner${gw.winner_count > 1 ? 's' : ''} from the current entries. This cannot be undone.`,
+                                          async () => { await drawGiveawayWinners(gw); closeConfirmationDialog(); },
+                                          'Select Winner(s)',
+                                          'Cancel'
+                                        )}
+                                        className="btn btn-primary clickable"
+                                        style={{ padding: '4px 8px', fontSize: 11.5, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                                      >
+                                        <Trophy size={12} /> Auto-Select
+                                      </button>
+                                    )}
+                                    {gw.status !== 'ended' && (
+                                      <button
+                                        onClick={async () => {
+                                          try {
+                                            const res = await fetch(`${apiUrl}/v1/giveaways/${gw.id}`, {
+                                              method: 'PUT',
+                                              headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ status: gw.status === 'disabled' ? 'active' : 'disabled' })
+                                            });
+                                            if (res.ok) {
+                                              toast.success(gw.status === 'disabled' ? 'Giveaway reactivated.' : 'Giveaway disabled.');
+                                              fetchGiveawaysData();
+                                            }
+                                          } catch {
+                                            toast.error('Failed to update giveaway.');
+                                          }
+                                        }}
+                                        className="btn btn-outline clickable"
+                                        style={{ padding: '4px 8px', fontSize: 11.5 }}
+                                      >
+                                        {gw.status === 'disabled' ? 'Reactivate' : 'Disable'}
+                                      </button>
+                                    )}
+                                    {(gw.entries_count ?? 0) === 0 && (
+                                      <button
+                                        onClick={() => {
+                                          openConfirmationDialog(
+                                            'Delete Giveaway',
+                                            'Are you sure you want to delete this giveaway? This action cannot be undone.',
+                                            async () => {
+                                              try {
+                                                const res = await fetch(`${apiUrl}/v1/giveaways/${gw.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+                                                const json = await res.json();
+                                                if (res.ok) {
+                                                  toast.success('Giveaway deleted.');
+                                                  setGiveaways(prev => prev.filter(p => p.id !== gw.id));
+                                                } else {
+                                                  toast.error(json.message || 'Failed to delete giveaway.');
+                                                }
+                                              } catch {
+                                                toast.error('Failed to delete giveaway.');
+                                              }
+                                              closeConfirmationDialog();
+                                            },
+                                            'Delete',
+                                            'Cancel'
+                                          );
+                                        }}
+                                        className="btn btn-outline clickable"
+                                        style={{ padding: '4px 8px', fontSize: 11.5, color: 'var(--danger)' }}
+                                      >
+                                        <Trash2 size={12} />
+                                      </button>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -11159,7 +11654,46 @@ export default function DashboardPage() {
               )}
 
               {/* ── TAB: STOREFRONT COUPONS ── */}
-              {activeTab === 'coupons' && (
+              {activeTab === 'coupons' && !isPro && (
+                <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
+                  <div style={{ background: 'rgba(37, 211, 102, 0.15)', color: 'var(--primary)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Tag size={32} />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Store Coupons</h2>
+                  <p style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Discounts & Promotions</p>
+                  <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+                    Create discount codes your customers can apply at checkout to boost sales and reward loyal buyers.
+                  </p>
+
+                  <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Percentage or fixed-amount discounts</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Usage limits & expiry dates</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Minimum order amount rules</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => openUpgradePrompt(
+                      'Store Coupons requires Pro',
+                      'Creating and managing discount codes for your storefront is available on Pro. You can review the plan before upgrading.'
+                    )}
+                    className="btn btn-primary clickable"
+                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
+                  >
+                    <Zap size={16} /> Upgrade to Pro to Unlock Coupons
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'coupons' && isPro && (
                 <div className="card animate-fade-in" style={{ padding: 24 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
                     <div>
@@ -11449,7 +11983,46 @@ export default function DashboardPage() {
               )}
 
               {/* ── TAB: CUSTOMERS (CRM) ── */}
-              {activeTab === 'customers' && (
+              {activeTab === 'customers' && !isPro && (
+                <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
+                  <div style={{ background: 'rgba(37, 211, 102, 0.15)', color: 'var(--primary)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                    <Users size={32} />
+                  </div>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Customers</h2>
+                  <p style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Customer CRM</p>
+                  <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+                    See everyone who has bought from your store, with tags, notes, and lifetime value — all in one place.
+                  </p>
+
+                  <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Full customer purchase history</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Tags & private notes per customer</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Lifetime value at a glance</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => openUpgradePrompt(
+                      'Customers requires Pro',
+                      'The customer CRM — tags, notes, and lifetime value for every buyer — is available on Pro. You can review the plan before upgrading.'
+                    )}
+                    className="btn btn-primary clickable"
+                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
+                  >
+                    <Zap size={16} /> Upgrade to Pro to Unlock Customers
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'customers' && isPro && (
                 <div className="card animate-fade-in" style={{ padding: 28 }}>
                   <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 24 }}>
                     <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -12980,6 +13553,7 @@ export default function DashboardPage() {
                 { id: 'customers', label: 'Customers', icon: <Users size={18} /> },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
                 { id: 'payment-links', label: 'Payment Links', icon: <Link size={18} /> },
+                { id: 'giveaways', label: 'Giveaways', icon: <Gift size={18} /> },
                 { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
                 { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
                 { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} /> },
@@ -13820,6 +14394,515 @@ export default function DashboardPage() {
                   <button type="submit" className="btn btn-primary clickable">Create Link</button>
                 </div>
               </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: PAYMENT LINK STATS & PUBLIC PAGE ── */}
+      {statsModalLink && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setStatsModalLink(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 560, padding: 28, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon"><BarChart3 size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Payment Link Stats</h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{statsModalLink.title}</p>
+                </div>
+              </div>
+              <button onClick={() => setStatsModalLink(null)} className="modal-close-btn clickable"><X size={16} /></button>
+            </div>
+
+            {statsLoading || !statsData || !statsSettingsDraft ? (
+              <div style={{ padding: '40px 0', textAlign: 'center' }}>
+                <Loader2 size={22} className="spin" />
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div style={{ background: 'var(--bg-2)', padding: '14px 16px', borderRadius: 'var(--r-lg)', border: '1px solid var(--border)' }}>
+                    <label style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Received</label>
+                    <p style={{ fontSize: 18, fontWeight: 900, color: 'var(--success)', marginTop: 4 }}>
+                      {getCurrencySymbol(statsData.currency_code)}{parseFloat(statsData.amount_received || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div style={{ background: 'var(--bg-2)', padding: '14px 16px', borderRadius: 'var(--r-lg)', border: '1px solid var(--border)' }}>
+                    <label style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payments</label>
+                    <p style={{ fontSize: 18, fontWeight: 900, marginTop: 4 }}>{statsData.payments_count}</p>
+                  </div>
+                </div>
+
+                {!statsData.allow_custom_amount && (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 4 }}>
+                      <span>Goal progress</span>
+                      <span>{Math.min(100, Math.round((parseFloat(statsData.amount_received || 0) / Math.max(parseFloat(statsData.amount || 1), 1)) * 100))}%</span>
+                    </div>
+                    <div style={{ height: 8, borderRadius: 'var(--r-full)', background: 'var(--bg-2)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${Math.min(100, (parseFloat(statsData.amount_received || 0) / Math.max(parseFloat(statsData.amount || 1), 1)) * 100)}%`, background: 'var(--primary)' }} />
+                    </div>
+                  </div>
+                )}
+
+                <div className="field-group">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <div>
+                      <label className="form-label" style={{ marginBottom: 2 }}>Make stats page public</label>
+                      <p style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>Anyone with the link can see a public stats page for this payment link.</p>
+                    </div>
+                    <Toggle
+                      checked={!!statsSettingsDraft.stats_public}
+                      onChange={val => setStatsSettingsDraft({ ...statsSettingsDraft, stats_public: val })}
+                      id="payment-link-stats-public-toggle"
+                    />
+                  </div>
+                  {statsSettingsDraft.stats_public && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 10, background: 'var(--bg-2)', padding: '10px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--primary-dark)', wordBreak: 'break-all' }}>
+                        {typeof window !== 'undefined' ? `${window.location.origin}/${store?.username}/paymentlink/${statsData.slug}/stats` : ''}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/${store?.username}/paymentlink/${statsData.slug}/stats`);
+                          toast.success('Stats link copied! 📋');
+                        }}
+                        className="btn btn-outline clickable"
+                        style={{ padding: '4px 8px', fontSize: 11, flexShrink: 0 }}
+                      >
+                        <Copy size={12} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Public page theme</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {(['minimal', 'wall', 'leaderboard'] as const).map(theme => (
+                      <button
+                        key={theme}
+                        type="button"
+                        onClick={() => setStatsSettingsDraft({ ...statsSettingsDraft, theme })}
+                        className="clickable"
+                        style={{
+                          flex: 1, padding: '10px', borderRadius: 'var(--r-md)', fontSize: 12.5, fontWeight: 700, textTransform: 'capitalize',
+                          border: `1.5px solid ${statsSettingsDraft.theme === theme ? 'var(--primary)' : 'var(--border)'}`,
+                          background: statsSettingsDraft.theme === theme ? 'var(--primary-light)' : 'transparent',
+                          color: statsSettingsDraft.theme === theme ? 'var(--primary)' : 'var(--text-muted)'
+                        }}
+                      >
+                        {theme}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Accent color</label>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      value={statsSettingsDraft.accent_color || '#25D366'}
+                      onChange={e => setStatsSettingsDraft({ ...statsSettingsDraft, accent_color: e.target.value })}
+                      style={{ width: 40, height: 36, padding: 2, borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer' }}
+                    />
+                    <input
+                      type="text"
+                      value={statsSettingsDraft.accent_color || ''}
+                      onChange={e => setStatsSettingsDraft({ ...statsSettingsDraft, accent_color: e.target.value })}
+                      className="form-control"
+                      placeholder="#25D366"
+                    />
+                  </div>
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Headline (optional)</label>
+                  <input type="text" value={statsSettingsDraft.headline || ''} onChange={e => setStatsSettingsDraft({ ...statsSettingsDraft, headline: e.target.value })} className="form-control" placeholder="e.g. Help us hit our goal!" maxLength={150} />
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Subtext (optional)</label>
+                  <input type="text" value={statsSettingsDraft.subtext || ''} onChange={e => setStatsSettingsDraft({ ...statsSettingsDraft, subtext: e.target.value })} className="form-control" placeholder="A short note shown under the headline" maxLength={300} />
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Cover image URL (optional)</label>
+                  <input type="text" value={statsSettingsDraft.cover_image_url || ''} onChange={e => setStatsSettingsDraft({ ...statsSettingsDraft, cover_image_url: e.target.value })} className="form-control" placeholder="https://..." />
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">What the public page shows</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {([
+                      ['show_goal', 'Goal progress bar'],
+                      ['show_amounts', 'Individual payment amounts'],
+                      ['show_payer_names', 'Payer names'],
+                      ['show_messages', 'Payer messages'],
+                    ] as const).map(([key, label]) => (
+                      <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
+                        <Toggle
+                          checked={!!statsSettingsDraft[key]}
+                          onChange={val => setStatsSettingsDraft({ ...statsSettingsDraft, [key]: val })}
+                          id={`payment-link-${key}-toggle`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {statsData.payments.length > 0 && (
+                  <div className="field-group">
+                    <label className="form-label">Recent payments</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 200, overflowY: 'auto' }}>
+                      {statsData.payments.map((p: any, i: number) => (
+                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '8px 12px', background: 'var(--bg-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ fontSize: 12.5, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.customer_name || 'Customer'}</p>
+                            {p.message && <p style={{ fontSize: 11, color: 'var(--text-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.message}</p>}
+                          </div>
+                          <span style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--success)', flexShrink: 0 }}>{getCurrencySymbol(statsData.currency_code)}{parseFloat(p.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="modal-footer">
+                  <button type="button" onClick={() => setStatsModalLink(null)} className="btn btn-outline clickable">Close</button>
+                  <button type="button" disabled={statsSaving} onClick={saveStatsSettings} className="btn btn-primary clickable">
+                    {statsSaving ? 'Saving...' : 'Save Settings'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CREATE GIVEAWAY ── */}
+      {isAddGiveawayOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsAddGiveawayOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 480, padding: 28, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+
+            {/* Header */}
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon"><Gift size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>
+                    {createdGiveaway ? 'Giveaway Ready' : 'Create Giveaway'}
+                  </h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>
+                    {createdGiveaway ? 'Share this link with your followers' : 'Set up a prize and get a shareable entry link'}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setIsAddGiveawayOpen(false)} className="modal-close-btn clickable"><X size={16} /></button>
+            </div>
+
+            {createdGiveaway ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ background: 'var(--bg-2)', padding: '16px 20px', borderRadius: 'var(--r-xl)', border: '1px solid var(--border)' }}>
+                  <label style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Giveaway Link</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6, gap: 8 }}>
+                    <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--primary-dark)', wordBreak: 'break-all' }}>
+                      {typeof window !== 'undefined' ? `${window.location.origin}/giveaway/${createdGiveaway.slug}` : `/giveaway/${createdGiveaway.slug}`}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const url = `${window.location.origin}/giveaway/${createdGiveaway.slug}`;
+                        navigator.clipboard.writeText(url);
+                        toast.success('Giveaway link copied! 📋');
+                      }}
+                      className="btn btn-outline clickable"
+                      style={{ padding: '6px 12px', fontSize: 11, borderRadius: 'var(--r-sm)', display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
+                    >
+                      <Copy size={12} /> Copy
+                    </button>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/giveaway/${createdGiveaway.slug}`;
+                    const msg = encodeURIComponent(`🎁 Enter to win "${createdGiveaway.prize}" — ${createdGiveaway.title}! ${url}`);
+                    window.open(`https://wa.me/?text=${msg}`, '_blank');
+                  }}
+                  className="btn clickable"
+                  style={{ background: '#25d366', color: '#fff', padding: '14px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}
+                >
+                  <WhatsAppIcon size={18} color="#fff" /> Share on WhatsApp
+                </button>
+                <div className="modal-footer">
+                  <button type="button" onClick={() => setIsAddGiveawayOpen(false)} className="btn btn-primary clickable">Done</button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const payload = {
+                    title: newGiveawayData.title,
+                    prize: newGiveawayData.prize,
+                    prize_value: newGiveawayData.prize_value ? parseFloat(newGiveawayData.prize_value) : null,
+                    description: newGiveawayData.description || null,
+                    winner_count: parseInt(newGiveawayData.winner_count, 10) || 1,
+                    selection_method: newGiveawayData.selection_method,
+                    entry_ends_at: newGiveawayData.entry_ends_at || null,
+                    tasks: newGiveawayData.tasks.filter(t => t.label.trim()),
+                  };
+                  const res = await fetch(`${apiUrl}/v1/giveaways`, {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                  });
+                  const json = await res.json();
+                  if (res.ok) {
+                    toast.success('Giveaway created successfully.');
+                    setCreatedGiveaway(json.data);
+                    fetchGiveawaysData();
+                  } else {
+                    toast.error(json.message || 'Failed to create giveaway.');
+                  }
+                } catch {
+                  toast.error('Network error creating giveaway.');
+                }
+              }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                <div className="field-group">
+                  <label className="form-label">Title <span style={{ color: 'var(--danger)' }}>*</span></label>
+                  <input type="text" required value={newGiveawayData.title} onChange={e => setNewGiveawayData({ ...newGiveawayData, title: e.target.value })} className="form-control" placeholder="e.g. End of Year Giveaway" />
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Prize <span style={{ color: 'var(--danger)' }}>*</span></label>
+                  <input type="text" required value={newGiveawayData.prize} onChange={e => setNewGiveawayData({ ...newGiveawayData, prize: e.target.value })} className="form-control" placeholder="e.g. Wireless earbuds, ₦20,000 airtime" />
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Prize Value in {store?.currency_code || 'NGN'} (optional)</label>
+                  <input type="number" min={0} step="0.01" value={newGiveawayData.prize_value} onChange={e => setNewGiveawayData({ ...newGiveawayData, prize_value: e.target.value })} className="form-control" placeholder="e.g. 20000" />
+                  <p style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 6 }}>Used to show followers how much love you've given away in total.</p>
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Description (optional)</label>
+                  <textarea value={newGiveawayData.description} onChange={e => setNewGiveawayData({ ...newGiveawayData, description: e.target.value })} className="form-control" style={{ height: 64, resize: 'none' }} placeholder="Tell followers more about this giveaway..." maxLength={1000} />
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Number of Winners</label>
+                  <input type="number" min={1} max={50} value={newGiveawayData.winner_count} onChange={e => setNewGiveawayData({ ...newGiveawayData, winner_count: e.target.value })} className="form-control" />
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">How should winners be picked?</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setNewGiveawayData({ ...newGiveawayData, selection_method: 'random' })}
+                      className="clickable"
+                      style={{
+                        flex: 1, padding: '10px', borderRadius: 'var(--r-md)', fontSize: 13, fontWeight: 700,
+                        border: `1.5px solid ${newGiveawayData.selection_method === 'random' ? 'var(--primary)' : 'var(--border)'}`,
+                        background: newGiveawayData.selection_method === 'random' ? 'var(--primary-light)' : 'transparent',
+                        color: newGiveawayData.selection_method === 'random' ? 'var(--primary)' : 'var(--text-muted)'
+                      }}
+                    >
+                      Auto-Select (Random)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewGiveawayData({ ...newGiveawayData, selection_method: 'manual' })}
+                      className="clickable"
+                      style={{
+                        flex: 1, padding: '10px', borderRadius: 'var(--r-md)', fontSize: 13, fontWeight: 700,
+                        border: `1.5px solid ${newGiveawayData.selection_method === 'manual' ? 'var(--primary)' : 'var(--border)'}`,
+                        background: newGiveawayData.selection_method === 'manual' ? 'var(--primary-light)' : 'transparent',
+                        color: newGiveawayData.selection_method === 'manual' ? 'var(--primary)' : 'var(--text-muted)'
+                      }}
+                    >
+                      I'll Pick Myself
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 6 }}>
+                    {newGiveawayData.selection_method === 'random' ? 'Frontstore randomly picks winners from entries with one click.' : 'You choose winners yourself from the entries list.'}
+                  </p>
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Entry Deadline (optional)</label>
+                  <input type="date" value={newGiveawayData.entry_ends_at} onChange={e => setNewGiveawayData({ ...newGiveawayData, entry_ends_at: e.target.value })} className="form-control" />
+                </div>
+
+                <div className="field-group">
+                  <label className="form-label">Tasks for Followers (optional)</label>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-faint)', marginBottom: 8 }}>e.g. Follow us on Instagram, Share this post, Tag 3 friends</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {newGiveawayData.tasks.map((task, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          value={task.label}
+                          onChange={e => {
+                            const tasks = [...newGiveawayData.tasks];
+                            tasks[idx] = { ...tasks[idx], label: e.target.value };
+                            setNewGiveawayData({ ...newGiveawayData, tasks });
+                          }}
+                          className="form-control"
+                          style={{ flex: 1 }}
+                          placeholder="Task, e.g. Follow us on Instagram"
+                        />
+                        <input
+                          type="text"
+                          value={task.url}
+                          onChange={e => {
+                            const tasks = [...newGiveawayData.tasks];
+                            tasks[idx] = { ...tasks[idx], url: e.target.value };
+                            setNewGiveawayData({ ...newGiveawayData, tasks });
+                          }}
+                          className="form-control"
+                          style={{ flex: 1 }}
+                          placeholder="Link (optional)"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setNewGiveawayData({ ...newGiveawayData, tasks: newGiveawayData.tasks.filter((_, i) => i !== idx) })}
+                          className="btn btn-outline clickable"
+                          style={{ padding: '8px', color: 'var(--danger)', flexShrink: 0 }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setNewGiveawayData({ ...newGiveawayData, tasks: [...newGiveawayData.tasks, { label: '', url: '' }] })}
+                      className="btn btn-outline clickable"
+                      style={{ padding: '8px 12px', fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}
+                    >
+                      <Plus size={12} /> Add Task
+                    </button>
+                  </div>
+                </div>
+
+                <div className="modal-footer">
+                  <button type="button" onClick={() => setIsAddGiveawayOpen(false)} className="btn btn-outline clickable">Cancel</button>
+                  <button type="submit" className="btn btn-primary clickable">Create Giveaway</button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: GIVEAWAY ENTRIES & WINNER SELECTION ── */}
+      {entriesModalGiveaway && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setEntriesModalGiveaway(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 560, padding: 28, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon"><ListChecks size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>
+                    {entriesModalGiveaway.title}
+                  </h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>
+                    {giveawayEntries.length} entr{giveawayEntries.length === 1 ? 'y' : 'ies'}
+                    {entriesModalGiveaway.drawn_at ? ' · Winners selected' : ''}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setEntriesModalGiveaway(null)} className="modal-close-btn clickable"><X size={16} /></button>
+            </div>
+
+            {!entriesModalGiveaway.drawn_at && entriesModalGiveaway.selection_method === 'manual' && (
+              <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 12, marginBottom: 14, fontSize: 12.5, color: 'var(--text-muted)' }}>
+                Select up to {entriesModalGiveaway.winner_count} winner{entriesModalGiveaway.winner_count > 1 ? 's' : ''} below, then confirm.
+              </div>
+            )}
+            {!entriesModalGiveaway.drawn_at && entriesModalGiveaway.selection_method === 'random' && (
+              <div style={{ background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 12, marginBottom: 14, fontSize: 12.5, color: 'var(--text-muted)' }}>
+                This giveaway is set to auto-select. Use "Auto-Select" from the giveaways list to pick winners at random.
+              </div>
+            )}
+
+            {giveawayEntriesLoading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+                <Loader2 className="spinner" size={32} />
+              </div>
+            ) : giveawayEntries.length === 0 ? (
+              <div className="card text-center" style={{ padding: 32 }}>
+                <p style={{ color: 'var(--text-muted)' }}>No entries yet. Share the giveaway link to get followers entering.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 360, overflowY: 'auto' }}>
+                {giveawayEntries.map(entry => {
+                  const canPick = !entriesModalGiveaway.drawn_at && entriesModalGiveaway.selection_method === 'manual';
+                  const isSelected = selectedWinnerIds.includes(entry.id);
+                  return (
+                    <div
+                      key={entry.id}
+                      onClick={() => {
+                        if (!canPick) return;
+                        setSelectedWinnerIds(prev => isSelected
+                          ? prev.filter(id => id !== entry.id)
+                          : (prev.length < entriesModalGiveaway.winner_count ? [...prev, entry.id] : prev));
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                        padding: '10px 14px', borderRadius: 'var(--r-md)',
+                        border: `1.5px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}`,
+                        background: isSelected ? 'var(--primary-light)' : 'transparent',
+                        cursor: canPick ? 'pointer' : 'default'
+                      }}
+                    >
+                      <div>
+                        <p style={{ fontSize: 13.5, fontWeight: 700 }}>{entry.name}</p>
+                        <p style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>{entry.email || entry.phone || '—'}</p>
+                      </div>
+                      {entry.is_winner && (
+                        <span style={{ fontSize: 11, fontWeight: 800, color: '#d97706', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Trophy size={12} /> Winner
+                        </span>
+                      )}
+                      {canPick && (
+                        <input type="checkbox" checked={isSelected} readOnly style={{ width: 16, height: 16, flexShrink: 0 }} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {!entriesModalGiveaway.drawn_at && entriesModalGiveaway.selection_method === 'manual' && (
+              <div className="modal-footer">
+                <button type="button" onClick={() => setEntriesModalGiveaway(null)} className="btn btn-outline clickable">Close</button>
+                <button
+                  type="button"
+                  disabled={selectedWinnerIds.length === 0}
+                  onClick={() => openConfirmationDialog(
+                    'Confirm Winner(s)',
+                    `You're about to confirm ${selectedWinnerIds.length} winner${selectedWinnerIds.length > 1 ? 's' : ''} for this giveaway. This cannot be undone.`,
+                    async () => { await submitManualWinners(); closeConfirmationDialog(); },
+                    'Confirm',
+                    'Cancel'
+                  )}
+                  className="btn btn-primary clickable"
+                  style={{ opacity: selectedWinnerIds.length === 0 ? 0.6 : 1 }}
+                >
+                  <Trophy size={14} /> Confirm {selectedWinnerIds.length > 0 ? `(${selectedWinnerIds.length})` : ''}
+                </button>
+              </div>
             )}
           </div>
         </div>
