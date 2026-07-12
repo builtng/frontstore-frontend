@@ -41,6 +41,8 @@ export interface StoreInfo {
   bank_name?: string | null;
   bank_account_number?: string | null;
   bank_account_name?: string | null;
+  trust_score?: number;
+  seller_level?: number;
 }
 
 export interface Category {
@@ -98,6 +100,7 @@ export interface SystemSettings {
   access_control_mode?: 'everyone' | 'particular_country' | 'restrict_countries';
   access_control_allowed_country?: string;
   access_control_restricted_countries?: string;
+  real_store_count?: number;
 }
 
 export interface PaymentProviderCountry {

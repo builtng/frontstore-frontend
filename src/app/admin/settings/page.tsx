@@ -810,7 +810,7 @@ export default function AdminSettingsPage() {
                   value={visualHomeStatsCount}
                   onChange={setVisualHomeStatsCount}
                   placeholder="e.g. 1,200+ sellers"
-                  description="Prominent statistic shown on the homepage hero."
+                  description={`Prominent statistic shown on the homepage hero. Leave blank to auto-show the real, live count of active stores (currently ${settings.real_store_count ?? '...'}); set this to override it with custom text.`}
                 />
                 <Field
                   label="Sellers Stat Text Label"

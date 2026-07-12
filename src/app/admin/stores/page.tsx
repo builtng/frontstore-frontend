@@ -6,11 +6,15 @@ import { toast } from 'sonner';
 import {
   ArrowLeft,
   ArrowRight,
+  BadgeCheck,
   ChevronDown,
+  Clock,
   ExternalLink,
   Power,
   Search,
+  ShieldCheck,
   Trash2,
+  Zap,
 } from 'lucide-react';
 import { TableSkeleton, StatusChip, EmptyState } from '../components';
 
@@ -30,6 +34,13 @@ const planLabel = (plan?: string | null) => {
 };
 
 const isProPlan = (plan?: string | null) => plan === 'pro_monthly' || plan === 'pro_yearly' || plan === 'legend_monthly' || plan === 'legend_yearly';
+
+const PAYOUT_TIERS = [
+  { level: 1, name: 'New Seller', range: '0–40 pts', payout: '5-day hold', icon: Clock },
+  { level: 2, name: 'Verified Seller', range: '41–70 pts', payout: 'Next-day payout', icon: ShieldCheck },
+  { level: 3, name: 'Trusted Seller', range: '71–90 pts', payout: 'Same-day payout', icon: BadgeCheck },
+  { level: 4, name: 'Elite Seller', range: '91–100 pts', payout: 'Instant payout', icon: Zap },
+] as const;
 
 export default function AdminStoresPage() {
   const { token, apiUrl, getHeaders, handleFetchResponse, openConfirmationDialog } = useAdmin();
@@ -331,6 +342,28 @@ export default function AdminStoresPage() {
                     <label>Pending Escrow Balance</label>
                     <strong>{formatMoney(selectedStore.pending_balance, selectedStore.currency_code)}</strong>
                   </div>
+                </div>
+              </div>
+
+              <div className="admin-drawer__section">
+                <h3>Trust & Payout Level</h3>
+                <div className="admin-tier-list">
+                  {PAYOUT_TIERS.map((tier) => {
+                    const isActive = (selectedStore.seller_level ?? 1) === tier.level;
+                    const Icon = tier.icon;
+                    return (
+                      <div key={tier.level} className={`admin-tier-row${isActive ? ' admin-tier-row--active' : ''}`}>
+                        <div className="admin-tier-row__icon">
+                          <Icon size={16} />
+                        </div>
+                        <div className="admin-tier-row__info">
+                          <strong>Level {tier.level} · {tier.name}</strong>
+                          <span>{tier.range}</span>
+                        </div>
+                        <span className="admin-tier-row__payout">{tier.payout}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

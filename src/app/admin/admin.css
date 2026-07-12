@@ -1504,6 +1504,63 @@
   display: flex;
   gap: 12px;
 }
+.admin-tier-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-tier-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--surface-2);
+  opacity: 0.6;
+}
+.admin-tier-row--active {
+  opacity: 1;
+  border-color: #25D366;
+  background: rgba(37, 211, 102, 0.08);
+}
+.admin-tier-row__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--border);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.admin-tier-row--active .admin-tier-row__icon {
+  background: rgba(37, 211, 102, 0.15);
+  color: #25D366;
+}
+.admin-tier-row__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.admin-tier-row__info strong {
+  font-size: 13px;
+  color: var(--text);
+}
+.admin-tier-row__info span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.admin-tier-row__payout {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+.admin-tier-row--active .admin-tier-row__payout {
+  color: #25D366;
+}
 .admin-drawer__actions button {
   flex: 1;
 }

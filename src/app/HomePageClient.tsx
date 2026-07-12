@@ -284,11 +284,18 @@ const DEFAULT_HOME_CONTENT = {
 
 type HomeContent = typeof DEFAULT_HOME_CONTENT;
 
-function mergeHomeContent(raw?: string): HomeContent {
-  if (!raw) return DEFAULT_HOME_CONTENT;
+function mergeHomeContent(raw?: string, realStoreCount?: number): HomeContent {
+  // Real, live store count is the default stat unless the admin has typed an
+  // explicit override into the homepage content settings — a marketing figure
+  // should never sit on the page divorced from the actual number of sellers.
+  const liveDefault: HomeContent = realStoreCount && realStoreCount > 0
+    ? { ...DEFAULT_HOME_CONTENT, stats: { ...DEFAULT_HOME_CONTENT.stats, sellerCount: `${realStoreCount.toLocaleString()}+ sellers` } }
+    : DEFAULT_HOME_CONTENT;
+
+  if (!raw) return liveDefault;
   try {
     const parsed = JSON.parse(raw);
-    
+
     // Helper to merge nested objects falling back to default values for falsy fields (like empty strings)
     const mergeWithFallback = (defaultObj: any, parsedObj: any): any => {
       if (!parsedObj) return defaultObj;
@@ -305,9 +312,9 @@ function mergeHomeContent(raw?: string): HomeContent {
       return result;
     };
 
-    return mergeWithFallback(DEFAULT_HOME_CONTENT, parsed);
+    return mergeWithFallback(liveDefault, parsed);
   } catch {
-    return DEFAULT_HOME_CONTENT;
+    return liveDefault;
   }
 }
 
@@ -324,7 +331,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
     const val = initialSettings?.system_domain || 'frontstore.ng';
     return val === 'frontstore.app' ? 'frontstore.ng' : val;
   });
-  const [homeContent, setHomeContent] = useState<HomeContent>(() => mergeHomeContent(initialSettings?.homepage_content));
+  const [homeContent, setHomeContent] = useState<HomeContent>(() => mergeHomeContent(initialSettings?.homepage_content, initialSettings?.real_store_count));
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
@@ -344,7 +351,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               const domain = json.data.system_domain;
               setSystemDomain(domain === 'frontstore.app' ? 'frontstore.ng' : domain);
             }
-            setHomeContent(mergeHomeContent(json.data.homepage_content));
+            setHomeContent(mergeHomeContent(json.data.homepage_content, json.data.real_store_count));
           }
         })
         .catch(err => console.error('Failed to fetch public settings:', err));
