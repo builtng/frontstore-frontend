@@ -1228,8 +1228,8 @@ export default function TechStorefront({
     </div>
     <p className="ab-quote">{AUTHOR.quote}</p>
     <div className="ab-socials">
-      {AUTHOR.socials.instagram && <button onClick={() => handleWa(`Hi, visiting from your website socials.`)}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>}
-      {AUTHOR.socials.tiktok && <button onClick={() => handleWa(`Hi, visiting from your website socials.`)}><TikTokIcon size={16} /> {AUTHOR.socials.tiktok}</button>}
+      {AUTHOR.socials.instagram && <button onClick={() => window.open(`https://instagram.com/${AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>}
+      {AUTHOR.socials.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><TikTokIcon size={16} /> {AUTHOR.socials.tiktok}</button>}
     </div>
   </>);
 
