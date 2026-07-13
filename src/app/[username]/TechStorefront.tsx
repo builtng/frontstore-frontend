@@ -286,6 +286,14 @@ export default function TechStorefront({
 
   // --- Dynamic Store Stats & Open status ---
   const HOURS = useMemo(() => parseWorkingHours(store?.working_hours), [store?.working_hours]);
+  const hasHours = useMemo(() => {
+    const wh = store?.working_hours;
+    if (!wh) return false;
+    if (typeof wh === "string") return wh.trim().length > 0;
+    if (Array.isArray(wh)) return wh.length > 0;
+    if (typeof wh === "object") return Object.keys(wh).length > 0;
+    return false;
+  }, [store?.working_hours]);
   const todayIdx = (new Date().getDay() + 6) % 7;
   const hoursForDate = (d: Date) => HOURS[(d.getDay() + 6) % 7][1];
   const parseClock = (s: string) => {
@@ -1370,7 +1378,11 @@ export default function TechStorefront({
         <button onClick={() => handleWa(`Hi ${STORE.name}! I need directions to your shop.`)}><Navigation size={14} /> Directions</button>
         <button onClick={() => handleWa(`Hi ${STORE.name}! I would like to visit.`)}><WhatsAppIcon size={14} /> Message</button>
       </div>
-      <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+      {hasHours ? (
+        <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+      ) : (
+        <p className="ps-hours-empty">Opening hours not added yet</p>
+      )}
     </div>
   );
 
@@ -1545,7 +1557,11 @@ export default function TechStorefront({
                 <div className="ps-visit-info">
                   <p className="ps-addr"><MapPin size={15} /> {STORE.address}</p>
                   <button className="ps-dir" onClick={() => handleWa(`Hi ${STORE.name}! I need directions to your physical shop.`)}><Navigation size={15} /> Directions</button>
-                  <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                  {hasHours ? (
+                    <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                  ) : (
+                    <p className="ps-hours-empty">Opening hours not added yet</p>
+                  )}
                 </div>
               </div>
 
@@ -1698,7 +1714,7 @@ export default function TechStorefront({
                 ))}
                 {page === "products" && (PRODUCTS.length === 0 ? <EmptyState /> : (
                   <div className="svc-page">
-                    <p className="svc-intro font-sans">Shop our best sellers. Delivery across Lagos in 1 to 2 days, with nationwide shipping and Ikeja pickup at checkout.</p>
+                    <p className="svc-intro font-sans">Shop our best sellers. Delivery across Lagos in 1 to 2 days, with nationwide shipping{store.location ? ` and ${store.location} pickup at checkout` : ""}.</p>
                     <div className="pd-sec-head"><h2>Top gadgets</h2></div>
                     <div className="svc-feat-grid">
                       {PRODUCTS.slice(0, 3).map((p) => (
@@ -2779,6 +2795,13 @@ const css = `
 .ps-hours li.today {
   color: var(--ink);
   font-weight: 700;
+}
+.ps-hours-empty {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .ps-acc {

@@ -1125,7 +1125,7 @@ export default function RestaurantStorefront({
 
             <div className="pv-meta">
               {prepNote && <div><Clock size={15} /><span>{prepNote}</span></div>}
-              <div><Truck size={15} /><span>Delivery across Lagos or free self-pickup / dine-in on Victoria Island.</span></div>
+              <div><Truck size={15} /><span>Delivery across Lagos or free self-pickup / dine-in{store.location ? ` in ${store.location}` : ""}.</span></div>
               <div><ShieldCheck size={15} /><span>Secured by Frontstore. Your payment is held safe with platform buyer protection.</span></div>
             </div>
           </div>
@@ -1347,7 +1347,7 @@ export default function RestaurantStorefront({
                   </div>
                   <span className="ps-avatar">{store.logo_url ? <img src={store.logo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} /> : store.store_name.charAt(0).toUpperCase()}</span>
                   <h1 className="ps-name">{store.store_name} {store.is_verified ? <BadgeCheck size={20} className="ps-verif" /> : null}</h1>
-                  <p className="ps-meta">{store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || "Restaurant & bar"} <span className="ps-dot">·</span> <MapPin size={13} /> {store.location || "Victoria Island, Lagos"}</p>
+                  <p className="ps-meta">{store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || "Restaurant & bar"}{store.location && <> <span className="ps-dot">·</span> <MapPin size={13} /> {store.location}</>}</p>
                   
                   <div className="ps-id-actions-row">
                     <button className="ps-url" onClick={copyUrl}>frontstore.ng/{store.username} <Copy size={13} /></button>
@@ -1361,7 +1361,7 @@ export default function RestaurantStorefront({
                       <div><b>{store.reply_time_minutes ? `${store.reply_time_minutes} min` : "~10 min"}</b><span>reply time</span></div>
                     )}
                   </div>
-                  <p className="ps-bio">{store.store_bio || "A contemporary restaurant and bar. Good food, proper drinks, and warm room made for long tables and good evenings."}</p>
+                  {store.store_bio && <p className="ps-bio">{store.store_bio}</p>}
                   
                   <div className="ps-statusline">
                     <span className="ps-open"><span className="ps-pulse" /> Open now</span>
@@ -1439,10 +1439,10 @@ export default function RestaurantStorefront({
 
                 <SectionHead title="Visit the restaurant" />
                 <div className="ps-visit">
-                  <div className="ps-map"><MapPin size={26} /><span>VI, Lagos</span></div>
+                  {store.location && <div className="ps-map"><MapPin size={26} /><span>{store.location}</span></div>}
                   <div className="ps-visit-info">
-                    <p className="ps-addr"><MapPin size={15} /> {store.address || "4 Akin Adesola Street, Victoria Island, Lagos"}</p>
-                    <button className="ps-dir" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(store.address || "Victoria Island, Lagos")}`, '_blank')}><Navigation size={15} /> Directions</button>
+                    {store.address && <p className="ps-addr"><MapPin size={15} /> {store.address}</p>}
+                    {store.address && <button className="ps-dir" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={15} /> Directions</button>}
                     <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
                   </div>
                 </div>
@@ -1656,7 +1656,7 @@ export default function RestaurantStorefront({
                     <div className="ps-visit-info">
                       {store.whatsapp_phone && <p className="ps-addr" style={{ marginBottom: 12 }}><WhatsAppIcon size={16} /> <b>WhatsApp:</b> {store.whatsapp_phone}</p>}
                       {store.email && <p className="ps-addr" style={{ marginBottom: 12 }}><Mail size={15} /> <b>Email:</b> {store.email}</p>}
-                      <p className="ps-addr" style={{ marginBottom: 12 }}><MapPin size={15} /> <b>Location:</b> {store.location || "Victoria Island, Lagos"}</p>
+                      {store.location && <p className="ps-addr" style={{ marginBottom: 12 }}><MapPin size={15} /> <b>Location:</b> {store.location}</p>}
                       {store.address && <p className="ps-addr" style={{ marginBottom: 12 }}><MapPin size={15} /> <b>Address:</b> {store.address}</p>}
                       
                       <button className="ps-sheet-cta" style={{ marginTop: 20 }} onClick={() => setPendingWaUrl(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent("Hi! I'd like to get in touch.")}`)}>
@@ -1765,7 +1765,7 @@ export default function RestaurantStorefront({
                       <p>
                         <span>{store.business_persona?.replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase()) || "Restaurant & bar"}</span>
                         <span className="ps-dot">·</span>
-                        <MapPin size={13} /> {store.location || "Victoria Island, Lagos"}
+                        {store.location && <><MapPin size={13} /> {store.location}</>}
                       </p>
                     </div>
                     <div className="pd-identity-actions">
@@ -1777,16 +1777,18 @@ export default function RestaurantStorefront({
 
                 <div className="pd-home" style={{ marginTop: 32 }}>
                   <aside className="pd-rail">
-                    <div className="pd-railcard">
-                      <h3>Chef & Kitchen Bio</h3>
-                      <p>{store.store_bio || "A contemporary restaurant and bar on Victoria Island. Good food, proper drinks, and warm room made for long tables."}</p>
-                    </div>
-                    
+                    {store.store_bio && (
+                      <div className="pd-railcard">
+                        <h3>Chef & Kitchen Bio</h3>
+                        <p>{store.store_bio}</p>
+                      </div>
+                    )}
+
                     <div className="pd-railcard">
                       <h3>Visit Us</h3>
-                      <div className="pd-railmap"><MapPin size={22} /><span>VI, Lagos</span></div>
-                      <p style={{ fontSize: 13, marginBottom: 12 }}>{store.address || "4 Akin Adesola Street, Victoria Island, Lagos"}</p>
-                      <button className="bk-ghost" style={{ width: '100%' }} onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(store.address || "Victoria Island, Lagos")}`, '_blank')}><Navigation size={14} /> Get Directions</button>
+                      {store.location && <div className="pd-railmap"><MapPin size={22} /><span>{store.location}</span></div>}
+                      {store.address && <p style={{ fontSize: 13, marginBottom: 12 }}>{store.address}</p>}
+                      {store.address && <button className="bk-ghost" style={{ width: '100%' }} onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={14} /> Get Directions</button>}
                     </div>
 
                     <div className="pd-railcard trust">
@@ -2045,7 +2047,7 @@ export default function RestaurantStorefront({
                 <div className="ps-visit" style={{ marginTop: 24, padding: 24 }}>
                   {store.whatsapp_phone && <p style={{ fontSize: 15, marginBottom: 12 }}><WhatsAppIcon size={16} /> <b>WhatsApp Support:</b> {store.whatsapp_phone}</p>}
                   {store.email && <p style={{ fontSize: 15, marginBottom: 12 }}><Mail size={15} /> <b>Email Address:</b> {store.email}</p>}
-                  <p style={{ fontSize: 15, marginBottom: 12 }}><MapPin size={15} /> <b>Location:</b> {store.location || "Victoria Island, Lagos"}</p>
+                  {store.location && <p style={{ fontSize: 15, marginBottom: 12 }}><MapPin size={15} /> <b>Location:</b> {store.location}</p>}
                   {store.address && <p style={{ fontSize: 15, marginBottom: 20 }}><MapPin size={15} /> <b>Physical Address:</b> {store.address}</p>}
                   <button className="ps-sheet-cta" style={{ maxWidth: 260 }} onClick={() => setPendingWaUrl(`https://wa.me/${store.whatsapp_phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi! I'd like to get in touch regarding ${store.store_name}.`)}`)}>
                     <WhatsAppIcon size={18} /> Chat on WhatsApp

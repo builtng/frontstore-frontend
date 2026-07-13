@@ -687,6 +687,7 @@ export default function ThriftStorefront({
         ["Mon", "Closed"], ["Tue", "Closed"], ["Wed", "Closed"],
         ["Thu", "Closed"], ["Fri", "Closed"], ["Sat", "Closed"], ["Sun", "Closed"]
       ];
+  const hasHours = store.working_hours && Array.isArray(store.working_hours) && store.working_hours.length > 0;
   const NAV = useMemo(() => {
     return [
       ["home", "Home"],
@@ -1267,16 +1268,20 @@ export default function ThriftStorefront({
         <div className="ct-hours">
           <div className="ct-hours-head">
             <b>Opening hours</b>
-            <span className={`ct-open ${openToday ? "" : "closed"}`}><span className="dot" /> {openToday ? "Open today" : "Closed today"}</span>
+            {hasHours && <span className={`ct-open ${openToday ? "" : "closed"}`}><span className="dot" /> {openToday ? "Open today" : "Closed today"}</span>}
           </div>
-          <ul className="ct-hours-list">
-            {HOURS.map(([d, h], i) => (
-              <li key={d} className={i === todayIdx ? "today" : ""}>
-                <span>{d}</span>
-                {(h || "").toLowerCase() === "closed" ? <span className="clo">Closed</span> : <b>{h}</b>}
-              </li>
-            ))}
-          </ul>
+          {hasHours ? (
+            <ul className="ct-hours-list">
+              {HOURS.map(([d, h], i) => (
+                <li key={d} className={i === todayIdx ? "today" : ""}>
+                  <span>{d}</span>
+                  {(h || "").toLowerCase() === "closed" ? <span className="clo">Closed</span> : <b>{h}</b>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="ct-hours-empty">This store hasn't added opening hours yet. Message on WhatsApp to check availability.</p>
+          )}
         </div>
       </div>
     );
@@ -1985,7 +1990,11 @@ export default function ThriftStorefront({
                       <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={15} /> Directions</button>
                     </>
                   )}
-                  <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                  {hasHours ? (
+                    <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                  ) : (
+                    <p className="ps-hours-empty">Opening hours not added yet</p>
+                  )}
                 </div>
               </div>
 
@@ -2094,7 +2103,11 @@ export default function ThriftStorefront({
                       {store.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                       <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsAppIcon size={14} /> Message</button>
                     </div>
-                    <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                    {hasHours ? (
+                      <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                    ) : (
+                      <p className="ps-hours-empty">Opening hours not added yet</p>
+                    )}
                   </div>
                   <div className="pd-railcard trust">
                     <span className="pd-trust-h"><ShieldCheck size={15} /> Secured by Frontstore</span>
@@ -2197,7 +2210,7 @@ export default function ThriftStorefront({
                 {page === "products" && (
                   PRODUCTS.length === 0 ? <EmptyState /> : (
                     <div className="svc-page">
-                      <p className="svc-intro">Shop the latest finds. Delivery across Lagos in 2 to 4 days, with nationwide shipping and Surulere pickup at checkout.</p>
+                      <p className="svc-intro">Shop the latest finds. Delivery across Lagos in 2 to 4 days, with nationwide shipping{store.location ? ` and ${store.location} pickup at checkout` : ""}.</p>
 
                     <div className="pd-sec-head"><h2>Best sellers</h2></div>
                     <div className="svc-feat-grid">
@@ -2242,7 +2255,7 @@ export default function ThriftStorefront({
                           <span className="svc-trust"><ShieldCheck size={15} /> Secured by Frontstore</span>
                           <ul className="svc-deliv">
                             <li><Truck size={14} /> Delivery across Lagos in 2 to 4 days</li>
-                            <li><MapPin size={14} /> Pickup available in Surulere</li>
+                            {store.location && <li><MapPin size={14} /> Pickup available in {store.location}</li>}
                           </ul>
                           <button className="svc-book-cta" onClick={() => setBag(true)}><ShoppingBag size={16} /> View bag {bagCount > 0 ? ` (${bagCount})` : ""}</button>
                         </div>
@@ -2474,7 +2487,7 @@ export default function ThriftStorefront({
                         <div className="ab-rail-h"><MapPin size={15} /> Visit the store</div>
                         <div className="pd-railmap">Map preview</div>
                         {store.address && <p className="ab-addr">{store.address}</p>}
-                        <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>
+                        {hasHours && <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>}
                         <div className="pd-railbtns">
                           {store.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                           <button onClick={() => handleWa(`Hi ${store.store_name}!`)}><WhatsAppIcon size={14} /> Message</button>

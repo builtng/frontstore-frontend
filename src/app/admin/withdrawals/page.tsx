@@ -10,7 +10,7 @@ import {
   RefreshCw,
   X,
 } from 'lucide-react';
-import { TableSkeleton, StatusChip, EmptyState } from '../components';
+import { TableSkeleton, StatusChip, EmptyState, withdrawalStatusTone } from '../components';
 
 const formatMoney = (value?: number, currencyCode: string = 'NGN') =>
   new Intl.NumberFormat('en-NG', {
@@ -156,10 +156,7 @@ export default function AdminWithdrawalsPage() {
                       <span>{dateStr}</span>
                     </td>
                     <td>
-                      <StatusChip
-                        tone={w.status === 'approved' ? 'green' : w.status === 'rejected' ? 'red' : 'gray'}
-                        label={w.status}
-                      />
+                      <StatusChip tone={withdrawalStatusTone(w.status)} label={w.status} />
                     </td>
                     <td className="admin-table__actions">
                       {w.status === 'pending' && (

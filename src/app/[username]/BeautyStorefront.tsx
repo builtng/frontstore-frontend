@@ -1,12 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import {
-  Menu, X, BadgeCheck, MapPin, Star, Clock, Share2, Store as StoreIcon,
-  Search as SearchIcon, ShoppingBag, Calendar, ChevronRight, ChevronDown, ChevronLeft, Megaphone, Truck,
-  ShieldCheck, Navigation, Lock, Plus, Minus, Copy, Instagram,
-  Award, Check, Quote, Phone, Mail, RotateCcw, Package, Bell, Receipt, MessageCircle
-} from "lucide-react";
+import { Menu, X, BadgeCheck, MapPin, Star, Clock, Share2, Store as StoreIcon, Search as SearchIcon, ShoppingBag, Calendar, ChevronRight, ChevronDown, ChevronLeft, Megaphone, Truck, ShieldCheck, Navigation, Lock, Plus, Minus, Copy, Instagram, Award, Check, Quote, Phone, Mail, RotateCcw, Package, Bell, Receipt, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast as sonnerToast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
@@ -354,6 +349,14 @@ export default function BeautyStorefront({
 
   // --- Dynamic Store Stats & Open status ---
   const hours = useMemo(() => parseWorkingHours(store?.working_hours), [store?.working_hours]);
+  const hasHours = useMemo(() => {
+    const wh = store?.working_hours;
+    if (!wh) return false;
+    if (typeof wh === "string") return wh.trim().length > 0;
+    if (Array.isArray(wh)) return wh.length > 0;
+    if (typeof wh === "object") return Object.keys(wh).length > 0;
+    return false;
+  }, [store?.working_hours]);
 
   const todayIdx = (new Date().getDay() + 6) % 7;
   const hoursForDate = (d: Date) => hours[(d.getDay() + 6) % 7][1];
@@ -1402,22 +1405,26 @@ export default function BeautyStorefront({
     return (
       <div className="ct-visit">
         <div className="ab-rail-h"><MapPin size={15} /> Visit the studio</div>
-        <div className="ct-map"><span className="ct-map-pin"><MapPin size={15} /></span><span className="ct-map-label">Lekki Phase 1</span></div>
-        <p className="ab-addr">{store.address || "12 Admiralty Way, Lekki Phase 1, Lagos"}</p>
+        {store.location && <div className="ct-map"><span className="ct-map-pin"><MapPin size={15} /></span><span className="ct-map-label">{store.location}</span></div>}
+        {store.address && <p className="ab-addr">{store.address}</p>}
         {store.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={15} /> Directions</button>}
         <div className="ct-hours">
           <div className="ct-hours-head">
             <b>Opening hours</b>
-            <span className={`ct-open ${openToday ? "" : "closed"}`}><span className="dot" /> {openToday ? "Open today" : "Closed today"}</span>
+            {hasHours && <span className={`ct-open ${openToday ? "" : "closed"}`}><span className="dot" /> {openToday ? "Open today" : "Closed today"}</span>}
           </div>
-          <ul className="ct-hours-list">
-            {hours.map(([d, h], i) => (
-              <li key={d} className={i === todayIdx ? "today" : ""}>
-                <span>{d}</span>
-                {h === "Closed" ? <span className="clo">Closed</span> : <b>{h}</b>}
-              </li>
-            ))}
-          </ul>
+          {hasHours ? (
+            <ul className="ct-hours-list">
+              {hours.map(([d, h], i) => (
+                <li key={d} className={i === todayIdx ? "today" : ""}>
+                  <span>{d}</span>
+                  {h === "Closed" ? <span className="clo">Closed</span> : <b>{h}</b>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="ct-hours-empty">This studio hasn't added opening hours yet. Message on WhatsApp to check availability.</p>
+          )}
         </div>
         <div className="ab-follow-rail">
           <span>Follow the studio</span>
@@ -1730,7 +1737,7 @@ export default function BeautyStorefront({
                     <span className="ps-avatar">{store.store_name[0].toUpperCase()}</span>
                   )}
                   <h1 className="ps-name">{store.store_name} {store.is_verified ? <BadgeCheck size={20} className="ps-verif" /> : null}</h1>
-                  <p className="ps-meta">Beauty &amp; Skincare <span className="ps-dot">•</span> <MapPin size={13} /> {store.location || "Lekki, Lagos"}</p>
+                  <p className="ps-meta">Beauty &amp; Skincare{store.location && <> <span className="ps-dot">•</span> <MapPin size={13} /> {store.location}</>}</p>
                   <div className="ps-id-actions-row">
                     <button className="ps-url" onClick={copyUrl}>frontstore.ng/{store.username} <Copy size={13} /></button>
                     <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
@@ -1740,7 +1747,7 @@ export default function BeautyStorefront({
                     {store.total_orders ? <div><b>{store.total_orders}</b><span>orders</span></div> : null}
                     <div><b>~10 min</b><span>reply time</span></div>
                   </div>
-                  <p className="ps-bio">{store.store_bio || "Premium glams, skincare facials and bridal style consulting. Lagos based studio."}</p>
+                  {store.store_bio && <p className="ps-bio">{store.store_bio}</p>}
                   <div className="ps-statusline">
                     <span className="ps-open"><span className="ps-pulse" /> Open now</span>
                     <span className="ps-secure"><ShieldCheck size={13} /> Secured by Frontstore</span>
@@ -1810,13 +1817,17 @@ export default function BeautyStorefront({
                 <div className="ps-visit">
                   <div className="ps-map"><MapPin size={26} /><span>Map preview</span></div>
                   <div className="ps-visit-info">
-                    <p className="ps-addr"><MapPin size={15} /> {store.address || "12 Admiralty Way, Lekki Phase 1, Lagos"}</p>
+                    {store.address && <p className="ps-addr"><MapPin size={15} /> {store.address}</p>}
                     {store.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={15} /> Directions</button>}
-                    <ul className="ps-hours">
-                      {hours.map(([d, h], i) => (
-                        <li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>
-                      ))}
-                    </ul>
+                    {hasHours ? (
+                      <ul className="ps-hours">
+                        {hours.map(([d, h], i) => (
+                          <li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="ps-hours-empty">Opening hours not added yet</p>
+                    )}
                   </div>
                 </div>
 
@@ -1871,8 +1882,8 @@ export default function BeautyStorefront({
                 <div className="pd-identity-main">
                   <h1>{store.store_name} {store.is_verified ? <BadgeCheck size={22} className="ps-verif" /> : null}</h1>
                   <p>
-                    <span>Beauty &amp; Skincare</span><span className="ps-dot">•</span>
-                    <span><MapPin size={13} /> {store.location || "Lekki, Lagos"}</span>
+                    <span>Beauty &amp; Skincare</span>
+                    {store.location && <><span className="ps-dot">•</span><span><MapPin size={13} /> {store.location}</span></>}
                     {store.rating ? <><span className="ps-dot">•</span><span><Star size={13} className="ps-star" /> {store.rating.toFixed(1)} ({store.review_count || displayReviews.length})</span></> : null}
                     {(store.storefront_sections || []).includes("replies_approximation") && (store.reply_time_minutes || 0) > 0 && (
                       <><span className="ps-dot">•</span><span>Replies ~{store.reply_time_minutes} min</span></>
@@ -1910,20 +1921,26 @@ export default function BeautyStorefront({
                 )}
                 <div className="pd-home">
                   <aside className="pd-rail">
-                    <div className="pd-railcard">
-                      <h3>About</h3>
-                      <p>{store.store_bio || "VJhenzie Beauty Hub is a studio for bridal glam, glass-skin facials and protective styling."}</p>
-                      <button className="pd-raillink" onClick={() => go("about")}>More about us <ChevronRight size={14} /></button>
-                    </div>
+                    {store.store_bio && (
+                      <div className="pd-railcard">
+                        <h3>About</h3>
+                        <p>{store.store_bio}</p>
+                        <button className="pd-raillink" onClick={() => go("about")}>More about us <ChevronRight size={14} /></button>
+                      </div>
+                    )}
                     <div className="pd-railcard">
                       <h3>Visit us</h3>
                       <div className="pd-railmap"><MapPin size={22} /></div>
-                      <p className="ps-addr"><MapPin size={14} /> {store.address || "12 Admiralty Way, Lekki Phase 1, Lagos"}</p>
+                      {store.address && <p className="ps-addr"><MapPin size={14} /> {store.address}</p>}
                       <div className="pd-railbtns">
                         {store.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                         <button onClick={() => openWhatsAppChat("Hi!")}><WhatsApp size={14} /> Message</button>
                       </div>
-                      <ul className="ps-hours">{hours.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                      {hasHours ? (
+                        <ul className="ps-hours">{hours.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                      ) : (
+                        <p className="ps-hours-empty">Opening hours not added yet</p>
+                      )}
                     </div>
                     <div className="pd-railcard trust">
                       <span className="pd-trust-h"><ShieldCheck size={15} /> Secured by Frontstore</span>
@@ -2021,7 +2038,7 @@ export default function BeautyStorefront({
                 ))}
                 {page === "products" && (
                   <div className="svc-page">
-                    <p className="svc-intro">Shop the studio's favourites. Delivery across Lagos in 1 to 3 days, with nationwide shipping and Lekki pickup at checkout.</p>
+                    <p className="svc-intro">Shop the studio's favourites. Delivery across Lagos in 1 to 3 days, with nationwide shipping{store.location ? ` and ${store.location} pickup at checkout` : ""}.</p>
                     <div className="pd-sec-head"><h2>Best sellers</h2></div>
                     <div className="svc-feat-grid">
                       {PRODUCTS.slice(0, 3).map((p) => (
@@ -2166,8 +2183,12 @@ export default function BeautyStorefront({
                   <aside className="ab-rail">
                     <div className="pd-railcard">
                       <h3>Visit us</h3>
-                      <p className="ps-addr">{store.address || "12 Admiralty Way, Lekki Phase 1, Lagos"}</p>
-                      <ul className="ps-hours">{hours.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                      {store.address && <p className="ps-addr">{store.address}</p>}
+                      {hasHours ? (
+                        <ul className="ps-hours">{hours.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                      ) : (
+                        <p className="ps-hours-empty">Opening hours not added yet</p>
+                      )}
                     </div>
                   </aside>
                 </div>
@@ -2923,6 +2944,7 @@ const css = `
 .ps-hours li.today{color:var(--brand-deep);font-weight:700;}
 .ps-hours li.today b{color:var(--brand-deep);}
 .ps-hours.wide{max-width:420px;}
+.ps-hours-empty{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);}
 
 .ps-acc{display:flex;flex-direction:column;gap:9px;margin-bottom:24px;}
 .ps-acc-item{background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden;}
@@ -3315,6 +3337,7 @@ const css = `
 .ct-hours-list li{display:flex;justify-content:space-between;padding:8px 10px;font-size:12.5px;border-bottom:1px solid var(--line);}
 .ct-hours-list li:last-child{border-bottom:none;}
 .ct-hours-list li.today{background:var(--tint);color:var(--brand-deep);font-weight:700;}
+.ct-hours-empty{padding:14px 10px;font-size:12.5px;color:var(--muted);line-height:1.5;}
 .ct-rail{position:sticky;top:90px;}
 
 /* refunds page desktop */

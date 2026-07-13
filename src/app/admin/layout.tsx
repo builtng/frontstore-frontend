@@ -14,6 +14,7 @@ import {
   CreditCard,
   DollarSign,
   LayoutDashboard,
+  Layers,
   Loader2,
   LogOut,
   Package,
@@ -45,6 +46,7 @@ const navGroups = [
     label: 'Finance',
     items: [
       { href: '/admin/withdrawals', label: 'Payouts', icon: <DollarSign size={16} />, permission: 'payouts' },
+      { href: '/admin/withdrawal-batches', label: 'Withdrawal Batches', icon: <Layers size={16} />, permission: 'payouts' },
       { href: '/admin/payments', label: 'Payment Gateways', icon: <CreditCard size={16} />, permission: 'payments' },
       { href: '/admin/coupons', label: 'Coupons', icon: <Tag size={16} />, permission: 'coupons' },
     ],

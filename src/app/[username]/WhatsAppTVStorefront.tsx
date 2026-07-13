@@ -555,6 +555,14 @@ export default function WhatsAppTVStorefront({
     }
     return MOCK_HOURS;
   }, [store.working_hours]);
+  const hasHours = useMemo(() => {
+    const wh = store?.working_hours;
+    if (!wh) return false;
+    if (typeof wh === "string") return wh.trim().length > 0;
+    if (Array.isArray(wh)) return wh.length > 0;
+    if (typeof wh === "object") return Object.keys(wh).length > 0;
+    return false;
+  }, [store?.working_hours]);
   const hoursForDate = (d: Date) => HOURS[(d.getDay() + 6) % 7][1];
 
   const bagCount = bagItems.reduce((acc, item) => acc + item.qty, 0);
@@ -1433,7 +1441,7 @@ export default function WhatsAppTVStorefront({
   );
   const aboutBody = () => (<>
     <p className="ps-prose">{DUMMY_STORE.bio}</p>
-    <p className="ab-para">{store.about_intro_text || "What began in 2021 as campus gist to a few hundred contacts is now one of Delta's most watched WhatsApp TVs, trusted by hundreds of local brands to reach the right people."}</p>
+    {store.about_intro_text && <p className="ab-para">{store.about_intro_text}</p>}
     <div className="ab-founder ab-founder-m">
       <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
       <div className="ab-founder-body">{aboutFounderBody()}</div>
@@ -1547,22 +1555,26 @@ export default function WhatsAppTVStorefront({
     return (
       <div className="ct-visit">
         <div className="ab-rail-h"><MapPin size={15} /> Find us</div>
-        <div className="ct-map"><span className="ct-map-pin"><MapPin size={15} /></span><span className="ct-map-label">Lekki Phase 1</span></div>
-        <p className="ab-addr">{DUMMY_STORE.address}</p>
+        {DUMMY_STORE.location && <div className="ct-map"><span className="ct-map-pin"><MapPin size={15} /></span><span className="ct-map-label">{DUMMY_STORE.location}</span></div>}
+        {DUMMY_STORE.address && <p className="ab-addr">{DUMMY_STORE.address}</p>}
         {DUMMY_STORE.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={15} /> Directions</button>}
         <div className="ct-hours">
           <div className="ct-hours-head">
             <b>Opening hours</b>
-            <span className={`ct-open ${openToday ? "" : "closed"}`}><span className="dot" /> {openToday ? "Open today" : "Closed today"}</span>
+            {hasHours && <span className={`ct-open ${openToday ? "" : "closed"}`}><span className="dot" /> {openToday ? "Open today" : "Closed today"}</span>}
           </div>
-          <ul className="ct-hours-list">
-            {HOURS.map(([d, h]: any, i: number) => (
-              <li key={d} className={i === todayIdx ? "today" : ""}>
-                <span>{d}</span>
-                {(h || "").toLowerCase() === "closed" ? <span className="clo">Closed</span> : <b>{h}</b>}
-              </li>
-            ))}
-          </ul>
+          {hasHours ? (
+            <ul className="ct-hours-list">
+              {HOURS.map(([d, h]: any, i: number) => (
+                <li key={d} className={i === todayIdx ? "today" : ""}>
+                  <span>{d}</span>
+                  {(h || "").toLowerCase() === "closed" ? <span className="clo">Closed</span> : <b>{h}</b>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="ct-hours-empty">This shop hasn't added opening hours yet. Message on WhatsApp to check availability.</p>
+          )}
         </div>
         <div className="ab-follow-rail">
           <span>Follow us</span>
@@ -1963,7 +1975,11 @@ export default function WhatsAppTVStorefront({
                 <div className="ps-visit-info">
                   <p className="ps-addr"><MapPin size={15} /> {DUMMY_STORE.address}</p>
                   {DUMMY_STORE.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={15} /> Directions</button>}
-                  <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                  {hasHours ? (
+                    <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                  ) : (
+                    <p className="ps-hours-empty">Opening hours not added yet</p>
+                  )}
                 </div>
               </div>
 
@@ -2049,7 +2065,11 @@ export default function WhatsAppTVStorefront({
                       {DUMMY_STORE.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                       <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
                     </div>
-                    <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                    {hasHours ? (
+                      <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
+                    ) : (
+                      <p className="ps-hours-empty">Opening hours not added yet</p>
+                    )}
                   </div>
                   <div className="pd-railcard trust">
                     <span className="pd-trust-h"><ShieldCheck size={15} /> Secured by Frontstore</span>
@@ -2442,8 +2462,8 @@ export default function WhatsAppTVStorefront({
                     <div className="pd-railcard">
                       <div className="ab-rail-h"><MapPin size={15} /> Find us</div>
                       <div className="pd-railmap">Map preview</div>
-                      <p className="ab-addr">{DUMMY_STORE.address}</p>
-                      <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>
+                      {DUMMY_STORE.address && <p className="ab-addr">{DUMMY_STORE.address}</p>}
+                      {hasHours && <div className="ab-open"><Clock size={13} /> Today · {HOURS[todayIdx][1]}</div>}
                       <div className="pd-railbtns">
                         {DUMMY_STORE.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                         <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
@@ -3005,6 +3025,7 @@ const css = `
 .ps-hours li.today{color:var(--brand-deep);font-weight:700;}
 .ps-hours li.today b{color:var(--brand-deep);}
 .ps-hours.wide{max-width:420px;}
+.ps-hours-empty{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);}
 
 .ps-acc{display:flex;flex-direction:column;gap:9px;margin-bottom:24px;}
 .ps-acc-item{background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden;}
@@ -3480,6 +3501,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .ct-hours-list li.today{background:#efe9fd;color:var(--brand-deep);}
 .ct-hours-list li.today b{color:var(--brand-deep);font-weight:700;}
 .ct-hours-list li .clo{color:var(--muted);}
+.ct-hours-empty{padding:14px 10px;font-size:12.5px;color:var(--muted);line-height:1.5;}
 .ct-visit .ps-dir{width:100%;justify-content:center;}
 @media(max-width:979px){
   .ct-channels{margin-bottom:20px;}

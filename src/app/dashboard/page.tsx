@@ -11373,6 +11373,16 @@ export default function DashboardPage() {
                                   const dateStr = new Date(w.created_at).toLocaleDateString(undefined, {
                                     year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                                   });
+                                  const withdrawalStatusStyle: Record<string, { bg: string; color: string }> = {
+                                    pending: { bg: '#ffedd5', color: '#d97706' },
+                                    processing: { bg: '#ffedd5', color: '#d97706' },
+                                    submitted: { bg: '#dbeafe', color: '#2563eb' },
+                                    success: { bg: 'var(--primary-light)', color: 'var(--primary)' },
+                                    failed: { bg: '#fee2e2', color: '#dc2626' },
+                                    reversed: { bg: '#fee2e2', color: '#dc2626' },
+                                    rejected: { bg: '#fee2e2', color: '#dc2626' },
+                                  };
+                                  const statusStyle = withdrawalStatusStyle[w.status] || withdrawalStatusStyle.pending;
                                   return (
                                     <tr key={w.id} style={{ borderBottom: '1px solid var(--border)', fontSize: 13.5 }}>
                                       <td style={{ padding: '12px 8px', fontWeight: 600 }}>{dateStr}</td>
@@ -11383,8 +11393,8 @@ export default function DashboardPage() {
                                       <td style={{ padding: '12px 8px' }}>
                                         <span style={{
                                           padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 800, textTransform: 'uppercase',
-                                          background: w.status === 'approved' ? 'var(--primary-light)' : w.status === 'rejected' ? '#fee2e2' : '#ffedd5',
-                                          color: w.status === 'approved' ? 'var(--primary)' : w.status === 'rejected' ? '#dc2626' : '#d97706'
+                                          background: statusStyle.bg,
+                                          color: statusStyle.color
                                         }}>
                                           {w.status}
                                         </span>

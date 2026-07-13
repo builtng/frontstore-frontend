@@ -841,6 +841,18 @@
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+.admin-chip--blue {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.admin-chip--orange {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.12);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
 .admin-select {
   position: relative;
   display: inline-flex;

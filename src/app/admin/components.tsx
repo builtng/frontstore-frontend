@@ -11,8 +11,32 @@ export function Metric({ icon, label, value, detail, tone = 'gray' }: { icon: Re
   );
 }
 
-export function StatusChip({ label, tone }: { label: string; tone: 'green' | 'gray' | 'red' }) {
+export type StatusTone = 'green' | 'gray' | 'red' | 'blue' | 'orange';
+
+export function StatusChip({ label, tone }: { label: string; tone: StatusTone }) {
   return <span className={`admin-chip admin-chip--${tone}`}>{label}</span>;
+}
+
+export function withdrawalStatusTone(status: string): StatusTone {
+  switch (status) {
+    case 'success':
+    case 'completed':
+      return 'green';
+    case 'submitted':
+      return 'blue';
+    case 'processing':
+      return 'orange';
+    case 'failed':
+    case 'reversed':
+    case 'completed_with_errors':
+      return 'red';
+    case 'rejected':
+    case 'awaiting_otp':
+      return 'gray';
+    case 'pending':
+    default:
+      return 'gray';
+  }
 }
 
 export function PlanMeter({ label, value, total, tone }: { label: string; value: number; total: number; tone: 'green' | 'gray' }) {

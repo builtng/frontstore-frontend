@@ -732,6 +732,13 @@
 .ps-hours.wide {
   max-width: 420px;
 }
+.ps-hours-empty {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+}
 
 .ps-acc {
   display: flex;
@@ -3691,6 +3698,12 @@ select.ct-input {
 }
 .ct-hours-list li .clo {
   color: var(--muted);
+}
+.ct-hours-empty {
+  padding: 14px 10px;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
 }
 .ct-visit .ps-dir {
   width: 100%;
