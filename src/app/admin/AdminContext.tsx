@@ -137,7 +137,7 @@ export const defaultSettings: SystemSettings = {
   pro_yearly_price: '15000',
   legend_monthly_price: '5000',
   legend_yearly_price: '50000',
-  free_plan_product_limit: '5',
+  free_plan_product_limit: '10',
   verification_provider: 'manual',
   idenverify_api_key: '',
   idanalyzer_api_key: '',

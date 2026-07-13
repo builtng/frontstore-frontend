@@ -55,7 +55,7 @@ const PLAN_TIERS = (monthlyPrice: string, yearlyPrice: string, legendMonthlyPric
     monthly: '0',
     yearly: '0',
     highlight: false,
-    features: ['Up to 40 products', 'WhatsApp checkout', 'Public storefront', 'Flat 1.5% transaction fee'],
+    features: ['Up to 10 products', 'WhatsApp checkout', 'Public storefront', 'Flat 1.5% transaction fee'],
   },
   {
     name: 'Pro',
