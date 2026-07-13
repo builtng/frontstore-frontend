@@ -4379,7 +4379,7 @@ export default function DashboardPage() {
             { id: 'availability', label: 'Availability', icon: <Clock size={18} /> },
             { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} />, badge: bookings.filter((b: any) => b.status === 'pending').length || undefined },
             { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
-            { id: 'integrations', label: 'Integrations', icon: <Plug size={18} />, badge: !isPro ? 'Pro' : undefined },
+            { id: 'integrations', label: 'Integrations', icon: <Plug size={18} />, badge: !isLegend ? 'Legend' : undefined },
             { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
           ].filter(item => item.id !== 'giveaways' || isAdminUser).filter(item => item.id === 'overview' || item.id === 'settings' || !hiddenDashboardItems.includes(item.id)).map(item => {
             const active = activeTab === item.id;
@@ -4410,7 +4410,7 @@ export default function DashboardPage() {
                     fontSize: 10,
                     fontWeight: 800,
                     color: '#fff',
-                    background: item.badge === 'Pro' ? 'var(--danger)' : (item.id === 'whatsapp' ? 'var(--primary)' : 'var(--danger)'),
+                    background: item.badge === 'Pro' ? 'var(--danger)' : item.badge === 'Legend' ? '#7c3aed' : (item.id === 'whatsapp' ? 'var(--primary)' : 'var(--danger)'),
                     padding: '2px 7px',
                     borderRadius: 'var(--r-full)'
                   }}>
@@ -4431,8 +4431,8 @@ export default function DashboardPage() {
           >
             <EyeOff size={16} />
             <span style={{ flex: 1, textAlign: 'left' }}>Remove Distractions</span>
-            {!isPro && (
-              <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: 'var(--danger)', padding: '2px 7px', borderRadius: 'var(--r-full)' }}>Pro</span>
+            {!isLegend && (
+              <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: '#7c3aed', padding: '2px 7px', borderRadius: 'var(--r-full)' }}>Legend</span>
             )}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
@@ -7098,6 +7098,7 @@ export default function DashboardPage() {
 
                         {/* Nina AI Floating QR Code & Live Chat Widget */}
                         <div style={{
+                          position: 'relative',
                           border: '1.5px solid var(--border)',
                           borderRadius: 'var(--r-xl)',
                           padding: 18,
@@ -7106,6 +7107,40 @@ export default function DashboardPage() {
                           flexDirection: 'column',
                           gap: 16
                         }}>
+                          {!isPro && (
+                            <div style={{
+                              position: 'absolute', inset: 0,
+                              background: 'rgba(255, 255, 255, 0.7)',
+                              backdropFilter: 'blur(4px)',
+                              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                              textAlign: 'center', zIndex: 10, padding: 16,
+                              borderRadius: 'inherit'
+                            }}>
+                              <div style={{
+                                width: 38, height: 38, borderRadius: '50%',
+                                background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                boxShadow: '0 4px 10px rgba(124, 58, 237, 0.12)', marginBottom: 8
+                              }}>
+                                <Zap size={18} />
+                              </div>
+                              <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 900, color: 'var(--text)', margin: 0 }}>Nina AI Requires Pro</h4>
+                              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', maxWidth: 280, marginTop: 4, marginBottom: 12, lineHeight: 1.4 }}>
+                                Upgrade to the Pro plan to add an AI sales assistant to your storefront and answer customer questions instantly.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => openUpgradePrompt(
+                                  'Nina AI chat requires Pro',
+                                  'Free stores cannot use the Nina AI Widget. Upgrade to Pro when you want to enable the AI sales assistant.'
+                                )}
+                                className="btn btn-primary clickable"
+                                style={{ padding: '6px 14px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 12 }}
+                              >
+                                Upgrade to Pro
+                              </button>
+                            </div>
+                          )}
                           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start' }}>
                             <div>
                               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900, margin: 0 }}>Nina AI Floating Widget</h3>
@@ -7460,11 +7495,10 @@ export default function DashboardPage() {
                   {settingsSubTab === 'social' && (
                   <>
                   {/* ── CUSTOM DOMAIN CONFIGURATION CARD ── */}
-                  {false && (
                   <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24, position: 'relative', overflow: 'hidden' }}>
 
-                    {/* Lock Overlay if Free */}
-                    {(user?.plan === 'free' || !user?.plan) && (
+                    {/* Lock Overlay if not Legend */}
+                    {!isLegend && (
                       <div style={{
                         position: 'absolute', inset: 0,
                         background: 'var(--glass-bg)',
@@ -7474,26 +7508,26 @@ export default function DashboardPage() {
                       }}>
                         <div style={{
                           width: 50, height: 50, borderRadius: '50%',
-                          background: '#fef3c7', color: '#d97706',
+                          background: '#ede9fe', color: '#6d28d9',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          boxShadow: '0 4px 12px rgba(217,119,6,0.15)', marginBottom: 12
+                          boxShadow: '0 4px 12px rgba(109,40,217,0.15)', marginBottom: 12
                         }}>
                           <Zap size={24} />
                         </div>
                         <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, color: 'var(--text)' }}>Custom Domain Mapping</h3>
                         <p style={{ fontSize: 13, color: 'var(--text-muted)', maxWidth: 360, marginTop: 4, marginBottom: 16, lineHeight: 1.5 }}>
-                          Connect your own custom domain (e.g. <code>mybrand.com</code>) to personalize your store URL. Requires a Pro subscription.
+                          Connect your own custom domain (e.g. <code>mybrand.com</code>) to personalize your store URL. Requires a Legend subscription.
                         </p>
                         <button
                           type="button"
                           onClick={() => openUpgradePrompt(
-                            'Custom domain mapping requires Pro',
+                            'Custom domain mapping requires Legend',
                             'Connect your own domain to your store when you are ready for a more branded storefront experience.'
                           )}
                           className="btn btn-primary clickable"
-                          style={{ padding: '8px 20px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13 }}
+                          style={{ padding: '8px 20px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13, background: '#7c3aed', borderColor: '#7c3aed' }}
                         >
-                          Upgrade to Pro (₦{proMonthlyPrice.toLocaleString()}/mo)
+                          Upgrade to Legend (₦{legendMonthlyPrice.toLocaleString()}/mo)
                         </button>
                       </div>
                     )}
@@ -7663,7 +7697,6 @@ export default function DashboardPage() {
                       </div>
                     )}
                   </div>
-                  )}
 
                   {/* ── CUSTOM LINKS / LINKTREE SECTION ── */}
                   <div className="card" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 24 }}>
@@ -8930,46 +8963,46 @@ export default function DashboardPage() {
                 );
               })()}
 
-              {activeTab === 'integrations' && !isPro && (
+              {activeTab === 'integrations' && !isLegend && (
                 <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
-                  <div style={{ background: 'rgba(37, 211, 102, 0.15)', color: 'var(--primary)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                  <div style={{ background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                     <Plug size={32} />
                   </div>
                   <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Integrations</h2>
-                  <p style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Marketing & Automation</p>
+                  <p style={{ fontSize: 11.5, fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Marketing & Automation</p>
                   <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
                     Connect Facebook Pixel, Google Tag Manager, and other marketing tools to track conversions and automate your storefront.
                   </p>
 
                   <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <CheckCircle2 size={16} style={{ color: '#7c3aed' }} />
                       <span style={{ fontSize: 13.5, fontWeight: 700 }}>Facebook Pixel & Google Tag Manager</span>
                     </div>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <CheckCircle2 size={16} style={{ color: '#7c3aed' }} />
                       <span style={{ fontSize: 13.5, fontWeight: 700 }}>Marketing & automation tool connections</span>
                     </div>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
+                      <CheckCircle2 size={16} style={{ color: '#7c3aed' }} />
                       <span style={{ fontSize: 13.5, fontWeight: 700 }}>Track ad conversions across your storefront</span>
                     </div>
                   </div>
 
                   <button
                     onClick={() => openUpgradePrompt(
-                      'Integrations requires Pro',
-                      'Connecting marketing pixels and automation tools is available on Pro. You can review the plan before upgrading.'
+                      'Integrations requires Legend',
+                      'Connecting marketing pixels and automation tools is available on the Legend plan. You can review the plan before upgrading.'
                     )}
                     className="btn btn-primary clickable"
-                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
+                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800, background: '#7c3aed', borderColor: '#7c3aed' }}
                   >
-                    <Zap size={16} /> Upgrade to Pro to Unlock Integrations
+                    <Zap size={16} /> Upgrade to Legend to Unlock Integrations
                   </button>
                 </div>
               )}
 
-              {activeTab === 'integrations' && isPro && (
+              {activeTab === 'integrations' && isLegend && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
                   <IntegrationsTab />
                 </div>
@@ -9233,6 +9266,10 @@ export default function DashboardPage() {
                           <CheckCircle2 size={16} color="#d97706" />
                           <span>Priority support &amp; instant feature updates</span>
                         </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, opacity: 0.5 }}>
+                          <span style={{ color: 'var(--danger)', fontWeight: 900, marginRight: 6 }}>✕</span>
+                          <span style={{ textDecoration: 'line-through' }}>WhatsApp Product Posting</span>
+                        </div>
                       </div>
 
                       {/* Coupon input for non-pro users (also hidden for Legend, which already includes Pro) */}
@@ -9475,6 +9512,10 @@ export default function DashboardPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#7c3aed" />
                           <span><strong>Legend storefront badge</strong> — a status signal shown to buyers</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                          <CheckCircle2 size={16} color="#7c3aed" />
+                          <span><strong>WhatsApp Product Posting</strong> — add products to your store directly from chat</span>
                         </div>
                       </div>
 

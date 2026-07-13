@@ -16,6 +16,7 @@ interface StoreShape {
   store_name?: string;
   username?: string;
   is_pro?: boolean;
+  is_legend?: boolean;
   hidden_dashboard_items?: string[] | null;
 }
 
@@ -78,7 +79,7 @@ export default function RemoveDistractionsPage() {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [isPro, setIsPro] = useState(false);
+  const [isLegend, setIsLegend] = useState(false);
   const [hidden, setHidden] = useState<string[]>([]);
   const [storeName, setStoreName] = useState('');
   const [storeUsername, setStoreUsername] = useState('');
@@ -114,7 +115,7 @@ export default function RemoveDistractionsPage() {
         const json = await res.json();
         if (res.ok && json.data) {
           const liveStore: StoreShape = json.data;
-          setIsPro(!!liveStore.is_pro);
+          setIsLegend(!!liveStore.is_legend);
           setHidden(liveStore.hidden_dashboard_items || []);
           setStoreName(liveStore.store_name || liveStore.username || '');
           setStoreUsername(liveStore.username || '');
@@ -408,19 +409,19 @@ export default function RemoveDistractionsPage() {
               Hide sidebar items, stats, and feature sections you don't use, so your dashboard only shows what matters to you. Nothing is deleted — you can turn any of these back on anytime.
             </p>
 
-            {!isPro ? (
+            {!isLegend ? (
               <div className="card" style={{ padding: 28, textAlign: 'center', border: '1.5px dashed var(--border-strong)' }}>
-                <Sparkles size={28} style={{ color: 'var(--primary)', marginBottom: 12 }} />
-                <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, margin: '0 0 8px' }}>This is a Frontstore Pro feature</h2>
+                <Sparkles size={28} style={{ color: '#7c3aed', marginBottom: 12 }} />
+                <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, margin: '0 0 8px' }}>This is a Frontstore Legend feature</h2>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 18 }}>
-                  Upgrade to Pro to customize which sidebar items, stats, and feature sections show up on your dashboard.
+                  Upgrade to Legend to customize which sidebar items, stats, and feature sections show up on your dashboard.
                 </p>
                 <button
                   onClick={() => router.push('/dashboard?page=billing')}
                   className="btn btn-primary clickable"
-                  style={{ padding: '10px 20px', borderRadius: 'var(--r-lg)' }}
+                  style={{ padding: '10px 20px', borderRadius: 'var(--r-lg)', background: '#7c3aed', borderColor: '#7c3aed' }}
                 >
-                  Upgrade to Pro
+                  Upgrade to Legend
                 </button>
               </div>
             ) : (

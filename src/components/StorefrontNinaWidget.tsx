@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageSquare, Send, X, RotateCcw, ArrowRight, Smartphone, Copy, Check, ExternalLink } from 'lucide-react';
+import { MessageSquare, Send, X, RotateCcw, ArrowRight, Smartphone, Copy, Check, ExternalLink, Lock, AlertCircle } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 
 interface Store {
@@ -41,6 +41,8 @@ export default function StorefrontNinaWidget({ store }: StorefrontNinaWidgetProp
   const [isMobile, setIsMobile] = useState(false);
   const [chatPhone, setChatPhone] = useState('');
   const [copiedText, setCopiedText] = useState(false);
+  // Plan gate state: null = ok, 'plan_required' = free plan, 'quota_exceeded' = pro daily cap hit
+  const [planError, setPlanError] = useState<{ type: 'plan_required' | 'quota_exceeded'; message: string; resetsAt?: string } | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -140,6 +142,20 @@ export default function StorefrontNinaWidget({ store }: StorefrontNinaWidgetProp
       });
 
       const json = await res.json();
+
+      // ── Plan gate responses ────────────────────────────────────────────────
+      if (res.status === 403 && json.status === 'plan_required') {
+        // Remove the user message we optimistically added — show gate instead
+        setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
+        setPlanError({ type: 'plan_required', message: json.message });
+        return;
+      }
+      if (res.status === 429 && json.status === 'quota_exceeded') {
+        setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
+        setPlanError({ type: 'quota_exceeded', message: json.message, resetsAt: json.resets_at });
+        return;
+      }
+
       if (res.ok && json.status === 'success') {
         const assistantMsg: Message = {
           id: `${Date.now()}-a`,
@@ -486,7 +502,87 @@ export default function StorefrontNinaWidget({ store }: StorefrontNinaWidgetProp
             </div>
           ) : (
             // Conversational Live Chat panel
-            <>
+            <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              {/* Plan Gate Overlay */}
+              {planError && (
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'rgba(255,255,255,0.97)',
+                  backdropFilter: 'blur(8px)',
+                  zIndex: 20,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 28,
+                  textAlign: 'center',
+                  gap: 16,
+                  borderRadius: isMobile ? '24px 24px 0 0' : 24,
+                }}>
+                  <div style={{
+                    width: 52, height: 52, borderRadius: '50%',
+                    background: planError.type === 'plan_required' ? 'rgba(124,58,237,0.1)' : 'rgba(245,158,11,0.1)',
+                    color: planError.type === 'plan_required' ? '#7c3aed' : '#d97706',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: 4,
+                  }}>
+                    {planError.type === 'plan_required' ? <Lock size={24} /> : <AlertCircle size={24} />}
+                  </div>
+                  <div>
+                    <h4 style={{ margin: 0, fontWeight: 900, fontSize: 16, color: '#1a1f36', letterSpacing: '-0.01em' }}>
+                      {planError.type === 'plan_required' ? 'AI Chat Requires Pro' : 'Daily Limit Reached'}
+                    </h4>
+                    <p style={{ margin: '8px 0 0', fontSize: 13, color: '#4f566b', lineHeight: 1.55, maxWidth: 260 }}>
+                      {planError.message}
+                    </p>
+                    {planError.resetsAt && (
+                      <p style={{ margin: '6px 0 0', fontSize: 11.5, color: '#8792a2' }}>
+                        Resets at midnight UTC
+                      </p>
+                    )}
+                  </div>
+                  <a
+                    href="https://wa.me/" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      background: primaryColor,
+                      color: '#fff',
+                      textDecoration: 'none',
+                      padding: '10px 20px',
+                      borderRadius: 12,
+                      fontWeight: 800,
+                      fontSize: 13,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      boxShadow: `0 4px 14px ${primaryColor}40`,
+                    }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // Redirect WhatsApp as fallback
+                      const waUrl = `https://wa.me/${store.whatsapp_phone.replace(/[^\d]/g, '')}?text=${encodeURIComponent('Hello! I have a question.')}` ;
+                      window.open(waUrl, '_blank');
+                    }}
+                  >
+                    <Smartphone size={15} /> Continue on WhatsApp
+                  </a>
+                  <button
+                    onClick={() => { setPlanError(null); setMode('welcome'); }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#8792a2',
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    Go back
+                  </button>
+                </div>
+              )}
               {/* Messages Area */}
               <div
                 style={{
@@ -779,7 +875,7 @@ export default function StorefrontNinaWidget({ store }: StorefrontNinaWidgetProp
                   <Send size={16} color={input.trim() && !typing ? '#fff' : '#a3acb9'} />
                 </button>
               </div>
-            </>
+            </div>
           )}
         </div>
       )}
