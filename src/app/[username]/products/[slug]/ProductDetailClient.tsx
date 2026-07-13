@@ -12,6 +12,7 @@ import WhatsAppDisclaimerModal from "../../../../components/WhatsAppDisclaimerMo
 
 // --- Types & Interfaces ---
 interface Category {
+  store_label?: string | null;
   id: string;
   name: string;
   slug: string;
@@ -55,6 +56,7 @@ interface Store {
   tiktok_handle?: string | null;
   business_persona?: string | null;
   store_template?: string | null;
+  store_label?: string | null;
   primary_color?: string | null;
   is_pro?: boolean | number;
   is_verified?: boolean | number;
@@ -242,6 +244,8 @@ export default function ProductDetailClient({
   reviews,
   storeDisclaimer
 }: ProductDetailClientProps) {
+  const storeLabel = store.store_label || 'store';
+
   // Navigation & Page State
   const [kind, setKind] = useState<'service' | 'product'>(() => 
     isProductService(initialProduct, store) ? 'service' : 'product'
@@ -391,7 +395,7 @@ export default function ProductDetailClient({
     if (kind === 'service') {
       const selectedDay = days[bDate].formatted;
       const selectedTime = bTime !== null ? slots[bTime] : 'Unspecified';
-      const sessionType = deliveryMethod === 'delivery' ? 'Mobile Session' : 'Studio Session';
+      const sessionType = deliveryMethod === 'delivery' ? 'Mobile Session' : `In-${storeLabel[0].toUpperCase()}${storeLabel.slice(1)} Session`;
       finalAddress = `${sessionType} on ${selectedDay} at ${selectedTime}` + (deliveryMethod === 'delivery' ? ` | Address: ${deliveryAddress}` : '');
     } else if (initialProduct.type === 'ticket') {
       finalAddress = 'Event ticket — no delivery required';
@@ -573,7 +577,7 @@ export default function ProductDetailClient({
               <section className="fs-sec">
                 <h2>What is included</h2>
                 <ul className="fs-incl">
-                  {getIncludedList(initialProduct).map((x, i) => <li key={i}><Check size={15} /> {x}</li>)}
+                  {getIncludedList(initialProduct, storeLabel).map((x, i) => <li key={i}><Check size={15} /> {x}</li>)}
                 </ul>
               </section>
             ) : initialProduct.type === "ticket" ? (
@@ -831,7 +835,7 @@ export default function ProductDetailClient({
           <section className="fs-sec">
             <h2>What is included</h2>
             <ul className="fs-incl">
-              {getIncludedList(initialProduct).map((x, i) => <li key={i}><Check size={15} /> {x}</li>)}
+              {getIncludedList(initialProduct, storeLabel).map((x, i) => <li key={i}><Check size={15} /> {x}</li>)}
             </ul>
           </section>
         ) : initialProduct.type === "ticket" ? (
@@ -1033,8 +1037,8 @@ export default function ProductDetailClient({
                   className={`fs-size ${deliveryMethod === 'pickup' ? 'on' : ''}`}
                   onClick={() => setDeliveryMethod('pickup')}
                 >
-                  <b>Studio Session</b>
-                  <span>At our salon</span>
+                  <b>{`In-${storeLabel[0].toUpperCase()}${storeLabel.slice(1)} Session`}</b>
+                  <span>{`At our ${storeLabel}`}</span>
                 </button>
                 <button 
                   type="button" 
@@ -1320,7 +1324,7 @@ export default function ProductDetailClient({
 }
 
 // Extract a clean list of inclusions from product description
-function getIncludedList(product: Product): string[] {
+function getIncludedList(product: Product, storeLabel: string = 'store'): string[] {
   if (product.description) {
     const list = product.description
       .split('\n')
@@ -1332,7 +1336,7 @@ function getIncludedList(product: Product): string[] {
   return [
     "Premium, lightweight components",
     "Tailored mapping matching shape preferences",
-    "Professional sanitation and clean studio standards",
+    `Professional sanitation and clean ${storeLabel} standards`,
     "Complete aftercare guide and support"
   ];
 }

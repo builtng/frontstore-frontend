@@ -726,6 +726,7 @@ export default function ThriftStorefront({
   }, [PRODUCTS]);
 
   const todayIdx = (new Date().getDay() + 6) % 7;
+  const openToday = hasHours && (HOURS[todayIdx][1] || "").toLowerCase() !== "closed";
 
   const bagCount = bagItems.reduce((n, b) => n + b.qty, 0);
   const subtotal = bagItems.reduce((n, b) => n + b.price * b.qty, 0);
@@ -1058,15 +1059,17 @@ export default function ThriftStorefront({
   const aboutFounderBody = () => (<>
     <span className="ab-kicker">Meet the founder</span>
     <h3 className="ab-name">{AUTHOR.name}</h3>
-    <span className="ab-role">{AUTHOR.role}</span>
-    <span className="ab-verified"><BadgeCheck size={14} /> Verified by Frontstore</span>
+    {AUTHOR.role && <span className="ab-role">{AUTHOR.role}</span>}
+    {store.is_verified && <span className="ab-verified"><BadgeCheck size={14} /> Verified by Frontstore</span>}
     <p className="ab-bio">{AUTHOR.long}</p>
     <div className="ab-chips">{AUTHOR.specialities.map((s: string) => <span key={s}>{s}</span>)}</div>
-    <div className="ab-creds">
-      <span className="ab-creds-h">Curating credentials</span>
-      <ul>{AUTHOR.credentials.map((c: string) => <li key={c}><Check size={14} /> {c}</li>)}</ul>
-    </div>
-    <p className="ab-quote">{AUTHOR.quote}</p>
+    {AUTHOR.credentials.length > 0 && (
+      <div className="ab-creds">
+        <span className="ab-creds-h">Curating credentials</span>
+        <ul>{AUTHOR.credentials.map((c: string) => <li key={c}><Check size={14} /> {c}</li>)}</ul>
+      </div>
+    )}
+    {AUTHOR.quote && <p className="ab-quote">{AUTHOR.quote}</p>}
     <div className="ab-socials">
       {AUTHOR.socials.instagram && <button onClick={() => window.open(`https://instagram.com/${AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>}
       {AUTHOR.socials.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><TikTokIcon size={16} /> {AUTHOR.socials.tiktok}</button>}
@@ -1139,10 +1142,12 @@ export default function ThriftStorefront({
   const aboutBody = () => (<>
     {store.store_bio && <p className="ps-prose">{store.store_bio}</p>}
     {store.founder_bio && <p className="ab-para">{store.founder_bio}</p>}
-    <div className="ab-founder ab-founder-m">
-      <div className="ab-portrait"><span className="ab-portrait-mono">{AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
-      <div className="ab-founder-body">{aboutFounderBody()}</div>
-    </div>
+    {store.founder_name && (
+      <div className="ab-founder ab-founder-m">
+        <div className="ab-portrait"><span className="ab-portrait-mono">{AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
+        <div className="ab-founder-body">{aboutFounderBody()}</div>
+      </div>
+    )}
     {aboutWork()}
     {aboutFeatured()}
     <div className="ab-section">
@@ -1377,7 +1382,6 @@ export default function ThriftStorefront({
     <div className="tm-body-m">
       <p className="tm-intro">By booking or buying from {store.store_name} you agree to the terms below, which sit alongside the Frontstore platform terms and buyer protection.</p>
       {policySections(TERMS)}
-      <div className="tm-meta">Last updated 1 June 2026</div>
       {policyRelated([["Refunds", "returns"], ["FAQ", "faq"]])}
     </div>
   );
@@ -1386,7 +1390,6 @@ export default function ThriftStorefront({
     <div className="tm-body-m">
       <p className="tm-intro">This notice explains what {store.store_name} does with your information when you book, buy or get in touch.</p>
       {policySections(PRIVACY)}
-      <div className="tm-meta">Last updated 1 June 2026</div>
       {policyRelated([["Terms", "terms"], ["Refunds", "returns"]])}
     </div>
   );
@@ -1954,7 +1957,7 @@ export default function ThriftStorefront({
                 </div>
                 {store.store_bio && <p className="ps-bio">{store.store_bio}</p>}
                 <div className="ps-statusline">
-                  <span className="ps-open"><span className="ps-pulse" /> Open now</span>
+                  {hasHours && <span className={`ps-open${openToday ? "" : " closed"}`}><span className="ps-pulse" /> {openToday ? "Open now" : "Closed today"}</span>}
                   <span className="ps-secure"><ShieldCheck size={13} /> Secured by Frontstore</span>
                 </div>
               </section>
@@ -2184,8 +2187,7 @@ export default function ThriftStorefront({
                           </div>
                         </div>
                         <div className="svc-book-card">
-                          <span className="svc-open"><span className="ps-pulse" /> Open now</span>
-                          <p className="svc-next">Next availability <b>Today, 3:00pm</b></p>
+                          {hasHours && <span className={`svc-open${openToday ? "" : " closed"}`}><span className="ps-pulse" /> {openToday ? "Open now" : "Closed today"}</span>}
                           <button className="svc-book-cta" onClick={() => openBooking()}><Calendar size={16} /> Book a slot</button>
                         </div>
                       </aside>
@@ -2444,14 +2446,16 @@ export default function ThriftStorefront({
                   <div className="ab-wrap">
                     <div className="ab-main">
                       <span className="ab-kicker">Our story</span>
-                      <h2 className="ab-headline">A Lagos store for genuinely good preloved finds.</h2>
+                      <h2 className="ab-headline">A store for genuinely good preloved finds{store.location ? ` in ${store.location}` : ""}.</h2>
                       {store.store_bio && <p className="ab-lede">{store.store_bio}</p>}
                       {store.founder_bio && <p className="ab-para">{store.founder_bio}</p>}
 
-                      <div className="ab-founder">
-                        <div className="ab-portrait"><span className="ab-portrait-mono">{AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
-                        <div className="ab-founder-body">{aboutFounderBody()}</div>
-                      </div>
+                      {store.founder_name && (
+                        <div className="ab-founder">
+                          <div className="ab-portrait"><span className="ab-portrait-mono">{AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
+                          <div className="ab-founder-body">{aboutFounderBody()}</div>
+                        </div>
+                      )}
                       {aboutWork()}
                       {aboutFeatured()}
 
@@ -2596,7 +2600,6 @@ export default function ThriftStorefront({
                         ))}
                       </nav>
                     </div>
-                    <div className="tm-meta">Last updated 1 June 2026</div>
                     {policyRelated([["Terms", "terms"], ["Refunds", "returns"]])}
                   </aside>
                 </div>
@@ -2624,7 +2627,6 @@ export default function ThriftStorefront({
                         ))}
                       </nav>
                     </div>
-                    <div className="tm-meta">Last updated 1 June 2026</div>
                     {policyRelated([["Refunds", "returns"], ["FAQ", "faq"]])}
                   </aside>
                 </div>

@@ -77,6 +77,8 @@ export interface SystemSettings {
   social_instagram: string;
   social_twitter: string;
   social_tiktok: string;
+  social_facebook: string;
+  social_linkedin: string;
   system_domain: string;
   support_email: string;
   store_disclaimer: string;
@@ -129,6 +131,8 @@ export const defaultSettings: SystemSettings = {
   social_instagram: '',
   social_twitter: '',
   social_tiktok: '',
+  social_facebook: '',
+  social_linkedin: '',
   system_domain: '',
   support_email: '',
   store_disclaimer: '',

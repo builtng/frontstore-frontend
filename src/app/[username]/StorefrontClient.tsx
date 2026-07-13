@@ -26,6 +26,7 @@ import AutoRepairStorefront from "./AutoRepairStorefront";
 
 // --- Types & Interfaces ---
 interface StoreLink {
+  store_label?: string | null;
   id: string;
   title: string;
   url: string;
@@ -53,6 +54,8 @@ interface Store {
   instagram_handle: string | null;
   tiktok_handle: string | null;
   twitter_handle?: string | null;
+  facebook_handle?: string | null;
+  linkedin_handle?: string | null;
   is_verified?: boolean | number;
   custom_links?: StoreLink[] | null;
   primary_color?: string | null;

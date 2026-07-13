@@ -808,6 +808,16 @@ export default function AdminSettingsPage() {
                   value={settings.social_tiktok}
                   onChange={(value) => setSettings({ ...settings, social_tiktok: value })}
                 />
+                <Field
+                  label="Facebook Handle"
+                  value={settings.social_facebook}
+                  onChange={(value) => setSettings({ ...settings, social_facebook: value })}
+                />
+                <Field
+                  label="LinkedIn Handle"
+                  value={settings.social_linkedin}
+                  onChange={(value) => setSettings({ ...settings, social_linkedin: value })}
+                />
               </SettingsGroup>
             )}
 

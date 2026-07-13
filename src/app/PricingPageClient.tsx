@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight, Check, CreditCard, Building2, Smartphone,
-  ShieldCheck, Clock, Zap, Percent, BadgeCheck,
+  ShieldCheck, Clock, Zap, Percent, BadgeCheck, X, ListChecks,
 } from 'lucide-react';
 import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
 
@@ -56,6 +56,14 @@ const PLAN_TIERS = (monthlyPrice: string, yearlyPrice: string, legendMonthlyPric
     yearly: '0',
     highlight: false,
     features: ['Up to 10 products', 'WhatsApp checkout', 'Public storefront', 'Flat 1.5% transaction fee'],
+    allBenefits: [
+      'Up to 10 products listed at once',
+      'WhatsApp checkout on every order',
+      'Public storefront page with your own link',
+      'Bank transfer & MTN MoMo Agent payment methods',
+      'Standard trust-score payout ladder',
+      'Flat 1.5% transaction fee — same rate as every plan',
+    ],
   },
   {
     name: 'Pro',
@@ -64,6 +72,27 @@ const PLAN_TIERS = (monthlyPrice: string, yearlyPrice: string, legendMonthlyPric
     yearly: yearlyPrice,
     highlight: true,
     features: ['Unlimited products', 'AI photo-to-listing', 'Custom storefront branding', 'Flat 1.5% transaction fee'],
+    allBenefits: [
+      'Everything in Free, plus:',
+      'Unlimited products',
+      'AI photo-to-listing & AI auto-write descriptions',
+      'Custom storefront branding & colors',
+      'Change your store username or WhatsApp number anytime',
+      'Connect a custom domain',
+      'Advanced analytics & report exports',
+      'Customer CRM',
+      'Inventory management',
+      'Invoice & receipt management',
+      'Payment Links',
+      'Storefront coupons',
+      'Giveaways',
+      'WhatsApp broadcast campaigns',
+      'Customer reviews — view & reply',
+      'Facebook Pixel, Google Tag Manager & TikTok Pixel integrations',
+      'Dashboard customization',
+      'Priority support',
+      'Flat 1.5% transaction fee — same rate as every plan',
+    ],
   },
   {
     name: 'Legend',
@@ -72,13 +101,21 @@ const PLAN_TIERS = (monthlyPrice: string, yearlyPrice: string, legendMonthlyPric
     yearly: legendYearlyPrice,
     highlight: false,
     features: ['Everything in Pro', 'Unlimited AI analyses on any billing cycle', 'Legend storefront badge', 'Flat 1.5% transaction fee'],
+    allBenefits: [
+      'Everything in Pro, plus:',
+      'Unlimited AI analyses on any billing cycle (Pro Monthly caps at 15/mo)',
+      'Legend storefront badge — a status signal shown to buyers',
+      'Flat 1.5% transaction fee — same rate as every plan',
+    ],
   },
 ];
 
 export default function PricingPageClient({ monthlyPrice, yearlyPrice, legendMonthlyPrice, legendYearlyPrice }: PricingPageClientProps) {
   const [activeCurrency, setActiveCurrency] = useState(0);
   const [activeTier, setActiveTier] = useState(1);
+  const [benefitsModalTier, setBenefitsModalTier] = useState<string | null>(null);
   const tiers = PLAN_TIERS(monthlyPrice, yearlyPrice, legendMonthlyPrice, legendYearlyPrice);
+  const modalTier = tiers.find((t) => t.name === benefitsModalTier) || null;
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
@@ -136,6 +173,18 @@ export default function PricingPageClient({ monthlyPrice, yearlyPrice, legendMon
                     </li>
                   ))}
                 </ul>
+                <button
+                  type="button"
+                  onClick={() => setBenefitsModalTier(tier.name)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontSize: 12.5, fontWeight: 700, color: 'var(--primary)',
+                    padding: '4px 0', marginBottom: 14,
+                  }}
+                >
+                  <ListChecks size={13} /> See all benefits
+                </button>
                 <Link
                   href="/signup"
                   className={tier.highlight ? 'btn btn-primary' : 'btn btn-outline'}
@@ -359,6 +408,85 @@ export default function PricingPageClient({ monthlyPrice, yearlyPrice, legendMon
       </main>
 
       <PublicSiteFooter />
+
+      {modalTier && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${modalTier.name} plan benefits`}
+          onClick={() => setBenefitsModalTier(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            background: 'rgba(0,0,0,0.55)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 20,
+          }}
+        >
+          <div
+            className="card"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: 440, width: '100%', maxHeight: '85vh', overflowY: 'auto',
+              padding: 'clamp(24px, 4vw, 32px)', position: 'relative',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setBenefitsModalTier(null)}
+              aria-label="Close"
+              style={{
+                position: 'absolute', top: 16, right: 16,
+                background: 'var(--surface-2)', border: 'none', borderRadius: 'var(--r-full)',
+                width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: 'var(--text-muted)',
+              }}
+            >
+              <X size={16} />
+            </button>
+
+            <span className={modalTier.highlight ? 'badge badge-primary' : 'badge'} style={{ marginBottom: 12 }}>
+              {modalTier.name}
+            </span>
+            <h2 className="text-title" style={{ marginBottom: 4 }}>
+              ₦{modalTier.monthly}<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>/mo</span>
+            </h2>
+            <p style={{ fontSize: 12.5, color: 'var(--text-faint)', marginBottom: 16 }}>
+              or ₦{modalTier.yearly}/year — {modalTier.tagline}
+            </p>
+
+            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 22 }}>
+              {modalTier.allBenefits.map((b) => {
+                const isHeading = b.endsWith(':');
+                return (
+                  <li
+                    key={b}
+                    style={{
+                      display: 'flex', gap: 8, alignItems: 'flex-start',
+                      fontSize: isHeading ? 12 : 13.5,
+                      fontWeight: isHeading ? 800 : 400,
+                      textTransform: isHeading ? 'uppercase' : 'none',
+                      letterSpacing: isHeading ? '0.03em' : 'normal',
+                      color: isHeading ? 'var(--text-muted)' : 'var(--text-2)',
+                      marginTop: isHeading ? 4 : 0,
+                    }}
+                  >
+                    {!isHeading && <Check size={14} color="var(--primary)" style={{ marginTop: 2, flexShrink: 0 }} />}
+                    {b}
+                  </li>
+                );
+              })}
+            </ul>
+
+            <Link
+              href="/signup"
+              className={modalTier.highlight ? 'btn btn-primary' : 'btn btn-outline'}
+              style={{ padding: '12px 20px', fontSize: 14, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', width: '100%' }}
+            >
+              {modalTier.name === 'Free' ? 'Start selling free' : `Go ${modalTier.name}`} <ArrowRight size={15} />
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

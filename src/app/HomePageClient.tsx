@@ -1021,7 +1021,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               Ready to start selling on WhatsApp?
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.78)', marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
-              Join 1,200+ African sellers already using Frontstore to grow their business. Free to start — no credit card needed.
+              Join {homeContent.stats.sellerCount} already using Frontstore to grow their business. Free to start — no credit card needed.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
               <a

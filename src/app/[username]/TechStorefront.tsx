@@ -330,7 +330,7 @@ export default function TechStorefront({
     orders: store.total_orders || undefined,
     reply: store.reply_time_minutes ? `~${store.reply_time_minutes} min` : '~10 min',
     bio: store.store_bio || 'Quality gadgets and device repairs.',
-    address: store.address || 'Computer Village, Ikeja, Lagos',
+    address: store.address || '',
     phone: store.whatsapp_phone,
     email: store.email || `${store.username || 'support'}@frontstore.ng`,
     socials: { instagram: store.instagram_handle || '', tiktok: store.tiktok_handle || '' },
@@ -1041,7 +1041,15 @@ export default function TechStorefront({
   const faqFiltered = displayFaqs
     .map((g) => ({ ...g, items: faqQ ? g.items.filter(([q, a]) => (q + " " + a).toLowerCase().includes(faqQ)) : g.items }))
     .filter((g) => g.items.length > 0);
-  const REV_DIST = [[5, 80], [4, 14], [3, 3], [2, 2], [1, 1]];
+  const REV_DIST = useMemo(() => {
+    const counts = [0, 0, 0, 0, 0];
+    displayReviews.forEach((r: any) => {
+      const n = Math.round(r.rating);
+      if (n >= 1 && n <= 5) counts[5 - n]++;
+    });
+    const total = displayReviews.length;
+    return [5, 4, 3, 2, 1].map((star, i) => [star, total > 0 ? Math.round((counts[i] / total) * 100) : 0]);
+  }, [displayReviews]);
   const revFiltered = displayReviews
     .filter((rv) => (revStar === 0 || rv.r === revStar) && (!revPhotos || rv.photos > 0))
     .sort((a, b) => (revSort === "high" ? b.r - a.r : revSort === "low" ? a.r - b.r : 0));
@@ -1333,7 +1341,7 @@ export default function TechStorefront({
       <button className="ct-wa" onClick={() => handleWa(`Hi ${STORE.name}! I have an enquiry.`)}><WhatsAppIcon size={18} /> Chat on WhatsApp</button>
       <div className="ct-alt">
         {STORE.email && <a href={`mailto:${STORE.email}`} className="ct-email"><Mail size={16} /> {STORE.email}</a>}
-        {STORE.phone && <a href={`tel:${STORE.phone}`} className="ct-phone"><Phone size={16} /> Call us</a>}
+
       </div>
     </div>
   );
@@ -1373,7 +1381,7 @@ export default function TechStorefront({
     <div className="pd-railcard">
       <h3>Visit us</h3>
       <div className="pd-railmap"><MapPin size={22} /></div>
-      <p className="ps-addr"><MapPin size={14} /> {STORE.address}</p>
+      {STORE.address && <p className="ps-addr"><MapPin size={14} /> {STORE.address}</p>}
       <div className="pd-railbtns">
         <button onClick={() => handleWa(`Hi ${STORE.name}! I need directions to your shop.`)}><Navigation size={14} /> Directions</button>
         <button onClick={() => handleWa(`Hi ${STORE.name}! I would like to visit.`)}><WhatsAppIcon size={14} /> Message</button>
@@ -1404,9 +1412,17 @@ export default function TechStorefront({
       <h3>Refunds and returns</h3>
       <p>Because gadgets and repair components are quality-tested before sale, our returns window is structured to ensure security and buyer safety.</p>
       <h4>Gadget purchases</h4>
-      <p>Brand new, sealed items can be returned within 7 days of delivery for a full refund or exchange, provided the seal remains intact. Certified refurbished units can be returned within 7 days if they develop a fault covered by the warranty.</p>
+      {store.policy_products ? (
+        store.policy_products.split('\n').filter(Boolean).map((line: string, idx: number) => <p key={idx}>{line}</p>)
+      ) : (
+        <p>Brand new, sealed items can be returned within 7 days of delivery for a full refund or exchange, provided the seal remains intact. Certified refurbished units can be returned within 7 days if they develop a fault covered by the warranty.</p>
+      )}
       <h4>Repairs and components</h4>
-      <p>Components fitted during a repair carry a warranty details page and a physical receipt. The repair charge and deposit are held securely by Frontstore until the repair is completed. Cancellations on scheduled appointments made up to 24 hours in advance receive a full deposit refund.</p>
+      {store.policy_bookings ? (
+        store.policy_bookings.split('\n').filter(Boolean).map((line: string, idx: number) => <p key={idx}>{line}</p>)
+      ) : (
+        <p>Components fitted during a repair carry a warranty details page and a physical receipt. The repair charge and deposit are held securely by Frontstore until the repair is completed. Cancellations on scheduled appointments made up to 24 hours in advance receive a full deposit refund.</p>
+      )}
       <div className="blog-convert">
         <b>Questions about warranty?</b>
         <p>Chat with our support bench on WhatsApp to confirm component availability or terms.</p>
@@ -1466,7 +1482,7 @@ export default function TechStorefront({
     url: `https://${systemDomain}/${STORE.slug}`,
     image: store.logo_url || `https://${systemDomain}/icon.png`,
     priceRange: "$$",
-    address: { "@type": "PostalAddress", streetAddress: STORE.address, addressLocality: "Ikeja", addressRegion: "Lagos", addressCountry: "NG" },
+    address: { "@type": "PostalAddress", streetAddress: store.address || undefined, addressLocality: store.location || undefined, addressCountry: "NG" },
     telephone: STORE.phone,
     email: STORE.email,
     sameAs: [],
@@ -1511,7 +1527,7 @@ export default function TechStorefront({
                 <h1 className="ps-name">{STORE.name} {store.is_verified ? <BadgeCheck size={20} className="ps-verif" /> : null}</h1>
                 <p className="ps-meta">{STORE.category} <span className="ps-dot">•</span> <MapPin size={13} /> {STORE.location}</p>
                 <div className="ps-id-actions-row">
-                  <button className="ps-url" onClick={copyUrl}>{systemDomain}/{STORE.slug} <Copy size={13} /></button>
+                  <button className="ps-url" onClick={copyUrl}><span className="ps-url-text">{systemDomain}/{STORE.slug}</span> <Copy size={13} /></button>
                   <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                 </div>
                 <div className="ps-stats">
@@ -1555,7 +1571,7 @@ export default function TechStorefront({
               <div className="ps-visit">
                 <div className="ps-map"><MapPin size={26} /><span>Map preview</span></div>
                 <div className="ps-visit-info">
-                  <p className="ps-addr"><MapPin size={15} /> {STORE.address}</p>
+                  {STORE.address && <p className="ps-addr"><MapPin size={15} /> {STORE.address}</p>}
                   <button className="ps-dir" onClick={() => handleWa(`Hi ${STORE.name}! I need directions to your physical shop.`)}><Navigation size={15} /> Directions</button>
                   {hasHours ? (
                     <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
@@ -1973,7 +1989,7 @@ export default function TechStorefront({
       {/* review modal */}
       {reviewOpen && (
         <Sheet onClose={() => setReviewOpen(false)} title="Write a review">
-          <p className="ps-sheet-sub">Share your experience with Vjhenzie Beauty Hub. Reviews must be verified by a real purchase.</p>
+          <p className="ps-sheet-sub">Share your experience with {STORE.name}. Reviews must be verified by a real purchase.</p>
           <p className="ps-field-lbl">Rating</p>
           <div style={{ display: 'flex', gap: 6, margin: '8px 0' }}>
             {[1,2,3,4,5].map((n) => (
@@ -2162,15 +2178,17 @@ export default function TechStorefront({
           </div>
           <span>Based on {STORE.reviews} reviews</span>
         </div>
-        <div className="rev-sum-bars">
-          {REV_DIST.map(([stars, pct]) => (
-            <div key={stars} className="rev-sum-row">
-              <span>{stars} <Star size={11} className="f" /></span>
-              <div className="rev-sum-bar"><div className="rev-sum-fill" style={{ width: `${pct}%` }} /></div>
-              <span>{pct}%</span>
-            </div>
-          ))}
-        </div>
+        {displayReviews.length > 0 && (
+          <div className="rev-sum-bars">
+            {REV_DIST.map(([stars, pct]) => (
+              <div key={stars} className="rev-sum-row">
+                <span>{stars} <Star size={11} className="f" /></span>
+                <div className="rev-sum-bar"><div className="rev-sum-fill" style={{ width: `${pct}%` }} /></div>
+                <span>{pct}%</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -2417,6 +2435,17 @@ const css = `
   padding: 7px 12px;
   border-radius: 9px;
   margin-top: 11px;
+  max-width: 100%;
+  min-width: 0;
+}
+.ps-url-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.ps-url svg {
+  flex-shrink: 0;
 }
 .ps-id-actions-row {
   display: flex;
@@ -2425,10 +2454,14 @@ const css = `
   flex-wrap: wrap;
   margin-top: 11px;
 }
+.ps-id-actions-row .ps-url {
+  margin-top: 0;
+}
 .ps-notify {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--ink);

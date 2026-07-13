@@ -359,6 +359,7 @@ export default function BeautyStorefront({
   }, [store?.working_hours]);
 
   const todayIdx = (new Date().getDay() + 6) % 7;
+  const openToday = hasHours && (hours[todayIdx][1] || "").toLowerCase() !== "closed";
   const hoursForDate = (d: Date) => hours[(d.getDay() + 6) % 7][1];
   const parseClock = (s: string) => {
     const m = s.trim().match(/(\d+):(\d+)\s*(am|pm)/i);
@@ -1183,15 +1184,17 @@ export default function BeautyStorefront({
     <>
       <span className="ab-kicker">Meet the founder</span>
       <h3 className="ab-name">{AUTHOR.name}</h3>
-      <span className="ab-role">{AUTHOR.role}</span>
-      <span className="ab-verified"><BadgeCheck size={14} /> Verified by Frontstore</span>
+      {AUTHOR.role && <span className="ab-role">{AUTHOR.role}</span>}
+      {store.is_verified && <span className="ab-verified"><BadgeCheck size={14} /> Verified by Frontstore</span>}
       <p className="ab-bio">{AUTHOR.long}</p>
       <div className="ab-chips">{AUTHOR.specialities.map((s: any) => <span key={s}>{s}</span>)}</div>
-      <div className="ab-creds">
-        <span className="ab-creds-h">Training and credentials</span>
-        <ul>{AUTHOR.credentials.map((c: any) => <li key={c}><Check size={14} /> {c}</li>)}</ul>
-      </div>
-      <p className="ab-quote">"{AUTHOR.quote}"</p>
+      {AUTHOR.credentials.length > 0 && (
+        <div className="ab-creds">
+          <span className="ab-creds-h">Training and credentials</span>
+          <ul>{AUTHOR.credentials.map((c: any) => <li key={c}><Check size={14} /> {c}</li>)}</ul>
+        </div>
+      )}
+      {AUTHOR.quote && <p className="ab-quote">"{AUTHOR.quote}"</p>}
       <div className="ab-socials">
         {AUTHOR.socials.instagram && <button onClick={() => window.open(`https://instagram.com/${AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>}
         {AUTHOR.socials.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {AUTHOR.socials.tiktok}</button>}
@@ -1270,13 +1273,15 @@ export default function BeautyStorefront({
       <span className="ab-kicker">Our story</span>
       <h2 className="ab-headline">{store.store_name}</h2>
       {store.store_bio ? <p className="ab-lede">{store.store_bio}</p> : <EmptyState />}
-      <div className="ab-founder ab-founder-m">
-        <div className="ab-portrait">
-          {store.founder_avatar_url ? <img src={store.founder_avatar_url} alt={AUTHOR.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="ab-portrait-mono">{AUTHOR.initial}</span>}
-          <span className="ab-portrait-tag">Founder</span>
+      {store.founder_name && (
+        <div className="ab-founder ab-founder-m">
+          <div className="ab-portrait">
+            {store.founder_avatar_url ? <img src={store.founder_avatar_url} alt={AUTHOR.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="ab-portrait-mono">{AUTHOR.initial}</span>}
+            <span className="ab-portrait-tag">Founder</span>
+          </div>
+          <div className="ab-founder-body">{aboutFounderBody()}</div>
         </div>
-        <div className="ab-founder-body">{aboutFounderBody()}</div>
-      </div>
+      )}
       {displayPortfolio.length > 0 && aboutWork()}
       {recognition.length > 0 && aboutFeatured()}
       <div className="ab-section">
@@ -1542,7 +1547,6 @@ export default function BeautyStorefront({
     <div className="tm-body-m">
       <p className="tm-intro">By booking or buying from {store.store_name} you agree to the terms below, which sit alongside the Frontstore platform terms and buyer protection.</p>
       {policySections(TERMS)}
-      <div className="tm-meta">Last updated 1 June 2026</div>
       {policyRelated([["Refunds", "returns"], ["FAQ", "faq"]])}
     </div>
   );
@@ -1551,7 +1555,6 @@ export default function BeautyStorefront({
     <div className="tm-body-m">
       <p className="tm-intro">This notice explains what {store.store_name} does with your information when you book, buy or get in touch.</p>
       {policySections(PRIVACY)}
-      <div className="tm-meta">Last updated 1 June 2026</div>
       {policyRelated([["Terms", "terms"], ["Refunds", "returns"]])}
     </div>
   );
@@ -1689,7 +1692,7 @@ export default function BeautyStorefront({
     description: store.store_bio,
     url: `https://${systemDomain}/${store.username}`,
     priceRange: "$$",
-    address: { "@type": "PostalAddress", streetAddress: store.address || "Lekki, Lagos", addressLocality: "Lekki", addressRegion: "Lagos", addressCountry: "NG" },
+    address: { "@type": "PostalAddress", streetAddress: store.address || undefined, addressLocality: store.location || undefined, addressCountry: "NG" },
     telephone: store.whatsapp_phone,
     email: store.email,
     ...(aggregateRating ? { aggregateRating } : {}),
@@ -1739,7 +1742,7 @@ export default function BeautyStorefront({
                   <h1 className="ps-name">{store.store_name} {store.is_verified ? <BadgeCheck size={20} className="ps-verif" /> : null}</h1>
                   <p className="ps-meta">Beauty &amp; Skincare{store.location && <> <span className="ps-dot">•</span> <MapPin size={13} /> {store.location}</>}</p>
                   <div className="ps-id-actions-row">
-                    <button className="ps-url" onClick={copyUrl}>frontstore.ng/{store.username} <Copy size={13} /></button>
+                    <button className="ps-url" onClick={copyUrl}><span className="ps-url-text">frontstore.ng/{store.username}</span> <Copy size={13} /></button>
                     <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                   </div>
                   <div className="ps-stats">
@@ -1749,7 +1752,7 @@ export default function BeautyStorefront({
                   </div>
                   {store.store_bio && <p className="ps-bio">{store.store_bio}</p>}
                   <div className="ps-statusline">
-                    <span className="ps-open"><span className="ps-pulse" /> Open now</span>
+                    {hasHours && <span className={`ps-open${openToday ? "" : " closed"}`}><span className="ps-pulse" /> {openToday ? "Open now" : "Closed today"}</span>}
                     <span className="ps-secure"><ShieldCheck size={13} /> Secured by Frontstore</span>
                   </div>
                 </section>
@@ -2018,7 +2021,7 @@ export default function BeautyStorefront({
                           </div>
                         </div>
                         <div className="svc-book-card">
-                          <span className="svc-open"><span className="ps-pulse" /> Open now</span>
+                          {hasHours && <span className={`svc-open${openToday ? "" : " closed"}`}><span className="ps-pulse" /> {openToday ? "Open now" : "Closed today"}</span>}
                           <button className="svc-book-cta" onClick={() => openBooking()}><Calendar size={16} /> Book a slot</button>
                         </div>
                       </aside>
@@ -2846,10 +2849,12 @@ const css = `
   color:#fff;font-family:'Fraunces';font-weight:700;font-size:38px;display:grid;place-items:center;border:4px solid var(--bg);margin-top:-44px;position:relative;}
 .ps-name{font-family:'Fraunces';font-weight:700;font-size:24px;letter-spacing:-.02em;line-height:1.15;margin-top:13px;display:flex;align-items:center;gap:6px;}
 .ps-meta{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:4px;}
-.ps-url{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--brand-deep);background:#f6e8ee;padding:7px 12px;border-radius:9px;margin-top:11px;}
+.ps-url{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--brand-deep);background:#f6e8ee;padding:7px 12px;border-radius:9px;margin-top:11px;max-width:100%;min-width:0}
 .ps-id-actions-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:11px;}
-.ps-id-actions-row .ps-url{margin-top:0;}
-.ps-notify{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#fff;background:var(--brand);padding:8px 13px;border-radius:9px;box-shadow:0 4px 12px rgba(177,74,110,.28);cursor:pointer;}
+.ps-id-actions-row .ps-url{margin-top:0;max-width:100%;min-width:0}
+.ps-url-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ps-url svg{flex-shrink:0}
+.ps-notify{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#fff;background:var(--brand);padding:8px 13px;border-radius:9px;box-shadow:0 4px 12px rgba(177,74,110,.28);cursor:pointer;flex-shrink:0}
 .nt-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;}
 .nt-topic{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:9px 13px;border-radius:11px;border:1px solid var(--line);background:var(--card);color:#4f3f46;cursor:pointer;}
 .nt-topic.on{background:#f6e8ee;border-color:var(--brand);color:var(--brand-deep);}
@@ -2860,6 +2865,9 @@ const css = `
 .ps-bio{font-size:14px;line-height:1.55;color:#4f3f46;margin-top:15px;}
 .ps-statusline{display:flex;align-items:center;gap:14px;margin-top:13px;flex-wrap:wrap;}
 .ps-open{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ok);}
+.ps-open.closed{color:#9a3b3b;}
+.svc-open{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ok);}
+.svc-open.closed{color:#9a3b3b;}
 .ps-pulse{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pspulse 1.8s infinite;}
 @keyframes pspulse{0%{box-shadow:0 0 0 0 rgba(31,157,87,.45);}70%{box-shadow:0 0 0 7px rgba(31,157,87,0);}100%{box-shadow:0 0 0 0 rgba(31,157,87,0);}}
 .ps-secure{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
@@ -3333,6 +3341,7 @@ const css = `
 .ct-hours{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:12px 0;}
 .ct-hours-head{display:flex;justify-content:space-between;align-items:center;background:#faf6f2;padding:10px;border-bottom:1px solid var(--line);font-size:12.5px;}
 .ct-open{font-size:11px;color:#1f7a4d;font-weight:700;}
+.ct-open.closed{color:#9a3b3b;}
 .ct-hours-list{list-style:none;padding:0;}
 .ct-hours-list li{display:flex;justify-content:space-between;padding:8px 10px;font-size:12.5px;border-bottom:1px solid var(--line);}
 .ct-hours-list li:last-child{border-bottom:none;}

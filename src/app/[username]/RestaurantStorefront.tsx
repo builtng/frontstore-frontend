@@ -478,6 +478,15 @@ export default function RestaurantStorefront({
     ];
   }, [store]);
 
+  const hasHours = useMemo(() => {
+    const wh = store?.working_hours;
+    if (!wh) return false;
+    if (typeof wh === "string") return wh.trim().length > 0;
+    if (Array.isArray(wh)) return wh.length > 0;
+    if (typeof wh === "object") return Object.keys(wh).length > 0;
+    return false;
+  }, [store?.working_hours]);
+  const openToday = hasHours && (HOURS[todayIdx][1] || "").toLowerCase() !== "closed";
   const hoursForDate = (d: Date) => HOURS[(d.getDay() + 6) % 7][1];
 
   const fetchAvailableSlots = async (svcId?: string) => {
@@ -1162,7 +1171,7 @@ export default function RestaurantStorefront({
   const reviewForm = () => (
     <Sheet onClose={() => setReviewOpen(false)} title="Leave a review">
       <div className="ps-sheet-body">
-        <p className="rev-intro">Help others discover Chef {store.founder_name ? store.founder_name.split(' ')[0] : 'Chinelo'}'s kitchen. Only customers with a confirmed order can post a review.</p>
+        <p className="rev-intro">Help others discover {store.founder_name ? `Chef ${store.founder_name.split(' ')[0]}'s` : `${store.store_name}'s`} kitchen. Only customers with a confirmed order can post a review.</p>
         <div className="rev-form-note"><ShieldCheck size={15} /> Reviews are verify-locked to order references. The restaurant cannot delete reviews.</div>
         
         <p className="ps-field-lbl">Rating</p>
@@ -1364,7 +1373,7 @@ export default function RestaurantStorefront({
                   {store.store_bio && <p className="ps-bio">{store.store_bio}</p>}
                   
                   <div className="ps-statusline">
-                    <span className="ps-open"><span className="ps-pulse" /> Open now</span>
+                    {hasHours && <span className={`ps-open${openToday ? "" : " closed"}`}><span className="ps-pulse" /> {openToday ? "Open now" : "Closed today"}</span>}
                     <span className="ps-secure"><ShieldCheck size={13} /> Secured by Frontstore</span>
                   </div>
                 </section>
@@ -1654,7 +1663,7 @@ export default function RestaurantStorefront({
                 {!store.whatsapp_phone && !store.email && !store.location && !store.address ? <EmptyState /> : (
                   <div className="ps-visit" style={{ marginTop: 20 }}>
                     <div className="ps-visit-info">
-                      {store.whatsapp_phone && <p className="ps-addr" style={{ marginBottom: 12 }}><WhatsAppIcon size={16} /> <b>WhatsApp:</b> {store.whatsapp_phone}</p>}
+
                       {store.email && <p className="ps-addr" style={{ marginBottom: 12 }}><Mail size={15} /> <b>Email:</b> {store.email}</p>}
                       {store.location && <p className="ps-addr" style={{ marginBottom: 12 }}><MapPin size={15} /> <b>Location:</b> {store.location}</p>}
                       {store.address && <p className="ps-addr" style={{ marginBottom: 12 }}><MapPin size={15} /> <b>Address:</b> {store.address}</p>}
@@ -1982,39 +1991,47 @@ export default function RestaurantStorefront({
               <div className="pd-listing">
                 <div className="pd-page-head" style={{ marginBottom: 24 }}>
                   <h1>Our Story</h1>
-                  <span>Learn more about {store.founder_name ? store.founder_name.split(' ')[0] : 'Chinelo'}'s background, training and kitchen vision</span>
+                  <span>Learn more about {store.founder_name ? `${store.founder_name.split(' ')[0]}'s` : `${store.store_name}'s`} background, training and kitchen vision</span>
                 </div>
-                <div className="ab-founder" style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 30 }}>
-                  <div className="ab-portrait"><span className="ab-portrait-mono">{AUTHOR.initial}</span></div>
-                  <div className="ab-founder-body">
-                    <span className="ab-kicker">The Founder</span>
-                    <h2 className="ab-name" style={{ fontFamily: 'Fraunces', fontSize: 26 }}>{AUTHOR.name}</h2>
-                    <span className="ab-role" style={{ color: 'var(--brand)' }}>{AUTHOR.role}</span>
-                    <p className="ab-quote" style={{ fontStyle: 'italic', margin: '14px 0', borderLeft: '3px solid var(--brand)', paddingLeft: 12 }}>"{AUTHOR.quote}"</p>
-                    <p className="ab-bio" style={{ color: 'var(--muted)', lineHeight: 1.7 }}>{AUTHOR.long}</p>
-                    <div className="ab-chips" style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                      {AUTHOR.specialities.map((s: string) => <span key={s} style={{ background: '#f7e7ea', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, color: 'var(--brand-deep)' }}>{s}</span>)}
+                {(!store.store_bio && !store.founder_bio) ? <EmptyState /> : (
+                  <>
+                    <div className="ab-founder" style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 30 }}>
+                      <div className="ab-portrait"><span className="ab-portrait-mono">{AUTHOR.initial}</span></div>
+                      <div className="ab-founder-body">
+                        <span className="ab-kicker">The Founder</span>
+                        <h2 className="ab-name" style={{ fontFamily: 'Fraunces', fontSize: 26 }}>{AUTHOR.name}</h2>
+                        <span className="ab-role" style={{ color: 'var(--brand)' }}>{AUTHOR.role}</span>
+                        {AUTHOR.quote && <p className="ab-quote" style={{ fontStyle: 'italic', margin: '14px 0', borderLeft: '3px solid var(--brand)', paddingLeft: 12 }}>"{AUTHOR.quote}"</p>}
+                        <p className="ab-bio" style={{ color: 'var(--muted)', lineHeight: 1.7 }}>{AUTHOR.long}</p>
+                        <div className="ab-chips" style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                          {AUTHOR.specialities.map((s: string) => <span key={s} style={{ background: '#f7e7ea', padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, color: 'var(--brand-deep)' }}>{s}</span>)}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 32 }}>
-                  <div>
-                    <h4 className="ab-subhead" style={{ fontFamily: 'Fraunces', fontSize: 18, marginBottom: 12 }}>Facts about Chef {store.founder_name ? store.founder_name.split(' ')[0] : 'Chinelo'}</h4>
-                    <ul className="ab-facts" style={{ listStyle: 'none', padding: 0 }}>
-                      {ABOUT_FACTS.map(([lbl, val]: [string, string]) => (
-                        <li key={lbl} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
-                          <span>{lbl}</span><b>{val}</b>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="ab-subhead" style={{ fontFamily: 'Fraunces', fontSize: 18, marginBottom: 12 }}>Recognition & Features</h4>
-                    <div className="ab-rec-list" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {RECOGNITION.map((r: string) => <span key={r} style={{ border: '1px solid var(--line)', padding: '8px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600 }}>{r}</span>)}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 32 }}>
+                      {ABOUT_FACTS.length > 0 && (
+                        <div>
+                          <h4 className="ab-subhead" style={{ fontFamily: 'Fraunces', fontSize: 18, marginBottom: 12 }}>Facts about {store.founder_name ? store.founder_name.split(' ')[0] : store.store_name}</h4>
+                          <ul className="ab-facts" style={{ listStyle: 'none', padding: 0 }}>
+                            {ABOUT_FACTS.map(([lbl, val]: [string, string]) => (
+                              <li key={lbl} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
+                                <span>{lbl}</span><b>{val}</b>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {RECOGNITION.length > 0 && (
+                        <div>
+                          <h4 className="ab-subhead" style={{ fontFamily: 'Fraunces', fontSize: 18, marginBottom: 12 }}>Recognition & Features</h4>
+                          <div className="ab-rec-list" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            {RECOGNITION.map((r: string) => <span key={r} style={{ border: '1px solid var(--line)', padding: '8px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600 }}>{r}</span>)}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </div>
+                  </>
+                )}
                 <StoreFoot onNav={go} />
               </div>
             )}
@@ -2045,7 +2062,7 @@ export default function RestaurantStorefront({
                   <span>Reserve tables, ask about events catering or discuss private bookings</span>
                 </div>
                 <div className="ps-visit" style={{ marginTop: 24, padding: 24 }}>
-                  {store.whatsapp_phone && <p style={{ fontSize: 15, marginBottom: 12 }}><WhatsAppIcon size={16} /> <b>WhatsApp Support:</b> {store.whatsapp_phone}</p>}
+
                   {store.email && <p style={{ fontSize: 15, marginBottom: 12 }}><Mail size={15} /> <b>Email Address:</b> {store.email}</p>}
                   {store.location && <p style={{ fontSize: 15, marginBottom: 12 }}><MapPin size={15} /> <b>Location:</b> {store.location}</p>}
                   {store.address && <p style={{ fontSize: 15, marginBottom: 20 }}><MapPin size={15} /> <b>Physical Address:</b> {store.address}</p>}

@@ -42,9 +42,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Amina Bello",
-      "role": "Fashion E-commerce Growth Lead",
-      "avatarInitials": "AB",
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
       "avatarBg": "hsl(142, 70%, 94%)",
       "avatarColor": "hsl(142, 70%, 35%)"
     },
@@ -94,11 +94,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Kenya",
     "readTime": "4 min read",
     "author": {
-      "name": "Michael Mwangi",
-      "role": "Retail Tech Consultant",
-      "avatarInitials": "MM",
-      "avatarBg": "hsl(210, 80%, 94%)",
-      "avatarColor": "hsl(210, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-12",
     "updatedAt": "2026-05-28",
@@ -127,7 +127,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       },
       {
         "question": "What is the best way to handle deliveries in Nairobi?",
-        "answer": "Most Nairobi beauty brands use local boda-boda riders or courier services like Fargo Courier or Wells Fargo to deliver within Nairobi CBD and suburbs like Kilimani, Westlands, and Karen."
+        "answer": "Most Nairobi beauty brands use local boda-boda riders or courier services like Sendy or G4S to deliver within Nairobi CBD and suburbs like Kilimani, Westlands, and Karen."
       }
     ],
     "ctaText": "Launch Your Nairobi Beauty Shop"
@@ -142,9 +142,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "6 min read",
     "author": {
-      "name": "Amina Bello",
-      "role": "Fashion E-commerce Growth Lead",
-      "avatarInitials": "AB",
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
       "avatarBg": "hsl(142, 70%, 94%)",
       "avatarColor": "hsl(142, 70%, 35%)"
     },
@@ -190,11 +190,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Ghana",
     "readTime": "5 min read",
     "author": {
-      "name": "Emmanuel Mensah",
-      "role": "Accra Retail Operations Specialist",
-      "avatarInitials": "EM",
-      "avatarBg": "hsl(340, 80%, 94%)",
-      "avatarColor": "hsl(340, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-18",
     "updatedAt": "2026-05-28",
@@ -238,11 +238,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "South Africa",
     "readTime": "6 min read",
     "author": {
-      "name": "Naledi Dlamini",
-      "role": "South Africa Growth Lead",
-      "avatarInitials": "ND",
-      "avatarBg": "hsl(170, 70%, 94%)",
-      "avatarColor": "hsl(170, 70%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-20",
     "updatedAt": "2026-05-28",
@@ -286,11 +286,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Ghana",
     "readTime": "5 min read",
     "author": {
-      "name": "Emmanuel Mensah",
-      "role": "Accra Retail Operations Specialist",
-      "avatarInitials": "EM",
-      "avatarBg": "hsl(340, 80%, 94%)",
-      "avatarColor": "hsl(340, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-21",
     "updatedAt": "2026-05-28",
@@ -334,11 +334,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Uganda",
     "readTime": "4 min read",
     "author": {
-      "name": "Naledi Dlamini",
-      "role": "South Africa Growth Lead",
-      "avatarInitials": "ND",
-      "avatarBg": "hsl(170, 70%, 94%)",
-      "avatarColor": "hsl(170, 70%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-22",
     "updatedAt": "2026-05-28",
@@ -382,11 +382,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Kenya",
     "readTime": "5 min read",
     "author": {
-      "name": "Michael Mwangi",
-      "role": "Retail Tech Consultant",
-      "avatarInitials": "MM",
-      "avatarBg": "hsl(210, 80%, 94%)",
-      "avatarColor": "hsl(210, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-23",
     "updatedAt": "2026-05-28",
@@ -430,11 +430,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "South Africa",
     "readTime": "6 min read",
     "author": {
-      "name": "Naledi Dlamini",
-      "role": "South Africa Growth Lead",
-      "avatarInitials": "ND",
-      "avatarBg": "hsl(170, 70%, 94%)",
-      "avatarColor": "hsl(170, 70%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-24",
     "updatedAt": "2026-05-28",
@@ -478,9 +478,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Amina Bello",
-      "role": "Fashion E-commerce Growth Lead",
-      "avatarInitials": "AB",
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
       "avatarBg": "hsl(142, 70%, 94%)",
       "avatarColor": "hsl(142, 70%, 35%)"
     },
@@ -526,9 +526,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Amina Bello",
-      "role": "Fashion E-commerce Growth Lead",
-      "avatarInitials": "AB",
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
       "avatarBg": "hsl(142, 70%, 94%)",
       "avatarColor": "hsl(142, 70%, 35%)"
     },
@@ -574,9 +574,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Amina Bello",
-      "role": "Fashion E-commerce Growth Lead",
-      "avatarInitials": "AB",
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
       "avatarBg": "hsl(142, 70%, 94%)",
       "avatarColor": "hsl(142, 70%, 35%)"
     },
@@ -622,9 +622,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Amina Bello",
-      "role": "Fashion E-commerce Growth Lead",
-      "avatarInitials": "AB",
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
       "avatarBg": "hsl(142, 70%, 94%)",
       "avatarColor": "hsl(142, 70%, 35%)"
     },
@@ -670,9 +670,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Amina Bello",
-      "role": "Fashion E-commerce Growth Lead",
-      "avatarInitials": "AB",
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
       "avatarBg": "hsl(142, 70%, 94%)",
       "avatarColor": "hsl(142, 70%, 35%)"
     },
@@ -712,17 +712,17 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "slug": "how-to-scale-fashion-whatsapp-nairobi",
     "title": "How to Scale Your Fashion Boutique on WhatsApp in Nairobi",
     "metaTitle": "Scale Your Nairobi Fashion Boutique via WhatsApp",
-    "metaDescription": "Learn how top fashion brands in Nairobi, Kenya organize clothing collections, handle deliveries via boda-boda riders and Wells Fargo, and accept KES payments on WhatsApp.",
+    "metaDescription": "Learn how top fashion brands in Nairobi, Kenya organize clothing collections, handle deliveries via boda-boda riders and Sendy, and accept KES payments on WhatsApp.",
     "category": "Fashion",
     "city": "Nairobi",
     "country": "Kenya",
     "readTime": "5 min read",
     "author": {
-      "name": "Michael Mwangi",
-      "role": "Retail Tech Consultant",
-      "avatarInitials": "MM",
-      "avatarBg": "hsl(210, 80%, 94%)",
-      "avatarColor": "hsl(210, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -741,7 +741,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       },
       {
         "heading": "Seamless Payments with M-Pesa Buy Goods Till and Local Delivery",
-        "body": "For payments, offer direct integrations with M-Pesa Buy Goods Till. Clearly specify delivery rates for surrounding suburbs and coordinate with boda-boda riders and Wells Fargo for fast, safe shipping right to your buyer's doorstep."
+        "body": "For payments, offer direct integrations with M-Pesa Buy Goods Till. Clearly specify delivery rates for surrounding suburbs and coordinate with boda-boda riders and Sendy for fast, safe shipping right to your buyer's doorstep."
       }
     ],
     "faqs": [
@@ -766,11 +766,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Kenya",
     "readTime": "5 min read",
     "author": {
-      "name": "Michael Mwangi",
-      "role": "Retail Tech Consultant",
-      "avatarInitials": "MM",
-      "avatarBg": "hsl(210, 80%, 94%)",
-      "avatarColor": "hsl(210, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -789,7 +789,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       },
       {
         "heading": "Collecting Prep Payments and Suburb Deliveries",
-        "body": "Since food is perishable, collect payments upfront via M-Pesa Buy Goods Till before starting preparation. Coordinate delivery routes using boda-boda riders and Wells Fargo to ensure meals arrive fresh and warm."
+        "body": "Since food is perishable, collect payments upfront via M-Pesa Buy Goods Till before starting preparation. Coordinate delivery routes using boda-boda riders and Sendy to ensure meals arrive fresh and warm."
       }
     ],
     "faqs": [
@@ -814,11 +814,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Kenya",
     "readTime": "5 min read",
     "author": {
-      "name": "Michael Mwangi",
-      "role": "Retail Tech Consultant",
-      "avatarInitials": "MM",
-      "avatarBg": "hsl(210, 80%, 94%)",
-      "avatarColor": "hsl(210, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -837,7 +837,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       },
       {
         "heading": "Verifying Payments and Dispatching Electronics",
-        "body": "Electronics are high-value items, making payment security essential. Utilize secure transactions via M-Pesa Buy Goods Till and rely on verified transport partners like boda-boda riders and Wells Fargo to ship items safely."
+        "body": "Electronics are high-value items, making payment security essential. Utilize secure transactions via M-Pesa Buy Goods Till and rely on verified transport partners like boda-boda riders and Sendy to ship items safely."
       }
     ],
     "faqs": [
@@ -862,11 +862,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Kenya",
     "readTime": "5 min read",
     "author": {
-      "name": "Michael Mwangi",
-      "role": "Retail Tech Consultant",
-      "avatarInitials": "MM",
-      "avatarBg": "hsl(210, 80%, 94%)",
-      "avatarColor": "hsl(210, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -885,7 +885,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       },
       {
         "heading": "Coordinating Payments and Local Suburb Dispatch",
-        "body": "Accept payments via M-Pesa Buy Goods Till at checkout. Use localized courier networks such as boda-boda riders and Wells Fargo to dispatch orders directly to homes in suburbs like Westlands and Kilimani."
+        "body": "Accept payments via M-Pesa Buy Goods Till at checkout. Use localized courier networks such as boda-boda riders and Sendy to dispatch orders directly to homes in suburbs like Westlands and Kilimani."
       }
     ],
     "faqs": [
@@ -910,11 +910,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Ghana",
     "readTime": "5 min read",
     "author": {
-      "name": "Emmanuel Mensah",
-      "role": "Accra Retail Operations Specialist",
-      "avatarInitials": "EM",
-      "avatarBg": "hsl(340, 80%, 94%)",
-      "avatarColor": "hsl(340, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -958,11 +958,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Ghana",
     "readTime": "5 min read",
     "author": {
-      "name": "Emmanuel Mensah",
-      "role": "Accra Retail Operations Specialist",
-      "avatarInitials": "EM",
-      "avatarBg": "hsl(340, 80%, 94%)",
-      "avatarColor": "hsl(340, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1006,11 +1006,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Ghana",
     "readTime": "5 min read",
     "author": {
-      "name": "Emmanuel Mensah",
-      "role": "Accra Retail Operations Specialist",
-      "avatarInitials": "EM",
-      "avatarBg": "hsl(340, 80%, 94%)",
-      "avatarColor": "hsl(340, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1054,11 +1054,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Ghana",
     "readTime": "5 min read",
     "author": {
-      "name": "Emmanuel Mensah",
-      "role": "Accra Retail Operations Specialist",
-      "avatarInitials": "EM",
-      "avatarBg": "hsl(340, 80%, 94%)",
-      "avatarColor": "hsl(340, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1102,11 +1102,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "South Africa",
     "readTime": "5 min read",
     "author": {
-      "name": "Naledi Dlamini",
-      "role": "South Africa Growth Lead",
-      "avatarInitials": "ND",
-      "avatarBg": "hsl(170, 70%, 94%)",
-      "avatarColor": "hsl(170, 70%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1150,11 +1150,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "South Africa",
     "readTime": "5 min read",
     "author": {
-      "name": "Naledi Dlamini",
-      "role": "South Africa Growth Lead",
-      "avatarInitials": "ND",
-      "avatarBg": "hsl(170, 70%, 94%)",
-      "avatarColor": "hsl(170, 70%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1198,11 +1198,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "South Africa",
     "readTime": "5 min read",
     "author": {
-      "name": "Naledi Dlamini",
-      "role": "South Africa Growth Lead",
-      "avatarInitials": "ND",
-      "avatarBg": "hsl(170, 70%, 94%)",
-      "avatarColor": "hsl(170, 70%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1246,11 +1246,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "South Africa",
     "readTime": "5 min read",
     "author": {
-      "name": "Naledi Dlamini",
-      "role": "South Africa Growth Lead",
-      "avatarInitials": "ND",
-      "avatarBg": "hsl(170, 70%, 94%)",
-      "avatarColor": "hsl(170, 70%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1294,11 +1294,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Uganda",
     "readTime": "5 min read",
     "author": {
-      "name": "Grace Akot",
-      "role": "Uganda Retail Lead",
-      "avatarInitials": "GA",
-      "avatarBg": "hsl(320, 80%, 94%)",
-      "avatarColor": "hsl(320, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1342,11 +1342,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Uganda",
     "readTime": "5 min read",
     "author": {
-      "name": "Grace Akot",
-      "role": "Uganda Retail Lead",
-      "avatarInitials": "GA",
-      "avatarBg": "hsl(320, 80%, 94%)",
-      "avatarColor": "hsl(320, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1390,11 +1390,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Uganda",
     "readTime": "5 min read",
     "author": {
-      "name": "Grace Akot",
-      "role": "Uganda Retail Lead",
-      "avatarInitials": "GA",
-      "avatarBg": "hsl(320, 80%, 94%)",
-      "avatarColor": "hsl(320, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1438,11 +1438,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Uganda",
     "readTime": "5 min read",
     "author": {
-      "name": "Grace Akot",
-      "role": "Uganda Retail Lead",
-      "avatarInitials": "GA",
-      "avatarBg": "hsl(320, 80%, 94%)",
-      "avatarColor": "hsl(320, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1486,11 +1486,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Kenya",
     "readTime": "5 min read",
     "author": {
-      "name": "Michael Mwangi",
-      "role": "Retail Tech Consultant",
-      "avatarInitials": "MM",
-      "avatarBg": "hsl(210, 80%, 94%)",
-      "avatarColor": "hsl(210, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1534,11 +1534,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Kenya",
     "readTime": "5 min read",
     "author": {
-      "name": "Michael Mwangi",
-      "role": "Retail Tech Consultant",
-      "avatarInitials": "MM",
-      "avatarBg": "hsl(210, 80%, 94%)",
-      "avatarColor": "hsl(210, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1582,11 +1582,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Kenya",
     "readTime": "5 min read",
     "author": {
-      "name": "Michael Mwangi",
-      "role": "Retail Tech Consultant",
-      "avatarInitials": "MM",
-      "avatarBg": "hsl(210, 80%, 94%)",
-      "avatarColor": "hsl(210, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1630,11 +1630,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Kenya",
     "readTime": "5 min read",
     "author": {
-      "name": "Michael Mwangi",
-      "role": "Retail Tech Consultant",
-      "avatarInitials": "MM",
-      "avatarBg": "hsl(210, 80%, 94%)",
-      "avatarColor": "hsl(210, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1678,11 +1678,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "South Africa",
     "readTime": "5 min read",
     "author": {
-      "name": "Sarah van der Merwe",
-      "role": "SA Retail Growth Architect",
-      "avatarInitials": "SV",
-      "avatarBg": "hsl(45, 90%, 94%)",
-      "avatarColor": "hsl(45, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1726,11 +1726,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "South Africa",
     "readTime": "5 min read",
     "author": {
-      "name": "Sarah van der Merwe",
-      "role": "SA Retail Growth Architect",
-      "avatarInitials": "SV",
-      "avatarBg": "hsl(45, 90%, 94%)",
-      "avatarColor": "hsl(45, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1774,11 +1774,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "South Africa",
     "readTime": "5 min read",
     "author": {
-      "name": "Sarah van der Merwe",
-      "role": "SA Retail Growth Architect",
-      "avatarInitials": "SV",
-      "avatarBg": "hsl(45, 90%, 94%)",
-      "avatarColor": "hsl(45, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1822,11 +1822,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "South Africa",
     "readTime": "5 min read",
     "author": {
-      "name": "Sarah van der Merwe",
-      "role": "SA Retail Growth Architect",
-      "avatarInitials": "SV",
-      "avatarBg": "hsl(45, 90%, 94%)",
-      "avatarColor": "hsl(45, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1870,11 +1870,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1928,11 +1928,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -1986,11 +1986,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2044,11 +2044,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2102,9 +2102,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Amina Bello",
-      "role": "Fashion E-commerce Growth Lead",
-      "avatarInitials": "AB",
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
       "avatarBg": "hsl(142, 70%, 94%)",
       "avatarColor": "hsl(142, 70%, 35%)"
     },
@@ -2150,9 +2150,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Amina Bello",
-      "role": "Fashion E-commerce Growth Lead",
-      "avatarInitials": "AB",
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
       "avatarBg": "hsl(142, 70%, 94%)",
       "avatarColor": "hsl(142, 70%, 35%)"
     },
@@ -2198,9 +2198,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Amina Bello",
-      "role": "Fashion E-commerce Growth Lead",
-      "avatarInitials": "AB",
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
       "avatarBg": "hsl(142, 70%, 94%)",
       "avatarColor": "hsl(142, 70%, 35%)"
     },
@@ -2246,9 +2246,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Amina Bello",
-      "role": "Fashion E-commerce Growth Lead",
-      "avatarInitials": "AB",
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
       "avatarBg": "hsl(142, 70%, 94%)",
       "avatarColor": "hsl(142, 70%, 35%)"
     },
@@ -2294,11 +2294,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Ghana",
     "readTime": "5 min read",
     "author": {
-      "name": "Kwame Osei",
-      "role": "Ghana E-commerce Specialist",
-      "avatarInitials": "KO",
-      "avatarBg": "hsl(190, 80%, 94%)",
-      "avatarColor": "hsl(190, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2342,11 +2342,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Ghana",
     "readTime": "5 min read",
     "author": {
-      "name": "Kwame Osei",
-      "role": "Ghana E-commerce Specialist",
-      "avatarInitials": "KO",
-      "avatarBg": "hsl(190, 80%, 94%)",
-      "avatarColor": "hsl(190, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2390,11 +2390,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Ghana",
     "readTime": "5 min read",
     "author": {
-      "name": "Kwame Osei",
-      "role": "Ghana E-commerce Specialist",
-      "avatarInitials": "KO",
-      "avatarBg": "hsl(190, 80%, 94%)",
-      "avatarColor": "hsl(190, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2438,11 +2438,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Ghana",
     "readTime": "5 min read",
     "author": {
-      "name": "Kwame Osei",
-      "role": "Ghana E-commerce Specialist",
-      "avatarInitials": "KO",
-      "avatarBg": "hsl(190, 80%, 94%)",
-      "avatarColor": "hsl(190, 80%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2486,11 +2486,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2534,11 +2534,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2582,11 +2582,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2630,11 +2630,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2678,11 +2678,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2726,11 +2726,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2774,11 +2774,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2822,11 +2822,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2870,11 +2870,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2918,11 +2918,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -2966,11 +2966,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3024,11 +3024,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3082,11 +3082,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3140,11 +3140,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3198,11 +3198,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3256,11 +3256,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3304,11 +3304,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3352,11 +3352,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3400,11 +3400,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3448,11 +3448,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3496,11 +3496,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3544,11 +3544,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3592,11 +3592,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3640,11 +3640,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3688,11 +3688,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3736,11 +3736,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3784,11 +3784,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3832,11 +3832,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3880,11 +3880,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3928,11 +3928,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -3976,11 +3976,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4034,11 +4034,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4092,11 +4092,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4150,11 +4150,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4208,11 +4208,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4266,11 +4266,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4314,11 +4314,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4362,11 +4362,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4410,11 +4410,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4458,11 +4458,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4506,11 +4506,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4554,11 +4554,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4602,11 +4602,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4650,11 +4650,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4698,11 +4698,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4746,11 +4746,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4804,11 +4804,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4862,11 +4862,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4920,11 +4920,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -4978,11 +4978,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5036,11 +5036,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5094,11 +5094,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5152,11 +5152,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5210,11 +5210,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5268,11 +5268,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5326,11 +5326,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5374,11 +5374,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5422,11 +5422,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5470,11 +5470,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5518,11 +5518,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5566,11 +5566,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5614,11 +5614,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5662,11 +5662,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5710,11 +5710,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5758,11 +5758,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5806,11 +5806,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5854,11 +5854,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5902,11 +5902,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5950,11 +5950,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -5998,11 +5998,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6046,11 +6046,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6094,11 +6094,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6142,11 +6142,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6190,11 +6190,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6238,11 +6238,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6286,11 +6286,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6344,11 +6344,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6402,11 +6402,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6460,11 +6460,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6518,11 +6518,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6576,11 +6576,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6624,11 +6624,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6672,11 +6672,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6720,11 +6720,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6768,11 +6768,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6816,11 +6816,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6864,11 +6864,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6912,11 +6912,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -6960,11 +6960,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7008,11 +7008,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7056,11 +7056,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7104,11 +7104,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7152,11 +7152,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7200,11 +7200,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7248,11 +7248,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7296,11 +7296,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7344,11 +7344,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7392,11 +7392,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7440,11 +7440,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7488,11 +7488,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7536,11 +7536,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7584,11 +7584,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7632,11 +7632,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7680,11 +7680,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7728,11 +7728,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7776,11 +7776,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7834,11 +7834,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7892,11 +7892,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -7950,11 +7950,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8008,11 +8008,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8066,11 +8066,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8124,11 +8124,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8182,11 +8182,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8240,11 +8240,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8298,11 +8298,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8356,11 +8356,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8414,11 +8414,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8472,11 +8472,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8530,11 +8530,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8588,11 +8588,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8646,11 +8646,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8694,11 +8694,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8742,11 +8742,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8790,11 +8790,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8838,11 +8838,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8886,11 +8886,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -8944,11 +8944,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9002,11 +9002,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9060,11 +9060,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9118,11 +9118,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9176,11 +9176,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9224,11 +9224,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9272,11 +9272,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9320,11 +9320,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9368,11 +9368,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9416,11 +9416,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9464,11 +9464,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9512,11 +9512,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9560,11 +9560,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9608,11 +9608,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9656,11 +9656,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9704,11 +9704,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9752,11 +9752,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9800,11 +9800,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9848,11 +9848,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9896,11 +9896,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9944,11 +9944,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -9992,11 +9992,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10040,11 +10040,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10088,11 +10088,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10136,11 +10136,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10184,11 +10184,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10232,11 +10232,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10280,11 +10280,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10328,11 +10328,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10376,11 +10376,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10434,11 +10434,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10492,11 +10492,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10550,11 +10550,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10608,11 +10608,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10666,11 +10666,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10724,11 +10724,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10782,11 +10782,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10840,11 +10840,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10898,11 +10898,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -10956,11 +10956,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11014,11 +11014,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11072,11 +11072,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11130,11 +11130,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11188,11 +11188,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11246,11 +11246,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11294,11 +11294,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11342,11 +11342,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11390,11 +11390,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11438,11 +11438,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11486,11 +11486,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11534,11 +11534,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11582,11 +11582,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11630,11 +11630,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11678,11 +11678,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11726,11 +11726,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11774,11 +11774,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11822,11 +11822,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11870,11 +11870,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11918,11 +11918,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -11966,11 +11966,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12014,11 +12014,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12062,11 +12062,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12110,11 +12110,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12158,11 +12158,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12206,11 +12206,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12254,11 +12254,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12302,11 +12302,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12350,11 +12350,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12398,11 +12398,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12446,11 +12446,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12504,11 +12504,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12562,11 +12562,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12620,11 +12620,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12678,11 +12678,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12736,11 +12736,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12784,11 +12784,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12832,11 +12832,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12880,11 +12880,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12928,11 +12928,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -12976,11 +12976,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13024,11 +13024,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13072,11 +13072,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13120,11 +13120,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13168,11 +13168,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13216,11 +13216,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13264,11 +13264,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13312,11 +13312,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13360,11 +13360,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13408,11 +13408,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13456,11 +13456,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13514,11 +13514,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13572,11 +13572,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13630,11 +13630,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13688,11 +13688,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13746,11 +13746,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13804,11 +13804,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13862,11 +13862,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13920,11 +13920,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -13978,11 +13978,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14036,11 +14036,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14094,11 +14094,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14152,11 +14152,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14210,11 +14210,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14268,11 +14268,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14326,11 +14326,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14374,11 +14374,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14422,11 +14422,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14470,11 +14470,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14518,11 +14518,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14566,11 +14566,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14624,11 +14624,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14682,11 +14682,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14740,11 +14740,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14798,11 +14798,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14856,11 +14856,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14914,11 +14914,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -14972,11 +14972,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15030,11 +15030,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15088,11 +15088,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15146,11 +15146,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15194,11 +15194,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15242,11 +15242,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15290,11 +15290,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15338,11 +15338,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15386,11 +15386,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15434,11 +15434,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15482,11 +15482,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15530,11 +15530,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15578,11 +15578,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15626,11 +15626,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15674,11 +15674,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15722,11 +15722,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15770,11 +15770,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15818,11 +15818,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15866,11 +15866,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15914,11 +15914,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -15962,11 +15962,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16010,11 +16010,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16058,11 +16058,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16106,11 +16106,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16154,11 +16154,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16202,11 +16202,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16250,11 +16250,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16298,11 +16298,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16346,11 +16346,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16394,11 +16394,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16442,11 +16442,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16490,11 +16490,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16538,11 +16538,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16586,11 +16586,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16634,11 +16634,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16682,11 +16682,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16730,11 +16730,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16778,11 +16778,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16826,11 +16826,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16874,11 +16874,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16922,11 +16922,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -16970,11 +16970,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17018,11 +17018,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17066,11 +17066,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17114,11 +17114,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17162,11 +17162,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17210,11 +17210,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17258,11 +17258,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17306,11 +17306,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17354,11 +17354,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17402,11 +17402,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17450,11 +17450,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17498,11 +17498,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17546,11 +17546,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17594,11 +17594,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17642,11 +17642,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17690,11 +17690,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17738,11 +17738,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17786,11 +17786,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17834,11 +17834,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17882,11 +17882,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17930,11 +17930,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -17978,11 +17978,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18026,11 +18026,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18074,11 +18074,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18122,11 +18122,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18170,11 +18170,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18218,11 +18218,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18266,11 +18266,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18314,11 +18314,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18362,11 +18362,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18410,11 +18410,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18458,11 +18458,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18506,11 +18506,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18564,11 +18564,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18622,11 +18622,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18680,11 +18680,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18738,11 +18738,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18796,11 +18796,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18844,11 +18844,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18892,11 +18892,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18940,11 +18940,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -18988,11 +18988,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19036,11 +19036,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19094,11 +19094,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19152,11 +19152,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19210,11 +19210,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19268,11 +19268,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19326,11 +19326,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19384,11 +19384,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19442,11 +19442,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19500,11 +19500,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19558,11 +19558,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19616,11 +19616,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19664,11 +19664,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19712,11 +19712,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19760,11 +19760,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19808,11 +19808,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19856,11 +19856,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19914,11 +19914,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -19972,11 +19972,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20030,11 +20030,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20088,11 +20088,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20146,11 +20146,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20204,11 +20204,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20262,11 +20262,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20320,11 +20320,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20378,11 +20378,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20436,11 +20436,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20494,11 +20494,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20552,11 +20552,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20610,11 +20610,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20668,11 +20668,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20726,11 +20726,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20774,11 +20774,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20822,11 +20822,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20870,11 +20870,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20918,11 +20918,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -20966,11 +20966,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21014,11 +21014,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21062,11 +21062,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21110,11 +21110,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21158,11 +21158,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21206,11 +21206,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21254,11 +21254,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21302,11 +21302,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21350,11 +21350,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21398,11 +21398,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21446,11 +21446,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21504,11 +21504,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21562,11 +21562,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21620,11 +21620,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21678,11 +21678,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21736,11 +21736,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21784,11 +21784,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21832,11 +21832,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21880,11 +21880,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21928,11 +21928,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -21976,11 +21976,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22034,11 +22034,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22092,11 +22092,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22150,11 +22150,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22208,11 +22208,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22266,11 +22266,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22314,11 +22314,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22362,11 +22362,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22410,11 +22410,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22458,11 +22458,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22506,11 +22506,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22554,11 +22554,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22602,11 +22602,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22650,11 +22650,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22698,11 +22698,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22746,11 +22746,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22804,11 +22804,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22862,11 +22862,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22920,11 +22920,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -22978,11 +22978,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23036,11 +23036,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23094,11 +23094,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23152,11 +23152,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23210,11 +23210,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23268,11 +23268,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23326,11 +23326,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23374,11 +23374,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23422,11 +23422,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23470,11 +23470,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23518,11 +23518,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23566,11 +23566,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23614,11 +23614,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23662,11 +23662,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23710,11 +23710,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23758,11 +23758,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23806,11 +23806,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23864,11 +23864,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23922,11 +23922,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -23980,11 +23980,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24038,11 +24038,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24096,11 +24096,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24154,11 +24154,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24212,11 +24212,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24270,11 +24270,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24328,11 +24328,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24386,11 +24386,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24434,11 +24434,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24482,11 +24482,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24530,11 +24530,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24578,11 +24578,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "5 min read",
     "author": {
-      "name": "Zainab Musa",
-      "role": "West Africa E-commerce Analyst",
-      "avatarInitials": "ZM",
-      "avatarBg": "hsl(28, 90%, 94%)",
-      "avatarColor": "hsl(28, 90%, 35%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-05-26",
     "updatedAt": "2026-05-28",
@@ -24626,11 +24626,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Chidera Okafor",
-      "role": "Southeast Nigeria Commerce Lead",
-      "avatarInitials": "CO",
-      "avatarBg": "hsl(95, 55%, 94%)",
-      "avatarColor": "hsl(95, 55%, 30%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -24682,11 +24682,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -24738,11 +24738,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Tobenna Eze",
-      "role": "South-South Growth Lead",
-      "avatarInitials": "TE",
-      "avatarBg": "hsl(255, 70%, 94%)",
-      "avatarColor": "hsl(255, 70%, 45%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -24794,11 +24794,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Chidera Okafor",
-      "role": "Southeast Nigeria Commerce Lead",
-      "avatarInitials": "CO",
-      "avatarBg": "hsl(95, 55%, 94%)",
-      "avatarColor": "hsl(95, 55%, 30%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -24850,11 +24850,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -24906,11 +24906,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Tobenna Eze",
-      "role": "South-South Growth Lead",
-      "avatarInitials": "TE",
-      "avatarBg": "hsl(255, 70%, 94%)",
-      "avatarColor": "hsl(255, 70%, 45%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -24962,11 +24962,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Ibrahim Sule",
-      "role": "North Central Growth Analyst",
-      "avatarInitials": "IS",
-      "avatarBg": "hsl(48, 85%, 94%)",
-      "avatarColor": "hsl(48, 85%, 32%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25018,11 +25018,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25074,11 +25074,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Tobenna Eze",
-      "role": "South-South Growth Lead",
-      "avatarInitials": "TE",
-      "avatarBg": "hsl(255, 70%, 94%)",
-      "avatarColor": "hsl(255, 70%, 45%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25130,11 +25130,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Tobenna Eze",
-      "role": "South-South Growth Lead",
-      "avatarInitials": "TE",
-      "avatarBg": "hsl(255, 70%, 94%)",
-      "avatarColor": "hsl(255, 70%, 45%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25186,11 +25186,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Chidera Okafor",
-      "role": "Southeast Nigeria Commerce Lead",
-      "avatarInitials": "CO",
-      "avatarBg": "hsl(95, 55%, 94%)",
-      "avatarColor": "hsl(95, 55%, 30%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25242,11 +25242,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Tobenna Eze",
-      "role": "South-South Growth Lead",
-      "avatarInitials": "TE",
-      "avatarBg": "hsl(255, 70%, 94%)",
-      "avatarColor": "hsl(255, 70%, 45%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25298,11 +25298,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Yetunde Adisa",
-      "role": "Southwest Nigeria Merchant Success Lead",
-      "avatarInitials": "YA",
-      "avatarBg": "hsl(15, 85%, 94%)",
-      "avatarColor": "hsl(15, 85%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25354,11 +25354,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Chidera Okafor",
-      "role": "Southeast Nigeria Commerce Lead",
-      "avatarInitials": "CO",
-      "avatarBg": "hsl(95, 55%, 94%)",
-      "avatarColor": "hsl(95, 55%, 30%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25410,11 +25410,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Ibrahim Sule",
-      "role": "North Central Growth Analyst",
-      "avatarInitials": "IS",
-      "avatarBg": "hsl(48, 85%, 94%)",
-      "avatarColor": "hsl(48, 85%, 32%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25466,11 +25466,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25522,11 +25522,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Chidera Okafor",
-      "role": "Southeast Nigeria Commerce Lead",
-      "avatarInitials": "CO",
-      "avatarBg": "hsl(95, 55%, 94%)",
-      "avatarColor": "hsl(95, 55%, 30%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25578,11 +25578,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25634,11 +25634,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25690,11 +25690,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25746,11 +25746,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25802,11 +25802,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25858,11 +25858,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Ibrahim Sule",
-      "role": "North Central Growth Analyst",
-      "avatarInitials": "IS",
-      "avatarBg": "hsl(48, 85%, 94%)",
-      "avatarColor": "hsl(48, 85%, 32%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25914,11 +25914,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Ibrahim Sule",
-      "role": "North Central Growth Analyst",
-      "avatarInitials": "IS",
-      "avatarBg": "hsl(48, 85%, 94%)",
-      "avatarColor": "hsl(48, 85%, 32%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -25970,11 +25970,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Yetunde Adisa",
-      "role": "Southwest Nigeria Merchant Success Lead",
-      "avatarInitials": "YA",
-      "avatarBg": "hsl(15, 85%, 94%)",
-      "avatarColor": "hsl(15, 85%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26026,11 +26026,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Ibrahim Sule",
-      "role": "North Central Growth Analyst",
-      "avatarInitials": "IS",
-      "avatarBg": "hsl(48, 85%, 94%)",
-      "avatarColor": "hsl(48, 85%, 32%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26082,11 +26082,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Ibrahim Sule",
-      "role": "North Central Growth Analyst",
-      "avatarInitials": "IS",
-      "avatarBg": "hsl(48, 85%, 94%)",
-      "avatarColor": "hsl(48, 85%, 32%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26138,11 +26138,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Yetunde Adisa",
-      "role": "Southwest Nigeria Merchant Success Lead",
-      "avatarInitials": "YA",
-      "avatarBg": "hsl(15, 85%, 94%)",
-      "avatarColor": "hsl(15, 85%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26194,11 +26194,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Yetunde Adisa",
-      "role": "Southwest Nigeria Merchant Success Lead",
-      "avatarInitials": "YA",
-      "avatarBg": "hsl(15, 85%, 94%)",
-      "avatarColor": "hsl(15, 85%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26250,11 +26250,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Yetunde Adisa",
-      "role": "Southwest Nigeria Merchant Success Lead",
-      "avatarInitials": "YA",
-      "avatarBg": "hsl(15, 85%, 94%)",
-      "avatarColor": "hsl(15, 85%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26306,11 +26306,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Yetunde Adisa",
-      "role": "Southwest Nigeria Merchant Success Lead",
-      "avatarInitials": "YA",
-      "avatarBg": "hsl(15, 85%, 94%)",
-      "avatarColor": "hsl(15, 85%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26362,11 +26362,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Ibrahim Sule",
-      "role": "North Central Growth Analyst",
-      "avatarInitials": "IS",
-      "avatarBg": "hsl(48, 85%, 94%)",
-      "avatarColor": "hsl(48, 85%, 32%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26418,11 +26418,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Tobenna Eze",
-      "role": "South-South Growth Lead",
-      "avatarInitials": "TE",
-      "avatarBg": "hsl(255, 70%, 94%)",
-      "avatarColor": "hsl(255, 70%, 45%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26474,11 +26474,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26530,11 +26530,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26586,11 +26586,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",
@@ -26642,11 +26642,11 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     "country": "Nigeria",
     "readTime": "7 min read",
     "author": {
-      "name": "Fatima Abdullahi",
-      "role": "Northern Nigeria Retail Strategist",
-      "avatarInitials": "FA",
-      "avatarBg": "hsl(4, 80%, 94%)",
-      "avatarColor": "hsl(4, 80%, 40%)"
+      "name": "Nina",
+      "role": "AI Assistant",
+      "avatarInitials": "N",
+      "avatarBg": "hsl(142, 70%, 94%)",
+      "avatarColor": "hsl(142, 70%, 35%)"
     },
     "publishedAt": "2026-06-15",
     "updatedAt": "2026-07-05",

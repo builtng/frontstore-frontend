@@ -6,13 +6,14 @@ import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { storePath } from "../../utils/storePath";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
-import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon } from "../../components/SocialIcons";
+import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon, LinkedInIcon } from "../../components/SocialIcons";
 
 import { Menu, X, BadgeCheck, MapPin, Star, Clock, Share2, Store as StoreIcon, Search, ShoppingBag, Calendar, ChevronRight, ChevronDown, ChevronLeft, Megaphone, Truck, Sparkles, ShieldCheck, Navigation, Lock, Plus, Minus, Copy, Instagram, Facebook, Award, Check, Quote, Phone, Mail, RotateCcw, Package, Bell, BedDouble, Bath, Ruler, SlidersHorizontal, Building2, FileText, CookingPot, MessageCircle, UtensilsCrossed, Receipt } from "lucide-react";
 
 
 // --- Types & Interfaces ---
 interface StoreLink {
+  store_label?: string | null;
   id: string;
   title: string;
   url: string;
@@ -40,6 +41,8 @@ interface StoreType {
   instagram_handle: string | null;
   tiktok_handle: string | null;
   twitter_handle?: string | null;
+  facebook_handle?: string | null;
+  linkedin_handle?: string | null;
   is_verified?: boolean | number;
   custom_links?: StoreLink[] | null;
   primary_color?: string | null;
@@ -173,20 +176,6 @@ const MOCK_STORE = {
 const MOCK_SERVICES: any[] = [];
 const MOCK_PRODUCTS: any[] = [];
 const MOCK_REVIEWS: any[] = [];
-const MOCK_PRODUCT_FAQS = [
-  ["How do I get the guide after I pay?", "It is a digital download. As soon as your payment clears, the PDF is sent to you on WhatsApp and by email, so you can read it on any device."],
-  ["Can I get a refund on a guide?", "Because guides are digital and delivered instantly, they cannot be refunded once sent. If a download fails or you receive the wrong file, I will fix it straight away."],
-  ["Are the guides up to date?", "Yes. Each guide shows the year it was last updated, and the area reports are refreshed as the market moves. You get the current version at the time of purchase."],
-  ["Can I share a guide with family?", "The guide is licensed for your own use. You are welcome to read it with the people buying or renting with you, but please do not resell or repost it."],
-  ["How do I pay?", "Pay securely through Frontstore, or by bank transfer where offered. Your receipt and download arrive on WhatsApp."],
-];
-const MOCK_SERVICE_FAQS = [
-  ["How does the viewing fee work?", "The inspection fee covers a guided viewing and my time. Where you go on to buy or rent through me, it is credited back against what you owe, so a serious buyer never really pays it twice."],
-  ["Can I reschedule or cancel?", "Yes, up to 24 hours before for a full refund of the fee. Inside 24 hours the fee is held against a rebooked viewing."],
-  ["What if I am running late?", "Message me on WhatsApp. I hold the slot for 15 minutes where I can, but some sellers and tenants keep tight windows."],
-  ["Do you cover areas outside Lekki and Ikoyi?", "Lekki and Ikoyi are home, but I take on Victoria Island and Ikate by arrangement. Ask before you book and I will tell you honestly if I can help."],
-  ["How do I pay?", "Pay securely through Frontstore, or by bank transfer where offered. Your receipt always arrives on WhatsApp."],
-];
 const MOCK_FAQ_GROUPS: any[] = [];
 const MOCK_FAQS_PREVIEW = MOCK_FAQ_GROUPS.map((g: any) => g.items[0]);
 const MOCK_TERMS: any[] = [
@@ -214,7 +203,6 @@ const MOCK_NAV = [
   ["about", "About"], ["faq", "FAQ"], ["contact", "Contact"],
 ];
 const MOCK_LEGAL = [["returns", "Refunds"], ["terms", "Terms"], ["privacy", "Privacy"]];
-const MOCK_CATS = ["Viewings", "Consultations", "Valuations", "Buying", "Renting", "Investing"];
 const MOCK_FEATURED: any[] = [];
 const MOCK_AUTHOR = {
   name: "",
@@ -428,10 +416,7 @@ export default function AgentStorefront({
     return MOCK_PRODUCTS;
   }, [products, categories]);
 
-  const CATS = useMemo(() => {
-    if (categories.length > 0) return categories.map((c: any) => c.name);
-    return MOCK_CATS;
-  }, [categories]);
+  const CATS = useMemo(() => categories.map((c: any) => c.name), [categories]);
 
   const displayReviews = useMemo<any[]>(() => {
     if (reviews.length > 0) {
@@ -519,7 +504,9 @@ export default function AgentStorefront({
     socials: {
       instagram: store.instagram_handle || (MOCK_STORE.socials as any)?.instagram || "",
       tiktok: store.tiktok_handle || (MOCK_STORE.socials as any)?.tiktok || "",
-      twitter: store.twitter_handle || (MOCK_STORE.socials as any)?.twitter || ""
+      twitter: store.twitter_handle || (MOCK_STORE.socials as any)?.twitter || "",
+      facebook: store.facebook_handle || (MOCK_STORE.socials as any)?.facebook || "",
+      linkedin: store.linkedin_handle || (MOCK_STORE.socials as any)?.linkedin || ""
     }
   };
 
@@ -563,6 +550,7 @@ export default function AgentStorefront({
     if (typeof wh === "object") return Object.keys(wh).length > 0;
     return false;
   }, [store?.working_hours]);
+  const openToday = hasHours && (HOURS[todayIdx][1] || "").toLowerCase() !== "closed";
   const hoursForDate = (d: Date) => HOURS[(d.getDay() + 6) % 7][1];
 
   const bagCount = bagItems.reduce((acc, item) => acc + item.qty, 0);
@@ -1230,7 +1218,15 @@ export default function AgentStorefront({
   const faqFiltered = FAQ_GROUPS
     .map((g: any) => ({ ...g, items: faqQ ? g.items.filter(([q, a]: any) => (q + " " + a).toLowerCase().includes(faqQ)) : g.items }))
     .filter((g) => g.items.length > 0);
-  const REV_DIST = [[5, 80], [4, 14], [3, 3], [2, 2], [1, 1]];
+  const REV_DIST = useMemo(() => {
+    const counts = [0, 0, 0, 0, 0];
+    displayReviews.forEach((r: any) => {
+      const n = Math.round(r.rating);
+      if (n >= 1 && n <= 5) counts[5 - n]++;
+    });
+    const total = displayReviews.length;
+    return [5, 4, 3, 2, 1].map((star, i) => [star, total > 0 ? Math.round((counts[i] / total) * 100) : 0]);
+  }, [displayReviews]);
   const revFiltered = displayReviews
     .filter((rv) => (revStar === 0 || rv.r === revStar) && (!revPhotos || rv.photos > 0))
     .sort((a, b) => (revSort === "high" ? b.r - a.r : revSort === "low" ? a.r - b.r : 0));
@@ -1250,7 +1246,7 @@ export default function AgentStorefront({
   );
   const reviewsBody = () => (<>
     <p className="svc-intro">Every review here comes from a verified order on Frontstore. The agent can respond, but cannot remove genuine reviews.</p>
-    <RatingSummary rating={DUMMY_STORE.rating} reviews={DUMMY_STORE.reviews} />
+    <RatingSummary rating={DUMMY_STORE.rating} reviews={DUMMY_STORE.reviews} dist={REV_DIST} />
     <button className="rev-leave rev-leave-m" onClick={() => setReviewOpen(true)}><Star size={15} /> Leave a review</button>
     <div className="rev-trust rev-trust-m"><ShieldCheck size={14} /> Reviews are from verified orders. The agent typically responds in {DUMMY_STORE.reply}.</div>
     {revPhotoTiles.length > 0 && (
@@ -1387,6 +1383,23 @@ export default function AgentStorefront({
       <div className="ab-socials">
         {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {DUMMY_STORE.socials.instagram}</button>}
         {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {DUMMY_STORE.socials.tiktok}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
+        {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')}><TwitterXIcon size={16} /> {DUMMY_STORE.socials.twitter}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
+        {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')}><TwitterXIcon size={16} /> {DUMMY_STORE.socials.twitter}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
+        {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')}><TwitterXIcon size={16} /> {DUMMY_STORE.socials.twitter}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
+        {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')}><TwitterXIcon size={16} /> {DUMMY_STORE.socials.twitter}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
+        {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')}><TwitterXIcon size={16} /> {DUMMY_STORE.socials.twitter}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
         <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={16} /> WhatsApp</button>
       </div>
     </div>
@@ -1435,7 +1448,7 @@ export default function AgentStorefront({
       <button className="ct-wa" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={18} /> Chat on WhatsApp</button>
       <div className="ct-alt">
         {DUMMY_STORE.email && <button onClick={() => window.location.href = `mailto:${DUMMY_STORE.email}`}><Mail size={15} /> {DUMMY_STORE.email}</button>}
-        {DUMMY_STORE.phone && <button onClick={() => window.location.href = `tel:${DUMMY_STORE.phone}`}><Phone size={15} /> {DUMMY_STORE.phone}</button>}
+
       </div>
     </div>
   );
@@ -1488,6 +1501,8 @@ export default function AgentStorefront({
           <div className="ab-follow-icons">
             {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')} aria-label="Instagram"><Instagram size={17} /></button>}
             {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')} aria-label="TikTok"><Tiktok size={17} /></button>}
+            {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')} aria-label="Facebook"><FacebookIcon size={17} /></button>}
+            {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')} aria-label="LinkedIn"><LinkedInIcon size={17} /></button>}
             <button onClick={() => handleWa("Hello! I'm interested in your services.")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
           </div>
         </div>
@@ -1505,17 +1520,33 @@ export default function AgentStorefront({
       <div className="rf-section">
         <h3 className="rf-section-head"><Calendar size={17} /> Appointments</h3>
         <ul className="rf-list">
-          <li><Check size={15} /> Reschedule or cancel up to 24 hours before your appointment for a full refund of your deposit.</li>
-          <li><Check size={15} /> Within 24 hours of your appointment, the deposit is held against the booking and is not refunded.</li>
-          <li><Check size={15} /> Need a different day? You can reschedule once at no cost up to 24 hours before, subject to availability.</li>
+          {store.policy_bookings ? (
+            store.policy_bookings.split('\n').filter(Boolean).map((line: string, idx: number) => (
+              <li key={idx}><Check size={15} /> {line}</li>
+            ))
+          ) : (
+            <>
+              <li><Check size={15} /> Reschedule or cancel up to 24 hours before your appointment for a full refund of your deposit.</li>
+              <li><Check size={15} /> Within 24 hours of your appointment, the deposit is held against the booking and is not refunded.</li>
+              <li><Check size={15} /> Need a different day? You can reschedule once at no cost up to 24 hours before, subject to availability.</li>
+            </>
+          )}
         </ul>
       </div>
       <div className="rf-section">
         <h3 className="rf-section-head"><ShoppingBag size={17} /> Guides</h3>
         <ul className="rf-list">
-          <li><Check size={15} /> Guides are digital and sent the moment you pay, so there is nothing to post back.</li>
-          <li><Check size={15} /> As digital downloads, guides cannot be returned once sent, unless the file is faulty or wrong.</li>
-          <li><Check size={15} /> A failed download or the wrong file is put right at no cost, just message the agent.</li>
+          {store.policy_products ? (
+            store.policy_products.split('\n').filter(Boolean).map((line: string, idx: number) => (
+              <li key={idx}><Check size={15} /> {line}</li>
+            ))
+          ) : (
+            <>
+              <li><Check size={15} /> Guides are digital and sent the moment you pay, so there is nothing to post back.</li>
+              <li><Check size={15} /> As digital downloads, guides cannot be returned once sent, unless the file is faulty or wrong.</li>
+              <li><Check size={15} /> A failed download or the wrong file is put right at no cost, just message the agent.</li>
+            </>
+          )}
         </ul>
       </div>
       <div className="rf-section">
@@ -1588,7 +1619,6 @@ export default function AgentStorefront({
     <div className="tm-body-m">
       <p className="tm-intro">By booking or buying from {DUMMY_STORE.name} you agree to the terms below, which sit alongside the Frontstore platform terms and buyer protection.</p>
       {policySections(TERMS)}
-      <div className="tm-meta">Last updated 1 June 2026</div>
       {policyRelated([["Refunds", "returns"], ["FAQ", "faq"]])}
     </div>
   );
@@ -1596,7 +1626,6 @@ export default function AgentStorefront({
     <div className="tm-body-m">
       <p className="tm-intro">This notice explains what {DUMMY_STORE.name} does with your information when you book, buy or get in touch.</p>
       {policySections(PRIVACY)}
-      <div className="tm-meta">Last updated 1 June 2026</div>
       {policyRelated([["Terms", "terms"], ["Refunds", "returns"]])}
     </div>
   );
@@ -1664,6 +1693,23 @@ export default function AgentStorefront({
       <div className="ab-socials">
         {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {DUMMY_STORE.socials.instagram}</button>}
         {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {DUMMY_STORE.socials.tiktok}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
+        {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')}><TwitterXIcon size={16} /> {DUMMY_STORE.socials.twitter}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
+        {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')}><TwitterXIcon size={16} /> {DUMMY_STORE.socials.twitter}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
+        {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')}><TwitterXIcon size={16} /> {DUMMY_STORE.socials.twitter}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
+        {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')}><TwitterXIcon size={16} /> {DUMMY_STORE.socials.twitter}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
+        {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')}><TwitterXIcon size={16} /> {DUMMY_STORE.socials.twitter}</button>}
+        {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')}><FacebookIcon size={16} /> {DUMMY_STORE.socials.facebook}</button>}
+        {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')}><LinkedInIcon size={16} /> {DUMMY_STORE.socials.linkedin}</button>}
       </div>
     </div>
   );
@@ -1889,7 +1935,7 @@ export default function AgentStorefront({
     url: `https://frontstore.ng/${DUMMY_STORE.slug}`,
     image: `https://frontstore.ng/${DUMMY_STORE.slug}/cover.jpg`,
     priceRange: "$$",
-    address: { "@type": "PostalAddress", streetAddress: DUMMY_STORE.address, addressLocality: "Lekki", addressRegion: "Lagos", addressCountry: "NG" },
+    address: { "@type": "PostalAddress", streetAddress: DUMMY_STORE.address, addressLocality: DUMMY_STORE.location || undefined, addressRegion: undefined, addressCountry: "NG" },
     telephone: DUMMY_STORE.phone,
     email: DUMMY_STORE.email,
     sameAs: [`https://instagram.com/${igH}`, `https://tiktok.com/@${tkH}`],
@@ -1935,7 +1981,7 @@ export default function AgentStorefront({
                 <h1 className="ps-name">{DUMMY_STORE.name} {store.is_verified ? <BadgeCheck size={20} className="ps-verif" /> : null}</h1>
                 <p className="ps-meta">{DUMMY_STORE.category} <span className="ps-dot">•</span> <MapPin size={13} /> {DUMMY_STORE.location}</p>
                 <div className="ps-id-actions-row">
-                  <button className="ps-url" onClick={copyUrl}>frontstore.ng/{username} <Copy size={13} /></button>
+                  <button className="ps-url" onClick={copyUrl}><span className="ps-url-text">frontstore.ng/{username}</span> <Copy size={13} /></button>
                   <button className="ps-notify" onClick={() => setNotifyOpen(true)}><Bell size={14} /> Get notified</button>
                 </div>
                 <div className="ps-stats">
@@ -1945,7 +1991,7 @@ export default function AgentStorefront({
                 </div>
                 <p className="ps-bio">{DUMMY_STORE.bio}</p>
                 <div className="ps-statusline">
-                  <span className="ps-open"><span className="ps-pulse" /> Open now</span>
+                  {hasHours && <span className={`ps-open${openToday ? "" : " closed"}`}><span className="ps-pulse" /> {openToday ? "Open now" : "Closed today"}</span>}
                   <span className="ps-secure"><ShieldCheck size={13} /> Secured by Frontstore</span>
                 </div>
               </section>
@@ -1957,7 +2003,7 @@ export default function AgentStorefront({
               <button className="ps-seeall" onClick={() => go("portfolio")}>See all {homeListings.length} listings <ChevronRight size={16} /></button>
 
               <div className="ps-searchbar" onClick={() => setSearch(true)}><Search size={17} /> <span>Search services and guides</span></div>
-              <div className="ps-chips">{CATS.map((c: any) => <button key={c} onClick={() => setSearch(true)}>{c}</button>)}</div>
+              {CATS.length > 0 && <div className="ps-chips">{CATS.map((c: any) => <button key={c} onClick={() => setSearch(true)}>{c}</button>)}</div>}
 
               <SectionHead title="Services" action={`See all ${SERVICES.length}`} onAction={() => go("services")} />
               {servicesGrid("ps-grid", homeServices.slice(0, 4))}
@@ -1972,7 +2018,7 @@ export default function AgentStorefront({
         )}
 
               <SectionHead title="Reviews" />
-              <RatingSummary rating={DUMMY_STORE.rating} reviews={DUMMY_STORE.reviews} />
+              <RatingSummary rating={DUMMY_STORE.rating} reviews={DUMMY_STORE.reviews} dist={REV_DIST} />
               <div className="ps-reviews-row">{displayReviews.slice(0, 3).map((rv: any, i: number) => <ReviewCard key={i} rv={rv} />)}</div>
               {(store.storefront_sections || []).includes("reviews") && (
           <button className="ps-seeall" onClick={() => go("reviews")}>See all reviews <ChevronRight size={16} /></button>
@@ -2100,7 +2146,7 @@ export default function AgentStorefront({
                   <div className="pd-sec-head"><h2>Reviews</h2>{(store.storefront_sections || []).includes("reviews") && (
           <button onClick={() => go("reviews")}>See all</button>
         )}</div>
-                  <RatingSummary rating={DUMMY_STORE.rating} reviews={DUMMY_STORE.reviews} />
+                  <RatingSummary rating={DUMMY_STORE.rating} reviews={DUMMY_STORE.reviews} dist={REV_DIST} />
                   <div className="pd-grid reviews">{displayReviews.slice(0, 3).map((rv: any, i: number) => <ReviewCard key={i} rv={rv} full />)}</div>
                 </div>
               </div>
@@ -2157,8 +2203,7 @@ export default function AgentStorefront({
                           </div>
                         </div>
                         <div className="svc-book-card">
-                          <span className="svc-open"><span className="ps-pulse" /> Open now</span>
-                          <p className="svc-next">Next availability <b>Today, 3:00pm</b></p>
+                          {hasHours && <span className={`svc-open${openToday ? "" : " closed"}`}><span className="ps-pulse" /> {openToday ? "Open now" : "Closed today"}</span>}
                           <button className="svc-book-cta" onClick={() => openBooking()}><Calendar size={16} /> Book a slot</button>
                           <button className="svc-msg" onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={15} /> Message on WhatsApp</button>
                         </div>
@@ -2179,8 +2224,6 @@ export default function AgentStorefront({
                       </div>
                     </div>
 
-                    <div className="pd-sec-head"><h2>Booking questions</h2></div>
-                    <Accordion items={MOCK_SERVICE_FAQS} open={svcFaq} setOpen={setSvcFaq} />
                   </div>
                 )}
                 {page === "products" && (
@@ -2252,8 +2295,6 @@ export default function AgentStorefront({
                       </div>
                     </div>
 
-                    <div className="pd-sec-head"><h2>Download and refunds</h2></div>
-                    <Accordion items={MOCK_PRODUCT_FAQS} open={prodFaq} setOpen={setProdFaq} />
                   </div>
                 )}
                 {page === "reviews" && (
@@ -2266,7 +2307,7 @@ export default function AgentStorefront({
                           <div className="rev-score">
                             <b>{DUMMY_STORE.rating}</b>
                             <div className="rev-score-stars">{Array.from({ length: 5 }).map((_: any, i: number) => <Star key={i} size={14} className="f" />)}</div>
-                            <span>Excellent</span><i>{DUMMY_STORE.reviews} verified reviews</i>
+                            <span>{DUMMY_STORE.rating >= 4.5 ? "Excellent" : DUMMY_STORE.rating >= 3.5 ? "Very good" : DUMMY_STORE.rating >= 2.5 ? "Good" : DUMMY_STORE.rating >= 1.5 ? "Fair" : "Poor"}</span><i>{DUMMY_STORE.reviews} verified reviews</i>
                           </div>
                           <div className="rev-bars">
                             {REV_DIST.map(([n, w]: any) => (
@@ -2484,6 +2525,23 @@ export default function AgentStorefront({
                         <div className="ab-follow-icons">
                           {DUMMY_STORE.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_STORE.socials.instagram.replace(/^@/, '')}`, '_blank')} aria-label="Instagram"><Instagram size={17} /></button>}
                           {DUMMY_STORE.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_STORE.socials.tiktok.replace(/^@/, '')}`, '_blank')} aria-label="TikTok"><Tiktok size={17} /></button>}
+                          {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')} aria-label="Facebook"><FacebookIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')} aria-label="LinkedIn"><LinkedInIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')} aria-label="Twitter"><TwitterXIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')} aria-label="Facebook"><FacebookIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')} aria-label="LinkedIn"><LinkedInIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')} aria-label="Twitter"><TwitterXIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')} aria-label="Facebook"><FacebookIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')} aria-label="LinkedIn"><LinkedInIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')} aria-label="Twitter"><TwitterXIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')} aria-label="Facebook"><FacebookIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')} aria-label="LinkedIn"><LinkedInIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')} aria-label="Twitter"><TwitterXIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')} aria-label="Facebook"><FacebookIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')} aria-label="LinkedIn"><LinkedInIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.twitter && <button onClick={() => window.open(`https://x.com/${DUMMY_STORE.socials.twitter.replace(/^@/, '')}`, '_blank')} aria-label="Twitter"><TwitterXIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.facebook && <button onClick={() => window.open(`https://facebook.com/${DUMMY_STORE.socials.facebook.replace(/^@/, '')}`, '_blank')} aria-label="Facebook"><FacebookIcon size={17} /></button>}
+                          {DUMMY_STORE.socials?.linkedin && <button onClick={() => window.open(`https://linkedin.com/company/${DUMMY_STORE.socials.linkedin.replace(/^@/, '')}`, '_blank')} aria-label="LinkedIn"><LinkedInIcon size={17} /></button>}
                           <button onClick={() => handleWa("Hello! I'm interested in your services.")} aria-label="WhatsApp"><WhatsApp size={17} /></button>
                         </div>
                       </div>
@@ -2614,7 +2672,6 @@ export default function AgentStorefront({
                         ))}
                       </nav>
                     </div>
-                    <div className="tm-meta">Last updated 1 June 2026</div>
                     {policyRelated([["Terms", "terms"], ["Refunds", "returns"]])}
                   </aside>
                 </div>
@@ -2642,7 +2699,6 @@ export default function AgentStorefront({
                         ))}
                       </nav>
                     </div>
-                    <div className="tm-meta">Last updated 1 June 2026</div>
                     {policyRelated([["Refunds", "returns"], ["FAQ", "faq"]])}
                   </aside>
                 </div>
@@ -2680,8 +2736,9 @@ export default function AgentStorefront({
         <div className="ps-overlay" onClick={() => setSearch(false)}>
           <div className="ps-search-panel" onClick={(e) => e.stopPropagation()}>
             <div className="ps-search-top"><Search size={18} /><input autoFocus placeholder={`Search ${DUMMY_STORE.name}`} /><button onClick={() => setSearch(false)}><X size={20} /></button></div>
-            <p className="ps-search-lbl">Popular</p>
-            <div className="ps-chips">{["Property Valuation", "Buyer Consultation", "Area Report", "First-Time Buyer", "Off-Plan"].map((c: any) => (<button key={c} onClick={() => { setSearch(false); ping("Searching " + c); }}>{c}</button>))}</div>
+            {CATS.length > 0 && <><p className="ps-search-lbl">Popular</p>
+
+            <div className="ps-chips">{CATS.map((c: any) => (<button key={c} onClick={() => { setSearch(false); ping("Searching " + c); }}>{c}</button>))}</div></>}
           </div>
         </div>
       )}
@@ -2906,14 +2963,14 @@ function ReviewCard({ rv, full }: { rv: any, full?: boolean }) {
     <div className="ps-review-stars">{Array.from({ length: 5 }).map((_: any, i: number) => <Star key={i} size={13} className={i < rv.r ? "f" : ""} />)}</div>
     <p>{rv.text}</p></div>);
 }
-function RatingSummary({ rating, reviews }: { rating?: number, reviews?: number } = {}) {
+function RatingSummary({ rating, reviews, dist }: { rating?: number, reviews?: number, dist?: any[] } = {}) {
   if (!rating) return null;
-  const bars = [["5", 80], ["4", 14], ["3", 3], ["2", 2], ["1", 1]];
+  const label = rating >= 4.5 ? "Excellent" : rating >= 3.5 ? "Very good" : rating >= 2.5 ? "Good" : rating >= 1.5 ? "Fair" : "Poor";
   return (<div className="ps-rating">
     <div className="ps-rating-score"><b>{rating}</b>
       <div className="ps-rating-stars">{Array.from({ length: 5 }).map((_: any, i: number) => <Star key={i} size={15} className="f" />)}</div>
-      <span>Excellent</span><i>{reviews || 0} reviews</i></div>
-    <div className="ps-rating-bars">{bars.map(([n, w]: any) => (<div key={n} className="ps-bar"><span>{n}</span><div><i style={{ width: w + "%" }} /></div></div>))}</div></div>);
+      <span>{label}</span><i>{reviews || 0} reviews</i></div>
+    {dist && dist.length > 0 && <div className="ps-rating-bars">{dist.map(([n, w]: any) => (<div key={n} className="ps-bar"><span>{n}</span><div><i style={{ width: w + "%" }} /></div></div>))}</div>}</div>);
 }
 function Accordion({ items, open, setOpen }: { items: any[], open: boolean | number, setOpen: (open: any) => void }) {
   return (<div className="ps-acc">{items.map(([q, a]: any, i: number) => (
@@ -2980,10 +3037,12 @@ const css = `
   color:#fff;font-family:'Fraunces';font-weight:700;font-size:38px;display:grid;place-items:center;border:4px solid var(--bg);margin-top:-44px;position:relative;}
 .ps-name{font-family:'Fraunces';font-weight:700;font-size:24px;letter-spacing:-.02em;line-height:1.15;margin-top:13px;display:flex;align-items:center;gap:6px;}
 .ps-meta{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:4px;}
-.ps-url{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--brand-deep);background:#e8eef6;padding:7px 12px;border-radius:9px;margin-top:11px;}
+.ps-url{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--brand-deep);background:#e8eef6;padding:7px 12px;border-radius:9px;margin-top:11px;max-width:100%;min-width:0}
 .ps-id-actions-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:11px;}
-.ps-id-actions-row .ps-url{margin-top:0;}
-.ps-notify{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#fff;background:var(--brand);padding:8px 13px;border-radius:9px;box-shadow:0 4px 12px rgba(31,78,135,.28);cursor:pointer;}
+.ps-id-actions-row .ps-url{margin-top:0;max-width:100%;min-width:0}
+.ps-url-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ps-url svg{flex-shrink:0}
+.ps-notify{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#fff;background:var(--brand);padding:8px 13px;border-radius:9px;box-shadow:0 4px 12px rgba(31,78,135,.28);cursor:pointer;flex-shrink:0}
 .nt-topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;}
 .nt-topic{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:9px 13px;border-radius:11px;border:1px solid var(--line);background:var(--card);color:#3d4655;cursor:pointer;}
 .nt-topic.on{background:#e8eef6;border-color:var(--brand);color:var(--brand-deep);}
@@ -2994,6 +3053,7 @@ const css = `
 .ps-bio{font-size:14px;line-height:1.55;color:#3d4655;margin-top:15px;}
 .ps-statusline{display:flex;align-items:center;gap:14px;margin-top:13px;flex-wrap:wrap;}
 .ps-open{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ok);}
+.ps-open.closed{color:#9a3b3b;}
 .ps-pulse{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pspulse 1.8s infinite;}
 @keyframes pspulse{0%{box-shadow:0 0 0 0 rgba(31,157,87,.45);}70%{box-shadow:0 0 0 7px rgba(31,157,87,0);}100%{box-shadow:0 0 0 0 rgba(31,157,87,0);}}
 .ps-secure{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
@@ -3536,9 +3596,9 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .ct-map{position:relative;height:148px;border-radius:13px;overflow:hidden;border:1px solid var(--line);background:#f1e7e0;margin-bottom:13px;}
 .ct-map::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,#e4d6cd 0 1.5px,transparent 1.5px 34px),repeating-linear-gradient(0deg,#e4d6cd 0 1.5px,transparent 1.5px 34px);}
 .ct-map::after{content:"";position:absolute;left:-10%;top:58%;width:120%;height:9px;background:#ecdcd2;transform:rotate(-16deg);}
-.ct-map-pin{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-45deg);display:grid;place-items:center;width:34px;height:34px;border-radius:50% 50% 50% 0;background:var(--brand);color:#fff;box-shadow:0 6px 13px rgba(18,48,90,.4);}
+.ct-map-pin{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-45deg);display:grid;place-items:center;width:34px;height:34px;border-radius:50% 50% 50% 0;background:var(--brand);color:#fff;box-shadow:0 6px 13px rgba(18,48,90,.4);z-index:2}
 .ct-map-pin svg{transform:rotate(45deg);}
-.ct-map-label{position:absolute;left:11px;bottom:10px;font-size:11px;font-weight:700;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 10px;border-radius:14px;}
+.ct-map-label{position:absolute;left:11px;bottom:10px;font-size:11px;font-weight:700;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 10px;border-radius:14px;z-index:2}
 .ct-hours{border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-top:14px;}
 .ct-hours-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line);background:#faf6f2;}
 .ct-hours-head b{font-size:13px;font-weight:700;}
@@ -3837,6 +3897,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .svc-radios button.on{background:#e8eef6;color:var(--brand-deep);font-weight:700;}
 .svc-book-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 8px 22px rgba(18,48,90,.06);}
 .svc-open{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ok);}
+.svc-open.closed{color:#9a3b3b;}
 .svc-next{font-size:13px;color:#515b6b;margin:10px 0 14px;}
 .svc-next b{color:var(--ink);}
 .svc-book-cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--brand);color:#fff;font-weight:700;font-size:14.5px;padding:12px;border-radius:12px;box-shadow:0 6px 16px rgba(31,78,135,.3);}

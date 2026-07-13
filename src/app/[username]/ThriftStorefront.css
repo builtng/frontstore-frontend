@@ -4398,6 +4398,9 @@ select.ct-input {
   font-weight: 700;
   color: var(--ok);
 }
+.svc-open.closed {
+  color: #9a3b3b;
+}
 .svc-next {
   font-size: 13px;
   color: #5f4d55;

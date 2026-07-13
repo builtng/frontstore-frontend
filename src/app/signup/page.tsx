@@ -11,6 +11,12 @@ import SearchableSelect from '../../components/SearchableSelect';
 import { RESERVED_SUBDOMAINS } from '../../utils/reservedKeywords';
 import { businessPersonas } from '../../utils/businessPersonas';
 
+// ── Username slug helper ─────────────────────────────────────────────────────
+
+function toUsernameSlug(value: string): string {
+  return value.toLowerCase().replace(/_/g, '-').replace(/[^a-z0-9-]/g, '');
+}
+
 // ── Password strength helper ─────────────────────────────────────────────────
 
 function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
@@ -149,7 +155,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
   useEffect(() => {
     const q = searchParams.get('username');
     if (q) {
-      const cleaned = q.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      const cleaned = toUsernameSlug(q);
       setUsername(cleaned);
       const guessed = cleaned
         .split(/[-_]/)
@@ -213,7 +219,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
         body: JSON.stringify({
           email: email.trim(),
           store_name: storeName.trim(),
-          username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+          username: toUsernameSlug(username),
         })
       });
 
@@ -253,7 +259,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
         body: JSON.stringify({
           email: email.trim(),
           store_name: storeName.trim(),
-          username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+          username: toUsernameSlug(username),
         })
       });
 
@@ -292,7 +298,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
           email: email.trim(),
           otp: otp,
           store_name: storeName.trim(),
-          username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+          username: toUsernameSlug(username),
         })
       });
 
@@ -355,7 +361,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
           setup_token: setupToken,
           name: name.trim(),
           store_name: storeName.trim(),
-          username: username.toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+          username: toUsernameSlug(username),
           business_persona: selectedPersona,
           email: email.trim() || undefined,
           phone_number: normalizedPhone,
@@ -595,11 +601,9 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                     const newName = e.target.value;
                     setStoreName(newName);
                     if (!isUsernameManuallyEdited) {
-                      const slug = newName
-                        .toLowerCase()
-                        .replace(/[^a-z0-9\s_-]/g, '')
-                        .trim()
-                        .replace(/\s+/g, '-');
+                      const slug = toUsernameSlug(
+                        newName.trim().replace(/\s+/g, '-')
+                      );
                       setUsername(slug);
                     }
                   }}
@@ -639,7 +643,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                   onFocus={() => setFocusedInput('store-username')}
                   onBlur={() => setFocusedInput(null)}
                   onChange={(e) => {
-                    const val = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+                    const val = toUsernameSlug(e.target.value);
                     setUsername(val);
                     setIsUsernameManuallyEdited(val !== '');
                   }}
@@ -1068,28 +1072,6 @@ export default function SignupPage() {
             ))}
           </div>
 
-          {/* Testimonial preview */}
-          <div style={{
-            marginTop: 48,
-            padding: 20,
-            background: 'rgba(255, 255, 255, 0.08)',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            borderRadius: 'var(--r-xl)',
-            backdropFilter: 'blur(8px)'
-          }}>
-            <p style={{ fontSize: 14.5, fontStyle: 'italic', opacity: 0.95, lineHeight: 1.6, marginBottom: 12 }}>
-              &quot;Setting up my storefront on {appName} completely changed how I deal with online orders. Now customers see everything I have, choose their sizes, and order automatically on my WhatsApp.&quot;
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255, 255, 255, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12 }}>
-                FA
-              </div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>Funmi Alao</div>
-                <div style={{ fontSize: 11, opacity: 0.7 }}>Fashion Retailer, Lagos</div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

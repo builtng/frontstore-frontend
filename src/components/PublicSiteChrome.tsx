@@ -202,7 +202,7 @@ export function PublicSiteFooter() {
             <a href="/" style={{ display: 'inline-flex' }}>
               <Logo size={22} textColor="var(--primary)" text={appName} />
             </a>
-            <p>Africa's #1 WhatsApp commerce platform — sell, get paid, and manage orders without leaving the chat.</p>
+            <p>The WhatsApp commerce platform for African sellers — sell, get paid, and manage orders without leaving the chat.</p>
           </div>
 
           <div className="site-footer__col">

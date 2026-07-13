@@ -10,16 +10,18 @@ import {
 } from "lucide-react";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
-import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
+import { InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon, TwitterXIcon } from "../../components/SocialIcons";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface StoreData {
+  store_label?: string | null;
   id: string; username: string; store_name: string; store_bio: string | null;
   logo_url: string | null; banner_url?: string | null; currency_code: string;
   whatsapp_phone: string; instagram_handle: string | null; tiktok_handle: string | null;
-  twitter_handle?: string | null; is_verified?: boolean | number;
+  twitter_handle?: string | null; facebook_handle?: string | null; linkedin_handle?: string | null;
+  is_verified?: boolean | number;
   primary_color?: string | null; store_template?: string | null;
   is_pro?: boolean | number; business_persona?: string | null;
   location?: string | null; since?: string | null; address?: string | null;
@@ -1109,8 +1111,7 @@ export default function FashionStorefront({
           </button>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0, border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden', marginBottom: 24 }}>
-          {store.whatsapp_phone && <div style={{ display: 'flex', gap: 12, padding: '13px 14px', alignItems: 'center', borderBottom: '1px solid var(--line)' }}>
-            <WhatsAppIcon size={16} /><span style={{ fontSize: 13, color: 'var(--muted)' }}>{store.whatsapp_phone}</span></div>}
+
           {store.email && <div style={{ display: 'flex', gap: 12, padding: '13px 14px', alignItems: 'center', borderBottom: '1px solid var(--line)' }}>
             <Mail size={16} style={{ color: 'var(--brand)', flexShrink: 0 }} /><span style={{ fontSize: 13, color: 'var(--muted)' }}>{store.email}</span></div>}
           {store.location && <div style={{ display: 'flex', gap: 12, padding: '13px 14px', alignItems: 'center', borderBottom: (store.address ? true : false) ? '1px solid var(--line)' : 'none' }}>
@@ -1222,6 +1223,15 @@ export default function FashionStorefront({
               {store.tiktok_handle && (
                 <button onClick={() => window.open(`https://tiktok.com/${store.tiktok_handle}`, '_blank')}><TikTokIcon size={20} /></button>
               )}
+              {store.facebook_handle && (
+                <button onClick={() => window.open(`https://facebook.com/${store.facebook_handle?.replace('@', '')}`, '_blank')}><FacebookIcon size={20} /></button>
+              )}
+              {store.linkedin_handle && (
+                <button onClick={() => window.open(`https://linkedin.com/company/${store.linkedin_handle?.replace('@', '')}`, '_blank')}><LinkedInIcon size={20} /></button>
+              )}
+              {store.twitter_handle && (
+                <button onClick={() => window.open(`https://x.com/${store.twitter_handle?.replace('@', '')}`, '_blank')}><TwitterXIcon size={20} /></button>
+              )}
             </div>
           </div>
         </>
@@ -1244,6 +1254,15 @@ export default function FashionStorefront({
           )}
           {store.tiktok_handle && (
             <button onClick={() => window.open(`https://tiktok.com/${store.tiktok_handle}`, '_blank')} aria-label="TikTok"><TikTokIcon size={20} /></button>
+          )}
+          {store.facebook_handle && (
+            <button onClick={() => window.open(`https://facebook.com/${store.facebook_handle?.replace('@', '')}`, '_blank')} aria-label="Facebook"><FacebookIcon size={20} /></button>
+          )}
+          {store.linkedin_handle && (
+            <button onClick={() => window.open(`https://linkedin.com/company/${store.linkedin_handle?.replace('@', '')}`, '_blank')} aria-label="LinkedIn"><LinkedInIcon size={20} /></button>
+          )}
+          {store.twitter_handle && (
+            <button onClick={() => window.open(`https://x.com/${store.twitter_handle?.replace('@', '')}`, '_blank')} aria-label="Twitter"><TwitterXIcon size={20} /></button>
           )}
         </div>
         <div className="ps-footer-trust"><ShieldCheck size={13} /> Powered by {appName} · Buyer Protected</div>

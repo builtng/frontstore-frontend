@@ -260,13 +260,6 @@ export default function RootLayout({
                 priceCurrency: 'NGN',
                 description: 'Free to start — no website, no code required',
               },
-              aggregateRating: {
-                '@type': 'AggregateRating',
-                ratingValue: '4.8',
-                reviewCount: '2400',
-                bestRating: '5',
-                worstRating: '1',
-              },
               author: {
                 '@type': 'Organization',
                 name: 'Frontstore Technologies',

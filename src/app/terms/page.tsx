@@ -35,7 +35,7 @@ export default function TermsPage() {
             <span className="badge badge-primary" style={{ padding: '5px 12px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               <Scale size={11} /> Conversational Infrastructure Agreement
             </span>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Last updated: May 29, 2026</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Last updated: July 13, 2026</span>
           </div>
           <h1 className="text-display" style={{ marginBottom: 16 }}>Terms of Service</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 16, maxHeight: 'none', lineHeight: 1.6, maxWidth: 800 }}>
@@ -114,7 +114,7 @@ export default function TermsPage() {
                   <strong>KYC Verification:</strong> To receive payouts, merchants must complete Know Your Customer (KYC) verification by providing valid business registration documents, national identification, or tax credentials as required by local regulators.
                 </li>
                 <li>
-                  <strong>Fees:</strong> Frontstore charges zero platform transaction fees on payments. However, standard third-party payment processor processing fees (e.g., Paystack) may apply to transactions and are non-refundable in the event of customer returns or disputes.
+                  <strong>Fees:</strong> Frontstore charges a flat 1.5% transaction fee on successful sales, the same rate across every plan. Standard third-party payment processor processing fees (e.g., Paystack) may also apply to transactions and are non-refundable in the event of customer returns or disputes.
                 </li>
               </ul>
             </section>

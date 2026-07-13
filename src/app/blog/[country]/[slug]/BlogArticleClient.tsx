@@ -286,7 +286,7 @@ export default function BlogArticleClient({ article, relatedArticles, canonicalU
                 color: 'var(--text-faint)',
                 letterSpacing: '0.01em',
               }}>
-                This article was assisted by AI and reviewed by our editor.
+                Reviewed by our editorial team before publishing.
               </div>
             </article>
 

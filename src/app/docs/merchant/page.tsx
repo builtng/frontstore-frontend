@@ -121,9 +121,9 @@ export default function MerchantDocsPage() {
 
             <div style={{ marginTop: 24, padding: 20, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)' }}>
               <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, color: 'var(--text)' }}>Need Direct Help?</h4>
-              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>Our seller support team is available on WhatsApp.</p>
-              <a href="https://wa.me/2348030000000" target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ width: '100%', padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-sm)' }}>
-                Chat Support
+              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>Our seller support team is available by email.</p>
+              <a href="mailto:support@frontstore.ng" className="btn btn-primary" style={{ width: '100%', padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-sm)' }}>
+                Email Support
               </a>
             </div>
           </aside>
@@ -317,12 +317,12 @@ export default function MerchantDocsPage() {
                 <TrendingUp size={22} style={{ color: 'var(--primary)' }} /> 6. Frontstore Pulse (Analytics & CRM)
               </h2>
               <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                Monitor your sales metrics, view customer ratings, and analyze performance funnels:
+                Monitor your sales metrics, view customer ratings, and analyze performance funnels. Example of what a dashboard looks like once your store has activity:
               </p>
-              
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(4, 1fr)', 
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
                 gap: 12,
                 marginTop: 8
               }} className="stats-4col">

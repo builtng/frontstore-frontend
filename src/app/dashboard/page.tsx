@@ -94,6 +94,8 @@ interface StoreInfo {
   instagram_handle?: string | null;
   tiktok_handle?: string | null;
   twitter_handle?: string | null;
+  facebook_handle?: string | null;
+  linkedin_handle?: string | null;
   facebook_pixel_id?: string | null;
   google_tag_manager_id?: string | null;
   is_active?: boolean;
@@ -130,6 +132,7 @@ interface StoreInfo {
   is_pro?: boolean;
   catalog_label?: string | null;
   category_label?: string | null;
+  store_label?: string | null;
   template_highlight_label?: string | null;
   product_section_eyebrow?: string | null;
   product_section_title?: string | null;
@@ -238,6 +241,7 @@ interface DashboardStats {
     total_views: number;
     whatsapp_redirects: number;
     conversion_rate: number;
+    daily_breakdown?: Array<{ day: string; views: number; wa: number }>;
   };
 }
 
@@ -397,7 +401,8 @@ export default function DashboardPage() {
     value
       .toLowerCase()
       .replace(/^@+/, '')
-      .replace(/[^a-z0-9_-]/g, '')
+      .replace(/_/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
       .slice(0, 40)
   );
 
@@ -696,6 +701,11 @@ export default function DashboardPage() {
 
   const [isSelfieModalOpen, setIsSelfieModalOpen] = useState(false);
   const [isSelfieLivenessVerifying, setIsSelfieLivenessVerifying] = useState(false);
+  const [selfieCameraError, setSelfieCameraError] = useState<string | null>(null);
+  const [selfieCapturedPreview, setSelfieCapturedPreview] = useState<string | null>(null);
+  const selfieVideoRef = useRef<HTMLVideoElement | null>(null);
+  const selfieStreamRef = useRef<MediaStream | null>(null);
+  const selfieBlobRef = useRef<Blob | null>(null);
   const [isBusinessModalOpen, setIsBusinessModalOpen] = useState(false);
   const [businessCACName, setBusinessCACName] = useState('');
   const [businessCACNumber, setBusinessCACNumber] = useState('');
@@ -797,17 +807,74 @@ export default function DashboardPage() {
     }
   };
 
+  const startSelfieCamera = async () => {
+    setSelfieCameraError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      selfieStreamRef.current = stream;
+      if (selfieVideoRef.current) {
+        selfieVideoRef.current.srcObject = stream;
+        await selfieVideoRef.current.play();
+      }
+    } catch (err: any) {
+      setSelfieCameraError('Camera access denied. Please allow camera permission to verify your selfie.');
+    }
+  };
+
+  const stopSelfieCamera = () => {
+    selfieStreamRef.current?.getTracks().forEach(track => track.stop());
+    selfieStreamRef.current = null;
+  };
+
+  const captureSelfiePhoto = () => {
+    const video = selfieVideoRef.current;
+    if (!video || !video.videoWidth) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      selfieBlobRef.current = blob;
+      setSelfieCapturedPreview(URL.createObjectURL(blob));
+      stopSelfieCamera();
+    }, 'image/jpeg', 0.9);
+  };
+
+  const retakeSelfiePhoto = () => {
+    selfieBlobRef.current = null;
+    setSelfieCapturedPreview(null);
+    startSelfieCamera();
+  };
+
+  const closeSelfieModal = () => {
+    stopSelfieCamera();
+    setSelfieCapturedPreview(null);
+    selfieBlobRef.current = null;
+    setSelfieCameraError(null);
+    setIsSelfieModalOpen(false);
+  };
+
   const handleSelfieSubmit = async () => {
+    if (!selfieBlobRef.current) {
+      toast.warning('Capture a selfie photo first.');
+      return;
+    }
     try {
       setIsSelfieLivenessVerifying(true);
+      const formData = new FormData();
+      formData.append('selfie', selfieBlobRef.current, 'selfie.jpg');
       const res = await fetch(`${apiUrl}/v1/store/verify-selfie`, {
         method: 'POST',
-        headers: getAuthHeaders()
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+        body: formData
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'Verification failed.');
       toast.success('Selfie & liveness check completed successfully!');
-      setIsSelfieModalOpen(false);
+      closeSelfieModal();
       window.location.reload();
     } catch (err: any) {
       toast.error(err.message || 'Selfie verification failed.');
@@ -815,6 +882,15 @@ export default function DashboardPage() {
       setIsSelfieLivenessVerifying(false);
     }
   };
+
+  useEffect(() => {
+    if (isSelfieModalOpen) {
+      startSelfieCamera();
+    }
+    return () => {
+      stopSelfieCamera();
+    };
+  }, [isSelfieModalOpen]);
 
   const handleBusinessSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1069,6 +1145,8 @@ export default function DashboardPage() {
   const [setInstagram, setSetInstagram] = useState('');
   const [setTiktok, setSetTiktok] = useState('');
   const [setTwitter, setSetTwitter] = useState('');
+  const [setFacebook, setSetFacebook] = useState('');
+  const [setLinkedin, setSetLinkedin] = useState('');
   const [setFacebookPixelId, setSetFacebookPixelId] = useState('');
   const [setGoogleTagManagerId, setSetGoogleTagManagerId] = useState('');
   const [setCurrency, setSetCurrency] = useState('NGN');
@@ -1139,6 +1217,7 @@ export default function DashboardPage() {
 
   const [catalogLabel, setCatalogLabel] = useState('product');
   const [categoryLabel, setCategoryLabel] = useState('collection');
+  const [storeLabel, setStoreLabel] = useState('store');
   const [templateHighlightLabel, setTemplateHighlightLabel] = useState('');
   const [productSectionEyebrow, setProductSectionEyebrow] = useState('Catalog');
   const [productSectionTitle, setProductSectionTitle] = useState('');
@@ -1387,6 +1466,8 @@ export default function DashboardPage() {
               setSetInstagram(parsedStore.instagram_handle || '');
               setSetTiktok(parsedStore.tiktok_handle || '');
               setSetTwitter(parsedStore.twitter_handle || '');
+              setSetFacebook(parsedStore.facebook_handle || '');
+              setSetLinkedin(parsedStore.linkedin_handle || '');
               setSetFacebookPixelId(parsedStore.facebook_pixel_id || '');
               setSetGoogleTagManagerId(parsedStore.google_tag_manager_id || '');
               setSetCurrency(parsedStore.currency_code || 'NGN');
@@ -1419,6 +1500,7 @@ export default function DashboardPage() {
               setSelectedTemplate(parsedStore.store_template || 'luxe-market');
               setCatalogLabel(parsedStore.catalog_label || 'product');
               setCategoryLabel(parsedStore.category_label || 'collection');
+              setStoreLabel(parsedStore.store_label || 'store');
               setTemplateHighlightLabel(parsedStore.template_highlight_label || '');
               setProductSectionEyebrow(parsedStore.product_section_eyebrow || 'Catalog');
               setProductSectionTitle(parsedStore.product_section_title || '');
@@ -1803,6 +1885,8 @@ export default function DashboardPage() {
         setSetInstagram(liveStore.instagram_handle || '');
         setSetTiktok(liveStore.tiktok_handle || '');
         setSetTwitter(liveStore.twitter_handle || '');
+        setSetFacebook(liveStore.facebook_handle || '');
+        setSetLinkedin(liveStore.linkedin_handle || '');
         setSetFacebookPixelId(liveStore.facebook_pixel_id || '');
         setSetGoogleTagManagerId(liveStore.google_tag_manager_id || '');
         setSetCurrency(liveStore.currency_code || 'NGN');
@@ -1824,6 +1908,7 @@ export default function DashboardPage() {
         setSelectedPersona(liveStore.business_persona || '');
         setCatalogLabel(liveStore.catalog_label || 'product');
         setCategoryLabel(liveStore.category_label || 'collection');
+        setStoreLabel(liveStore.store_label || 'store');
         setTemplateHighlightLabel(liveStore.template_highlight_label || '');
         setProductSectionEyebrow(liveStore.product_section_eyebrow || 'Catalog');
         setProductSectionTitle(liveStore.product_section_title || '');
@@ -2913,20 +2998,32 @@ export default function DashboardPage() {
     }
   };
 
-  // Quick 10% discount handler
-  const handleApplyQuickDiscount = () => {
-    setIsDiscountModalOpen(false);
-    toast.success(`Discount of ${discountPercent}% applied! 🏷️`);
-
-    // Simulate updating conversion stats
-    if (stats) {
-      setStats({
-        ...stats,
-        metrics: {
-          ...stats.metrics,
-          conversion_rate: parseFloat((stats.metrics.conversion_rate * 1.2).toFixed(1))
-        }
+  // Quick flash-discount handler — creates a real storefront coupon
+  const handleApplyQuickDiscount = async () => {
+    const code = `FLASH${discountPercent}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    try {
+      const res = await fetch(`${apiUrl}/v1/store-coupons`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          code,
+          discount_type: 'percentage',
+          discount_value: parseFloat(discountPercent),
+        }),
       });
+      const json = await res.json();
+      if (res.ok) {
+        setIsDiscountModalOpen(false);
+        toast.success(`Flash campaign live! Code ${code} gives shoppers ${discountPercent}% off. 🏷️`);
+        loadStoreCoupons();
+      } else {
+        toast.error(json.message || 'Failed to launch campaign.');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'An error occurred.');
     }
   };
 
@@ -3472,6 +3569,8 @@ export default function DashboardPage() {
           instagram_handle: setInstagram,
           tiktok_handle: setTiktok,
           twitter_handle: setTwitter,
+          facebook_handle: setFacebook,
+          linkedin_handle: setLinkedin,
           facebook_pixel_id: setFacebookPixelId || null,
           google_tag_manager_id: setGoogleTagManagerId || null,
           currency_code: setCurrency,
@@ -3514,6 +3613,7 @@ export default function DashboardPage() {
           business_persona: selectedPersona || null,
           catalog_label: personaPreset?.catalogLabel || catalogLabel || null,
           category_label: personaPreset?.categoryLabel || categoryLabel || null,
+          store_label: storeLabel || null,
           template_highlight_label: personaPreset?.highlight || templateHighlightLabel || null,
           product_section_eyebrow: personaPreset?.sectionEyebrow || productSectionEyebrow || null,
           product_section_title: personaPreset?.sectionTitle || productSectionTitle || null,
@@ -3560,6 +3660,8 @@ export default function DashboardPage() {
         setSetInstagram(json.data.instagram_handle || '');
         setSetTiktok(json.data.tiktok_handle || '');
         setSetTwitter(json.data.twitter_handle || '');
+        setSetFacebook(json.data.facebook_handle || '');
+        setSetLinkedin(json.data.linkedin_handle || '');
         setSetFacebookPixelId(json.data.facebook_pixel_id || '');
         setSetGoogleTagManagerId(json.data.google_tag_manager_id || '');
         setPaymentBankName(json.data.bank_name || '');
@@ -3588,6 +3690,7 @@ export default function DashboardPage() {
         setSelectedPersona(json.data.business_persona || '');
         setCatalogLabel(json.data.catalog_label || 'product');
         setCategoryLabel(json.data.category_label || 'collection');
+        setStoreLabel(json.data.store_label || 'store');
         setTemplateHighlightLabel(json.data.template_highlight_label || '');
         setProductSectionEyebrow(json.data.product_section_eyebrow || 'Catalog');
         setProductSectionTitle(json.data.product_section_title || '');
@@ -4650,19 +4753,12 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Bar columns scrollable wrapper */}
+                      {(stats?.metrics.daily_breakdown?.some(d => d.views > 0 || d.wa > 0)) ? (
                       <div className="chart-scroll-container">
                         <div className="chart-scroll-content">
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', height: 160, padding: '0 10px', borderBottom: '1px solid var(--border)' }}>
-                            {[
-                              { day: 'Mon', views: 30, wa: 10 },
-                              { day: 'Tue', views: 45, wa: 15 },
-                              { day: 'Wed', views: 75, wa: 22 },
-                              { day: 'Thu', views: 50, wa: 18 },
-                              { day: 'Fri', views: 90, wa: 30 },
-                              { day: 'Sat', views: 120, wa: 42 },
-                              { day: 'Sun', views: 80, wa: 25 }
-                            ].map((item, idx) => {
-                              const maxVal = 130;
+                            {stats!.metrics.daily_breakdown!.map((item, idx) => {
+                              const maxVal = Math.max(1, ...stats!.metrics.daily_breakdown!.flatMap(d => [d.views, d.wa]));
                               const viewsHeight = `${(item.views / maxVal) * 100}%`;
                               const waHeight = `${(item.wa / maxVal) * 100}%`;
 
@@ -4690,6 +4786,11 @@ export default function DashboardPage() {
                           </div>
                         </div>
                       </div>
+                      ) : (
+                        <div style={{ padding: '32px 10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
+                          No traffic yet this week. Share your store link to start seeing views and WhatsApp clicks here.
+                        </div>
+                      )}
                     </div>
 
                     {/* AI Coach Business Card */}
@@ -6076,7 +6177,7 @@ export default function DashboardPage() {
                             </div>
                             <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
                               {isPro
-                                ? 'This controls your public store link. Use letters, numbers, hyphens, or underscores.'
+                                ? 'This controls your public store link. Use letters, numbers, and hyphens.'
                                 : 'Free plan usernames are locked after setup. '}
                               {!isPro && (
                                 <button
@@ -6507,6 +6608,21 @@ export default function DashboardPage() {
                                 maxLength={80}
                               />
                             </div>
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>What Customers Call Your Business</label>
+                            <input
+                              type="text"
+                              value={storeLabel}
+                              onChange={e => setStoreLabel(e.target.value)}
+                              className="input-field"
+                              placeholder="store"
+                              maxLength={40}
+                            />
+                            <span style={{ fontSize: 11, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+                              Used across your storefront, e.g. &ldquo;Visit the {storeLabel || 'store'}&rdquo;, &ldquo;Follow the {storeLabel || 'store'}&rdquo;. Try "studio", "salon", "shop", or leave as "store".
+                            </span>
                           </div>
 
                           <div>
@@ -13818,7 +13934,7 @@ export default function DashboardPage() {
             </div>
 
             <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 20 }}>
-              Launch a flash discount campaign to automatically display sale pricing to shoppers and lift your conversion rates by over 15%.
+              Launch a flash discount campaign to automatically display sale pricing to shoppers at checkout.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
@@ -16814,16 +16930,18 @@ export default function DashboardPage() {
       {/* ── MODAL: Selfie Liveness Verification ── */}
       {isSelfieModalOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
-          <div onClick={() => setIsSelfieModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} />
+          <div onClick={closeSelfieModal} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} />
           <div className="card glass animate-scale-in" style={{ position: 'relative', width: '100%', maxWidth: 400, padding: 28, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Camera size={18} /> Selfie Liveness Check
               </h3>
-              <button onClick={() => setIsSelfieModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
+              <button onClick={closeSelfieModal} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
             </div>
             <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.45 }}>
-              Position your face in the oval below and click Capture to simulate facial liveness verification.
+              {selfieCapturedPreview
+                ? 'Review your photo below, then submit for verification.'
+                : 'Position your face in frame and click Capture to take your verification selfie.'}
             </p>
 
             <div style={{
@@ -16837,27 +16955,53 @@ export default function DashboardPage() {
               justifyContent: 'center',
               overflow: 'hidden'
             }}>
-              {/* Silhouette Overlay */}
-              <div style={{
-                width: 140,
-                height: 180,
-                border: '2px dashed rgba(255,255,255,0.6)',
-                borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
-                position: 'relative'
-              }} />
-              <div style={{ position: 'absolute', bottom: 12, color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: 700, background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: 4 }}>
-                Simulated Camera Active
-              </div>
+              {selfieCapturedPreview ? (
+                <img src={selfieCapturedPreview} alt="Captured selfie" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : selfieCameraError ? (
+                <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12.5, textAlign: 'center', padding: '0 20px' }}>{selfieCameraError}</p>
+              ) : (
+                <>
+                  <video ref={selfieVideoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
+                  <div style={{
+                    position: 'absolute',
+                    width: 140,
+                    height: 180,
+                    border: '2px dashed rgba(255,255,255,0.6)',
+                    borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
+                    pointerEvents: 'none'
+                  }} />
+                </>
+              )}
             </div>
 
-            <button
-              onClick={handleSelfieSubmit}
-              disabled={isSelfieLivenessVerifying}
-              className="btn btn-primary clickable"
-              style={{ padding: 12, borderRadius: 10, fontWeight: 800, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-            >
-              {isSelfieLivenessVerifying ? <><Loader2 size={14} className="spinner animate-spin" /> Verifying Liveness...</> : 'Capture & Verify Selfie'}
-            </button>
+            {selfieCapturedPreview ? (
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  onClick={retakeSelfiePhoto}
+                  disabled={isSelfieLivenessVerifying}
+                  className="btn btn-outline clickable"
+                  style={{ flex: 1, padding: 12, borderRadius: 10, fontWeight: 800, fontSize: 13 }}
+                >
+                  Retake
+                </button>
+                <button
+                  onClick={handleSelfieSubmit}
+                  disabled={isSelfieLivenessVerifying}
+                  className="btn btn-primary clickable"
+                  style={{ flex: 1, padding: 12, borderRadius: 10, fontWeight: 800, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                >
+                  {isSelfieLivenessVerifying ? <><Loader2 size={14} className="spinner animate-spin" /> Verifying...</> : 'Submit for Verification'}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={selfieCameraError ? startSelfieCamera : captureSelfiePhoto}
+                className="btn btn-primary clickable"
+                style={{ padding: 12, borderRadius: 10, fontWeight: 800, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              >
+                {selfieCameraError ? 'Retry Camera Access' : 'Capture Selfie'}
+              </button>
+            )}
           </div>
         </div>
       )}

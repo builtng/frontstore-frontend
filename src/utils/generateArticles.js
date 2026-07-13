@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const NINA_AUTHOR = { name: 'Nina', role: 'AI Assistant', avatarInitials: 'N', avatarBg: 'hsl(142, 70%, 94%)', avatarColor: 'hsl(142, 70%, 35%)' };
+
 // ── ORIGINAL 10 ARTICLES ─────────────────────────────────────────────────────
 const ORIGINAL_ARTICLES = [
   {
@@ -12,13 +14,7 @@ const ORIGINAL_ARTICLES = [
     city: 'Lagos',
     country: 'Nigeria',
     readTime: '5 min read',
-    author: {
-      name: 'Amina Bello',
-      role: 'Fashion E-commerce Growth Lead',
-      avatarInitials: 'AB',
-      avatarBg: 'hsl(142, 70%, 94%)',
-      avatarColor: 'hsl(142, 70%, 35%)'
-    },
+    author: NINA_AUTHOR,
     publishedAt: '2026-05-10',
     updatedAt: '2026-05-28',
     gradientFrom: 'hsl(142, 71%, 45%)',
@@ -64,13 +60,7 @@ const ORIGINAL_ARTICLES = [
     city: 'Nairobi',
     country: 'Kenya',
     readTime: '4 min read',
-    author: {
-      name: 'Michael Mwangi',
-      role: 'Retail Tech Consultant',
-      avatarInitials: 'MM',
-      avatarBg: 'hsl(210, 80%, 94%)',
-      avatarColor: 'hsl(210, 80%, 35%)'
-    },
+    author: NINA_AUTHOR,
     publishedAt: '2026-05-12',
     updatedAt: '2026-05-28',
     gradientFrom: 'hsl(250, 84%, 60%)',
@@ -98,7 +88,7 @@ const ORIGINAL_ARTICLES = [
       },
       {
         question: 'What is the best way to handle deliveries in Nairobi?',
-        answer: 'Most Nairobi beauty brands use local boda-boda riders or courier services like Fargo Courier or Wells Fargo to deliver within Nairobi CBD and suburbs like Kilimani, Westlands, and Karen.'
+        answer: 'Most Nairobi beauty brands use local boda-boda riders or courier services like Sendy or G4S to deliver within Nairobi CBD and suburbs like Kilimani, Westlands, and Karen.'
       }
     ],
     ctaText: 'Launch Your Nairobi Beauty Shop'
@@ -112,13 +102,7 @@ const ORIGINAL_ARTICLES = [
     city: 'Abuja',
     country: 'Nigeria',
     readTime: '6 min read',
-    author: {
-      name: 'Amina Bello',
-      role: 'Fashion E-commerce Growth Lead',
-      avatarInitials: 'AB',
-      avatarBg: 'hsl(142, 70%, 94%)',
-      avatarColor: 'hsl(142, 70%, 35%)'
-    },
+    author: NINA_AUTHOR,
     publishedAt: '2026-05-14',
     updatedAt: '2026-05-28',
     gradientFrom: 'hsl(38, 92%, 50%)',
@@ -160,13 +144,7 @@ const ORIGINAL_ARTICLES = [
     city: 'Accra',
     country: 'Ghana',
     readTime: '5 min read',
-    author: {
-      name: 'Emmanuel Mensah',
-      role: 'Accra Retail Operations Specialist',
-      avatarInitials: 'EM',
-      avatarBg: 'hsl(340, 80%, 94%)',
-      avatarColor: 'hsl(340, 80%, 35%)'
-    },
+    author: NINA_AUTHOR,
     publishedAt: '2026-05-18',
     updatedAt: '2026-05-28',
     gradientFrom: 'hsl(200, 98%, 45%)',
@@ -208,13 +186,7 @@ const ORIGINAL_ARTICLES = [
     city: 'Johannesburg',
     country: 'South Africa',
     readTime: '6 min read',
-    author: {
-      name: 'Naledi Dlamini',
-      role: 'South Africa Growth Lead',
-      avatarInitials: 'ND',
-      avatarBg: 'hsl(170, 70%, 94%)',
-      avatarColor: 'hsl(170, 70%, 35%)'
-    },
+    author: NINA_AUTHOR,
     publishedAt: '2026-05-20',
     updatedAt: '2026-05-28',
     gradientFrom: 'hsl(170, 70%, 40%)',
@@ -256,13 +228,7 @@ const ORIGINAL_ARTICLES = [
     city: 'Kumasi',
     country: 'Ghana',
     readTime: '5 min read',
-    author: {
-      name: 'Emmanuel Mensah',
-      role: 'Accra Retail Operations Specialist',
-      avatarInitials: 'EM',
-      avatarBg: 'hsl(340, 80%, 94%)',
-      avatarColor: 'hsl(340, 80%, 35%)'
-    },
+    author: NINA_AUTHOR,
     publishedAt: '2026-05-21',
     updatedAt: '2026-05-28',
     gradientFrom: 'hsl(250, 84%, 60%)',
@@ -304,13 +270,7 @@ const ORIGINAL_ARTICLES = [
     city: 'Kampala',
     country: 'Uganda',
     readTime: '4 min read',
-    author: {
-      name: 'Naledi Dlamini',
-      role: 'South Africa Growth Lead',
-      avatarInitials: 'ND',
-      avatarBg: 'hsl(170, 70%, 94%)',
-      avatarColor: 'hsl(170, 70%, 35%)'
-    },
+    author: NINA_AUTHOR,
     publishedAt: '2026-05-22',
     updatedAt: '2026-05-28',
     gradientFrom: 'hsl(142, 71%, 45%)',
@@ -352,13 +312,7 @@ const ORIGINAL_ARTICLES = [
     city: 'Mombasa',
     country: 'Kenya',
     readTime: '5 min read',
-    author: {
-      name: 'Michael Mwangi',
-      role: 'Retail Tech Consultant',
-      avatarInitials: 'MM',
-      avatarBg: 'hsl(210, 80%, 94%)',
-      avatarColor: 'hsl(210, 80%, 35%)'
-    },
+    author: NINA_AUTHOR,
     publishedAt: '2026-05-23',
     updatedAt: '2026-05-28',
     gradientFrom: 'hsl(200, 98%, 45%)',
@@ -400,13 +354,7 @@ const ORIGINAL_ARTICLES = [
     city: 'Cape Town',
     country: 'South Africa',
     readTime: '6 min read',
-    author: {
-      name: 'Naledi Dlamini',
-      role: 'South Africa Growth Lead',
-      avatarInitials: 'ND',
-      avatarBg: 'hsl(170, 70%, 94%)',
-      avatarColor: 'hsl(170, 70%, 35%)'
-    },
+    author: NINA_AUTHOR,
     publishedAt: '2026-05-24',
     updatedAt: '2026-05-28',
     gradientFrom: 'hsl(38, 92%, 50%)',
@@ -448,13 +396,7 @@ const ORIGINAL_ARTICLES = [
     city: 'Port Harcourt',
     country: 'Nigeria',
     readTime: '5 min read',
-    author: {
-      name: 'Amina Bello',
-      role: 'Fashion E-commerce Growth Lead',
-      avatarInitials: 'AB',
-      avatarBg: 'hsl(142, 70%, 94%)',
-      avatarColor: 'hsl(142, 70%, 35%)'
-    },
+    author: NINA_AUTHOR,
     publishedAt: '2026-05-25',
     updatedAt: '2026-05-28',
     gradientFrom: 'hsl(170, 70%, 40%)',
@@ -492,7 +434,7 @@ const ORIGINAL_ARTICLES = [
 // Cities metadata dictionary for compiling localized content
 const CITIES_METADATA = {
   'Lagos': { country: 'Nigeria', currency: 'NGN', gateway: 'Paystack/Flutterwave', hubs: 'Ikeja and Lekki', logistics: 'Chowdeck and local dispatch riders', textSnippet: 'the bustling lanes of Balogun and Ikeja' },
-  'Nairobi': { country: 'Kenya', currency: 'KES', gateway: 'M-Pesa Buy Goods Till', hubs: 'Westlands and Kilimani', logistics: 'boda-boda riders and Wells Fargo', textSnippet: 'the busy shops of Westlands and Nairobi CBD' },
+  'Nairobi': { country: 'Kenya', currency: 'KES', gateway: 'M-Pesa Buy Goods Till', hubs: 'Westlands and Kilimani', logistics: 'boda-boda riders and Sendy', textSnippet: 'the busy shops of Westlands and Nairobi CBD' },
   'Accra': { country: 'Ghana', currency: 'GHS', gateway: 'MTN Mobile Money and Telecel Cash', hubs: 'East Legon and Osu', logistics: 'trusted motor couriers', textSnippet: 'the crowded stalls of Circle and East Legon' },
   'Johannesburg': { country: 'South Africa', currency: 'ZAR', gateway: 'EFT, Yoco, and PayFast', hubs: 'Sandton and Rosebank', logistics: 'neighborhood courier slots', textSnippet: 'the vibrant storefronts of Sandton and Melville' },
   'Kampala': { country: 'Uganda', currency: 'UGX', gateway: 'MTN MoMo and Airtel Money', hubs: 'Kololo and Ntinda', logistics: 'SafeBoda riders', textSnippet: 'the central hubs of Kampala Road and Kololo' },
@@ -837,16 +779,6 @@ const CITIES_METADATA = {
   'Ogurute': { country: 'Nigeria', currency: 'NGN', gateway: 'Direct Bank Transfer', hubs: 'Ogurute Market and Express Road', logistics: 'Ogurute local couriers', textSnippet: 'the local agricultural trade squares of Ogurute' }
 };
 
-const AUTHORS = [
-  { name: 'Amina Bello', role: 'Fashion E-commerce Growth Lead', avatarInitials: 'AB', avatarBg: 'hsl(142, 70%, 94%)', avatarColor: 'hsl(142, 70%, 35%)' },
-  { name: 'Michael Mwangi', role: 'Retail Tech Consultant', avatarInitials: 'MM', avatarBg: 'hsl(210, 80%, 94%)', avatarColor: 'hsl(210, 80%, 35%)' },
-  { name: 'Emmanuel Mensah', role: 'Accra Retail Operations Specialist', avatarInitials: 'EM', avatarBg: 'hsl(340, 80%, 94%)', avatarColor: 'hsl(340, 80%, 35%)' },
-  { name: 'Naledi Dlamini', role: 'South Africa Growth Lead', avatarInitials: 'ND', avatarBg: 'hsl(170, 70%, 94%)', avatarColor: 'hsl(170, 70%, 35%)' },
-  { name: 'Zainab Musa', role: 'West Africa E-commerce Analyst', avatarInitials: 'ZM', avatarBg: 'hsl(28, 90%, 94%)', avatarColor: 'hsl(28, 90%, 35%)' },
-  { name: 'Kwame Osei', role: 'Ghana E-commerce Specialist', avatarInitials: 'KO', avatarBg: 'hsl(190, 80%, 94%)', avatarColor: 'hsl(190, 80%, 35%)' },
-  { name: 'Grace Akot', role: 'Uganda Retail Lead', avatarInitials: 'GA', avatarBg: 'hsl(320, 80%, 94%)', avatarColor: 'hsl(320, 80%, 35%)' },
-  { name: 'Sarah van der Merwe', role: 'SA Retail Growth Architect', avatarInitials: 'SV', avatarBg: 'hsl(45, 90%, 94%)', avatarColor: 'hsl(45, 90%, 35%)' }
-];
 
 // We need to generate the remaining 40 combinations.
 // Let's create a map of existing combinations to exclude them.
@@ -874,20 +806,7 @@ function buildArticle(city, category) {
   const logistics = meta.logistics;
   const textSnippet = meta.textSnippet;
   
-  // Pick author based on country
-  let author = AUTHORS[0]; // default
-  if (country === 'Kenya') author = AUTHORS.find(a => a.name === 'Michael Mwangi') || AUTHORS[1];
-  else if (country === 'Ghana') {
-    author = city === 'Accra' ? AUTHORS.find(a => a.name === 'Emmanuel Mensah') : AUTHORS.find(a => a.name === 'Kwame Osei');
-  } else if (country === 'South Africa') {
-    author = city === 'Johannesburg' ? AUTHORS.find(a => a.name === 'Naledi Dlamini') : AUTHORS.find(a => a.name === 'Sarah van der Merwe');
-  } else if (country === 'Uganda') {
-    author = AUTHORS.find(a => a.name === 'Grace Akot') || AUTHORS[6];
-  } else if (country === 'Nigeria') {
-    author = city === 'Lagos' || city === 'Abuja'
-      ? AUTHORS[0]
-      : AUTHORS.find(a => a.name === 'Zainab Musa') || AUTHORS[4];
-  }
+  const author = NINA_AUTHOR;
 
   const slug = `how-to-scale-${category.toLowerCase()}-whatsapp-${city.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
   
@@ -1124,15 +1043,6 @@ console.log(`Generated new articles: ${newArticles.length}`);
 // Each entry carries real, state-specific commercial facts (capital, hub
 // market, dominant trade, logistics reality) so the copy reads as a distinct
 // local guide rather than a templated mail-merge.
-const STATE_AUTHORS = {
-  northWest: { name: 'Fatima Abdullahi', role: 'Northern Nigeria Retail Strategist', avatarInitials: 'FA', avatarBg: 'hsl(4, 80%, 94%)', avatarColor: 'hsl(4, 80%, 40%)' },
-  northEast: { name: 'Fatima Abdullahi', role: 'Northern Nigeria Retail Strategist', avatarInitials: 'FA', avatarBg: 'hsl(4, 80%, 94%)', avatarColor: 'hsl(4, 80%, 40%)' },
-  northCentral: { name: 'Ibrahim Sule', role: 'North Central Growth Analyst', avatarInitials: 'IS', avatarBg: 'hsl(48, 85%, 94%)', avatarColor: 'hsl(48, 85%, 32%)' },
-  southEast: { name: 'Chidera Okafor', role: 'Southeast Nigeria Commerce Lead', avatarInitials: 'CO', avatarBg: 'hsl(95, 55%, 94%)', avatarColor: 'hsl(95, 55%, 30%)' },
-  southSouth: { name: 'Tobenna Eze', role: 'South-South Growth Lead', avatarInitials: 'TE', avatarBg: 'hsl(255, 70%, 94%)', avatarColor: 'hsl(255, 70%, 45%)' },
-  southWest: { name: 'Yetunde Adisa', role: 'Southwest Nigeria Merchant Success Lead', avatarInitials: 'YA', avatarBg: 'hsl(15, 85%, 94%)', avatarColor: 'hsl(15, 85%, 40%)' },
-};
-
 const STATE_GRADIENT = { from: 'hsl(204, 60%, 17%)', to: 'hsl(158, 60%, 30%)' };
 
 const NIGERIA_STATES_DATA = [
@@ -1176,7 +1086,7 @@ const NIGERIA_STATES_DATA = [
 ];
 
 function buildStateArticle(state) {
-  const author = STATE_AUTHORS[state.zone];
+  const author = NINA_AUTHOR;
   const slug = state.slug === 'fct-abuja' ? 'sell-on-whatsapp-fct-abuja' : `sell-on-whatsapp-${state.slug}-state`;
   const displayName = state.name === 'FCT Abuja' ? 'the FCT' : `${state.name} State`;
 
