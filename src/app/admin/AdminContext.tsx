@@ -80,6 +80,8 @@ export interface SystemSettings {
   system_domain: string;
   support_email: string;
   store_disclaimer: string;
+  admin_notify_email: string;
+  admin_notify_phone: string;
   homepage_content: string;
   mobile_hero: string;
   registration_method: 'email' | 'whatsapp' | 'both';
@@ -130,6 +132,8 @@ export const defaultSettings: SystemSettings = {
   system_domain: '',
   support_email: '',
   store_disclaimer: '',
+  admin_notify_email: '',
+  admin_notify_phone: '',
   homepage_content: '',
   mobile_hero: '',
   registration_method: 'whatsapp',

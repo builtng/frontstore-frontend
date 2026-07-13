@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAdmin } from '../AdminContext';
 import { toast } from 'sonner';
 import {
+  Bell,
   Check,
   Globe,
   Loader2,
@@ -283,6 +284,16 @@ export default function AdminSettingsPage() {
             >
               <Shield size={15} />
               KYC / Identity
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'notifications'}
+              onClick={() => setActiveTab('notifications')}
+              className={`admin-settings-nav-item ${activeTab === 'notifications' ? 'is-active' : ''}`}
+            >
+              <Bell size={15} />
+              Admin Alerts
             </button>
             <button
               type="button"
@@ -576,6 +587,26 @@ export default function AdminSettingsPage() {
                   ]}
                   description="Choose credentials required for merchant storefront registration."
                   full={true}
+                />
+              </SettingsGroup>
+            )}
+
+            {activeTab === 'notifications' && (
+              <SettingsGroup icon={<Bell size={17} />} title="Admin Alerts" id="settings-notifications">
+                <Field
+                  label="Notification Email"
+                  value={settings.admin_notify_email}
+                  onChange={(value) => setSettings({ ...settings, admin_notify_email: value })}
+                  placeholder="e.g. admin@frontstore.ng"
+                  description="Receives an email alert whenever a new merchant registers or a withdrawal is requested."
+                  type="email"
+                />
+                <Field
+                  label="Notification Phone Number"
+                  value={settings.admin_notify_phone}
+                  onChange={(value) => setSettings({ ...settings, admin_notify_phone: value })}
+                  placeholder="e.g. +2348012345678"
+                  description="Receives a WhatsApp alert whenever a new merchant registers or a withdrawal is requested."
                 />
               </SettingsGroup>
             )}
