@@ -23,7 +23,7 @@ const QUICK_FACTS: Record<string, QuickFacts> = {
   frontstore: {
     whatsapp: { yes: true, note: 'Order = a WhatsApp message' },
     ai: { yes: true, note: 'Photo in, full listing out' },
-    price: 'Free, Pro ₦1,500/mo, or Legend ₦5,000/mo',
+    price: 'Free, Pro ₦2,000/mo, or Legend ₦7,000/mo',
     setup: '< 2 minutes',
     fee: 'Flat 1.5%, every tier',
   },

@@ -66,10 +66,10 @@ function formatNaira(raw: unknown, fallback: string): string {
 
 export default async function PricingPage() {
   const settings = await getPublicSettings();
-  const monthlyPrice = formatNaira(settings?.pro_monthly_price, '1,500');
-  const yearlyPrice = formatNaira(settings?.pro_yearly_price, '15,000');
-  const legendMonthlyPrice = formatNaira(settings?.legend_monthly_price, '5,000');
-  const legendYearlyPrice = formatNaira(settings?.legend_yearly_price, '50,000');
+  const monthlyPrice = formatNaira(settings?.pro_monthly_price, '2,000');
+  const yearlyPrice = formatNaira(settings?.pro_yearly_price, '20,000');
+  const legendMonthlyPrice = formatNaira(settings?.legend_monthly_price, '7,000');
+  const legendYearlyPrice = formatNaira(settings?.legend_yearly_price, '70,000');
 
   return (
     <PricingPageClient

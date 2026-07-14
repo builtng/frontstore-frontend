@@ -513,7 +513,7 @@ export default function AdminSettingsPage() {
                   type="number"
                   value={String(settings.pro_monthly_price)}
                   onChange={(value) => setSettings({ ...settings, pro_monthly_price: value })}
-                  placeholder="e.g. 1500"
+                  placeholder="e.g. 2000"
                   description="Price charged for the Pro Monthly plan, in Naira."
                   required
                 />
@@ -522,7 +522,7 @@ export default function AdminSettingsPage() {
                   type="number"
                   value={String(settings.pro_yearly_price)}
                   onChange={(value) => setSettings({ ...settings, pro_yearly_price: value })}
-                  placeholder="e.g. 15000"
+                  placeholder="e.g. 20000"
                   description="Price charged for the Pro Yearly plan, in Naira."
                   required
                 />
@@ -531,7 +531,7 @@ export default function AdminSettingsPage() {
                   type="number"
                   value={String(settings.legend_monthly_price)}
                   onChange={(value) => setSettings({ ...settings, legend_monthly_price: value })}
-                  placeholder="e.g. 5000"
+                  placeholder="e.g. 7000"
                   description="Price charged for the Legend Monthly plan, in Naira."
                   required
                 />
@@ -540,7 +540,7 @@ export default function AdminSettingsPage() {
                   type="number"
                   value={String(settings.legend_yearly_price)}
                   onChange={(value) => setSettings({ ...settings, legend_yearly_price: value })}
-                  placeholder="e.g. 50000"
+                  placeholder="e.g. 70000"
                   description="Price charged for the Legend Yearly plan, in Naira."
                   required
                 />

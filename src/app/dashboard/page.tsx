@@ -491,14 +491,14 @@ export default function DashboardPage() {
 
   // Billing Cycle state for Pro Subscription Plan
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [proMonthlyPrice, setProMonthlyPrice] = useState(1500);
-  const [proYearlyPrice, setProYearlyPrice] = useState(15000);
+  const [proMonthlyPrice, setProMonthlyPrice] = useState(2000);
+  const [proYearlyPrice, setProYearlyPrice] = useState(20000);
   const [freeProductLimit, setFreeProductLimit] = useState(40);
 
   // Billing cycle + coupon state for the Legend Subscription Plan (independent of Pro's above)
   const [legendBillingCycle, setLegendBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [legendMonthlyPrice, setLegendMonthlyPrice] = useState(5000);
-  const [legendYearlyPrice, setLegendYearlyPrice] = useState(50000);
+  const [legendMonthlyPrice, setLegendMonthlyPrice] = useState(7000);
+  const [legendYearlyPrice, setLegendYearlyPrice] = useState(70000);
   const [legendCouponCode, setLegendCouponCode] = useState('');
   const [isValidatingLegendCoupon, setIsValidatingLegendCoupon] = useState(false);
   const [appliedLegendCoupon, setAppliedLegendCoupon] = useState<any>(null);
