@@ -114,7 +114,7 @@ export default function TermsPage() {
                   <strong>KYC Verification:</strong> To receive payouts, merchants must complete Know Your Customer (KYC) verification by providing valid business registration documents, national identification, or tax credentials as required by local regulators.
                 </li>
                 <li>
-                  <strong>Fees:</strong> Frontstore charges a flat 1.5% transaction fee on successful sales, the same rate across every plan. Standard third-party payment processor processing fees (e.g., Paystack) may also apply to transactions and are non-refundable in the event of customer returns or disputes.
+                  <strong>Fees:</strong> Frontstore does not currently charge a transaction fee on successful sales. Standard third-party payment processor processing fees (e.g., Paystack) may still apply to transactions and are non-refundable in the event of customer returns or disputes.
                 </li>
               </ul>
             </section>

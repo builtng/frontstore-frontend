@@ -9064,7 +9064,7 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
-                          <span><strong>Flat 1.5% transaction fee</strong> — same rate on every plan</span>
+                          <span><strong>No transaction fees</strong> — on every plan</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="var(--primary)" />
@@ -9242,7 +9242,7 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
-                          <span><strong>Flat 1.5% transaction fee</strong> — same rate on every plan</span>
+                          <span><strong>No transaction fees</strong> — on every plan</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#d97706" />
@@ -9499,7 +9499,7 @@ export default function DashboardPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#7c3aed" />
-                          <span><strong>Flat 1.5% transaction fee</strong> — same rate on every plan</span>
+                          <span><strong>No transaction fees</strong> — on every plan</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                           <CheckCircle2 size={16} color="#7c3aed" />

@@ -25,7 +25,7 @@ const QUICK_FACTS: Record<string, QuickFacts> = {
     ai: { yes: true, note: 'Photo in, full listing out' },
     price: 'Free, Pro ₦2,000/mo, or Legend ₦7,000/mo',
     setup: '< 2 minutes',
-    fee: 'Flat 1.5%, every tier',
+    fee: 'None, every tier',
   },
   bumpa: {
     whatsapp: { yes: false, note: 'Dashboard, not WhatsApp' },

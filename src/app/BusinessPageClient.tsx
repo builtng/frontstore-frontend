@@ -321,9 +321,9 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
       <section style={{ padding: 'clamp(56px, 8vw, 88px) 20px', background: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
         <div style={{ maxWidth: 880, margin: '0 auto', textAlign: 'center' }}>
           <span className="badge badge-accent" style={{ marginBottom: 12 }}>Pricing for growing teams</span>
-          <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)', marginBottom: 12 }}>One flat fee, whatever size you're at</h2>
+          <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)', marginBottom: 12 }}>No transaction fees, whatever size you're at</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: 16, maxWidth: 560, margin: '0 auto 40px' }}>
-            Free, Pro, or Legend, the transaction fee on every sale stays a flat 1.5%. Upgrading unlocks more of the back office, not a lower fee held hostage behind a higher tier.
+            Free, Pro, or Legend, you keep 100% of every sale. Upgrading unlocks more of the back office, never a cut of your revenue.
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 28 }}>

@@ -70,7 +70,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     ],
     faqs: [
       { question: 'Do I need a website to sell on WhatsApp in Nigeria?', answer: 'No. A storefront link like frontstore.ng/yourbrand works entirely on a phone and doesn\'t require a domain, hosting, or any technical setup — customers browse it in their mobile browser before their order opens in WhatsApp.' },
-      { question: 'Is it free to start selling on WhatsApp with Frontstore?', answer: 'Yes, merchants can claim a store and start listing products on the Free plan. Pro (₦2,000/month or ₦24,000/year) unlocks the full feature set, and Legend (₦7,000/month) adds unlimited AI on top — all three carry the same flat 1.5% transaction fee.' },
+      { question: 'Is it free to start selling on WhatsApp with Frontstore?', answer: 'Yes, merchants can claim a store and start listing products on the Free plan. Pro (₦2,000/month or ₦24,000/year) unlocks the full feature set, and Legend (₦7,000/month) adds unlimited AI on top — none of the three plans carry a transaction fee.' },
       { question: 'How do buyers pay after messaging on WhatsApp?', answer: 'A buyer can pay by bank transfer, Paystack, Flutterwave, or mobile money — whichever the merchant has enabled — directly from the order flow, without leaving the chat context.' },
       { question: 'Can I still use my Instagram bio link for WhatsApp sales?', answer: 'Yes. Most sellers put the same storefront link in their Instagram bio, WhatsApp Status, and TikTok profile, so every channel drives to one organized catalog.' },
     ],
@@ -141,15 +141,15 @@ export const SOLUTION_PAGES: SolutionPage[] = [
       },
       {
         heading: 'What\'s Actually Free to Start',
-        body: 'Claiming a storefront link, uploading products, and using AI to generate listings costs nothing upfront on Frontstore. Pro (₦2,000/month or ₦24,000/year) unlocks the full feature set, and every plan — including Free — carries the same flat 1.5% transaction fee on completed sales, with no fixed fee added on top.',
+        body: 'Claiming a storefront link, uploading products, and using AI to generate listings costs nothing upfront on Frontstore. Pro (₦2,000/month or ₦24,000/year) unlocks the full feature set, and every plan — including Free — currently carries no transaction fee on completed sales.',
       },
       {
         heading: 'When It Makes Sense to Pay',
-        body: 'A subscription is worth it the moment a store is generating real orders — at that point, ₦2,000/month is a small fraction of a single sale for most merchants, and it buys unlimited products, AI listings, and custom branding on top of the same 1.5% transaction fee every plan already pays.',
+        body: 'A subscription is worth it the moment a store is generating real orders — at that point, ₦2,000/month is a small fraction of a single sale for most merchants, and it buys unlimited products, AI listings, and custom branding, with no transaction fee eating into that revenue.',
       },
     ],
     faqs: [
-      { question: 'Is Frontstore completely free?', answer: 'Setting up a storefront and listing products is free to start on the Free plan. Pro (₦2,000/month or ₦24,000/year) and Legend (₦7,000/month) unlock more features, but the 1.5% transaction fee on sales applies to every plan, including Free.' },
+      { question: 'Is Frontstore completely free?', answer: 'Setting up a storefront and listing products is free to start on the Free plan. Pro (₦2,000/month or ₦24,000/year) and Legend (₦7,000/month) unlock more features. There\'s currently no transaction fee on sales on any plan, including Free.' },
       { question: 'Do free online store builders take a cut of my sales?', answer: 'Many do — a percentage-based transaction fee is common even on free tiers of other platforms. It\'s worth checking a platform\'s fee structure specifically, not just its subscription price, before assuming it\'s free.' },
       { question: 'What\'s the catch with free online store builders?', answer: 'Usually a cap on products, orders, or features rather than an outright cost — free tiers are often designed to get a merchant started and then charge once the store is actually working.' },
     ],

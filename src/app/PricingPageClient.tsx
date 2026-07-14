@@ -8,23 +8,6 @@ import {
 } from 'lucide-react';
 import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
 
-const CURRENCIES = [
-  { code: 'NGN', country: 'Nigeria', flag: '🇳🇬' },
-  { code: 'GHS', country: 'Ghana', flag: '🇬🇭' },
-  { code: 'KES', country: 'Kenya', flag: '🇰🇪' },
-  { code: 'ZAR', country: 'South Africa', flag: '🇿🇦' },
-  { code: 'EGP', country: 'Egypt', flag: '🇪🇬' },
-  { code: 'RWF', country: 'Rwanda', flag: '🇷🇼' },
-  { code: 'TZS', country: 'Tanzania', flag: '🇹🇿' },
-  { code: 'UGX', country: 'Uganda', flag: '🇺🇬' },
-  { code: 'ZMW', country: 'Zambia', flag: '🇿🇲' },
-  { code: 'XOF', country: 'Ivory Coast', flag: '🇨🇮' },
-  { code: 'XOF', country: 'Senegal', flag: '🇸🇳' },
-  { code: 'XOF', country: 'Benin', flag: '🇧🇯' },
-  { code: 'USD', country: 'United States', flag: '🇺🇸' },
-  { code: 'GBP', country: 'United Kingdom', flag: '🇬🇧' },
-] as const;
-
 const PAYMENT_METHODS = [
   { name: 'Paystack', icon: CreditCard, note: 'Cards, bank transfer & dedicated accounts', regions: 'Nigeria · Ghana · South Africa · Kenya' },
   { name: 'Stripe', icon: CreditCard, note: 'International cards for verified merchants', regions: 'US · UK · EU & more' },
@@ -55,14 +38,14 @@ const PLAN_TIERS = (monthlyPrice: string, yearlyPrice: string, legendMonthlyPric
     monthly: '0',
     yearly: '0',
     highlight: false,
-    features: ['Up to 10 products', 'WhatsApp checkout', 'Public storefront', 'Flat 1.5% transaction fee'],
+    features: ['Up to 10 products', 'WhatsApp checkout', 'Public storefront', 'No transaction fees'],
     allBenefits: [
       'Up to 10 products listed at once',
       'WhatsApp checkout on every order',
       'Public storefront page with your own link',
       'Bank transfer & MTN MoMo Agent payment methods',
       'Standard trust-score payout ladder',
-      'Flat 1.5% transaction fee — same rate as every plan',
+      'No transaction fees',
     ],
   },
   {
@@ -71,7 +54,7 @@ const PLAN_TIERS = (monthlyPrice: string, yearlyPrice: string, legendMonthlyPric
     monthly: monthlyPrice,
     yearly: yearlyPrice,
     highlight: true,
-    features: ['Unlimited products', 'AI photo-to-listing', 'Custom storefront branding', 'Flat 1.5% transaction fee'],
+    features: ['Unlimited products', 'AI photo-to-listing', 'Custom storefront branding', 'No transaction fees'],
     allBenefits: [
       'Everything in Free, plus:',
       'Unlimited products',
@@ -87,7 +70,7 @@ const PLAN_TIERS = (monthlyPrice: string, yearlyPrice: string, legendMonthlyPric
       'Giveaways',
       'Customer reviews — view & reply',
       'Priority support',
-      'Flat 1.5% transaction fee — same rate as every plan',
+      'No transaction fees',
     ],
   },
   {
@@ -96,7 +79,7 @@ const PLAN_TIERS = (monthlyPrice: string, yearlyPrice: string, legendMonthlyPric
     monthly: legendMonthlyPrice,
     yearly: legendYearlyPrice,
     highlight: false,
-    features: ['Everything in Pro', 'Custom domain & integrations', 'Unlimited AI analyses', 'Legend storefront badge', 'Flat 1.5% transaction fee'],
+    features: ['Everything in Pro', 'Custom domain & integrations', 'Unlimited AI analyses', 'Legend storefront badge', 'No transaction fees'],
     allBenefits: [
       'Everything in Pro, plus:',
       'Connect a custom domain (e.g. mybrand.com)',
@@ -106,13 +89,12 @@ const PLAN_TIERS = (monthlyPrice: string, yearlyPrice: string, legendMonthlyPric
       'Dashboard customization (Remove Distractions)',
       'Unlimited AI analyses on any billing cycle (Pro Monthly caps at 15/mo)',
       'Legend storefront badge — a status signal shown to buyers',
-      'Flat 1.5% transaction fee — same rate as every plan',
+      'No transaction fees',
     ],
   },
 ];
 
 export default function PricingPageClient({ monthlyPrice, yearlyPrice, legendMonthlyPrice, legendYearlyPrice }: PricingPageClientProps) {
-  const [activeCurrency, setActiveCurrency] = useState(0);
   const [activeTier, setActiveTier] = useState(1);
   const [benefitsModalTier, setBenefitsModalTier] = useState<string | null>(null);
   const tiers = PLAN_TIERS(monthlyPrice, yearlyPrice, legendMonthlyPrice, legendYearlyPrice);
@@ -129,13 +111,13 @@ export default function PricingPageClient({ monthlyPrice, yearlyPrice, legendMon
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
           <div className="hero-eyebrow" style={{ justifyContent: 'center', marginBottom: 18 }}>
-            <Percent size={12} color="var(--accent)" /> <b>Pricing & Fees</b>
+            <Percent size={12} color="var(--accent)" /> <b>Pricing</b>
           </div>
           <h1 className="text-display" style={{ fontSize: 'clamp(28px, 5vw, 44px)', color: '#fff', lineHeight: 1.15, marginBottom: 16 }}>
-            Three simple plans. <span className="mark-highlight">One fee that never changes.</span>
+            Three simple plans. <span className="mark-highlight">No transaction fees.</span>
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.78)', fontSize: 'clamp(15px, 2vw, 17px)', lineHeight: 1.65, maxWidth: 480, margin: '0 auto' }}>
-            Free, Pro, or Legend — whichever you pick, the transaction fee on every sale stays a flat 1.5%. Upgrading unlocks features, never a lower fee held hostage behind a higher tier.
+            Free, Pro, or Legend — whichever you pick, you keep 100% of every sale. Upgrading unlocks features, never a cut of your revenue.
           </p>
         </div>
       </header>
@@ -195,66 +177,6 @@ export default function PricingPageClient({ monthlyPrice, yearlyPrice, legendMon
                 </Link>
               </div>
             ))}
-          </div>
-        </section>
-
-        {/* ── Transaction fees ── */}
-        <section style={{ padding: 'clamp(56px, 8vw, 88px) 20px 0' }}>
-          <div style={{ maxWidth: 860, margin: '0 auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: 32 }}>
-              <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-block' }}>Transaction Fees</span>
-              <h2 className="text-title" style={{ marginBottom: 10 }}>About our transaction fees</h2>
-              <p style={{ fontSize: 14.5, color: 'var(--text-muted)', maxWidth: 560, margin: '0 auto', lineHeight: 1.6 }}>
-                Every plan carries the same small transaction fee when you make a successful sale, regardless of which of these currencies you sell in.
-              </p>
-            </div>
-
-            <div className="card" style={{ padding: 20, marginBottom: 20 }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-                {CURRENCIES.map((c, i) => (
-                  <button
-                    key={`${c.code}-${c.country}`}
-                    type="button"
-                    onClick={() => setActiveCurrency(i)}
-                    className="btn"
-                    title={c.country}
-                    aria-label={c.country}
-                    style={{
-                      padding: '8px 14px',
-                      fontSize: 13,
-                      borderRadius: 'var(--r-md)',
-                      background: activeCurrency === i ? 'var(--primary)' : 'var(--surface-2)',
-                      color: activeCurrency === i ? '#fff' : 'var(--text-2)',
-                      boxShadow: 'none',
-                    }}
-                  >
-                    <span>{c.flag}</span> {c.code}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div
-              className="card"
-              style={{
-                maxWidth: 380, margin: '0 auto', padding: 'clamp(28px, 5vw, 36px)', textAlign: 'center',
-                borderColor: 'var(--primary)', borderWidth: 1.5,
-              }}
-            >
-              <p style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 10 }}>
-                Standard rate
-              </p>
-              <p className="text-display" style={{ fontSize: 'clamp(32px, 5vw, 40px)', color: 'var(--primary)', marginBottom: 6 }}>
-                1.5%
-              </p>
-              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                per sale in {CURRENCIES[activeCurrency].code} — no fixed fee added on top
-              </p>
-            </div>
-
-            <p style={{ fontSize: 12.5, color: 'var(--text-faint)', textAlign: 'center', maxWidth: 480, margin: '20px auto 0', lineHeight: 1.6 }}>
-              This is separate from the optional Frontstore Protect buyer-protection fee, which customers can choose to cover at checkout.
-            </p>
           </div>
         </section>
 
@@ -375,7 +297,7 @@ export default function PricingPageClient({ monthlyPrice, yearlyPrice, legendMon
                 Ready to start selling on WhatsApp?
               </h2>
               <p style={{ color: 'rgba(255,255,255,0.78)', marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
-                Three simple plans, one transparent fee that never changes by tier, no surprises at settlement. Free to start — no credit card needed.
+                Three simple plans, no transaction fees, no surprises at settlement. Free to start — no credit card needed.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
                 <Link
