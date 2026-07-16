@@ -1341,7 +1341,7 @@ export default function FoodStorefront({
   const REV_DIST = useMemo(() => {
     const counts = [0, 0, 0, 0, 0];
     displayReviews.forEach((r: any) => {
-      const n = Math.round(r.rating);
+      const n = Math.round(r.r);
       if (n >= 1 && n <= 5) counts[5 - n]++;
     });
     const total = displayReviews.length;
@@ -1392,7 +1392,7 @@ export default function FoodStorefront({
           <div className="pv-info">
             <span className="pv-infocat">{p.cat}</span>
             <h1 className="pv-name">{p.name}</h1>
-            <div className="pv-price">{money(p.price)} <span className="pv-approx">approx ${Math.round(p.price / 1600)}</span></div>
+            <div className="pv-price">{money(p.price)}</div>
             <p className="pv-desc">{p.desc}</p>
 
             {(p.options || []).map((o: any) => (

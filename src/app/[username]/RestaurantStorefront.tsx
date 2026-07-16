@@ -802,6 +802,16 @@ export default function RestaurantStorefront({
     return reviews || [];
   }, [reviews]);
 
+  const REV_DIST = useMemo(() => {
+    const counts = [0, 0, 0, 0, 0];
+    displayReviews.forEach((r) => {
+      const n = Math.round(r.rating);
+      if (n >= 1 && n <= 5) counts[5 - n]++;
+    });
+    const total = displayReviews.length;
+    return [5, 4, 3, 2, 1].map((star, i) => [star, total > 0 ? Math.round((counts[i] / total) * 100) : 0]);
+  }, [displayReviews]);
+
   const faqFiltered = useMemo(() => {
     const faqQ = faqQuery.trim().toLowerCase();
     return displayFaqs
@@ -899,11 +909,13 @@ export default function RestaurantStorefront({
           {count ? <span>{count} ratings</span> : null}
           <i>Verified orders</i>
         </div>
-        <div className="ps-rating-bars">
-          <div className="ps-bar"><span>5 star</span><div><i style={{ width: "80%" }} /></div><span>80%</span></div>
-          <div className="ps-bar"><span>4 star</span><div><i style={{ width: "14%" }} /></div><span>14%</span></div>
-          <div className="ps-bar"><span>3 star</span><div><i style={{ width: "4%" }} /></div><span>4%</span></div>
-        </div>
+        {displayReviews.length > 0 && (
+          <div className="ps-rating-bars">
+            {REV_DIST.filter(([n]) => n >= 3).map(([n, w]) => (
+              <div key={n} className="ps-bar"><span>{n} star</span><div><i style={{ width: w + "%" }} /></div><span>{w}%</span></div>
+            ))}
+          </div>
+        )}
       </div>
     );
   };

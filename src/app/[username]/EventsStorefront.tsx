@@ -1186,7 +1186,7 @@ export default function EventsStorefront({
   const REV_DIST = useMemo(() => {
     const counts = [0, 0, 0, 0, 0];
     displayReviews.forEach((r: any) => {
-      const n = Math.round(r.rating);
+      const n = Math.round(r.r);
       if (n >= 1 && n <= 5) counts[5 - n]++;
     });
     const total = displayReviews.length;

@@ -1317,7 +1317,7 @@ export default function AutoRepairStorefront({
   const REV_DIST = useMemo(() => {
     const counts = [0, 0, 0, 0, 0];
     displayReviews.forEach((r: any) => {
-      const n = Math.round(r.rating);
+      const n = Math.round(r.r);
       if (n >= 1 && n <= 5) counts[5 - n]++;
     });
     const total = displayReviews.length;
@@ -2452,7 +2452,6 @@ export default function AutoRepairStorefront({
                     <span className="ab-kicker">Our story</span>
                     <h2 className="ab-headline">Honest work on your car, from people who actually explain it.</h2>
                     {DUMMY_STORE.bio && <p className="ab-lede">{DUMMY_STORE.bio}</p>}
-                    {store.about_intro_text && <p className="ab-para">{store.about_intro_text}</p>}
                     {store.about_intro_text && <p className="ab-para">{store.about_intro_text}</p>}
 
                     {store.founder_name && (

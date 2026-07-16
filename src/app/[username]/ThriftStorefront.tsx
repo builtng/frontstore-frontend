@@ -993,7 +993,7 @@ export default function ThriftStorefront({
           <div className="pv-info">
             <span className="pv-infocat">{p.cat}{p.condition ? "  ·  " + p.condition : ""}</span>
             <h1 className="pv-name">{p.name}</h1>
-            <div className="pv-price">{money(p.price)} <span className="pv-approx">approx ${Math.round(p.price / 1600)}</span></div>
+            <div className="pv-price">{money(p.price)}</div>
             <p className="pv-desc">{p.desc}</p>
 
             {colours.length > 0 && (<>

@@ -437,6 +437,16 @@ export default function BeautyStorefront({
     }));
   }, [reviews]);
 
+  const REV_DIST = useMemo(() => {
+    const counts = [0, 0, 0, 0, 0];
+    displayReviews.forEach((r: any) => {
+      const n = Math.round(r.r);
+      if (n >= 1 && n <= 5) counts[5 - n]++;
+    });
+    const total = displayReviews.length;
+    return [5, 4, 3, 2, 1].map((star, i) => [String(star), total > 0 ? Math.round((counts[i] / total) * 100) : 0]);
+  }, [displayReviews]);
+
   // --- Dynamic FAQs ---
   const displayFaqs = useMemo(() => {
     return (faqs || []).map(f => [f.question, f.answer]);
@@ -1130,21 +1140,23 @@ export default function BeautyStorefront({
     if (displayReviews.length === 0 && !store.rating && !store.review_count) {
       return <EmptyState />;
     }
-    const bars = [["5", 80], ["4", 14], ["3", 3], ["2", 2], ["1", 1]];
     const overallRating = store.rating || (displayReviews.reduce((s, x) => s + x.r, 0) / displayReviews.length);
+    const label = overallRating >= 4.5 ? "Excellent" : overallRating >= 3.5 ? "Very good" : overallRating >= 2.5 ? "Good" : overallRating >= 1.5 ? "Fair" : "Poor";
     return (
       <div className="ps-rating">
         <div className="ps-rating-score">
           <b>{overallRating.toFixed(1)}</b>
           <div className="ps-rating-stars">{Array.from({ length: 5 }).map((_, i) => <Star key={i} size={15} className="f" />)}</div>
-          <span>Excellent</span>
+          <span>{label}</span>
           <i>{store.review_count || displayReviews.length} reviews</i>
         </div>
-        <div className="ps-rating-bars">
-          {bars.map(([n, w]) => (
-            <div key={n} className="ps-bar"><span>{n}</span><div><i style={{ width: w + "%" }} /></div></div>
-          ))}
-        </div>
+        {REV_DIST.length > 0 && (
+          <div className="ps-rating-bars">
+            {REV_DIST.map(([n, w]) => (
+              <div key={n} className="ps-bar"><span>{n}</span><div><i style={{ width: w + "%" }} /></div></div>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
