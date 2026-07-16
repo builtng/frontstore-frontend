@@ -981,14 +981,12 @@ export default function PhotographerStorefront({
     const open = parseClock(o), close = parseClock(c);
     const duration = bookSvc ? bookSvc.duration_minutes || 60 : 60;
     const out = [];
-    let idx = 0;
     for (let t = open; t <= close - duration; t += 60) {
       out.push({
         id: `mock-slot-${dateStr}-${t}`,
         time: fmtMins(t),
-        taken: (date.getDate() + idx) % 4 === 0
+        taken: false
       });
-      idx++;
     }
     return out;
   };
@@ -1852,10 +1850,10 @@ export default function PhotographerStorefront({
     );
   };
 
-  const announcement = !annOff && (
+  const announcement = !annOff && (store.announcement_title || store.announcement_body) && (
     <div className="ps-ann">
       <Megaphone size={16} />
-      <p><b>Announcement</b> December wedding and portrait dates are filling fast. Secure yours early.</p>
+      <p><b>{store.announcement_title || "Announcement"}</b> {store.announcement_body || ""}</p>
       <button onClick={() => setAnnOff(true)} aria-label="Dismiss"><X size={15} /></button>
     </div>
   );
@@ -2798,7 +2796,7 @@ function SectionHead({ title, action, onAction }: { title: string, action?: stri
   return (<div className="ps-sec-head"><h2>{title}</h2>{action && <button onClick={onAction}>{action}</button>}</div>);
 }
 function ServiceCard({ s, onBook }: { s: any, onBook: () => void }) {
-  return (<div className="ps-card"><div className="ps-card-thumb svc"><Sparkles size={22} /></div>
+  return (<div className="ps-card"><div className="ps-card-thumb svc">{s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Sparkles size={22} />}</div>
     <div className="ps-card-body"><b>{s.name}</b><span className="ps-card-sub"><Clock size={12} /> {s.dur}</span>
       <div className="ps-card-foot"><em>{money(s.price)}</em><button className="ps-mini book" onClick={onBook}>View</button></div></div></div>);
 }
@@ -2828,7 +2826,7 @@ function ServiceCardRich({ s, onBook, colour, badge }: { s: any, onBook: () => v
   return (
     <div className="svc-card" onClick={onBook}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
-        <Sparkles size={24} />
+        {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Sparkles size={24} />}
         {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
         <span className="svc-card-cat">{s.cat}</span>
       </div>

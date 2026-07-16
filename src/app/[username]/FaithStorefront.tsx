@@ -986,14 +986,12 @@ export default function FaithStorefront({
     const open = parseClock(o), close = parseClock(c);
     const duration = bookSvc ? bookSvc.duration_minutes || 60 : 60;
     const out = [];
-    let idx = 0;
     for (let t = open; t <= close - duration; t += 60) {
       out.push({
         id: `mock-slot-${dateStr}-${t}`,
         time: fmtMins(t),
-        taken: (date.getDate() + idx) % 4 === 0
+        taken: false
       });
-      idx++;
     }
     return out;
   };
@@ -1368,15 +1366,17 @@ export default function FaithStorefront({
   const aboutFounderBody = () => (<>
     <span className="ab-kicker">Meet the founder</span>
     <h3 className="ab-name">{DUMMY_AUTHOR.name}</h3>
-    <span className="ab-role">{DUMMY_AUTHOR.role}</span>
-    <span className="ab-verified"><BadgeCheck size={14} /> Verified by Frontstore</span>
+    {DUMMY_AUTHOR.role && <span className="ab-role">{DUMMY_AUTHOR.role}</span>}
+    {store.is_verified && <span className="ab-verified"><BadgeCheck size={14} /> Verified by Frontstore</span>}
     <p className="ab-bio">{DUMMY_AUTHOR.long}</p>
     <div className="ab-chips">{DUMMY_AUTHOR.specialities.map((s: any) => <span key={s}>{s}</span>)}</div>
-    <div className="ab-creds">
-      <span className="ab-creds-h">Training and credentials</span>
-      <ul>{DUMMY_AUTHOR.credentials.map((c: any) => <li key={c}><Check size={14} /> {c}</li>)}</ul>
-    </div>
-    <p className="ab-quote">{DUMMY_AUTHOR.quote}</p>
+    {DUMMY_AUTHOR.credentials.length > 0 && (
+      <div className="ab-creds">
+        <span className="ab-creds-h">Training and credentials</span>
+        <ul>{DUMMY_AUTHOR.credentials.map((c: any) => <li key={c}><Check size={14} /> {c}</li>)}</ul>
+      </div>
+    )}
+    {DUMMY_AUTHOR.quote && <p className="ab-quote">{DUMMY_AUTHOR.quote}</p>}
     <div className="ab-socials">
       {DUMMY_AUTHOR.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {DUMMY_AUTHOR.socials.instagram}</button>}
       {DUMMY_AUTHOR.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {DUMMY_AUTHOR.socials.tiktok}</button>}
@@ -1453,10 +1453,12 @@ export default function FaithStorefront({
   const aboutBody = () => (<>
     <p className="ps-prose">{DUMMY_STORE.bio}</p>
     {store.about_intro_text && <p className="ab-para">{store.about_intro_text}</p>}
+    {store.founder_name && (
     <div className="ab-founder ab-founder-m">
-      <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
+      <div className="ab-portrait">{store.founder_avatar_url ? <img src={store.founder_avatar_url} alt={DUMMY_AUTHOR.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span>}<span className="ab-portrait-tag">Founder</span></div>
       <div className="ab-founder-body">{aboutFounderBody()}</div>
     </div>
+    )}
     {aboutWork()}
     {aboutFeatured()}
     <div className="ab-section">
@@ -1861,10 +1863,10 @@ export default function FaithStorefront({
     );
   };
 
-  const announcement = !annOff && (
+  const announcement = !annOff && (store.announcement_title || store.announcement_body) && (
     <div className="ps-ann">
       <Megaphone size={16} />
-      <p><b>Announcement</b> Holiday sessions are filling up fast. Register early to lock in a spot.</p>
+      <p><b>{store.announcement_title || "Announcement"}</b> {store.announcement_body || ""}</p>
       <button onClick={() => setAnnOff(true)} aria-label="Dismiss"><X size={15} /></button>
     </div>
   );
@@ -2453,10 +2455,12 @@ export default function FaithStorefront({
                     {store.about_intro_text && <p className="ab-para">{store.about_intro_text}</p>}
                     {store.about_intro_text && <p className="ab-para">{store.about_intro_text}</p>}
 
+                    {store.founder_name && (
                     <div className="ab-founder">
-                      <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
+                      <div className="ab-portrait">{store.founder_avatar_url ? <img src={store.founder_avatar_url} alt={DUMMY_AUTHOR.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span>}<span className="ab-portrait-tag">Founder</span></div>
                       <div className="ab-founder-body">{aboutFounderBody()}</div>
                     </div>
+                    )}
                     {aboutWork()}
                     {aboutFeatured()}
 
@@ -2807,7 +2811,7 @@ function SectionHead({ title, action, onAction }: { title: string, action?: stri
   return (<div className="ps-sec-head"><h2>{title}</h2>{action && <button onClick={onAction}>{action}</button>}</div>);
 }
 function ServiceCard({ s, onBook }: { s: any, onBook: () => void }) {
-  return (<div className="ps-card"><div className="ps-card-thumb svc"><Sparkles size={22} /></div>
+  return (<div className="ps-card"><div className="ps-card-thumb svc">{s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Sparkles size={22} />}</div>
     <div className="ps-card-body"><b>{s.name}</b><span className="ps-card-sub"><Clock size={12} /> {s.dur}</span>
       <div className="ps-card-foot"><em>{money(s.price)}</em><button className="ps-mini book" onClick={onBook}>View</button></div></div></div>);
 }
@@ -2837,7 +2841,7 @@ function ServiceCardRich({ s, onBook, colour, badge }: { s: any, onBook: () => v
   return (
     <div className="svc-card" onClick={onBook}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
-        <Sparkles size={24} />
+        {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Sparkles size={24} />}
         {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
         <span className="svc-card-cat">{s.cat}</span>
       </div>

@@ -1594,7 +1594,7 @@ export default function ThriftStorefront({
     for (let t = open; t <= close - bookSvc.durMin; t += 60) out.push(t);
     return out.map((min, i) => ({
       time: fmtMins(min),
-      taken: (bookDate.getDate() + i) % 4 === 0,
+      taken: false,
       id: undefined
     }));
   }, [bookDate, bookSvc, apiSlots]);

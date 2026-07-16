@@ -1108,17 +1108,22 @@ export default function TechStorefront({
     const g = prodColor(p.cat);
     const idx = prodCats.indexOf(p.cat);
     const more = PRODUCTS.filter((x) => x.id !== p.id).slice(0, 3);
+    const hasImage = p.image_urls && p.image_urls.length > 0;
     return (
       <div className="pv">
         <button className="pv-back" onClick={() => go("products")}><ChevronLeft size={16} /> Back to gadgets</button>
         <div className="pv-grid">
           <div className="pv-gallery">
-            <div className={`pv-main ${g}`} style={colour ? { borderColor: colour.h } : undefined}>
+            <div className={`pv-main ${g}`} style={hasImage ? { backgroundImage: `url(${p.image_urls[0]})`, backgroundSize: 'cover', backgroundPosition: 'center' } : (colour ? { borderColor: colour.h } : undefined)}>
               {p.popular && <span className="pv-tag"><Star size={11} /> Best seller</span>}
               <span className="pv-cat">{p.cat}</span>
-              <ShoppingBag className="pv-main-icn" size={40} />
+              {!hasImage && <ShoppingBag className="pv-main-icn" size={40} />}
             </div>
-            <div className="pv-thumbs">{[0, 1, 2].map((i) => <span key={i} className={`pv-thumb c${(idx + i) % 4}`} />)}</div>
+            {hasImage && p.image_urls.length > 1 && (
+              <div className="pv-thumbs">
+                {p.image_urls.map((url: string, i: number) => <span key={i} className="pv-thumb" style={{ backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />)}
+              </div>
+            )}
           </div>
           <div className="pv-info">
             <span className="pv-infocat">{p.cat}{p.condition ? "  ·  " + p.condition : ""}</span>
@@ -1234,15 +1239,17 @@ export default function TechStorefront({
   const aboutFounderBody = () => (<>
     <span className="ab-kicker">Meet the founder</span>
     <h3 className="ab-name">{AUTHOR.name}</h3>
-    <span className="ab-role">{AUTHOR.role}</span>
-    <span className="ab-verified"><BadgeCheck size={14} /> Verified by Frontstore</span>
+    {AUTHOR.role && <span className="ab-role">{AUTHOR.role}</span>}
+    {store.is_verified && <span className="ab-verified"><BadgeCheck size={14} /> Verified by Frontstore</span>}
     <p className="ab-bio">{AUTHOR.long}</p>
     <div className="ab-chips">{AUTHOR.specialities.map((s: string) => <span key={s}>{s}</span>)}</div>
-    <div className="ab-creds">
-      <span className="ab-creds-h">Training and credentials</span>
-      <ul>{AUTHOR.credentials.map((c: string) => <li key={c}><Check size={14} /> {c}</li>)}</ul>
-    </div>
-    <p className="ab-quote">{AUTHOR.quote}</p>
+    {AUTHOR.credentials.length > 0 && (
+      <div className="ab-creds">
+        <span className="ab-creds-h">Training and credentials</span>
+        <ul>{AUTHOR.credentials.map((c: string) => <li key={c}><Check size={14} /> {c}</li>)}</ul>
+      </div>
+    )}
+    {AUTHOR.quote && <p className="ab-quote">{AUTHOR.quote}</p>}
     <div className="ab-socials">
       {AUTHOR.socials.instagram && <button onClick={() => window.open(`https://instagram.com/${AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {AUTHOR.socials.instagram}</button>}
       {AUTHOR.socials.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><TikTokIcon size={16} /> {AUTHOR.socials.tiktok}</button>}
@@ -1269,7 +1276,7 @@ export default function TechStorefront({
   const aboutBody = () => (
     <div className="ab-wrap">
       <p className="svc-intro">{STORE.bio}</p>
-      <div className="ab-founder">{aboutFounderBody()}</div>
+      {store.founder_name && <div className="ab-founder">{aboutFounderBody()}</div>}
       {displayPortfolio.length > 0 && aboutWork()}
       <div className="ab-section">
         <h4 className="ab-subhead">Facts about the shop</h4>
