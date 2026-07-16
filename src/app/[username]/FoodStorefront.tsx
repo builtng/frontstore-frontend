@@ -1121,14 +1121,12 @@ export default function FoodStorefront({
     const open = parseClock(o), close = parseClock(c);
     const duration = bookSvc ? bookSvc.duration_minutes || 60 : 60;
     const out = [];
-    let idx = 0;
     for (let t = open; t <= close - duration; t += 60) {
       out.push({
         id: `mock-slot-${dateStr}-${t}`,
         time: fmtMins(t),
-        taken: (date.getDate() + idx) % 4 === 0
+        taken: false
       });
-      idx++;
     }
     return out;
   };
@@ -1372,6 +1370,7 @@ export default function FoodStorefront({
     const g = prodColor(p.cat);
     const idx = prodCats.indexOf(p.cat);
     const more = PRODUCTS.filter((x) => x.id !== p.id).slice(0, 3);
+    const hasImage = p.image_urls && p.image_urls.length > 0;
     return (
       <div className="pv">
         {(store.storefront_sections || []).includes("products") && (
@@ -1379,12 +1378,16 @@ export default function FoodStorefront({
         )}
         <div className="pv-grid">
           <div className="pv-gallery">
-            <div className={`pv-main ${g}`}>
+            <div className={`pv-main ${g}`} style={hasImage ? { backgroundImage: `url(${p.image_urls[0]})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
               {p.popular && <span className="pv-tag"><Star size={11} /> Most loved</span>}
               <span className="pv-cat">{p.cat}</span>
-              <UtensilsCrossed className="pv-main-icn" size={40} />
+              {!hasImage && <UtensilsCrossed className="pv-main-icn" size={40} />}
             </div>
-            <div className="pv-thumbs">{[0, 1, 2].map((i: any) => <span key={i} className={`pv-thumb c${(idx + i) % 4}`} />)}</div>
+            {hasImage && p.image_urls.length > 1 && (
+              <div className="pv-thumbs">
+                {p.image_urls.map((url: string, i: number) => <span key={i} className="pv-thumb" style={{ backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />)}
+              </div>
+            )}
           </div>
           <div className="pv-info">
             <span className="pv-infocat">{p.cat}</span>
@@ -1403,7 +1406,7 @@ export default function FoodStorefront({
 
             <div className="pv-meta">
               {p.note && <div><Clock size={15} /><span>{p.note}.</span></div>}
-              <div><Truck size={15} /><span>Hot delivery across Lagos in 1 to 2 hours, or free pickup in Maryland.</span></div>
+              <div><Truck size={15} /><span>Hot delivery across Lagos, or free self-pickup{store.location ? ` in ${store.location}` : ""}.</span></div>
               <div><Package size={15} /><span>Packed hot and sealed. Many dishes contain pepper, fish or nuts, so ask us about allergens.</span></div>
               <div><ShieldCheck size={15} /><span>Secured by Frontstore. Your payment is protected until your order arrives.</span></div>
             </div>
@@ -1443,15 +1446,17 @@ export default function FoodStorefront({
   const aboutFounderBody = () => (<>
     <span className="ab-kicker">Meet the founder</span>
     <h3 className="ab-name">{DUMMY_AUTHOR.name}</h3>
-    <span className="ab-role">{DUMMY_AUTHOR.role}</span>
-    <span className="ab-verified"><BadgeCheck size={14} /> Verified by Frontstore</span>
+    {DUMMY_AUTHOR.role && <span className="ab-role">{DUMMY_AUTHOR.role}</span>}
+    {store.is_verified && <span className="ab-verified"><BadgeCheck size={14} /> Verified by Frontstore</span>}
     <p className="ab-bio">{DUMMY_AUTHOR.long}</p>
     <div className="ab-chips">{DUMMY_AUTHOR.specialities.map((s: any) => <span key={s}>{s}</span>)}</div>
-    <div className="ab-creds">
-      <span className="ab-creds-h">Training and credentials</span>
-      <ul>{DUMMY_AUTHOR.credentials.map((c: any) => <li key={c}><Check size={14} /> {c}</li>)}</ul>
-    </div>
-    <p className="ab-quote">{DUMMY_AUTHOR.quote}</p>
+    {DUMMY_AUTHOR.credentials.length > 0 && (
+      <div className="ab-creds">
+        <span className="ab-creds-h">Training and credentials</span>
+        <ul>{DUMMY_AUTHOR.credentials.map((c: any) => <li key={c}><Check size={14} /> {c}</li>)}</ul>
+      </div>
+    )}
+    {DUMMY_AUTHOR.quote && <p className="ab-quote">{DUMMY_AUTHOR.quote}</p>}
     <div className="ab-socials">
       {DUMMY_AUTHOR.socials?.instagram && <button onClick={() => window.open(`https://instagram.com/${DUMMY_AUTHOR.socials.instagram.replace(/^@/, '')}`, '_blank')}><Instagram size={16} /> {DUMMY_AUTHOR.socials.instagram}</button>}
       {DUMMY_AUTHOR.socials?.tiktok && <button onClick={() => window.open(`https://tiktok.com/@${DUMMY_AUTHOR.socials.tiktok.replace(/^@/, '')}`, '_blank')}><Tiktok size={16} /> {DUMMY_AUTHOR.socials.tiktok}</button>}
@@ -1512,16 +1517,21 @@ export default function FoodStorefront({
           </button>
         ))}
       </div>
-      <p className="ab-journal-note">Written by {DUMMY_AUTHOR.name}, drawing on a decade of client work.</p>
+      <p className="ab-journal-note">We share recipes, kitchen notes and menu updates twice a month.</p>
     </div>
   );
   const aboutBody = () => (<>
     <p className="ps-prose">{DUMMY_STORE.bio}</p>
     {store.about_intro_text && <p className="ab-para">{store.about_intro_text}</p>}
-    <div className="ab-founder ab-founder-m">
-      <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
-      <div className="ab-founder-body">{aboutFounderBody()}</div>
-    </div>
+    {store.founder_name && (
+      <div className="ab-founder ab-founder-m">
+        <div className="ab-portrait">
+          {store.founder_avatar_url ? <img src={store.founder_avatar_url} alt={DUMMY_AUTHOR.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span>}
+          <span className="ab-portrait-tag">Founder</span>
+        </div>
+        <div className="ab-founder-body">{aboutFounderBody()}</div>
+      </div>
+    )}
     {aboutWork()}
     {aboutFeatured()}
     <div className="ab-section">
@@ -1545,7 +1555,7 @@ export default function FoodStorefront({
       </div>
     </div>
     {aboutReview()}
-    {aboutJournal()}
+    {displayBlog.length > 0 && aboutJournal()}
     <div className="ps-about-grid">
       {DUMMY_STORE.orders ? <div><b>{DUMMY_STORE.orders}</b><span>orders delivered</span></div> : null}
       {DUMMY_STORE.rating ? <div><b>{DUMMY_STORE.rating}</b><span>average rating</span></div> : null}
@@ -1922,10 +1932,10 @@ export default function FoodStorefront({
     );
   };
 
-  const announcement = !annOff && (
+  const announcement = !annOff && (store.announcement_title || store.announcement_body) && (
     <div className="ps-ann">
       <Megaphone size={16} />
-      <p><b>Announcement</b> Weekend pre orders are open. Lock in your jollof and small chops before they sell out.</p>
+      <p><b>{store.announcement_title || "Announcement"}</b> {store.announcement_body || ""}</p>
       <button onClick={() => setAnnOff(true)} aria-label="Dismiss"><X size={15} /></button>
     </div>
   );
@@ -2439,7 +2449,6 @@ export default function FoodStorefront({
                             <div><b>{DUMMY_AUTHOR.name}</b><span>{DUMMY_AUTHOR.role}</span></div>
                           </div>
                           <p>{DUMMY_AUTHOR.bio}</p>
-                          <div className="author-cred"><Sparkles size={13} /> Over 7 years cooking for Lagos events and homes</div>
                           <button className="author-link" onClick={() => go("about")}>More about {DUMMY_AUTHOR.name.split(" ")[0]} <ChevronRight size={14} /></button>
                         </div>
                         <div className="blog-convert">
@@ -2503,10 +2512,15 @@ export default function FoodStorefront({
                     <h2 className="ab-headline">A kitchen cooking the comfort food you grew up on.</h2>
                     {DUMMY_STORE.bio && <p className="ab-lede">{DUMMY_STORE.bio}</p>}
 
-                    <div className="ab-founder">
-                      <div className="ab-portrait"><span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span><span className="ab-portrait-tag">Founder</span></div>
-                      <div className="ab-founder-body">{aboutFounderBody()}</div>
-                    </div>
+                    {store.founder_name && (
+                      <div className="ab-founder">
+                        <div className="ab-portrait">
+                          {store.founder_avatar_url ? <img src={store.founder_avatar_url} alt={DUMMY_AUTHOR.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="ab-portrait-mono">{DUMMY_AUTHOR.initial}</span>}
+                          <span className="ab-portrait-tag">Founder</span>
+                        </div>
+                        <div className="ab-founder-body">{aboutFounderBody()}</div>
+                      </div>
+                    )}
                     {aboutWork()}
                     {aboutFeatured()}
 
@@ -2533,7 +2547,7 @@ export default function FoodStorefront({
                     </div>
 
                     {aboutReview()}
-                    {aboutJournal()}
+                    {displayBlog.length > 0 && aboutJournal()}
                     <div className="ab-section">
                       <h4 className="ab-subhead">Good to know</h4>
                       <div className="ab-facts">
@@ -2855,7 +2869,9 @@ function SectionHead({ title, action, onAction }: { title: string, action?: stri
   return (<div className="ps-sec-head"><h2>{title}</h2>{action && <button onClick={onAction}>{action}</button>}</div>);
 }
 function ServiceCard({ s, onBook }: { s: any, onBook: () => void }) {
-  return (<div className="ps-card"><div className="ps-card-thumb svc"><Sparkles size={22} /></div>
+  return (<div className="ps-card"><div className="ps-card-thumb svc">
+      {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Sparkles size={22} />}
+    </div>
     <div className="ps-card-body"><b>{s.name}</b><span className="ps-card-sub"><Clock size={12} /> {s.dur}</span>
       <div className="ps-card-foot"><em>{money(s.price)}</em><button className="ps-mini book" onClick={onBook}>Book</button></div></div></div>);
 }
@@ -2884,7 +2900,7 @@ function ServiceCardRich({ s, onBook, colour, badge }: { s: any, onBook: () => v
   return (
     <div className="svc-card" onClick={onBook}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
-        <Sparkles size={24} />
+        {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Sparkles size={24} />}
         {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
         <span className="svc-card-cat">{s.cat}</span>
       </div>
