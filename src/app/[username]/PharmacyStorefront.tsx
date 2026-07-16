@@ -2723,7 +2723,21 @@ export default function PharmacyStorefront({
             })}
           </div>
           <p className="ps-deposit">Updates are sent through Frontstore. No spam, opt out any time, and your number is never shared with other stores.</p>
-          <button className="ps-sheet-cta" disabled={!notifyPhone.trim() || notifyTopics.length === 0} onClick={() => { setNotifyOpen(false); ping(`You will get updates from ${DUMMY_STORE.name}`); }}><Bell size={16} /> Notify me</button>
+          <button className="ps-sheet-cta" disabled={!notifyPhone.trim() || notifyTopics.length === 0} onClick={async () => {
+            const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
+            try {
+              const res = await fetch(`${API_URL}/v1/public/store/${username}/subscribers`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone_number: notifyPhone.trim(), topics: notifyTopics })
+              });
+              if (!res.ok) throw new Error('subscribe failed');
+              setNotifyOpen(false);
+              ping(`You will get updates from ${DUMMY_STORE.name}`);
+            } catch {
+              ping('Something went wrong. Please try again.');
+            }
+          }}><Bell size={16} /> Notify me</button>
         </Sheet>
       )}
 
