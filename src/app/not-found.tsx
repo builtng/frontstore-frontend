@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { FileQuestion, Home, Store, Search } from 'lucide-react';
+import { FileQuestion, Home, Search } from 'lucide-react';
 import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
 
 export default function NotFound() {
@@ -85,9 +85,7 @@ export default function NotFound() {
               <Search size={16} /> Compare Prices
             </Link>
             
-            <Link href="/stores" className="btn btn-ghost" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', border: '1px solid var(--border)' }}>
-              <Store size={16} /> Browse Stores
-            </Link>
+
             
             <Link href="/" className="btn btn-ghost" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', border: '1px solid var(--border)' }}>
               <Home size={16} /> Back to Homepage
