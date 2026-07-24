@@ -3042,7 +3042,7 @@ const css = `
 .ps-card-thumb.svc{background:linear-gradient(150deg,var(--brand),var(--brand-deep));}
 .ps-card-thumb.prod{background:linear-gradient(150deg,#b08d57,var(--gold));}
 .ps-card-body{padding:11px 12px 12px;display:flex;flex-direction:column;flex:1;}
-.ps-card-body b{font-size:14px;font-weight:600;line-height:1.3;}
+.ps-card-body b{font-size:14px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .ps-card-sub{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);margin-top:3px;}
 .ps-card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:10px;}
 .ps-card-foot em{font-family:'Fraunces';font-weight:700;font-size:15px;font-style:normal;color:var(--brand-deep);}
@@ -3334,7 +3334,7 @@ const css = `
 .feat-rib{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand-deep);background:rgba(255,255,255,.92);padding:4px 8px;border-radius:7px;}
 .feat-rib svg{color:var(--gold);fill:var(--gold);}
 .feat-body{padding:13px 14px 14px;display:flex;flex-direction:column;flex:1;}
-.feat-body b{font-size:15px;font-weight:700;line-height:1.3;}
+.feat-body b{font-size:15px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .feat-sub{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);margin-top:3px;}
 .feat-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:12px;}
 .feat-foot em{font-family:'Fraunces';font-weight:700;font-size:17px;font-style:normal;color:var(--brand-deep);}
@@ -3720,7 +3720,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .svc-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:rgba(42,29,34,.5);backdrop-filter:blur(2px);padding:4px 8px;border-radius:7px;}
 .svc-badge svg{color:var(--gold);fill:var(--gold);}
 .svc-card-body{padding:13px 14px 14px;display:flex;flex-direction:column;flex:1;}
-.svc-card-body>b{font-size:15px;font-weight:700;line-height:1.3;}
+.svc-card-body>b{font-size:15px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .svc-card-dur{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);margin-top:3px;}
 .svc-card-desc{font-size:12.5px;color:#6a6458;line-height:1.5;margin-top:8px;flex:1;}
 .svc-card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:13px;}

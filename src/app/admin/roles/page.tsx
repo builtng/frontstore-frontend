@@ -32,6 +32,7 @@ const PERMISSIONS = [
   { value: 'health', label: 'View System Health', desc: 'Can check Twilio, Paystack, and database connection status.' },
   { value: 'settings', label: 'Manage Settings', desc: 'Can modify global settings like App name, disclaimer, SMTP, etc.' },
   { value: 'roles', label: 'Manage Roles & Staff', desc: 'Can configure staff roles and modify user permission roles.' },
+  { value: 'emails', label: 'Send Merchant Emails', desc: 'Can compose and send bulk emails to merchant audience segments.' },
 ];
 
 export default function AdminRolesPage() {
@@ -47,11 +48,20 @@ export default function AdminRolesPage() {
     usersLoading,
     loadUsers,
     assignUserRole,
+    inviteStaff,
     openConfirmationDialog,
   } = useAdmin();
 
   // Active sub-tab: 'roles' or 'staff'
   const [activeSubTab, setActiveSubTab] = useState<'roles' | 'staff'>('roles');
+
+  // Staff Invite Form States
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteName, setInviteName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRoleId, setInviteRoleId] = useState('');
+  const [inviteIsAdmin, setInviteIsAdmin] = useState(false);
+  const [inviteSaving, setInviteSaving] = useState(false);
 
   // Role Form States
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -157,6 +167,36 @@ export default function AdminRolesPage() {
     );
   };
 
+  const handleOpenInviteStaff = () => {
+    setInviteName('');
+    setInviteEmail('');
+    setInviteRoleId('');
+    setInviteIsAdmin(false);
+    setIsInviteModalOpen(true);
+  };
+
+  const handleSendInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteName.trim() || !inviteEmail.trim()) {
+      toast.warning('Please enter a name and email address.');
+      return;
+    }
+    if (!inviteIsAdmin && !inviteRoleId) {
+      toast.warning('Select a role for this staff member, or mark them as a full administrator.');
+      return;
+    }
+
+    try {
+      setInviteSaving(true);
+      await inviteStaff(inviteName.trim(), inviteEmail.trim(), inviteRoleId ? parseInt(inviteRoleId) : null, inviteIsAdmin);
+      setIsInviteModalOpen(false);
+    } catch (err) {
+      // toast already handled in context
+    } finally {
+      setInviteSaving(false);
+    }
+  };
+
   const handleUserRoleChange = async (userId: string | number, roleIdVal: string) => {
     const roleId = roleIdVal === 'none' ? null : parseInt(roleIdVal);
     try {
@@ -176,7 +216,7 @@ export default function AdminRolesPage() {
           <h2>Roles & User Permissions</h2>
           <p>Create access control roles for platform staff, and assign privileges to any registered user.</p>
         </div>
-        {activeSubTab === 'roles' && (
+        {activeSubTab === 'roles' ? (
           <button
             type="button"
             className="btn btn-primary"
@@ -184,6 +224,15 @@ export default function AdminRolesPage() {
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
             <Plus size={16} /> Create Role
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleOpenInviteStaff}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Plus size={16} /> Invite Staff Member
           </button>
         )}
       </div>
@@ -632,6 +681,175 @@ export default function AdminRolesPage() {
                   style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                 >
                   {roleSaving ? <Loader2 size={16} className="admin-spin" /> : editingRole ? 'Update Role' : 'Create Role'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Staff Invite Modal Dialog */}
+      {isInviteModalOpen && (
+        <div
+          className="admin-modal-backdrop animate-fade-in"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <div
+            className="admin-panel animate-scale-up"
+            style={{
+              width: '100%',
+              maxWidth: 480,
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: 28,
+              position: 'relative',
+              background: 'var(--surface)',
+              border: '1.5px solid var(--border-strong)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setIsInviteModalOpen(false)}
+              style={{
+                position: 'absolute',
+                top: 20,
+                right: 20,
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={22} />
+            </button>
+
+            <h3 style={{ fontSize: 19, fontWeight: 900, marginBottom: 8, fontFamily: 'var(--font-heading)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <UserCheck size={20} style={{ color: 'var(--primary)' }} />
+              Invite Staff Member
+            </h3>
+            <p style={{ fontSize: 13.5, color: 'var(--text-muted)', marginBottom: 20 }}>
+              They'll get an email with a link to set their own password and access the console.
+            </p>
+
+            <form onSubmit={handleSendInvite} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 800, marginBottom: 8, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Ada Okafor"
+                  value={inviteName}
+                  onChange={(e) => setInviteName(e.target.value)}
+                  required
+                  style={{
+                    width: '100%', padding: '12px 14px', background: 'var(--surface-2)',
+                    border: '1.5px solid var(--border)', borderRadius: '8px', color: 'var(--text)',
+                    fontSize: 14.5, fontWeight: 600, outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 800, marginBottom: 8, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  placeholder="staff@frontstore.ng"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  required
+                  style={{
+                    width: '100%', padding: '12px 14px', background: 'var(--surface-2)',
+                    border: '1.5px solid var(--border)', borderRadius: '8px', color: 'var(--text)',
+                    fontSize: 14.5, fontWeight: 600, outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div
+                onClick={() => setInviteIsAdmin(!inviteIsAdmin)}
+                style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 12, padding: 12, borderRadius: 8,
+                  background: inviteIsAdmin ? 'rgba(18, 140, 126, 0.05)' : 'var(--surface-2)',
+                  border: inviteIsAdmin ? '1px solid var(--primary)' : '1px solid var(--border)',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{
+                  width: 18, height: 18, borderRadius: 4,
+                  border: inviteIsAdmin ? 'none' : '2px solid var(--border-strong)',
+                  background: inviteIsAdmin ? 'var(--primary)' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2, color: '#fff',
+                }}>
+                  {inviteIsAdmin && <Check size={12} strokeWidth={3} />}
+                </div>
+                <div>
+                  <strong style={{ display: 'block', fontSize: 13.5, color: 'var(--text)' }}>Full Administrator</strong>
+                  <small style={{ display: 'block', fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.4 }}>
+                    Bypasses all module permissions. Leave unchecked to assign a scoped role instead.
+                  </small>
+                </div>
+              </div>
+
+              {!inviteIsAdmin && (
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 800, marginBottom: 8, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Console Role
+                  </label>
+                  <select
+                    value={inviteRoleId}
+                    onChange={(e) => setInviteRoleId(e.target.value)}
+                    required={!inviteIsAdmin}
+                    style={{
+                      width: '100%', padding: '12px 14px', background: 'var(--surface-2)',
+                      border: '1.5px solid var(--border)', borderRadius: '8px', color: 'var(--text)',
+                      fontSize: 14.5, fontWeight: 600, outline: 'none', cursor: 'pointer',
+                    }}
+                  >
+                    <option value="">Select a role...</option>
+                    {roles.map((r) => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                  {roles.length === 0 && (
+                    <small style={{ display: 'block', marginTop: 6, fontSize: 12, color: 'var(--text-faint)' }}>
+                      No roles created yet — create one under Platform Roles first.
+                    </small>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 12, marginTop: 4, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setIsInviteModalOpen(false)}
+                  style={{ flex: 1, justifyContent: 'center' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={inviteSaving}
+                  style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                >
+                  {inviteSaving ? <Loader2 size={16} className="admin-spin" /> : 'Send Invitation'}
                 </button>
               </div>
             </form>

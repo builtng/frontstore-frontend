@@ -469,6 +469,10 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .ps-card-sub {
   display: flex;
@@ -2307,6 +2311,10 @@
   font-size: 15px;
   font-weight: 700;
   line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .feat-sub {
   display: flex;
@@ -4548,10 +4556,13 @@ select.ct-input {
   flex: 1;
 }
 .svc-card-body b {
-  display: block;
+  display: -webkit-box;
   font-size: 15px;
   font-weight: 700;
   line-height: 1.32;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .svc-card-dur {
   display: inline-flex;

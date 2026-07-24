@@ -67,6 +67,8 @@ interface UserInfo {
   has_password?: boolean;
   ai_analyses_used?: number;
   is_admin?: boolean | number | string;
+  subscription_status?: 'active' | 'attention' | 'non_renewing' | 'cancelled' | null;
+  paystack_subscription_code?: string | null;
 }
 
 interface StoreLink {
@@ -1311,6 +1313,7 @@ export default function DashboardPage() {
   // Paystack subscription payment state
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [isInitializingPayment, setIsInitializingPayment] = useState(false);
+  const [isCancellingSubscription, setIsCancellingSubscription] = useState(false);
   const [isGeneratingDedicatedAccount, setIsGeneratingDedicatedAccount] = useState(false);
   const [isConnectingStripe, setIsConnectingStripe] = useState(false);
   const [isLoadingStripeDashboard, setIsLoadingStripeDashboard] = useState(false);
@@ -4102,6 +4105,31 @@ export default function DashboardPage() {
       toast.error(e.message || 'Payment initialization failed.');
     } finally {
       setIsInitializingPayment(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!window.confirm("Cancel auto-renewal? Your plan will move back to Free immediately.")) {
+      return;
+    }
+    try {
+      setIsCancellingSubscription(true);
+      const res = await fetch(`${apiUrl}/v1/payments/cancel-subscription`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      });
+      const json = await res.json();
+      if (res.ok && json.data?.user) {
+        toast.success(json.message || 'Auto-renewal cancelled.');
+        setUser(json.data.user);
+        localStorage.setItem('user', JSON.stringify(json.data.user));
+      } else {
+        throw new Error(json.message || 'Could not cancel subscription.');
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Error cancelling subscription.');
+    } finally {
+      setIsCancellingSubscription(false);
     }
   };
 
@@ -9032,6 +9060,53 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
+                  {/* Manage Subscription — only for users on a real recurring Paystack subscription */}
+                  {user?.plan && user.plan !== 'free' && user?.paystack_subscription_code && (
+                    <div className="card" style={{
+                      padding: '18px 22px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 16,
+                      flexWrap: 'wrap',
+                      background: user.subscription_status === 'attention' ? 'var(--danger-light)' : 'var(--bg-2)',
+                      border: user.subscription_status === 'attention' ? '1px solid var(--danger)' : '1px solid var(--border)',
+                    }}>
+                      <div>
+                        <p style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text)' }}>
+                          {user.subscription_status === 'attention'
+                            ? 'Your last renewal payment failed'
+                            : `Auto-renewing ${user.plan.startsWith('legend') ? 'LEGEND' : 'PRO'} (${user.plan.endsWith('yearly') ? 'Yearly' : 'Monthly'}) subscription`}
+                        </p>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                          {user.subscription_status === 'attention'
+                            ? 'Update your card with Paystack or contact support to keep your plan active.'
+                            : "Billed automatically by Paystack on your plan's cycle. Cancel anytime — you'll move back to Free immediately."}
+                        </p>
+                      </div>
+                      {user.subscription_status !== 'non_renewing' && user.subscription_status !== 'cancelled' && (
+                        <button
+                          type="button"
+                          onClick={handleCancelSubscription}
+                          disabled={isCancellingSubscription}
+                          className="btn clickable"
+                          style={{
+                            padding: '10px 18px',
+                            borderRadius: 'var(--r-md)',
+                            border: '1px solid var(--border)',
+                            background: 'var(--surface)',
+                            color: 'var(--text)',
+                            fontWeight: 800,
+                            fontSize: 13,
+                            opacity: isCancellingSubscription ? 0.7 : 1,
+                          }}
+                        >
+                          {isCancellingSubscription ? 'Cancelling…' : 'Cancel Auto-Renewal'}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   {/* Plan Card Grid */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr 1.1fr', gap: 24 }} className="responsive-settings-grid">
 
@@ -9373,6 +9448,11 @@ export default function DashboardPage() {
                                     ? 'Go Pro Monthly'
                                     : 'Go Pro Yearly'}
                         </button>
+                        {!isPro && !(appliedCoupon && appliedCoupon.final_price === 0) && (
+                          <p style={{ fontSize: 11, color: 'var(--text-faint)', textAlign: 'center', lineHeight: 1.5 }}>
+                            Billed automatically via Paystack. Cancel auto-renewal anytime from this page — you'll move back to Free immediately, no questions asked.
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -9618,6 +9698,11 @@ export default function DashboardPage() {
                                   ? 'Go Legend Monthly'
                                   : 'Go Legend Yearly'}
                         </button>
+                        {!isLegend && !(appliedLegendCoupon && appliedLegendCoupon.final_price === 0) && (
+                          <p style={{ fontSize: 11, color: 'var(--text-faint)', textAlign: 'center', lineHeight: 1.5 }}>
+                            Billed automatically via Paystack. Cancel auto-renewal anytime from this page — you'll move back to Free immediately, no questions asked.
+                          </p>
+                        )}
                       </div>
                     </div>
 

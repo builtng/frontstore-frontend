@@ -17,6 +17,7 @@ import {
   Layers,
   Loader2,
   LogOut,
+  Mail,
   Package,
   Settings,
   Shield,
@@ -58,6 +59,12 @@ const navGroups = [
     ],
   },
   {
+    label: 'Engagement',
+    items: [
+      { href: '/admin/emails', label: 'Merchant Messages', icon: <Mail size={16} />, permission: 'emails' },
+    ],
+  },
+  {
     label: 'Administration',
     items: [
       { href: '/admin/roles', label: 'Roles & Staff', icon: <Users size={16} />, permission: 'roles' },
@@ -86,7 +93,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     closeConfirmationDialog,
   } = useAdmin();
 
-  const isLoginPage = pathname === '/admin/login';
+  const isLoginPage = pathname === '/admin/login' || pathname === '/admin/accept-invite';
 
   const isStaff = () => {
     if (isAdmin) return true;

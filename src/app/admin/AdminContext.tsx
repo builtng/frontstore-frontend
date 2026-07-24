@@ -235,6 +235,7 @@ interface AdminContextProps {
   usersLoading: boolean;
   loadUsers: (search?: string, page?: number, limit?: number) => Promise<any>;
   assignUserRole: (userId: string | number, roleId: string | number | null) => Promise<void>;
+  inviteStaff: (name: string, email: string, roleId: string | number | null, isAdmin: boolean) => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextProps | undefined>(undefined);
@@ -483,6 +484,23 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const inviteStaff = async (name: string, email: string, roleId: string | number | null, isAdmin: boolean) => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/users/invite`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ name, email, role_id: isAdmin ? null : roleId, is_admin: isAdmin }),
+      });
+      const json = await handleFetchResponse(res, 'Could not send invitation.');
+      toast.success(json.message || 'Invitation sent.');
+      loadUsers();
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
@@ -548,6 +566,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         usersLoading,
         loadUsers,
         assignUserRole,
+        inviteStaff,
       }}
     >
       {children}
