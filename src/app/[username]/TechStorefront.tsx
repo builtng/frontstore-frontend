@@ -2707,7 +2707,8 @@ const css = `
 }
 .ps-card-desc {
   font-size: 12.5px;
-  color: var(--muted);
+  color: var(--ink);
+  opacity: 0.85;
   margin: 6px 0 12px;
   line-height: 1.45;
   flex: 1;

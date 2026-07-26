@@ -3058,14 +3058,15 @@ const css = `
 .ps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
 .ps-card{background:var(--card);border:1px solid var(--line);border-radius:15px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-sm);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}
 .ps-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:transparent;}
-.ps-card-thumb{height:108px;display:grid;place-items:center;color:#fff;}
+.ps-card-thumb{height:128px;position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;}
 .ps-card-thumb.svc{background:linear-gradient(150deg,var(--brand),var(--brand-deep));}
 .ps-card-thumb.prod{background:linear-gradient(150deg,#6fb0ec,var(--gold));}
-.ps-card-body{padding:11px 12px 12px;display:flex;flex-direction:column;flex:1;}
-.ps-card-body b{font-size:14px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.ps-card-sub{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);margin-top:3px;}
+.ps-card-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.ps-card-body{background:var(--card);padding:12px;display:flex;flex-direction:column;flex:1;position:relative;z-index:2;}
+.ps-card-body b{font-size:14px;font-weight:700;line-height:1.35;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.ps-card-sub{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink);opacity:0.85;margin-top:4px;}
 .ps-card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:10px;}
-.ps-card-foot em{font-family:'Fraunces';font-weight:700;font-size:15px;font-style:normal;color:var(--brand-deep);}
+.ps-card-foot em{font-family:'Fraunces';font-weight:700;font-size:15.5px;font-style:normal;color:var(--brand-deep);}
 .ps-mini{font-size:13px;font-weight:700;padding:7px 15px;border-radius:9px;color:#fff;background:var(--brand);box-shadow:0 3px 8px rgba(47,111,224,.28);}
 .ps-mini:hover{box-shadow:0 5px 14px rgba(47,111,224,.36);transform:translateY(-1px);}
 .ps-mini:active{transform:translateY(1px);}

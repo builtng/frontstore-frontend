@@ -473,10 +473,18 @@
   border-color: transparent;
 }
 .ps-card-thumb {
-  height: 108px;
+  height: 128px;
+  position: relative;
+  overflow: hidden;
   display: grid;
   place-items: center;
   color: #fff;
+}
+.ps-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .ps-card-thumb.svc {
   background: linear-gradient(150deg, var(--brand), var(--brand-deep));
@@ -485,15 +493,19 @@
   background: linear-gradient(150deg, #caa06f, var(--gold));
 }
 .ps-card-body {
-  padding: 11px 12px 12px;
+  background: var(--card);
+  padding: 12px;
   display: flex;
   flex-direction: column;
   flex: 1;
+  position: relative;
+  z-index: 2;
 }
 .ps-card-body b {
   font-size: 14px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -504,8 +516,10 @@
   align-items: center;
   gap: 5px;
   font-size: 12px;
-  color: var(--muted);
-  margin-top: 3px;
+  font-weight: 600;
+  color: var(--ink);
+  opacity: 0.85;
+  margin-top: 4px;
 }
 .ps-card-foot {
   display: flex;
@@ -517,7 +531,7 @@
 .ps-card-foot em {
   font-family: 'Fraunces';
   font-weight: 700;
-  font-size: 15px;
+  font-size: 15.5px;
   font-style: normal;
   color: var(--brand-deep);
 }

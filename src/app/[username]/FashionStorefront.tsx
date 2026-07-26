@@ -1418,11 +1418,11 @@ const FASHION_CSS = `
 .ps-card.c1 { background: linear-gradient(150deg, var(--brand-deep), var(--gold)); }
 .ps-card.c2 { background: linear-gradient(150deg, #caa06f, var(--brand)); }
 .ps-card.c3 { background: linear-gradient(150deg, var(--brand), #a86b8a); }
-.ps-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.55), transparent 48%); z-index: 1; }
-.ps-card-foot { position: relative; z-index: 2; padding: 10px 12px; width: 100%; text-align: left; }
-.ps-card-cat { display: block; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.7); }
-.ps-card-name { display: block; font-size: 13.5px; font-weight: 700; color: #fff; line-height: 1.2; margin: 2px 0; }
-.ps-card-price { display: block; font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700; color: #fff; }
+.ps-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.88) 0%, rgba(0,0,0,0.48) 55%, transparent 100%); z-index: 1; }
+.ps-card-foot { position: relative; z-index: 2; padding: 12px 14px; width: 100%; text-align: left; background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%); }
+.ps-card-cat { display: block; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.92); text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+.ps-card-name { display: block; font-size: 14px; font-weight: 700; color: #ffffff; line-height: 1.25; margin: 2px 0; text-shadow: 0 1px 4px rgba(0,0,0,0.85); }
+.ps-card-price { display: block; font-family: 'Fraunces', serif; font-size: 15.5px; font-weight: 700; color: #ffffff; text-shadow: 0 1px 4px rgba(0,0,0,0.85); }
 .ps-card-icn { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.45); z-index: 0; }
 .ps-badge { position: absolute; top: 10px; left: 10px; z-index: 3; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; padding: 4px 9px; border-radius: 8px; }
 .ps-badge--sold { background: rgba(0,0,0,.55); color: rgba(255,255,255,.85); }
