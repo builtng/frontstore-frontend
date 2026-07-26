@@ -1069,6 +1069,8 @@ export default function DashboardPage() {
   const [prodCustomFact, setProdCustomFact] = useState('');
   // Pre-order
   const [prodExpectedAvailabilityDate, setProdExpectedAvailabilityDate] = useState('');
+  // Variants (size / colour options)
+  const [prodVariants, setProdVariants] = useState<{ id?: string; size: string; color: string; price: string; inventory_quantity: string }[]>([]);
   // Bundle product states
   const [prodBundleItems, setProdBundleItems] = useState<{ product_id: string; quantity: number }[]>([]);
   // Cross-sell (merchant-curated related products, optional — auto-falls back to same-category on the storefront)
@@ -3067,6 +3069,7 @@ export default function DashboardPage() {
     setProdReadOnlineOnly(false);
     setProdEventDate('');
     setProdEventLocation('');
+    setProdVariants([]);
     setIsAddProductOpen(true);
   };
 
@@ -3254,6 +3257,12 @@ export default function DashboardPage() {
         read_online_only: prodDigitalFiles.length > 0 ? prodReadOnlineOnly : false,
         event_date: prodType === 'ticket' ? (prodEventDate || null) : null,
         event_location: prodType === 'ticket' ? (prodEventLocation || null) : null,
+        variants: prodVariants.length > 0 ? prodVariants.map(v => ({
+          size: v.size.trim() || null,
+          color: v.color.trim() || null,
+          price: v.price ? parseFloat(v.price) : null,
+          inventory_quantity: parseInt(v.inventory_quantity, 10) || 0,
+        })) : undefined,
       };
 
       const res = await fetch(`${apiUrl}/v1/products`, {
@@ -3306,6 +3315,13 @@ export default function DashboardPage() {
     setProdReadOnlineOnly(product.read_online_only ?? false);
     setProdEventDate(product.event_date ? product.event_date.slice(0, 16) : '');
     setProdEventLocation(product.event_location || '');
+    setProdVariants(Array.isArray(product.variants) ? product.variants.map((v: any) => ({
+      id: v.id,
+      size: v.size || '',
+      color: v.color || '',
+      price: v.price != null ? String(v.price) : '',
+      inventory_quantity: v.inventory_quantity != null ? String(v.inventory_quantity) : '0',
+    })) : []);
     setIsEditProductOpen(true);
   };
 
@@ -3344,6 +3360,19 @@ export default function DashboardPage() {
         read_online_only: prodDigitalFiles.length > 0 ? prodReadOnlineOnly : false,
         event_date: prodType === 'ticket' ? (prodEventDate || null) : null,
         event_location: prodType === 'ticket' ? (prodEventLocation || null) : null,
+        // Only send the `variants` key when there's something to sync — omitting it
+        // entirely for variant-less products avoids the backend's variants branch
+        // (which recalculates inventory_quantity/stock_status from the array and
+        // would otherwise zero out stock on every edit of a plain product).
+        variants: (prodVariants.length > 0 || (selectedProduct.variants && selectedProduct.variants.length > 0))
+          ? prodVariants.map(v => ({
+            id: v.id || undefined,
+            size: v.size.trim() || null,
+            color: v.color.trim() || null,
+            price: v.price ? parseFloat(v.price) : null,
+            inventory_quantity: parseInt(v.inventory_quantity, 10) || 0,
+          }))
+          : undefined,
       };
 
       const res = await fetch(`${apiUrl}/v1/products/${selectedProduct.id}`, {
@@ -15543,6 +15572,35 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* Variants — size / colour options for physical products */}
+              {prodType === 'product' && !prodIsDigital && (
+                <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px solid rgba(16, 185, 129, 0.2)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }} className="animate-fade-in">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--primary)' }}>🎨 Variants (Size / Colour)</div>
+                    <button
+                      type="button"
+                      className="btn clickable"
+                      onClick={() => setProdVariants(prev => [...prev, { size: '', color: '', price: '', inventory_quantity: '0' }])}
+                      style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, borderRadius: 8, background: 'var(--primary)', color: '#fff', border: 'none' }}
+                    >
+                      + Add Variant
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>Let buyers pick a size and/or colour before adding to cart. Leave empty if this product has no options.</p>
+                  {prodVariants.map((v, i) => (
+                    <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                      <input className="input-field" style={{ flex: '1 1 90px', minWidth: 80 }} placeholder="Size (e.g. M)" value={v.size} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, size: e.target.value } : row))} />
+                      <input className="input-field" style={{ flex: '1 1 90px', minWidth: 80 }} placeholder="Colour (e.g. Red)" value={v.color} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, color: e.target.value } : row))} />
+                      <input className="input-field" style={{ flex: '1 1 110px', minWidth: 90 }} type="number" min={0} step="0.01" placeholder="Price override" value={v.price} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, price: e.target.value } : row))} />
+                      <input className="input-field" style={{ flex: '1 1 90px', minWidth: 80 }} type="number" min={0} placeholder="Stock qty" value={v.inventory_quantity} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, inventory_quantity: e.target.value } : row))} />
+                      <button type="button" onClick={() => setProdVariants(prev => prev.filter((_, ri) => ri !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e53e3e', flexShrink: 0 }}>
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Bundle Extras — shown when Bundle type is selected */}
               {prodType === 'bundle' && (
                 <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px solid rgba(16, 185, 129, 0.2)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }} className="animate-fade-in">
@@ -16084,6 +16142,35 @@ export default function DashboardPage() {
                     onChange={e => setProdExpectedAvailabilityDate(e.target.value)}
                     className="input-field"
                   />
+                </div>
+              )}
+
+              {/* Variants — size / colour options for physical products */}
+              {prodType === 'product' && !prodIsDigital && (
+                <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px solid rgba(16, 185, 129, 0.2)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }} className="animate-fade-in">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--primary)' }}>🎨 Variants (Size / Colour)</div>
+                    <button
+                      type="button"
+                      className="btn clickable"
+                      onClick={() => setProdVariants(prev => [...prev, { size: '', color: '', price: '', inventory_quantity: '0' }])}
+                      style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, borderRadius: 8, background: 'var(--primary)', color: '#fff', border: 'none' }}
+                    >
+                      + Add Variant
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>Let buyers pick a size and/or colour before adding to cart. Leave empty if this product has no options.</p>
+                  {prodVariants.map((v, i) => (
+                    <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                      <input className="input-field" style={{ flex: '1 1 90px', minWidth: 80 }} placeholder="Size (e.g. M)" value={v.size} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, size: e.target.value } : row))} />
+                      <input className="input-field" style={{ flex: '1 1 90px', minWidth: 80 }} placeholder="Colour (e.g. Red)" value={v.color} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, color: e.target.value } : row))} />
+                      <input className="input-field" style={{ flex: '1 1 110px', minWidth: 90 }} type="number" min={0} step="0.01" placeholder="Price override" value={v.price} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, price: e.target.value } : row))} />
+                      <input className="input-field" style={{ flex: '1 1 90px', minWidth: 80 }} type="number" min={0} placeholder="Stock qty" value={v.inventory_quantity} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, inventory_quantity: e.target.value } : row))} />
+                      <button type="button" onClick={() => setProdVariants(prev => prev.filter((_, ri) => ri !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e53e3e', flexShrink: 0 }}>
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
 

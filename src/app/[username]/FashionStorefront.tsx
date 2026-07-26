@@ -38,6 +38,10 @@ interface StoreData {
   recognition?: string[] | null; about_facts?: [string, string][] | null;
 }
 interface Category { id: string; name: string; slug: string; }
+interface ProductVariant {
+  id: string; size: string | null; color: string | null;
+  price: string | null; inventory_quantity: number;
+}
 interface Product {
   id: string; name: string; slug: string; price: string;
   compare_at_price: string | null; description: string | null;
@@ -45,6 +49,7 @@ interface Product {
   stock_status: string; category_id: string | null;
   is_digital?: boolean; type?: 'service' | 'product';
   duration_minutes?: number | null; service_facts?: string[] | null;
+  variants?: ProductVariant[] | null;
 }
 interface Review { id: string; reviewer_name: string; body: string; rating: number; created_at?: string; }
 interface StoreFaq { id: string; question: string; answer: string; }
@@ -61,6 +66,7 @@ interface CartItem {
   key: string; id: string; name: string; price: number; qty: number;
   type: 'service' | 'product'; image_url?: string | null;
   slot?: string; duration?: number;
+  variantId?: string; size?: string | null; color?: string | null;
 }
 
 interface FashionStorefrontProps {
@@ -191,12 +197,16 @@ export default function FashionStorefront({
   const go = (p: string) => { setPage(p); setDrawer(false); setPost(null); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const openPost = (p: BlogPost) => { setPost(p); setPage('post'); setDrawer(false); window.scrollTo({ top: 0 }); };
 
-  const addToBag = (p: Product) => {
-    const key = 'p' + p.id;
+  const addToBag = (p: Product, variant?: ProductVariant) => {
+    const key = variant ? `p${p.id}_${variant.id}` : 'p' + p.id;
+    const price = variant?.price ? parseFloat(variant.price) : parseFloat(p.price);
     setBag(prev => {
       const ex = prev.find(x => x.key === key);
       const next = ex ? prev.map(x => x.key === key ? { ...x, qty: x.qty + 1 } : x)
-        : [...prev, { key, id: p.id, name: p.name, price: parseFloat(p.price), qty: 1, type: 'product' as const, image_url: p.image_url }];
+        : [...prev, {
+          key, id: p.id, name: p.name, price, qty: 1, type: 'product' as const, image_url: p.image_url,
+          variantId: variant?.id, size: variant?.size, color: variant?.color,
+        }];
       saveCart(next); return next;
     });
     ping('Added to bag');
@@ -256,7 +266,7 @@ export default function FashionStorefront({
           customer_name: customerName, customer_phone: customerPhone,
           customer_email: customerEmail, delivery_address: deliveryAddress,
           delivery_method: deliveryMethod, note: orderNote,
-          items: bag.map(b => ({ product_id: b.id, quantity: b.qty })),
+          items: bag.map(b => ({ product_id: b.id, quantity: b.qty, product_variant_id: b.variantId, size: b.size, color: b.color })),
           coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
           affiliate_code: getPersistedAffiliateRef(),
         }),
@@ -280,10 +290,12 @@ export default function FashionStorefront({
     const idx = activeCategories.findIndex(c => c.id === p.category_id);
     const sold = p.stock_status === 'out_of_stock';
     return (
-      <button className={`ps-card prod-card ${clr(idx)}`} onClick={() => setSelectedProduct(p)}>
-        {p.stock_status === 'out_of_stock' && <div className="ps-badge ps-badge--sold">Sold Out</div>}
-        {p.compare_at_price && !sold && <div className="ps-badge ps-badge--sale">Sale</div>}
-        {img ? <img src={img} alt={p.name} className="ps-card-img" style={{ objectFit: 'cover', width: '100%', height: '100%', position: 'absolute', inset: 0 }} loading="lazy" /> : <div className="ps-card-icn"><ShoppingBag size={28} /></div>}
+      <button className="ps-card" onClick={() => setSelectedProduct(p)}>
+        <div className={`ps-card-thumb ${clr(idx)}`}>
+          {p.stock_status === 'out_of_stock' && <div className="ps-badge ps-badge--sold">Sold Out</div>}
+          {p.compare_at_price && !sold && <div className="ps-badge ps-badge--sale">Sale</div>}
+          {img ? <img src={img} alt={p.name} className="ps-card-img" loading="lazy" /> : <div className="ps-card-icn"><ShoppingBag size={28} /></div>}
+        </div>
         <div className="ps-card-foot">
           {catName && <span className="ps-card-cat">{catName}</span>}
           <span className="ps-card-name">{p.name}</span>
@@ -301,6 +313,18 @@ export default function FashionStorefront({
     const idx = activeCategories.findIndex(c => c.id === p.category_id);
     const sold = p.stock_status === 'out_of_stock';
     const look = products.filter(x => x.id !== p.id).slice(0, 4);
+    const variants = p.variants || [];
+    const sizes = Array.from(new Set(variants.map(v => v.size).filter((s): s is string => !!s)));
+    const colors = Array.from(new Set(variants.map(v => v.color).filter((c): c is string => !!c)));
+    const [selSize, setSelSize] = useState<string | null>(null);
+    const [selColor, setSelColor] = useState<string | null>(null);
+    const matchedVariant = variants.find(v =>
+      (sizes.length === 0 || v.size === selSize) && (colors.length === 0 || v.color === selColor)
+    );
+    const needsSelection = variants.length > 0;
+    const variantSold = !!matchedVariant && matchedVariant.inventory_quantity <= 0;
+    const canAdd = !sold && !variantSold && (!needsSelection || !!matchedVariant);
+    const activePrice = matchedVariant?.price ? parseFloat(matchedVariant.price) : parseFloat(p.price);
     return (
       <div className="pv">
         <button className="pv-back" onClick={() => setSelectedProduct(null)}>
@@ -331,21 +355,45 @@ export default function FashionStorefront({
             <div className="pv-infocat">{catName}</div>
             <h2 className="pv-name">{p.name}</h2>
             <div className="pv-price">
-              {money(parseFloat(p.price))}
+              {money(activePrice)}
               {p.compare_at_price && <span className="pv-approx" style={{ textDecoration: 'line-through' }}>{money(parseFloat(p.compare_at_price))}</span>}
             </div>
             {p.description && <p className="pv-desc">{p.description}</p>}
+            {sizes.length > 0 && (
+              <div className="pv-opt">
+                <div className="pv-opt-label">Size</div>
+                <div className="pv-opt-row">
+                  {sizes.map(s => (
+                    <button key={s} type="button" className={`pv-opt-chip ${selSize === s ? 'on' : ''}`} onClick={() => setSelSize(s)}>{s}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {colors.length > 0 && (
+              <div className="pv-opt">
+                <div className="pv-opt-label">Colour</div>
+                <div className="pv-opt-row">
+                  {colors.map(c => (
+                    <button key={c} type="button" className={`pv-opt-chip ${selColor === c ? 'on' : ''}`} onClick={() => setSelColor(c)}>{c}</button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="pv-add">
               <button
                 className="ps-sheet-cta"
-                disabled={sold}
-                onClick={() => { if (!sold) { addToBag(p); setSelectedProduct(null); setBagOpen(true); } }}
+                disabled={!canAdd}
+                onClick={() => { if (canAdd) { addToBag(p, matchedVariant); setSelectedProduct(null); setBagOpen(true); } }}
               >
-                {sold ? 'Out of Stock' : <><ShoppingBag size={16} /> Add to Bag</>}
+                {sold || variantSold
+                  ? 'Out of Stock'
+                  : needsSelection && !matchedVariant
+                    ? `Select ${sizes.length > 0 && !selSize ? 'a Size' : 'a Colour'}`
+                    : <><ShoppingBag size={16} /> Add to Bag</>}
               </button>
               {store.whatsapp_phone && (
                 <button className="ps-wa-cta" style={{ marginTop: 10 }}
-                  onClick={() => handleWA(`Hi ${store.store_name}! I'd like to enquire about "${p.name}" (${money(parseFloat(p.price))}).`)}>
+                  onClick={() => handleWA(`Hi ${store.store_name}! I'd like to enquire about "${p.name}"${(selSize || selColor) ? ` (${[selSize, selColor].filter(Boolean).join(' / ')})` : ''} (${money(activePrice)}).`)}>
                   <WhatsAppIcon size={18} /> Enquire on WhatsApp
                 </button>
               )}
@@ -363,8 +411,10 @@ export default function FashionStorefront({
                     const li = productImg(lp);
                     const li_idx = activeCategories.findIndex(c => c.id === lp.category_id);
                     return (
-                      <button key={lp.id} className={`ps-card ${clr(li_idx)}`} style={{ aspectRatio: '1', cursor: 'pointer' }} onClick={() => setSelectedProduct(lp)}>
-                        {li ? <img src={li} alt={lp.name} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} /> : <span style={{ color: 'rgba(255,255,255,.5)' }}><ShoppingBag size={20} /></span>}
+                      <button key={lp.id} className="ps-card" style={{ cursor: 'pointer' }} onClick={() => setSelectedProduct(lp)}>
+                        <div className={`ps-card-thumb ${clr(li_idx)}`} style={{ aspectRatio: '1' }}>
+                          {li ? <img src={li} alt={lp.name} className="ps-card-img" /> : <div className="ps-card-icn"><ShoppingBag size={20} /></div>}
+                        </div>
                         <div className="ps-card-foot" style={{ padding: '6px 8px' }}>
                           <span className="ps-card-name" style={{ fontSize: 12 }}>{lp.name}</span>
                           <span className="ps-card-price" style={{ fontSize: 12 }}>{money(parseFloat(lp.price))}</span>
@@ -409,6 +459,7 @@ export default function FashionStorefront({
                     </div>
                     <div>
                       <b>{item.name}</b>
+                      {(item.size || item.color) && <span>{[item.size, item.color].filter(Boolean).join(' / ')}</span>}
                       <span>{money(item.price)}</span>
                     </div>
                     <div className="ps-qty-row">
@@ -439,7 +490,7 @@ export default function FashionStorefront({
                 </div>
                 <button className="ps-sheet-cta" onClick={() => setCheckoutStep('details')}>Continue <ChevronRight size={16} /></button>
                 <button className="ps-wa-cta" onClick={() => {
-                  const lines = bag.map(b => `• ${b.name} ×${b.qty} — ${money(b.price * b.qty)}`).join('\n');
+                  const lines = bag.map(b => `• ${b.name}${b.size || b.color ? ` (${[b.size, b.color].filter(Boolean).join(' / ')})` : ''} ×${b.qty} — ${money(b.price * b.qty)}`).join('\n');
                   const grandTotal = deliveryMethod === 'delivery' ? shippingPreview.total : bagTotal;
                   handleWA(`Hi ${store.store_name}! I'd like to order:\n${lines}\n\nTotal: ${money(grandTotal)}`);
                 }}>
@@ -564,7 +615,7 @@ export default function FashionStorefront({
                       {checkoutLoading ? 'Placing Order...' : `Place Order · ${money(finalTotal)}`}
                     </button>
                     <button className="ps-wa-cta" onClick={() => {
-                      const lines = bag.map(b => `• ${b.name} ×${b.qty}`).join('\n');
+                      const lines = bag.map(b => `• ${b.name}${b.size || b.color ? ` (${[b.size, b.color].filter(Boolean).join(' / ')})` : ''} ×${b.qty}`).join('\n');
                       handleWA(`Hi ${store.store_name}! Order:\n${lines}\n\nName: ${customerName}\nPhone: ${customerPhone}\nDelivery: ${deliveryMethod === 'pickup' ? 'Pickup' : deliveryAddress}${appliedCoupon ? `\nCoupon applied: ${appliedCoupon.code}` : ''}`);
                     }}>
                       <WhatsAppIcon size={18} /> Send via WhatsApp Instead
@@ -1137,7 +1188,7 @@ export default function FashionStorefront({
   };
 
   const renderPage = () => {
-    if (selectedProduct && (page === 'products' || page === 'home')) return <ProductDetail p={selectedProduct} />;
+    if (selectedProduct && (page === 'products' || page === 'home')) return <ProductDetail key={selectedProduct.id} p={selectedProduct} />;
     if (post && page === 'post') return <PostPage p={post} />;
     switch (page) {
       case 'products': return <ProductsPage />;
@@ -1411,18 +1462,19 @@ const FASHION_CSS = `
 .ps-cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media(min-width:600px) { .ps-cards-grid { grid-template-columns: repeat(3, 1fr); } }
 @media(min-width:900px) { .ps-cards-grid { grid-template-columns: repeat(4, 1fr); } }
-.ps-card { position: relative; aspect-ratio: 4/5; border-radius: 16px; overflow: hidden; cursor: pointer; border: none; display: flex; align-items: flex-end; box-shadow: var(--shadow-sm); transition: transform .15s ease, box-shadow .15s ease; }
+.ps-card { position: relative; border-radius: 16px; overflow: hidden; cursor: pointer; border: none; display: flex; flex-direction: column; text-align: left; padding: 0; background: var(--card); box-shadow: var(--shadow-sm); transition: transform .15s ease, box-shadow .15s ease; }
 .ps-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .ps-card:active { transform: translateY(-1px); }
-.ps-card.c0 { background: linear-gradient(150deg, var(--brand), var(--brand-deep)); }
-.ps-card.c1 { background: linear-gradient(150deg, var(--brand-deep), var(--gold)); }
-.ps-card.c2 { background: linear-gradient(150deg, #caa06f, var(--brand)); }
-.ps-card.c3 { background: linear-gradient(150deg, var(--brand), #a86b8a); }
-.ps-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.88) 0%, rgba(0,0,0,0.48) 55%, transparent 100%); z-index: 1; }
-.ps-card-foot { position: relative; z-index: 2; padding: 12px 14px; width: 100%; text-align: left; background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%); }
-.ps-card-cat { display: block; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.92); text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
-.ps-card-name { display: block; font-size: 14px; font-weight: 700; color: #ffffff; line-height: 1.25; margin: 2px 0; text-shadow: 0 1px 4px rgba(0,0,0,0.85); }
-.ps-card-price { display: block; font-family: 'Fraunces', serif; font-size: 15.5px; font-weight: 700; color: #ffffff; text-shadow: 0 1px 4px rgba(0,0,0,0.85); }
+.ps-card-thumb { position: relative; aspect-ratio: 4/5; overflow: hidden; }
+.ps-card-thumb.c0 { background: linear-gradient(150deg, var(--brand), var(--brand-deep)); }
+.ps-card-thumb.c1 { background: linear-gradient(150deg, var(--brand-deep), var(--gold)); }
+.ps-card-thumb.c2 { background: linear-gradient(150deg, #caa06f, var(--brand)); }
+.ps-card-thumb.c3 { background: linear-gradient(150deg, var(--brand), #a86b8a); }
+.ps-card-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ps-card-foot { position: relative; padding: 10px 12px 12px; width: 100%; text-align: left; }
+.ps-card-cat { display: block; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.ps-card-name { display: block; font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.25; margin: 2px 0; }
+.ps-card-price { display: block; font-family: 'Fraunces', serif; font-size: 15.5px; font-weight: 700; color: var(--brand); }
 .ps-card-icn { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.45); z-index: 0; }
 .ps-badge { position: absolute; top: 10px; left: 10px; z-index: 3; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; padding: 4px 9px; border-radius: 8px; }
 .ps-badge--sold { background: rgba(0,0,0,.55); color: rgba(255,255,255,.85); }
@@ -1468,6 +1520,11 @@ const FASHION_CSS = `
 .pv-price { font-size: 20px; font-weight: 800; display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
 .pv-approx { font-size: 14px; font-weight: 500; color: var(--muted); }
 .pv-desc { font-size: 14.5px; line-height: 1.65; color: #5a4a40; margin: 12px 0; }
+.pv-opt { margin: 14px 0; }
+.pv-opt-label { font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
+.pv-opt-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.pv-opt-chip { background: var(--card); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; padding: 8px 14px; color: var(--ink); transition: all .15s ease; }
+.pv-opt-chip.on { background: var(--brand); border-color: var(--brand); color: #fff; }
 .pv-add { margin-top: 20px; }
 .pv-meta { margin-top: 20px; display: flex; flex-direction: column; gap: 11px; border-top: 1px solid var(--line); padding-top: 16px; }
 .pv-meta > div { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: #5a534d; line-height: 1.45; }
