@@ -54,6 +54,7 @@ interface StoreType {
   location?: string | null;
   since?: string | null;
   address?: string | null;
+  is_online_only?: boolean | number;
   working_hours?: any;
   announcement_title?: string | null;
   announcement_body?: string | null;
@@ -1427,6 +1428,13 @@ export default function RestaurantStorefront({
                 <div className="ps-searchbar" onClick={() => setSearch(true)}><Search size={17} /> <span>Search the menu</span></div>
                 <div className="ps-chips">{categories.slice(0, 5).map((c) => <button key={c.id} onClick={() => { setActiveCat(c.id); go("products"); }}>{c.name}</button>)}</div>
 
+                {computedServices.length > 0 && (
+                  <>
+                    <SectionHead title="Reservations & Events" action={`See all ${computedServices.length}`} onAction={() => go("services")} />
+                    <div className="bk-svclist">{computedServices.slice(0, 4).map(s => <ServiceCard key={s.id} s={s} onBook={openBooking} />)}</div>
+                  </>
+                )}
+
                 {PRODUCTS.length > 0 && (
                   <>
                     <SectionHead title="Menu" action={`See all ${PRODUCTS.length}`} onAction={() => go("products")} />
@@ -1458,15 +1466,18 @@ export default function RestaurantStorefront({
                 </div>
                 <button className="ps-seeall" onClick={() => go("reviews")}>See all reviews <ChevronRight size={16} /></button>
 
+                {!store.is_online_only && (<>
                 <SectionHead title="Visit the restaurant" />
                 <div className="ps-visit">
                   {store.location && <div className="ps-map"><MapPin size={26} /><span>{store.location}</span></div>}
                   <div className="ps-visit-info">
                     {store.address && <p className="ps-addr"><MapPin size={15} /> {store.address}</p>}
                     {store.address && <button className="ps-dir" onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={15} /> Directions</button>}
+                    {!store.location && !store.address && <p style={{ fontSize: 13, color: 'var(--muted)' }}>Address not added yet</p>}
                     <ul className="ps-hours">{HOURS.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
                   </div>
                 </div>
+                </>)}
 
                 <SectionHead title="Good to know" />
                 <Accordion items={displayFaqs[0]?.items.slice(0, 3) || []} open={openFaq} setOpen={setOpenFaq} />
@@ -1805,12 +1816,15 @@ export default function RestaurantStorefront({
                       </div>
                     )}
 
+                    {!store.is_online_only && (
                     <div className="pd-railcard">
                       <h3>Visit Us</h3>
                       {store.location && <div className="pd-railmap"><MapPin size={22} /><span>{store.location}</span></div>}
                       {store.address && <p style={{ fontSize: 13, marginBottom: 12 }}>{store.address}</p>}
                       {store.address && <button className="bk-ghost" style={{ width: '100%' }} onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={14} /> Get Directions</button>}
+                      {!store.location && !store.address && <p style={{ fontSize: 13, color: 'var(--muted)' }}>Address not added yet</p>}
                     </div>
+                    )}
 
                     <div className="pd-railcard trust">
                       <span className="pd-trust-h"><ShieldCheck size={16} /> Secured checkout</span>
@@ -1848,6 +1862,13 @@ export default function RestaurantStorefront({
                           ))}
                         </div>
                       </div>
+                    )}
+
+                    {computedServices.length > 0 && (
+                      <>
+                        <SectionHead title="Reservations & Events" action="See all" onAction={() => go("services")} />
+                        <div className="bk-svclist">{computedServices.slice(0, 4).map(s => <ServiceCard key={s.id} s={s} onBook={openBooking} />)}</div>
+                      </>
                     )}
 
                     {PRODUCTS.length > 0 && (

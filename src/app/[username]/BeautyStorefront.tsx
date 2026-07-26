@@ -67,6 +67,7 @@ interface Store {
   location?: string | null;
   since?: string | null;
   address?: string | null;
+  is_online_only?: boolean | number;
   working_hours?: any;
   announcement_title?: string | null;
   announcement_body?: string | null;
@@ -1828,11 +1829,16 @@ export default function BeautyStorefront({
                   </>
                 )}
 
+                {!store.is_online_only && (<>
                 <SectionHead title="Visit the studio" />
                 <div className="ps-visit">
                   <div className="ps-map"><MapPin size={26} /><span>Map preview</span></div>
                   <div className="ps-visit-info">
-                    {store.address && <p className="ps-addr"><MapPin size={15} /> {store.address}</p>}
+                    {store.address || store.location ? (
+                      <p className="ps-addr"><MapPin size={15} /> {store.address || store.location}</p>
+                    ) : (
+                      <p className="ps-hours-empty">Address not added yet</p>
+                    )}
                     {store.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={15} /> Directions</button>}
                     {hasHours ? (
                       <ul className="ps-hours">
@@ -1845,6 +1851,7 @@ export default function BeautyStorefront({
                     )}
                   </div>
                 </div>
+                </>)}
 
                 <SectionHead title="Good to know" />
                 {displayFaqs.length > 0 ? <Accordion items={displayFaqs.slice(0, 5)} open={openFaq} setOpen={setOpenFaq} /> : <EmptyState />}
@@ -1943,10 +1950,15 @@ export default function BeautyStorefront({
                         <button className="pd-raillink" onClick={() => go("about")}>More about us <ChevronRight size={14} /></button>
                       </div>
                     )}
+                    {!store.is_online_only && (
                     <div className="pd-railcard">
                       <h3>Visit us</h3>
                       <div className="pd-railmap"><MapPin size={22} /></div>
-                      {store.address && <p className="ps-addr"><MapPin size={14} /> {store.address}</p>}
+                      {store.address || store.location ? (
+                        <p className="ps-addr"><MapPin size={14} /> {store.address || store.location}</p>
+                      ) : (
+                        <p className="ps-hours-empty">Address not added yet</p>
+                      )}
                       <div className="pd-railbtns">
                         {store.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address as string)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                         <button onClick={() => openWhatsAppChat("Hi!")}><WhatsApp size={14} /> Message</button>
@@ -1957,6 +1969,7 @@ export default function BeautyStorefront({
                         <p className="ps-hours-empty">Opening hours not added yet</p>
                       )}
                     </div>
+                    )}
                     <div className="pd-railcard trust">
                       <span className="pd-trust-h"><ShieldCheck size={15} /> Secured by Frontstore</span>
                       <p>Buyer protection and platform terms apply to every order on this store and cannot be removed by the vendor.</p>
@@ -2196,15 +2209,21 @@ export default function BeautyStorefront({
                 <div className="ab-wrap">
                   <div className="ab-main">{aboutBody()}</div>
                   <aside className="ab-rail">
+                    {!store.is_online_only && (
                     <div className="pd-railcard">
                       <h3>Visit us</h3>
-                      {store.address && <p className="ps-addr">{store.address}</p>}
+                      {store.address || store.location ? (
+                        <p className="ps-addr">{store.address || store.location}</p>
+                      ) : (
+                        <p className="ps-hours-empty">Address not added yet</p>
+                      )}
                       {hasHours ? (
                         <ul className="ps-hours">{hours.map(([d, h], i) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
                       ) : (
                         <p className="ps-hours-empty">Opening hours not added yet</p>
                       )}
                     </div>
+                    )}
                   </aside>
                 </div>
                 <StoreFoot onNav={go} slug={store.username} />

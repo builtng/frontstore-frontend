@@ -52,6 +52,7 @@ interface StoreType {
   location?: string | null;
   since?: string | null;
   address?: string | null;
+  is_online_only?: boolean | number;
   working_hours?: any;
   announcement_title?: string | null;
   announcement_body?: string | null;
@@ -497,7 +498,7 @@ export default function PhotographerStorefront({
     orders: store.total_orders || MOCK_STORE.orders,
     reply: store.reply_time_minutes ? `~${store.reply_time_minutes} min` : MOCK_STORE.reply,
     bio: store.store_bio || MOCK_STORE.bio,
-    address: store.address || MOCK_STORE.address,
+    address: store.address || store.location || MOCK_STORE.address,
     phone: store.whatsapp_phone || MOCK_STORE.phone,
     email: store.email || MOCK_STORE.email,
     primaryCta: (MOCK_STORE as any).primaryCta || "book",
@@ -2003,11 +2004,16 @@ export default function PhotographerStorefront({
           <button className="ps-seeall" onClick={() => go("reviews")}>See all reviews <ChevronRight size={16} /></button>
         )}
 
+              {!store.is_online_only && (<>
               <SectionHead title="Find us" />
               <div className="ps-visit">
                 <div className="ps-map"><MapPin size={26} /><span>Map preview</span></div>
                 <div className="ps-visit-info">
-                  <p className="ps-addr"><MapPin size={15} /> {DUMMY_STORE.address}</p>
+                  {DUMMY_STORE.address ? (
+                    <p className="ps-addr"><MapPin size={15} /> {DUMMY_STORE.address}</p>
+                  ) : (
+                    <p className="ps-hours-empty">Address not added yet</p>
+                  )}
                   {DUMMY_STORE.address && <button className="ps-dir" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={15} /> Directions</button>}
                   {hasHours ? (
                     <ul className="ps-hours">{HOURS.map(([d, h]: any, i: number) => (<li key={d} className={i === todayIdx ? "today" : ""}><span>{d}</span><b>{h}</b></li>))}</ul>
@@ -2016,6 +2022,7 @@ export default function PhotographerStorefront({
                   )}
                 </div>
               </div>
+              </>)}
 
               <SectionHead title="Good to know" />
               <Accordion items={FAQS_PREVIEW} open={openFaq} setOpen={setOpenFaq} />
@@ -2091,10 +2098,15 @@ export default function PhotographerStorefront({
                     <p>{DUMMY_STORE.bio}</p>
                     <button className="pd-raillink" onClick={() => go("about")}>More about us <ChevronRight size={14} /></button>
                   </div>
+                  {!store.is_online_only && (
                   <div className="pd-railcard">
                     <h3>Visit us</h3>
                     <div className="pd-railmap"><MapPin size={22} /></div>
-                    <p className="ps-addr"><MapPin size={14} /> {DUMMY_STORE.address}</p>
+                    {DUMMY_STORE.address ? (
+                      <p className="ps-addr"><MapPin size={14} /> {DUMMY_STORE.address}</p>
+                    ) : (
+                      <p className="ps-hours-empty">Address not added yet</p>
+                    )}
                     <div className="pd-railbtns">
                       {DUMMY_STORE.address && <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DUMMY_STORE.address)}`, '_blank')}><Navigation size={14} /> Directions</button>}
                       <button onClick={() => handleWa("Hello! I'm interested in your services.")}><WhatsApp size={14} /> Message</button>
@@ -2105,6 +2117,7 @@ export default function PhotographerStorefront({
                       <p className="ps-hours-empty">Opening hours not added yet</p>
                     )}
                   </div>
+                  )}
                   <div className="pd-railcard trust">
                     <span className="pd-trust-h"><ShieldCheck size={15} /> Secured by Frontstore</span>
                     <p>Buyer protection and platform terms apply to every order on this store and cannot be removed by the vendor.</p>

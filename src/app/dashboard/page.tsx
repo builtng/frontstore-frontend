@@ -1115,6 +1115,7 @@ export default function DashboardPage() {
   const [setStoreName, setSetStoreName] = useState('');
   const [setStoreBio, setSetStoreBio] = useState('');
   const [setStoreLocation, setSetStoreLocation] = useState('');
+  const [isOnlineOnly, setIsOnlineOnly] = useState(false);
   const [setStoreSince, setSetStoreSince] = useState('');
   const [deliveryInfo, setDeliveryInfo] = useState('');
   const [returnPolicy, setReturnPolicy] = useState('');
@@ -1448,6 +1449,7 @@ export default function DashboardPage() {
                 setBookingCapacityPerDay(Number(parsedStore.booking_capacity_per_day));
               }
               setSetStoreLocation(parsedStore.location || '');
+              setIsOnlineOnly(!!parsedStore.is_online_only);
               setSetStoreSince(parsedStore.since || '');
               setDeliveryInfo(parsedStore.delivery_info || '');
               setReturnPolicy(parsedStore.return_policy || '');
@@ -1852,6 +1854,7 @@ export default function DashboardPage() {
         setSetStoreName(liveStore.store_name || '');
         setSetStoreBio(liveStore.store_bio || '');
         setSetStoreLocation(liveStore.location || '');
+        setIsOnlineOnly(!!liveStore.is_online_only);
         setSetStoreSince(liveStore.since || '');
         setDeliveryInfo(liveStore.delivery_info || '');
         setShippingType(liveStore.shipping_type || 'customer_pays');
@@ -3567,6 +3570,7 @@ export default function DashboardPage() {
           store_name: setStoreName,
           store_bio: setStoreBio,
           location: setStoreLocation || null,
+          is_online_only: isOnlineOnly,
           since: setStoreSince || null,
           banner_url: setBannerUrl || null,
           instagram_handle: setInstagram,
@@ -3640,6 +3644,7 @@ export default function DashboardPage() {
         setSetStoreName(json.data.store_name || '');
         setSetStoreBio(json.data.store_bio || '');
         setSetStoreLocation(json.data.location || '');
+        setIsOnlineOnly(!!json.data.is_online_only);
         setSetStoreSince(json.data.since || '');
         setDeliveryInfo(json.data.delivery_info || '');
         setReturnPolicy(json.data.return_policy || '');
@@ -6230,8 +6235,9 @@ export default function DashboardPage() {
                               className="input-field"
                               placeholder="e.g. Lekki, Lagos"
                               maxLength={120}
+                              disabled={isOnlineOnly}
                             />
-                            {detectedMerchantLocation && detectedMerchantLocation !== setStoreLocation && (
+                            {detectedMerchantLocation && detectedMerchantLocation !== setStoreLocation && !isOnlineOnly && (
                               <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>
                                 <MapPin size={12} style={{ flexShrink: 0 }} />
                                 Detected near {detectedMerchantLocation} —{' '}
@@ -6244,6 +6250,17 @@ export default function DashboardPage() {
                                 </button>
                               </span>
                             )}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 10, padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', background: 'var(--card-hover)' }}>
+                              <div>
+                                <div style={{ fontSize: 12.5, fontWeight: 800 }}>This is an online-only store</div>
+                                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>No physical address or pickup location — hides "Visit us" from your storefront</div>
+                              </div>
+                              <Toggle
+                                checked={isOnlineOnly}
+                                onChange={val => setIsOnlineOnly(val)}
+                                id="online-only-toggle"
+                              />
+                            </div>
                           </div>
                         </div>
 
