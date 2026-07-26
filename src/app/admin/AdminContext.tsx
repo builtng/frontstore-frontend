@@ -44,6 +44,7 @@ export interface StoreInfo {
   bank_account_name?: string | null;
   trust_score?: number;
   seller_level?: number;
+  products_count?: number;
 }
 
 export interface Category {

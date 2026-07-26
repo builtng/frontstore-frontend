@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Clock,
   ExternalLink,
+  Mail,
   Power,
   Search,
   ShieldCheck,
@@ -43,7 +44,7 @@ const PAYOUT_TIERS = [
 ] as const;
 
 export default function AdminStoresPage() {
-  const { token, apiUrl, getHeaders, handleFetchResponse, openConfirmationDialog } = useAdmin();
+  const { token, apiUrl, getHeaders, handleFetchResponse, openConfirmationDialog, settings } = useAdmin();
 
   const [stores, setStores] = useState<StoreInfo[]>([]);
   const [storesLoading, setStoresLoading] = useState(false);
@@ -51,6 +52,11 @@ export default function AdminStoresPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [selectedStore, setSelectedStore] = useState<StoreInfo | null>(null);
+  const [sendingLimitEmailFor, setSendingLimitEmailFor] = useState<string | null>(null);
+
+  const freeProductLimit = Number(settings?.free_plan_product_limit) || 10;
+  const hasReachedProductLimit = (store: StoreInfo) =>
+    !isProPlan(store.user?.plan) && Number(store.products_count || 0) >= freeProductLimit;
 
   const loadStores = async (page = 1, search = '') => {
     if (!token) return;
@@ -97,6 +103,22 @@ export default function AdminStoresPage() {
       setSelectedStore((prev) => (prev?.id === storeId ? null : prev));
     } catch (error: any) {
       if (error.message !== 'Session expired') toast.error(error.message);
+    }
+  };
+
+  const handleSendLimitEmail = async (storeId: string) => {
+    try {
+      setSendingLimitEmailFor(storeId);
+      const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}/send-limit-email`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      const json = await handleFetchResponse(res, 'Failed to send limit-reached email.');
+      toast.success(json.message);
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    } finally {
+      setSendingLimitEmailFor(null);
     }
   };
 
@@ -206,6 +228,9 @@ export default function AdminStoresPage() {
                   <td>
                     <div className="admin-plan-cell" onClick={(e) => e.stopPropagation()}>
                       <StatusChip tone={isProPlan(store.user?.plan) ? 'green' : 'gray'} label={planLabel(store.user?.plan)} />
+                      {hasReachedProductLimit(store) && (
+                        <StatusChip tone="orange" label={`${store.products_count}/${freeProductLimit} products`} />
+                      )}
                       <label className="admin-select">
                         <select
                           value={store.user?.plan || 'free'}
@@ -226,6 +251,26 @@ export default function AdminStoresPage() {
                     <StatusChip tone={store.is_active ? 'green' : 'red'} label={store.is_active ? 'Active' : 'Suspended'} />
                   </td>
                   <td className="admin-table__actions">
+                    {hasReachedProductLimit(store) && (
+                      <button
+                        type="button"
+                        className="admin-action"
+                        disabled={sendingLimitEmailFor === store.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openConfirmationDialog(
+                            'Send limit-reached email',
+                            `Email "${store.user?.name || store.store_name}" letting them know they've hit the ${freeProductLimit}-product free plan limit and can upgrade to Pro?`,
+                            async () => {
+                              await handleSendLimitEmail(store.id);
+                            }
+                          );
+                        }}
+                      >
+                        <Mail size={15} />
+                        {sendingLimitEmailFor === store.id ? 'Sending…' : 'Send limit email'}
+                      </button>
+                    )}
                     <button
                       type="button"
                       className={store.is_active ? 'admin-action danger' : 'admin-action'}
@@ -421,6 +466,25 @@ export default function AdminStoresPage() {
               <button type="button" className="btn btn-outline" onClick={() => setSelectedStore(null)}>
                 Close Inspector
               </button>
+              {hasReachedProductLimit(selectedStore) && (
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  disabled={sendingLimitEmailFor === selectedStore.id}
+                  onClick={() => {
+                    openConfirmationDialog(
+                      'Send limit-reached email',
+                      `Email "${selectedStore.user?.name || selectedStore.store_name}" letting them know they've hit the ${freeProductLimit}-product free plan limit and can upgrade to Pro?`,
+                      async () => {
+                        await handleSendLimitEmail(selectedStore.id);
+                      }
+                    );
+                  }}
+                >
+                  <Mail size={15} />
+                  {sendingLimitEmailFor === selectedStore.id ? 'Sending…' : 'Send limit email'}
+                </button>
+              )}
               <button
                 type="button"
                 className={selectedStore.is_active ? 'btn btn-primary btn-danger-tone' : 'btn btn-primary'}
