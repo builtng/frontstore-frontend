@@ -1134,7 +1134,7 @@ export default function BeautyStorefront({
     <div className={gClass}>{(list || SERVICES).map((s) => <ServiceCard key={s.id} s={s} onBook={() => openBooking(s)} />)}</div>
   );
   const productsGrid = (gClass: string, list: typeof PRODUCTS) => (
-    <div className={gClass}>{(list || PRODUCTS).map((p) => <ProductCard key={p.id} p={p} onBuy={() => addBag(p)} />)}</div>
+    <div className={gClass}>{(list || PRODUCTS).map((p) => <ProductCard key={p.id} p={p} onBuy={() => addBag(p)} onView={() => router.push(storePath(username, `/products/${p.slug}`))} />)}</div>
   );
 
   const RatingSummary = () => {
@@ -2687,10 +2687,10 @@ function ServiceCard({ s, onBook }: { s: any; onBook: () => void }) {
   );
 }
 
-function ProductCard({ p, onBuy }: { p: any; onBuy: () => void }) {
+function ProductCard({ p, onBuy, onView }: { p: any; onBuy: () => void; onView?: () => void }) {
   const currencySymbol = useMemo(() => "₦", []);
   return (
-    <div className="ps-card">
+    <div className="ps-card" onClick={onView} style={onView ? { cursor: 'pointer' } : undefined}>
       <div className="ps-card-thumb prod" style={{ background: `linear-gradient(150deg, ${getCategoryTheme(p.cat)[0]}, ${getCategoryTheme(p.cat)[1]})` }}>
         {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={22} />}
       </div>
@@ -2698,7 +2698,7 @@ function ProductCard({ p, onBuy }: { p: any; onBuy: () => void }) {
         <b>{p.name}</b>
         <div className="ps-card-foot">
           <em>{currencySymbol + p.price.toLocaleString("en-NG")}</em>
-          <button className="ps-mini buy" onClick={onBuy}>Buy</button>
+          <button className="ps-mini buy" onClick={(e) => { e.stopPropagation(); onBuy(); }}>Buy</button>
         </div>
       </div>
     </div>

@@ -1471,10 +1471,10 @@ const FASHION_CSS = `
 .ps-card-thumb.c2 { background: linear-gradient(150deg, #caa06f, var(--brand)); }
 .ps-card-thumb.c3 { background: linear-gradient(150deg, var(--brand), #a86b8a); }
 .ps-card-img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.ps-card-foot { position: relative; padding: 10px 12px 12px; width: 100%; text-align: left; }
+.ps-card-foot { position: relative; padding: 10px 12px 12px; width: 100%; text-align: left; display: flex; flex-direction: column; flex: 1; }
 .ps-card-cat { display: block; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-.ps-card-name { display: block; font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.25; margin: 2px 0; }
-.ps-card-price { display: block; font-family: 'Fraunces', serif; font-size: 15.5px; font-weight: 700; color: var(--brand); }
+.ps-card-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.25; margin: 2px 0 6px; min-height: 35px; }
+.ps-card-price { display: block; font-family: 'Fraunces', serif; font-size: 15.5px; font-weight: 700; color: var(--brand); margin-top: auto; }
 .ps-card-icn { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.45); z-index: 0; }
 .ps-badge { position: absolute; top: 10px; left: 10px; z-index: 3; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; padding: 4px 9px; border-radius: 8px; }
 .ps-badge--sold { background: rgba(0,0,0,.55); color: rgba(255,255,255,.85); }
