@@ -571,7 +571,7 @@ export default function ProductDetailClient({
                     onClick={() => setSlide(i)}
                     style={{ overflow: 'hidden' }}
                   >
-                    <img src={imgUrl} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'contain', background: 'var(--surface)' }} />
+                    <img src={imgUrl} alt="thumbnail" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', background: 'var(--surface)' }} />
                   </button>
                 ))
               ) : (
@@ -773,7 +773,7 @@ export default function ProductDetailClient({
             {/* Store Profile Card */}
             <div className="fs-store-card">
               {store.logo_url ? (
-                <img src={store.logo_url} alt="Store logo" style={{ width: 42, height: 42, borderRadius: 12, objectFit: 'cover' }} />
+                <img src={store.logo_url} alt="Store logo" loading="lazy" style={{ width: 42, height: 42, borderRadius: 12, objectFit: 'cover' }} />
               ) : (
                 <span className="fs-store-av">{store.store_name[0].toUpperCase()}</span>
               )}
@@ -807,7 +807,7 @@ export default function ProductDetailClient({
                   >
                     <span className="fs-more-img" style={r.image_urls?.[0] ? { overflow: 'hidden' } : { background: `linear-gradient(150deg, ${rpGrad[0]}, ${rpGrad[1]})` }}>
                       {r.image_urls?.[0] ? (
-                        <img src={r.image_urls[0]} alt={r.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={r.image_urls[0]} alt={r.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <Camera size={22} color="rgba(255,255,255,.9)" />
                       )}
