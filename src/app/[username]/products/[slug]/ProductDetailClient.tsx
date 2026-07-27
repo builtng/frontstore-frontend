@@ -4,11 +4,12 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft, Share2, ShoppingBag, Star, Clock, MapPin, ShieldCheck,
   Check, Calendar, Plus, Minus, BadgeCheck, ChevronRight, Camera,
-  Truck, RotateCcw, X, Heart, Copy, ExternalLink, CheckCircle2, Shield, AlertCircle
+  Truck, RotateCcw, X, Heart, Copy, ExternalLink, CheckCircle2, Shield, AlertCircle, Expand
 } from "lucide-react";
 import { toast } from "sonner";
 import { WhatsAppIcon } from "../../../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../../../components/WhatsAppDisclaimerModal";
+import ImageLightbox from "../../../../components/ImageLightbox";
 
 // --- Types & Interfaces ---
 interface Category {
@@ -252,6 +253,7 @@ export default function ProductDetailClient({
   );
   
   const [slide, setSlide] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [size, setSize] = useState(0);
   const [qty, setQty] = useState(1);
   const [booking, setBooking] = useState(false);
@@ -488,6 +490,15 @@ export default function ProductDetailClient({
         onCancel={() => setPendingWaUrl(null)}
       />
 
+      <ImageLightbox
+        open={lightboxOpen}
+        images={images}
+        index={slide}
+        onIndexChange={setSlide}
+        onClose={() => setLightboxOpen(false)}
+        alt={initialProduct.name}
+      />
+
       {/* Top Nav */}
       <header className="fs-nav">
         <div className="fs-nav-inner">
@@ -513,19 +524,28 @@ export default function ProductDetailClient({
           {/* Gallery Slider */}
           <div className="fs-gallery">
             {images.length > 0 ? (
-              <div className="fs-hero" style={{ overflow: 'hidden', background: '#f5ebe7' }}>
-                <img 
-                  src={images[slide]} 
-                  alt={`${initialProduct.name} - slide ${slide + 1}`} 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              <div className="fs-hero" style={{ overflow: 'hidden', background: 'var(--surface)' }}>
+                <img
+                  src={images[slide]}
+                  alt={`${initialProduct.name} - slide ${slide + 1}`}
+                  onClick={() => setLightboxOpen(true)}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in' }}
                 />
                 <span className="fs-type-badge">{kind === "service" ? "Service" : "Product"}</span>
                 {initialProduct.compare_at_price && (
                   <span className="fs-tag">
-                    <Heart size={11} fill="#fff" color="#fff" /> 
+                    <Heart size={11} fill="#fff" color="#fff" />
                     {discountPercent(initialProduct.price, initialProduct.compare_at_price)}% Off
                   </span>
                 )}
+                <button
+                  type="button"
+                  className="fs-expand-btn"
+                  onClick={() => setLightboxOpen(true)}
+                  aria-label="View full image"
+                >
+                  <Expand size={15} />
+                </button>
               </div>
             ) : (
               <div className="fs-hero" style={{ background: `linear-gradient(${140 + slide * 12}deg, ${a}, ${b})` }}>
@@ -550,7 +570,7 @@ export default function ProductDetailClient({
                     onClick={() => setSlide(i)}
                     style={{ overflow: 'hidden' }}
                   >
-                    <img src={imgUrl} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={imgUrl} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'contain', background: 'var(--surface)' }} />
                   </button>
                 ))
               ) : (
@@ -1546,6 +1566,20 @@ const CSS = `
   backdrop-filter: blur(6px);
   padding: 5px 10px;
   border-radius: 8px;
+}
+
+.fs-expand-btn {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(255,255,255,.92);
+  color: var(--brand-deep);
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
 }
 
 .fs-thumbs {
