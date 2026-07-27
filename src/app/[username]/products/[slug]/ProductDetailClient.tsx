@@ -529,7 +529,8 @@ export default function ProductDetailClient({
                   src={images[slide]}
                   alt={`${initialProduct.name} - slide ${slide + 1}`}
                   onClick={() => setLightboxOpen(true)}
-                  style={{ width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in' }}
+                  loading="eager"
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in' }}
                 />
                 <span className="fs-type-badge">{kind === "service" ? "Service" : "Product"}</span>
                 {initialProduct.compare_at_price && (
