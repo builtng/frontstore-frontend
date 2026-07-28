@@ -7,6 +7,7 @@ import {
   ArrowLeft, Loader2, Sparkles, Save, EyeOff, LayoutGrid, BarChart3,
   ShoppingBag, Package, Tag, Users, DollarSign, Link, Gift, Share2, QrCode,
   Star, BookOpen, Clock, Calendar, Settings, Plug, Zap, Menu, X, LogOut,
+  Archive, FileText, Receipt,
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
 import ThemeToggle from '../../../components/ThemeToggle';
@@ -24,10 +25,13 @@ const NAV_ITEMS: { id: string; label: string; icon: React.ReactNode }[] = [
   { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={18} /> },
   { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} /> },
   { id: 'products', label: 'My Products', icon: <Package size={18} /> },
+  { id: 'inventory', label: 'Inventory', icon: <Archive size={18} /> },
   { id: 'coupons', label: 'Store Coupons', icon: <Tag size={18} /> },
   { id: 'customers', label: 'Customers', icon: <Users size={18} /> },
   { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
   { id: 'payment-links', label: 'Payment Links', icon: <Link size={18} /> },
+  { id: 'invoices', label: 'Invoices', icon: <FileText size={18} /> },
+  { id: 'receipts', label: 'Receipts', icon: <Receipt size={18} /> },
   { id: 'giveaways', label: 'Giveaways', icon: <Gift size={18} /> },
   { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
   { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
@@ -44,10 +48,13 @@ const NAV_ITEMS: { id: string; label: string; icon: React.ReactNode }[] = [
 const SIDEBAR_ITEMS: { id: string; label: string }[] = [
   { id: 'orders', label: 'My Orders' },
   { id: 'products', label: 'My Products' },
+  { id: 'inventory', label: 'Inventory' },
   { id: 'coupons', label: 'Store Coupons' },
   { id: 'customers', label: 'Customers' },
   { id: 'wallet', label: 'Wallet & Payouts' },
   { id: 'payment-links', label: 'Payment Links' },
+  { id: 'invoices', label: 'Invoices' },
+  { id: 'receipts', label: 'Receipts' },
   { id: 'giveaways', label: 'Giveaways' },
   { id: 'whatsapp', label: 'WhatsApp Inbox' },
   { id: 'share', label: 'Share & Earn' },
