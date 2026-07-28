@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
   CheckCircle2, FileText, Camera, MapPinned, Globe2, Mail, Phone,
-  Share2, Loader2, ChevronRight,
+  Share2, Loader2, ChevronRight, ChevronDown, Zap,
 } from 'lucide-react';
 import SearchableSelect from '../../../components/SearchableSelect';
 
@@ -35,19 +35,66 @@ const PHOTO_TYPES = [
 const SOCIAL_PLATFORMS = ['facebook', 'instagram', 'linkedin', 'tiktok'];
 const SOCIAL_PLATFORM_OPTIONS = SOCIAL_PLATFORMS.map((p) => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1) }));
 
-function Section({ icon, title, description, done, children }: { icon: React.ReactNode; title: string; description: string; done: boolean; children: React.ReactNode }) {
+function AccordionItem({
+  icon, title, description, done, doneSummary, speed, isOpen, onToggle, children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  done: boolean;
+  doneSummary?: string;
+  speed: 'instant' | 'manual';
+  isOpen: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="card" style={{ padding: 18, marginBottom: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
-        <span style={{ color: done ? 'var(--primary)' : 'var(--text-faint)', flexShrink: 0, marginTop: 2 }}>
-          {done ? <CheckCircle2 size={16} /> : icon}
+    <div
+      className="card"
+      style={{
+        marginBottom: 10, overflow: 'hidden',
+        borderColor: isOpen ? 'var(--primary)' : done ? 'color-mix(in srgb, var(--primary) 35%, var(--border))' : 'var(--border)',
+        transition: 'border-color var(--t-normal) var(--ease)',
+      }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        className="clickable"
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+          padding: '15px 16px', background: 'none', border: 'none', textAlign: 'left',
+        }}
+      >
+        <span style={{
+          width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: done ? 'var(--primary)' : 'var(--surface-2)',
+          color: done ? '#fff' : 'var(--text-faint)',
+          transition: 'all var(--t-normal) var(--ease)',
+        }}>
+          {done ? <CheckCircle2 size={17} /> : icon}
         </span>
-        <div>
-          <h4 style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>{title}</h4>
-          <p style={{ fontSize: 12, color: 'var(--text-faint)' }}>{description}</p>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <h4 style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>{title}</h4>
+            {speed === 'instant' && !done && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9.5, fontWeight: 800, color: 'var(--primary)', background: 'var(--primary-light)', borderRadius: 100, padding: '2px 7px', textTransform: 'uppercase', letterSpacing: '.03em' }}>
+                <Zap size={9} /> Fastest
+              </span>
+            )}
+          </div>
+          <p style={{ fontSize: 12, color: done ? 'var(--primary)' : 'var(--text-faint)', fontWeight: done ? 600 : 400, marginTop: 1 }}>
+            {done && doneSummary ? doneSummary : description}
+          </p>
         </div>
-      </div>
-      {children}
+        <ChevronDown size={16} style={{ color: 'var(--text-faint)', flexShrink: 0, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform var(--t-normal) var(--ease)' }} />
+      </button>
+      {isOpen && (
+        <div style={{ padding: '0 16px 18px 62px' }}>
+          {children}
+        </div>
+      )}
     </div>
   );
 }
@@ -55,6 +102,9 @@ function Section({ icon, title, description, done, children }: { icon: React.Rea
 export default function EvidencePanel({ claimKey, website, signupUrl }: EvidencePanelProps) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   const router = useRouter();
+
+  const [openSection, setOpenSection] = useState<string | null>(website ? 'website' : 'email');
+  const toggle = (key: string) => setOpenSection((cur) => (cur === key ? null : key));
 
   const [docsSubmitted, setDocsSubmitted] = useState<string[]>([]);
   const [photosSubmitted, setPhotosSubmitted] = useState<string[]>([]);
@@ -255,17 +305,30 @@ export default function EvidencePanel({ claimKey, website, signupUrl }: Evidence
   };
 
   return (
-    <div>
-      <div className="card" style={{ padding: '16px 18px', marginBottom: 18, background: 'var(--surface)' }}>
-        <p style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-          No phone or email is on file for this listing, so ownership needs to be verified another way.
-          Submit as much of the below as you can — a Frontstore admin reviews everything before approving.
-          {evidenceCount > 0 && <strong style={{ color: 'var(--primary)' }}> {evidenceCount} item{evidenceCount === 1 ? '' : 's'} submitted so far.</strong>}
-        </p>
+    <div className="card" style={{ padding: 'clamp(20px, 3.5vw, 26px)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+        <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>Verify ownership</h3>
+        {evidenceCount > 0 && (
+          <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary)', background: 'var(--primary-light)', borderRadius: 100, padding: '3px 10px' }}>
+            {evidenceCount} submitted
+          </span>
+        )}
       </div>
+      <p style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 18 }}>
+        No phone or email is on file for this listing, so ownership needs to be verified another way.
+        Submit as much as you can — an admin reviews everything before approving.
+      </p>
 
       {website && (
-        <Section icon={<Globe2 size={16} />} title="Verify website ownership (fastest)" description={`Prove you control ${website} and get approved instantly.`} done={false}>
+        <AccordionItem
+          icon={<Globe2 size={16} />}
+          title="Verify website ownership"
+          description={`Prove you control ${website} and get approved instantly.`}
+          done={false}
+          speed="instant"
+          isOpen={openSection === 'website'}
+          onToggle={() => toggle('website')}
+        >
           {!websiteInstructions ? (
             <button type="button" className="btn btn-outline clickable" style={{ fontSize: 12.5, padding: '8px 14px' }} onClick={handleStartWebsiteVerification} disabled={websiteBusy}>
               {websiteBusy ? <Loader2 size={14} className="animate-spin" /> : 'Start website verification'}
@@ -303,54 +366,73 @@ export default function EvidencePanel({ claimKey, website, signupUrl }: Evidence
               </button>
             </div>
           )}
-        </Section>
+        </AccordionItem>
       )}
 
-      <Section icon={<Mail size={16} />} title="Verify a business email" description="We'll send a 6-digit code." done={emailVerified}>
-        {emailVerified ? (
-          <p style={{ fontSize: 12.5, color: 'var(--primary)', fontWeight: 600 }}>{emailValue} verified</p>
-        ) : (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <input type="email" value={emailValue} onChange={(e) => setEmailValue(e.target.value)} placeholder="you@business.com" style={{ flex: 1, minWidth: 160, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 12.5 }} disabled={emailOtpSent} />
-            {!emailOtpSent ? (
-              <button type="button" className="btn btn-outline clickable" style={{ fontSize: 12, padding: '8px 12px' }} onClick={handleSendEmailOtp} disabled={emailBusy}>
-                {emailBusy ? <Loader2 size={13} className="animate-spin" /> : 'Send code'}
+      <AccordionItem
+        icon={<Mail size={16} />}
+        title="Verify a business email"
+        description="We'll send a 6-digit code."
+        done={emailVerified}
+        doneSummary={`${emailValue} verified`}
+        speed="instant"
+        isOpen={openSection === 'email'}
+        onToggle={() => toggle('email')}
+      >
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <input className="input-field" type="email" value={emailValue} onChange={(e) => setEmailValue(e.target.value)} placeholder="you@business.com" style={{ flex: 1, minWidth: 160, padding: '8px 10px', fontSize: 12.5 }} disabled={emailOtpSent} />
+          {!emailOtpSent ? (
+            <button type="button" className="btn btn-outline clickable" style={{ fontSize: 12, padding: '8px 12px' }} onClick={handleSendEmailOtp} disabled={emailBusy}>
+              {emailBusy ? <Loader2 size={13} className="animate-spin" /> : 'Send code'}
+            </button>
+          ) : (
+            <>
+              <input className="input-field" value={emailOtp} onChange={(e) => setEmailOtp(e.target.value)} placeholder="6-digit code" style={{ width: 100, padding: '8px 10px', fontSize: 12.5 }} />
+              <button type="button" className="btn btn-primary clickable" style={{ fontSize: 12, padding: '8px 12px' }} onClick={handleVerifyEmailOtp} disabled={emailBusy}>
+                {emailBusy ? <Loader2 size={13} className="animate-spin" /> : 'Verify'}
               </button>
-            ) : (
-              <>
-                <input value={emailOtp} onChange={(e) => setEmailOtp(e.target.value)} placeholder="6-digit code" style={{ width: 100, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 12.5 }} />
-                <button type="button" className="btn btn-primary clickable" style={{ fontSize: 12, padding: '8px 12px' }} onClick={handleVerifyEmailOtp} disabled={emailBusy}>
-                  {emailBusy ? <Loader2 size={13} className="animate-spin" /> : 'Verify'}
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </Section>
+            </>
+          )}
+        </div>
+      </AccordionItem>
 
-      <Section icon={<Phone size={16} />} title="Verify a business phone" description="Code sent via WhatsApp." done={phoneVerified}>
-        {phoneVerified ? (
-          <p style={{ fontSize: 12.5, color: 'var(--primary)', fontWeight: 600 }}>{phoneValue} verified</p>
-        ) : (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <input value={phoneValue} onChange={(e) => setPhoneValue(e.target.value)} placeholder="+2348012345678" style={{ flex: 1, minWidth: 160, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 12.5 }} disabled={phoneOtpSent} />
-            {!phoneOtpSent ? (
-              <button type="button" className="btn btn-outline clickable" style={{ fontSize: 12, padding: '8px 12px' }} onClick={handleSendPhoneOtp} disabled={phoneBusy}>
-                {phoneBusy ? <Loader2 size={13} className="animate-spin" /> : 'Send code'}
+      <AccordionItem
+        icon={<Phone size={16} />}
+        title="Verify a business phone"
+        description="Code sent via WhatsApp."
+        done={phoneVerified}
+        doneSummary={`${phoneValue} verified`}
+        speed="instant"
+        isOpen={openSection === 'phone'}
+        onToggle={() => toggle('phone')}
+      >
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <input className="input-field" value={phoneValue} onChange={(e) => setPhoneValue(e.target.value)} placeholder="+2348012345678" style={{ flex: 1, minWidth: 160, padding: '8px 10px', fontSize: 12.5 }} disabled={phoneOtpSent} />
+          {!phoneOtpSent ? (
+            <button type="button" className="btn btn-outline clickable" style={{ fontSize: 12, padding: '8px 12px' }} onClick={handleSendPhoneOtp} disabled={phoneBusy}>
+              {phoneBusy ? <Loader2 size={13} className="animate-spin" /> : 'Send code'}
+            </button>
+          ) : (
+            <>
+              <input className="input-field" value={phoneOtp} onChange={(e) => setPhoneOtp(e.target.value)} placeholder="6-digit code" style={{ width: 100, padding: '8px 10px', fontSize: 12.5 }} />
+              <button type="button" className="btn btn-primary clickable" style={{ fontSize: 12, padding: '8px 12px' }} onClick={handleVerifyPhoneOtp} disabled={phoneBusy}>
+                {phoneBusy ? <Loader2 size={13} className="animate-spin" /> : 'Verify'}
               </button>
-            ) : (
-              <>
-                <input value={phoneOtp} onChange={(e) => setPhoneOtp(e.target.value)} placeholder="6-digit code" style={{ width: 100, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 12.5 }} />
-                <button type="button" className="btn btn-primary clickable" style={{ fontSize: 12, padding: '8px 12px' }} onClick={handleVerifyPhoneOtp} disabled={phoneBusy}>
-                  {phoneBusy ? <Loader2 size={13} className="animate-spin" /> : 'Verify'}
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </Section>
+            </>
+          )}
+        </div>
+      </AccordionItem>
 
-      <Section icon={<FileText size={16} />} title="Upload a business document" description="CAC, tax certificate, utility bill, rent agreement, invoice, or letterhead." done={docsSubmitted.length > 0}>
+      <AccordionItem
+        icon={<FileText size={16} />}
+        title="Upload a business document"
+        description="CAC, tax certificate, utility bill, rent agreement, invoice, or letterhead."
+        done={docsSubmitted.length > 0}
+        doneSummary={`${docsSubmitted.length} document(s) submitted`}
+        speed="manual"
+        isOpen={openSection === 'document'}
+        onToggle={() => toggle('document')}
+      >
         <form onSubmit={handleDocSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ minWidth: 220 }}>
             <SearchableSelect options={DOCUMENT_TYPES} value={docType} onChange={setDocType} placeholder="Document type" searchPlaceholder="Search document type..." />
@@ -360,10 +442,18 @@ export default function EvidencePanel({ claimKey, website, signupUrl }: Evidence
             {docBusy ? <Loader2 size={13} className="animate-spin" /> : 'Upload'}
           </button>
         </form>
-        {docsSubmitted.length > 0 && <p style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 8 }}>{docsSubmitted.length} document(s) submitted.</p>}
-      </Section>
+      </AccordionItem>
 
-      <Section icon={<Camera size={16} />} title="Upload a photo" description="Selfie at the shop, signage, interior, or products." done={photosSubmitted.length > 0}>
+      <AccordionItem
+        icon={<Camera size={16} />}
+        title="Upload a photo"
+        description="Selfie at the shop, signage, interior, or products."
+        done={photosSubmitted.length > 0}
+        doneSummary={`${photosSubmitted.length} photo(s) submitted`}
+        speed="manual"
+        isOpen={openSection === 'photo'}
+        onToggle={() => toggle('photo')}
+      >
         <form onSubmit={handlePhotoSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ minWidth: 200 }}>
             <SearchableSelect options={PHOTO_TYPES} value={photoType} onChange={setPhotoType} placeholder="Photo type" searchPlaceholder="Search photo type..." />
@@ -373,26 +463,43 @@ export default function EvidencePanel({ claimKey, website, signupUrl }: Evidence
             {photoBusy ? <Loader2 size={13} className="animate-spin" /> : 'Upload'}
           </button>
         </form>
-        {photosSubmitted.length > 0 && <p style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 8 }}>{photosSubmitted.length} photo(s) submitted.</p>}
-      </Section>
+      </AccordionItem>
 
-      <Section icon={<MapPinned size={16} />} title="Verify your location" description="Confirm you're physically at the business (supporting evidence only)." done={gpsDone}>
+      <AccordionItem
+        icon={<MapPinned size={16} />}
+        title="Verify your location"
+        description="Confirm you're physically at the business (supporting evidence only)."
+        done={gpsDone}
+        doneSummary="Location confirmed"
+        speed="manual"
+        isOpen={openSection === 'gps'}
+        onToggle={() => toggle('gps')}
+      >
         <button type="button" className="btn btn-outline clickable" style={{ fontSize: 12.5, padding: '8px 14px' }} onClick={handleGps} disabled={gpsBusy}>
           {gpsBusy ? <Loader2 size={14} className="animate-spin" /> : 'Check my location'}
         </button>
-      </Section>
+      </AccordionItem>
 
-      <Section icon={<Share2 size={16} />} title="Link a social media page" description="Weak supporting evidence, manually reviewed." done={socialDone}>
+      <AccordionItem
+        icon={<Share2 size={16} />}
+        title="Link a social media page"
+        description="Weak supporting evidence, manually reviewed."
+        done={socialDone}
+        doneSummary="Social link recorded"
+        speed="manual"
+        isOpen={openSection === 'social'}
+        onToggle={() => toggle('social')}
+      >
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <div style={{ minWidth: 160 }}>
             <SearchableSelect options={SOCIAL_PLATFORM_OPTIONS} value={socialPlatform} onChange={setSocialPlatform} placeholder="Platform" searchPlaceholder="Search platform..." />
           </div>
-          <input value={socialUrl} onChange={(e) => setSocialUrl(e.target.value)} placeholder="https://..." style={{ flex: 1, minWidth: 160, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 12.5 }} />
+          <input className="input-field" value={socialUrl} onChange={(e) => setSocialUrl(e.target.value)} placeholder="https://..." style={{ flex: 1, minWidth: 160, padding: '8px 10px', fontSize: 12.5 }} />
           <button type="button" className="btn btn-outline clickable" style={{ fontSize: 12, padding: '8px 12px' }} onClick={handleSocialSubmit} disabled={socialBusy}>
             {socialBusy ? <Loader2 size={13} className="animate-spin" /> : 'Add'}
           </button>
         </div>
-      </Section>
+      </AccordionItem>
     </div>
   );
 }
