@@ -2,9 +2,22 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Store, ArrowRight, Search, Instagram, ShieldCheck, MapPin, Star, Package, Sparkles, X } from 'lucide-react';
+import { Store, ArrowRight, Search, Instagram, ShieldCheck, MapPin, Star, Package, Sparkles, X, Megaphone } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import { PublicSiteNav, PublicSiteFooter } from '../../components/PublicSiteChrome';
+import { formatOsmCategory } from '../../utils/osmCategoryLabels';
+
+export interface UnclaimedListing {
+  id: string;
+  name: string;
+  slug: string;
+  category_key: string | null;
+  category_value: string | null;
+  persona_id: string;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+}
 
 export interface StoreItem {
   id: string;
@@ -315,6 +328,55 @@ export function StoreDirectoryCard({ store }: { store: StoreItem }) {
           style={{ padding: '7px 14px', fontSize: 12.5, borderRadius: 'var(--r-sm)', textDecoration: 'none' }}
         >
           Visit store <ArrowRight size={12} />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export function UnclaimedListingCard({ listing }: { listing: UnclaimedListing }) {
+  const initials = (listing.name || 'B').charAt(0).toUpperCase();
+  const location = [listing.city, listing.state].filter(Boolean).join(', ');
+
+  return (
+    <div className="card card-hover hover-lift" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14, borderStyle: 'dashed' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+          background: 'var(--surface-2)', border: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'var(--text-faint)', fontWeight: 800, fontSize: 18, fontFamily: 'var(--font-heading)',
+        }}>
+          {initials}
+        </div>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h4 style={{ fontSize: 15.5, fontWeight: 800, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {listing.name}
+          </h4>
+          {location && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>
+              <MapPin size={10} />{location}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span className="badge" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
+          {formatOsmCategory(listing.category_value)}
+        </span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--accent)', fontWeight: 700 }}>
+          <Megaphone size={11} /> Unclaimed listing
+        </span>
+      </div>
+
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginTop: 'auto' }}>
+        <Link
+          href={`/claim/${listing.slug}`}
+          className="btn btn-outline clickable"
+          style={{ padding: '7px 14px', fontSize: 12.5, borderRadius: 'var(--r-sm)', textDecoration: 'none', width: '100%', justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        >
+          Is this your business? Claim it <ArrowRight size={12} />
         </Link>
       </div>
     </div>

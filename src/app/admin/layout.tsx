@@ -24,6 +24,7 @@ import {
   ShoppingBag,
   Store,
   Tag,
+  UserPlus,
   Users,
 } from 'lucide-react';
 
@@ -38,6 +39,7 @@ const navGroups = [
     label: 'Marketplace',
     items: [
       { href: '/admin/stores', label: 'Stores', icon: <Store size={16} />, permission: 'stores' },
+      { href: '/admin/merchant-claims', label: 'Merchant Claims', icon: <UserPlus size={16} />, permission: 'merchant-claims' },
       { href: '/admin/products', label: 'Products', icon: <Package size={16} />, permission: 'products' },
       { href: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={16} />, permission: 'orders' },
       { href: '/admin/categories', label: 'Categories', icon: <Tag size={16} />, permission: 'categories' },

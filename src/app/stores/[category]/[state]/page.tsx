@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, HelpCircle, MapPin, Store as StoreIcon } from 'lucide-react';
 import { PublicSiteFooter, PublicSiteNav } from '@/components/PublicSiteChrome';
-import { StoreDirectoryCard, StoreItem } from '../../StoresClient';
+import { StoreDirectoryCard, StoreItem, UnclaimedListingCard, UnclaimedListing } from '../../StoresClient';
 import { businessPersonas } from '@/utils/businessPersonas';
 import { NIGERIAN_STATES } from '@/utils/nigerianStates';
 import { NIGERIAN_CITIES } from '@/utils/nigerianCities';
@@ -37,13 +37,31 @@ async function getMatchingStores(categorySlug: string, stateSlug: string): Promi
   }
 }
 
+async function getUnclaimedListings(categorySlug: string, stateSlug: string): Promise<UnclaimedListing[]> {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  try {
+    const res = await fetch(`${API_URL}/v1/public/frontstore-stores?state=${stateSlug}&persona=${categorySlug}`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    const { data } = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error('Error fetching unclaimed listings:', err);
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category, state: stateSlug } = await params;
   const persona = businessPersonas.find((p) => p.id === category);
   const state = NIGERIAN_STATES.find((s) => s.slug === stateSlug);
   if (!persona || !state) return {};
 
-  const stores = await getMatchingStores(category, stateSlug);
+  const [stores, unclaimedListings] = await Promise.all([
+    getMatchingStores(category, stateSlug),
+    getUnclaimedListings(category, stateSlug),
+  ]);
   const content = getDirectoryContent(persona, state, stores.length);
   const url = `https://frontstore.ng/stores/${category}/${stateSlug}`;
 
@@ -51,7 +69,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: content.metaTitle,
     description: content.metaDescription,
     alternates: { canonical: url },
-    robots: stores.length > 0 ? undefined : { index: false, follow: true },
+    robots: (stores.length > 0 || unclaimedListings.length > 0) ? undefined : { index: false, follow: true },
     openGraph: {
       title: content.metaTitle,
       description: content.metaDescription,
@@ -76,7 +94,10 @@ export default async function DirectoryPage({ params }: PageProps) {
   const state = NIGERIAN_STATES.find((s) => s.slug === stateSlug);
   if (!persona || !state) return notFound();
 
-  const stores = await getMatchingStores(category, stateSlug);
+  const [stores, unclaimedListings] = await Promise.all([
+    getMatchingStores(category, stateSlug),
+    getUnclaimedListings(category, stateSlug),
+  ]);
   const content = getDirectoryContent(persona, state, stores.length);
   const url = `https://frontstore.ng/stores/${category}/${stateSlug}`;
 
@@ -183,6 +204,24 @@ export default async function DirectoryPage({ params }: PageProps) {
               New stores join every week — check the <Link href="/stores" style={{ color: 'var(--primary)', fontWeight: 700 }}>full directory</Link> in the meantime.
             </p>
           </div>
+        )}
+
+        {unclaimedListings.length > 0 && (
+          <section style={{ marginBottom: 48 }}>
+            <div style={{ marginBottom: 20 }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>
+                {unclaimedListings.length} more {persona.name.toLowerCase()} business{unclaimedListings.length === 1 ? '' : 'es'} in {state.name}
+              </h2>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                Found on public map data but not yet on Frontstore — the owner can claim it for free.
+              </p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 20 }}>
+              {unclaimedListings.map((listing) => (
+                <UnclaimedListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          </section>
         )}
 
         <section className="card" style={{ padding: 'clamp(20px, 3vw, 28px)', background: 'var(--surface)', marginBottom: 40 }}>

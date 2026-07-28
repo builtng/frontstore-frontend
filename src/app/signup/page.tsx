@@ -174,6 +174,29 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
     }
   }, [searchParams]);
 
+  // Pre-fill from a "Claim your business" listing page
+  const [claimSlug, setClaimSlug] = useState<string>('');
+  useEffect(() => {
+    const claimParam = searchParams.get('claim');
+    if (!claimParam) return;
+    setClaimSlug(claimParam);
+
+    const personaParam = searchParams.get('business_persona');
+    if (personaParam && businessPersonas.some(p => p.id === personaParam)) {
+      setSelectedPersona(personaParam);
+    }
+  }, [searchParams]);
+
+  // A verified-website claim already proved identity — skip straight to the
+  // final "name + WhatsApp phone" step with the setup_token it was issued.
+  useEffect(() => {
+    const setupTokenParam = searchParams.get('setup_token');
+    if (setupTokenParam) {
+      setSetupToken(setupTokenParam);
+      setCurrentStep(3);
+    }
+  }, [searchParams]);
+
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   // Helper to normalize phone
@@ -366,7 +389,8 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
           email: email.trim() || undefined,
           phone_number: normalizedPhone,
           country_dial_code: selectedCountry.dialCode,
-          referred_by: referredBy || undefined
+          referred_by: referredBy || undefined,
+          claim_slug: claimSlug || undefined
         })
       });
 

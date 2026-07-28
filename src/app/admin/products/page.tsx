@@ -164,7 +164,7 @@ export default function AdminProductsPage() {
                   <td className="admin-table__actions">
                     <button
                       type="button"
-                      className={product.is_sponsored ? 'admin-action danger' : 'admin-action'}
+                      className="admin-action"
                       onClick={() => handleToggleProductSponsor(product)}
                     >
                       <TrendingUp size={15} />

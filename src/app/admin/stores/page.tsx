@@ -15,9 +15,11 @@ import {
   Search,
   ShieldCheck,
   Trash2,
+  UserPlus,
   Zap,
 } from 'lucide-react';
 import { TableSkeleton, StatusChip, EmptyState } from '../components';
+import CreateMerchantDrawer from './CreateMerchantDrawer';
 
 const formatMoney = (value?: number, currencyCode: string = 'NGN') =>
   new Intl.NumberFormat('en-NG', {
@@ -52,6 +54,7 @@ export default function AdminStoresPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [selectedStore, setSelectedStore] = useState<StoreInfo | null>(null);
+  const [showCreateDrawer, setShowCreateDrawer] = useState(false);
   const [sendingLimitEmailFor, setSendingLimitEmailFor] = useState<string | null>(null);
 
   const freeProductLimit = Number(settings?.free_plan_product_limit) || 10;
@@ -164,22 +167,34 @@ export default function AdminStoresPage() {
           <h2>Merchant stores</h2>
           <p>Search, suspend, activate, and update subscription plans.</p>
         </div>
-        <form
-          className="admin-search"
-          onSubmit={(event) => {
-            event.preventDefault();
-            loadStores(1, searchQuery);
-          }}
-        >
-          <Search size={16} />
-          <input
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search stores, owners, email, phone"
-          />
-          <button type="submit">Search</button>
-        </form>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <form
+            className="admin-search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              loadStores(1, searchQuery);
+            }}
+          >
+            <Search size={16} />
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search stores, owners, email, phone"
+            />
+            <button type="submit">Search</button>
+          </form>
+          <button type="button" className="admin-action" onClick={() => setShowCreateDrawer(true)}>
+            <UserPlus size={15} /> Create merchant
+          </button>
+        </div>
       </div>
+
+      {showCreateDrawer && (
+        <CreateMerchantDrawer
+          onClose={() => setShowCreateDrawer(false)}
+          onCreated={() => loadStores(currentPage, searchQuery)}
+        />
+      )}
 
       <div className="admin-table-wrap">
         <table className="admin-table">
@@ -273,7 +288,7 @@ export default function AdminStoresPage() {
                     )}
                     <button
                       type="button"
-                      className={store.is_active ? 'admin-action danger' : 'admin-action'}
+                      className={store.is_active ? 'admin-action warning' : 'admin-action'}
                       onClick={(e) => {
                         e.stopPropagation();
                         openConfirmationDialog(

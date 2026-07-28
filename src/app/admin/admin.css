@@ -914,6 +914,19 @@
   transform: translateY(-1px);
 }
 
+/* Reversible-but-cautionary actions (suspend, pause, revoke access) —
+   visually distinct from .danger so irreversible actions like Delete
+   don't get lost in a wall of identical red buttons. */
+.admin-action.warning {
+  color: var(--accent);
+  background: var(--accent-light);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+.admin-action.warning:hover {
+  background: rgba(245, 158, 11, 0.2);
+  transform: translateY(-1px);
+}
+
 .admin-pagination {
   display: flex;
   align-items: center;
