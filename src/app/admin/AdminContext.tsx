@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 
 export interface AdminStats {
   total_revenue: number;
+  order_revenue: number;
+  subscription_revenue: number;
   total_users: number;
   total_stores: number;
   active_stores: number;

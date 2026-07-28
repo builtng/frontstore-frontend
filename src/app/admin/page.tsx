@@ -109,7 +109,13 @@ export default function AdminOverviewPage() {
       ) : (
         <>
           <div className="admin-metric-grid">
-            <Metric icon={<DollarSign size={18} />} label="Paid revenue" value={formatMoney(stats?.total_revenue)} tone="green" />
+            <Metric
+              icon={<DollarSign size={18} />}
+              label="Paid revenue"
+              value={formatMoney(stats?.total_revenue)}
+              detail={`${formatMoney(stats?.order_revenue)} orders · ${formatMoney(stats?.subscription_revenue)} subscriptions`}
+              tone="green"
+            />
             <Metric icon={<Users size={18} />} label="Merchants" value={(stats?.total_users || 0).toLocaleString()} detail={`${stats?.plans?.pro || 0} Pro`} />
             <Metric icon={<Store size={18} />} label="Active stores" value={`${stats?.active_stores || 0}/${stats?.total_stores || 0}`} detail="Live storefronts" />
             <Metric icon={<Package size={18} />} label="Catalog" value={(stats?.total_products || 0).toLocaleString()} detail={`${stats?.total_orders || 0} orders`} />
