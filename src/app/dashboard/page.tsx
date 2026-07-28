@@ -14509,15 +14509,17 @@ export default function DashboardPage() {
             <form onSubmit={async (e) => {
               e.preventDefault();
               try {
-                const total = invoiceItems.reduce((acc, it) => acc + (it.quantity * it.price), 0);
+                const items = invoiceItems.filter(it => it.name.trim() !== '').map(it => ({ name: it.name, qty: it.quantity, price: it.price }));
+                const subtotal = items.reduce((acc, it) => acc + (it.qty * it.price), 0);
                 const payload = {
                   customer_name: newInvoiceData.customer_name,
                   customer_email: newInvoiceData.customer_email || null,
                   customer_phone: newInvoiceData.customer_phone,
+                  issue_date: new Date().toISOString().slice(0, 10),
                   due_date: newInvoiceData.due_date,
                   notes: newInvoiceData.notes || null,
-                  items: invoiceItems.filter(it => it.name.trim() !== ''),
-                  total_amount: total
+                  items,
+                  subtotal
                 };
                 const res = await fetch(`${apiUrl}/v1/invoices`, {
                   method: 'POST',
