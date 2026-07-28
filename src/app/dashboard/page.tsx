@@ -13953,8 +13953,8 @@ export default function DashboardPage() {
               >
                 <EyeOff size={16} />
                 <span style={{ flex: 1, textAlign: 'left' }}>Remove Distractions</span>
-                {!isPro && (
-                  <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: 'var(--danger)', padding: '2px 7px', borderRadius: 'var(--r-full)' }}>Pro</span>
+                {!isLegend && (
+                  <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: '#7c3aed', padding: '2px 7px', borderRadius: 'var(--r-full)' }}>Legend</span>
                 )}
               </button>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
