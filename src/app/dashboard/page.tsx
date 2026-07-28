@@ -579,6 +579,17 @@ export default function DashboardPage() {
   const [receiptsLoading, setReceiptsLoading] = useState(false);
   const [receiptSearch, setReceiptSearch] = useState('');
   const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
+  const [isAddReceiptOpen, setIsAddReceiptOpen] = useState(false);
+  const [receiptSaving, setReceiptSaving] = useState(false);
+  const [newReceiptData, setNewReceiptData] = useState({
+    customer_name: '',
+    customer_email: '',
+    customer_phone: '',
+    amount: '',
+    payment_method: 'cash',
+    paid_at: new Date().toISOString().slice(0, 10),
+    message: '',
+  });
 
   // Inventory State
   const [inventoryLogs, setInventoryLogs] = useState<any[]>([]);
@@ -10462,6 +10473,18 @@ export default function DashboardPage() {
                         </p>
                       </div>
                     </div>
+                    {isPro && (
+                      <button
+                        onClick={() => {
+                          setNewReceiptData({ customer_name: '', customer_email: '', customer_phone: '', amount: '', payment_method: 'cash', paid_at: new Date().toISOString().slice(0, 10), message: '' });
+                          setIsAddReceiptOpen(true);
+                        }}
+                        className="btn btn-primary clickable"
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', fontSize: 13.5 }}
+                      >
+                        <Plus size={16} /> Create Receipt
+                      </button>
+                    )}
                   </div>
 
                   {!isPro ? (
@@ -14593,6 +14616,108 @@ export default function DashboardPage() {
               <div className="modal-footer">
                 <button type="button" onClick={() => setIsAddInvoiceOpen(false)} className="btn btn-outline clickable">Cancel</button>
                 <button type="submit" className="btn btn-primary clickable">Save Invoice</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isAddReceiptOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div onClick={() => setIsAddReceiptOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)' }} />
+          <div className="card animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 520, padding: 28, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
+
+            {/* Header */}
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className="modal-header-icon"><Receipt size={16} /></span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Create Receipt</h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>Issue a receipt for a payment received off-platform (cash, bank transfer, etc.)</p>
+                </div>
+              </div>
+              <button onClick={() => setIsAddReceiptOpen(false)} className="modal-close-btn clickable"><X size={16} /></button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setReceiptSaving(true);
+              try {
+                const payload = {
+                  customer_name: newReceiptData.customer_name,
+                  customer_email: newReceiptData.customer_email || null,
+                  customer_phone: newReceiptData.customer_phone || null,
+                  amount: parseFloat(newReceiptData.amount) || 0,
+                  payment_method: newReceiptData.payment_method,
+                  paid_at: newReceiptData.paid_at,
+                  message: newReceiptData.message || null,
+                };
+                const res = await fetch(`${apiUrl}/v1/receipts`, {
+                  method: 'POST',
+                  headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                  toast.success('Receipt created successfully.');
+                  setIsAddReceiptOpen(false);
+                  fetchReceiptsData();
+                } else {
+                  const errorJson = await res.json();
+                  toast.error(errorJson.message || 'Failed to create receipt.');
+                }
+              } catch {
+                toast.error('Network error creating receipt.');
+              } finally {
+                setReceiptSaving(false);
+              }
+            }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              <div className="field-group">
+                <label className="form-label">Customer Name *</label>
+                <input type="text" required value={newReceiptData.customer_name} onChange={e => setNewReceiptData({ ...newReceiptData, customer_name: e.target.value })} className="form-control" placeholder="e.g. Amaka Obi" />
+              </div>
+
+              <div className="responsive-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="field-group">
+                  <label className="form-label">Customer Email</label>
+                  <input type="email" value={newReceiptData.customer_email} onChange={e => setNewReceiptData({ ...newReceiptData, customer_email: e.target.value })} className="form-control" placeholder="email@example.com" />
+                </div>
+                <div className="field-group">
+                  <label className="form-label">Customer Phone</label>
+                  <input type="text" value={newReceiptData.customer_phone} onChange={e => setNewReceiptData({ ...newReceiptData, customer_phone: e.target.value })} className="form-control" placeholder="+234 800 000 0000" />
+                </div>
+              </div>
+
+              <div className="responsive-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="field-group">
+                  <label className="form-label">Amount Paid *</label>
+                  <input type="number" required min={0} step="0.01" value={newReceiptData.amount} onChange={e => setNewReceiptData({ ...newReceiptData, amount: e.target.value })} className="form-control" placeholder="0.00" />
+                </div>
+                <div className="field-group">
+                  <label className="form-label">Date Paid *</label>
+                  <input type="date" required value={newReceiptData.paid_at} onChange={e => setNewReceiptData({ ...newReceiptData, paid_at: e.target.value })} className="form-control" />
+                </div>
+              </div>
+
+              <div className="field-group">
+                <label className="form-label">Payment Method</label>
+                <select value={newReceiptData.payment_method} onChange={e => setNewReceiptData({ ...newReceiptData, payment_method: e.target.value })} className="form-control">
+                  <option value="cash">Cash</option>
+                  <option value="bank_transfer">Bank Transfer</option>
+                  <option value="pos">POS</option>
+                  <option value="mobile_money">Mobile Money</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div className="field-group">
+                <label className="form-label">Message / Notes</label>
+                <textarea value={newReceiptData.message} onChange={e => setNewReceiptData({ ...newReceiptData, message: e.target.value })} className="form-control" placeholder="What was this payment for?" style={{ height: 72 }} />
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" onClick={() => setIsAddReceiptOpen(false)} className="btn btn-outline clickable">Cancel</button>
+                <button type="submit" disabled={receiptSaving} className="btn btn-primary clickable">{receiptSaving ? 'Saving...' : 'Save Receipt'}</button>
               </div>
             </form>
           </div>
