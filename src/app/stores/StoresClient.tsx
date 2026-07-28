@@ -46,12 +46,15 @@ const SORTS = [
 
 type SortKey = (typeof SORTS)[number]['key'];
 
-export default function StoresClient({ initialStores }: { initialStores: StoreItem[] }) {
+const UNCLAIMED_DISPLAY_LIMIT = 60;
+
+export default function StoresClient({ initialStores, initialUnclaimed }: { initialStores: StoreItem[]; initialUnclaimed?: UnclaimedListing[] }) {
   const [stores, setStores] = useState<StoreItem[]>(initialStores || []);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [sortBy, setSortBy] = useState<SortKey>('featured');
   const [loading, setLoading] = useState(!initialStores || initialStores.length === 0);
+  const unclaimedListings = (initialUnclaimed || []).slice(0, UNCLAIMED_DISPLAY_LIMIT);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
@@ -207,6 +210,24 @@ export default function StoresClient({ initialStores }: { initialStores: StoreIt
             <p style={{ fontWeight: 700, fontSize: 15, marginBottom: 4, color: 'var(--text)' }}>No stores matched your search</p>
             <p style={{ color: 'var(--text-muted)', fontSize: 13.5 }}>Try a different keyword or clear your filters.</p>
           </div>
+        )}
+
+        {unclaimedListings.length > 0 && (
+          <section style={{ marginTop: 56 }}>
+            <div style={{ marginBottom: 20 }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>
+                More businesses to discover
+              </h2>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                Found on public map data but not yet on Frontstore — the owner can claim any of these for free.
+              </p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 20 }}>
+              {unclaimedListings.map((listing) => (
+                <UnclaimedListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          </section>
         )}
       </main>
 

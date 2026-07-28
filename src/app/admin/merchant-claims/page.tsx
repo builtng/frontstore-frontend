@@ -9,6 +9,7 @@ import {
   Check,
   Download,
   Eye,
+  Link as LinkIcon,
   Mail,
   MessageCircle,
   Pencil,
@@ -42,6 +43,8 @@ interface ClaimListing {
   invite_status: string;
   last_invited_at: string | null;
   imported_at: string | null;
+  claim_url: string | null;
+  claim_token_url: string | null;
   manual_claim_request: { name: string; email: string; phone: string; note?: string } | null;
 }
 
@@ -210,6 +213,15 @@ export default function MerchantClaimsPage() {
     window.open(`${apiUrl}/v1/admin/frontstore-claims/invite-report`, '_blank');
   };
 
+  const copyClaimLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Claim link copied.');
+    } catch {
+      toast.error('Could not copy link.');
+    }
+  };
+
   return (
     <section className="admin-section animate-fade-in">
       <div className="admin-section-heading">
@@ -320,8 +332,8 @@ export default function MerchantClaimsPage() {
               <th>Location</th>
               <th>Contact</th>
               <th>Claim Status</th>
-              <th>Invite Status</th>
-              <th>Last Invited</th>
+              <th>Invite</th>
+              <th>Claim Link</th>
               <th />
             </tr>
           </thead>
@@ -351,8 +363,24 @@ export default function MerchantClaimsPage() {
                   </td>
                   <td>
                     <StatusChip tone={inviteStatusTone[listing.invite_status] || 'gray'} label={listing.invite_status.replace(/_/g, ' ')} />
+                    {listing.last_invited_at && (
+                      <span style={{ display: 'block', fontSize: 11, color: 'var(--text-faint)', marginTop: 3 }}>
+                        {new Date(listing.last_invited_at).toLocaleDateString()}
+                      </span>
+                    )}
                   </td>
-                  <td>{listing.last_invited_at ? new Date(listing.last_invited_at).toLocaleDateString() : '—'}</td>
+                  <td>
+                    {listing.claim_url ? (
+                      <button
+                        type="button"
+                        className="admin-action"
+                        style={{ minHeight: 28, padding: '4px 10px', fontSize: 11.5 }}
+                        onClick={() => copyClaimLink(listing.claim_token_url || listing.claim_url!)}
+                      >
+                        <LinkIcon size={12} /> {listing.claim_token_url ? 'Copy invite link' : 'Copy link'}
+                      </button>
+                    ) : '—'}
+                  </td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
                       {listing.claim_status === 'pending_verification' && (

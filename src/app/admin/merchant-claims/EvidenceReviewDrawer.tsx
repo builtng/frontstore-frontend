@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Check, ExternalLink, Loader2, X } from 'lucide-react';
+import { Check, ExternalLink, Link as LinkIcon, Loader2, X } from 'lucide-react';
 import { useAdmin } from '../AdminContext';
 import { StatusChip, StatusTone } from '../components';
 
@@ -33,6 +33,8 @@ interface ListingDetail {
   claim_status: string;
   verification_score: number;
   risk_level: string | null;
+  claim_url: string | null;
+  claim_token_url: string | null;
   manual_claim_request: { name: string; email: string; phone: string; note?: string } | null;
 }
 
@@ -77,6 +79,15 @@ export default function EvidenceReviewDrawer({ listingId, onClose, onDecided }: 
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listingId]);
+
+  const copyLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Claim link copied.');
+    } catch {
+      toast.error('Could not copy link.');
+    }
+  };
 
   const decideEvidence = async (evidenceId: string, status: 'verified' | 'rejected') => {
     try {
@@ -178,6 +189,16 @@ export default function EvidenceReviewDrawer({ listingId, onClose, onDecided }: 
                     <StatusChip tone={listing.claim_status === 'claimed' ? 'green' : listing.claim_status === 'rejected' ? 'red' : 'orange'} label={listing.claim_status.replace(/_/g, ' ')} />
                   </div>
                 </div>
+                {(listing.claim_url || listing.claim_token_url) && (
+                  <button
+                    type="button"
+                    className="admin-action"
+                    style={{ marginTop: 12 }}
+                    onClick={() => copyLink(listing.claim_token_url || listing.claim_url!)}
+                  >
+                    <LinkIcon size={14} /> {listing.claim_token_url ? 'Copy invite link' : 'Copy claim link'}
+                  </button>
+                )}
               </div>
 
               {listing.manual_claim_request && (
