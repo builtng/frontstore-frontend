@@ -382,7 +382,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       const res = await fetch(`${API_URL}/v1/public/store/${clean}`);
 
       if (res.ok) {
-        setMessage(`Sorry — ${systemDomain}/${clean} is already taken.`);
+        setMessage('Taken already — try another one.');
         setMessageType('error');
       } else if (res.status === 404) {
         setMessage(`🎉 ${systemDomain}/${clean} is available!`);
