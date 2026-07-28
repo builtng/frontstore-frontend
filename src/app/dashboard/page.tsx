@@ -14701,13 +14701,18 @@ export default function DashboardPage() {
 
               <div className="field-group">
                 <label className="form-label">Payment Method</label>
-                <select value={newReceiptData.payment_method} onChange={e => setNewReceiptData({ ...newReceiptData, payment_method: e.target.value })} className="form-control">
-                  <option value="cash">Cash</option>
-                  <option value="bank_transfer">Bank Transfer</option>
-                  <option value="pos">POS</option>
-                  <option value="mobile_money">Mobile Money</option>
-                  <option value="other">Other</option>
-                </select>
+                <SearchableSelect
+                  options={[
+                    { value: 'cash', label: 'Cash' },
+                    { value: 'bank_transfer', label: 'Bank Transfer' },
+                    { value: 'pos', label: 'POS' },
+                    { value: 'mobile_money', label: 'Mobile Money' },
+                    { value: 'other', label: 'Other' },
+                  ]}
+                  value={newReceiptData.payment_method}
+                  onChange={val => setNewReceiptData({ ...newReceiptData, payment_method: val })}
+                  placeholder="Select payment method"
+                />
               </div>
 
               <div className="field-group">
