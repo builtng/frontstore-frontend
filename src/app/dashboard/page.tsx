@@ -13917,25 +13917,25 @@ export default function DashboardPage() {
             <nav style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
               {[
                 { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={18} /> },
-                { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} /> },
+                { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} />, badge: orders.filter(o => o.order_status === 'pending').length },
                 { id: 'products', label: 'My Products', icon: <Package size={18} /> },
-                { id: 'inventory', label: 'Inventory', icon: <Archive size={18} /> },
-                { id: 'coupons', label: 'Store Coupons', icon: <Tag size={18} /> },
-                { id: 'customers', label: 'Customers', icon: <Users size={18} /> },
+                { id: 'inventory', label: 'Inventory', icon: <Archive size={18} />, badge: !isPro ? 'Pro' : undefined },
+                { id: 'coupons', label: 'Store Coupons', icon: <Tag size={18} />, badge: !isPro ? 'Pro' : undefined },
+                { id: 'customers', label: 'Customers', icon: <Users size={18} />, badge: !isPro ? 'Pro' : undefined },
                 { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
-                { id: 'payment-links', label: 'Payment Links', icon: <Link size={18} /> },
-                { id: 'invoices', label: 'Invoices', icon: <FileText size={18} /> },
-                { id: 'receipts', label: 'Receipts', icon: <Receipt size={18} /> },
+                { id: 'payment-links', label: 'Payment Links', icon: <Link size={18} />, badge: !isPro ? 'Pro' : undefined },
+                { id: 'invoices', label: 'Invoices', icon: <FileText size={18} />, badge: !isPro ? 'Pro' : undefined },
+                { id: 'receipts', label: 'Receipts', icon: <Receipt size={18} />, badge: !isPro ? 'Pro' : undefined },
                 { id: 'giveaways', label: 'Giveaways', icon: <Gift size={18} /> },
-                { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
+                { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} />, badge: !isPro ? 'Pro' : (waOrders.filter(o => o.payment_status === 'unpaid').length || undefined) },
                 { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
-                { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} /> },
-                { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} /> },
+                { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} />, badge: isPro ? undefined : 'Pro' },
+                { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} />, badge: !isPro ? 'Pro' : (reviews.filter(r => !r.reply).length || undefined) },
                 { id: 'blog', label: 'Blog Posts', icon: <BookOpen size={18} /> },
                 { id: 'availability', label: 'Availability', icon: <Clock size={18} /> },
-                { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} /> },
+                { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} />, badge: bookings.filter((b: any) => b.status === 'pending').length || undefined },
                 { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
-                { id: 'integrations', label: 'Integrations', icon: <Plug size={18} /> },
+                { id: 'integrations', label: 'Integrations', icon: <Plug size={18} />, badge: !isLegend ? 'Legend' : undefined },
                 { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
               ].filter(item => item.id !== 'giveaways' || isAdminUser).filter(item => item.id === 'overview' || item.id === 'settings' || !hiddenDashboardItems.includes(item.id)).map(item => (
                 <button
@@ -13960,7 +13960,19 @@ export default function DashboardPage() {
                   }}
                 >
                   {item.icon}
-                  <span>{item.label}</span>
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {!!item.badge && (
+                    <span style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: '#fff',
+                      background: item.badge === 'Pro' ? 'var(--danger)' : item.badge === 'Legend' ? '#7c3aed' : (item.id === 'whatsapp' ? 'var(--primary)' : 'var(--danger)'),
+                      padding: '2px 7px',
+                      borderRadius: 'var(--r-full)'
+                    }}>
+                      {item.badge}
+                    </span>
+                  )}
                 </button>
               ))}
             </nav>
