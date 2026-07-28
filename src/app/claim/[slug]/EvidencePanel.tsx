@@ -7,6 +7,7 @@ import {
   CheckCircle2, FileText, Camera, MapPinned, Globe2, Mail, Phone,
   Share2, Loader2, ChevronRight,
 } from 'lucide-react';
+import SearchableSelect from '../../../components/SearchableSelect';
 
 interface EvidencePanelProps {
   claimKey: string;
@@ -32,6 +33,7 @@ const PHOTO_TYPES = [
 ];
 
 const SOCIAL_PLATFORMS = ['facebook', 'instagram', 'linkedin', 'tiktok'];
+const SOCIAL_PLATFORM_OPTIONS = SOCIAL_PLATFORMS.map((p) => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1) }));
 
 function Section({ icon, title, description, done, children }: { icon: React.ReactNode; title: string; description: string; done: boolean; children: React.ReactNode }) {
   return (
@@ -350,9 +352,9 @@ export default function EvidencePanel({ claimKey, website, signupUrl }: Evidence
 
       <Section icon={<FileText size={16} />} title="Upload a business document" description="CAC, tax certificate, utility bill, rent agreement, invoice, or letterhead." done={docsSubmitted.length > 0}>
         <form onSubmit={handleDocSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <select value={docType} onChange={(e) => setDocType(e.target.value)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 12.5 }}>
-            {DOCUMENT_TYPES.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-          </select>
+          <div style={{ minWidth: 220 }}>
+            <SearchableSelect options={DOCUMENT_TYPES} value={docType} onChange={setDocType} placeholder="Document type" searchPlaceholder="Search document type..." />
+          </div>
           <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" style={{ fontSize: 12 }} />
           <button type="submit" className="btn btn-outline clickable" style={{ fontSize: 12, padding: '8px 12px' }} disabled={docBusy}>
             {docBusy ? <Loader2 size={13} className="animate-spin" /> : 'Upload'}
@@ -363,9 +365,9 @@ export default function EvidencePanel({ claimKey, website, signupUrl }: Evidence
 
       <Section icon={<Camera size={16} />} title="Upload a photo" description="Selfie at the shop, signage, interior, or products." done={photosSubmitted.length > 0}>
         <form onSubmit={handlePhotoSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <select value={photoType} onChange={(e) => setPhotoType(e.target.value)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 12.5 }}>
-            {PHOTO_TYPES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-          </select>
+          <div style={{ minWidth: 200 }}>
+            <SearchableSelect options={PHOTO_TYPES} value={photoType} onChange={setPhotoType} placeholder="Photo type" searchPlaceholder="Search photo type..." />
+          </div>
           <input type="file" name="file" accept=".jpg,.jpeg,.png,.webp" style={{ fontSize: 12 }} />
           <button type="submit" className="btn btn-outline clickable" style={{ fontSize: 12, padding: '8px 12px' }} disabled={photoBusy}>
             {photoBusy ? <Loader2 size={13} className="animate-spin" /> : 'Upload'}
@@ -382,9 +384,9 @@ export default function EvidencePanel({ claimKey, website, signupUrl }: Evidence
 
       <Section icon={<Share2 size={16} />} title="Link a social media page" description="Weak supporting evidence, manually reviewed." done={socialDone}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <select value={socialPlatform} onChange={(e) => setSocialPlatform(e.target.value)} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 12.5 }}>
-            {SOCIAL_PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
+          <div style={{ minWidth: 160 }}>
+            <SearchableSelect options={SOCIAL_PLATFORM_OPTIONS} value={socialPlatform} onChange={setSocialPlatform} placeholder="Platform" searchPlaceholder="Search platform..." />
+          </div>
           <input value={socialUrl} onChange={(e) => setSocialUrl(e.target.value)} placeholder="https://..." style={{ flex: 1, minWidth: 160, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 12.5 }} />
           <button type="button" className="btn btn-outline clickable" style={{ fontSize: 12, padding: '8px 12px' }} onClick={handleSocialSubmit} disabled={socialBusy}>
             {socialBusy ? <Loader2 size={13} className="animate-spin" /> : 'Add'}

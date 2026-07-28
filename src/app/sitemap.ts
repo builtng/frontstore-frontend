@@ -220,6 +220,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('[sitemap] Failed to fetch dynamic storefronts:', error);
   }
 
+  // ── OSM-sourced unclaimed listings: claim pages + directory hasMatch ───────
+  interface FrontstoreListingEntry {
+    slug: string;
+    persona_id: string;
+    state_slug: string | null;
+    city: string | null;
+    updated_at?: string;
+  }
+  let unclaimedListings: FrontstoreListingEntry[] = [];
+  try {
+    const res = await fetch(`${apiHost}/v1/public/sitemap/frontstore-stores`, {
+      next: { revalidate: 3600 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      unclaimedListings = Array.isArray(json.data) ? json.data : [];
+    }
+  } catch (error) {
+    console.error('[sitemap] Failed to fetch unclaimed OSM listings:', error);
+  }
+
+  // ── Individual "Claim your business" pages ──────────────────────────────
+  unclaimedListings.forEach((listing) => {
+    if (!listing.slug) return;
+    routes.push({
+      url: `${baseUrl}/claim/${listing.slug}`,
+      lastModified: listing.updated_at ? new Date(listing.updated_at) : now,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    });
+  });
+
   // ── Category × state merchant directory pages ─────────────────────────────
   try {
     const res = await fetch(`${apiHost}/v1/public/stores`, {
@@ -236,6 +268,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           const hasMatch = stores.some((store) =>
             normalizePersonaId(store.business_persona) === persona.id &&
             locationMatchesState(store.location, state)
+          ) || unclaimedListings.some((listing) =>
+            listing.persona_id === persona.id && listing.state_slug === state.slug
           );
 
           if (hasMatch) {
@@ -257,9 +291,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             // For Delta, Edo, Rivers, Lagos, Abuja (FCT), Kaduna, Kano, Abia, Anambra, Imo, and Enugu States, we always include the URL in the sitemap to ensure indexing
             // For other states, we include if there is at least one local matching store
             const isAlwaysIndexed = state.slug === 'delta' || state.slug === 'edo' || state.slug === 'rivers' || state.slug === 'lagos' || state.slug === 'fct-abuja' || state.slug === 'kaduna' || state.slug === 'kano' || state.slug === 'abia' || state.slug === 'anambra' || state.slug === 'imo' || state.slug === 'enugu';
+            const cityAliases = city.aliases || [city.name.toLowerCase()];
             const hasMatch = isAlwaysIndexed || stores.some((store) =>
               normalizePersonaId(store.business_persona) === persona.id &&
               locationMatchesCity(store.location, city)
+            ) || unclaimedListings.some((listing) =>
+              listing.persona_id === persona.id &&
+              listing.state_slug === state.slug &&
+              cityAliases.some((alias) => (listing.city || '').toLowerCase().includes(alias))
             );
 
             if (hasMatch) {

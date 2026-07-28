@@ -14,7 +14,6 @@ import {
   MessageCircle,
   Pencil,
   RefreshCw,
-  ChevronDown,
   Search,
   Send,
   Smartphone,
@@ -23,6 +22,27 @@ import {
 import { TableSkeleton, StatusChip, EmptyState, Metric, StatusTone } from '../components';
 import EvidenceReviewDrawer from './EvidenceReviewDrawer';
 import EditListingDrawer from './EditListingDrawer';
+import SearchableSelect from '../../../components/SearchableSelect';
+
+const CLAIM_STATUS_OPTIONS = [
+  { value: '', label: 'All claim statuses' },
+  { value: 'unclaimed', label: 'Unclaimed' },
+  { value: 'pending_verification', label: 'Pending Verification' },
+  { value: 'claimed', label: 'Claimed' },
+  { value: 'rejected', label: 'Rejected' },
+];
+
+const INVITE_STATUS_OPTIONS = [
+  { value: '', label: 'All invite statuses' },
+  { value: 'never_invited', label: 'Never Invited' },
+  { value: 'queued', label: 'Queued' },
+  { value: 'sending', label: 'Sending' },
+  { value: 'sent', label: 'Sent' },
+  { value: 'delivered', label: 'Delivered' },
+  { value: 'failed', label: 'Failed' },
+  { value: 'bounced', label: 'Bounced' },
+  { value: 'opted_out', label: 'Opted Out' },
+];
 
 interface ClaimListing {
   id: string;
@@ -258,30 +278,24 @@ export default function MerchantClaimsPage() {
 
       <div className="admin-section-heading" style={{ marginTop: 20 }}>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <label className="admin-select">
-            <select value={claimStatusFilter} onChange={(e) => setClaimStatusFilter(e.target.value)}>
-              <option value="">All claim statuses</option>
-              <option value="unclaimed">Unclaimed</option>
-              <option value="pending_verification">Pending Verification</option>
-              <option value="claimed">Claimed</option>
-              <option value="rejected">Rejected</option>
-            </select>
-            <ChevronDown size={14} />
-          </label>
-          <label className="admin-select">
-            <select value={inviteStatusFilter} onChange={(e) => setInviteStatusFilter(e.target.value)}>
-              <option value="">All invite statuses</option>
-              <option value="never_invited">Never Invited</option>
-              <option value="queued">Queued</option>
-              <option value="sending">Sending</option>
-              <option value="sent">Sent</option>
-              <option value="delivered">Delivered</option>
-              <option value="failed">Failed</option>
-              <option value="bounced">Bounced</option>
-              <option value="opted_out">Opted Out</option>
-            </select>
-            <ChevronDown size={14} />
-          </label>
+          <div style={{ minWidth: 200 }}>
+            <SearchableSelect
+              options={CLAIM_STATUS_OPTIONS}
+              value={claimStatusFilter}
+              onChange={setClaimStatusFilter}
+              placeholder="All claim statuses"
+              searchPlaceholder="Search status..."
+            />
+          </div>
+          <div style={{ minWidth: 200 }}>
+            <SearchableSelect
+              options={INVITE_STATUS_OPTIONS}
+              value={inviteStatusFilter}
+              onChange={setInviteStatusFilter}
+              placeholder="All invite statuses"
+              searchPlaceholder="Search status..."
+            />
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" className="admin-action" onClick={handleRetryFailed}>

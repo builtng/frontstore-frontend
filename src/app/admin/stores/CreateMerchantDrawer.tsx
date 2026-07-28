@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useAdmin } from '../AdminContext';
-import { Field, SelectField } from '../components';
+import { Field } from '../components';
+import SearchableSelect from '../../../components/SearchableSelect';
 import { businessPersonas } from '../../../utils/businessPersonas';
 
 interface CreateMerchantDrawerProps {
@@ -27,7 +28,7 @@ export default function CreateMerchantDrawer({ onClose, onCreated }: CreateMerch
   const [businessPersona, setBusinessPersona] = useState('general-store');
   const [submitting, setSubmitting] = useState(false);
 
-  const personaOptions = businessPersonas.map((p) => ({ value: p.id, label: p.name }));
+  const personaOptions = businessPersonas.map((p) => ({ value: p.id, label: p.name, sublabel: p.persona }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +97,16 @@ export default function CreateMerchantDrawer({ onClose, onCreated }: CreateMerch
             <div className="admin-drawer__grid admin-drawer__grid--cols-2">
               <Field label="Store name" value={storeName} onChange={setStoreName} placeholder="Store name" required />
               <Field label="Username" value={username} onChange={setUsername} placeholder="store-handle" required />
-              <SelectField label="Business type" value={businessPersona} onChange={setBusinessPersona} options={personaOptions} full />
+              <label className="admin-field admin-field--full">
+                <span>Business type</span>
+                <SearchableSelect
+                  options={personaOptions}
+                  value={businessPersona}
+                  onChange={setBusinessPersona}
+                  placeholder="Select business type"
+                  searchPlaceholder="Search business type..."
+                />
+              </label>
             </div>
           </div>
 
