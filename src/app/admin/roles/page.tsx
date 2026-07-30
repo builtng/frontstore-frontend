@@ -31,6 +31,7 @@ const PERMISSIONS = [
   { value: 'payments', label: 'Manage Payments Settings', desc: 'Can edit global payment gateway configurations.' },
   { value: 'health', label: 'View System Health', desc: 'Can check Twilio, Paystack, and database connection status.' },
   { value: 'settings', label: 'Manage Settings', desc: 'Can modify global settings like App name, disclaimer, SMTP, etc.' },
+  { value: 'plans', label: 'Manage Plans', desc: 'Can create plans, edit pricing, and toggle features/dashboard visibility per plan.' },
   { value: 'roles', label: 'Manage Roles & Staff', desc: 'Can configure staff roles and modify user permission roles.' },
   { value: 'emails', label: 'Send Merchant Emails', desc: 'Can compose and send bulk emails to merchant audience segments.' },
 ];

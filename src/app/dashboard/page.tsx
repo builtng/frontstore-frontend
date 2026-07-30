@@ -13,7 +13,7 @@ import {
   Download, FileText, ExternalLink, Shield, Rocket, BadgeCheck, BookOpen,
   ArrowUp, ArrowDown, Eye, EyeOff, Key, Clock, Send, Users, QrCode, Printer, Inbox, MessageSquare, Mail,
   Briefcase, CreditCard, Landmark, PenLine, Truck, Scale, Sparkles, LineChart, Archive,
-  UserPlus, ShieldCheck, Laptop, Bell, Ticket, Plug, Gift, Trophy, ListChecks
+  UserPlus, ShieldCheck, Laptop, Bell, Ticket, Plug, Gift, Trophy, ListChecks, LayoutTemplate
 } from 'lucide-react';
 import QRCodeSVG from 'react-qr-code';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
@@ -150,6 +150,7 @@ interface StoreInfo {
   nina_chat_qr_enabled?: boolean | number;
   nina_avatar_url?: string | null;
   hidden_dashboard_items?: string[] | null;
+  plan_dashboard_items?: string[] | null;
 }
 
 interface Category {
@@ -424,6 +425,9 @@ export default function DashboardPage() {
   const setStore = wrapSetter(setStoreInternal, normalizeStore);
   const store = storeInternal;
   const hiddenDashboardItems = store?.hidden_dashboard_items || [];
+  // Plan-level baseline, admin-controlled — null means "not loaded yet", not "hide everything".
+  const planDashboardItems = store?.plan_dashboard_items ?? null;
+  const isVisibleOnPlan = (itemId: string) => planDashboardItems === null || planDashboardItems.includes(itemId);
 
   const whatsappCooldownUntil = (!isPro && store?.whatsapp_phone_updated_at)
     ? new Date(new Date(store.whatsapp_phone_updated_at).getTime() + 30 * 24 * 60 * 60 * 1000)
@@ -4457,7 +4461,7 @@ export default function DashboardPage() {
             { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
             { id: 'integrations', label: 'Integrations', icon: <Plug size={18} />, badge: !isLegend ? 'Legend' : undefined },
             { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
-          ].filter(item => item.id !== 'giveaways' || isAdminUser).filter(item => item.id === 'overview' || item.id === 'settings' || !hiddenDashboardItems.includes(item.id)).map(item => {
+          ].filter(item => item.id !== 'giveaways' || isAdminUser).filter(item => item.id === 'overview' || item.id === 'settings' || (isVisibleOnPlan(item.id) && !hiddenDashboardItems.includes(item.id))).map(item => {
             const active = activeTab === item.id;
             return (
               <button
@@ -4500,6 +4504,17 @@ export default function DashboardPage() {
 
         {/* Footer Actions */}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <button
+            onClick={() => router.push('/dashboard/store-build')}
+            className="btn btn-ghost clickable"
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-start', padding: '10px 14px', borderRadius: 'var(--r-md)', color: 'var(--text-muted)' }}
+          >
+            <LayoutTemplate size={16} />
+            <span style={{ flex: 1, textAlign: 'left' }}>Store Build</span>
+            {!isLegend && (
+              <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: '#7c3aed', padding: '2px 7px', borderRadius: 'var(--r-full)' }}>Legend</span>
+            )}
+          </button>
           <button
             onClick={() => router.push('/dashboard/remove-distractions')}
             className="btn btn-ghost clickable"
@@ -4763,7 +4778,7 @@ export default function DashboardPage() {
                   {/* Top Stats Row */}
                   <div className="responsive-stats-grid">
 
-                    {!hiddenDashboardItems.includes('stat_revenue') && (
+                    {(isVisibleOnPlan('stat_revenue') && !hiddenDashboardItems.includes('stat_revenue')) && (
                     <div className="card hover-lift" style={{ padding: 20 }}>
                       <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Revenue</span>
                       <p style={{ fontSize: 26, fontWeight: 900, color: 'var(--primary)', fontFamily: 'var(--font-heading)', marginTop: 8 }}>
@@ -4773,7 +4788,7 @@ export default function DashboardPage() {
                     </div>
                     )}
 
-                    {!hiddenDashboardItems.includes('stat_orders') && (
+                    {(isVisibleOnPlan('stat_orders') && !hiddenDashboardItems.includes('stat_orders')) && (
                     <div className="card hover-lift" style={{ padding: 20 }}>
                       <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Orders</span>
                       <p style={{ fontSize: 26, fontWeight: 900, color: 'var(--text)', fontFamily: 'var(--font-heading)', marginTop: 8 }}>
@@ -4786,7 +4801,7 @@ export default function DashboardPage() {
                     </div>
                     )}
 
-                    {!hiddenDashboardItems.includes('stat_views') && (
+                    {(isVisibleOnPlan('stat_views') && !hiddenDashboardItems.includes('stat_views')) && (
                     <div className="card hover-lift" style={{ padding: 20 }}>
                       <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Storefront Views</span>
                       <p style={{ fontSize: 26, fontWeight: 900, color: 'var(--text)', fontFamily: 'var(--font-heading)', marginTop: 8 }}>
@@ -4796,7 +4811,7 @@ export default function DashboardPage() {
                     </div>
                     )}
 
-                    {!hiddenDashboardItems.includes('stat_whatsapp') && (
+                    {(isVisibleOnPlan('stat_whatsapp') && !hiddenDashboardItems.includes('stat_whatsapp')) && (
                     <div className="card hover-lift" style={{ padding: 20 }}>
                       <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>WhatsApp Redirects</span>
                       <p style={{ fontSize: 26, fontWeight: 900, color: 'var(--text)', fontFamily: 'var(--font-heading)', marginTop: 8 }}>
@@ -4806,7 +4821,7 @@ export default function DashboardPage() {
                     </div>
                     )}
 
-                    {!hiddenDashboardItems.includes('stat_conversion') && (
+                    {(isVisibleOnPlan('stat_conversion') && !hiddenDashboardItems.includes('stat_conversion')) && (
                     <div className="card hover-lift" style={{ padding: 20, background: 'linear-gradient(135deg, var(--surface), rgba(16, 185, 129, 0.03))' }}>
                       <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Conversion Rate</span>
                       <p style={{ fontSize: 26, fontWeight: 900, color: 'var(--primary)', fontFamily: 'var(--font-heading)', marginTop: 8 }}>
@@ -4818,7 +4833,7 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Visual charts block */}
-                  {!hiddenDashboardItems.includes('section_charts') && (
+                  {(isVisibleOnPlan('section_charts') && !hiddenDashboardItems.includes('section_charts')) && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20, alignItems: 'start' }} className="responsive-chart-grid">
 
                     {/* SVG Analytics Graph */}
@@ -13937,7 +13952,7 @@ export default function DashboardPage() {
                 { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
                 { id: 'integrations', label: 'Integrations', icon: <Plug size={18} />, badge: !isLegend ? 'Legend' : undefined },
                 { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
-              ].filter(item => item.id !== 'giveaways' || isAdminUser).filter(item => item.id === 'overview' || item.id === 'settings' || !hiddenDashboardItems.includes(item.id)).map(item => (
+              ].filter(item => item.id !== 'giveaways' || isAdminUser).filter(item => item.id === 'overview' || item.id === 'settings' || (isVisibleOnPlan(item.id) && !hiddenDashboardItems.includes(item.id))).map(item => (
                 <button
                   key={item.id}
                   onClick={() => {
@@ -13978,6 +13993,20 @@ export default function DashboardPage() {
             </nav>
 
             <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={() => {
+                  router.push('/dashboard/store-build');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="btn btn-ghost clickable"
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-start', padding: '10px 14px', borderRadius: 'var(--r-md)', color: 'var(--text-muted)' }}
+              >
+                <LayoutTemplate size={16} />
+                <span style={{ flex: 1, textAlign: 'left' }}>Store Build</span>
+                {!isLegend && (
+                  <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: '#7c3aed', padding: '2px 7px', borderRadius: 'var(--r-full)' }}>Legend</span>
+                )}
+              </button>
               <button
                 onClick={() => {
                   router.push('/dashboard/remove-distractions');

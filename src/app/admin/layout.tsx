@@ -20,6 +20,7 @@ import {
   Mail,
   Package,
   Settings,
+  LayoutTemplate,
   Shield,
   ShoppingBag,
   Store,
@@ -52,6 +53,7 @@ const navGroups = [
       { href: '/admin/withdrawal-batches', label: 'Withdrawal Batches', icon: <Layers size={16} />, permission: 'payouts' },
       { href: '/admin/payments', label: 'Payment Gateways', icon: <CreditCard size={16} />, permission: 'payments' },
       { href: '/admin/coupons', label: 'Coupons', icon: <Tag size={16} />, permission: 'coupons' },
+      { href: '/admin/plans', label: 'Plans', icon: <LayoutTemplate size={16} />, permission: 'plans' },
     ],
   },
   {

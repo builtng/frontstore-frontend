@@ -19,6 +19,7 @@ interface StoreShape {
   is_pro?: boolean;
   is_legend?: boolean;
   hidden_dashboard_items?: string[] | null;
+  plan_dashboard_items?: string[] | null;
 }
 
 const NAV_ITEMS: { id: string; label: string; icon: React.ReactNode }[] = [
@@ -88,6 +89,7 @@ export default function RemoveDistractionsPage() {
   const [saving, setSaving] = useState(false);
   const [isLegend, setIsLegend] = useState(false);
   const [hidden, setHidden] = useState<string[]>([]);
+  const [planItems, setPlanItems] = useState<string[] | null>(null);
   const [storeName, setStoreName] = useState('');
   const [storeUsername, setStoreUsername] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -124,6 +126,7 @@ export default function RemoveDistractionsPage() {
           const liveStore: StoreShape = json.data;
           setIsLegend(!!liveStore.is_legend);
           setHidden(liveStore.hidden_dashboard_items || []);
+          setPlanItems(liveStore.plan_dashboard_items ?? null);
           setStoreName(liveStore.store_name || liveStore.username || '');
           setStoreUsername(liveStore.username || '');
         } else {
@@ -140,6 +143,10 @@ export default function RemoveDistractionsPage() {
   const toggleItem = (id: string, next: boolean) => {
     setHidden(prev => (next ? prev.filter(x => x !== id) : [...prev, id]));
   };
+
+  // Admin has hidden this item for the merchant's plan entirely — a merchant
+  // can hide further within what their plan allows, but never un-hide this.
+  const isPlanDisabled = (id: string) => planItems !== null && !planItems.includes(id);
 
   const handleSave = async () => {
     if (!token) return;
@@ -440,12 +447,17 @@ export default function RemoveDistractionsPage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
                     {SIDEBAR_ITEMS.map(item => (
-                      <Toggle
-                        key={item.id}
-                        checked={!hidden.includes(item.id)}
-                        onChange={(next) => toggleItem(item.id, next)}
-                        label={<span style={{ fontSize: 13 }}>{item.label}</span>}
-                      />
+                      <div key={item.id}>
+                        <Toggle
+                          checked={!isPlanDisabled(item.id) && !hidden.includes(item.id)}
+                          disabled={isPlanDisabled(item.id)}
+                          onChange={(next) => toggleItem(item.id, next)}
+                          label={<span style={{ fontSize: 13 }}>{item.label}</span>}
+                        />
+                        {isPlanDisabled(item.id) && (
+                          <p style={{ fontSize: 10.5, color: 'var(--text-faint)', margin: '2px 0 0 46px' }}>Not available on your plan</p>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -457,12 +469,17 @@ export default function RemoveDistractionsPage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
                     {STAT_ITEMS.map(item => (
-                      <Toggle
-                        key={item.id}
-                        checked={!hidden.includes(item.id)}
-                        onChange={(next) => toggleItem(item.id, next)}
-                        label={<span style={{ fontSize: 13 }}>{item.label}</span>}
-                      />
+                      <div key={item.id}>
+                        <Toggle
+                          checked={!isPlanDisabled(item.id) && !hidden.includes(item.id)}
+                          disabled={isPlanDisabled(item.id)}
+                          onChange={(next) => toggleItem(item.id, next)}
+                          label={<span style={{ fontSize: 13 }}>{item.label}</span>}
+                        />
+                        {isPlanDisabled(item.id) && (
+                          <p style={{ fontSize: 10.5, color: 'var(--text-faint)', margin: '2px 0 0 46px' }}>Not available on your plan</p>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -476,12 +493,15 @@ export default function RemoveDistractionsPage() {
                     {FEATURE_SECTIONS.map(item => (
                       <div key={item.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                         <Toggle
-                          checked={!hidden.includes(item.id)}
+                          checked={!isPlanDisabled(item.id) && !hidden.includes(item.id)}
+                          disabled={isPlanDisabled(item.id)}
                           onChange={(next) => toggleItem(item.id, next)}
                         />
                         <div>
                           <p style={{ fontSize: 13, fontWeight: 700, margin: 0 }}>{item.label}</p>
-                          <p style={{ fontSize: 11.5, color: 'var(--text-faint)', margin: '2px 0 0' }}>{item.hint}</p>
+                          <p style={{ fontSize: 11.5, color: 'var(--text-faint)', margin: '2px 0 0' }}>
+                            {isPlanDisabled(item.id) ? 'Not available on your plan' : item.hint}
+                          </p>
                         </div>
                       </div>
                     ))}
