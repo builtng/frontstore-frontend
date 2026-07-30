@@ -24,80 +24,51 @@ const PAYOUT_TIERS = [
   { level: 4, name: 'Elite Seller', range: '91–100 pts', payout: 'Instant payout', icon: Zap },
 ] as const;
 
-interface PricingPageClientProps {
-  monthlyPrice: string;
-  yearlyPrice: string;
-  legendMonthlyPrice: string;
-  legendYearlyPrice: string;
+export interface ApiPlanSku {
+  key: string;
+  billing_label: string | null;
+  price: number;
 }
 
-const PLAN_TIERS = (monthlyPrice: string, yearlyPrice: string, legendMonthlyPrice: string, legendYearlyPrice: string) => [
-  {
-    name: 'Free',
-    tagline: 'Start selling with no monthly cost.',
-    monthly: '0',
-    yearly: '0',
-    highlight: false,
-    features: ['Up to 10 products', 'WhatsApp checkout', 'Public storefront', 'No transaction fees'],
-    allBenefits: [
-      'Up to 10 products listed at once',
-      'WhatsApp checkout on every order',
-      'Public storefront page with your own link',
-      'Bank transfer & MTN MoMo Agent payment methods',
-      'Standard trust-score payout ladder',
-      'No transaction fees',
-    ],
-  },
-  {
-    name: 'Pro',
-    tagline: 'Unlimited products, AI listings, and branding.',
-    monthly: monthlyPrice,
-    yearly: yearlyPrice,
-    highlight: true,
-    features: ['Unlimited products', 'AI photo-to-listing', 'Custom storefront branding', 'No transaction fees'],
-    allBenefits: [
-      'Everything in Free, plus:',
-      'Unlimited products',
-      'AI photo-to-listing & AI auto-write descriptions',
-      'Custom storefront branding & colors',
-      'Change your store username or WhatsApp number anytime',
-      'Advanced analytics & report exports',
-      'Customer CRM',
-      'Inventory management',
-      'Invoice & receipt management',
-      'Payment Links',
-      'Storefront coupons',
-      'Giveaways',
-      'Customer reviews — view & reply',
-      'Priority support',
-      'No transaction fees',
-    ],
-  },
-  {
-    name: 'Legend',
-    tagline: 'Everything in Pro, plus custom domain, pixels, integrations & unlimited AI.',
-    monthly: legendMonthlyPrice,
-    yearly: legendYearlyPrice,
-    highlight: false,
-    features: ['Everything in Pro', 'Custom domain & integrations', 'Unlimited AI analyses', 'Legend storefront badge', 'No transaction fees'],
-    allBenefits: [
-      'Everything in Pro, plus:',
-      'Connect a custom domain (e.g. mybrand.com)',
-      'Facebook Pixel, Google Tag Manager & TikTok Pixel integrations',
-      'Connected marketing & automation integrations',
-      'WhatsApp broadcast campaigns',
-      'Dashboard customization (Remove Distractions)',
-      'Unlimited AI analyses on any billing cycle (Pro Monthly caps at 15/mo)',
-      'Legend storefront badge — a status signal shown to buyers',
-      'No transaction fees',
-    ],
-  },
-];
+export interface ApiPlanGroup {
+  key: string;
+  name: string;
+  tagline: string | null;
+  tier_rank: number;
+  highlight: boolean;
+  benefits: string[];
+  plans: ApiPlanSku[];
+}
 
-export default function PricingPageClient({ monthlyPrice, yearlyPrice, legendMonthlyPrice, legendYearlyPrice }: PricingPageClientProps) {
+interface PricingPageClientProps {
+  plans: ApiPlanGroup[];
+}
+
+function formatNaira(value: number): string {
+  return Math.round(value).toLocaleString('en-NG');
+}
+
+function toDisplayTier(group: ApiPlanGroup) {
+  const monthlySku = group.plans.find((p) => p.billing_label === 'Monthly') || group.plans[0];
+  const yearlySku = group.plans.find((p) => p.billing_label === 'Yearly') || monthlySku;
+  const benefits = group.benefits || [];
+  const shortFeatures = benefits.filter((b) => !b.endsWith(':')).slice(0, 4);
+
+  return {
+    name: group.name,
+    tagline: group.tagline || '',
+    monthly: formatNaira(monthlySku?.price || 0),
+    yearly: formatNaira(yearlySku?.price || 0),
+    highlight: group.highlight,
+    features: shortFeatures,
+    allBenefits: benefits,
+  };
+}
+
+export default function PricingPageClient({ plans }: PricingPageClientProps) {
   const [activeTier, setActiveTier] = useState(1);
   const [benefitsModalTier, setBenefitsModalTier] = useState<string | null>(null);
-  const tiers = PLAN_TIERS(monthlyPrice, yearlyPrice, legendMonthlyPrice, legendYearlyPrice);
+  const tiers = plans.map(toDisplayTier);
   const modalTier = tiers.find((t) => t.name === benefitsModalTier) || null;
 
   return (
@@ -114,10 +85,10 @@ export default function PricingPageClient({ monthlyPrice, yearlyPrice, legendMon
             <Percent size={12} color="var(--accent)" /> <b>Pricing</b>
           </div>
           <h1 className="text-display" style={{ fontSize: 'clamp(28px, 5vw, 44px)', color: '#fff', lineHeight: 1.15, marginBottom: 16 }}>
-            Three simple plans. <span className="mark-highlight">No transaction fees.</span>
+            Simple plans. <span className="mark-highlight">No transaction fees.</span>
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.78)', fontSize: 'clamp(15px, 2vw, 17px)', lineHeight: 1.65, maxWidth: 480, margin: '0 auto' }}>
-            Free, Pro, or Legend — whichever you pick, you keep 100% of every sale. Upgrading unlocks features, never a cut of your revenue.
+            {tiers.map((t) => t.name).join(', ')} — whichever you pick, you keep 100% of every sale. Upgrading unlocks features, never a cut of your revenue.
           </p>
         </div>
       </header>
@@ -297,7 +268,7 @@ export default function PricingPageClient({ monthlyPrice, yearlyPrice, legendMon
                 Ready to start selling on WhatsApp?
               </h2>
               <p style={{ color: 'rgba(255,255,255,0.78)', marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
-                Three simple plans, no transaction fees, no surprises at settlement. Free to start — no credit card needed.
+                Simple plans, no transaction fees, no surprises at settlement. Free to start — no credit card needed.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
                 <Link

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import PricingPageClient from '../PricingPageClient';
+import PricingPageClient, { ApiPlanGroup } from '../PricingPageClient';
 
 async function getPublicSettings() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
@@ -59,24 +59,23 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-function formatNaira(raw: unknown, fallback: string): string {
-  const num = Number(raw);
-  return Number.isFinite(num) && num > 0 ? num.toLocaleString('en-NG') : fallback;
+async function getPlans(): Promise<ApiPlanGroup[]> {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  try {
+    const res = await fetch(`${API_URL}/v1/public/plans`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const { data } = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error('Error fetching plans:', err);
+    return [];
+  }
 }
 
 export default async function PricingPage() {
-  const settings = await getPublicSettings();
-  const monthlyPrice = formatNaira(settings?.pro_monthly_price, '2,000');
-  const yearlyPrice = formatNaira(settings?.pro_yearly_price, '20,000');
-  const legendMonthlyPrice = formatNaira(settings?.legend_monthly_price, '7,000');
-  const legendYearlyPrice = formatNaira(settings?.legend_yearly_price, '70,000');
+  const plans = await getPlans();
 
-  return (
-    <PricingPageClient
-      monthlyPrice={monthlyPrice}
-      yearlyPrice={yearlyPrice}
-      legendMonthlyPrice={legendMonthlyPrice}
-      legendYearlyPrice={legendYearlyPrice}
-    />
-  );
+  return <PricingPageClient plans={plans} />;
 }

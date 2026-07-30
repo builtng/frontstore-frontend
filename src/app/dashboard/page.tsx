@@ -509,6 +509,67 @@ export default function DashboardPage() {
   const [isValidatingLegendCoupon, setIsValidatingLegendCoupon] = useState(false);
   const [appliedLegendCoupon, setAppliedLegendCoupon] = useState<any>(null);
 
+  // Any admin-created plans beyond the default Free/Pro/Legend three — fetched
+  // from the public plans endpoint and rendered generically below those cards.
+  const [otherPlans, setOtherPlans] = useState<Array<{ key: string; name: string; tagline: string | null; benefits: string[]; plans: Array<{ key: string; billing_label: string | null; price: number }> }>>([]);
+  const [otherPlanCycle, setOtherPlanCycle] = useState<Record<string, 'monthly' | 'yearly'>>({});
+  const [otherPlanProcessing, setOtherPlanProcessing] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${apiUrl}/v1/public/plans`);
+        const json = await res.json();
+        if (res.ok && Array.isArray(json.data)) {
+          setOtherPlans(json.data.filter((g: any) => !['free', 'pro', 'legend'].includes(g.key)));
+        }
+      } catch {
+        // Non-critical — the default three plan cards above still work fine without this.
+      }
+    })();
+  }, [apiUrl]);
+
+  const handleGenericPlanUpgrade = async (planKey: string, planName: string, price: number) => {
+    if (price <= 0) {
+      try {
+        const res = await fetch(`${apiUrl}/v1/user/upgrade`, {
+          method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ plan: planKey }),
+        });
+        const json = await res.json();
+        if (res.ok && json.data?.user) {
+          toast.success(`Switched to ${planName}.`);
+          setUser(json.data.user);
+          localStorage.setItem('user', JSON.stringify(json.data.user));
+        } else {
+          throw new Error(json.message || 'Could not switch plans.');
+        }
+      } catch (e: any) {
+        toast.error(e.message || 'Error switching plans.');
+      }
+      return;
+    }
+
+    try {
+      setOtherPlanProcessing(planKey);
+      const callbackUrl = `${window.location.origin}/dashboard`;
+      const res = await fetch(`${apiUrl}/v1/payments/initialize-subscription`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ plan: planKey, redirect_url: callbackUrl }),
+      });
+      const json = await res.json();
+      if (res.ok && json.data?.authorization_url) {
+        window.location.href = json.data.authorization_url;
+      } else {
+        throw new Error(json.message || 'Could not start payment. Try again.');
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Payment initialization failed.');
+    } finally {
+      setOtherPlanProcessing(null);
+    }
+  };
+
 
   // --- Active Dialog/Modal States ---
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -9782,6 +9843,59 @@ export default function DashboardPage() {
                     </div>
 
                   </div>
+
+                  {otherPlans.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 900 }}>More plans</h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 18 }}>
+                        {otherPlans.map((plan) => {
+                          const cycle = otherPlanCycle[plan.key] || 'monthly';
+                          const monthlySku = plan.plans.find((p) => p.billing_label === 'Monthly') || plan.plans[0];
+                          const yearlySku = plan.plans.find((p) => p.billing_label === 'Yearly') || monthlySku;
+                          const activeSku = cycle === 'yearly' ? yearlySku : monthlySku;
+                          const isCurrent = user?.plan === activeSku?.key;
+                          return (
+                            <div key={plan.key} className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', border: isCurrent ? '2.5px solid var(--primary)' : '1px solid var(--border)' }}>
+                              <h4 style={{ fontSize: 16, fontWeight: 900 }}>{plan.name}</h4>
+                              {plan.tagline && <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{plan.tagline}</p>}
+                              <div style={{ marginTop: 16, marginBottom: 12 }}>
+                                <span style={{ fontSize: 24, fontWeight: 900, fontFamily: 'var(--font-heading)' }}>₦{Math.round(activeSku?.price || 0).toLocaleString('en-NG')}</span>
+                                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}> / {cycle}</span>
+                              </div>
+                              {yearlySku && monthlySku !== yearlySku && (
+                                <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+                                  {(['monthly', 'yearly'] as const).map((c) => (
+                                    <button key={c} type="button" onClick={() => setOtherPlanCycle((prev) => ({ ...prev, [plan.key]: c }))}
+                                      className="clickable"
+                                      style={{ flex: 1, padding: '6px 10px', borderRadius: 'var(--r-md)', fontSize: 11.5, fontWeight: 700, textTransform: 'capitalize', border: '1px solid var(--border)', background: cycle === c ? 'var(--primary-light)' : 'transparent', color: cycle === c ? 'var(--primary)' : 'var(--text-muted)' }}
+                                    >
+                                      {c}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20, flex: 1 }}>
+                                {(plan.benefits || []).filter((b) => !b.endsWith(':')).slice(0, 5).map((b) => (
+                                  <li key={b} style={{ display: 'flex', gap: 6, fontSize: 12.5, color: 'var(--text-2)' }}>
+                                    <CheckCircle2 size={14} color="var(--primary)" style={{ flexShrink: 0, marginTop: 1 }} /> {b}
+                                  </li>
+                                ))}
+                              </ul>
+                              <button
+                                type="button"
+                                disabled={isCurrent || otherPlanProcessing === activeSku?.key}
+                                onClick={() => activeSku && handleGenericPlanUpgrade(activeSku.key, plan.name, activeSku.price)}
+                                className="btn btn-primary clickable"
+                                style={{ padding: 12, fontSize: 13, fontWeight: 800, opacity: (isCurrent || otherPlanProcessing === activeSku?.key) ? 0.7 : 1 }}
+                              >
+                                {isCurrent ? '✓ Active Plan' : otherPlanProcessing === activeSku?.key ? 'Processing…' : `Go ${plan.name}`}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               )}

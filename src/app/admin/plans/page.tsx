@@ -31,7 +31,10 @@ interface PlanGroup {
   id: string;
   key: string;
   name: string;
+  tagline: string | null;
   tier_rank: number;
+  highlight: boolean;
+  benefits: string[] | null;
   is_active: boolean;
   plans: PlanSku[];
   features: PlanFeatureRow[];
@@ -148,6 +151,47 @@ export default function AdminPlansPage() {
     }
   };
 
+  const updateCopyLocal = (groupId: string, field: 'tagline' | 'benefitsText', value: string) => {
+    setGroups((prev) => prev.map((g) => g.id !== groupId ? g : (
+      field === 'tagline' ? { ...g, tagline: value } : { ...g, benefits: value.split('\n') }
+    )));
+  };
+
+  const saveCopy = async (group: PlanGroup) => {
+    setSavingGroupId(group.id);
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/plan-groups/${group.id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          tagline: group.tagline || '',
+          benefits: (group.benefits || []).map((b) => b.trim()).filter(Boolean),
+        }),
+      });
+      await handleFetchResponse(res, 'Could not save plan copy.');
+      toast.success('Plan copy saved.');
+    } catch (err: any) {
+      toast.error(err.message || 'Could not save plan copy.');
+    } finally {
+      setSavingGroupId(null);
+    }
+  };
+
+  const toggleHighlight = async (group: PlanGroup, highlight: boolean) => {
+    setGroups((prev) => prev.map((g) => g.id !== group.id ? g : { ...g, highlight }));
+    try {
+      const res = await fetch(`${apiUrl}/v1/admin/plan-groups/${group.id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ highlight }),
+      });
+      await handleFetchResponse(res, 'Could not update highlight.');
+    } catch (err: any) {
+      toast.error(err.message || 'Could not update highlight.');
+      load();
+    }
+  };
+
   const toggleFeature = async (group: PlanGroup, featureKey: string, enabled: boolean) => {
     setGroups((prev) => prev.map((g) => g.id !== group.id ? g : {
       ...g,
@@ -242,6 +286,35 @@ export default function AdminPlansPage() {
                       <button className="btn btn-outline" disabled={savingGroupId === group.id} onClick={() => savePrices(group)}>
                         {savingGroupId === group.id ? <Loader2 size={14} className="spinner" /> : 'Save prices'}
                       </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 style={{ fontSize: 12.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em', color: 'var(--text-muted)', margin: '0 0 10px' }}>Pricing page copy</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 460 }}>
+                      <div>
+                        <label style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>Tagline</label>
+                        <input
+                          className="form-control" style={{ width: '100%' }}
+                          value={group.tagline || ''}
+                          onChange={(e) => updateCopyLocal(group.id, 'tagline', e.target.value)}
+                          placeholder="e.g. Unlimited products, AI listings, and branding."
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>Benefits (one per line — end a line with &quot;:&quot; to make it a section heading)</label>
+                        <textarea
+                          className="form-control" style={{ width: '100%', minHeight: 110, fontFamily: 'inherit' }}
+                          value={(group.benefits || []).join('\n')}
+                          onChange={(e) => updateCopyLocal(group.id, 'benefitsText', e.target.value)}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Toggle checked={group.highlight} onChange={(v) => toggleHighlight(group, v)} label={<span style={{ fontSize: 13 }}>Highlight this plan on the pricing page</span>} />
+                        <button className="btn btn-outline" disabled={savingGroupId === group.id} onClick={() => saveCopy(group)}>
+                          {savingGroupId === group.id ? <Loader2 size={14} className="spinner" /> : 'Save copy'}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
