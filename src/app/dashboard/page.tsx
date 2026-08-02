@@ -477,7 +477,8 @@ export default function DashboardPage() {
     bank_name: '',
     bank_account_number: '',
     bank_account_name: '',
-    bank_account_verified: false
+    bank_account_verified: false,
+    payout_pin_set: false
   });
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [walletLoading, setWalletLoading] = useState(false);
@@ -487,6 +488,15 @@ export default function DashboardPage() {
   const [withdrawalOtpSent, setWithdrawalOtpSent] = useState(false);
   const [withdrawalOtpCode, setWithdrawalOtpCode] = useState('');
   const [withdrawalOtpLoading, setWithdrawalOtpLoading] = useState(false);
+
+  // Payout PIN (secures WhatsApp-initiated payout requests)
+  const [isPayoutPinModalOpen, setIsPayoutPinModalOpen] = useState(false);
+  const [payoutPin, setPayoutPin] = useState('');
+  const [payoutPinConfirm, setPayoutPinConfirm] = useState('');
+  const [payoutPinOtpSent, setPayoutPinOtpSent] = useState(false);
+  const [payoutPinOtpCode, setPayoutPinOtpCode] = useState('');
+  const [payoutPinOtpLoading, setPayoutPinOtpLoading] = useState(false);
+  const [payoutPinSubmitting, setPayoutPinSubmitting] = useState(false);
 
   // Loading states
   const [dataLoading, setDataLoading] = useState(false);
@@ -1213,8 +1223,6 @@ export default function DashboardPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [bannerUploading, setBannerUploading] = useState(false);
-  const [ninaAvatarUrl, setNinaAvatarUrl] = useState<string | null>(null);
-  const [ninaAvatarUploading, setNinaAvatarUploading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isChangingWhatsapp, setIsChangingWhatsapp] = useState(false);
   const [whatsappOtpStage, setWhatsappOtpStage] = useState<'entry' | 'otp'>('entry');
@@ -1985,7 +1993,6 @@ export default function DashboardPage() {
         setAccountVerified(!!liveStore.bank_account_verified);
         setNameMatchOk(liveStore.bank_account_verified ? true : null);
         setLogoUrl(liveStore.logo_url || null);
-        setNinaAvatarUrl(liveStore.nina_avatar_url || null);
         setCustomLinks(liveStore.custom_links || []);
         setPrimaryColor(liveStore.primary_color || '#25D366');
         setSelectedTemplate(liveStore.store_template || 'luxe-market');
@@ -2255,7 +2262,8 @@ export default function DashboardPage() {
           bank_name: json.data.bank_name || '',
           bank_account_number: json.data.bank_account_number || '',
           bank_account_name: json.data.bank_account_name || '',
-          bank_account_verified: !!json.data.bank_account_verified
+          bank_account_verified: !!json.data.bank_account_verified,
+          payout_pin_set: !!json.data.payout_pin_set
         });
         setWithdrawals(json.data.withdrawals || []);
       }
@@ -2972,6 +2980,74 @@ export default function DashboardPage() {
       toast.error('Network error. Please try again.');
     } finally {
       setWithdrawalSubmitting(false);
+    }
+  };
+
+  const handleSendPayoutPinOtp = async () => {
+    try {
+      setPayoutPinOtpLoading(true);
+      const res = await fetch(`${apiUrl}/v1/store/withdraw/send-otp`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setPayoutPinOtpSent(true);
+        toast.success(json.message || 'Verification code sent to your email.');
+      } else {
+        toast.error(json.message || 'Failed to send verification code.');
+      }
+    } catch {
+      toast.error('Network error sending verification code.');
+    } finally {
+      setPayoutPinOtpLoading(false);
+    }
+  };
+
+  const handleSetPayoutPin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\d{4}$/.test(payoutPin)) {
+      toast.warning('Your PIN must be exactly 4 digits.');
+      return;
+    }
+    if (payoutPin !== payoutPinConfirm) {
+      toast.warning('PINs do not match.');
+      return;
+    }
+
+    if (!payoutPinOtpSent) {
+      await handleSendPayoutPinOtp();
+      return;
+    }
+
+    if (!payoutPinOtpCode || payoutPinOtpCode.trim().length !== 6) {
+      toast.warning('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    try {
+      setPayoutPinSubmitting(true);
+      const res = await fetch(`${apiUrl}/v1/store/payout-pin`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ pin: payoutPin, pin_confirmation: payoutPinConfirm, otp_code: payoutPinOtpCode.trim() })
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success(json.message || 'Payout PIN saved.');
+        setPayoutPin('');
+        setPayoutPinConfirm('');
+        setPayoutPinOtpCode('');
+        setPayoutPinOtpSent(false);
+        setIsPayoutPinModalOpen(false);
+        setWalletBalances(prev => ({ ...prev, payout_pin_set: true }));
+      } else {
+        toast.error(json.message || 'Failed to save payout PIN.');
+      }
+    } catch {
+      toast.error('Network error. Please try again.');
+    } finally {
+      setPayoutPinSubmitting(false);
     }
   };
 
@@ -3736,7 +3812,6 @@ export default function DashboardPage() {
           storefront_sections: storefrontSections,
           reply_time_minutes: replyTimeMinutes !== '' ? Number(replyTimeMinutes) : null,
           nina_chat_qr_enabled: ninaChatQrEnabled,
-          nina_avatar_url: ninaAvatarUrl,
         })
       });
 
@@ -3766,7 +3841,6 @@ export default function DashboardPage() {
         setAnnouncementCtaPage(json.data.announcement_cta_page || '');
         setSetBannerUrl(json.data.banner_url || '');
         setLogoUrl(json.data.logo_url || null);
-        setNinaAvatarUrl(json.data.nina_avatar_url || null);
         const parsedPhone = parsePhoneNumber(json.data.whatsapp_phone || '');
         setSelectedCountry(parsedPhone.country);
         setLocalWhatsapp(parsedPhone.local);
@@ -7334,57 +7408,6 @@ export default function DashboardPage() {
                               This widget is <strong>off by default</strong>. When enabled, customer queries on your public store will be handled autonomously by your configured sales assistant.
                             </span>
                           </div>
-                          {ninaChatQrEnabled && (
-                            <div style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: 10,
-                              padding: '14px 0 4px 0',
-                              borderTop: '1px dashed var(--border)'
-                            }}>
-                              <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nina Avatar Image</label>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                                <FileUpload
-                                  variant="avatar"
-                                  accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                                  previewUrl={ninaAvatarUrl || '/ninaAssistant.png'}
-                                  uploading={ninaAvatarUploading}
-                                  onRemove={ninaAvatarUrl ? () => setNinaAvatarUrl(null) : undefined}
-                                  inputId="nina-avatar-upload-input"
-                                  maxSize={5 * 1024 * 1024}
-                                  onFile={async (file) => {
-                                    try {
-                                      setNinaAvatarUploading(true);
-                                      const formData = new FormData();
-                                      formData.append('avatar', file);
-                                      const res = await fetch(`${apiUrl}/v1/store/upload-nina-avatar`, {
-                                        method: 'POST',
-                                        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
-                                        body: formData
-                                      });
-                                      const json = await res.json();
-                                      if (res.ok && json.url) {
-                                        setNinaAvatarUrl(json.url);
-                                        toast.success('Nina avatar updated! 🤖');
-                                      } else {
-                                        throw new Error(json.message || 'Upload failed');
-                                      }
-                                    } catch (err: any) {
-                                      toast.error(err.message || 'Avatar upload error');
-                                    } finally {
-                                      setNinaAvatarUploading(false);
-                                    }
-                                  }}
-                                />
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                  <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>Custom Assistant Face</p>
-                                  <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                                    Upload a custom square avatar for Nina. If empty, the default assistant face will be used.
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
                         </div>
 
                         {/* Storefront Writing — moved to left column */}
@@ -11418,6 +11441,16 @@ export default function DashboardPage() {
                           >
                             Withdraw Funds
                           </button>
+                          <button
+                            onClick={() => setIsPayoutPinModalOpen(true)}
+                            className="btn btn-outline clickable"
+                            style={{ marginTop: 8, width: '100%', padding: '8px 16px', borderRadius: 'var(--r-md)', fontWeight: 700, fontSize: 12 }}
+                          >
+                            {walletBalances.payout_pin_set ? 'Change Payout PIN' : 'Set Up Payout PIN'}
+                          </button>
+                          <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 6, lineHeight: 1.4 }}>
+                            Required to request a payout from WhatsApp. Can only be set or changed from this dashboard.
+                          </p>
                         </div>
 
                         {/* Pending Escrow Balance Card */}
@@ -14268,6 +14301,130 @@ export default function DashboardPage() {
                     'Sending Code...'
                   ) : withdrawalOtpSent ? (
                     'Verify & Request Payout'
+                  ) : (
+                    'Send OTP Verification'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: SET/CHANGE PAYOUT PIN ── */}
+      {isPayoutPinModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} className="animate-fade-in">
+          <div
+            onClick={() => { setIsPayoutPinModalOpen(false); setPayoutPinOtpSent(false); setPayoutPin(''); setPayoutPinConfirm(''); setPayoutPinOtpCode(''); }}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }}
+            className="responsive-modal-overlay"
+          />
+          <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 480, padding: 28, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Key size={18} style={{ color: 'var(--primary)' }} /> {walletBalances.payout_pin_set ? 'Change' : 'Set Up'} Payout PIN
+              </h3>
+              <button onClick={() => { setIsPayoutPinModalOpen(false); setPayoutPinOtpSent(false); }} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
+            </div>
+
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 20 }}>
+              This 4-digit PIN confirms any payout you request from Nina on WhatsApp. It can only be set or changed here on your dashboard — never from WhatsApp — so a hijacked WhatsApp session alone can never set or reset it.
+            </p>
+
+            <form onSubmit={handleSetPayoutPin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                  New 4-Digit PIN
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  required
+                  disabled={payoutPinOtpSent || payoutPinSubmitting || payoutPinOtpLoading}
+                  placeholder="••••"
+                  value={payoutPin}
+                  onChange={e => setPayoutPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  className="input-field"
+                  style={{ letterSpacing: '0.3em', fontWeight: 'bold', textAlign: 'center' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
+                  Confirm PIN
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  required
+                  disabled={payoutPinOtpSent || payoutPinSubmitting || payoutPinOtpLoading}
+                  placeholder="••••"
+                  value={payoutPinConfirm}
+                  onChange={e => setPayoutPinConfirm(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  className="input-field"
+                  style={{ letterSpacing: '0.3em', fontWeight: 'bold', textAlign: 'center' }}
+                />
+              </div>
+
+              {payoutPinOtpSent && (
+                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>
+                    Email OTP Code
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    required
+                    placeholder="6-digit code"
+                    value={payoutPinOtpCode}
+                    onChange={e => setPayoutPinOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="input-field"
+                    style={{ letterSpacing: '0.1em', fontWeight: 'bold' }}
+                  />
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+                    <span>Check your email for the verification code.</span>
+                    <button
+                      type="button"
+                      onClick={handleSendPayoutPinOtp}
+                      disabled={payoutPinOtpLoading}
+                      style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, textDecoration: 'underline', padding: 0, cursor: 'pointer' }}
+                    >
+                      {payoutPinOtpLoading ? 'Resending...' : 'Resend Code'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => { setIsPayoutPinModalOpen(false); setPayoutPinOtpSent(false); setPayoutPin(''); setPayoutPinConfirm(''); setPayoutPinOtpCode(''); }}
+                  className="btn btn-outline clickable"
+                  style={{ flex: 1, padding: 12 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={
+                    payoutPinSubmitting ||
+                    payoutPinOtpLoading ||
+                    payoutPin.length !== 4 ||
+                    payoutPinConfirm.length !== 4 ||
+                    (payoutPinOtpSent && (!payoutPinOtpCode || payoutPinOtpCode.trim().length !== 6))
+                  }
+                  className="btn btn-primary clickable"
+                  style={{ flex: 1, padding: 12 }}
+                >
+                  {payoutPinSubmitting ? (
+                    <Loader2 size={16} className="spinner" style={{ margin: '0 auto' }} />
+                  ) : payoutPinOtpLoading ? (
+                    'Sending Code...'
+                  ) : payoutPinOtpSent ? (
+                    'Verify & Save PIN'
                   ) : (
                     'Send OTP Verification'
                   )}

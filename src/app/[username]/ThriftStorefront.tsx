@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Menu, X, BadgeCheck, MapPin, Star, Clock, Share2, Store as StoreIcon,
   Search, ShoppingBag, Calendar, ChevronRight, ChevronDown, ChevronLeft, Megaphone, Truck,
@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
+import BankTransferPaymentModal from "../../components/BankTransferPaymentModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
@@ -190,6 +191,22 @@ function useIsDesktop() {
   return d;
 }
 
+function Sheet({ onClose, title, children, onBack }: { onClose: () => void; title: string; children: React.ReactNode; onBack?: () => void }) {
+  return (
+    <div className="ps-overlay" onClick={onClose}>
+      <div className="ps-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="ps-sheet-grip" />
+        <div className="ps-sheet-head">
+          {onBack ? <button className="ps-sheet-back" onClick={onBack} aria-label="Back"><ChevronLeft size={20} /></button> : <span className="ps-sheet-back-sp" />}
+          <b>{title}</b>
+          <button onClick={onClose} aria-label="Close"><X size={20} /></button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function ThriftStorefront({
   username,
   store,
@@ -237,6 +254,7 @@ export default function ThriftStorefront({
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
   const [isPaying, setIsPaying] = useState(false);
+  const [bankTransferDetails, setBankTransferDetails] = useState<any>(null);
 
   // Sizing and Product Detail Page/Sheet states
   const [selProduct, setSelProduct] = useState<any>(null);
@@ -294,9 +312,11 @@ export default function ThriftStorefront({
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
 
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ping = (m: string) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast(m);
-    setTimeout(() => setToast(""), 1600);
+    toastTimer.current = setTimeout(() => setToast(""), 1600);
   };
 
   const go = (p: string) => {
@@ -935,6 +955,10 @@ export default function ThriftStorefront({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'Payment initialization failed.');
+      if (json.status === 'bank_transfer' || json.status === 'manual') {
+        setBankTransferDetails(json.data);
+        return;
+      }
       const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
       if (redirectUrl) {
         window.location.href = redirectUrl;
@@ -975,7 +999,7 @@ export default function ThriftStorefront({
               {p.popular && <span className="pv-tag"><Star size={11} /> Best seller</span>}
               <span className="pv-cat">{p.cat}</span>
               {p.image_url ? (
-                <img src={p.image_url} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={p.image_url} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
               ) : (
                 <ShoppingBag className="pv-main-icn" size={40} />
               )}
@@ -1415,7 +1439,7 @@ export default function ThriftStorefront({
       {pfList.map((p: any) => (
         <button key={p.label} className={`pf-shot ${p.c}`} onClick={() => ping("Opening photo")}>
           {p.image_url ? (
-            <img src={p.image_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={p.image_url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
           ) : (
             <span className="pf-shot-cap"><b>{p.label}</b><span>{p.cat}</span></span>
           )}
@@ -1515,20 +1539,6 @@ export default function ThriftStorefront({
         ))}
       </div>
     </section>
-  );
-
-  const Sheet = ({ onClose, title, children, onBack }: { onClose: () => void; title: string; children: React.ReactNode; onBack?: () => void }) => (
-    <div className="ps-overlay" onClick={onClose}>
-      <div className="ps-sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="ps-sheet-grip" />
-        <div className="ps-sheet-head">
-          {onBack ? <button className="ps-sheet-back" onClick={onBack} aria-label="Back"><ChevronLeft size={20} /></button> : <span className="ps-sheet-back-sp" />}
-          <b>{title}</b>
-          <button onClick={onClose} aria-label="Close"><X size={20} /></button>
-        </div>
-        {children}
-      </div>
-    </div>
   );
 
   const Panel = ({ onClose }: { onClose?: () => void }) => (
@@ -1913,6 +1923,11 @@ export default function ThriftStorefront({
       '--brand': primaryColor,
       '--brand-deep': `color-mix(in srgb, ${primaryColor} 80%, black)`,
     } as React.CSSProperties}>
+      <BankTransferPaymentModal
+        open={!!bankTransferDetails}
+        onClose={() => setBankTransferDetails(null)}
+        details={bankTransferDetails}
+      />
       <WhatsAppDisclaimerModal open={!!pendingWaUrl} storeName={store.store_name} isVerified={!!store.is_verified}
         onConfirm={() => { window.open(pendingWaUrl!, '_blank'); setPendingWaUrl(null); }}
         onCancel={() => setPendingWaUrl(null)} />
@@ -2782,7 +2797,7 @@ function ProductCard({ p, onOpen }: { p: any; onOpen: () => void }) {
     <div className="ps-card prod-card" onClick={onOpen}>
       <div className="ps-card-thumb prod">
         {p.image_url ? (
-          <img src={p.image_url} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img src={p.image_url} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         ) : (
           <ShoppingBag size={22} />
         )}
@@ -2838,7 +2853,7 @@ function ProductCardRich({ p, onView, colour, badge }: { p: any; onView: () => v
     <div className="svc-card" onClick={onView}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
         {p.image_url ? (
-          <img src={p.image_url} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img src={p.image_url} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         ) : (
           <ShoppingBag size={24} />
         )}

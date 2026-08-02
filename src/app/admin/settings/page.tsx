@@ -553,6 +553,24 @@ export default function AdminSettingsPage() {
                   description="Maximum number of products a Free plan store can list before being prompted to upgrade to Pro."
                   required
                 />
+                <Field
+                  label="Nina WhatsApp Posting — Free Plan Lifetime Limit"
+                  type="number"
+                  value={String(settings.nina_free_plan_product_limit)}
+                  onChange={(value) => setSettings({ ...settings, nina_free_plan_product_limit: value })}
+                  placeholder="e.g. 3"
+                  description="How many products/services a Free plan merchant can post to Nina via WhatsApp in total, before they must upgrade."
+                  required
+                />
+                <Field
+                  label="Nina WhatsApp Posting — Pro Plan Weekly Limit"
+                  type="number"
+                  value={String(settings.nina_pro_plan_weekly_product_limit)}
+                  onChange={(value) => setSettings({ ...settings, nina_pro_plan_weekly_product_limit: value })}
+                  placeholder="e.g. 5"
+                  description="How many products/services a Pro plan merchant can post to Nina via WhatsApp per week (resets weekly). Legend plan is unlimited."
+                  required
+                />
               </SettingsGroup>
             )}
 

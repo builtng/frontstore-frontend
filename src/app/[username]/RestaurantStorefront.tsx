@@ -10,6 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
+import BankTransferPaymentModal from "../../components/BankTransferPaymentModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
@@ -189,6 +190,22 @@ function useIsDesktop() {
   return d;
 }
 
+function Sheet({ title, onClose, onBack, children }: { title: string; onClose: () => void; onBack?: () => void; children: React.ReactNode }) {
+  return (
+    <div className="ps-overlay">
+      <div className="ps-sheet">
+        <div className="ps-sheet-grip" />
+        <div className="ps-sheet-head">
+          {onBack ? <button onClick={onBack} className="ps-sheet-back" aria-label="Back"><ChevronLeft size={20} /></button> : <span className="ps-sheet-back-sp" />}
+          <b>{title}</b>
+          <button onClick={onClose} aria-label="Close"><X size={20} /></button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function RestaurantStorefront({
   username,
   store,
@@ -236,6 +253,7 @@ export default function RestaurantStorefront({
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
   const [isPaying, setIsPaying] = useState(false);
+  const [bankTransferDetails, setBankTransferDetails] = useState<any>(null);
 
   // Sizing and Product Detail Page/Sheet states
   const [selProduct, setSelProduct] = useState<any>(null);
@@ -379,7 +397,12 @@ export default function RestaurantStorefront({
     return null;
   };
 
-  const ping = (m: string) => { setToast(m); };
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ping = (m: string) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(m);
+    toastTimer.current = setTimeout(() => setToast(""), 1600);
+  };
   const go = (p: string) => { setPost(null); setSelProduct(null); setPage(p); setDrawer(false); setSearch(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const openPost = (p: any) => { setPost(p); setPage("post"); setDrawer(false); setSearch(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const openProduct = (p: any) => {
@@ -684,6 +707,10 @@ export default function RestaurantStorefront({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'Payment initialization failed.');
+      if (json.status === 'bank_transfer' || json.status === 'manual') {
+        setBankTransferDetails(json.data);
+        return;
+      }
       const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
       if (redirectUrl) {
         window.location.href = redirectUrl;
@@ -944,20 +971,6 @@ export default function RestaurantStorefront({
       </div>
       <small>© 2026 {store.store_name}. Powered by Frontstore.</small>
     </footer>
-  );
-
-  const Sheet = ({ title, onClose, onBack, children }: { title: string; onClose: () => void; onBack?: () => void; children: React.ReactNode }) => (
-    <div className="ps-overlay">
-      <div className="ps-sheet">
-        <div className="ps-sheet-grip" />
-        <div className="ps-sheet-head">
-          {onBack ? <button onClick={onBack} className="ps-sheet-back" aria-label="Back"><ChevronLeft size={20} /></button> : <span className="ps-sheet-back-sp" />}
-          <b>{title}</b>
-          <button onClick={onClose} aria-label="Close"><X size={20} /></button>
-        </div>
-        {children}
-      </div>
-    </div>
   );
 
   // Reservation Flow
@@ -1346,6 +1359,11 @@ export default function RestaurantStorefront({
       '--brand': primaryColor,
       '--brand-deep': `color-mix(in srgb, ${primaryColor} 80%, black)`,
     } as React.CSSProperties}>
+      <BankTransferPaymentModal
+        open={!!bankTransferDetails}
+        onClose={() => setBankTransferDetails(null)}
+        details={bankTransferDetails}
+      />
       <WhatsAppDisclaimerModal open={!!pendingWaUrl} storeName={store.store_name} isVerified={!!store.is_verified}
         onConfirm={() => { window.open(pendingWaUrl!, '_blank'); setPendingWaUrl(null); }}
         onCancel={() => setPendingWaUrl(null)} />

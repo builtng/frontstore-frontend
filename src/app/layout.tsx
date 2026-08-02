@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import ToastProvider from '@/components/ToastProvider';
 import AccessGuard from '@/components/AccessGuard';
+import AnalyticsScripts from '@/components/AnalyticsScripts';
+import CookieConsentBanner from '@/components/CookieConsentBanner';
 
 // ── Fonts via next/font — zero render-blocking, automatic preload ────────────
 const inter = Inter({
@@ -326,23 +327,12 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-T4VQBGFXJN"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-
-            gtag('config', 'G-T4VQBGFXJN');
-          `}
-        </Script>
+        <AnalyticsScripts />
         <AccessGuard>
           {children}
         </AccessGuard>
         <ToastProvider />
+        <CookieConsentBanner />
       </body>
     </html>
   );

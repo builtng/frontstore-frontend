@@ -10,11 +10,13 @@ import {
   ChevronDown,
   Clock,
   ExternalLink,
+  Landmark,
   Mail,
   Power,
   Search,
   ShieldCheck,
   Trash2,
+  Upload,
   UserPlus,
   Zap,
 } from 'lucide-react';
@@ -56,10 +58,15 @@ export default function AdminStoresPage() {
   const [selectedStore, setSelectedStore] = useState<StoreInfo | null>(null);
   const [showCreateDrawer, setShowCreateDrawer] = useState(false);
   const [sendingLimitEmailFor, setSendingLimitEmailFor] = useState<string | null>(null);
+  const [generatingDvaFor, setGeneratingDvaFor] = useState<string | null>(null);
+  const [uploadingNinaAvatarFor, setUploadingNinaAvatarFor] = useState<string | null>(null);
 
   const freeProductLimit = Number(settings?.free_plan_product_limit) || 10;
   const hasReachedProductLimit = (store: StoreInfo) =>
     !isProPlan(store.user?.plan) && Number(store.products_count || 0) >= freeProductLimit;
+
+  const needsDedicatedAccount = (store: StoreInfo) =>
+    store.payment_provider !== 'stripe' && !store.paystack_dva_active;
 
   const loadStores = async (page = 1, search = '') => {
     if (!token) return;
@@ -122,6 +129,68 @@ export default function AdminStoresPage() {
       if (error.message !== 'Session expired') toast.error(error.message);
     } finally {
       setSendingLimitEmailFor(null);
+    }
+  };
+
+  const handleGenerateDva = async (storeId: string) => {
+    try {
+      setGeneratingDvaFor(storeId);
+      const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}/generate-dva`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      const json = await handleFetchResponse(res, 'Failed to generate dedicated account.');
+      toast.success(json.message);
+      setStores((items) =>
+        items.map((store) =>
+          store.id === storeId
+            ? {
+                ...store,
+                paystack_dva_active: true,
+                paystack_dva_account_number: json.data?.paystack_dva_account_number,
+                paystack_dva_bank_name: json.data?.paystack_dva_bank_name,
+                paystack_dva_account_name: json.data?.paystack_dva_account_name,
+              }
+            : store
+        )
+      );
+      setSelectedStore((prev) =>
+        prev && prev.id === storeId
+          ? {
+              ...prev,
+              paystack_dva_active: true,
+              paystack_dva_account_number: json.data?.paystack_dva_account_number,
+              paystack_dva_bank_name: json.data?.paystack_dva_bank_name,
+              paystack_dva_account_name: json.data?.paystack_dva_account_name,
+            }
+          : prev
+      );
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    } finally {
+      setGeneratingDvaFor(null);
+    }
+  };
+
+  const handleNinaAvatarFile = async (storeId: string, file: File) => {
+    try {
+      setUploadingNinaAvatarFor(storeId);
+      const formData = new FormData();
+      formData.append('avatar', file);
+      const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}/nina-avatar`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const json = await handleFetchResponse(res, 'Could not upload Nina avatar.');
+      toast.success(json.message);
+      const newUrl = json.data?.nina_avatar_url;
+      setStores((items) => items.map((store) => (store.id === storeId ? { ...store, nina_avatar_url: newUrl } : store)));
+      setSelectedStore((prev) => (prev && prev.id === storeId ? { ...prev, nina_avatar_url: newUrl } : prev));
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    } finally {
+      setUploadingNinaAvatarFor(null);
     }
   };
 
@@ -284,6 +353,26 @@ export default function AdminStoresPage() {
                       >
                         <Mail size={15} />
                         {sendingLimitEmailFor === store.id ? 'Sending…' : 'Send limit email'}
+                      </button>
+                    )}
+                    {needsDedicatedAccount(store) && (
+                      <button
+                        type="button"
+                        className="admin-action"
+                        disabled={generatingDvaFor === store.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openConfirmationDialog(
+                            'Generate dedicated account',
+                            `Generate a Paystack dedicated account for "${store.store_name}"? The merchant will be notified by email once it's ready.`,
+                            async () => {
+                              await handleGenerateDva(store.id);
+                            }
+                          );
+                        }}
+                      >
+                        <Landmark size={15} />
+                        {generatingDvaFor === store.id ? 'Generating…' : 'Generate DVA'}
                       </button>
                     )}
                     <button
@@ -475,6 +564,64 @@ export default function AdminStoresPage() {
                   </div>
                 </div>
               )}
+
+              <div className="admin-drawer__section">
+                <h3>Customer Payment Account (Dedicated Account)</h3>
+                {selectedStore.paystack_dva_active && selectedStore.paystack_dva_account_number ? (
+                  <div className="admin-drawer__grid">
+                    <div>
+                      <label>Bank Name</label>
+                      <strong>{selectedStore.paystack_dva_bank_name || 'N/A'}</strong>
+                    </div>
+                    <div>
+                      <label>Account Number</label>
+                      <span>{selectedStore.paystack_dva_account_number}</span>
+                    </div>
+                    <div>
+                      <label>Account Name</label>
+                      <span>{selectedStore.paystack_dva_account_name || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <label>Status</label>
+                      <StatusChip tone="green" label="Active" />
+                    </div>
+                  </div>
+                ) : (
+                  <EmptyState label="No dedicated account generated yet." />
+                )}
+              </div>
+
+              <div className="admin-drawer__section">
+                <h3>Nina Assistant Avatar</h3>
+                <p style={{ fontSize: 12, color: 'var(--text-muted, #64748b)', marginTop: -4, marginBottom: 12 }}>
+                  Admin-controlled — merchants can no longer change this photo themselves.
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <img
+                    src={selectedStore.nina_avatar_url || '/ninaAssistant.png'}
+                    alt="Nina avatar"
+                    style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--line, #e2e8f0)' }}
+                  />
+                  <label
+                    className="btn btn-outline"
+                    style={{ cursor: uploadingNinaAvatarFor === selectedStore.id ? 'wait' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Upload size={15} />
+                    {uploadingNinaAvatarFor === selectedStore.id ? 'Uploading…' : 'Upload new photo'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                      style={{ display: 'none' }}
+                      disabled={uploadingNinaAvatarFor === selectedStore.id}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        event.target.value = '';
+                        if (file) handleNinaAvatarFile(selectedStore.id, file);
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
             </div>
 
             <div className="admin-drawer__actions">
@@ -498,6 +645,25 @@ export default function AdminStoresPage() {
                 >
                   <Mail size={15} />
                   {sendingLimitEmailFor === selectedStore.id ? 'Sending…' : 'Send limit email'}
+                </button>
+              )}
+              {needsDedicatedAccount(selectedStore) && (
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  disabled={generatingDvaFor === selectedStore.id}
+                  onClick={() => {
+                    openConfirmationDialog(
+                      'Generate dedicated account',
+                      `Generate a Paystack dedicated account for "${selectedStore.store_name}"? The merchant will be notified by email once it's ready.`,
+                      async () => {
+                        await handleGenerateDva(selectedStore.id);
+                      }
+                    );
+                  }}
+                >
+                  <Landmark size={15} />
+                  {generatingDvaFor === selectedStore.id ? 'Generating…' : 'Generate DVA'}
                 </button>
               )}
               <button

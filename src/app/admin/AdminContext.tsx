@@ -47,6 +47,12 @@ export interface StoreInfo {
   trust_score?: number;
   seller_level?: number;
   products_count?: number;
+  payment_provider?: string | null;
+  paystack_dva_account_number?: string | null;
+  paystack_dva_bank_name?: string | null;
+  paystack_dva_account_name?: string | null;
+  paystack_dva_active?: boolean;
+  nina_avatar_url?: string | null;
 }
 
 export interface Category {
@@ -95,6 +101,8 @@ export interface SystemSettings {
   legend_monthly_price: string;
   legend_yearly_price: string;
   free_plan_product_limit: string;
+  nina_free_plan_product_limit: string;
+  nina_pro_plan_weekly_product_limit: string;
   verification_provider: 'manual' | 'idenverify' | 'idanalyzer' | 'didit';
   idenverify_api_key: string;
   idanalyzer_api_key: string;
@@ -149,6 +157,8 @@ export const defaultSettings: SystemSettings = {
   legend_monthly_price: '7000',
   legend_yearly_price: '70000',
   free_plan_product_limit: '10',
+  nina_free_plan_product_limit: '3',
+  nina_pro_plan_weekly_product_limit: '5',
   verification_provider: 'manual',
   idenverify_api_key: '',
   idanalyzer_api_key: '',

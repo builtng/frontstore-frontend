@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowRight, Calculator, ChevronRight, HelpCircle, Menu, Newspaper, PlayCircle, Store, Percent, X } from 'lucide-react';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
+import { openCookiePreferences } from '@/lib/cookieConsent';
 
 const NAV_LINKS = [
   { href: '/stores', label: 'Stores', icon: Store },
@@ -238,6 +239,23 @@ export function PublicSiteFooter() {
 
         <div className="site-footer__bottom">
           <span>© {new Date().getFullYear()} {appName}. All rights reserved.</span>
+          <button
+            type="button"
+            onClick={openCookiePreferences}
+            style={{
+              appearance: 'none',
+              border: 'none',
+              background: 'transparent',
+              color: 'inherit',
+              font: 'inherit',
+              opacity: 0.7,
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            Cookie Preferences
+          </button>
         </div>
       </div>
     </footer>

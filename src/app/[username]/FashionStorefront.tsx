@@ -334,7 +334,7 @@ export default function FashionStorefront({
           <div className="pv-gallery">
             <div className={`pv-main ${clr(idx)}`}>
               {imgs.length > 0 ? (
-                <img src={imgs[activeImg]} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+                <img src={imgs[activeImg]} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'absolute', inset: 0 }} />
               ) : (
                 <span className="pv-main-icn"><ShoppingBag size={40} /></span>
               )}
@@ -455,7 +455,7 @@ export default function FashionStorefront({
                 {bag.map(item => (
                   <div key={item.key} className="ps-bag-line">
                     <div className={`ps-bag-img ${clr(0)}`}>
-                      {item.image_url ? <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={18} />}
+                      {item.image_url ? <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <Package size={18} />}
                     </div>
                     <div>
                       <b>{item.name}</b>
@@ -963,7 +963,7 @@ export default function FashionStorefront({
       <button className="art-back" onClick={() => go('blog')}><ChevronLeft size={16} /> Back to Journal</button>
       {p.image_url && (
         <div className={`art-hero ${clr(0)}`}>
-          <img src={p.image_url} alt={p.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={p.image_url} alt={p.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
           {p.category && <span className="blog-cat">{p.category}</span>}
         </div>
       )}
@@ -1191,13 +1191,13 @@ export default function FashionStorefront({
     if (selectedProduct && (page === 'products' || page === 'home')) return <ProductDetail key={selectedProduct.id} p={selectedProduct} />;
     if (post && page === 'post') return <PostPage p={post} />;
     switch (page) {
-      case 'products': return <ProductsPage />;
+      case 'products': return ProductsPage();
       case 'portfolio': return <PortfolioPage />;
       case 'reviews': return <ReviewsPage />;
       case 'blog': return <BlogPage />;
       case 'faq': return <FaqPage />;
       case 'about': return <AboutPage />;
-      case 'contact': return <ContactPage />;
+      case 'contact': return ContactPage();
       default: return <HomePage />;
     }
   };
@@ -1321,7 +1321,7 @@ export default function FashionStorefront({
       </footer>
 
       {/* Sheets */}
-      {bagOpen && <CartDrawer />}
+      {bagOpen && CartDrawer()}
 
       {/* Toast */}
       {toastMsg && (
@@ -1470,7 +1470,7 @@ const FASHION_CSS = `
 .ps-card-thumb.c1 { background: linear-gradient(150deg, var(--brand-deep), var(--gold)); }
 .ps-card-thumb.c2 { background: linear-gradient(150deg, #caa06f, var(--brand)); }
 .ps-card-thumb.c3 { background: linear-gradient(150deg, var(--brand), #a86b8a); }
-.ps-card-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ps-card-img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .ps-card-foot { position: relative; padding: 10px 12px 12px; width: 100%; text-align: left; display: flex; flex-direction: column; flex: 1; }
 .ps-card-cat { display: block; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .ps-card-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.25; margin: 2px 0 6px; min-height: 35px; }

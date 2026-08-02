@@ -5039,11 +5039,12 @@ svg.spinner {
   position: relative;
   overflow: hidden;
   border-radius: calc(var(--r-lg) - 2px);
+  background: var(--bg-2);
 }
 .fu-zone__preview {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   transition: transform var(--t-slow) var(--ease);
 }

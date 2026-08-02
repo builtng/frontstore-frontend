@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { toast as sonnerToast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
+import BankTransferPaymentModal from "../../components/BankTransferPaymentModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { storePath } from "../../utils/storePath";
 import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon, LinkedInIcon } from "../../components/SocialIcons";
@@ -331,6 +332,7 @@ export default function FoodStorefront({
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
   const [isPaying, setIsPaying] = useState(false);
+  const [bankTransferDetails, setBankTransferDetails] = useState<any>(null);
   const [pendingWaUrl, setPendingWaUrl] = useState<string | null>(null);
   
   const [bagItems, setBagItems] = useState<CartItem[]>([]);
@@ -365,9 +367,11 @@ export default function FoodStorefront({
     } catch { }
   };
 
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ping = (m: string) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast(m);
-    setTimeout(() => setToast(""), 1600);
+    toastTimer.current = setTimeout(() => setToast(""), 1600);
   };
 
   // --- Dynamic Mappings ---
@@ -890,6 +894,10 @@ export default function FoodStorefront({
         headers: { 'Content-Type': 'application/json' }
       });
       const json = await res.json();
+      if (res.ok && (json.status === 'bank_transfer' || json.status === 'manual')) {
+        setBankTransferDetails(json.data);
+        return;
+      }
       const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
       if (res.ok && redirectUrl) {
         window.location.href = redirectUrl;
@@ -1276,7 +1284,9 @@ export default function FoodStorefront({
         {bookStep === "time" && (<>
           {svcBar}
           <p className="ps-field-lbl">{bookDate ? fmtDateFull(bookDate) : ''}</p>
-          {slots.length > 0 ? (
+          {loadingSlots ? (
+            <p className="bk-empty">Loading available times…</p>
+          ) : slots.length > 0 ? (
             <div className="bk-times">
               {slots.map((slot: any) => (
                 <button
@@ -2892,6 +2902,11 @@ export default function FoodStorefront({
 
       {toast && <div className="ps-toast">{toast}</div>}
     
+      <BankTransferPaymentModal
+        open={!!bankTransferDetails}
+        onClose={() => setBankTransferDetails(null)}
+        details={bankTransferDetails}
+      />
       <WhatsAppDisclaimerModal
         open={!!pendingWaUrl}
         storeName={store.store_name} isVerified={!!store.is_verified}
@@ -2908,14 +2923,14 @@ function SectionHead({ title, action, onAction }: { title: string, action?: stri
 }
 function ServiceCard({ s, onBook }: { s: any, onBook: () => void }) {
   return (<div className="ps-card"><div className="ps-card-thumb svc">
-      {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Sparkles size={22} />}
+      {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <Sparkles size={22} />}
     </div>
     <div className="ps-card-body"><b>{s.name}</b><span className="ps-card-sub"><Clock size={12} /> {s.dur}</span>
       <div className="ps-card-foot"><em>{money(s.price)}</em><button className="ps-mini book" onClick={onBook}>Book</button></div></div></div>);
 }
 function ProductCard({ p, onOpen }: { p: any, onOpen: () => void }) {
   return (<div className="ps-card prod-card" onClick={onOpen}><div className="ps-card-thumb prod">
-      {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <UtensilsCrossed size={22} />}
+      {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <UtensilsCrossed size={22} />}
     </div>
     <div className="ps-card-body"><b>{p.name}</b>
       <div className="ps-card-foot"><em>{money(p.price)}</em><span className="ps-mini buy">View</span></div></div></div>);
@@ -2938,7 +2953,7 @@ function ServiceCardRich({ s, onBook, colour, badge }: { s: any, onBook: () => v
   return (
     <div className="svc-card" onClick={onBook}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
-        {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Sparkles size={24} />}
+        {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <Sparkles size={24} />}
         {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
         <span className="svc-card-cat">{s.cat}</span>
       </div>
@@ -2955,7 +2970,7 @@ function ProductCardRich({ p, onView, onBuy, colour, badge }: { p: any, onView: 
   return (
     <div className="svc-card" onClick={onView}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
-        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={24} />}
+        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <ShoppingBag size={24} />}
         {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
         <span className="svc-card-cat">{p.cat}</span>
       </div>
@@ -3144,7 +3159,7 @@ const css = `
 .ps-card{background:var(--card);border:1px solid var(--line);border-radius:15px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-sm);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}
 .ps-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:transparent;}
 .ps-card-thumb{height:128px;position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;}
-.ps-card-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.ps-card-thumb img{width:100%;height:100%;object-fit:contain;display:block;}
 .ps-card-thumb.svc{background:linear-gradient(150deg,var(--brand),var(--brand-deep));}
 .ps-card-thumb.prod{background:linear-gradient(150deg,#caa06f,var(--gold));}
 .ps-card-body{background:var(--card);padding:12px;display:flex;flex-direction:column;flex:1;position:relative;z-index:2;}
@@ -3824,7 +3839,7 @@ select.ct-input{appearance:none;-webkit-appearance:none;background-image:url("da
 .svc-card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:transform .12s,box-shadow .12s;}
 .svc-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(138,44,29,.1);}
 .svc-card-thumb{height:140px;position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;}
-.svc-card-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.svc-card-thumb img{width:100%;height:100%;object-fit:contain;display:block;}
 .svc-card-thumb.c0{background:linear-gradient(150deg,var(--brand),var(--brand-deep));}
 .svc-card-thumb.c1{background:linear-gradient(150deg,var(--brand-deep),var(--gold));}
 .svc-card-thumb.c2{background:linear-gradient(150deg,#caa06f,var(--brand));}

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast as sonnerToast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
+import BankTransferPaymentModal from "../../components/BankTransferPaymentModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { storePath } from "../../utils/storePath";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
@@ -585,6 +586,7 @@ export default function BeautyStorefront({
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
   const [isPaying, setIsPaying] = useState(false);
+  const [bankTransferDetails, setBankTransferDetails] = useState<any>(null);
 
   // Pending WhatsApp disclaimer
   const [pendingWaUrl, setPendingWaUrl] = useState<string | null>(null);
@@ -593,7 +595,12 @@ export default function BeautyStorefront({
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
 
-  const ping = (m: string) => { setToast(m); setTimeout(() => setToast(""), 1600); };
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ping = (m: string) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(m);
+    toastTimer.current = setTimeout(() => setToast(""), 1600);
+  };
   const go = (p: string) => { setPost(null); setPage(p); setDrawer(false); setSearch(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const openPost = (p: any) => { setPost(p); setPage("post"); setDrawer(false); setSearch(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
@@ -982,6 +989,10 @@ export default function BeautyStorefront({
       const json = await res.json();
       if (!res.ok) {
         throw new Error(json.message || 'Payment initialization failed.');
+      }
+      if (json.status === 'bank_transfer' || json.status === 'manual') {
+        setBankTransferDetails(json.data);
+        return;
       }
       const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
       if (redirectUrl) {
@@ -1594,7 +1605,7 @@ export default function BeautyStorefront({
     <div className="pf-grid">
       {pfList.map((p, index) => (
         <button key={p.label} className={`pf-shot c${index % 3}${p.ba ? " ba" : ""}`} onClick={() => ping("Opening photo")}>
-          {p.image_url ? <img src={p.image_url} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : null}
+          {p.image_url ? <img src={p.image_url} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : null}
           {p.ba && <span className="pf-ba"><span className="pf-ba-h">Before</span><span className="pf-ba-h">After</span></span>}
           <span className="pf-shot-cap"><b>{p.label}</b><span>{p.cat}</span></span>
         </button>
@@ -1723,6 +1734,11 @@ export default function BeautyStorefront({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
+      <BankTransferPaymentModal
+        open={!!bankTransferDetails}
+        onClose={() => setBankTransferDetails(null)}
+        details={bankTransferDetails}
+      />
       <WhatsAppDisclaimerModal
         open={!!pendingWaUrl}
         storeName={store.store_name} isVerified={!!store.is_verified}
@@ -2673,7 +2689,7 @@ function ServiceCard({ s, onBook }: { s: any; onBook: () => void }) {
   return (
     <div className="ps-card">
       <div className="ps-card-thumb svc" style={{ background: getCategoryTheme(s.cat)[0] }}>
-        {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Calendar size={22} />}
+        {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <Calendar size={22} />}
       </div>
       <div className="ps-card-body">
         <b>{s.name}</b>
@@ -2692,7 +2708,7 @@ function ProductCard({ p, onBuy, onView }: { p: any; onBuy: () => void; onView?:
   return (
     <div className="ps-card" onClick={onView} style={onView ? { cursor: 'pointer' } : undefined}>
       <div className="ps-card-thumb prod" style={{ background: `linear-gradient(150deg, ${getCategoryTheme(p.cat)[0]}, ${getCategoryTheme(p.cat)[1]})` }}>
-        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={22} />}
+        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <ShoppingBag size={22} />}
       </div>
       <div className="ps-card-body">
         <b>{p.name}</b>
@@ -2727,7 +2743,7 @@ function ServiceCardRich({ s, onBook, colour, badge }: { s: any; onBook: () => v
   return (
     <div className="svc-card" onClick={onBook}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
-        {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Calendar size={24} />}
+        {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <Calendar size={24} />}
         {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
         <span className="svc-card-cat">{s.cat}</span>
       </div>
@@ -2749,7 +2765,7 @@ function ProductCardRich({ p, onView, onBuy, colour, badge }: { p: any; onView: 
   return (
     <div className="svc-card" onClick={onView}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
-        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={24} />}
+        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <ShoppingBag size={24} />}
         {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
         <span className="svc-card-cat">{p.cat}</span>
       </div>
@@ -2955,7 +2971,7 @@ const css = `
 .ps-card-thumb{height:130px;position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;}
 .ps-card-thumb.svc{background:linear-gradient(150deg,var(--brand),var(--brand-deep));}
 .ps-card-thumb.prod{background:linear-gradient(150deg,#caa06f,var(--gold));}
-.ps-card-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.ps-card-thumb img{width:100%;height:100%;object-fit:contain;display:block;}
 .ps-card-body{background:var(--card);padding:12px;display:flex;flex-direction:column;flex:1;position:relative;z-index:2;}
 .ps-card-body b{font-size:14px;font-weight:700;line-height:1.35;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .ps-card-sub{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink);opacity:0.85;margin-top:4px;}
@@ -3223,7 +3239,7 @@ const css = `
 .svc-card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:transform .12s;}
 .svc-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(43,29,42,.06);}
 .svc-card-thumb{height:140px;position:relative;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand-deep));}
-.svc-card-thumb img{width:100%;height:100%;object-fit:cover;}
+.svc-card-thumb img{width:100%;height:100%;object-fit:contain;}
 .svc-card-cat{position:absolute;bottom:10px;left:10px;width:max-content;font-size:10px;font-weight:800;text-transform:uppercase;color:var(--brand-deep);background:#fff;padding:3px 8px;border-radius:6px;}
 .svc-card-body{padding:14px;display:flex;flex-direction:column;flex:1;}
 .svc-card-body b{font-size:14.5px;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}

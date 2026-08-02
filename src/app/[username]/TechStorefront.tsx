@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast as sonnerToast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
+import BankTransferPaymentModal from "../../components/BankTransferPaymentModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
@@ -576,6 +577,7 @@ export default function TechStorefront({
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
   const [isPaying, setIsPaying] = useState(false);
+  const [bankTransferDetails, setBankTransferDetails] = useState<any>(null);
   const [orderNote, setOrderNote] = useState("");
 
   // Filters & General UI
@@ -627,7 +629,12 @@ export default function TechStorefront({
   }, [store.currency_code]);
   
   const money = (n: number) => currencySymbol + n.toLocaleString("en-NG", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  const ping = (m: string) => { setToast(m); setTimeout(() => setToast(""), 1600); };
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ping = (m: string) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(m);
+    toastTimer.current = setTimeout(() => setToast(""), 1600);
+  };
   const go = (p: string) => { setPost(null); setSelProduct(null); setPage(p); setDrawer(false); setSearch(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const openPost = (p: any) => { setPost(p); setPage("post"); setDrawer(false); setSearch(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const openProduct = (p: any) => { setSelProduct(p); setSelColour(p.colours && p.colours[0] ? p.colours[0].n : null); setSelCap(null); setPage("product"); setDrawer(false); setSearch(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
@@ -868,6 +875,10 @@ export default function TechStorefront({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'Payment initialization failed.');
+      if (json.status === 'bank_transfer' || json.status === 'manual') {
+        setBankTransferDetails(json.data);
+        return;
+      }
       const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
       if (redirectUrl) {
         window.location.href = redirectUrl;
@@ -1509,6 +1520,11 @@ export default function TechStorefront({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
+      <BankTransferPaymentModal
+        open={!!bankTransferDetails}
+        onClose={() => setBankTransferDetails(null)}
+        details={bankTransferDetails}
+      />
       <WhatsAppDisclaimerModal
         open={!!pendingWaUrl}
         storeName={STORE.name}
@@ -2075,7 +2091,7 @@ export default function TechStorefront({
     return (
       <button className="ps-card" onClick={onOpen}>
         <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: 8, background: '#111b21', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 10 }}>
-          {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Store size={28} style={{ color: 'var(--muted)' }} />}
+          {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <Store size={28} style={{ color: 'var(--muted)' }} />}
         </div>
         <span className="ps-card-cat">{p.cat}</span>
         <span className="ps-card-name">{p.name}</span>
@@ -2114,7 +2130,7 @@ export default function TechStorefront({
     return (
       <div className="rich-card">
         <button className={`rich-thumb ${colour}`} onClick={onView} aria-label={p.name}>
-          {p.image_url ? <img src={p.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={24} />}
+          {p.image_url ? <img src={p.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <ShoppingBag size={24} />}
           {badge && <span className="rich-badge">{badge}</span>}
         </button>
         <div className="rich-info">
@@ -2242,23 +2258,24 @@ export default function TechStorefront({
     );
   }
 
-  function Sheet({ title, children, onClose, onBack }: { title: string; children: React.ReactNode; onClose: () => void; onBack?: () => void }) {
-    return (
-      <div className="ps-overlay" onClick={onClose}>
-        <div className="ps-sheet" onClick={(e) => e.stopPropagation()}>
-          <div className="ps-sheet-grip" />
-          <div className="ps-sheet-head">
-            {onBack ? <button className="ps-sheet-back" onClick={onBack} aria-label="Back"><ChevronLeft size={20} /></button> : <span className="ps-sheet-back-sp" />}
-            <b>{title}</b>
-            <button onClick={onClose} aria-label="Close"><X size={20} /></button>
-          </div>
-          <div className="ps-sheet-body" style={{ overflowY: 'auto', maxHeight: 'calc(80vh - 60px)', paddingBottom: 30 }}>
-            {children}
-          </div>
+}
+
+function Sheet({ title, children, onClose, onBack }: { title: string; children: React.ReactNode; onClose: () => void; onBack?: () => void }) {
+  return (
+    <div className="ps-overlay" onClick={onClose}>
+      <div className="ps-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="ps-sheet-grip" />
+        <div className="ps-sheet-head">
+          {onBack ? <button className="ps-sheet-back" onClick={onBack} aria-label="Back"><ChevronLeft size={20} /></button> : <span className="ps-sheet-back-sp" />}
+          <b>{title}</b>
+          <button onClick={onClose} aria-label="Close"><X size={20} /></button>
+        </div>
+        <div className="ps-sheet-body" style={{ overflowY: 'auto', maxHeight: 'calc(80vh - 60px)', paddingBottom: 30 }}>
+          {children}
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 // --- Hardcoded Legal Policy Presets ---
@@ -3683,7 +3700,7 @@ const css = `
 .pv-main img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 .pv-main-icn {
   color: var(--muted);

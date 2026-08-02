@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { toast as sonnerToast } from "sonner";
 import { WhatsAppIcon } from "../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
+import BankTransferPaymentModal from "../../components/BankTransferPaymentModal";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { storePath } from "../../utils/storePath";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
@@ -339,6 +340,7 @@ export default function CreatorStorefront({
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [orderReceipt, setOrderReceipt] = useState<CreatedOrderReceipt | null>(null);
   const [isPaying, setIsPaying] = useState(false);
+  const [bankTransferDetails, setBankTransferDetails] = useState<any>(null);
   const [pendingWaUrl, setPendingWaUrl] = useState<string | null>(null);
   
   const [bagItems, setBagItems] = useState<CartItem[]>([]);
@@ -373,9 +375,11 @@ export default function CreatorStorefront({
     } catch { }
   };
 
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ping = (m: string) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast(m);
-    setTimeout(() => setToast(""), 1600);
+    toastTimer.current = setTimeout(() => setToast(""), 1600);
   };
 
   // --- Dynamic Mappings ---
@@ -752,6 +756,10 @@ export default function CreatorStorefront({
         headers: { 'Content-Type': 'application/json' }
       });
       const json = await res.json();
+      if (res.ok && (json.status === 'bank_transfer' || json.status === 'manual')) {
+        setBankTransferDetails(json.data);
+        return;
+      }
       const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
       if (res.ok && redirectUrl) {
         window.location.href = redirectUrl;
@@ -1248,7 +1256,9 @@ export default function CreatorStorefront({
         {bookStep === "time" && (<>
           {svcBar}
           <p className="ps-field-lbl">{bookDate ? fmtDateFull(bookDate) : ''}</p>
-          {slots.length > 0 ? (
+          {loadingSlots ? (
+            <p className="bk-empty">Loading available times…</p>
+          ) : slots.length > 0 ? (
             <div className="bk-times">
               {slots.map((slot: any) => (
                 <button
@@ -2824,6 +2834,11 @@ export default function CreatorStorefront({
 
       {toast && <div className="ps-toast">{toast}</div>}
     
+      <BankTransferPaymentModal
+        open={!!bankTransferDetails}
+        onClose={() => setBankTransferDetails(null)}
+        details={bankTransferDetails}
+      />
       <WhatsAppDisclaimerModal
         open={!!pendingWaUrl}
         storeName={store.store_name} isVerified={!!store.is_verified}
@@ -2839,14 +2854,14 @@ function SectionHead({ title, action, onAction }: { title: string, action?: stri
   return (<div className="ps-sec-head"><h2>{title}</h2>{action && <button onClick={onAction}>{action}</button>}</div>);
 }
 function ServiceCard({ s, onBook }: { s: any, onBook: () => void }) {
-  return (<div className="ps-card"><div className="ps-card-thumb svc">{s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Sparkles size={22} />}</div>
+  return (<div className="ps-card"><div className="ps-card-thumb svc">{s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <Sparkles size={22} />}</div>
     <div className="ps-card-body"><b>{s.name}</b><span className="ps-card-sub"><Clock size={12} /> {s.dur}</span>
       <div className="ps-card-foot"><em>{money(s.price)}</em><button className="ps-mini book" onClick={onBook}>View</button></div></div></div>);
 }
 function ProductCard({ p, onBuy, onView }: { p: any, onBuy: () => void, onView?: () => void }) {
   return (<div className="ps-card" onClick={onView} style={onView ? { cursor: 'pointer' } : undefined}>
     <div className="ps-card-thumb prod">
-      {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={22} />}
+      {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <ShoppingBag size={22} />}
     </div>
     <div className="ps-card-body"><b>{p.name}</b>
       <div className="ps-card-foot"><em>{money(p.price)}</em><button className="ps-mini buy" onClick={(e) => { e.stopPropagation(); onBuy(); }}>Buy</button></div></div></div>);
@@ -2869,7 +2884,7 @@ function ServiceCardRich({ s, onBook, colour, badge }: { s: any, onBook: () => v
   return (
     <div className="svc-card" onClick={onBook}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
-        {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Sparkles size={24} />}
+        {s.image_url ? <img src={s.image_url} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <Sparkles size={24} />}
         {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
         <span className="svc-card-cat">{s.cat}</span>
       </div>
@@ -2886,7 +2901,7 @@ function ProductCardRich({ p, onView, onBuy, colour, badge }: { p: any, onView: 
   return (
     <div className="svc-card" onClick={onView}>
       <div className={`svc-card-thumb ${colour || "c0"}`}>
-        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ShoppingBag size={24} />}
+        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <ShoppingBag size={24} />}
         {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
         <span className="svc-card-cat">{p.cat}</span>
       </div>
@@ -3077,7 +3092,7 @@ const css = `
 .ps-card-thumb{height:128px;position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;}
 .ps-card-thumb.svc{background:linear-gradient(150deg,var(--brand),var(--brand-deep));}
 .ps-card-thumb.prod{background:linear-gradient(150deg,#1bb5d8,var(--gold));}
-.ps-card-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.ps-card-thumb img{width:100%;height:100%;object-fit:contain;display:block;}
 .ps-card-body{background:var(--card);padding:12px;display:flex;flex-direction:column;flex:1;position:relative;z-index:2;}
 .ps-card-body b{font-size:14px;font-weight:700;line-height:1.35;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .ps-card-sub{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink);opacity:0.85;margin-top:4px;}
