@@ -11,6 +11,7 @@ import { calculateShippingFee } from "../../utils/shippingFee";
 import { storePath } from "../../utils/storePath";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
+import ProductImage from "../../components/ProductImage";
 
 const EXTENSION_SUBSTRING_ERROR = "Cannot read properties of undefined (reading 'substring')";
 
@@ -2712,15 +2713,16 @@ function ServiceCard({ s, onBook }: { s: any; onBook: () => void }) {
 
 function ProductCard({ p, onBuy, onView }: { p: any; onBuy: () => void; onView?: () => void }) {
   const currencySymbol = useMemo(() => "₦", []);
+  const img = (p.image_urls && p.image_urls[0]) || p.image_url || p.image || null;
   return (
     <div className="ps-card" onClick={onView} style={onView ? { cursor: 'pointer' } : undefined}>
-      <div className="ps-card-thumb prod" style={{ background: `linear-gradient(150deg, ${getCategoryTheme(p.cat)[0]}, ${getCategoryTheme(p.cat)[1]})` }}>
-        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <ShoppingBag size={22} />}
+      <div className="relative w-full overflow-hidden">
+        <ProductImage src={img} alt={p.name} aspectRatio="4/5" />
       </div>
       <div className="ps-card-body">
         <b>{p.name}</b>
         <div className="ps-card-foot">
-          <em>{currencySymbol + p.price.toLocaleString("en-NG")}</em>
+          <em>{currencySymbol + (typeof p.price === 'number' ? p.price.toLocaleString("en-NG") : p.price)}</em>
           <button className="ps-mini buy" onClick={(e) => { e.stopPropagation(); onBuy(); }}>Buy</button>
         </div>
       </div>
@@ -2769,18 +2771,19 @@ function ServiceCardRich({ s, onBook, colour, badge }: { s: any; onBook: () => v
 
 function ProductCardRich({ p, onView, onBuy, colour, badge }: { p: any; onView: () => void; onBuy: () => void; colour?: string; badge?: string }) {
   const currencySymbol = useMemo(() => "₦", []);
+  const img = (p.image_urls && p.image_urls[0]) || p.image_url || p.image || null;
   return (
     <div className="svc-card" onClick={onView}>
-      <div className={`svc-card-thumb ${colour || "c0"}`}>
-        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <ShoppingBag size={24} />}
-        {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
-        <span className="svc-card-cat">{p.cat}</span>
+      <div className="relative w-full overflow-hidden rounded-t-xl">
+        <ProductImage src={img} alt={p.name} aspectRatio="4/5" />
+        {badge && <span className="svc-badge z-20"><Star size={11} /> {badge}</span>}
+        {p.cat && <span className="svc-card-cat z-20">{p.cat}</span>}
       </div>
       <div className="svc-card-body">
         <b>{p.name}</b>
         <p className="svc-card-desc">{p.desc}</p>
         <div className="svc-card-foot">
-          <em>{currencySymbol + p.price.toLocaleString("en-NG")}</em>
+          <em>{currencySymbol + (typeof p.price === 'number' ? p.price.toLocaleString("en-NG") : p.price)}</em>
           <button className="svc-card-book" onClick={(e) => { e.stopPropagation(); onBuy(); }}>Buy</button>
         </div>
       </div>

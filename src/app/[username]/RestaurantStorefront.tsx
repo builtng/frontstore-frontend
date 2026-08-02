@@ -14,6 +14,7 @@ import BankTransferPaymentModal from "../../components/BankTransferPaymentModal"
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
+import ProductImage from "../../components/ProductImage";
 
 import "./RestaurantStorefront.css";
 
@@ -906,17 +907,13 @@ export default function RestaurantStorefront({
   };
 
   const ProductCard = ({ p, onOpen }: { p: any; onOpen: () => void }) => {
-    const hasImage = p.image_urls && p.image_urls.length > 0;
+    const img = (p.image_urls && p.image_urls.length > 0) ? p.image_urls[0] : (p.image_url || p.image || null);
     const catName = categories.find(c => c.id === p.category_id)?.name || 'Mains';
     return (
       <div className="ps-card prod-card" onClick={onOpen}>
-        <div className="ps-card-thumb prod" style={{ position: 'relative', aspectRatio: '1/1', maxHeight: 200, width: '100%', overflow: 'hidden', background: 'var(--bg-2, #f8f9fa)', display: 'grid', placeItems: 'center' }}>
-          {hasImage ? (
-            <img src={p.image_urls![0]} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 6, display: 'block' }} />
-          ) : (
-            <UtensilsCrossed size={32} strokeWidth={1.2} />
-          )}
-          {p.stock_status === 'out_of_stock' && <span className="feat-rib" style={{ color: 'var(--brand)' }}>OOS</span>}
+        <div className="relative w-full overflow-hidden">
+          <ProductImage src={img} alt={p.name} aspectRatio="4/5" fallbackIcon={<UtensilsCrossed size={32} strokeWidth={1.2} />} />
+          {p.stock_status === 'out_of_stock' && <span className="feat-rib z-20" style={{ color: 'var(--brand)' }}>OOS</span>}
         </div>
         <div className="ps-card-body">
           <b>{p.name}</b>

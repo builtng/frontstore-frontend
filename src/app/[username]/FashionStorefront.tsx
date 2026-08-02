@@ -13,6 +13,7 @@ import WhatsAppDisclaimerModal from "../../components/WhatsAppDisclaimerModal";
 import { InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon, TwitterXIcon } from "../../components/SocialIcons";
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
+import ProductImage from "../../components/ProductImage";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface StoreData {
@@ -289,14 +290,13 @@ export default function FashionStorefront({
   const ProductCard = ({ p }: { p: Product }) => {
     const img = productImg(p);
     const catName = categories.find(c => c.id === p.category_id)?.name || '';
-    const idx = activeCategories.findIndex(c => c.id === p.category_id);
     const sold = p.stock_status === 'out_of_stock';
     return (
       <button className="ps-card" onClick={() => setSelectedProduct(p)}>
-        <div className={`ps-card-thumb ${clr(idx)}`}>
-          {p.stock_status === 'out_of_stock' && <div className="ps-badge ps-badge--sold">Sold Out</div>}
-          {p.compare_at_price && !sold && <div className="ps-badge ps-badge--sale">Sale</div>}
-          {img ? <img src={img} alt={p.name} className="ps-card-img" loading="lazy" /> : <div className="ps-card-icn"><ShoppingBag size={28} /></div>}
+        <div className="relative w-full overflow-hidden">
+          {p.stock_status === 'out_of_stock' && <div className="ps-badge ps-badge--sold z-20">Sold Out</div>}
+          {p.compare_at_price && !sold && <div className="ps-badge ps-badge--sale z-20">Sale</div>}
+          <ProductImage src={img} alt={p.name} aspectRatio="4/5" />
         </div>
         <div className="ps-card-foot">
           {catName && <span className="ps-card-cat">{catName}</span>}
@@ -334,20 +334,16 @@ export default function FashionStorefront({
         </button>
         <div className="pv-grid">
           <div className="pv-gallery">
-            <div className={`pv-main ${clr(idx)}`}>
-              {imgs.length > 0 ? (
-                <img src={imgs[activeImg]} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'absolute', inset: 0 }} />
-              ) : (
-                <span className="pv-main-icn"><ShoppingBag size={40} /></span>
-              )}
-              {p.compare_at_price && !sold && <span className="pv-tag"><Star size={11} /> Sale</span>}
-              {catName && <span className="pv-cat">{catName}</span>}
+            <div className="relative w-full overflow-hidden rounded-xl">
+              <ProductImage src={imgs[activeImg]} alt={p.name} aspectRatio="4/5" priority />
+              {p.compare_at_price && !sold && <span className="pv-tag z-20"><Star size={11} /> Sale</span>}
+              {catName && <span className="pv-cat z-20">{catName}</span>}
             </div>
             {imgs.length > 1 && (
               <div className="pv-thumbs">
                 {imgs.map((src, i) => (
                   <button key={i} className={`pv-thumb ${clr(i)}`} onClick={() => setActiveImg(i)} style={{ padding: 0, border: i === activeImg ? '2px solid #1d7a5e' : undefined, overflow: 'hidden' }}>
-                    <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <ProductImage src={src} alt="" aspectRatio="1/1" padding={2} />
                   </button>
                 ))}
               </div>

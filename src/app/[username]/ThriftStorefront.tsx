@@ -15,6 +15,7 @@ import BankTransferPaymentModal from "../../components/BankTransferPaymentModal"
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
+import ProductImage from "../../components/ProductImage";
 
 import "./ThriftStorefront.css";
 
@@ -2799,19 +2800,16 @@ function ServiceCard({ s, onBook }: { s: any; onBook: () => void }) {
 }
 
 function ProductCard({ p, onOpen }: { p: any; onOpen: () => void }) {
+  const img = (p.image_urls && p.image_urls[0]) || p.image_url || p.image || null;
   return (
     <div className="ps-card prod-card" onClick={onOpen}>
-      <div className="ps-card-thumb prod">
-        {p.image_url ? (
-          <img src={p.image_url} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-        ) : (
-          <ShoppingBag size={22} />
-        )}
+      <div className="relative w-full overflow-hidden">
+        <ProductImage src={img} alt={p.name} aspectRatio="4/5" />
       </div>
       <div className="ps-card-body">
         <b>{p.name}</b>
         <div className="ps-card-foot">
-          <em>₦{p.price.toLocaleString()}</em>
+          <em>₦{typeof p.price === 'number' ? p.price.toLocaleString() : p.price}</em>
           <span className="ps-mini buy">View</span>
         </div>
       </div>
@@ -2855,22 +2853,19 @@ function ServiceCardRich({ s, onBook, colour, badge }: { s: any; onBook: () => v
 }
 
 function ProductCardRich({ p, onView, colour, badge }: { p: any; onView: () => void; colour: string; badge?: string }) {
+  const img = (p.image_urls && p.image_urls[0]) || p.image_url || p.image || null;
   return (
     <div className="svc-card" onClick={onView}>
-      <div className={`svc-card-thumb ${colour || "c0"}`}>
-        {p.image_url ? (
-          <img src={p.image_url} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-        ) : (
-          <ShoppingBag size={24} />
-        )}
-        {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
-        <span className="svc-card-cat">{p.cat}</span>
+      <div className="relative w-full overflow-hidden rounded-t-xl">
+        <ProductImage src={img} alt={p.name} aspectRatio="4/5" />
+        {badge && <span className="svc-badge z-20"><Star size={11} /> {badge}</span>}
+        {p.cat && <span className="svc-card-cat z-20">{p.cat}</span>}
       </div>
       <div className="svc-card-body">
         <b>{p.name}</b>
         <p className="svc-card-desc">{p.desc}</p>
         <div className="svc-card-foot">
-          <em>₦{p.price.toLocaleString()}</em>
+          <em>₦{typeof p.price === 'number' ? p.price.toLocaleString() : p.price}</em>
           <span className="svc-card-book">View <ChevronRight size={14} /></span>
         </div>
       </div>

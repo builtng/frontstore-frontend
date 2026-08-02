@@ -5825,3 +5825,53 @@ svg.spinner {
   transform: rotate(180deg);
 }
 
+/* ================================================================
+   GLOBAL PRODUCT IMAGE RENDERING SYSTEM (UNIVERSAL FIX)
+   ================================================================ */
+
+.fs-product-image__container {
+  aspect-ratio: 4 / 5;
+  width: 100%;
+  position: relative;
+  background-color: #f8f8f8;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fs-product-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Global Overrides for legacy storefront card thumbnail containers */
+.ps-card-thumb,
+.svc-card-thumb,
+.sb-product-thumb {
+  height: auto !important;
+  aspect-ratio: 4 / 5 !important;
+  width: 100% !important;
+  position: relative !important;
+  background-color: #f8f8f8 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.ps-card-thumb img,
+.ps-card-img,
+.svc-card-thumb img,
+.sb-product-thumb img {
+  object-fit: contain !important;
+  object-position: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 6px !important;
+  box-sizing: border-box !important;
+}
+
+

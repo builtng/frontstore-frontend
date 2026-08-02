@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { WhatsAppIcon } from "../../../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../../../components/WhatsAppDisclaimerModal";
 import ImageLightbox from "../../../../components/ImageLightbox";
+import ProductImage from "../../../../components/ProductImage";
 
 // --- Types & Interfaces ---
 interface Category {
@@ -524,25 +525,19 @@ export default function ProductDetailClient({
           {/* Gallery Slider */}
           <div className="fs-gallery">
             {images.length > 0 ? (
-              <div className="fs-hero" style={{ overflow: 'hidden', background: 'var(--surface)' }}>
-                <img
-                  src={images[slide]}
-                  alt={`${initialProduct.name} - slide ${slide + 1}`}
-                  onClick={() => setLightboxOpen(true)}
-                  loading="eager"
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', cursor: 'zoom-in' }}
-                />
-                <span className="fs-type-badge">{kind === "service" ? "Service" : "Product"}</span>
+              <div className="fs-hero relative overflow-hidden bg-neutral-50 dark:bg-neutral-900 rounded-2xl cursor-pointer" onClick={() => setLightboxOpen(true)}>
+                <ProductImage src={images[slide]} alt={`${initialProduct.name} - slide ${slide + 1}`} aspectRatio="4/5" priority />
+                <span className="fs-type-badge z-20">{kind === "service" ? "Service" : "Product"}</span>
                 {initialProduct.compare_at_price && (
-                  <span className="fs-tag">
+                  <span className="fs-tag z-20">
                     <Heart size={11} fill="#fff" color="#fff" />
                     {discountPercent(initialProduct.price, initialProduct.compare_at_price)}% Off
                   </span>
                 )}
                 <button
                   type="button"
-                  className="fs-expand-btn"
-                  onClick={() => setLightboxOpen(true)}
+                  className="fs-expand-btn z-20"
+                  onClick={(e) => { e.stopPropagation(); setLightboxOpen(true); }}
                   aria-label="View full image"
                 >
                   <Expand size={15} />
@@ -805,12 +800,8 @@ export default function ProductDetailClient({
                       window.location.href = `/${store.username}/products/${r.slug}`;
                     }}
                   >
-                    <span className="fs-more-img" style={r.image_urls?.[0] ? { overflow: 'hidden' } : { background: `linear-gradient(150deg, ${rpGrad[0]}, ${rpGrad[1]})` }}>
-                      {r.image_urls?.[0] ? (
-                        <img src={r.image_urls[0]} alt={r.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <Camera size={22} color="rgba(255,255,255,.9)" />
-                      )}
+                    <span className="fs-more-img overflow-hidden relative block w-full">
+                      <ProductImage src={r.image_urls?.[0] || null} alt={r.name} aspectRatio="4/5" fallbackIcon={<Camera size={22} color="rgba(255,255,255,.9)" />} />
                     </span>
                     <div className="fs-more-body">
                       <b>{r.name}</b>

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ShoppingBag, MessageCircle, Star, Clock, ChevronRight, Check,
   Calendar as CalendarIcon, Play, ImageIcon,
 } from 'lucide-react';
-import { SiteBlock } from './blockTypes';
+import { blockWrapperClassName, blockWrapperStyle, SiteBlock } from './blockTypes';
+import ProductImage from '../ProductImage';
 
 export interface RenderStore {
   id?: string;
@@ -54,13 +55,37 @@ export default function BlockRenderer({ layout, ...ctx }: { layout: SiteBlock[] 
   return (
     <div className="sb-root" style={themeVars(ctx.store)}>
       {(layout || []).map((block) => (
-        <div key={block.id} className="sb-block">
+        <RevealBlock key={block.id} block={block}>
           {renderBlock(block, ctx)}
-        </div>
+        </RevealBlock>
       ))}
       <style jsx global>{SB_CSS}</style>
     </div>
   );
+}
+
+/** Plays a block's configured entrance animation the first time it scrolls
+ * into view, rather than firing every animation at once on page load. */
+function RevealBlock({ block, children }: { block: SiteBlock; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [revealed, setRevealed] = useState(!block.style?.animation || block.style.animation === 'none');
+
+  useEffect(() => {
+    if (revealed || !ref.current) return;
+    const el = ref.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) { setRevealed(true); observer.disconnect(); }
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const className = blockWrapperClassName(block) + (revealed ? ' sb-revealed' : '');
+  return <div ref={ref} className={className} style={blockWrapperStyle(block)}>{children}</div>;
 }
 
 export function renderBlock(block: SiteBlock, ctx: RenderContext): React.ReactNode {
@@ -143,8 +168,8 @@ export function renderBlock(block: SiteBlock, ctx: RenderContext): React.ReactNo
             {items.length === 0 && <p className="sb-empty">No products to show yet.</p>}
             {items.map((p) => (
               <div key={p.id} className="sb-product-card">
-                <div className="sb-product-thumb">
-                  {p.image_url ? <img src={p.image_url} alt={p.name} /> : <ShoppingBag size={22} />}
+                <div className="relative w-full overflow-hidden">
+                  <ProductImage src={p.image_url || (p.image_urls && p.image_urls[0]) || null} alt={p.name} aspectRatio="4/5" />
                 </div>
                 <div className="sb-product-body">
                   <b>{p.name}</b>
@@ -165,8 +190,8 @@ export function renderBlock(block: SiteBlock, ctx: RenderContext): React.ReactNo
       if (!product) return <p className="sb-empty">Pick a product in the inspector.</p>;
       return (
         <div className="sb-featured">
-          <div className="sb-featured-thumb">
-            {product.image_url ? <img src={product.image_url} alt={product.name} /> : <ShoppingBag size={32} />}
+          <div className="relative w-full md:w-1/2 overflow-hidden rounded-2xl">
+            <ProductImage src={product.image_url || (product.image_urls && product.image_urls[0]) || null} alt={product.name} aspectRatio="4/5" />
           </div>
           <div className="sb-featured-body">
             <span className="sb-featured-tag">Featured</span>
@@ -465,6 +490,32 @@ function BookingBlock({ data, ctx }: { data: any; ctx: RenderContext }) {
 export const SB_CSS = `
 .sb-root { display: flex; flex-direction: column; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; color: #0A192F; background: #fff; }
 .sb-block + .sb-block { margin-top: 0; }
+
+.sb-block-styled { padding-top: var(--sb-b-pad-y, 0); padding-bottom: var(--sb-b-pad-y, 0); padding-left: var(--sb-b-pad-x, 0); padding-right: var(--sb-b-pad-x, 0);
+  margin-top: var(--sb-b-mt, 0); margin-bottom: var(--sb-b-mb, 0); background: var(--sb-b-bg, transparent); color: var(--sb-b-color, inherit);
+  font-size: var(--sb-b-fs, inherit); font-weight: var(--sb-b-fw, inherit); text-align: var(--sb-b-align, inherit);
+  border-radius: var(--sb-b-radius, 0); border-style: solid; border-width: var(--sb-b-bw, 0); border-color: var(--sb-b-bc, transparent);
+  box-shadow: var(--sb-b-shadow, none); }
+
+.sb-hide-desktop, .sb-hide-tablet, .sb-hide-mobile { display: block; }
+@media (min-width: 992px) { .sb-hide-desktop { display: none !important; } }
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .sb-hide-tablet { display: none !important; }
+  .sb-block-styled { padding-top: var(--sb-b-pad-y-t, var(--sb-b-pad-y, 0)); padding-bottom: var(--sb-b-pad-y-t, var(--sb-b-pad-y, 0));
+    padding-left: var(--sb-b-pad-x-t, var(--sb-b-pad-x, 0)); padding-right: var(--sb-b-pad-x-t, var(--sb-b-pad-x, 0));
+    font-size: var(--sb-b-fs-t, var(--sb-b-fs, inherit)); text-align: var(--sb-b-align-t, var(--sb-b-align, inherit)); }
+}
+@media (max-width: 575.98px) {
+  .sb-hide-mobile { display: none !important; }
+  .sb-block-styled { padding-top: var(--sb-b-pad-y-m, var(--sb-b-pad-y, 0)); padding-bottom: var(--sb-b-pad-y-m, var(--sb-b-pad-y, 0));
+    padding-left: var(--sb-b-pad-x-m, var(--sb-b-pad-x, 0)); padding-right: var(--sb-b-pad-x-m, var(--sb-b-pad-x, 0));
+    font-size: var(--sb-b-fs-m, var(--sb-b-fs, inherit)); text-align: var(--sb-b-align-m, var(--sb-b-align, inherit)); }
+}
+
+.sb-anim-fade-in { opacity: 0; transition: opacity 0.6s ease; }
+.sb-anim-fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.sb-anim-zoom-in { opacity: 0; transform: scale(0.94); transition: opacity 0.5s ease, transform 0.5s ease; }
+.sb-anim-fade-in.sb-revealed, .sb-anim-fade-up.sb-revealed, .sb-anim-zoom-in.sb-revealed { opacity: 1; transform: none; }
 .sb-heading { font-size: 22px; font-weight: 800; margin: 0 0 18px; text-align: center; }
 .sb-section { padding: 32px 20px; }
 .sb-empty { color: #94a3b8; font-size: 13px; text-align: center; padding: 20px; }

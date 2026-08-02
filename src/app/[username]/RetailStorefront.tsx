@@ -8,6 +8,7 @@ import { calculateShippingFee } from "../../utils/shippingFee";
 import { storePath } from "../../utils/storePath";
 import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon, LinkedInIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
+import ProductImage from "../../components/ProductImage";
 
 import { Menu, X, BadgeCheck, MapPin, Star, Clock, Share2, Store as StoreIcon, Search, ShoppingBag, Calendar, ChevronRight, ChevronDown, ChevronLeft, Megaphone, Truck, Sparkles, ShieldCheck, Navigation, Lock, Plus, Minus, Copy, Instagram, Facebook, Award, Check, Quote, Phone, Mail, RotateCcw, Package, Bell, MessageCircle, UtensilsCrossed, Receipt } from "lucide-react";
 
@@ -3191,9 +3192,10 @@ function ServiceCard({ s, onBook }: { s: any, onBook: () => void }) {
       <div className="ps-card-foot"><em>{money(s.price)}</em><button className="ps-mini book" onClick={onBook}>View</button></div></div></div>);
 }
 function ProductCard({ p, onBuy, onView }: { p: any, onBuy: () => void, onView?: () => void }) {
+  const img = (p.image_urls && p.image_urls[0]) || p.image_url || p.image || null;
   return (<div className="ps-card" onClick={onView} style={onView ? { cursor: 'pointer' } : undefined}>
-    <div className="ps-card-thumb prod">
-      {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <ShoppingBag size={22} />}
+    <div className="relative w-full overflow-hidden">
+      <ProductImage src={img} alt={p.name} aspectRatio="4/5" />
     </div>
     <div className="ps-card-body"><b>{p.name}</b>
       <div className="ps-card-foot"><em>{money(p.price)}</em><button className="ps-mini buy" onClick={(e) => { e.stopPropagation(); onBuy(); }}>Buy</button></div></div></div>);
@@ -3230,12 +3232,13 @@ function ServiceCardRich({ s, onBook, colour, badge }: { s: any, onBook: () => v
   );
 }
 function ProductCardRich({ p, onView, onBuy, colour, badge }: { p: any, onView: () => void, onBuy?: () => void, colour: string, badge?: string }) {
+  const img = (p.image_urls && p.image_urls[0]) || p.image_url || p.image || null;
   return (
     <div className="svc-card" onClick={onView}>
-      <div className={`svc-card-thumb ${colour || "c0"}`}>
-        {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <ShoppingBag size={24} />}
-        {badge && <span className="svc-badge"><Star size={11} /> {badge}</span>}
-        <span className="svc-card-cat">{p.cat}</span>
+      <div className="relative w-full overflow-hidden rounded-t-xl">
+        <ProductImage src={img} alt={p.name} aspectRatio="4/5" />
+        {badge && <span className="svc-badge z-20"><Star size={11} /> {badge}</span>}
+        {p.cat && <span className="svc-card-cat z-20">{p.cat}</span>}
       </div>
       <div className="svc-card-body">
         <b>{p.name}</b>

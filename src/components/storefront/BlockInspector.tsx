@@ -4,35 +4,12 @@ import React from 'react';
 import { Plus, Trash2, Upload } from 'lucide-react';
 import SearchableSelect, { SelectOption } from '../SearchableSelect';
 import { SiteBlock } from './blockTypes';
+import { darkFieldStyle, Field, selectStyle } from './inspectorUi';
 
 interface InspectorCtx {
   products: any[];
   categories: any[];
   onUploadImage: (file: File) => Promise<string | null>;
-}
-
-const darkFieldStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '9px 11px',
-  borderRadius: 8,
-  border: '1px solid #1E3350',
-  background: '#112640',
-  color: '#EAF1F8',
-  fontSize: 13,
-  fontFamily: 'inherit',
-};
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase', color: '#7E93AE' }}>{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function selectStyle(): React.CSSProperties {
-  return { '--surface': '#112640', '--border': '#1E3350', '--text': '#EAF1F8', '--text-muted': '#7E93AE', '--text-faint': '#5A6E86', '--bg-2': '#0D2036', '--primary': '#25D366', '--primary-glow': 'rgba(37,211,102,0.18)', '--primary-light': 'rgba(37,211,102,0.18)', '--r-md': '8px', '--r-lg': '10px', '--shadow-lg': '0 20px 40px -12px rgba(0,0,0,0.6)' } as React.CSSProperties;
 }
 
 export default function BlockInspector({ block, onChange, ctx }: { block: SiteBlock; onChange: (data: Record<string, any>) => void; ctx: InspectorCtx }) {

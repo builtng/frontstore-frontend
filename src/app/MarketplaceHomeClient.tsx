@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import ThemeToggle from "../components/ThemeToggle";
+import ProductImage from "../components/ProductImage";
 import {
   Menu, X, Search, MapPin, ChevronDown, Heart, Star, ShieldCheck,
   Receipt, Truck, Clock, Flame, Store, BadgeCheck,
@@ -79,10 +80,10 @@ function Thumb({ cat, h = 148, image }: { cat: string; h?: number; image?: strin
   const c = CATS_MAP[cat] || CATS_MAP.Fashion, Icon = c.icon;
   if (image) {
     return (
-      <div style={{ height:h, position:"relative", overflow:"hidden" }}>
-        <img src={image} alt={cat} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-        <div className="thumb-shade" />
-        <span className="thumb-cat">{cat}</span>
+      <div className="relative w-full overflow-hidden">
+        <ProductImage src={image} alt={cat} aspectRatio="4/5" fallbackIcon={<Icon size={32} strokeWidth={1.4} />} />
+        <div className="thumb-shade z-20" />
+        <span className="thumb-cat z-20">{cat}</span>
       </div>
     );
   }

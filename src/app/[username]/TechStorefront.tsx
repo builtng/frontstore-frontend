@@ -15,6 +15,7 @@ import BankTransferPaymentModal from "../../components/BankTransferPaymentModal"
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
+import ProductImage from "../../components/ProductImage";
 
 // --- Types & Interfaces ---
 interface StoreLink {
@@ -2094,15 +2095,16 @@ export default function TechStorefront({
   }
 
   function ProductCard({ p, onOpen }: { p: any; onOpen: () => void }) {
+    const img = (p.image_urls && p.image_urls[0]) || p.image_url || p.image || null;
     return (
-      <button className="ps-card" onClick={onOpen}>
-        <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: 8, background: '#111b21', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 10 }}>
-          {p.image_url ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <Store size={28} style={{ color: 'var(--muted)' }} />}
+      <button className="ps-card text-left flex flex-col h-full" onClick={onOpen}>
+        <div className="relative w-full overflow-hidden mb-2.5">
+          <ProductImage src={img} alt={p.name} aspectRatio="4/5" />
         </div>
         <span className="ps-card-cat">{p.cat}</span>
         <span className="ps-card-name">{p.name}</span>
-        <p className="ps-card-desc">{p.desc}</p>
-        <span className="ps-card-price">{money(p.price)}</span>
+        <p className="ps-card-desc line-clamp-2">{p.desc}</p>
+        <span className="ps-card-price mt-auto pt-2">{money(p.price)}</span>
       </button>
     );
   }
@@ -2133,17 +2135,18 @@ export default function TechStorefront({
   }
 
   function ProductCardRich({ p, onView, onBuy, colour, badge }: { p: any; onView: () => void; onBuy: () => void; colour: string; badge: string }) {
+    const img = (p.image_urls && p.image_urls[0]) || p.image_url || p.image || null;
     return (
-      <div className="rich-card">
-        <button className={`rich-thumb ${colour}`} onClick={onView} aria-label={p.name}>
-          {p.image_url ? <img src={p.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <ShoppingBag size={24} />}
-          {badge && <span className="rich-badge">{badge}</span>}
+      <div className="rich-card flex flex-col h-full">
+        <button className="relative w-full overflow-hidden rounded-t-xl" onClick={onView} aria-label={p.name}>
+          <ProductImage src={img} alt={p.name} aspectRatio="4/5" />
+          {badge && <span className="rich-badge z-20">{badge}</span>}
         </button>
-        <div className="rich-info">
+        <div className="rich-info flex flex-col flex-1">
           <span className="rich-cat">{p.cat}</span>
           <h4 style={{ cursor: 'pointer' }} onClick={onView}>{p.name}</h4>
-          <p>{p.desc}</p>
-          <div className="rich-foot"><b>{money(p.price)}</b><button className="rich-btn buy-btn" onClick={onBuy}>Add to bag</button></div>
+          <p className="line-clamp-2">{p.desc}</p>
+          <div className="rich-foot mt-auto"><b>{money(p.price)}</b><button className="rich-btn buy-btn" onClick={onBuy}>Add to bag</button></div>
         </div>
       </div>
     );

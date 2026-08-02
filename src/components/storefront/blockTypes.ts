@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 export type BlockType =
   | 'section' | 'columns' | 'spacer' | 'divider'
   | 'hero' | 'product_grid' | 'featured_product' | 'categories'
@@ -6,10 +8,108 @@ export type BlockType =
   | 'whatsapp_cta' | 'testimonials' | 'faq' | 'countdown'
   | 'image' | 'gallery' | 'video';
 
+export interface BlockStyle {
+  paddingY?: number;
+  paddingX?: number;
+  marginTop?: number;
+  marginBottom?: number;
+  background?: string;
+  textColor?: string;
+  fontSize?: number;
+  fontWeight?: 400 | 500 | 600 | 700 | 800;
+  textAlign?: 'left' | 'center' | 'right';
+  borderRadius?: number;
+  borderWidth?: number;
+  borderColor?: string;
+  shadow?: 'none' | 'sm' | 'md' | 'lg';
+  animation?: 'none' | 'fade-in' | 'fade-up' | 'zoom-in';
+}
+
+export type Device = 'desktop' | 'tablet' | 'mobile';
+
+export interface BlockVisibility {
+  desktop?: boolean;
+  tablet?: boolean;
+  mobile?: boolean;
+}
+
 export interface SiteBlock {
   id: string;
   type: BlockType;
   data: Record<string, any>;
+  style?: BlockStyle;
+  responsiveStyle?: Partial<Record<'tablet' | 'mobile', Partial<BlockStyle>>>;
+  visibility?: BlockVisibility;
+  locked?: boolean;
+}
+
+export function isBlockHiddenOn(block: SiteBlock, device: Device): boolean {
+  return block.visibility?.[device] === false;
+}
+
+export function resolveBlockStyle(block: SiteBlock, device: Device): BlockStyle {
+  if (device === 'desktop') return block.style || {};
+  return { ...(block.style || {}), ...(block.responsiveStyle?.[device] || {}) };
+}
+
+const SHADOW_VALUES: Record<string, string> = {
+  sm: '0 1px 3px rgba(15,23,42,0.08)',
+  md: '0 8px 20px -6px rgba(15,23,42,0.16)',
+  lg: '0 20px 40px -12px rgba(15,23,42,0.28)',
+};
+
+/**
+ * Inline style for the wrapper around a block's rendered content. Only the
+ * desktop `style` is applied inline in the public render — tablet/mobile
+ * overrides ship as CSS custom properties consumed by media queries in
+ * SB_CSS, since inline styles can't express breakpoints.
+ */
+export function blockWrapperStyle(block: SiteBlock): CSSProperties {
+  const s = block.style || {};
+  const vars: Record<string, string> = {};
+  const push = (key: string, val: number | string | undefined, unit = 'px') => {
+    if (val !== undefined) vars[key] = `${val}${unit}`;
+  };
+  push('--sb-b-pad-y', s.paddingY);
+  push('--sb-b-pad-x', s.paddingX);
+  push('--sb-b-mt', s.marginTop);
+  push('--sb-b-mb', s.marginBottom);
+  push('--sb-b-fs', s.fontSize);
+  if (s.fontWeight) vars['--sb-b-fw'] = String(s.fontWeight);
+  if (s.textAlign) vars['--sb-b-align'] = s.textAlign;
+  if (s.textColor) vars['--sb-b-color'] = s.textColor;
+  if (s.background) vars['--sb-b-bg'] = s.background;
+  push('--sb-b-radius', s.borderRadius);
+  push('--sb-b-bw', s.borderWidth);
+  if (s.borderColor) vars['--sb-b-bc'] = s.borderColor;
+  if (s.shadow && s.shadow !== 'none') vars['--sb-b-shadow'] = SHADOW_VALUES[s.shadow];
+
+  const tablet = block.responsiveStyle?.tablet;
+  if (tablet) {
+    push('--sb-b-pad-y-t', tablet.paddingY);
+    push('--sb-b-pad-x-t', tablet.paddingX);
+    push('--sb-b-fs-t', tablet.fontSize);
+    if (tablet.textAlign) vars['--sb-b-align-t'] = tablet.textAlign;
+  }
+  const mobile = block.responsiveStyle?.mobile;
+  if (mobile) {
+    push('--sb-b-pad-y-m', mobile.paddingY);
+    push('--sb-b-pad-x-m', mobile.paddingX);
+    push('--sb-b-fs-m', mobile.fontSize);
+    if (mobile.textAlign) vars['--sb-b-align-m'] = mobile.textAlign;
+  }
+
+  return vars as CSSProperties;
+}
+
+export function blockWrapperClassName(block: SiteBlock): string {
+  const classes = ['sb-block'];
+  if (block.style && Object.keys(block.style).length > 0) classes.push('sb-block-styled');
+  if (block.visibility?.desktop === false) classes.push('sb-hide-desktop');
+  if (block.visibility?.tablet === false) classes.push('sb-hide-tablet');
+  if (block.visibility?.mobile === false) classes.push('sb-hide-mobile');
+  if (block.style?.animation && block.style.animation !== 'none') classes.push(`sb-anim-${block.style.animation}`);
+  return classes.join(' ');
 }
 
 export interface BlockGroup {
