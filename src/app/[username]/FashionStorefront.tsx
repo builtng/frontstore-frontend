@@ -342,8 +342,8 @@ export default function FashionStorefront({
             {imgs.length > 1 && (
               <div className="pv-thumbs">
                 {imgs.map((src, i) => (
-                  <button key={i} className={`pv-thumb ${clr(i)}`} onClick={() => setActiveImg(i)} style={{ padding: 0, border: i === activeImg ? '2px solid #1d7a5e' : undefined, overflow: 'hidden' }}>
-                    <ProductImage src={src} alt="" aspectRatio="1/1" padding={2} />
+                  <button key={i} className="pv-thumb" onClick={() => setActiveImg(i)} style={{ padding: 0, border: i === activeImg ? '2px solid #1d7a5e' : undefined, overflow: 'hidden' }}>
+                    <ProductImage src={src} alt="" aspectRatio="1/1" padding={0} />
                   </button>
                 ))}
               </div>

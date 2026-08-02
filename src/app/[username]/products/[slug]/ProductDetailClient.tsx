@@ -566,7 +566,7 @@ export default function ProductDetailClient({
                     onClick={() => setSlide(i)}
                     style={{ overflow: 'hidden' }}
                   >
-                    <img src={imgUrl} alt="thumbnail" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', background: 'var(--surface)' }} />
+                    <img src={imgUrl} alt="thumbnail" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', background: 'var(--surface)' }} />
                   </button>
                 ))
               ) : (

@@ -5831,14 +5831,15 @@ svg.spinner {
 
 .fs-product-image__container {
   aspect-ratio: 4 / 5;
-  width: 100%;
+  width: 100% !important;
   position: relative;
-  background-color: #f4f4f6;
-  border-radius: 12px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -5856,6 +5857,7 @@ svg.spinner {
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
+  width: 100% !important;
   background: #ffffff !important;
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
   border-radius: 16px !important;
@@ -5879,7 +5881,6 @@ svg.spinner {
 .ps-card-thumb,
 .svc-card-thumb,
 .rich-thumb,
-.pv-thumb,
 .sb-product-thumb {
   height: auto !important;
   aspect-ratio: 4 / 5 !important;
@@ -5896,24 +5897,40 @@ svg.spinner {
   padding: 0 !important;
 }
 
+.pv-thumb {
+  width: 60px !important;
+  height: 60px !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  position: relative !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+}
+
 .ps-card-thumb.c0, .ps-card-thumb.c1, .ps-card-thumb.c2, .ps-card-thumb.c3,
 .svc-card-thumb.c0, .svc-card-thumb.c1, .svc-card-thumb.c2, .svc-card-thumb.c3,
 .rich-thumb.c0, .rich-thumb.c1, .rich-thumb.c2, .rich-thumb.c3,
 .pv-thumb.c0, .pv-thumb.c1, .pv-thumb.c2, .pv-thumb.c3 {
-  background: #f4f4f6 !important;
+  background: transparent !important;
 }
 
-/* Image containment */
+/* Image full-width cover fitting */
 .ps-card-thumb img,
 .ps-card-img,
 .svc-card-thumb img,
 .rich-thumb img,
-.sb-product-thumb img {
+.sb-product-thumb img,
+.fs-product-image__container img,
+.pv-thumb img {
   object-fit: cover !important;
   object-position: center !important;
   width: 100% !important;
   height: 100% !important;
   padding: 0 !important;
+  margin: 0 !important;
   box-sizing: border-box !important;
   display: block !important;
   transition: transform 0.3s ease !important;
