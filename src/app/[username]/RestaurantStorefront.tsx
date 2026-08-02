@@ -1339,11 +1339,11 @@ export default function RestaurantStorefront({
           {checkoutStep === 'success' && orderReceipt && (
             <div className="th-receipt" style={{ padding: "20px 0" }}>
               <div className="th-receipt-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><Receipt size={48} style={{ color: 'var(--brand)' }} /></div>
-              <h2 className="th-receipt-title" style={{ fontFamily: 'Fraunces', fontSize: 24, textAlign: 'center', marginBottom: 8 }}>Order Confirmed!</h2>
+              <h2 className="th-receipt-title" style={{ fontFamily: 'Fraunces', fontSize: 24, textAlign: 'center', marginBottom: 8 }}>Order Placed!</h2>
               <p className="th-receipt-sub" style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', marginBottom: 20 }}>Your order has been placed. Tap below to track it and notify the store on WhatsApp.</p>
               <div className="th-receipt-detail" style={{ background: 'var(--bg)', borderRadius: 12, padding: 16, border: '1px solid var(--line)', marginBottom: 20 }}>
                 <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Order #</span><b>{orderReceipt.order.order_number}</b></div>
-                <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Status</span><b style={{ color: 'var(--ok)' }}>{orderReceipt.order.order_status}</b></div>
+                <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Status</span><b style={{ color: ['cancelled', 'refunded'].includes(orderReceipt.order.order_status) ? '#c0392b' : orderReceipt.order.order_status === 'pending' ? '#b7791f' : 'var(--ok)' }}>{orderReceipt.order.order_status}</b></div>
                 <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Payment</span><b>{orderReceipt.order.payment_status}</b></div>
                 <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>Total</span><b>{money(orderReceipt.order.total_amount)}</b></div>
               </div>

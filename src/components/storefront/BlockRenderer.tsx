@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ShoppingBag, MessageCircle, Star, Clock, ChevronRight, Check,
   Calendar as CalendarIcon, Play, ImageIcon,
+  ShieldCheck, Truck, BadgeCheck, Users, BookOpen,
+  Instagram, Facebook, Twitter, X as CloseIcon, Share2,
 } from 'lucide-react';
 import { blockWrapperClassName, blockWrapperStyle, SiteBlock } from './blockTypes';
 import ProductImage from '../ProductImage';
@@ -17,6 +19,15 @@ export interface RenderStore {
   whatsapp_phone?: string | null;
 }
 
+export interface SiteThemeTokens {
+  colors?: { primary?: string; secondary?: string; accent?: string; background?: string; surface?: string; text?: string; textMuted?: string };
+  typography?: { headingFont?: string; bodyFont?: string; headingWeight?: number };
+  buttonStyle?: 'rounded' | 'pill' | 'square';
+  cardStyle?: 'elevated' | 'bordered' | 'glass' | 'minimal';
+  radius?: number;
+  appliedThemeKey?: string;
+}
+
 export interface RenderContext {
   store: RenderStore;
   products: any[];
@@ -25,6 +36,7 @@ export interface RenderContext {
   reviews: any[];
   apiUrl: string;
   editable?: boolean;
+  siteTheme?: SiteThemeTokens | null;
 }
 
 function formatMoney(amount: any, currency?: string | null): string {
@@ -42,18 +54,58 @@ function waLink(phone: string | null | undefined, text: string): string {
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
 
-export function themeVars(store: RenderStore): React.CSSProperties {
-  const brand = store.primary_color || '#128C7E';
+const CARD_SHADOWS: Record<string, string> = {
+  elevated: '0 8px 20px -8px rgba(15,23,42,0.16)',
+  bordered: '0 0 0 1px #e2e8f0',
+  glass: '0 8px 24px -10px rgba(15,23,42,0.14)',
+  minimal: 'none',
+};
+
+const BUTTON_RADII: Record<string, string> = {
+  pill: '999px',
+  rounded: '12px',
+  square: '4px',
+};
+
+export function themeVars(store: RenderStore, siteTheme?: SiteThemeTokens | null): React.CSSProperties {
+  const colors = siteTheme?.colors || {};
+  const typography = siteTheme?.typography || {};
+  const brand = colors.primary || store.primary_color || '#128C7E';
+  const buttonStyle = siteTheme?.buttonStyle || 'rounded';
+  const cardStyle = siteTheme?.cardStyle || 'elevated';
+
   return {
     '--brand': brand,
     '--brand-deep': `color-mix(in srgb, ${brand} 78%, black)`,
     '--tint': `color-mix(in srgb, ${brand} 12%, white)`,
+    '--brand-secondary': colors.secondary || brand,
+    '--brand-accent': colors.accent || brand,
+    '--sb-bg': colors.background || '#fff',
+    '--sb-surface': cardStyle === 'glass' ? 'rgba(255,255,255,0.72)' : (colors.surface || '#fff'),
+    '--sb-text': colors.text || '#0A192F',
+    '--sb-text-muted': colors.textMuted || '#55677E',
+    '--font-heading': typography.headingFont ? `'${typography.headingFont}', -apple-system, sans-serif` : `'Plus Jakarta Sans', -apple-system, sans-serif`,
+    '--font-body': typography.bodyFont ? `'${typography.bodyFont}', -apple-system, sans-serif` : `'Plus Jakarta Sans', -apple-system, sans-serif`,
+    '--heading-weight': String(typography.headingWeight || 800),
+    '--radius-base': `${siteTheme?.radius ?? 14}px`,
+    '--button-radius': BUTTON_RADII[buttonStyle] || '999px',
+    '--sb-card-shadow': CARD_SHADOWS[cardStyle] || CARD_SHADOWS.elevated,
   } as React.CSSProperties;
+}
+
+/** Google Fonts loaded on demand for whatever fonts the active theme names,
+ * rather than statically importing every font this builder could ever offer. */
+function ThemeFontLink({ siteTheme }: { siteTheme?: SiteThemeTokens | null }) {
+  const families = Array.from(new Set([siteTheme?.typography?.headingFont, siteTheme?.typography?.bodyFont].filter(Boolean))) as string[];
+  if (families.length === 0) return null;
+  const href = `https://fonts.googleapis.com/css2?${families.map((f) => `family=${encodeURIComponent(f)}:wght@400;500;600;700;800`).join('&')}&display=swap`;
+  return <link rel="stylesheet" href={href} />;
 }
 
 export default function BlockRenderer({ layout, ...ctx }: { layout: SiteBlock[] } & RenderContext) {
   return (
-    <div className="sb-root" style={themeVars(ctx.store)}>
+    <div className="sb-root" style={themeVars(ctx.store, ctx.siteTheme)}>
+      <ThemeFontLink siteTheme={ctx.siteTheme} />
       {(layout || []).map((block) => (
         <RevealBlock key={block.id} block={block}>
           {renderBlock(block, ctx)}
@@ -124,30 +176,56 @@ export function renderBlock(block: SiteBlock, ctx: RenderContext): React.ReactNo
       return <hr className="sb-divider" />;
 
     case 'hero': {
-      const dark = data.background !== 'white';
+      const dark = data.background !== 'white' && data.layout !== 'minimal';
+      const heroCta = data.ctaLabel && (
+        <a
+          className="sb-hero-cta"
+          href={ctx.editable ? undefined : waLink(ctx.store.whatsapp_phone, `Hi ${ctx.store.store_name || ''}, I'm interested!`)}
+          target="_blank" rel="noreferrer"
+          onClick={ctx.editable ? (e) => e.preventDefault() : undefined}
+        >
+          {data.ctaLabel}
+        </a>
+      );
+      const heroText = (
+        <>
+          {data.eyebrow && <span className="sb-hero-eyebrow">{data.eyebrow}</span>}
+          <h1 className="sb-hero-headline">{data.headline || 'Your headline goes here'}</h1>
+          {data.subheadline && <p className="sb-hero-sub" style={{ color: dark ? 'rgba(255,255,255,0.78)' : 'var(--sb-text-muted, #55677E)' }}>{data.subheadline}</p>}
+          {heroCta}
+        </>
+      );
+
+      if (data.layout === 'split') {
+        return (
+          <div className="sb-hero sb-hero-split" style={{ background: dark ? 'linear-gradient(160deg, var(--brand-deep), var(--brand))' : '#fff', color: dark ? '#fff' : 'var(--sb-text, #0A192F)' }}>
+            <div className="sb-hero-split-text">{heroText}</div>
+            <div className="sb-hero-split-media">
+              {data.imageUrl ? <img src={data.imageUrl} alt="" /> : <div className="sb-hero-split-placeholder"><ImageIcon size={28} /></div>}
+            </div>
+          </div>
+        );
+      }
+
+      if (data.layout === 'minimal') {
+        return (
+          <div className="sb-hero sb-hero-minimal" style={{ textAlign: data.align === 'left' ? 'left' : 'center', alignItems: data.align === 'left' ? 'flex-start' : 'center' }}>
+            {heroText}
+          </div>
+        );
+      }
+
       return (
         <div
           className="sb-hero"
           style={{
             background: data.background === 'navy' ? '#0A192F' : data.background === 'white' ? '#fff' : 'linear-gradient(160deg, var(--brand-deep), var(--brand))',
-            color: dark ? '#fff' : 'var(--text, #0A192F)',
+            color: dark ? '#fff' : 'var(--sb-text, #0A192F)',
             textAlign: data.align === 'left' ? 'left' : 'center',
             alignItems: data.align === 'left' ? 'flex-start' : 'center',
           }}
         >
-          {data.eyebrow && <span className="sb-hero-eyebrow">{data.eyebrow}</span>}
-          <h1 className="sb-hero-headline">{data.headline || 'Your headline goes here'}</h1>
-          {data.subheadline && <p className="sb-hero-sub" style={{ color: dark ? 'rgba(255,255,255,0.78)' : 'var(--text-muted, #55677E)' }}>{data.subheadline}</p>}
-          {data.ctaLabel && (
-            <a
-              className="sb-hero-cta"
-              href={ctx.editable ? undefined : waLink(ctx.store.whatsapp_phone, `Hi ${ctx.store.store_name || ''}, I'm interested!`)}
-              target="_blank" rel="noreferrer"
-              onClick={ctx.editable ? (e) => e.preventDefault() : undefined}
-            >
-              {data.ctaLabel}
-            </a>
-          )}
+          {heroText}
         </div>
       );
     }
@@ -354,9 +432,204 @@ export function renderBlock(block: SiteBlock, ctx: RenderContext): React.ReactNo
         </div>
       ) : <div className="sb-empty-media"><Play size={22} /><span>Add a video embed URL</span></div>;
 
+    case 'trust_badges': {
+      const iconMap: Record<string, React.ComponentType<any>> = { shield: ShieldCheck, truck: Truck, badge: BadgeCheck };
+      const items = data.items || [];
+      return (
+        <div className="sb-section sb-trust-badges">
+          {items.length === 0 && <p className="sb-empty">Add a badge to get started.</p>}
+          {items.map((item: any, i: number) => {
+            const Icon = iconMap[item.icon] || ShieldCheck;
+            return (
+              <div key={i} className="sb-trust-badge">
+                <Icon size={18} />
+                <span>{item.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    case 'logos_strip':
+      return (
+        <div className="sb-section sb-logos-strip">
+          {data.heading && <h2 className="sb-heading">{data.heading}</h2>}
+          <div className="sb-logos-row">
+            {(data.logos || []).length === 0 && <p className="sb-empty">Add logo images to show here.</p>}
+            {(data.logos || []).map((url: string, i: number) => <img key={i} src={url} alt="" />)}
+          </div>
+        </div>
+      );
+
+    case 'stats_counters':
+      return (
+        <div className="sb-section sb-stats-row">
+          {(data.items || []).map((item: any, i: number) => (
+            <div key={i} className="sb-stat">
+              <b>{item.value}</b>
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      );
+
+    case 'team':
+      return (
+        <div className="sb-section">
+          {data.heading && <h2 className="sb-heading">{data.heading}</h2>}
+          <div className="sb-team-grid">
+            {(data.members || []).map((m: any, i: number) => (
+              <div key={i} className="sb-team-card">
+                {m.photoUrl ? <img src={m.photoUrl} alt={m.name} /> : <div className="sb-team-avatar"><Users size={20} /></div>}
+                <b>{m.name}</b>
+                <span>{m.role}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case 'about_story': {
+      const reversed = data.imagePosition === 'left';
+      return (
+        <div className={`sb-section sb-about-story${reversed ? ' reversed' : ''}`}>
+          <div className="sb-about-media">
+            {data.imageUrl ? <img src={data.imageUrl} alt="" /> : <div className="sb-empty-media"><BookOpen size={22} /><span>Add a photo</span></div>}
+          </div>
+          <div className="sb-about-text">
+            {data.heading && <h2 className="sb-heading" style={{ textAlign: 'left' }}>{data.heading}</h2>}
+            <p>{data.body}</p>
+          </div>
+        </div>
+      );
+    }
+
+    case 'comparison_table':
+      return (
+        <div className="sb-section">
+          {data.heading && <h2 className="sb-heading">{data.heading}</h2>}
+          <div className="sb-compare-wrap">
+            <table className="sb-compare-table">
+              <thead>
+                <tr>
+                  <th />
+                  {(data.columns || []).map((c: string, i: number) => <th key={i}>{c}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {(data.rows || []).map((row: any, i: number) => (
+                  <tr key={i}>
+                    <td>{row.label}</td>
+                    {(row.values || []).map((v: boolean, j: number) => (
+                      <td key={j}>{v ? <Check size={16} className="yes" /> : <CloseIcon size={16} className="no" />}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+
+    case 'announcement_bar': {
+      const bg = data.background === 'navy' ? '#0A192F' : data.background === 'white' ? '#fff' : 'var(--brand)';
+      return (
+        <div className="sb-announcement" style={{ background: bg, color: data.background === 'white' ? 'var(--sb-text, #0A192F)' : '#fff' }}>
+          <span>{data.text || 'Add an announcement'}</span>
+          {data.ctaLabel && (
+            <a href={ctx.editable ? undefined : (data.ctaLink || '#')} onClick={ctx.editable ? (e) => e.preventDefault() : undefined}>
+              {data.ctaLabel} <ChevronRight size={13} />
+            </a>
+          )}
+        </div>
+      );
+    }
+
+    case 'newsletter':
+      return <NewsletterBlock data={data} ctx={ctx} />;
+
+    case 'menu':
+      return (
+        <div className="sb-section">
+          {data.heading && <h2 className="sb-heading">{data.heading}</h2>}
+          <div className="sb-menu-list">
+            {(data.items || []).length === 0 && <p className="sb-empty">Add a dish to get started.</p>}
+            {(data.items || []).map((item: any, i: number) => (
+              <div key={i} className="sb-menu-item">
+                <div className="sb-menu-item-head">
+                  <b>{item.name}</b>
+                  <em>{item.price}</em>
+                </div>
+                {item.description && <p>{item.description}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case 'social_links': {
+      const links: { key: string; url?: string; icon: React.ComponentType<any> }[] = [
+        { key: 'Instagram', url: data.instagram, icon: Instagram },
+        { key: 'Facebook', url: data.facebook, icon: Facebook },
+        { key: 'Twitter', url: data.twitter, icon: Twitter },
+        { key: 'TikTok', url: data.tiktok, icon: Share2 },
+      ].filter((l) => l.url);
+      return (
+        <div className="sb-section sb-social-links">
+          {data.heading && <h2 className="sb-heading">{data.heading}</h2>}
+          <div className="sb-social-row">
+            {links.length === 0 && <p className="sb-empty">Add a social profile link.</p>}
+            {links.map((l) => (
+              <a key={l.key} href={ctx.editable ? undefined : l.url} target="_blank" rel="noreferrer" onClick={ctx.editable ? (e) => e.preventDefault() : undefined}>
+                <l.icon size={16} /> {l.key}
+              </a>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     default:
       return null;
   }
+}
+
+function NewsletterBlock({ data, ctx }: { data: any; ctx: RenderContext }) {
+  const [phone, setPhone] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (ctx.editable || !phone.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${ctx.apiUrl}/v1/public/store/${ctx.store.username}/subscribers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ phone_number: phone.trim(), topics: data.topics?.length ? data.topics : ['news'] }),
+      });
+      if (res.ok) setDone(true);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="sb-section sb-newsletter">
+      {data.heading && <h2 className="sb-heading">{data.heading}</h2>}
+      {data.subtext && <p className="sb-newsletter-sub">{data.subtext}</p>}
+      {done ? (
+        <p className="sb-newsletter-done"><Check size={15} /> You're subscribed!</p>
+      ) : (
+        <form className="sb-newsletter-form" onSubmit={submit}>
+          <input type="tel" placeholder="WhatsApp number" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <button type="submit" disabled={submitting}>{submitting ? 'Adding…' : (data.buttonLabel || 'Subscribe')}</button>
+        </form>
+      )}
+    </div>
+  );
 }
 
 function CountdownBlock({ data }: { data: any }) {
@@ -488,7 +761,7 @@ function BookingBlock({ data, ctx }: { data: any; ctx: RenderContext }) {
 }
 
 export const SB_CSS = `
-.sb-root { display: flex; flex-direction: column; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; color: #0A192F; background: #fff; }
+.sb-root { display: flex; flex-direction: column; font-family: var(--font-body, 'Plus Jakarta Sans'), -apple-system, sans-serif; color: var(--sb-text, #0A192F); background: var(--sb-bg, #fff); }
 .sb-block + .sb-block { margin-top: 0; }
 
 .sb-block-styled { padding-top: var(--sb-b-pad-y, 0); padding-bottom: var(--sb-b-pad-y, 0); padding-left: var(--sb-b-pad-x, 0); padding-right: var(--sb-b-pad-x, 0);
@@ -516,7 +789,7 @@ export const SB_CSS = `
 .sb-anim-fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .sb-anim-zoom-in { opacity: 0; transform: scale(0.94); transition: opacity 0.5s ease, transform 0.5s ease; }
 .sb-anim-fade-in.sb-revealed, .sb-anim-fade-up.sb-revealed, .sb-anim-zoom-in.sb-revealed { opacity: 1; transform: none; }
-.sb-heading { font-size: 22px; font-weight: 800; margin: 0 0 18px; text-align: center; }
+.sb-heading { font-family: var(--font-heading, inherit); font-size: 22px; font-weight: var(--heading-weight, 800); margin: 0 0 18px; text-align: center; }
 .sb-section { padding: 32px 20px; }
 .sb-empty { color: #94a3b8; font-size: 13px; text-align: center; padding: 20px; }
 .sb-empty-media { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px; color: #94a3b8; background: #f1f5f9; border-radius: 16px; margin: 20px; }
@@ -532,19 +805,19 @@ export const SB_CSS = `
 
 .sb-hero { display: flex; flex-direction: column; gap: 12px; padding: 64px 24px; }
 .sb-hero-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; }
-.sb-hero-headline { font-size: 32px; font-weight: 800; margin: 0; max-width: 20ch; line-height: 1.15; }
+.sb-hero-headline { font-family: var(--font-heading, inherit); font-size: 32px; font-weight: var(--heading-weight, 800); margin: 0; max-width: 20ch; line-height: 1.15; }
 .sb-hero-sub { font-size: 15px; margin: 0; max-width: 40ch; }
-.sb-hero-cta { margin-top: 6px; display: inline-flex; align-items: center; padding: 12px 24px; border-radius: 999px; background: #fff; color: var(--brand-deep); font-weight: 700; font-size: 14px; text-decoration: none; width: fit-content; }
+.sb-hero-cta { margin-top: 6px; display: inline-flex; align-items: center; padding: 12px 24px; border-radius: var(--button-radius, 999px); background: #fff; color: var(--brand-deep); font-weight: 700; font-size: 14px; text-decoration: none; width: fit-content; }
 
 .sb-product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; max-width: 1100px; margin: 0 auto; }
-.sb-product-card { border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px #e2e8f0; background: #fff; }
+.sb-product-card { border-radius: var(--radius-base, 14px); overflow: hidden; box-shadow: var(--sb-card-shadow, 0 0 0 1px #e2e8f0); background: var(--sb-surface, #fff); }
 .sb-product-thumb { height: 130px; background: var(--tint); display: flex; align-items: center; justify-content: center; color: var(--brand); }
 .sb-product-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .sb-product-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .sb-product-body b { font-size: 13.5px; }
 .sb-product-foot { display: flex; align-items: center; justify-content: space-between; }
 .sb-product-foot em { font-style: normal; font-weight: 700; color: var(--brand-deep); font-variant-numeric: tabular-nums; }
-.sb-mini-btn, .sb-cta-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--brand); color: #fff; font-weight: 700; font-size: 12.5px; padding: 8px 14px; border-radius: 999px; border: none; cursor: pointer; text-decoration: none; }
+.sb-mini-btn, .sb-cta-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--brand); color: #fff; font-weight: 700; font-size: 12.5px; padding: 8px 14px; border-radius: var(--button-radius, 999px); border: none; cursor: pointer; text-decoration: none; }
 
 .sb-featured { display: flex; gap: 24px; padding: 32px 20px; max-width: 900px; margin: 0 auto; flex-wrap: wrap; }
 .sb-featured-thumb { width: 220px; height: 220px; border-radius: 16px; background: var(--tint); color: var(--brand); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -557,7 +830,7 @@ export const SB_CSS = `
 .sb-featured-foot em { font-style: normal; font-weight: 800; font-size: 18px; }
 
 .sb-categories { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 900px; margin: 0 auto; }
-.sb-category-pill { padding: 8px 16px; border-radius: 999px; background: var(--tint); color: var(--brand-deep); font-size: 13px; font-weight: 600; }
+.sb-category-pill { padding: 8px 16px; border-radius: var(--button-radius, 999px); background: var(--tint); color: var(--brand-deep); font-size: 13px; font-weight: 600; }
 
 .sb-digital { display: flex; gap: 28px; padding: 40px 20px; max-width: 900px; margin: 0 auto; flex-wrap: wrap; }
 .sb-digital-main { flex: 1.3; min-width: 240px; }
@@ -572,7 +845,7 @@ export const SB_CSS = `
 .sb-digital-curriculum svg { color: var(--brand); flex-shrink: 0; }
 
 .sb-pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; }
-.sb-pricing-card { border-radius: 18px; padding: 24px; background: #fff; box-shadow: 0 0 0 1px #e2e8f0; display: flex; flex-direction: column; gap: 14px; }
+.sb-pricing-card { border-radius: 18px; padding: 24px; background: var(--sb-surface, #fff); box-shadow: var(--sb-card-shadow, 0 0 0 1px #e2e8f0); display: flex; flex-direction: column; gap: 14px; }
 .sb-pricing-card.highlighted { box-shadow: 0 0 0 2px var(--brand); position: relative; }
 .sb-pricing-card b { font-size: 15px; }
 .sb-pricing-price { font-size: 28px; font-weight: 800; }
@@ -584,16 +857,16 @@ export const SB_CSS = `
 .sb-wa-cta { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px; background: var(--tint); border-radius: 18px; margin: 20px; flex-wrap: wrap; }
 .sb-wa-cta b { font-size: 15px; }
 .sb-wa-cta p { margin: 2px 0 0; font-size: 13px; color: #64748b; }
-.sb-wa-btn { display: inline-flex; align-items: center; gap: 8px; background: #128C7E; color: #fff; font-weight: 700; font-size: 13.5px; padding: 12px 20px; border-radius: 999px; text-decoration: none; }
+.sb-wa-btn { display: inline-flex; align-items: center; gap: 8px; background: #128C7E; color: #fff; font-weight: 700; font-size: 13.5px; padding: 12px 20px; border-radius: var(--button-radius, 999px); text-decoration: none; }
 
 .sb-testimonials { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; max-width: 1000px; margin: 0 auto; }
-.sb-testimonial-card { background: #fff; box-shadow: 0 0 0 1px #e2e8f0; border-radius: 16px; padding: 18px; }
+.sb-testimonial-card { background: var(--sb-surface, #fff); box-shadow: var(--sb-card-shadow, 0 0 0 1px #e2e8f0); border-radius: 16px; padding: 18px; }
 .sb-stars { color: #f59e0b; display: flex; gap: 2px; margin-bottom: 10px; }
 .sb-testimonial-card p { font-size: 13.5px; color: #334155; line-height: 1.6; }
 .sb-testimonial-card b { display: block; margin-top: 10px; font-size: 12.5px; }
 
 .sb-faq-list { display: flex; flex-direction: column; gap: 10px; max-width: 700px; margin: 0 auto; }
-.sb-faq-item { background: #fff; box-shadow: 0 0 0 1px #e2e8f0; border-radius: 12px; padding: 14px 16px; }
+.sb-faq-item { background: var(--sb-surface, #fff); box-shadow: var(--sb-card-shadow, 0 0 0 1px #e2e8f0); border-radius: 12px; padding: 14px 16px; }
 .sb-faq-item summary { cursor: pointer; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; justify-content: space-between; list-style: none; }
 .sb-faq-item summary::-webkit-details-marker { display: none; }
 .sb-faq-chevron { transition: transform 0.15s; }
@@ -607,7 +880,7 @@ export const SB_CSS = `
 .sb-countdown-unit span { display: block; font-size: 22px; font-weight: 800; color: var(--brand-deep); font-variant-numeric: tabular-nums; }
 .sb-countdown-unit small { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
 
-.sb-booking { max-width: 480px; margin: 0 auto; padding: 24px 20px; background: #fff; border-radius: 18px; box-shadow: 0 0 0 1px #e2e8f0; }
+.sb-booking { max-width: 480px; margin: 0 auto; padding: 24px 20px; background: var(--sb-surface, #fff); border-radius: 18px; box-shadow: var(--sb-card-shadow, 0 0 0 1px #e2e8f0); }
 .sb-booking-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; color: var(--brand); }
 .sb-booking-head b { display: block; font-size: 14.5px; color: #0f172a; }
 .sb-booking-head span { font-size: 12px; color: #64748b; }
@@ -627,4 +900,66 @@ export const SB_CSS = `
 .sb-gallery img { width: 100%; height: 140px; object-fit: cover; border-radius: 12px; }
 .sb-video { padding: 0 20px; }
 .sb-video iframe { width: 100%; aspect-ratio: 16/9; border-radius: 16px; border: none; }
+
+.sb-hero-split { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; padding: 48px 24px; text-align: left !important; }
+.sb-hero-split-text { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.sb-hero-split-media { display: flex; }
+.sb-hero-split-media img { width: 100%; border-radius: 18px; object-fit: cover; aspect-ratio: 4/5; }
+.sb-hero-split-placeholder { width: 100%; aspect-ratio: 4/5; border-radius: 18px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; }
+.sb-hero-minimal { display: flex; flex-direction: column; gap: 10px; padding: 40px 24px; background: var(--sb-bg, #fff); }
+.sb-hero-minimal .sb-hero-headline { font-size: 26px; }
+
+.sb-trust-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 28px; padding: 28px 20px; }
+.sb-trust-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--sb-text-muted, #55677E); }
+.sb-trust-badge svg { color: var(--brand); }
+
+.sb-logos-strip { padding: 32px 20px; }
+.sb-logos-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 32px; }
+.sb-logos-row img { height: 28px; object-fit: contain; opacity: 0.7; }
+
+.sb-stats-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 36px; padding: 32px 20px; }
+.sb-stat { text-align: center; }
+.sb-stat b { display: block; font-family: var(--font-heading, inherit); font-size: 26px; font-weight: var(--heading-weight, 800); color: var(--brand-deep); }
+.sb-stat span { font-size: 12.5px; color: var(--sb-text-muted, #55677E); }
+
+.sb-team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; }
+.sb-team-card { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.sb-team-card img { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; margin-bottom: 6px; }
+.sb-team-avatar { width: 84px; height: 84px; border-radius: 50%; background: var(--tint); color: var(--brand); display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
+.sb-team-card b { font-size: 13.5px; }
+.sb-team-card span { font-size: 12px; color: var(--sb-text-muted, #55677E); }
+
+.sb-about-story { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; padding: 40px 20px; }
+.sb-about-story.reversed { direction: rtl; }
+.sb-about-story.reversed > * { direction: ltr; }
+.sb-about-media img { width: 100%; border-radius: 18px; object-fit: cover; aspect-ratio: 4/3; }
+.sb-about-text p { font-size: 14px; line-height: 1.7; color: var(--sb-text-muted, #55677E); margin: 0; }
+
+.sb-compare-wrap { overflow-x: auto; padding: 0 20px; }
+.sb-compare-table { width: 100%; border-collapse: collapse; max-width: 640px; margin: 0 auto; }
+.sb-compare-table th, .sb-compare-table td { padding: 12px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+.sb-compare-table th:first-child, .sb-compare-table td:first-child { text-align: left; font-weight: 600; }
+.sb-compare-table .yes { color: #16a34a; }
+.sb-compare-table .no { color: #cbd5e1; }
+
+.sb-announcement { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 20px; font-size: 12.5px; font-weight: 600; text-align: center; }
+.sb-announcement a { color: inherit; display: inline-flex; align-items: center; gap: 2px; text-decoration: underline; flex-shrink: 0; }
+
+.sb-newsletter { text-align: center; padding: 36px 20px; }
+.sb-newsletter-sub { font-size: 13px; color: var(--sb-text-muted, #55677E); margin: -10px 0 16px; }
+.sb-newsletter-form { display: flex; gap: 8px; max-width: 360px; margin: 0 auto; }
+.sb-newsletter-form input { flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 13.5px; }
+.sb-newsletter-form button { padding: 10px 18px; border-radius: var(--button-radius, 999px); border: none; background: var(--brand); color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; }
+.sb-newsletter-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+.sb-newsletter-done { display: flex; align-items: center; justify-content: center; gap: 6px; color: #15803d; font-weight: 600; font-size: 14px; }
+
+.sb-menu-list { display: flex; flex-direction: column; gap: 16px; max-width: 640px; margin: 0 auto; padding: 0 20px; }
+.sb-menu-item-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.sb-menu-item-head b { font-size: 15px; }
+.sb-menu-item-head em { font-style: normal; font-weight: 700; color: var(--brand-deep); }
+.sb-menu-item p { margin: 4px 0 0; font-size: 12.5px; color: var(--sb-text-muted, #55677E); }
+
+.sb-social-links { text-align: center; padding: 28px 20px; }
+.sb-social-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.sb-social-row a { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--button-radius, 999px); background: var(--tint); color: var(--brand-deep); font-size: 12.5px; font-weight: 600; text-decoration: none; }
 `;

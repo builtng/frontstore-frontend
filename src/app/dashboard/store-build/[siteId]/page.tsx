@@ -14,12 +14,14 @@ import {
   GripVertical, Copy, Trash2, Settings2, Columns3, Rows3, MoveVertical, Minus,
   PanelTop, LayoutGrid, Star, Tags, Download, CreditCard, Calendar, MessageCircle,
   Quote, HelpCircle, Timer, Image as ImageIcon, Images, Play, Search, Globe, Sparkles,
-  Layers, Lock, EyeOff, Palette,
+  Layers, Lock, EyeOff, Palette, Files, Check,
+  ShieldCheck, Building2, BarChart3, Users, BookOpen, Table2, Megaphone, Mail, UtensilsCrossed, Share2,
 } from 'lucide-react';
 import BlockRenderer, { renderBlock, themeVars, SB_CSS } from '../../../../components/storefront/BlockRenderer';
 import BlockInspector from '../../../../components/storefront/BlockInspector';
 import StylePanel from '../../../../components/storefront/StylePanel';
 import LayersPanel from '../../../../components/storefront/LayersPanel';
+import PagesPanel, { SitePage } from '../../../../components/storefront/PagesPanel';
 import BlockContextMenu from '../../../../components/storefront/BlockContextMenu';
 import ConfirmDialog from '../../../../components/ConfirmDialog';
 import { EditorStateProvider, useEditorState } from '../../../../components/storefront/editorState';
@@ -35,6 +37,11 @@ const BLOCK_ICONS: Record<BlockType, React.ComponentType<any>> = {
   booking: Calendar,
   whatsapp_cta: MessageCircle, testimonials: Quote, faq: HelpCircle, countdown: Timer,
   image: ImageIcon, gallery: Images, video: Play,
+  trust_badges: ShieldCheck, logos_strip: Building2,
+  stats_counters: BarChart3, team: Users, about_story: BookOpen, comparison_table: Table2,
+  announcement_bar: Megaphone, newsletter: Mail,
+  menu: UtensilsCrossed,
+  social_links: Share2,
 };
 
 const DEVICE_WIDTHS: Record<string, number> = { desktop: 920, tablet: 520, mobile: 375 };
@@ -43,6 +50,19 @@ interface SiteState {
   id: string; name: string; slug: string; layout: SiteBlock[];
   theme: Record<string, any> | null; is_published: boolean;
   custom_domain: string | null; domain_status: string | null; domain_error: string | null;
+}
+
+interface FullSitePage extends SitePage {
+  layout: SiteBlock[];
+}
+
+interface SiteThemeOption {
+  id: string;
+  key: string;
+  name: string;
+  category: string;
+  tokens: Record<string, any>;
+  preview_colors: string[];
 }
 
 function isEditableTarget(el: EventTarget | null): boolean {
@@ -80,14 +100,21 @@ function StoreBuildEditorPage() {
   const [reviews, setReviews] = useState<any[]>([]);
 
   const [layout, setLayout] = useState<SiteBlock[]>([]);
+  const [pages, setPages] = useState<FullSitePage[]>([]);
+  const [activePageId, setActivePageId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [publishing, setPublishing] = useState(false);
   const [activeDragType, setActiveDragType] = useState<BlockType | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deletePageTarget, setDeletePageTarget] = useState<string | null>(null);
   const [showDomainModal, setShowDomainModal] = useState(false);
   const [domainInput, setDomainInput] = useState('');
   const [domainSaving, setDomainSaving] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
+  const [themes, setThemes] = useState<SiteThemeOption[]>([]);
+  const [themesLoading, setThemesLoading] = useState(false);
+  const [applyingThemeKey, setApplyingThemeKey] = useState<string | null>(null);
 
   const history = useRef<SiteBlock[][]>([]);
   const historyIndex = useRef(-1);
@@ -108,9 +135,10 @@ function StoreBuildEditorPage() {
 
     (async () => {
       try {
-        const [storeRes, siteRes, productsRes, categoriesRes, faqsRes, reviewsRes] = await Promise.all([
+        const [storeRes, siteRes, pagesRes, productsRes, categoriesRes, faqsRes, reviewsRes] = await Promise.all([
           fetch(`${apiUrl}/v1/store`, { headers: authHeaders(storedToken) }),
           fetch(`${apiUrl}/v1/store/sites/${siteId}`, { headers: authHeaders(storedToken) }),
+          fetch(`${apiUrl}/v1/store/sites/${siteId}/pages`, { headers: authHeaders(storedToken) }),
           fetch(`${apiUrl}/v1/products?limit=200`, { headers: authHeaders(storedToken) }),
           fetch(`${apiUrl}/v1/categories`, { headers: authHeaders(storedToken) }),
           fetch(`${apiUrl}/v1/faqs`, { headers: authHeaders(storedToken) }),
@@ -119,6 +147,7 @@ function StoreBuildEditorPage() {
 
         const storeJson = await storeRes.json();
         const siteJson = await siteRes.json();
+        const pagesJson = await pagesRes.json().catch(() => null);
 
         if (cancelled) return;
 
@@ -135,9 +164,16 @@ function StoreBuildEditorPage() {
 
         setStore(storeJson.data);
         setSite(siteJson.data);
+
+        const fetchedPages: FullSitePage[] = pagesJson?.data || [];
+        const homePage = fetchedPages.find((p) => p.is_home) || fetchedPages[0];
+        setPages(fetchedPages);
+
+        const initialLayout = homePage?.layout || siteJson.data.layout || [];
+        setActivePageId(homePage?.id || null);
         skipHistoryPush.current = true;
-        setLayout(siteJson.data.layout || []);
-        history.current = [siteJson.data.layout || []];
+        setLayout(initialLayout);
+        history.current = [initialLayout];
         historyIndex.current = 0;
 
         const productsJson = await productsRes.json().catch(() => null);
@@ -198,24 +234,121 @@ function StoreBuildEditorPage() {
     setLayout(history.current[historyIndex.current]);
   };
 
-  // Autosave draft layout 1.2s after the last edit.
+  // Autosave the active page's draft layout 1.2s after the last edit.
   useEffect(() => {
-    if (!token || !site || loading) return;
+    if (!token || !site || loading || !activePageId) return;
     setSaveState('saving');
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       try {
-        const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}`, {
+        const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}`, {
           method: 'PUT', headers: authHeaders(token), body: JSON.stringify({ layout }),
         });
         setSaveState(res.ok ? 'saved' : 'idle');
+        if (res.ok) {
+          setPages((prev) => prev.map((p) => (p.id === activePageId ? { ...p, layout } : p)));
+        }
       } catch {
         setSaveState('idle');
       }
     }, 1200);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layout]);
+  }, [layout, activePageId]);
+
+  const activatePage = useCallback((page: FullSitePage) => {
+    setActivePageId(page.id);
+    skipHistoryPush.current = true;
+    setLayout(page.layout || []);
+    history.current = [page.layout || []];
+    historyIndex.current = 0;
+    setSelectedId(null);
+  }, [setSelectedId]);
+
+  const switchToPage = (pageId: string) => {
+    if (pageId === activePageId) return;
+    const target = pages.find((p) => p.id === pageId);
+    if (!target) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    activatePage(target);
+  };
+
+  const addPage = async (name: string) => {
+    if (!token) return;
+    const slug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `page-${Date.now()}`;
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages`, {
+        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ name, slug }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        const newPage: FullSitePage = { ...json.data, layout: json.data.layout || [] };
+        setPages((prev) => [...prev, newPage]);
+        activatePage(newPage);
+        setLeftTab('pages');
+      } else {
+        toast.error(json.message || 'Could not create this page.');
+      }
+    } catch {
+      toast.error('Network error creating page.');
+    }
+  };
+
+  const duplicatePage = async (pageId: string) => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${pageId}/duplicate`, {
+        method: 'POST', headers: authHeaders(token),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        const newPage: FullSitePage = { ...json.data, layout: json.data.layout || [] };
+        setPages((prev) => [...prev, newPage]);
+        activatePage(newPage);
+      } else {
+        toast.error(json.message || 'Could not duplicate this page.');
+      }
+    } catch {
+      toast.error('Network error duplicating page.');
+    }
+  };
+
+  const deletePage = async (pageId: string) => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${pageId}`, {
+        method: 'DELETE', headers: authHeaders(token),
+      });
+      if (res.ok) {
+        const remaining = pages.filter((p) => p.id !== pageId);
+        setPages(remaining);
+        if (activePageId === pageId) {
+          const fallback = remaining.find((p) => p.is_home) || remaining[0];
+          if (fallback) activatePage(fallback);
+        }
+      } else {
+        const json = await res.json().catch(() => null);
+        toast.error(json?.message || 'Could not delete this page.');
+      }
+    } catch {
+      toast.error('Network error deleting page.');
+    }
+  };
+
+  const movePage = (pageId: string, direction: 'up' | 'down') => {
+    const sorted = [...pages].sort((a, b) => a.position - b.position);
+    const idx = sorted.findIndex((p) => p.id === pageId);
+    const swapWith = direction === 'up' ? idx - 1 : idx + 1;
+    if (idx === -1 || swapWith < 0 || swapWith >= sorted.length) return;
+    [sorted[idx], sorted[swapWith]] = [sorted[swapWith], sorted[idx]];
+    const reordered = sorted.map((p, i) => ({ ...p, position: i }));
+    setPages(reordered);
+    if (token) {
+      fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/reorder`, {
+        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ page_ids: reordered.map((p) => p.id) }),
+      }).catch(() => toast.error('Network error saving page order.'));
+    }
+  };
 
   const insertBlock = (type: BlockType, index: number) => {
     const block = createDefaultBlock(type);
@@ -312,6 +445,12 @@ function StoreBuildEditorPage() {
     setDeleteTarget(null);
   };
 
+  const confirmDeletePage = () => {
+    if (!deletePageTarget) return;
+    deletePage(deletePageTarget);
+    setDeletePageTarget(null);
+  };
+
   // Keyboard shortcuts — ignored while typing in a field so Cmd+C/V etc. keep
   // their native text-editing behaviour inside inspector inputs.
   useEffect(() => {
@@ -352,22 +491,60 @@ function StoreBuildEditorPage() {
   }, [selectedId, layout, clipboard]);
 
   const handlePublish = async () => {
-    if (!token) return;
+    if (!token || !activePageId) return;
     setPublishing(true);
     try {
-      await fetch(`${apiUrl}/v1/store/sites/${siteId}`, { method: 'PUT', headers: authHeaders(token), body: JSON.stringify({ layout }) });
-      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/publish`, { method: 'POST', headers: authHeaders(token) });
+      await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}`, { method: 'PUT', headers: authHeaders(token), body: JSON.stringify({ layout }) });
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/publish`, { method: 'POST', headers: authHeaders(token) });
       const json = await res.json();
       if (res.ok) {
-        setSite((prev) => (prev ? { ...prev, is_published: true } : prev));
-        toast.success('Site published!');
+        setPages((prev) => prev.map((p) => (p.id === activePageId ? { ...p, is_published: true } : p)));
+        toast.success('Page published!');
       } else {
-        toast.error(json.message || 'Could not publish this site.');
+        toast.error(json.message || 'Could not publish this page.');
       }
     } catch {
-      toast.error('Network error publishing this site.');
+      toast.error('Network error publishing this page.');
     } finally {
       setPublishing(false);
+    }
+  };
+
+  const openThemeModal = async () => {
+    setShowThemeModal(true);
+    if (themes.length > 0 || !token) return;
+    setThemesLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/themes`, { headers: authHeaders(token) });
+      const json = await res.json();
+      if (res.ok) setThemes(json.data || []);
+      else toast.error(json.message || 'Could not load themes.');
+    } catch {
+      toast.error('Network error loading themes.');
+    } finally {
+      setThemesLoading(false);
+    }
+  };
+
+  const applyTheme = async (theme: SiteThemeOption) => {
+    if (!token) return;
+    setApplyingThemeKey(theme.key);
+    try {
+      const nextTheme = { ...theme.tokens, appliedThemeKey: theme.key };
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}`, {
+        method: 'PUT', headers: authHeaders(token), body: JSON.stringify({ theme: nextTheme }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setSite((prev) => (prev ? { ...prev, theme: json.data.theme } : prev));
+        toast.success(`${theme.name} theme applied.`);
+      } else {
+        toast.error(json.message || 'Could not apply this theme.');
+      }
+    } catch {
+      toast.error('Network error applying theme.');
+    } finally {
+      setApplyingThemeKey(null);
     }
   };
 
@@ -449,10 +626,11 @@ function StoreBuildEditorPage() {
 
   const inspectorCtx = useMemo(() => ({ products, categories, onUploadImage: uploadImage }), [products, categories]);
   const renderCtx = useMemo(() => ({
-    store: store || {}, products, categories, faqs, reviews, apiUrl, editable: true,
-  }), [store, products, categories, faqs, reviews, apiUrl]);
+    store: store || {}, products, categories, faqs, reviews, apiUrl, editable: true, siteTheme: site?.theme,
+  }), [store, products, categories, faqs, reviews, apiUrl, site?.theme]);
 
   const selectedBlock = layout.find((b) => b.id === selectedId) || null;
+  const activePage = pages.find((p) => p.id === activePageId) || null;
   const contextMenuBlock = contextMenu ? layout.find((b) => b.id === contextMenu.blockId) || null : null;
 
   if (loading) {
@@ -496,9 +674,10 @@ function StoreBuildEditorPage() {
             <button className="sbld-icon-btn" disabled={historyIndex.current <= 0} onClick={undo}><Undo2 size={15} /></button>
             <button className="sbld-icon-btn" disabled={historyIndex.current >= history.current.length - 1} onClick={redo}><Redo2 size={15} /></button>
             <div className="sbld-divider-v" />
+            <button className="sbld-btn ghost" onClick={openThemeModal}><Palette size={13} /> Theme</button>
             <button className="sbld-btn ghost" onClick={() => setShowDomainModal(true)}><Globe size={13} /> Domain</button>
             <button className="sbld-btn ghost" onClick={() => setShowPreview(true)}><Eye size={13} /> Preview</button>
-            <button className="sbld-btn primary" onClick={handlePublish} disabled={publishing}>{publishing ? 'Publishing…' : site.is_published ? 'Republish' : 'Publish'}</button>
+            <button className="sbld-btn primary" onClick={handlePublish} disabled={publishing || !activePageId}>{publishing ? 'Publishing…' : activePage?.is_published ? 'Republish' : 'Publish'}</button>
           </div>
         </div>
 
@@ -512,9 +691,12 @@ function StoreBuildEditorPage() {
               <button className={`sbld-rail-tab${leftTab === 'layers' ? ' active' : ''}`} onClick={() => setLeftTab('layers')}>
                 <Layers size={13} /> Layers
               </button>
+              <button className={`sbld-rail-tab${leftTab === 'pages' ? ' active' : ''}`} onClick={() => setLeftTab('pages')}>
+                <Files size={13} /> Pages
+              </button>
             </div>
 
-            {leftTab === 'blocks' ? (
+            {leftTab === 'blocks' && (
               <div className="sbld-rail-scroll">
                 {BLOCK_GROUPS.map((group) => (
                   <div key={group.label} className="sbld-block-group">
@@ -525,7 +707,9 @@ function StoreBuildEditorPage() {
                   </div>
                 ))}
               </div>
-            ) : (
+            )}
+
+            {leftTab === 'layers' && (
               <div className="sbld-rail-scroll">
                 <LayersPanel
                   layout={layout}
@@ -539,11 +723,25 @@ function StoreBuildEditorPage() {
                 />
               </div>
             )}
+
+            {leftTab === 'pages' && (
+              <div className="sbld-rail-scroll">
+                <PagesPanel
+                  pages={pages}
+                  activePageId={activePageId}
+                  onSelect={switchToPage}
+                  onAdd={addPage}
+                  onDuplicate={duplicatePage}
+                  onDelete={setDeletePageTarget}
+                  onMove={movePage}
+                />
+              </div>
+            )}
           </div>
 
           {/* Center: canvas */}
           <div className="sbld-canvas-wrap">
-            <div className="sbld-canvas" style={{ maxWidth: DEVICE_WIDTHS[device], ...themeVars(store) }}>
+            <div className="sbld-canvas" style={{ maxWidth: DEVICE_WIDTHS[device], ...themeVars(store, site.theme) }}>
               <SortableContext items={layout.map((b) => b.id)} strategy={verticalListSortingStrategy}>
                 {layout.map((block) => (
                   <CanvasBlock
@@ -635,6 +833,42 @@ function StoreBuildEditorPage() {
         </div>
       )}
 
+      {showThemeModal && (
+        <div className="sbld-modal-overlay" onClick={() => setShowThemeModal(false)}>
+          <div className="sbld-modal sbld-theme-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Choose a theme</h2>
+            <p>Switches your site's colors, fonts, buttons and cards instantly. You can still fine-tune anything per block afterwards.</p>
+            {themesLoading ? (
+              <div className="sbld-theme-loading"><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /></div>
+            ) : (
+              <div className="sbld-theme-grid">
+                {themes.map((theme) => {
+                  const active = site.theme?.appliedThemeKey === theme.key;
+                  return (
+                    <button
+                      key={theme.id}
+                      className={`sbld-theme-card${active ? ' active' : ''}`}
+                      onClick={() => applyTheme(theme)}
+                      disabled={applyingThemeKey === theme.key}
+                    >
+                      <div className="swatches">
+                        {(theme.preview_colors || []).map((c, i) => <span key={i} style={{ background: c }} />)}
+                      </div>
+                      <div className="name">{theme.name}</div>
+                      {active && <div className="badge"><Check size={11} /> Active</div>}
+                      {applyingThemeKey === theme.key && <div className="badge">Applying…</div>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <div className="sbld-modal-actions">
+              <button onClick={() => setShowThemeModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showDomainModal && (
         <div className="sbld-modal-overlay">
           <div className="sbld-modal">
@@ -667,6 +901,15 @@ function StoreBuildEditorPage() {
         confirmLabel="Delete block"
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmDialog
+        open={!!deletePageTarget}
+        title="Delete this page?"
+        description="This page and everything on it will be removed. This can't be undone."
+        confirmLabel="Delete page"
+        onConfirm={confirmDeletePage}
+        onCancel={() => setDeletePageTarget(null)}
       />
 
       <style jsx global>{SBLD_CSS}</style>
@@ -777,6 +1020,24 @@ const SBLD_CSS = `
 .sbld-block-item .ic { color: var(--s-text-dim); flex-shrink: 0; }
 .sbld-block-item .grip { margin-left: auto; color: var(--s-text-dim); opacity: 0.5; flex-shrink: 0; }
 
+.sbld-pages-list { display: flex; flex-direction: column; gap: 2px; }
+.sbld-page-row { display: flex; align-items: center; gap: 7px; padding: 8px; border-radius: 8px; cursor: pointer; color: var(--s-text); }
+.sbld-page-row:hover { background: var(--s-bg-2); }
+.sbld-page-row.selected { background: var(--s-bg-2); box-shadow: inset 0 0 0 1px #25D366; }
+.sbld-page-row .ic { color: var(--s-text-dim); flex-shrink: 0; }
+.sbld-page-row .ic-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--s-text-dim); flex-shrink: 0; margin: 0 4px; }
+.sbld-page-name { font-size: 12.5px; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sbld-page-live { width: 15px; height: 15px; border-radius: 50%; background: rgba(37,211,102,0.18); color: #25D366; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sbld-page-actions { display: flex; gap: 1px; flex-shrink: 0; opacity: 0; transition: opacity 0.1s ease; }
+.sbld-page-row:hover .sbld-page-actions { opacity: 1; }
+.sbld-page-actions button { width: 20px; height: 20px; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: var(--s-text-dim); background: none; border: none; cursor: pointer; }
+.sbld-page-actions button:hover:not(:disabled) { background: var(--s-bg-3); color: var(--s-text); }
+.sbld-page-actions button:disabled { opacity: 0.3; cursor: not-allowed; }
+.sbld-page-actions button.danger:hover { color: #f87171; }
+.sbld-page-add-btn { display: flex; align-items: center; gap: 6px; background: none; border: 1px dashed var(--s-border); color: var(--s-text-dim); border-radius: 8px; padding: 8px; cursor: pointer; font-size: 12px; margin-top: 4px; }
+.sbld-page-add-btn:hover { color: var(--s-text); border-color: var(--s-text-dim); }
+.sbld-page-add-form { margin-top: 4px; }
+
 .sbld-layers-empty { font-size: 12.5px; color: var(--s-text-dim); padding: 8px 4px; }
 .sbld-layers-list { display: flex; flex-direction: column; gap: 2px; }
 .sbld-layer-row { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px; cursor: pointer; color: var(--s-text); }
@@ -842,6 +1103,18 @@ const SBLD_CSS = `
 .sbld-modal-actions button { padding: 9px 16px; border-radius: 8px; border: 1px solid #1E3350; background: transparent; color: #EAF1F8; cursor: pointer; font-size: 13px; }
 .sbld-modal-actions button.primary { background: linear-gradient(135deg, #25D366, #1FB88E); color: #06231D; font-weight: 700; border: none; }
 .sbld-modal-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.sbld-theme-modal { width: min(100%, 560px); }
+.sbld-theme-loading { display: flex; justify-content: center; padding: 30px; color: #7E93AE; }
+.sbld-theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 18px; max-height: 360px; overflow-y: auto; }
+.sbld-theme-card { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; padding: 12px; border-radius: 12px; border: 1px solid #1E3350; background: #112640; cursor: pointer; text-align: left; position: relative; }
+.sbld-theme-card:hover:not(:disabled) { border-color: #25D366; }
+.sbld-theme-card.active { border-color: #25D366; box-shadow: 0 0 0 1px #25D366; }
+.sbld-theme-card:disabled { opacity: 0.7; cursor: wait; }
+.sbld-theme-card .swatches { display: flex; gap: 5px; }
+.sbld-theme-card .swatches span { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(255,255,255,0.15); }
+.sbld-theme-card .name { font-size: 12.5px; font-weight: 700; color: #EAF1F8; }
+.sbld-theme-card .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: #25D366; }
 
 ${SB_CSS}
 `;

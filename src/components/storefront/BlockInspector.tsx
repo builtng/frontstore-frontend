@@ -105,20 +105,41 @@ export default function BlockInspector({ block, onChange, ctx }: { block: SiteBl
     case 'hero':
       return (
         <>
+          <Field label="Layout">
+            <div style={selectStyle()}>
+              <SearchableSelect
+                value={d.layout || 'centered'}
+                onChange={(v) => set({ layout: v })}
+                options={[{ value: 'centered', label: 'Centered' }, { value: 'split', label: 'Split with image' }, { value: 'minimal', label: 'Minimal' }]}
+              />
+            </div>
+          </Field>
+          {d.layout === 'split' && (
+            <Field label="Image URL">
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input style={{ ...darkFieldStyle, flex: 1 }} value={d.imageUrl || ''} onChange={(e) => set({ imageUrl: e.target.value })} placeholder="https://…" />
+                <button onClick={() => upload((url) => set({ imageUrl: url }))} style={{ background: '#112640', border: '1px solid #1E3350', color: '#EAF1F8', borderRadius: 8, padding: '0 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Upload size={14} /></button>
+              </div>
+            </Field>
+          )}
           <Field label="Eyebrow"><input style={darkFieldStyle} value={d.eyebrow || ''} onChange={(e) => set({ eyebrow: e.target.value })} /></Field>
           <Field label="Headline"><textarea style={{ ...darkFieldStyle, minHeight: 50 }} value={d.headline || ''} onChange={(e) => set({ headline: e.target.value })} /></Field>
           <Field label="Subheadline"><textarea style={{ ...darkFieldStyle, minHeight: 50 }} value={d.subheadline || ''} onChange={(e) => set({ subheadline: e.target.value })} /></Field>
           <Field label="Button text"><input style={darkFieldStyle} value={d.ctaLabel || ''} onChange={(e) => set({ ctaLabel: e.target.value })} /></Field>
-          <Field label="Background">
-            <div style={selectStyle()}>
-              <SearchableSelect value={d.background || 'brand'} onChange={(v) => set({ background: v })} options={[{ value: 'brand', label: 'Brand gradient' }, { value: 'navy', label: 'Navy' }, { value: 'white', label: 'White' }]} />
-            </div>
-          </Field>
-          <Field label="Alignment">
-            <div style={selectStyle()}>
-              <SearchableSelect value={d.align || 'center'} onChange={(v) => set({ align: v })} options={[{ value: 'center', label: 'Centered' }, { value: 'left', label: 'Left aligned' }]} />
-            </div>
-          </Field>
+          {d.layout !== 'minimal' && (
+            <Field label="Background">
+              <div style={selectStyle()}>
+                <SearchableSelect value={d.background || 'brand'} onChange={(v) => set({ background: v })} options={[{ value: 'brand', label: 'Brand gradient' }, { value: 'navy', label: 'Navy' }, { value: 'white', label: 'White' }]} />
+              </div>
+            </Field>
+          )}
+          {d.layout !== 'split' && (
+            <Field label="Alignment">
+              <div style={selectStyle()}>
+                <SearchableSelect value={d.align || 'center'} onChange={(v) => set({ align: v })} options={[{ value: 'center', label: 'Centered' }, { value: 'left', label: 'Left aligned' }]} />
+              </div>
+            </Field>
+          )}
         </>
       );
 

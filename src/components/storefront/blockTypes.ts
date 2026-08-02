@@ -6,7 +6,12 @@ export type BlockType =
   | 'digital_spotlight' | 'pricing_table'
   | 'booking'
   | 'whatsapp_cta' | 'testimonials' | 'faq' | 'countdown'
-  | 'image' | 'gallery' | 'video';
+  | 'image' | 'gallery' | 'video'
+  | 'trust_badges' | 'logos_strip'
+  | 'stats_counters' | 'team' | 'about_story' | 'comparison_table'
+  | 'announcement_bar' | 'newsletter'
+  | 'menu'
+  | 'social_links';
 
 export interface BlockStyle {
   paddingY?: number;
@@ -120,9 +125,12 @@ export interface BlockGroup {
 export const BLOCK_GROUPS: BlockGroup[] = [
   { label: 'Layout', types: ['section', 'columns', 'spacer', 'divider'] },
   { label: 'Storefront', types: ['hero', 'product_grid', 'featured_product', 'categories'] },
-  { label: 'Course & creator', types: ['digital_spotlight', 'pricing_table'] },
+  { label: 'Trust', types: ['trust_badges', 'logos_strip', 'testimonials'] },
+  { label: 'Content', types: ['about_story', 'stats_counters', 'team', 'comparison_table', 'faq'] },
+  { label: 'Marketing', types: ['announcement_bar', 'newsletter', 'whatsapp_cta', 'countdown'] },
+  { label: 'Restaurant', types: ['menu'] },
+  { label: 'Course & creator', types: ['digital_spotlight', 'pricing_table', 'social_links'] },
   { label: 'Booking', types: ['booking'] },
-  { label: 'Engagement', types: ['whatsapp_cta', 'testimonials', 'faq', 'countdown'] },
   { label: 'Media', types: ['image', 'gallery', 'video'] },
 ];
 
@@ -145,6 +153,16 @@ export const BLOCK_LABELS: Record<BlockType, string> = {
   image: 'Image',
   gallery: 'Gallery',
   video: 'Video',
+  trust_badges: 'Trust badges',
+  logos_strip: 'Brand logos strip',
+  stats_counters: 'Stats & counters',
+  team: 'Team',
+  about_story: 'About / story',
+  comparison_table: 'Comparison table',
+  announcement_bar: 'Announcement bar',
+  newsletter: 'Newsletter signup',
+  menu: 'Menu',
+  social_links: 'Social links',
 };
 
 let counter = 0;
@@ -178,7 +196,7 @@ export function createDefaultBlock(type: BlockType): SiteBlock {
         id, type, data: {
           eyebrow: '', headline: 'A headline your customers will remember',
           subheadline: 'Say what makes this store worth ordering from today.',
-          ctaLabel: 'Chat to Order', background: 'brand', align: 'center',
+          ctaLabel: 'Chat to Order', background: 'brand', align: 'center', layout: 'centered', imageUrl: '',
         },
       };
     case 'product_grid':
@@ -215,6 +233,63 @@ export function createDefaultBlock(type: BlockType): SiteBlock {
       return { id, type, data: { images: [] } };
     case 'video':
       return { id, type, data: { url: '' } };
+    case 'trust_badges':
+      return {
+        id, type, data: {
+          items: [
+            { label: 'Secure payment', icon: 'shield' },
+            { label: 'Fast delivery', icon: 'truck' },
+            { label: 'Money-back guarantee', icon: 'badge' },
+          ],
+        },
+      };
+    case 'logos_strip':
+      return { id, type, data: { heading: 'As seen with', logos: [] } };
+    case 'stats_counters':
+      return {
+        id, type, data: {
+          items: [
+            { value: '500+', label: 'Orders delivered' },
+            { value: '4.9★', label: 'Average rating' },
+            { value: '24hr', label: 'Avg. response time' },
+          ],
+        },
+      };
+    case 'team':
+      return { id, type, data: { heading: 'Meet the team', members: [{ name: 'Founder name', role: 'Founder', photoUrl: '' }] } };
+    case 'about_story':
+      return {
+        id, type, data: {
+          heading: 'Our story', body: 'Tell customers why you started and what makes this business different.',
+          imageUrl: '', imagePosition: 'right',
+        },
+      };
+    case 'comparison_table':
+      return {
+        id, type, data: {
+          heading: 'Why choose us', columns: ['Us', 'Others'],
+          rows: [
+            { label: 'Same-day delivery', values: [true, false] },
+            { label: 'WhatsApp support', values: [true, false] },
+          ],
+        },
+      };
+    case 'announcement_bar':
+      return { id, type, data: { text: 'Free delivery on orders above ₦20,000 this week', ctaLabel: '', ctaLink: '', background: 'brand' } };
+    case 'newsletter':
+      return { id, type, data: { heading: 'Get updates on new drops', subtext: 'No spam, unsubscribe any time.', buttonLabel: 'Subscribe' } };
+    case 'menu':
+      return {
+        id, type, data: {
+          heading: 'Our menu',
+          items: [
+            { name: 'Jollof Rice & Chicken', price: '₦4,500', description: 'Smoky party jollof with grilled chicken.' },
+            { name: 'Suya Platter', price: '₦3,000', description: 'Spiced skewers, onions and pepper.' },
+          ],
+        },
+      };
+    case 'social_links':
+      return { id, type, data: { heading: 'Follow us', instagram: '', tiktok: '', twitter: '', facebook: '' } };
     default:
       return { id, type, data: {} };
   }

@@ -1899,7 +1899,7 @@ export default function TechStorefront({
 
       {/* bag sheet (shared) */}
       {bagOpen && (
-        <Sheet onClose={() => { setBagOpen(false); setCheckoutStep('cart'); }} title={checkoutStep === 'success' ? 'Order Confirmed' : checkoutStep === 'details' ? 'Details' : 'Your bag'}>
+        <Sheet onClose={() => { setBagOpen(false); setCheckoutStep('cart'); }} title={checkoutStep === 'success' ? 'Order Placed' : checkoutStep === 'details' ? 'Details' : 'Your bag'}>
           {checkoutStep !== 'success' && bag.length > 0 && (
             <div className="tc-steps" style={{ display: 'flex', marginBottom: 20, background: '#111b21', borderRadius: 8, padding: 4 }}>
               <button className={`tc-step ${checkoutStep === 'cart' ? 'active' : ''}`} style={{ flex: 1, textTransform: 'uppercase', fontSize: 11, fontWeight: 700, padding: '8px 0', border: 'none', background: checkoutStep === 'cart' ? 'var(--brand)' : 'none', color: '#fff', borderRadius: 6 }} onClick={() => setCheckoutStep('cart')}>Cart</button>
@@ -1969,10 +1969,12 @@ export default function TechStorefront({
               <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(37, 211, 102, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#25d366' }}>
                 <Check size={28} />
               </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Order Confirmed!</h3>
+              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Order Placed!</h3>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>{STORE.name} will reach out shortly via WhatsApp.</p>
               <div style={{ background: '#111b21', padding: 14, borderRadius: 10, textAlign: 'left', marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span style={{ color: 'var(--muted)' }}>Order ID</span><b>{orderReceipt.order.order_number}</b></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span style={{ color: 'var(--muted)' }}>Status</span><b>{orderReceipt.order.order_status}</b></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span style={{ color: 'var(--muted)' }}>Payment</span><b>{orderReceipt.order.payment_status}</b></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span style={{ color: 'var(--muted)' }}>Total Amount</span><b>{money(orderReceipt.order.total_amount)}</b></div>
               </div>
               {orderReceipt.whatsapp_url && (

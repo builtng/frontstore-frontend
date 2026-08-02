@@ -14061,7 +14061,9 @@ export default function DashboardPage() {
             display: 'flex',
             flexDirection: 'column',
             padding: 24,
-            borderRight: '1px solid var(--border)'
+            borderRight: '1px solid var(--border)',
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
