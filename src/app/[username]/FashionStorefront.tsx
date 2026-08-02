@@ -143,6 +143,7 @@ export default function FashionStorefront({
 
   // Toast
   useEffect(() => { if (!toastMsg) return; const t = setTimeout(() => setToastMsg(null), 2000); return () => clearTimeout(t); }, [toastMsg]);
+  useEffect(() => { if (selectedProduct) window.scrollTo({ top: 0, behavior: 'instant' }); }, [selectedProduct]);
 
   // Cart persistence
   useEffect(() => { captureAffiliateRef(); try { const s = localStorage.getItem(`frontstore_cart_${username}`); if (s) setBag(JSON.parse(s)); } catch { } }, [username]);
@@ -1465,7 +1466,7 @@ const FASHION_CSS = `
 .ps-card:active { transform: translateY(-1px); }
 .ps-card-thumb { position: relative; aspect-ratio: 1/1; max-height: 200px; width: 100%; overflow: hidden; background: var(--bg-2, #f8f9fa); }
 .ps-card-thumb.c0, .ps-card-thumb.c1, .ps-card-thumb.c2, .ps-card-thumb.c3 { background: var(--bg-2, #f8f9fa); }
-.ps-card-img { display: block; width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+.ps-card-img { display: block; width: 100%; height: 100%; object-fit: cover; padding: 0; }
 .ps-card-foot { position: relative; padding: 10px 12px 12px; width: 100%; text-align: left; display: flex; flex-direction: column; flex: 1; }
 .ps-card-cat { display: block; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .ps-card-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.25; margin: 2px 0 6px; min-height: 35px; }

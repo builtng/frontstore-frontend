@@ -583,6 +583,7 @@ export default function TechStorefront({
 
   // Filters & General UI
   const [selProduct, setSelProduct] = useState<any>(null);
+  useEffect(() => { if (selProduct) window.scrollTo({ top: 0, behavior: 'instant' }); }, [selProduct]);
   const [selColour, setSelColour] = useState<string | null>(null);
   const [selCap, setSelCap] = useState<string | null>(null);
   const [share, setShare] = useState(false);
@@ -3709,7 +3710,7 @@ const css = `
 .pv-main img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 .pv-main-icn {
   color: var(--muted);

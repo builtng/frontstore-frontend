@@ -486,8 +486,8 @@
 .ps-card-thumb img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  padding: 6px;
+  object-fit: cover;
+  padding: 0;
   display: block;
 }
 .ps-card-thumb.svc {

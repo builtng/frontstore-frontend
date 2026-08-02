@@ -1167,6 +1167,7 @@ export default function FoodStorefront({
   
   
   const [selProduct, setSelProduct] = useState<any>(null);
+  useEffect(() => { if (selProduct) window.scrollTo({ top: 0, behavior: 'instant' }); }, [selProduct]);
   const [selOpts, setSelOpts] = useState<any>({});
   
   const [annOff, setAnnOff] = useState(false);

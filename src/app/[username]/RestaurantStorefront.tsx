@@ -258,6 +258,7 @@ export default function RestaurantStorefront({
 
   // Sizing and Product Detail Page/Sheet states
   const [selProduct, setSelProduct] = useState<any>(null);
+  useEffect(() => { if (selProduct) window.scrollTo({ top: 0, behavior: 'instant' }); }, [selProduct]);
   const [selOpts, setSelOpts] = useState<Record<string, string>>({});
 
   // Notification Opt-in states

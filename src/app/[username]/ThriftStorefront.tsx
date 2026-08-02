@@ -259,6 +259,7 @@ export default function ThriftStorefront({
 
   // Sizing and Product Detail Page/Sheet states
   const [selProduct, setSelProduct] = useState<any>(null);
+  useEffect(() => { if (selProduct) window.scrollTo({ top: 0, behavior: 'instant' }); }, [selProduct]);
   const [selColour, setSelColour] = useState<string | null>(null);
   const [selSize, setSelSize] = useState<string | null>(null);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
