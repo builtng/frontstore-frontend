@@ -8,6 +8,7 @@ export interface ProductImageProps {
   src?: string | null;
   alt: string;
   aspectRatio?: '4/5' | '1/1' | '3/4' | '16/9' | string;
+  fit?: 'cover' | 'contain';
   className?: string;
   containerClassName?: string;
   fallbackIcon?: React.ReactNode;
@@ -24,19 +25,21 @@ export default function ProductImage({
   src,
   alt,
   aspectRatio = '4/5',
+  fit = 'cover',
   className = '',
   containerClassName = '',
   fallbackIcon,
   priority = false,
   sizes = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw',
   padding = '0px',
-  backgroundColor = '#f8f8f8',
-  borderRadius = '12px',
-  unoptimized = true,
+  backgroundColor,
+  borderRadius,
+  unoptimized = false,
   onClick,
 }: ProductImageProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [hasError, setHasError] = useState<boolean>(false);
+  const [useUnoptimizedFallback, setUseUnoptimizedFallback] = useState<boolean>(unoptimized);
 
   // Normalize ratio string into a CSS style format if needed
   const getAspectRatioStyle = (ratio: string): string => {
@@ -52,7 +55,7 @@ export default function ProductImage({
 
   return (
     <div
-      className={`fs-product-image__container relative overflow-hidden flex items-center justify-center transition-all duration-200 ${containerClassName}`}
+      className={`fs-product-image__container relative overflow-hidden flex items-center justify-center transition-all duration-300 bg-neutral-100 dark:bg-neutral-800 ${containerClassName}`}
       style={{
         aspectRatio: getAspectRatioStyle(aspectRatio),
         backgroundColor: backgroundColor,
@@ -65,17 +68,17 @@ export default function ProductImage({
     >
       {/* Loading Skeleton Shimmer */}
       {isLoading && !showFallback && (
-        <div className="absolute inset-0 bg-neutral-200 animate-pulse z-0" />
+        <div className="absolute inset-0 bg-neutral-200/80 dark:bg-neutral-800 animate-pulse z-0" />
       )}
 
       {/* Fallback View when image is missing or failed */}
       {showFallback ? (
-        <div className="flex flex-col items-center justify-center p-4 text-neutral-400 z-10 w-full h-full">
-          {fallbackIcon || <ShoppingBag className="w-8 h-8 opacity-60" strokeWidth={1.5} />}
+        <div className="flex flex-col items-center justify-center p-4 text-neutral-400 dark:text-neutral-500 z-10 w-full h-full bg-neutral-100 dark:bg-neutral-850">
+          {fallbackIcon || <ShoppingBag className="w-8 h-8 opacity-40" strokeWidth={1.25} />}
         </div>
       ) : (
         <div
-          className="relative w-full h-full z-10"
+          className="relative w-full h-full z-10 overflow-hidden"
           style={{ padding: typeof padding === 'number' ? `${padding}px` : padding }}
         >
           <Image
@@ -84,19 +87,24 @@ export default function ProductImage({
             fill
             sizes={sizes}
             priority={priority}
-            unoptimized={unoptimized}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            unoptimized={useUnoptimizedFallback}
             onLoad={() => setIsLoading(false)}
             onError={() => {
-              setIsLoading(false);
-              setHasError(true);
+              if (!useUnoptimizedFallback) {
+                // Retry loading as unoptimized if Next.js image proxy fails for obscure URL
+                setUseUnoptimizedFallback(true);
+              } else {
+                setIsLoading(false);
+                setHasError(true);
+              }
             }}
-            className={`object-contain object-center transition-opacity duration-300 ${
-              isLoading ? 'opacity-0' : 'opacity-100'
+            className={`transition-all duration-500 ease-out ${
+              fit === 'contain' ? 'object-contain' : 'object-cover'
+            } object-center ${
+              isLoading ? 'opacity-0 scale-102 blur-xs' : 'opacity-100 scale-100 blur-none'
             } ${className}`}
-            style={{
-              objectFit: 'contain',
-              objectPosition: 'center',
-            }}
           />
         </div>
       )}

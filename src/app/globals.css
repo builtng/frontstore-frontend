@@ -5826,19 +5826,25 @@ svg.spinner {
 }
 
 /* ================================================================
-   GLOBAL PRODUCT IMAGE RENDERING SYSTEM (UNIVERSAL FIX)
+   PREMIUM GLOBAL PRODUCT CARD & IMAGE SYSTEM
    ================================================================ */
 
 .fs-product-image__container {
   aspect-ratio: 4 / 5;
   width: 100%;
   position: relative;
-  background-color: #f8f8f8;
+  background-color: #f4f4f6;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  .fs-product-image__container {
+    background-color: #18181b;
+  }
 }
 
 .fs-product-card,
@@ -5850,50 +5856,163 @@ svg.spinner {
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
 }
 
+.fs-product-card:hover,
+.ps-card:hover,
+.svc-card:hover,
+.prod-card:hover,
+.rich-card:hover,
+.sb-product-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 14px 28px -8px rgba(0, 0, 0, 0.09) !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Override legacy gradient arched frames on card thumbnails */
+.ps-card-thumb,
+.svc-card-thumb,
+.rich-thumb,
+.pv-thumb,
+.sb-product-thumb {
+  height: auto !important;
+  aspect-ratio: 4 / 5 !important;
+  width: 100% !important;
+  position: relative !important;
+  background: #f4f4f6 !important;
+  border-radius: 14px 14px 0 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.ps-card-thumb.c0, .ps-card-thumb.c1, .ps-card-thumb.c2, .ps-card-thumb.c3,
+.svc-card-thumb.c0, .svc-card-thumb.c1, .svc-card-thumb.c2, .svc-card-thumb.c3,
+.rich-thumb.c0, .rich-thumb.c1, .rich-thumb.c2, .rich-thumb.c3,
+.pv-thumb.c0, .pv-thumb.c1, .pv-thumb.c2, .pv-thumb.c3 {
+  background: #f4f4f6 !important;
+}
+
+/* Image containment */
+.ps-card-thumb img,
+.ps-card-img,
+.svc-card-thumb img,
+.rich-thumb img,
+.sb-product-thumb img {
+  object-fit: cover !important;
+  object-position: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  transition: transform 0.3s ease !important;
+}
+
+.ps-card:hover .ps-card-thumb img,
+.ps-card:hover .ps-card-img,
+.svc-card:hover .svc-card-thumb img,
+.rich-card:hover .rich-thumb img {
+  transform: scale(1.03) !important;
+}
+
+/* Premium Card Body & Typography */
 .ps-card-body,
 .svc-card-body,
 .rich-info,
 .sb-product-body {
+  padding: 14px 16px !important;
   display: flex !important;
   flex-direction: column !important;
   flex: 1 1 auto !important;
+  background: #ffffff !important;
+}
+
+.ps-card-cat,
+.ps-card-sub,
+.svc-card-cat,
+.rich-cat {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: #8e8e93 !important;
+  margin-bottom: 4px !important;
+  display: block !important;
+}
+
+.ps-card-name,
+.ps-card-body b,
+.svc-card-body b,
+.rich-info h4 {
+  font-size: 14.5px !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  color: #1c1c1e !important;
+  margin-bottom: 8px !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
 }
 
 .ps-card-foot,
 .svc-card-foot,
 .rich-foot,
 .sb-product-foot {
-  margin-top: auto !important;
-}
-
-/* Global Overrides for legacy storefront card thumbnail containers */
-.ps-card-thumb,
-.svc-card-thumb,
-.sb-product-thumb {
-  height: auto !important;
-  aspect-ratio: 4 / 5 !important;
-  width: 100% !important;
-  position: relative !important;
-  background-color: #f8f8f8 !important;
-  overflow: hidden !important;
   display: flex !important;
   align-items: center !important;
-  justify-content: center !important;
+  justify-content: space-between !important;
+  margin-top: auto !important;
+  padding-top: 10px !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
 }
 
-.ps-card-thumb img,
-.ps-card-img,
-.svc-card-thumb img,
-.sb-product-thumb img {
-  object-fit: contain !important;
-  object-position: center !important;
-  width: 100% !important;
-  height: 100% !important;
-  padding: 0 !important;
-  box-sizing: border-box !important;
+.ps-card-price,
+.ps-card-foot em,
+.svc-card-foot em,
+.rich-foot b,
+.sb-product-foot em {
+  font-size: 15.5px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  font-style: normal !important;
 }
+
+.ps-mini,
+.svc-card-book,
+.rich-btn,
+.sb-mini-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 6px 14px !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease, transform 0.15s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.ps-mini:hover,
+.svc-card-book:hover,
+.rich-btn:hover,
+.sb-mini-btn:hover {
+  background: #1e293b !important;
+  transform: translateY(-1px) !important;
+}
+
 
 
 
