@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { toast as sonnerToast } from "sonner";
 import { Copy, Check, X, Landmark } from "lucide-react";
 
 export interface BankTransferDetails {
+  order_id?: string;
   bank_name?: string;
   bank_account_number?: string;
   bank_account_name?: string;
@@ -18,13 +19,17 @@ interface BankTransferPaymentModalProps {
   onClose: () => void;
   details: BankTransferDetails | null;
   currencySymbol?: string;
+  onPaid?: () => void;
 }
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   NGN: "₦", GHS: "GH₵", KES: "KSh", ZAR: "R", USD: "$", GBP: "£", EUR: "€",
 };
 
-export default function BankTransferPaymentModal({ open, onClose, details, currencySymbol }: BankTransferPaymentModalProps) {
+export default function BankTransferPaymentModal({ open, onClose, details, currencySymbol, onPaid }: BankTransferPaymentModalProps) {
+  const [notifying, setNotifying] = useState(false);
+  const [notified, setNotified] = useState(false);
+
   if (!open || !details) return null;
 
   const symbol = currencySymbol || CURRENCY_SYMBOLS[(details.currency_code || "NGN").toUpperCase()] || `${details.currency_code || ""} `;
@@ -36,6 +41,31 @@ export default function BankTransferPaymentModal({ open, onClose, details, curre
     if (!details.bank_account_number) return;
     navigator.clipboard?.writeText(details.bank_account_number);
     sonnerToast.success("Account number copied");
+  };
+
+  const handleImSent = async () => {
+    if (!details.order_id || notifying) return;
+    setNotifying(true);
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://api.frontstore.ng/api").replace(/\/+$/, "");
+      const res = await fetch(`${API_URL}/v1/public/orders/${details.order_id}/notify-payment-sent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || "Something went wrong.");
+      sonnerToast.success(json.message || "We've let the merchant know.");
+      if (json.paid) {
+        onPaid?.();
+        onClose();
+        return;
+      }
+      setNotified(true);
+    } catch (err: any) {
+      sonnerToast.error(err.message || "Could not notify the merchant. Please try again.");
+    } finally {
+      setNotifying(false);
+    }
   };
 
   return (
@@ -131,11 +161,27 @@ export default function BankTransferPaymentModal({ open, onClose, details, curre
           <span>Transfer the exact amount above — your payment is matched to this order automatically and you'll be notified the moment it's confirmed.</span>
         </div>
 
+        {details.order_id && (
+          <button
+            onClick={handleImSent}
+            disabled={notifying || notified}
+            style={{
+              width: "100%", marginTop: 16, padding: "13px 20px", borderRadius: 10,
+              background: notified ? "var(--bg-2, #f1f5f9)" : "var(--brand, #16a34a)",
+              color: notified ? "var(--muted, #64748b)" : "#fff",
+              border: "none", fontWeight: 700, fontSize: 14.5,
+              cursor: notifying || notified ? "default" : "pointer",
+            }}
+          >
+            {notified ? "Merchant notified ✓" : notifying ? "Notifying merchant..." : "I've sent the money"}
+          </button>
+        )}
+
         <button
           onClick={onClose}
           style={{
-            width: "100%", marginTop: 20, padding: "13px 20px", borderRadius: 10,
-            background: "var(--brand, #16a34a)", color: "#fff", border: "none",
+            width: "100%", marginTop: 10, padding: "13px 20px", borderRadius: 10,
+            background: "none", border: "1px solid var(--line, #e2e8f0)", color: "var(--text, #0A192F)",
             fontWeight: 700, fontSize: 14.5, cursor: "pointer",
           }}
         >

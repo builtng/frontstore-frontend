@@ -427,6 +427,7 @@ export default function OrderTrackingPage() {
   });
 
   const isCancelled = order.order_status === 'cancelled';
+  const isExpired = order.order_status === 'expired';
   const isConfirmed = order.order_status === 'confirmed';
   const isCompleted = order.order_status === 'completed';
   const isDigitalOnly = order.items.length > 0 && order.items.every(item => item.product?.is_digital);
@@ -439,6 +440,8 @@ export default function OrderTrackingPage() {
 
   const statusMeta = isCancelled
     ? { label: 'Cancelled', color: 'var(--danger)', bg: 'var(--danger-light)' }
+    : isExpired
+    ? { label: 'Expired', color: 'var(--danger)', bg: 'var(--danger-light)' }
     : isCompleted
     ? { label: isDigitalOnly ? 'Delivered' : 'Completed', color: 'var(--primary)', bg: 'var(--primary-light)' }
     : isConfirmed
@@ -500,7 +503,7 @@ export default function OrderTrackingPage() {
         )}
 
         {/* Secure Online Payment Box */}
-        {order.payment_status === 'unpaid' && (
+        {order.payment_status === 'unpaid' && !isExpired && !isCancelled && (
           <div className="card" style={{
             padding: '22px',
             display: 'flex',
@@ -912,6 +915,10 @@ export default function OrderTrackingPage() {
         {isCancelled ? (
           <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '16px', padding: '16px', textAlign: 'center', color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             <AlertCircle size={16} style={{ flexShrink: 0 }} /> This order has been cancelled by the seller.
+          </div>
+        ) : isExpired ? (
+          <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '16px', padding: '16px', textAlign: 'center', color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <AlertCircle size={16} style={{ flexShrink: 0 }} /> This order expired without payment. Place a new order to get these items.
           </div>
         ) : (
           <div className="card" style={{ padding: '22px 22px 24px', display: 'flex', flexDirection: 'column' }}>

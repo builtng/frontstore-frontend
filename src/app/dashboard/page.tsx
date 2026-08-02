@@ -30,6 +30,7 @@ import NinaWidget from '../../components/NinaWidget';
 import IntegrationsTab from '../../components/dashboard/IntegrationsTab';
 import { businessPersonas } from '../../utils/businessPersonas';
 import { getServiceFactPresets } from '../../utils/serviceFactPresets';
+import { resilientFetch } from '../../utils/resilientFetch';
 
 // --- Currency Configuration ---
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -3417,7 +3418,7 @@ export default function DashboardPage() {
         })) : undefined,
       };
 
-      const res = await fetch(`${apiUrl}/v1/products`, {
+      const res = await resilientFetch(`${apiUrl}/v1/products`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(payload)
@@ -3527,7 +3528,7 @@ export default function DashboardPage() {
           : undefined,
       };
 
-      const res = await fetch(`${apiUrl}/v1/products/${selectedProduct.id}`, {
+      const res = await resilientFetch(`${apiUrl}/v1/products/${selectedProduct.id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(payload)
@@ -5136,7 +5137,7 @@ export default function DashboardPage() {
                               </td>
                               <td style={{ padding: '16px 8px' }}>
                                 <span className={`badge ${order.order_status === 'completed' ? 'badge-primary' :
-                                  order.order_status === 'cancelled' ? 'badge-danger' :
+                                  order.order_status === 'cancelled' || order.order_status === 'expired' ? 'badge-danger' :
                                     order.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'
                                   }`} style={{ fontSize: 10 }}>
                                   {order.order_status}
@@ -5218,7 +5219,7 @@ export default function DashboardPage() {
                                 Pay: {order.payment_status}
                               </span>
                               <span className={`badge ${order.order_status === 'completed' ? 'badge-primary' :
-                                order.order_status === 'cancelled' ? 'badge-danger' :
+                                order.order_status === 'cancelled' || order.order_status === 'expired' ? 'badge-danger' :
                                   order.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'
                                 }`} style={{ fontSize: 9 }}>
                                 Status: {order.order_status}
@@ -5561,7 +5562,7 @@ export default function DashboardPage() {
                                     <span style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', fontFamily: 'var(--font-heading)' }}>{sym}{(parseFloat(o.total_amount as string || '0') || 0).toLocaleString()}</span>
                                     <div style={{ display: 'flex', gap: 6, marginTop: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                                       <span className={`badge ${o.payment_status === 'paid' ? 'badge-primary' : o.payment_status === 'refunded' ? 'badge-danger' : 'badge-accent'}`} style={{ fontSize: 10 }}>{o.payment_status}</span>
-                                      <span className={`badge ${o.order_status === 'completed' ? 'badge-primary' : o.order_status === 'cancelled' ? 'badge-danger' : o.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'}`} style={{ fontSize: 10 }}>{o.order_status}</span>
+                                      <span className={`badge ${o.order_status === 'completed' ? 'badge-primary' : o.order_status === 'cancelled' || o.order_status === 'expired' ? 'badge-danger' : o.order_status === 'confirmed' ? 'badge-verified' : 'badge-accent'}`} style={{ fontSize: 10 }}>{o.order_status}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -17278,7 +17279,8 @@ export default function DashboardPage() {
                       { value: 'pending', label: 'Pending', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} /> },
                       { value: 'confirmed', label: 'Confirmed', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', display: 'inline-block' }} /> },
                       { value: 'completed', label: 'Completed/Shipped', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary-dark)', display: 'inline-block' }} /> },
-                      { value: 'cancelled', label: 'Cancelled', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger)', display: 'inline-block' }} /> }
+                      { value: 'cancelled', label: 'Cancelled', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger)', display: 'inline-block' }} /> },
+                      { value: 'expired', label: 'Expired', icon: <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger)', display: 'inline-block' }} /> }
                     ]}
                     value={selectedOrder.order_status}
                     onChange={val => handleUpdateOrderStatus(selectedOrder.id, val)}

@@ -11,7 +11,8 @@ export type BlockType =
   | 'stats_counters' | 'team' | 'about_story' | 'comparison_table'
   | 'announcement_bar' | 'newsletter'
   | 'menu'
-  | 'social_links';
+  | 'social_links'
+  | 'popup_trigger';
 
 export interface BlockStyle {
   paddingY?: number;
@@ -127,7 +128,7 @@ export const BLOCK_GROUPS: BlockGroup[] = [
   { label: 'Storefront', types: ['hero', 'product_grid', 'featured_product', 'categories'] },
   { label: 'Trust', types: ['trust_badges', 'logos_strip', 'testimonials'] },
   { label: 'Content', types: ['about_story', 'stats_counters', 'team', 'comparison_table', 'faq'] },
-  { label: 'Marketing', types: ['announcement_bar', 'newsletter', 'whatsapp_cta', 'countdown'] },
+  { label: 'Marketing', types: ['announcement_bar', 'newsletter', 'whatsapp_cta', 'countdown', 'popup_trigger'] },
   { label: 'Restaurant', types: ['menu'] },
   { label: 'Course & creator', types: ['digital_spotlight', 'pricing_table', 'social_links'] },
   { label: 'Booking', types: ['booking'] },
@@ -163,6 +164,7 @@ export const BLOCK_LABELS: Record<BlockType, string> = {
   newsletter: 'Newsletter signup',
   menu: 'Menu',
   social_links: 'Social links',
+  popup_trigger: 'Popup',
 };
 
 let counter = 0;
@@ -220,7 +222,7 @@ export function createDefaultBlock(type: BlockType): SiteBlock {
     case 'booking':
       return { id, type, data: { productId: '', heading: 'Book a session' } };
     case 'whatsapp_cta':
-      return { id, type, data: { heading: 'Questions before you order?', subtext: 'Usually replies in minutes', buttonLabel: 'Chat now' } };
+      return { id, type, data: { heading: 'Questions before you order?', subtext: 'Usually replies in minutes', buttonLabel: 'Chat now', lineId: '' } };
     case 'testimonials':
       return { id, type, data: { heading: 'What customers say', mode: 'real' } };
     case 'faq':
@@ -290,6 +292,14 @@ export function createDefaultBlock(type: BlockType): SiteBlock {
       };
     case 'social_links':
       return { id, type, data: { heading: 'Follow us', instagram: '', tiktok: '', twitter: '', facebook: '' } };
+    case 'popup_trigger':
+      return {
+        id, type, data: {
+          heading: 'Get 10% off your first order', subtext: 'Chat us on WhatsApp to claim it.',
+          ctaLabel: 'Chat now', imageUrl: '',
+          trigger: 'delay', delaySeconds: 8, scrollPercent: 50, dismissDays: 7,
+        },
+      };
     default:
       return { id, type, data: {} };
   }

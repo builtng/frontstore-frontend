@@ -9,6 +9,7 @@ import { storePath } from "../../utils/storePath";
 import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon, LinkedInIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 import ProductImage from "../../components/ProductImage";
+import { resilientFetch } from "../../utils/resilientFetch";
 
 import { Menu, X, BadgeCheck, MapPin, Star, Clock, Share2, Store as StoreIcon, Search, ShoppingBag, Calendar, ChevronRight, ChevronDown, ChevronLeft, Megaphone, Truck, Sparkles, ShieldCheck, Navigation, Lock, Plus, Minus, Copy, Instagram, Facebook, Award, Check, Quote, Phone, Mail, RotateCcw, Package, Bell, MessageCircle, UtensilsCrossed, Receipt } from "lucide-react";
 
@@ -950,8 +951,8 @@ export default function RetailStorefront({
                 </div>
               )}
 
-              <button className="ps-sheet-cta" onClick={() => setPendingWaUrl(orderReceipt.whatsapp_url)} style={{ background: '#25D366', color: '#fff', boxShadow: 'none' }}>
-                <MessageCircle size={16} /> Send receipt on WhatsApp
+              <button className="ps-sheet-cta" onClick={() => { setBag(false); setCheckoutStep('cart'); setOrderReceipt(null); }} style={{ background: 'none', border: '1px solid var(--border, #e2e8f0)', color: 'inherit', boxShadow: 'none' }}>
+                Continue Shopping
               </button>
             </div>
           )}
@@ -965,7 +966,7 @@ export default function RetailStorefront({
     setIsPaying(true);
     try {
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
-      const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
+      const res = await resilientFetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -1031,7 +1032,7 @@ export default function RetailStorefront({
     }
 
     try {
-      const res = await fetch(`${API_URL}/v1/public/store/${username}/orders`, {
+      const res = await resilientFetch(`${API_URL}/v1/public/store/${username}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -3170,6 +3171,7 @@ export default function RetailStorefront({
       <BankTransferPaymentModal
         open={!!bankTransferDetails}
         onClose={() => setBankTransferDetails(null)}
+        onPaid={() => { setBag(false); setCheckoutStep('cart'); setOrderReceipt(null); }}
         details={bankTransferDetails}
       />
       <WhatsAppDisclaimerModal

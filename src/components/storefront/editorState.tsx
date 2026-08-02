@@ -14,8 +14,8 @@ interface EditorStateValue {
   setDevice: (d: Device) => void;
   selectedId: string | null;
   setSelectedId: (id: string | null) => void;
-  leftTab: 'blocks' | 'layers' | 'pages';
-  setLeftTab: (t: 'blocks' | 'layers' | 'pages') => void;
+  leftTab: 'blocks' | 'layers' | 'pages' | 'saved';
+  setLeftTab: (t: 'blocks' | 'layers' | 'pages' | 'saved') => void;
   rightTab: 'content' | 'style';
   setRightTab: (t: 'content' | 'style') => void;
   clipboard: SiteBlock | null;
@@ -30,7 +30,7 @@ const EditorStateContext = createContext<EditorStateValue | null>(null);
 export function EditorStateProvider({ children }: { children: React.ReactNode }) {
   const [device, setDevice] = useState<Device>('desktop');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [leftTab, setLeftTab] = useState<'blocks' | 'layers' | 'pages'>('blocks');
+  const [leftTab, setLeftTab] = useState<'blocks' | 'layers' | 'pages' | 'saved'>('blocks');
   const [rightTab, setRightTab] = useState<'content' | 'style'>('content');
   const [clipboard, setClipboard] = useState<SiteBlock | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);

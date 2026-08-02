@@ -13,15 +13,17 @@ import {
   ArrowLeft, Loader2, Monitor, Tablet, Smartphone, Undo2, Redo2, Eye, X,
   GripVertical, Copy, Trash2, Settings2, Columns3, Rows3, MoveVertical, Minus,
   PanelTop, LayoutGrid, Star, Tags, Download, CreditCard, Calendar, MessageCircle,
-  Quote, HelpCircle, Timer, Image as ImageIcon, Images, Play, Search, Globe, Sparkles,
+  Quote, HelpCircle, Timer, Image as ImageIcon, Images, Play, Search, Globe,
   Layers, Lock, EyeOff, Palette, Files, Check,
-  ShieldCheck, Building2, BarChart3, Users, BookOpen, Table2, Megaphone, Mail, UtensilsCrossed, Share2,
+  ShieldCheck, Building2, BarChart3, Users, BookOpen, Table2, Megaphone, Mail, UtensilsCrossed, Share2, Bookmark, History,
 } from 'lucide-react';
-import BlockRenderer, { renderBlock, themeVars, SB_CSS } from '../../../../components/storefront/BlockRenderer';
+import BlockRenderer, { renderBlock, themeVars, SB_CSS, WhatsappLine } from '../../../../components/storefront/BlockRenderer';
 import BlockInspector from '../../../../components/storefront/BlockInspector';
 import StylePanel from '../../../../components/storefront/StylePanel';
 import LayersPanel from '../../../../components/storefront/LayersPanel';
 import PagesPanel, { SitePage } from '../../../../components/storefront/PagesPanel';
+import SavedSectionsPanel, { SavedSection } from '../../../../components/storefront/SavedSectionsPanel';
+import AiAssistPanel from '../../../../components/storefront/AiAssistPanel';
 import BlockContextMenu from '../../../../components/storefront/BlockContextMenu';
 import ConfirmDialog from '../../../../components/ConfirmDialog';
 import { EditorStateProvider, useEditorState } from '../../../../components/storefront/editorState';
@@ -42,6 +44,7 @@ const BLOCK_ICONS: Record<BlockType, React.ComponentType<any>> = {
   announcement_bar: Megaphone, newsletter: Mail,
   menu: UtensilsCrossed,
   social_links: Share2,
+  popup_trigger: MessageCircle,
 };
 
 const DEVICE_WIDTHS: Record<string, number> = { desktop: 920, tablet: 520, mobile: 375 };
@@ -54,6 +57,8 @@ interface SiteState {
 
 interface FullSitePage extends SitePage {
   layout: SiteBlock[];
+  seo_title: string | null;
+  seo_description: string | null;
 }
 
 interface SiteThemeOption {
@@ -63,6 +68,19 @@ interface SiteThemeOption {
   category: string;
   tokens: Record<string, any>;
   preview_colors: string[];
+}
+
+interface PageVersion {
+  id: string;
+  label: string | null;
+  is_publish_snapshot: boolean;
+  created_at: string;
+  layout: SiteBlock[];
+}
+
+interface SiteAnalytics {
+  total_views_30d: number;
+  pages: { id: string; name: string; slug: string; views_30d: number }[];
 }
 
 function isEditableTarget(el: EventTarget | null): boolean {
@@ -98,6 +116,7 @@ function StoreBuildEditorPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [faqs, setFaqs] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [whatsappLines, setWhatsappLines] = useState<WhatsappLine[]>([]);
 
   const [layout, setLayout] = useState<SiteBlock[]>([]);
   const [pages, setPages] = useState<FullSitePage[]>([]);
@@ -115,6 +134,30 @@ function StoreBuildEditorPage() {
   const [themes, setThemes] = useState<SiteThemeOption[]>([]);
   const [themesLoading, setThemesLoading] = useState(false);
   const [applyingThemeKey, setApplyingThemeKey] = useState<string | null>(null);
+  const [savedSections, setSavedSections] = useState<SavedSection[]>([]);
+  const [savedSectionsLoading, setSavedSectionsLoading] = useState(false);
+  const [savedSectionsLoaded, setSavedSectionsLoaded] = useState(false);
+  const [saveSectionTarget, setSaveSectionTarget] = useState<string | null>(null);
+  const [saveSectionName, setSaveSectionName] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiQuotaRemaining, setAiQuotaRemaining] = useState<number | null>(null);
+  const [showWhatsappModal, setShowWhatsappModal] = useState(false);
+  const [newLineLabel, setNewLineLabel] = useState('');
+  const [newLinePhone, setNewLinePhone] = useState('');
+  const [newLineDepartment, setNewLineDepartment] = useState('');
+  const [addingLine, setAddingLine] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showSeoModal, setShowSeoModal] = useState(false);
+  const [seoTitle, setSeoTitle] = useState('');
+  const [seoDescription, setSeoDescription] = useState('');
+  const [seoSaving, setSeoSaving] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [versions, setVersions] = useState<PageVersion[]>([]);
+  const [versionsLoading, setVersionsLoading] = useState(false);
+  const [restoringVersionId, setRestoringVersionId] = useState<string | null>(null);
+  const [showInsightsModal, setShowInsightsModal] = useState(false);
+  const [insights, setInsights] = useState<SiteAnalytics | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(false);
 
   const history = useRef<SiteBlock[][]>([]);
   const historyIndex = useRef(-1);
@@ -135,7 +178,7 @@ function StoreBuildEditorPage() {
 
     (async () => {
       try {
-        const [storeRes, siteRes, pagesRes, productsRes, categoriesRes, faqsRes, reviewsRes] = await Promise.all([
+        const [storeRes, siteRes, pagesRes, productsRes, categoriesRes, faqsRes, reviewsRes, whatsappLinesRes] = await Promise.all([
           fetch(`${apiUrl}/v1/store`, { headers: authHeaders(storedToken) }),
           fetch(`${apiUrl}/v1/store/sites/${siteId}`, { headers: authHeaders(storedToken) }),
           fetch(`${apiUrl}/v1/store/sites/${siteId}/pages`, { headers: authHeaders(storedToken) }),
@@ -143,6 +186,7 @@ function StoreBuildEditorPage() {
           fetch(`${apiUrl}/v1/categories`, { headers: authHeaders(storedToken) }),
           fetch(`${apiUrl}/v1/faqs`, { headers: authHeaders(storedToken) }),
           fetch(`${apiUrl}/v1/store/reviews`, { headers: authHeaders(storedToken) }),
+          fetch(`${apiUrl}/v1/store/whatsapp-lines`, { headers: authHeaders(storedToken) }),
         ]);
 
         const storeJson = await storeRes.json();
@@ -180,6 +224,7 @@ function StoreBuildEditorPage() {
         const categoriesJson = await categoriesRes.json().catch(() => null);
         const faqsJson = await faqsRes.json().catch(() => null);
         const reviewsJson = await reviewsRes.json().catch(() => null);
+        const whatsappLinesJson = await whatsappLinesRes.json().catch(() => null);
 
         if (cancelled) return;
 
@@ -189,6 +234,7 @@ function StoreBuildEditorPage() {
         setReviews((reviewsJson?.data || []).map((r: any) => ({
           reviewer_name: r.customer_name || 'Anonymous', body: r.comment || '', rating: r.rating,
         })));
+        setWhatsappLines(whatsappLinesJson?.data || []);
       } catch {
         if (!cancelled) toast.error('Network error loading Store Build.');
       } finally {
@@ -548,6 +594,239 @@ function StoreBuildEditorPage() {
     }
   };
 
+  const addWhatsappLine = async () => {
+    if (!token || !newLineLabel.trim() || !newLinePhone.trim()) return;
+    setAddingLine(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/whatsapp-lines`, {
+        method: 'POST', headers: authHeaders(token),
+        body: JSON.stringify({ label: newLineLabel.trim(), phone: newLinePhone.trim(), department: newLineDepartment.trim() || undefined }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setWhatsappLines((prev) => [...prev, json.data]);
+        setNewLineLabel(''); setNewLinePhone(''); setNewLineDepartment('');
+        toast.success('WhatsApp line added.');
+      } else {
+        toast.error(json.message || 'Could not add this line.');
+      }
+    } catch {
+      toast.error('Network error adding WhatsApp line.');
+    } finally {
+      setAddingLine(false);
+    }
+  };
+
+  const deleteWhatsappLine = async (id: string) => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/whatsapp-lines/${id}`, { method: 'DELETE', headers: authHeaders(token) });
+      if (res.ok) setWhatsappLines((prev) => prev.filter((l) => l.id !== id));
+      else toast.error('Could not delete this line.');
+    } catch {
+      toast.error('Network error deleting WhatsApp line.');
+    }
+  };
+
+  const openSeoModal = () => {
+    setSeoTitle(activePage?.seo_title || '');
+    setSeoDescription(activePage?.seo_description || '');
+    setShowSeoModal(true);
+  };
+
+  const saveSeo = async () => {
+    if (!token || !activePageId) return;
+    setSeoSaving(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}`, {
+        method: 'PUT', headers: authHeaders(token),
+        body: JSON.stringify({ seo_title: seoTitle || null, seo_description: seoDescription || null }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setPages((prev) => prev.map((p) => (p.id === activePageId ? { ...p, seo_title: json.data.seo_title, seo_description: json.data.seo_description } : p)));
+        toast.success('SEO details saved.');
+        setShowSeoModal(false);
+      } else {
+        toast.error(json.message || 'Could not save SEO details.');
+      }
+    } catch {
+      toast.error('Network error saving SEO details.');
+    } finally {
+      setSeoSaving(false);
+    }
+  };
+
+  const openHistoryModal = async () => {
+    setShowHistoryModal(true);
+    if (!token || !activePageId) return;
+    setVersionsLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/versions`, { headers: authHeaders(token) });
+      const json = await res.json();
+      if (res.ok) setVersions(json.data || []);
+      else toast.error(json.message || 'Could not load version history.');
+    } catch {
+      toast.error('Network error loading version history.');
+    } finally {
+      setVersionsLoading(false);
+    }
+  };
+
+  const saveVersionSnapshot = async () => {
+    if (!token || !activePageId) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/versions`, {
+        method: 'POST', headers: authHeaders(token), body: JSON.stringify({}),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setVersions((prev) => [json.data, ...prev]);
+        toast.success('Version saved.');
+      } else {
+        toast.error(json.message || 'Could not save this version.');
+      }
+    } catch {
+      toast.error('Network error saving version.');
+    }
+  };
+
+  const restoreVersion = async (versionId: string) => {
+    if (!token || !activePageId) return;
+    setRestoringVersionId(versionId);
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/versions/${versionId}/restore`, {
+        method: 'POST', headers: authHeaders(token),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        const restoredLayout = json.data.layout || [];
+        skipHistoryPush.current = true;
+        setLayout(restoredLayout);
+        history.current = [...history.current.slice(0, historyIndex.current + 1), restoredLayout];
+        historyIndex.current = history.current.length - 1;
+        setPages((prev) => prev.map((p) => (p.id === activePageId ? { ...p, layout: restoredLayout } : p)));
+        toast.success('Version restored to your draft — publish when ready.');
+        setShowHistoryModal(false);
+      } else {
+        toast.error(json.message || 'Could not restore this version.');
+      }
+    } catch {
+      toast.error('Network error restoring version.');
+    } finally {
+      setRestoringVersionId(null);
+    }
+  };
+
+  const openInsightsModal = async () => {
+    setShowInsightsModal(true);
+    if (!token) return;
+    setInsightsLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/analytics`, { headers: authHeaders(token) });
+      const json = await res.json();
+      if (res.ok) setInsights(json.data);
+      else toast.error(json.message || 'Could not load insights.');
+    } catch {
+      toast.error('Network error loading insights.');
+    } finally {
+      setInsightsLoading(false);
+    }
+  };
+
+  const loadSavedSections = async () => {
+    if (savedSectionsLoaded || !token) return;
+    setSavedSectionsLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sections`, { headers: authHeaders(token) });
+      const json = await res.json();
+      if (res.ok) { setSavedSections(json.data || []); setSavedSectionsLoaded(true); }
+      else toast.error(json.message || 'Could not load saved sections.');
+    } catch {
+      toast.error('Network error loading saved sections.');
+    } finally {
+      setSavedSectionsLoading(false);
+    }
+  };
+
+  const generateWithAi = async (prompt: string, scope: 'section' | 'page') => {
+    if (!token || !activePageId) return;
+    setAiGenerating(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/ai/generate`, {
+        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ prompt, scope }),
+      });
+      const json = await res.json();
+      if (typeof json.quota_remaining === 'number' || json.quota_remaining === null) {
+        setAiQuotaRemaining(json.quota_remaining);
+      }
+      if (res.ok) {
+        const newBlocks: SiteBlock[] = (json.data?.blocks || []).map((b: any) => {
+          const block = createDefaultBlock(b.type as BlockType);
+          block.data = { ...block.data, ...(b.data || {}) };
+          return block;
+        });
+        if (newBlocks.length === 0) {
+          toast.error('AI could not generate a usable result. Try rephrasing your prompt.');
+          return;
+        }
+        applyLayout((prev) => [...prev, ...newBlocks]);
+        setSelectedId(newBlocks[newBlocks.length - 1].id);
+        toast.success(scope === 'page' ? 'Page generated!' : 'Section added!');
+      } else {
+        toast.error(json.message || 'Could not generate this right now.');
+      }
+    } catch {
+      toast.error('Network error generating with AI.');
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
+  const insertSavedSection = (section: SavedSection) => {
+    const copy = createDefaultBlock(section.block.type);
+    copy.data = JSON.parse(JSON.stringify(section.block.data || {}));
+    if (section.block.style) copy.style = JSON.parse(JSON.stringify(section.block.style));
+    if (section.block.responsiveStyle) copy.responsiveStyle = JSON.parse(JSON.stringify(section.block.responsiveStyle));
+    if (section.block.visibility) copy.visibility = { ...section.block.visibility };
+    applyLayout((prev) => [...prev, copy]);
+    setSelectedId(copy.id);
+  };
+
+  const deleteSavedSection = async (id: string) => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sections/${id}`, { method: 'DELETE', headers: authHeaders(token) });
+      if (res.ok) setSavedSections((prev) => prev.filter((s) => s.id !== id));
+      else toast.error('Could not delete this section.');
+    } catch {
+      toast.error('Network error deleting section.');
+    }
+  };
+
+  const submitSaveSection = async () => {
+    if (!token || !saveSectionTarget || !saveSectionName.trim()) return;
+    const block = layout.find((b) => b.id === saveSectionTarget);
+    if (!block) { setSaveSectionTarget(null); return; }
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/sections`, {
+        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ name: saveSectionName.trim(), block }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setSavedSections((prev) => [json.data, ...prev]);
+        setSavedSectionsLoaded(true);
+        toast.success('Section saved.');
+        setSaveSectionTarget(null);
+        setSaveSectionName('');
+      } else {
+        toast.error(json.message || 'Could not save this section.');
+      }
+    } catch {
+      toast.error('Network error saving section.');
+    }
+  };
+
   const handleAttachDomain = async () => {
     if (!token || !domainInput.trim()) return;
     setDomainSaving(true);
@@ -589,6 +868,25 @@ function StoreBuildEditorPage() {
     }
   };
 
+  const generateCopy = async (kind: string, context: string): Promise<string | null> => {
+    if (!token) return null;
+    try {
+      const res = await fetch(`${apiUrl}/v1/store/ai/copy`, {
+        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ kind, context }),
+      });
+      const json = await res.json();
+      if (typeof json.quota_remaining === 'number' || json.quota_remaining === null) {
+        setAiQuotaRemaining(json.quota_remaining);
+      }
+      if (res.ok) return json.data?.text || null;
+      toast.error(json.message || 'Could not generate text.');
+      return null;
+    } catch {
+      toast.error('Network error generating text.');
+      return null;
+    }
+  };
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -624,10 +922,10 @@ function StoreBuildEditorPage() {
     }
   };
 
-  const inspectorCtx = useMemo(() => ({ products, categories, onUploadImage: uploadImage }), [products, categories]);
+  const inspectorCtx = useMemo(() => ({ products, categories, whatsappLines, onUploadImage: uploadImage, onGenerateCopy: generateCopy }), [products, categories, whatsappLines]);
   const renderCtx = useMemo(() => ({
-    store: store || {}, products, categories, faqs, reviews, apiUrl, editable: true, siteTheme: site?.theme,
-  }), [store, products, categories, faqs, reviews, apiUrl, site?.theme]);
+    store: store || {}, products, categories, faqs, reviews, apiUrl, editable: true, siteTheme: site?.theme, whatsappLines,
+  }), [store, products, categories, faqs, reviews, apiUrl, site?.theme, whatsappLines]);
 
   const selectedBlock = layout.find((b) => b.id === selectedId) || null;
   const activePage = pages.find((p) => p.id === activePageId) || null;
@@ -674,8 +972,19 @@ function StoreBuildEditorPage() {
             <button className="sbld-icon-btn" disabled={historyIndex.current <= 0} onClick={undo}><Undo2 size={15} /></button>
             <button className="sbld-icon-btn" disabled={historyIndex.current >= history.current.length - 1} onClick={redo}><Redo2 size={15} /></button>
             <div className="sbld-divider-v" />
-            <button className="sbld-btn ghost" onClick={openThemeModal}><Palette size={13} /> Theme</button>
-            <button className="sbld-btn ghost" onClick={() => setShowDomainModal(true)}><Globe size={13} /> Domain</button>
+            <div className="sbld-more-wrap">
+              <button className="sbld-btn ghost" onClick={() => setShowMoreMenu((v) => !v)}><Settings2 size={13} /> Site settings</button>
+              {showMoreMenu && (
+                <div className="sbld-more-menu" onMouseLeave={() => setShowMoreMenu(false)}>
+                  <button onClick={() => { setShowMoreMenu(false); openThemeModal(); }}><Palette size={13} /> Theme</button>
+                  <button onClick={() => { setShowMoreMenu(false); setShowWhatsappModal(true); }}><MessageCircle size={13} /> WhatsApp lines</button>
+                  <button onClick={() => { setShowMoreMenu(false); setShowDomainModal(true); }}><Globe size={13} /> Domain</button>
+                  <button onClick={() => { setShowMoreMenu(false); openSeoModal(); }}><Search size={13} /> SEO</button>
+                  <button onClick={() => { setShowMoreMenu(false); openHistoryModal(); }}><History size={13} /> Version history</button>
+                  <button onClick={() => { setShowMoreMenu(false); openInsightsModal(); }}><BarChart3 size={13} /> Insights</button>
+                </div>
+              )}
+            </div>
             <button className="sbld-btn ghost" onClick={() => setShowPreview(true)}><Eye size={13} /> Preview</button>
             <button className="sbld-btn primary" onClick={handlePublish} disabled={publishing || !activePageId}>{publishing ? 'Publishing…' : activePage?.is_published ? 'Republish' : 'Publish'}</button>
           </div>
@@ -693,6 +1002,9 @@ function StoreBuildEditorPage() {
               </button>
               <button className={`sbld-rail-tab${leftTab === 'pages' ? ' active' : ''}`} onClick={() => setLeftTab('pages')}>
                 <Files size={13} /> Pages
+              </button>
+              <button className={`sbld-rail-tab${leftTab === 'saved' ? ' active' : ''}`} onClick={() => { setLeftTab('saved'); loadSavedSections(); }}>
+                <Bookmark size={13} /> Saved
               </button>
             </div>
 
@@ -734,6 +1046,17 @@ function StoreBuildEditorPage() {
                   onDuplicate={duplicatePage}
                   onDelete={setDeletePageTarget}
                   onMove={movePage}
+                />
+              </div>
+            )}
+
+            {leftTab === 'saved' && (
+              <div className="sbld-rail-scroll">
+                <SavedSectionsPanel
+                  sections={savedSections}
+                  loading={savedSectionsLoading}
+                  onInsert={insertSavedSection}
+                  onDelete={deleteSavedSection}
                 />
               </div>
             )}
@@ -788,13 +1111,7 @@ function StoreBuildEditorPage() {
                   />
                 )
               ) : (
-                <div className="sbld-ai-chip">
-                  <Sparkles size={16} />
-                  <div>
-                    <div className="t">Aura layout assist</div>
-                    <div className="d">Coming soon — suggest a layout from your products</div>
-                  </div>
-                </div>
+                <AiAssistPanel generating={aiGenerating} quotaRemaining={aiQuotaRemaining} onGenerate={generateWithAi} />
               )}
             </div>
           </div>
@@ -819,6 +1136,7 @@ function StoreBuildEditorPage() {
           onPaste={() => pasteBlock(contextMenu.blockId)}
           onToggleVisibility={() => toggleBlockFullyHidden(contextMenu.blockId)}
           onToggleLock={() => toggleBlockLock(contextMenu.blockId)}
+          onSaveAsSection={() => { setSaveSectionTarget(contextMenu.blockId); setSaveSectionName(BLOCK_LABELS[contextMenuBlock.type]); }}
           onDelete={() => setDeleteTarget(contextMenu.blockId)}
           onClose={closeContextMenu}
         />
@@ -829,6 +1147,168 @@ function StoreBuildEditorPage() {
           <button className="sbld-preview-close" onClick={() => setShowPreview(false)}><X size={18} /></button>
           <div className="sbld-preview-frame">
             <BlockRenderer layout={layout} {...renderCtx} editable={false} />
+          </div>
+        </div>
+      )}
+
+      {saveSectionTarget && (
+        <div className="sbld-modal-overlay" onClick={() => setSaveSectionTarget(null)}>
+          <div className="sbld-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Save as reusable section</h2>
+            <p>Insert this block into any page or site from the Saved tab.</p>
+            <input
+              className="sbld-modal-input"
+              autoFocus
+              value={saveSectionName}
+              onChange={(e) => setSaveSectionName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') submitSaveSection(); }}
+            />
+            <div className="sbld-modal-actions">
+              <button onClick={() => setSaveSectionTarget(null)}>Cancel</button>
+              <button className="primary" onClick={submitSaveSection} disabled={!saveSectionName.trim()}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSeoModal && (
+        <div className="sbld-modal-overlay" onClick={() => setShowSeoModal(false)}>
+          <div className="sbld-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Page SEO</h2>
+            <p>How this page — {activePage?.name} — appears in search results and link previews.</p>
+
+            <div className="sbld-seo-score">
+              <div className="sbld-seo-score-item">
+                <div className={`n ${seoTitle.length >= 30 && seoTitle.length <= 60 ? 'good' : 'warn'}`}>{seoTitle.length}</div>
+                <div className="l">Title chars (30-60)</div>
+              </div>
+              <div className="sbld-seo-score-item">
+                <div className={`n ${seoDescription.length >= 70 && seoDescription.length <= 160 ? 'good' : 'warn'}`}>{seoDescription.length}</div>
+                <div className="l">Description chars (70-160)</div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase', color: '#7E93AE', display: 'block', marginBottom: 6 }}>Page title</label>
+              <input className="sbld-modal-input" style={{ marginBottom: 0 }} value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder={`${activePage?.name || ''} | ${store?.store_name || ''}`} />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase', color: '#7E93AE', display: 'block', marginBottom: 6 }}>Meta description</label>
+              <textarea className="sbld-modal-input" style={{ marginBottom: 0, minHeight: 80, resize: 'vertical' }} value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} />
+            </div>
+
+            <div className="sbld-modal-actions">
+              <button onClick={() => setShowSeoModal(false)}>Close</button>
+              <button className="primary" onClick={saveSeo} disabled={seoSaving}>{seoSaving ? 'Saving…' : 'Save'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showHistoryModal && (
+        <div className="sbld-modal-overlay" onClick={() => setShowHistoryModal(false)}>
+          <div className="sbld-modal sbld-theme-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Version history</h2>
+            <p>Every publish is saved automatically. Restore any version into your draft, then republish when you're happy with it.</p>
+
+            {versionsLoading ? (
+              <div className="sbld-theme-loading"><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /></div>
+            ) : (
+              <div className="sbld-version-list">
+                {versions.length === 0 && <p className="sbld-layers-empty">No versions yet — publish this page or save one manually.</p>}
+                {versions.map((v) => (
+                  <div key={v.id} className="sbld-version-row">
+                    <div>
+                      <div className="label">
+                        {v.label}
+                        {v.is_publish_snapshot && <span className="pub">Published</span>}
+                      </div>
+                      <div className="time">{new Date(v.created_at).toLocaleString()}</div>
+                    </div>
+                    <button onClick={() => restoreVersion(v.id)} disabled={restoringVersionId === v.id}>
+                      {restoringVersionId === v.id ? 'Restoring…' : 'Restore'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="sbld-modal-actions">
+              <button onClick={() => setShowHistoryModal(false)}>Close</button>
+              <button className="primary" onClick={saveVersionSnapshot}>Save current as version</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showInsightsModal && (
+        <div className="sbld-modal-overlay" onClick={() => setShowInsightsModal(false)}>
+          <div className="sbld-modal sbld-theme-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Insights</h2>
+            <p>Page views across this site over the last 30 days.</p>
+
+            {insightsLoading ? (
+              <div className="sbld-theme-loading"><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /></div>
+            ) : (
+              <>
+                <div className="sbld-insights-total">
+                  <b>{insights?.total_views_30d ?? 0}</b>
+                  <span>Total views, last 30 days</span>
+                </div>
+                <div className="sbld-insights-list">
+                  {(insights?.pages || []).length === 0 && <p className="sbld-layers-empty">No views recorded yet.</p>}
+                  {(insights?.pages || []).map((p) => {
+                    const max = Math.max(1, ...(insights?.pages || []).map((x) => x.views_30d));
+                    return (
+                      <div key={p.id} className="sbld-insights-row">
+                        <span className="name">{p.name}</span>
+                        <div className="sbld-insights-bar-track"><div className="sbld-insights-bar-fill" style={{ width: `${(p.views_30d / max) * 100}%` }} /></div>
+                        <span className="count">{p.views_30d}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            <div className="sbld-modal-actions">
+              <button onClick={() => setShowInsightsModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWhatsappModal && (
+        <div className="sbld-modal-overlay" onClick={() => setShowWhatsappModal(false)}>
+          <div className="sbld-modal sbld-theme-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>WhatsApp lines</h2>
+            <p>Route your WhatsApp CTA block to different numbers or departments — sales, support, a specific branch.</p>
+
+            <div className="sbld-wa-lines">
+              {whatsappLines.length === 0 && <p className="sbld-layers-empty">No extra lines yet — the WhatsApp CTA block uses your main store number until you add one.</p>}
+              {whatsappLines.map((line) => (
+                <div key={line.id} className="sbld-wa-line-row">
+                  <div>
+                    <b>{line.label}</b>
+                    <span>{line.phone}{line.department ? ` · ${line.department}` : ''}</span>
+                  </div>
+                  <button onClick={() => deleteWhatsappLine(line.id)}><Trash2 size={13} /></button>
+                </div>
+              ))}
+            </div>
+
+            <div className="sbld-wa-add-form">
+              <input className="sbld-modal-input" placeholder="Label, e.g. Sales" value={newLineLabel} onChange={(e) => setNewLineLabel(e.target.value)} style={{ marginBottom: 8 }} />
+              <input className="sbld-modal-input" placeholder="Phone, e.g. 2348012345678" value={newLinePhone} onChange={(e) => setNewLinePhone(e.target.value)} style={{ marginBottom: 8 }} />
+              <input className="sbld-modal-input" placeholder="Department (optional)" value={newLineDepartment} onChange={(e) => setNewLineDepartment(e.target.value)} />
+            </div>
+
+            <div className="sbld-modal-actions">
+              <button onClick={() => setShowWhatsappModal(false)}>Close</button>
+              <button className="primary" onClick={addWhatsappLine} disabled={addingLine || !newLineLabel.trim() || !newLinePhone.trim()}>
+                {addingLine ? 'Adding…' : 'Add line'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1038,6 +1518,19 @@ const SBLD_CSS = `
 .sbld-page-add-btn:hover { color: var(--s-text); border-color: var(--s-text-dim); }
 .sbld-page-add-form { margin-top: 4px; }
 
+.sbld-saved-list { display: flex; flex-direction: column; gap: 2px; }
+.sbld-saved-row { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 8px; cursor: pointer; color: var(--s-text); }
+.sbld-saved-row:hover { background: var(--s-bg-2); }
+.sbld-saved-row .ic { color: var(--s-text-dim); flex-shrink: 0; }
+.sbld-saved-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.sbld-saved-info .name { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sbld-saved-info .type { font-size: 10.5px; color: var(--s-text-dim); }
+.sbld-saved-actions { display: flex; gap: 1px; flex-shrink: 0; opacity: 0; transition: opacity 0.1s ease; }
+.sbld-saved-row:hover .sbld-saved-actions { opacity: 1; }
+.sbld-saved-actions button { width: 22px; height: 22px; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: var(--s-text-dim); background: none; border: none; cursor: pointer; }
+.sbld-saved-actions button:hover { background: var(--s-bg-3); color: var(--s-text); }
+.sbld-saved-actions button.danger:hover { color: #f87171; }
+
 .sbld-layers-empty { font-size: 12.5px; color: var(--s-text-dim); padding: 8px 4px; }
 .sbld-layers-list { display: flex; flex-direction: column; gap: 2px; }
 .sbld-layer-row { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px; cursor: pointer; color: var(--s-text); }
@@ -1087,6 +1580,36 @@ const SBLD_CSS = `
 .sbld-ctx-item.danger { color: #f87171; }
 .sbld-ctx-sep { height: 1px; background: var(--s-border, #1E3350); margin: 4px 2px; }
 
+.sbld-more-wrap { position: relative; }
+.sbld-more-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 200; width: 190px; background: var(--s-bg, #0A192F); border: 1px solid var(--s-border, #1E3350); border-radius: 10px; padding: 5px; box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 1px; }
+.sbld-more-menu button { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 7px; background: none; border: none; color: var(--s-text, #EAF1F8); font-size: 12.5px; font-weight: 600; cursor: pointer; text-align: left; }
+.sbld-more-menu button:hover { background: var(--s-bg-2, #112640); }
+
+.sbld-seo-score { display: flex; gap: 10px; margin-bottom: 14px; }
+.sbld-seo-score-item { flex: 1; padding: 10px; border-radius: 10px; background: #112640; text-align: center; }
+.sbld-seo-score-item .n { font-size: 18px; font-weight: 800; }
+.sbld-seo-score-item .n.good { color: #25D366; }
+.sbld-seo-score-item .n.warn { color: #F0A554; }
+.sbld-seo-score-item .l { font-size: 10px; color: #7E93AE; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+
+.sbld-version-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 320px; overflow-y: auto; }
+.sbld-version-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px; background: #112640; border-radius: 8px; }
+.sbld-version-row .label { font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.sbld-version-row .label .pub { font-size: 9.5px; font-weight: 800; text-transform: uppercase; color: #25D366; background: rgba(37,211,102,0.15); padding: 2px 6px; border-radius: 999px; }
+.sbld-version-row .time { font-size: 10.5px; color: #7E93AE; margin-top: 2px; }
+.sbld-version-row button { flex-shrink: 0; font-size: 11.5px; font-weight: 700; color: #64FFDA; background: none; border: 1px solid rgba(100,255,218,0.35); border-radius: 7px; padding: 6px 10px; cursor: pointer; }
+.sbld-version-row button:disabled { opacity: 0.5; cursor: wait; }
+
+.sbld-insights-total { text-align: center; padding: 16px; background: #112640; border-radius: 12px; margin-bottom: 14px; }
+.sbld-insights-total b { display: block; font-size: 28px; font-weight: 800; color: #25D366; }
+.sbld-insights-total span { font-size: 11px; color: #7E93AE; }
+.sbld-insights-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; margin-bottom: 8px; }
+.sbld-insights-row { display: flex; align-items: center; gap: 10px; padding: 9px 10px; background: #112640; border-radius: 8px; }
+.sbld-insights-row .name { flex: 1; font-size: 12.5px; font-weight: 600; }
+.sbld-insights-bar-track { flex: 2; height: 6px; background: #1E3350; border-radius: 999px; overflow: hidden; }
+.sbld-insights-bar-fill { height: 100%; background: linear-gradient(90deg, #25D366, #64FFDA); }
+.sbld-insights-row .count { font-size: 12px; font-weight: 700; width: 34px; text-align: right; flex-shrink: 0; }
+
 .sbld-preview-overlay { position: fixed; inset: 0; z-index: 3000; background: #f3f5f8; display: flex; flex-direction: column; }
 .sbld-preview-close { position: fixed; top: 16px; right: 16px; z-index: 3001; width: 36px; height: 36px; border-radius: 999px; background: #0A192F; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .sbld-preview-frame { flex: 1; overflow-y: auto; }
@@ -1115,6 +1638,14 @@ const SBLD_CSS = `
 .sbld-theme-card .swatches span { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(255,255,255,0.15); }
 .sbld-theme-card .name { font-size: 12.5px; font-weight: 700; color: #EAF1F8; }
 .sbld-theme-card .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: #25D366; }
+
+.sbld-wa-lines { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; max-height: 180px; overflow-y: auto; }
+.sbld-wa-line-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; background: #112640; border-radius: 8px; }
+.sbld-wa-line-row b { display: block; font-size: 12.5px; }
+.sbld-wa-line-row span { font-size: 11px; color: #7E93AE; }
+.sbld-wa-line-row button { background: none; border: none; color: #7E93AE; cursor: pointer; padding: 4px; }
+.sbld-wa-line-row button:hover { color: #f87171; }
+.sbld-wa-add-form { border-top: 1px solid #1E3350; padding-top: 12px; margin-bottom: 14px; }
 
 ${SB_CSS}
 `;

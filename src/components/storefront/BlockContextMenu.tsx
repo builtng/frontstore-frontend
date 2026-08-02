@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Copy, ClipboardPaste, Eye, EyeOff, Lock, Unlock, Trash2 } from 'lucide-react';
+import { Copy, ClipboardPaste, Eye, EyeOff, Lock, Unlock, Trash2, Bookmark } from 'lucide-react';
 
-export default function BlockContextMenu({ x, y, hidden, locked, canPaste, onDuplicate, onCopy, onPaste, onToggleVisibility, onToggleLock, onDelete, onClose }: {
+export default function BlockContextMenu({ x, y, hidden, locked, canPaste, onDuplicate, onCopy, onPaste, onToggleVisibility, onToggleLock, onSaveAsSection, onDelete, onClose }: {
   x: number; y: number; hidden: boolean; locked: boolean; canPaste: boolean;
   onDuplicate: () => void; onCopy: () => void; onPaste: () => void;
-  onToggleVisibility: () => void; onToggleLock: () => void; onDelete: () => void; onClose: () => void;
+  onToggleVisibility: () => void; onToggleLock: () => void; onSaveAsSection: () => void; onDelete: () => void; onClose: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -40,6 +40,7 @@ export default function BlockContextMenu({ x, y, hidden, locked, canPaste, onDup
       {canPaste && item(<ClipboardPaste size={14} />, 'Paste after', onPaste)}
       {item(locked ? <Unlock size={14} /> : <Lock size={14} />, locked ? 'Unlock' : 'Lock', onToggleLock)}
       {item(hidden ? <Eye size={14} /> : <EyeOff size={14} />, hidden ? 'Show' : 'Hide', onToggleVisibility)}
+      {item(<Bookmark size={14} />, 'Save as section', onSaveAsSection)}
       <div className="sbld-ctx-sep" />
       {item(<Trash2 size={14} />, 'Delete', onDelete, true)}
     </div>

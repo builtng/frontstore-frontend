@@ -12,6 +12,7 @@ import { storePath } from "../../utils/storePath";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 import ProductImage from "../../components/ProductImage";
+import { resilientFetch } from "../../utils/resilientFetch";
 
 const EXTENSION_SUBSTRING_ERROR = "Cannot read properties of undefined (reading 'substring')";
 
@@ -932,7 +933,7 @@ export default function BeautyStorefront({
     }
 
     try {
-      const res = await fetch(`${API_URL}/v1/public/store/${store.username}/orders`, {
+      const res = await resilientFetch(`${API_URL}/v1/public/store/${store.username}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -985,7 +986,7 @@ export default function BeautyStorefront({
     setIsPaying(true);
     const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     try {
-      const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
+      const res = await resilientFetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -1745,6 +1746,7 @@ export default function BeautyStorefront({
       <BankTransferPaymentModal
         open={!!bankTransferDetails}
         onClose={() => setBankTransferDetails(null)}
+        onPaid={() => { setBagOpen(false); setCheckoutStep('cart'); setOrderReceipt(null); }}
         details={bankTransferDetails}
       />
       <WhatsAppDisclaimerModal
@@ -2409,8 +2411,8 @@ export default function BeautyStorefront({
                 <button className="ps-sheet-cta" onClick={handlePayOnline} disabled={isPaying} style={{ marginTop: 20 }}>
                   {isPaying ? "Initializing secure payment..." : "Pay Securely Online Now"}
                 </button>
-                <button className="ps-sheet-cta" onClick={() => setPendingWaUrl(orderReceipt.whatsapp_url)} style={{ marginTop: 10, background: '#25D366', color: '#fff', boxShadow: 'none' }}>
-                  <MessageCircle size={16} /> Send receipt on WhatsApp
+                <button className="ps-sheet-cta" onClick={() => { setBagOpen(false); setCheckoutStep('cart'); setOrderReceipt(null); }} style={{ marginTop: 10, background: 'none', border: '1px solid var(--line, #e2e8f0)', color: 'inherit', boxShadow: 'none' }}>
+                  Continue Shopping
                 </button>
               </div>
             ) : checkoutStep === 'details' ? (

@@ -14,7 +14,7 @@ export const darkFieldStyle: React.CSSProperties = {
   fontFamily: 'inherit',
 };
 
-export function Field({ label, children }: { label: string; children: React.ReactNode }) {
+export function Field({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase', color: '#7E93AE' }}>{label}</label>

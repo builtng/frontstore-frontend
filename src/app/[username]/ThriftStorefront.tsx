@@ -16,6 +16,7 @@ import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 import ProductImage from "../../components/ProductImage";
+import { resilientFetch } from "../../utils/resilientFetch";
 
 import "./ThriftStorefront.css";
 
@@ -898,7 +899,7 @@ export default function ThriftStorefront({
 
     // 2. Submit order for items in the bag
     try {
-      const res = await fetch(`${API_URL}/v1/public/store/${username}/orders`, {
+      const res = await resilientFetch(`${API_URL}/v1/public/store/${username}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -952,7 +953,7 @@ export default function ThriftStorefront({
     setIsPaying(true);
     const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     try {
-      const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
+      const res = await resilientFetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -1903,7 +1904,7 @@ export default function ThriftStorefront({
         {checkoutStep === 'success' && orderReceipt && (
           <div className="th-receipt" style={{ padding: "20px 0" }}>
             <div className="th-receipt-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><Receipt size={48} style={{ color: 'var(--brand)' }} /></div>
-            <h2 className="th-receipt-title" style={{ fontFamily: 'Fraunces', fontSize: 24, textAlign: 'center', marginBottom: 8 }}>Order Placed!</h2>
+            <h2 className="th-receipt-title" style={{ fontFamily: 'Fraunces', fontSize: 24, textAlign: 'center', marginBottom: 8 }}>{orderReceipt.order.payment_status === 'paid' ? 'Order Confirmed!' : 'Order Placed!'}</h2>
             <p className="th-receipt-sub" style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', marginBottom: 20 }}>Your order has been placed. Tap below to track it and notify the store on WhatsApp.</p>
             <div className="th-receipt-detail" style={{ background: 'var(--bg)', borderRadius: 12, padding: 16, border: '1px solid var(--line)', marginBottom: 20 }}>
               <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Order #</span><b>{orderReceipt.order.order_number}</b></div>
@@ -1911,11 +1912,6 @@ export default function ThriftStorefront({
               <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Payment</span><b>{orderReceipt.order.payment_status}</b></div>
               <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>Total</span><b>{money(orderReceipt.order.total_amount)}</b></div>
             </div>
-            {orderReceipt.whatsapp_url && (
-              <button className="th-wa-btn" style={{ background: '#25D366', color: '#fff', padding: '13px', width: '100%', fontWeight: 700, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 10 }} onClick={() => setPendingWaUrl(orderReceipt.whatsapp_url)}>
-                <WhatsAppIcon size={18} /> Confirm Order on WhatsApp
-              </button>
-            )}
             <button className="ps-sheet-cta" onClick={handlePayOnline} disabled={isPaying} style={{ background: 'var(--brand)', color: '#fff', padding: '13px', width: '100%', fontWeight: 700, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 10 }}>
               {isPaying ? 'Redirecting to payment...' : 'Pay Securely Online Now'}
             </button>
@@ -1934,6 +1930,7 @@ export default function ThriftStorefront({
       <BankTransferPaymentModal
         open={!!bankTransferDetails}
         onClose={() => setBankTransferDetails(null)}
+        onPaid={() => { setBag(false); setCheckoutStep('cart'); setOrderReceipt(null); }}
         details={bankTransferDetails}
       />
       <WhatsAppDisclaimerModal open={!!pendingWaUrl} storeName={store.store_name} isVerified={!!store.is_verified}

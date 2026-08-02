@@ -16,6 +16,7 @@ import { calculateShippingFee } from "../../utils/shippingFee";
 import { InstagramIcon, TikTokIcon } from "../../components/SocialIcons";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 import ProductImage from "../../components/ProductImage";
+import { resilientFetch } from "../../utils/resilientFetch";
 
 // --- Types & Interfaces ---
 interface StoreLink {
@@ -819,7 +820,7 @@ export default function TechStorefront({
     }
 
     try {
-      const res = await fetch(`${API_URL}/v1/public/store/${STORE.slug}/orders`, {
+      const res = await resilientFetch(`${API_URL}/v1/public/store/${STORE.slug}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -872,7 +873,7 @@ export default function TechStorefront({
     setIsPaying(true);
     const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api').replace(/\/+$/, '');
     try {
-      const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
+      const res = await resilientFetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -1531,6 +1532,7 @@ export default function TechStorefront({
       <BankTransferPaymentModal
         open={!!bankTransferDetails}
         onClose={() => setBankTransferDetails(null)}
+        onPaid={() => { setBagOpen(false); setCheckoutStep('cart'); setOrderReceipt(null); }}
         details={bankTransferDetails}
       />
       <WhatsAppDisclaimerModal
@@ -1969,7 +1971,7 @@ export default function TechStorefront({
               <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(37, 211, 102, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#25d366' }}>
                 <Check size={28} />
               </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Order Placed!</h3>
+              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>{orderReceipt.order.payment_status === 'paid' ? 'Order Confirmed!' : 'Order Placed!'}</h3>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>{STORE.name} will reach out shortly via WhatsApp.</p>
               <div style={{ background: '#111b21', padding: 14, borderRadius: 10, textAlign: 'left', marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span style={{ color: 'var(--muted)' }}>Order ID</span><b>{orderReceipt.order.order_number}</b></div>
@@ -1977,11 +1979,6 @@ export default function TechStorefront({
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span style={{ color: 'var(--muted)' }}>Payment</span><b>{orderReceipt.order.payment_status}</b></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span style={{ color: 'var(--muted)' }}>Total Amount</span><b>{money(orderReceipt.order.total_amount)}</b></div>
               </div>
-              {orderReceipt.whatsapp_url && (
-                <button className="ps-sheet-cta" style={{ background: '#25d366', color: '#fff', border: 'none', marginBottom: 10 }} onClick={() => setPendingWaUrl(orderReceipt.whatsapp_url)}>
-                  <WhatsAppIcon size={18} /> Track on WhatsApp
-                </button>
-              )}
               <button className="ps-sheet-cta" style={{ background: 'var(--brand)' }} onClick={handlePayOnline} disabled={isPaying}>
                 {isPaying ? 'Redirecting to payment...' : 'Pay Online Now'}
               </button>

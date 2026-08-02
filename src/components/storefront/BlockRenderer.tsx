@@ -28,6 +28,14 @@ export interface SiteThemeTokens {
   appliedThemeKey?: string;
 }
 
+export interface WhatsappLine {
+  id: string;
+  label: string;
+  phone: string;
+  department?: string | null;
+  is_default?: boolean;
+}
+
 export interface RenderContext {
   store: RenderStore;
   products: any[];
@@ -37,6 +45,7 @@ export interface RenderContext {
   apiUrl: string;
   editable?: boolean;
   siteTheme?: SiteThemeTokens | null;
+  whatsappLines?: WhatsappLine[];
 }
 
 function formatMoney(amount: any, currency?: string | null): string {
@@ -52,6 +61,16 @@ function formatMoney(amount: any, currency?: string | null): string {
 function waLink(phone: string | null | undefined, text: string): string {
   const digits = (phone || '').replace(/[^\d]/g, '');
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+/** Resolves a block's chosen WhatsApp line to a phone number, falling back
+ * to the store's main WhatsApp number when no line is picked or found. */
+function resolveWaPhone(ctx: RenderContext, lineId?: string): string | null | undefined {
+  if (lineId) {
+    const line = (ctx.whatsappLines || []).find((l) => l.id === lineId);
+    if (line) return line.phone;
+  }
+  return ctx.store.whatsapp_phone;
 }
 
 const CARD_SHADOWS: Record<string, string> = {
@@ -356,7 +375,7 @@ export function renderBlock(block: SiteBlock, ctx: RenderContext): React.ReactNo
           </div>
           <a
             className="sb-wa-btn"
-            href={ctx.editable ? undefined : waLink(ctx.store.whatsapp_phone, `Hi ${ctx.store.store_name || ''}!`)}
+            href={ctx.editable ? undefined : waLink(resolveWaPhone(ctx, data.lineId), `Hi ${ctx.store.store_name || ''}!`)}
             target="_blank" rel="noreferrer"
             onClick={ctx.editable ? (e) => e.preventDefault() : undefined}
           >
@@ -590,6 +609,24 @@ export function renderBlock(block: SiteBlock, ctx: RenderContext): React.ReactNo
       );
     }
 
+    case 'popup_trigger': {
+      const triggerLabel = data.trigger === 'exit_intent' ? 'when a visitor is about to leave'
+        : data.trigger === 'scroll' ? `after scrolling ${data.scrollPercent || 50}% down the page`
+        : `${data.delaySeconds || 8}s after the page loads`;
+      if (ctx.editable) {
+        return (
+          <div className="sb-popup-placeholder">
+            <MessageCircle size={16} />
+            <div>
+              <b>{data.heading || 'Popup'}</b>
+              <span>Shows {triggerLabel}. Not shown while editing.</span>
+            </div>
+          </div>
+        );
+      }
+      return <PopupTriggerBlock block={block} data={data} ctx={ctx} />;
+    }
+
     default:
       return null;
   }
@@ -628,6 +665,60 @@ function NewsletterBlock({ data, ctx }: { data: any; ctx: RenderContext }) {
           <button type="submit" disabled={submitting}>{submitting ? 'Adding…' : (data.buttonLabel || 'Subscribe')}</button>
         </form>
       )}
+    </div>
+  );
+}
+
+function PopupTriggerBlock({ block, data, ctx }: { block: SiteBlock; data: any; ctx: RenderContext }) {
+  const [open, setOpen] = useState(false);
+  const dismissKey = `sb-popup-dismissed:${block.id}`;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const dismissedAt = Number(window.localStorage.getItem(dismissKey) || 0);
+    const dismissDays = data.dismissDays ?? 7;
+    if (dismissedAt && Date.now() - dismissedAt < dismissDays * 86400000) return;
+
+    if (data.trigger === 'exit_intent') {
+      const handler = (e: MouseEvent) => { if (e.clientY <= 0) { setOpen(true); document.removeEventListener('mouseleave', handler); } };
+      document.addEventListener('mouseleave', handler);
+      return () => document.removeEventListener('mouseleave', handler);
+    }
+
+    if (data.trigger === 'scroll') {
+      const handler = () => {
+        const pct = (window.scrollY / Math.max(document.body.scrollHeight - window.innerHeight, 1)) * 100;
+        if (pct >= (data.scrollPercent || 50)) { setOpen(true); window.removeEventListener('scroll', handler); }
+      };
+      window.addEventListener('scroll', handler);
+      return () => window.removeEventListener('scroll', handler);
+    }
+
+    const timer = setTimeout(() => setOpen(true), (data.delaySeconds ?? 8) * 1000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const close = () => {
+    setOpen(false);
+    if (typeof window !== 'undefined') window.localStorage.setItem(dismissKey, String(Date.now()));
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="sb-popup-overlay" onClick={close}>
+      <div className="sb-popup-card" onClick={(e) => e.stopPropagation()}>
+        <button className="sb-popup-close" onClick={close}><CloseIcon size={16} /></button>
+        {data.imageUrl && <img src={data.imageUrl} alt="" />}
+        <b>{data.heading}</b>
+        {data.subtext && <p>{data.subtext}</p>}
+        {data.ctaLabel && (
+          <a className="sb-mini-btn" href={waLink(resolveWaPhone(ctx, data.lineId), `Hi ${ctx.store.store_name || ''}!`)} target="_blank" rel="noreferrer" onClick={close}>
+            {data.ctaLabel}
+          </a>
+        )}
+      </div>
     </div>
   );
 }
@@ -962,4 +1053,15 @@ export const SB_CSS = `
 .sb-social-links { text-align: center; padding: 28px 20px; }
 .sb-social-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .sb-social-row a { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--button-radius, 999px); background: var(--tint); color: var(--brand-deep); font-size: 12.5px; font-weight: 600; text-decoration: none; }
+
+.sb-popup-placeholder { display: flex; align-items: center; gap: 10px; margin: 20px; padding: 14px; border: 1px dashed #cbd5e1; border-radius: 12px; color: #64748b; }
+.sb-popup-placeholder svg { color: var(--brand); flex-shrink: 0; }
+.sb-popup-placeholder b { display: block; font-size: 13px; color: #334155; }
+.sb-popup-placeholder span { font-size: 11.5px; }
+.sb-popup-overlay { position: fixed; inset: 0; z-index: 5000; background: rgba(10,25,47,0.55); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.sb-popup-card { position: relative; width: min(100%, 380px); background: #fff; border-radius: 18px; padding: 28px 24px 24px; text-align: center; }
+.sb-popup-card img { width: 100%; border-radius: 12px; margin-bottom: 14px; max-height: 160px; object-fit: cover; }
+.sb-popup-card b { display: block; font-size: 17px; margin-bottom: 6px; }
+.sb-popup-card p { font-size: 13px; color: #64748b; margin: 0 0 16px; }
+.sb-popup-close { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 50%; background: #f1f5f9; border: none; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 `;

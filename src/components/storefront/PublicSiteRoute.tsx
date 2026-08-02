@@ -75,6 +75,7 @@ export function PublicSiteView({ data }: { data: any }) {
         apiUrl={apiUrl}
         editable={false}
         siteTheme={data.site.theme}
+        whatsappLines={data.whatsapp_lines}
       />
     </div>
   );

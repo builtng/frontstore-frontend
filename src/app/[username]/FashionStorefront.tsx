@@ -15,6 +15,7 @@ import { InstagramIcon, TikTokIcon, FacebookIcon, LinkedInIcon, TwitterXIcon } f
 import { calculateShippingFee } from "../../utils/shippingFee";
 import { captureAffiliateRef, getPersistedAffiliateRef } from "../../lib/affiliate";
 import ProductImage from "../../components/ProductImage";
+import { resilientFetch } from "../../utils/resilientFetch";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface StoreData {
@@ -266,7 +267,7 @@ export default function FashionStorefront({
     setCheckoutLoading(true);
     try {
       const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
-      const res = await fetch(`${API_URL}/v1/public/store/${username}/orders`, {
+      const res = await resilientFetch(`${API_URL}/v1/public/store/${username}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -290,7 +291,7 @@ export default function FashionStorefront({
     setIsPaying(true);
     try {
       const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
-      const res = await fetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
+      const res = await resilientFetch(`${API_URL}/v1/public/orders/${orderReceipt.order.id}/initialize-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -683,7 +684,7 @@ export default function FashionStorefront({
               <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#e8f5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#2e7d32' }}>
                 <Check size={28} />
               </div>
-              <div style={{ fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 600, marginBottom: 8 }}>Order Placed!</div>
+              <div style={{ fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 600, marginBottom: 8 }}>{orderReceipt.order?.payment_status === 'paid' ? 'Order Confirmed!' : 'Order Placed!'}</div>
               <div style={{ fontSize: 13, color: '#6e545d', lineHeight: 1.6, marginBottom: 16 }}>
                 Your order has been placed. Tap below to track it and notify {store.store_name} on WhatsApp.
               </div>
@@ -693,11 +694,6 @@ export default function FashionStorefront({
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Payment</span><b>{orderReceipt.order?.payment_status}</b></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>Total</span><b>{money(orderReceipt.order?.total_amount)}</b></div>
               </div>
-              {orderReceipt.whatsapp_url && (
-                <button className="ps-wa-cta" onClick={() => setPendingWaUrl(orderReceipt.whatsapp_url)}>
-                  <WhatsAppIcon size={18} /> Confirm Order on WhatsApp
-                </button>
-              )}
               <button className="ps-sheet-cta" style={{ marginTop: 10 }} onClick={handlePayOnline} disabled={isPaying}>
                 {isPaying ? 'Redirecting to payment...' : 'Pay Securely Online Now'}
               </button>
@@ -1278,6 +1274,7 @@ export default function FashionStorefront({
       <BankTransferPaymentModal
         open={!!bankTransferDetails}
         onClose={() => setBankTransferDetails(null)}
+        onPaid={() => { setBagOpen(false); setCheckoutStep('cart'); setOrderReceipt(null); }}
         details={bankTransferDetails}
       />
 
