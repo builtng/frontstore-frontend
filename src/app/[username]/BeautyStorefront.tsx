@@ -1907,7 +1907,7 @@ export default function BeautyStorefront({
             <button className="pd-search" onClick={() => setSearch(true)}><SearchIcon size={17} /> <span>Search {store.store_name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={copyUrl} aria-label="Share"><Share2 size={18} /></button>
-              <button className="pd-hicon" onClick={() => setBagOpen(true)} aria-label="Bag">
+              <button className="pd-hicon" onClick={() => { setBagOpen(true); setCheckoutStep('cart'); }} aria-label="Bag">
                 <ShoppingBag size={18} />{bagCount > 0 && <i>{bagCount}</i>}
               </button>
               <button className="pd-head-book" onClick={() => openBooking()}><Calendar size={16} /> Book a treatment</button>
@@ -2337,7 +2337,7 @@ export default function BeautyStorefront({
           {(store.storefront_sections || []).includes("services") && (
             <button className={page === "services" ? "on" : ""} onClick={() => go("services")}><Calendar size={21} /><span>Services</span></button>
           )}
-          <button className="ps-fab" onClick={() => setBagOpen(true)} aria-label="Cart">
+          <button className="ps-fab" onClick={() => { setBagOpen(true); setCheckoutStep('cart'); }} aria-label="Cart">
             <span className="ps-fab-ring" />
             <ShoppingBag size={22} />
             {bagCount > 0 && <i className="ps-fab-badge">{bagCount}</i>}

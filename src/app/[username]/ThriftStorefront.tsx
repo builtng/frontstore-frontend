@@ -2056,7 +2056,7 @@ export default function ThriftStorefront({
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {store.store_name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
-              <button className="pd-hicon" onClick={() => setBag(true)} aria-label="Bag">
+              <button className="pd-hicon" onClick={() => { setBag(true); setCheckoutStep('cart'); }} aria-label="Bag">
                 <ShoppingBag size={18} />{bagCount > 0 && <i>{bagCount}</i>}
               </button>
               <button className="pd-head-book" onClick={primaryCta.run}><primaryCta.Icon size={16} /> {primaryCta.label}</button>
@@ -2282,7 +2282,7 @@ export default function ThriftStorefront({
                             <li><Truck size={14} /> Delivery across Lagos in 2 to 4 days</li>
                             {store.location && <li><MapPin size={14} /> Pickup available in {store.location}</li>}
                           </ul>
-                          <button className="svc-book-cta" onClick={() => setBag(true)}><ShoppingBag size={16} /> View bag {bagCount > 0 ? ` (${bagCount})` : ""}</button>
+                          <button className="svc-book-cta" onClick={() => { setBag(true); setCheckoutStep('cart'); }}><ShoppingBag size={16} /> View bag {bagCount > 0 ? ` (${bagCount})` : ""}</button>
                         </div>
                       </aside>
 
@@ -2672,7 +2672,7 @@ export default function ThriftStorefront({
         <nav className="ps-bottom">
           <button className={page === "home" ? "on" : ""} onClick={() => go("home")}><StoreIcon size={21} /><span>Home</span></button>
           <button className={page === "products" ? "on" : ""} onClick={() => go("products")}><Package size={21} /><span>Products</span></button>
-          <button className="ps-fab" onClick={() => setBag(true)} aria-label="Cart"><span className="ps-fab-ring" /><ShoppingBag size={22} />{bagCount > 0 && <i className="ps-fab-badge">{bagCount}</i>}</button>
+          <button className="ps-fab" onClick={() => { setBag(true); setCheckoutStep('cart'); }} aria-label="Cart"><span className="ps-fab-ring" /><ShoppingBag size={22} />{bagCount > 0 && <i className="ps-fab-badge">{bagCount}</i>}</button>
           <button className={page === "portfolio" ? "on" : ""} onClick={() => go("portfolio")}><Camera size={21} /><span>Portfolio</span></button>
           <button className={page === "reviews" ? "on" : ""} onClick={() => go("reviews")}><Star size={21} /><span>Reviews</span></button>
         </nav>

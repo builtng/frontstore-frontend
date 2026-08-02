@@ -437,9 +437,32 @@ export default function FashionStorefront({
       <div className="ps-sheet">
         <div className="ps-sheet-handle" />
         <div className="ps-sheet-head">
-          <span className="ps-sheet-title">
-            {checkoutStep === 'cart' ? `Your Bag (${bagCount})` : checkoutStep === 'details' ? 'Your Details' : 'Order Confirmed'}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {checkoutStep === 'details' && (
+              <button
+                type="button"
+                onClick={() => setCheckoutStep('cart')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: 'var(--brand)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  marginRight: 6
+                }}
+              >
+                <ChevronLeft size={16} /> Back to Bag
+              </button>
+            )}
+            <span className="ps-sheet-title">
+              {checkoutStep === 'cart' ? `Your Bag (${bagCount})` : checkoutStep === 'details' ? 'Your Details' : 'Order Confirmed'}
+            </span>
+          </div>
           <button className="ps-sheet-close" onClick={() => setBagOpen(false)}><X size={20} /></button>
         </div>
         <div className="ps-sheet-body">
@@ -1230,7 +1253,7 @@ export default function FashionStorefront({
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {store.is_verified && <BadgeCheck size={18} style={{ color: 'var(--brand)' }} />}
-          <button className="ps-icon-btn" onClick={() => setBagOpen(true)} aria-label="Open bag">
+          <button className="ps-icon-btn" onClick={() => { setBagOpen(true); setCheckoutStep('cart'); }} aria-label="Open bag">
             <ShoppingBag size={20} />
             {bagCount > 0 && <span className="ps-bag-badge">{bagCount}</span>}
           </button>

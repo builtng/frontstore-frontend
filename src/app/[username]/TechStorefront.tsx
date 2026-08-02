@@ -1642,7 +1642,7 @@ export default function TechStorefront({
             <button className="pd-search" onClick={() => setSearch(true)}><Search size={17} /> <span>Search {STORE.name}</span></button>
             <div className="pd-header-actions">
               <button className="pd-hicon" onClick={() => setShare(true)} aria-label="Share"><Share2 size={18} /></button>
-              <button className="pd-hicon" onClick={() => setBagOpen(true)} aria-label="Bag">
+              <button className="pd-hicon" onClick={() => { setBagOpen(true); setCheckoutStep('cart'); }} aria-label="Bag">
                 <ShoppingBag size={18} />{bagCount > 0 && <i>{bagCount}</i>}
               </button>
               <button className="pd-head-book" onClick={primaryCta.run}><primaryCta.Icon size={16} /> {primaryCta.label}</button>
@@ -1865,7 +1865,7 @@ export default function TechStorefront({
               {(store.storefront_sections || []).includes("services") && (
                 <button className={page === "services" ? "on" : ""} onClick={() => go("services")}><Calendar size={21} /><span>Services</span></button>
               )}
-              <button className="ps-fab" onClick={() => setBagOpen(true)} aria-label="Cart"><span className="ps-fab-ring" /><ShoppingBag size={22} />{bagCount > 0 && <i className="ps-fab-badge">{bagCount}</i>}</button>
+              <button className="ps-fab" onClick={() => { setBagOpen(true); setCheckoutStep('cart'); }} aria-label="Cart"><span className="ps-fab-ring" /><ShoppingBag size={22} />{bagCount > 0 && <i className="ps-fab-badge">{bagCount}</i>}</button>
               {(store.storefront_sections || []).includes("products") && (
                 <button className={page === "products" ? "on" : ""} onClick={() => go("products")}><Package size={21} /><span>Products</span></button>
               )}
