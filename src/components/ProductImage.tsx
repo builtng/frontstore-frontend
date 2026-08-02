@@ -29,7 +29,7 @@ export default function ProductImage({
   fallbackIcon,
   priority = false,
   sizes = '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw',
-  padding = '8px',
+  padding = '0px',
   backgroundColor = '#f8f8f8',
   borderRadius = '12px',
   unoptimized = true,

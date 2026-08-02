@@ -5841,10 +5841,31 @@ svg.spinner {
   justify-content: center;
 }
 
-.fs-product-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+.fs-product-card,
+.ps-card,
+.svc-card,
+.prod-card,
+.rich-card,
+.sb-product-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+.ps-card-body,
+.svc-card-body,
+.rich-info,
+.sb-product-body {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+}
+
+.ps-card-foot,
+.svc-card-foot,
+.rich-foot,
+.sb-product-foot {
+  margin-top: auto !important;
 }
 
 /* Global Overrides for legacy storefront card thumbnail containers */
@@ -5870,8 +5891,9 @@ svg.spinner {
   object-position: center !important;
   width: 100% !important;
   height: 100% !important;
-  padding: 6px !important;
+  padding: 0 !important;
   box-sizing: border-box !important;
 }
+
 
 
