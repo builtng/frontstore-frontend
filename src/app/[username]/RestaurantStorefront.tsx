@@ -445,12 +445,14 @@ export default function RestaurantStorefront({
   const addToBag = (p: Product) => {
     const optsObj = getProductOptions(p);
     const vals = optsObj.map((o) => selOpts[o.label] || o.choices[0]);
-    const key = p.id + (vals.length ? "|" + vals.join("|") : "");
+    const pid = p.id || p.slug || (p.name ? p.name.replace(/\s+/g, '-').toLowerCase() : ('item_' + Math.random().toString(36).substring(2, 7)));
+    const key = pid + (vals.length ? "|" + vals.join("|") : "");
     const optsStr = vals.join("  ·  ");
+    const img = (p.image_urls && p.image_urls[0]) || p.image_url || undefined;
     setBagItems((items) => {
       const next = items.find((b) => b.key === key)
         ? items.map((b) => b.key === key ? { ...b, qty: b.qty + 1 } : b)
-        : [...items, { key, id: p.id, name: p.name, price: parseFloat(p.price), opts: optsStr, qty: 1, type: 'product' as const }];
+        : [...items, { key, id: p.id || pid, name: p.name, price: parseFloat(p.price), image_url: img, opts: optsStr, qty: 1, type: 'product' as const }];
       saveCartToStorage(next);
       return next;
     });
@@ -711,6 +713,11 @@ export default function RestaurantStorefront({
         setBankTransferDetails(json.data);
         return;
       }
+      if (json.data?.paid) {
+        ping(json.message || "Payment successful!");
+        setOrderReceipt(prev => prev ? { ...prev, order: { ...prev.order, payment_status: 'paid' } } : prev);
+        return;
+      }
       const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
       if (redirectUrl) {
         window.location.href = redirectUrl;
@@ -903,8 +910,12 @@ export default function RestaurantStorefront({
     const catName = categories.find(c => c.id === p.category_id)?.name || 'Mains';
     return (
       <div className="ps-card prod-card" onClick={onOpen}>
-        <div className="ps-card-thumb prod" style={hasImage ? { backgroundImage: `url(${p.image_urls![0]})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
-          {!hasImage && <UtensilsCrossed size={32} strokeWidth={1.2} />}
+        <div className="ps-card-thumb prod" style={{ position: 'relative', aspectRatio: '1/1', maxHeight: 200, width: '100%', overflow: 'hidden', background: 'var(--bg-2, #f8f9fa)', display: 'grid', placeItems: 'center' }}>
+          {hasImage ? (
+            <img src={p.image_urls![0]} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 6, display: 'block' }} />
+          ) : (
+            <UtensilsCrossed size={32} strokeWidth={1.2} />
+          )}
           {p.stock_status === 'out_of_stock' && <span className="feat-rib" style={{ color: 'var(--brand)' }}>OOS</span>}
         </div>
         <div className="ps-card-body">

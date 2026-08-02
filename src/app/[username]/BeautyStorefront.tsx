@@ -649,13 +649,15 @@ export default function BeautyStorefront({
   };
 
   const addBag = (it: typeof displayItems[0]) => {
+    const pid = it.id || (it as any).slug || (it.name ? it.name.replace(/\s+/g, '-').toLowerCase() : ('item_' + Math.random().toString(36).substring(2, 7)));
+    const key = "p" + pid;
     setBag((b) => {
-      const ex = b.find((x) => x.key === "p" + it.id);
+      const ex = b.find((x) => x.key === key);
       let nextBag;
       if (ex) {
-        nextBag = b.map((x) => (x.key === "p" + it.id ? { ...x, qty: x.qty + 1 } : x));
+        nextBag = b.map((x) => (x.key === key ? { ...x, qty: x.qty + 1 } : x));
       } else {
-        nextBag = [...b, { key: "p" + it.id, id: it.id, name: it.name, price: it.price, qty: 1, type: "product" as const, image_url: it.image_url || undefined }];
+        nextBag = [...b, { key, id: it.id || pid, name: it.name, price: it.price, qty: 1, type: "product" as const, image_url: it.image_url || undefined }];
       }
       saveCartToStorage(nextBag);
       return nextBag;
@@ -992,6 +994,11 @@ export default function BeautyStorefront({
       }
       if (json.status === 'bank_transfer' || json.status === 'manual') {
         setBankTransferDetails(json.data);
+        return;
+      }
+      if (json.data?.paid) {
+        sonnerToast.success(json.message || "Payment successful!");
+        setOrderReceipt(prev => prev ? { ...prev, order: { ...prev.order, payment_status: 'paid' } } : prev);
         return;
       }
       const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;

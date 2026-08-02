@@ -621,12 +621,13 @@ export default function RetailStorefront({
   const addToBag = (p: any, size: string | null = "One size", colour: string | null = "Original", variantId: string | null = null) => {
     const sz = size || "One size";
     const clr = colour || "Original";
-    const key = p.id + "|" + sz + "|" + clr + "|" + (variantId || "");
+    const pid = p.id || p.slug || (p.name ? p.name.replace(/\s+/g, '-').toLowerCase() : ('item_' + Math.random().toString(36).substring(2, 7)));
+    const key = `${pid}|${sz}|${clr}|${variantId || ''}`;
     setBagItems((prev) => {
       const ex = prev.find((b) => b.key === key);
       const next = ex
         ? prev.map((b: any) => (b.key === key ? { ...b, qty: b.qty + 1 } : b))
-        : [...prev, { key, id: p.id, name: p.name, price: typeof p.price === 'string' ? parseFloat(p.price) : p.price, size: sz, colour: clr, qty: 1, type: p.type || 'product', product_variant_id: variantId || undefined }];
+        : [...prev, { key, id: p.id || pid, name: p.name, price: typeof p.price === 'string' ? parseFloat(p.price) : p.price, image_url: p.image_url || p.image_urls?.[0] || null, size: sz, colour: clr, qty: 1, type: p.type || 'product', product_variant_id: variantId || undefined }];
       saveCartToStorage(next);
       return next;
     });
@@ -970,6 +971,11 @@ export default function RetailStorefront({
       const json = await res.json();
       if (res.ok && (json.status === 'bank_transfer' || json.status === 'manual')) {
         setBankTransferDetails(json.data);
+        return;
+      }
+      if (json.data?.paid) {
+        sonnerToast.success(json.message || "Payment successful!");
+        setOrderReceipt(prev => prev ? { ...prev, order: { ...prev.order, payment_status: 'paid' } } : prev);
         return;
       }
       const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;
@@ -3415,10 +3421,10 @@ const css = `
 .ps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
 .ps-card{background:var(--card);border:1px solid var(--line);border-radius:15px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-sm);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}
 .ps-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:transparent;}
-.ps-card-thumb{height:128px;position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;}
+.ps-card-thumb{aspect-ratio:1/1;max-height:200px;width:100%;position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;background:var(--bg-2,#f8f9fa);}
 .ps-card-thumb.svc{background:linear-gradient(150deg,var(--brand),var(--brand-deep));}
-.ps-card-thumb.prod{background:linear-gradient(150deg,#57b8c2,var(--gold));}
-.ps-card-thumb img{width:100%;height:100%;object-fit:contain;display:block;}
+.ps-card-thumb.prod{background:var(--bg-2,#f8f9fa);}
+.ps-card-thumb img{width:100%;height:100%;object-fit:contain;padding:6px;display:block;}
 .ps-card-body{background:var(--card);padding:12px;display:flex;flex-direction:column;flex:1;position:relative;z-index:2;}
 .ps-card-body b{font-size:14px;font-weight:700;line-height:1.35;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .ps-card-sub{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink);opacity:0.85;margin-top:4px;}

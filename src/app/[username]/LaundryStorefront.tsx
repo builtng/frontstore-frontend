@@ -567,12 +567,13 @@ export default function LaundryStorefront({
   const addToBag = (p: any, size: string | null = "One size", colour: string | null = "Original") => {
     const sz = size || "One size";
     const clr = colour || "Original";
-    const key = p.id + "|" + sz + "|" + clr;
+    const pid = p.id || p.slug || (p.name ? p.name.replace(/\s+/g, '-').toLowerCase() : ('item_' + Math.random().toString(36).substring(2, 7)));
+    const key = `${pid}|${sz}|${clr}`;
     setBagItems((prev) => {
       const ex = prev.find((b) => b.key === key);
       const next = ex
         ? prev.map((b: any) => (b.key === key ? { ...b, qty: b.qty + 1 } : b))
-        : [...prev, { key, id: p.id, name: p.name, price: typeof p.price === 'string' ? parseFloat(p.price) : p.price, size: sz, colour: clr, qty: 1, type: p.type || 'product' }];
+        : [...prev, { key, id: p.id || pid, name: p.name, price: typeof p.price === 'string' ? parseFloat(p.price) : p.price, image_url: p.image_url || p.image_urls?.[0] || null, size: sz, colour: clr, qty: 1, type: p.type || 'product' }];
       saveCartToStorage(next);
       return next;
     });
@@ -759,6 +760,11 @@ export default function LaundryStorefront({
       const json = await res.json();
       if (res.ok && (json.status === 'bank_transfer' || json.status === 'manual')) {
         setBankTransferDetails(json.data);
+        return;
+      }
+      if (json.data?.paid) {
+        sonnerToast.success(json.message || "Payment successful!");
+        setOrderReceipt(prev => prev ? { ...prev, order: { ...prev.order, payment_status: 'paid' } } : prev);
         return;
       }
       const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;

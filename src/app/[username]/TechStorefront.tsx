@@ -680,7 +680,8 @@ export default function TechStorefront({
   const addToBag = (p: any, cap: string | null, colour: string | null) => {
     const c = cap || "One size";
     const cl = colour || "Default";
-    const key = `${p.id}|${c}|${cl}`;
+    const pid = p.id || p.slug || (p.name ? p.name.replace(/\s+/g, '-').toLowerCase() : ('item_' + Math.random().toString(36).substring(2, 7)));
+    const key = `${pid}|${c}|${cl}`;
     setBag((prev) => {
       const ex = prev.find((x) => x.key === key);
       let nextBag;
@@ -689,12 +690,12 @@ export default function TechStorefront({
       } else {
         nextBag = [...prev, {
           key,
-          id: p.id,
+          id: p.id || pid,
           name: p.name,
           price: p.price,
           qty: 1,
           type: "product" as const,
-          image_url: p.image_url || undefined,
+          image_url: p.image_url || p.image_urls?.[0] || undefined,
           slot: `${cl} / ${c}`
         }];
       }
@@ -877,6 +878,11 @@ export default function TechStorefront({
       if (!res.ok) throw new Error(json.message || 'Payment initialization failed.');
       if (json.status === 'bank_transfer' || json.status === 'manual') {
         setBankTransferDetails(json.data);
+        return;
+      }
+      if (json.data?.paid) {
+        sonnerToast.success(json.message || "Payment successful!");
+        setOrderReceipt(prev => prev ? { ...prev, order: { ...prev.order, payment_status: 'paid' } } : prev);
         return;
       }
       const redirectUrl = json.data?.authorization_url || json.data?.checkout_url || json.data?.link;

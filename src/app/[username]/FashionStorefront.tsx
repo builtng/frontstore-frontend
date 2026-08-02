@@ -198,13 +198,15 @@ export default function FashionStorefront({
   const openPost = (p: BlogPost) => { setPost(p); setPage('post'); setDrawer(false); window.scrollTo({ top: 0 }); };
 
   const addToBag = (p: Product, variant?: ProductVariant) => {
-    const key = variant ? `p${p.id}_${variant.id}` : 'p' + p.id;
+    const pid = p.id || p.slug || (p.name ? p.name.replace(/\s+/g, '-').toLowerCase() : Math.random().toString(36).substring(2, 7));
+    const key = variant ? `p${pid}_${variant.id}` : 'p' + pid;
     const price = variant?.price ? parseFloat(variant.price) : parseFloat(p.price);
+    const img = (p.image_urls && p.image_urls[0]) || p.image_url || null;
     setBag(prev => {
       const ex = prev.find(x => x.key === key);
       const next = ex ? prev.map(x => x.key === key ? { ...x, qty: x.qty + 1 } : x)
         : [...prev, {
-          key, id: p.id, name: p.name, price, qty: 1, type: 'product' as const, image_url: p.image_url,
+          key, id: p.id || pid, name: p.name, price, qty: 1, type: 'product' as const, image_url: img,
           variantId: variant?.id, size: variant?.size, color: variant?.color,
         }];
       saveCart(next); return next;
@@ -1465,12 +1467,9 @@ const FASHION_CSS = `
 .ps-card { position: relative; border-radius: 16px; overflow: hidden; cursor: pointer; border: none; display: flex; flex-direction: column; text-align: left; padding: 0; background: var(--card); box-shadow: var(--shadow-sm); transition: transform .15s ease, box-shadow .15s ease; }
 .ps-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .ps-card:active { transform: translateY(-1px); }
-.ps-card-thumb { position: relative; aspect-ratio: 4/5; overflow: hidden; }
-.ps-card-thumb.c0 { background: linear-gradient(150deg, var(--brand), var(--brand-deep)); }
-.ps-card-thumb.c1 { background: linear-gradient(150deg, var(--brand-deep), var(--gold)); }
-.ps-card-thumb.c2 { background: linear-gradient(150deg, #caa06f, var(--brand)); }
-.ps-card-thumb.c3 { background: linear-gradient(150deg, var(--brand), #a86b8a); }
-.ps-card-img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.ps-card-thumb { position: relative; aspect-ratio: 1/1; max-height: 200px; width: 100%; overflow: hidden; background: var(--bg-2, #f8f9fa); }
+.ps-card-thumb.c0, .ps-card-thumb.c1, .ps-card-thumb.c2, .ps-card-thumb.c3 { background: var(--bg-2, #f8f9fa); }
+.ps-card-img { display: block; width: 100%; height: 100%; object-fit: contain; padding: 6px; }
 .ps-card-foot { position: relative; padding: 10px 12px 12px; width: 100%; text-align: left; display: flex; flex-direction: column; flex: 1; }
 .ps-card-cat { display: block; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 .ps-card-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.25; margin: 2px 0 6px; min-height: 35px; }
