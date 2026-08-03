@@ -86,17 +86,37 @@ const BUTTON_RADII: Record<string, string> = {
   square: '4px',
 };
 
+/** Whether a hex color reads as a dark surface, so tint-paired text/icon
+ * colors can flip to stay legible on dark themes instead of assuming a
+ * white page background. */
+function isDarkColor(hex: string): boolean {
+  const m = hex.replace('#', '');
+  const full = m.length === 3 ? m.split('').map((c) => c + c).join('') : m;
+  if (full.length !== 6) return false;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  if ([r, g, b].some((n) => Number.isNaN(n))) return false;
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5;
+}
+
 export function themeVars(store: RenderStore, siteTheme?: SiteThemeTokens | null): React.CSSProperties {
   const colors = siteTheme?.colors || {};
   const typography = siteTheme?.typography || {};
   const brand = colors.primary || store.primary_color || '#128C7E';
   const buttonStyle = siteTheme?.buttonStyle || 'rounded';
   const cardStyle = siteTheme?.cardStyle || 'elevated';
+  const bgColor = colors.background || '#fff';
+  const onDark = isDarkColor(bgColor);
 
   return {
     '--brand': brand,
     '--brand-deep': `color-mix(in srgb, ${brand} 78%, black)`,
-    '--tint': `color-mix(in srgb, ${brand} 12%, white)`,
+    // Brand text meant to sit on --tint or the page background, which both
+    // track the theme's own background — needs to lighten instead of
+    // darken once that background is dark, or it goes illegible.
+    '--brand-ink': onDark ? `color-mix(in srgb, ${brand} 50%, white)` : `color-mix(in srgb, ${brand} 78%, black)`,
+    '--tint': `color-mix(in srgb, ${brand} 14%, ${bgColor})`,
     '--brand-secondary': colors.secondary || brand,
     '--brand-accent': colors.accent || brand,
     '--sb-bg': colors.background || '#fff',
@@ -887,7 +907,7 @@ export const SB_CSS = `
 .sb-heading { font-family: var(--font-heading, inherit); font-size: 23px; font-weight: var(--heading-weight, 700); letter-spacing: -0.015em; margin: 0 0 20px; text-align: center; }
 .sb-section { padding: 56px 24px; }
 .sb-empty { color: var(--sb-text-muted, #94a3b8); font-size: 13px; text-align: center; padding: 20px; }
-.sb-empty-media { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px; color: #94a3b8; background: #f1f5f9; border-radius: 16px; margin: 20px; }
+.sb-empty-media { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px; color: var(--sb-text-muted, #94a3b8); background: var(--tint); border-radius: 16px; margin: 20px; }
 
 .sb-columns { padding: 40px 20px; }
 .sb-columns-grid { display: grid; gap: 20px; max-width: 1000px; margin: 0 auto; }
@@ -927,7 +947,7 @@ export const SB_CSS = `
 .sb-featured-foot em { font-style: normal; font-weight: 800; font-size: 18px; }
 
 .sb-categories { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 900px; margin: 0 auto; }
-.sb-category-pill { padding: 8px 16px; border-radius: var(--button-radius, 999px); background: var(--tint); color: var(--brand-deep); font-size: 13px; font-weight: 600; }
+.sb-category-pill { padding: 8px 16px; border-radius: var(--button-radius, 999px); background: var(--tint); color: var(--brand-ink); font-size: 13px; font-weight: 600; }
 
 .sb-digital { display: flex; gap: 28px; padding: 40px 20px; max-width: 900px; margin: 0 auto; flex-wrap: wrap; }
 .sb-digital-main { flex: 1.3; min-width: 240px; }
@@ -936,7 +956,7 @@ export const SB_CSS = `
 .sb-digital-price { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
 .sb-digital-price em { font-style: normal; font-weight: 800; font-size: 20px; }
 .sb-digital-curriculum { flex: 1; min-width: 220px; background: var(--tint); border-radius: 16px; padding: 20px; }
-.sb-digital-curriculum b { display: block; margin-bottom: 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--brand-deep); }
+.sb-digital-curriculum b { display: block; margin-bottom: 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--brand-ink); }
 .sb-digital-curriculum ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .sb-digital-curriculum li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--sb-text-muted, #334155); }
 .sb-digital-curriculum svg { color: var(--brand); flex-shrink: 0; }
@@ -974,12 +994,12 @@ export const SB_CSS = `
 .sb-countdown b { display: block; margin-bottom: 14px; font-size: 15px; }
 .sb-countdown-units { display: flex; gap: 12px; justify-content: center; }
 .sb-countdown-unit { background: var(--tint); border-radius: 12px; padding: 10px 14px; min-width: 56px; }
-.sb-countdown-unit span { display: block; font-size: 22px; font-weight: 800; color: var(--brand-deep); font-variant-numeric: tabular-nums; }
+.sb-countdown-unit span { display: block; font-size: 22px; font-weight: 800; color: var(--brand-ink); font-variant-numeric: tabular-nums; }
 .sb-countdown-unit small { font-size: 10px; color: var(--sb-text-muted, #64748b); text-transform: uppercase; letter-spacing: 0.05em; }
 
 .sb-booking { max-width: 480px; margin: 0 auto; padding: 24px 20px; background: var(--sb-surface, #fff); border-radius: 18px; box-shadow: var(--sb-card-shadow, 0 0 0 1px #e2e8f0); }
 .sb-booking-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; color: var(--brand); }
-.sb-booking-head b { display: block; font-size: 14.5px; color: #0f172a; }
+.sb-booking-head b { display: block; font-size: 14.5px; color: var(--sb-text, #0f172a); }
 .sb-booking-head span { font-size: 12px; color: var(--sb-text-muted, #64748b); }
 .sb-booking-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .sb-booking-days button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 10px; border: 1px solid var(--sb-border, #e2e8f0); background: var(--sb-surface, #fff); font-size: 11px; color: var(--sb-text-muted, #64748b); cursor: pointer; }
@@ -1016,7 +1036,7 @@ export const SB_CSS = `
 
 .sb-stats-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 36px; padding: 32px 20px; }
 .sb-stat { text-align: center; }
-.sb-stat b { display: block; font-family: var(--font-heading, inherit); font-size: 26px; font-weight: var(--heading-weight, 800); color: var(--brand-deep); }
+.sb-stat b { display: block; font-family: var(--font-heading, inherit); font-size: 26px; font-weight: var(--heading-weight, 800); color: var(--brand-ink); }
 .sb-stat span { font-size: 12.5px; color: var(--sb-text-muted, #55677E); }
 
 .sb-team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; }
@@ -1037,7 +1057,7 @@ export const SB_CSS = `
 .sb-compare-table th, .sb-compare-table td { padding: 12px; text-align: center; border-bottom: 1px solid var(--sb-border, #e2e8f0); font-size: 13px; }
 .sb-compare-table th:first-child, .sb-compare-table td:first-child { text-align: left; font-weight: 600; }
 .sb-compare-table .yes { color: #16a34a; }
-.sb-compare-table .no { color: #cbd5e1; }
+.sb-compare-table .no { color: var(--sb-text-muted, #cbd5e1); opacity: 0.5; }
 
 .sb-announcement { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 20px; font-size: 12.5px; font-weight: 600; text-align: center; }
 .sb-announcement a { color: inherit; display: inline-flex; align-items: center; gap: 2px; text-decoration: underline; flex-shrink: 0; }
@@ -1053,12 +1073,12 @@ export const SB_CSS = `
 .sb-menu-list { display: flex; flex-direction: column; gap: 16px; max-width: 640px; margin: 0 auto; padding: 0 20px; }
 .sb-menu-item-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .sb-menu-item-head b { font-size: 15px; }
-.sb-menu-item-head em { font-style: normal; font-weight: 700; color: var(--brand-deep); }
+.sb-menu-item-head em { font-style: normal; font-weight: 700; color: var(--brand-ink); }
 .sb-menu-item p { margin: 4px 0 0; font-size: 12.5px; color: var(--sb-text-muted, #55677E); }
 
 .sb-social-links { text-align: center; padding: 28px 20px; }
 .sb-social-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.sb-social-row a { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--button-radius, 999px); background: var(--tint); color: var(--brand-deep); font-size: 12.5px; font-weight: 600; text-decoration: none; }
+.sb-social-row a { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--button-radius, 999px); background: var(--tint); color: var(--brand-ink); font-size: 12.5px; font-weight: 600; text-decoration: none; }
 
 .sb-popup-placeholder { display: flex; align-items: center; gap: 10px; margin: 20px; padding: 14px; border: 1px dashed #cbd5e1; border-radius: 12px; color: var(--sb-text-muted, #64748b); }
 .sb-popup-placeholder svg { color: var(--brand); flex-shrink: 0; }
