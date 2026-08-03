@@ -17,10 +17,24 @@ export type BlockType =
 export interface BlockStyle {
   paddingY?: number;
   paddingX?: number;
+  paddingTop?: number;
+  paddingRight?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
   marginTop?: number;
+  marginRight?: number;
   marginBottom?: number;
+  marginLeft?: number;
+  display?: 'block' | 'flex' | 'grid';
+  flexDirection?: 'row' | 'column' | 'row-reverse' | 'column-reverse';
+  alignItems?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
+  justifyContent?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
+  gap?: number;
+  position?: 'static' | 'relative' | 'absolute' | 'fixed' | 'sticky';
+  zIndex?: number;
   background?: string;
   textColor?: string;
+  fontFamily?: string;
   fontSize?: number;
   fontWeight?: 400 | 500 | 600 | 700 | 800;
   textAlign?: 'left' | 'center' | 'right';
@@ -78,8 +92,23 @@ export function blockWrapperStyle(block: SiteBlock): CSSProperties {
   };
   push('--sb-b-pad-y', s.paddingY);
   push('--sb-b-pad-x', s.paddingX);
+  push('--sb-b-pt', s.paddingTop ?? s.paddingY);
+  push('--sb-b-pr', s.paddingRight ?? s.paddingX);
+  push('--sb-b-pb', s.paddingBottom ?? s.paddingY);
+  push('--sb-b-pl', s.paddingLeft ?? s.paddingX);
+
   push('--sb-b-mt', s.marginTop);
+  push('--sb-b-mr', s.marginRight);
   push('--sb-b-mb', s.marginBottom);
+  push('--sb-b-ml', s.marginLeft);
+
+  if (s.display) vars['--sb-b-display'] = s.display;
+  if (s.flexDirection) vars['--sb-b-flex-dir'] = s.flexDirection;
+  if (s.alignItems) vars['--sb-b-align-items'] = s.alignItems;
+  if (s.justifyContent) vars['--sb-b-justify'] = s.justifyContent;
+  push('--sb-b-gap', s.gap);
+
+  if (s.fontFamily) vars['--sb-b-font-family'] = s.fontFamily;
   push('--sb-b-fs', s.fontSize);
   if (s.fontWeight) vars['--sb-b-fw'] = String(s.fontWeight);
   if (s.textAlign) vars['--sb-b-align'] = s.textAlign;

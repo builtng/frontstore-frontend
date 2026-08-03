@@ -116,3 +116,90 @@ export function SegmentedControl<T extends string>({ value, onChange, options }:
     </div>
   );
 }
+
+export function VisualBoxModel({
+  marginTop = 0, marginRight = 0, marginBottom = 0, marginLeft = 0,
+  paddingTop = 0, paddingRight = 0, paddingBottom = 0, paddingLeft = 0,
+  onChangeMargin, onChangePadding,
+}: {
+  marginTop?: number; marginRight?: number; marginBottom?: number; marginLeft?: number;
+  paddingTop?: number; paddingRight?: number; paddingBottom?: number; paddingLeft?: number;
+  onChangeMargin: (side: 'top' | 'right' | 'bottom' | 'left', val: number) => void;
+  onChangePadding: (side: 'top' | 'right' | 'bottom' | 'left', val: number) => void;
+}) {
+  const inputStyle: React.CSSProperties = {
+    width: 32, height: 20, background: '#0D2036', border: '1px solid #1E3350',
+    borderRadius: 4, color: '#64FFDA', fontSize: 10, textAlign: 'center',
+    fontWeight: 600, padding: 0, outline: 'none'
+  };
+
+  return (
+    <div style={{ background: '#071626', borderRadius: 10, padding: 12, border: '1px solid #1E3350' }}>
+      {/* Outer Margin Box */}
+      <div style={{
+        position: 'relative', border: '1px dashed #3B82F6', borderRadius: 8,
+        background: 'rgba(59,130,246,0.04)', padding: '24px 30px 22px', display: 'flex', flexDirection: 'column', alignItems: 'center'
+      }}>
+        <span style={{ position: 'absolute', top: 3, left: 6, fontSize: 8.5, fontWeight: 700, color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Margin</span>
+        
+        {/* Margin Top */}
+        <input
+          type="number" style={{ ...inputStyle, position: 'absolute', top: 4 }}
+          value={marginTop} onChange={(e) => onChangeMargin('top', Number(e.target.value))}
+        />
+        {/* Margin Left */}
+        <input
+          type="number" style={{ ...inputStyle, position: 'absolute', left: 4, top: 'calc(50% - 10px)' }}
+          value={marginLeft} onChange={(e) => onChangeMargin('left', Number(e.target.value))}
+        />
+        {/* Margin Right */}
+        <input
+          type="number" style={{ ...inputStyle, position: 'absolute', right: 4, top: 'calc(50% - 10px)' }}
+          value={marginRight} onChange={(e) => onChangeMargin('right', Number(e.target.value))}
+        />
+        {/* Margin Bottom */}
+        <input
+          type="number" style={{ ...inputStyle, position: 'absolute', bottom: 4 }}
+          value={marginBottom} onChange={(e) => onChangeMargin('bottom', Number(e.target.value))}
+        />
+
+        {/* Inner Padding Box */}
+        <div style={{
+          position: 'relative', width: '100%', border: '1px solid #25D366', borderRadius: 6,
+          background: 'rgba(37,211,102,0.06)', padding: '22px 28px 20px', display: 'flex', justifyContent: 'center', alignItems: 'center'
+        }}>
+          <span style={{ position: 'absolute', top: 2, left: 6, fontSize: 8.5, fontWeight: 700, color: '#25D366', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Padding</span>
+          
+          {/* Padding Top */}
+          <input
+            type="number" style={{ ...inputStyle, position: 'absolute', top: 3 }}
+            value={paddingTop} onChange={(e) => onChangePadding('top', Number(e.target.value))}
+          />
+          {/* Padding Left */}
+          <input
+            type="number" style={{ ...inputStyle, position: 'absolute', left: 3, top: 'calc(50% - 10px)' }}
+            value={paddingLeft} onChange={(e) => onChangePadding('left', Number(e.target.value))}
+          />
+          {/* Padding Right */}
+          <input
+            type="number" style={{ ...inputStyle, position: 'absolute', right: 3, top: 'calc(50% - 10px)' }}
+            value={paddingRight} onChange={(e) => onChangePadding('right', Number(e.target.value))}
+          />
+          {/* Padding Bottom */}
+          <input
+            type="number" style={{ ...inputStyle, position: 'absolute', bottom: 3 }}
+            value={paddingBottom} onChange={(e) => onChangePadding('bottom', Number(e.target.value))}
+          />
+
+          {/* Core Content Box */}
+          <div style={{
+            background: '#112640', border: '1px solid #1E3350', borderRadius: 4,
+            padding: '6px 12px', fontSize: 9.5, fontWeight: 700, color: '#EAF1F8', letterSpacing: '0.05em'
+          }}>
+            ELEMENT
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

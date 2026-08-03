@@ -3,7 +3,7 @@
 import React from 'react';
 import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import { BlockStyle, BlockVisibility, Device, SiteBlock } from './blockTypes';
-import { CollapsibleGroup, ColorField, Field, NumberStepper, SegmentedControl, selectStyle } from './inspectorUi';
+import { CollapsibleGroup, ColorField, Field, NumberStepper, SegmentedControl, VisualBoxModel, selectStyle } from './inspectorUi';
 import SearchableSelect from '../SearchableSelect';
 
 const SHADOW_OPTIONS = [
@@ -53,6 +53,21 @@ export default function StylePanel({ block, device, onChange, onVisibilityChange
       )}
 
       <CollapsibleGroup label="Typography">
+        <Field label="Font family">
+          <div style={selectStyle()}>
+            <SearchableSelect
+              value={effective.fontFamily || 'Plus Jakarta Sans'}
+              onChange={(v) => set({ fontFamily: v })}
+              options={[
+                { value: 'Plus Jakarta Sans', label: 'Plus Jakarta Sans (Default)' },
+                { value: 'Outfit', label: 'Outfit (Brand Headings)' },
+                { value: 'Inter', label: 'Inter' },
+                { value: 'Roboto', label: 'Roboto' },
+                { value: 'Playfair Display', label: 'Playfair Display (Serif)' },
+              ]}
+            />
+          </div>
+        </Field>
         <Field label="Font size">
           <NumberStepper value={effective.fontSize ?? 16} min={10} max={72} onChange={(v) => set({ fontSize: v })} />
         </Field>
@@ -77,23 +92,31 @@ export default function StylePanel({ block, device, onChange, onVisibilityChange
         </Field>
       </CollapsibleGroup>
 
-      <CollapsibleGroup label="Spacing">
+      <CollapsibleGroup label="Spacing & Box Model">
+        <VisualBoxModel
+          marginTop={effective.marginTop ?? 0}
+          marginRight={effective.marginRight ?? 0}
+          marginBottom={effective.marginBottom ?? 0}
+          marginLeft={effective.marginLeft ?? 0}
+          paddingTop={effective.paddingTop ?? effective.paddingY ?? 0}
+          paddingRight={effective.paddingRight ?? effective.paddingX ?? 0}
+          paddingBottom={effective.paddingBottom ?? effective.paddingY ?? 0}
+          paddingLeft={effective.paddingLeft ?? effective.paddingX ?? 0}
+          onChangeMargin={(side, val) => {
+            const keyMap = { top: 'marginTop', right: 'marginRight', bottom: 'marginBottom', left: 'marginLeft' } as const;
+            set({ [keyMap[side]]: val });
+          }}
+          onChangePadding={(side, val) => {
+            const keyMap = { top: 'paddingTop', right: 'paddingRight', bottom: 'paddingBottom', left: 'paddingLeft' } as const;
+            set({ [keyMap[side]]: val });
+          }}
+        />
         <Field label="Vertical padding">
-          <NumberStepper value={effective.paddingY ?? 0} max={160} onChange={(v) => set({ paddingY: v })} />
+          <NumberStepper value={effective.paddingY ?? 0} max={160} onChange={(v) => set({ paddingY: v, paddingTop: v, paddingBottom: v })} />
         </Field>
         <Field label="Horizontal padding">
-          <NumberStepper value={effective.paddingX ?? 0} max={120} onChange={(v) => set({ paddingX: v })} />
+          <NumberStepper value={effective.paddingX ?? 0} max={120} onChange={(v) => set({ paddingX: v, paddingLeft: v, paddingRight: v })} />
         </Field>
-        {!isOverrideMode && (
-          <>
-            <Field label="Margin top">
-              <NumberStepper value={effective.marginTop ?? 0} max={160} onChange={(v) => set({ marginTop: v })} />
-            </Field>
-            <Field label="Margin bottom">
-              <NumberStepper value={effective.marginBottom ?? 0} max={160} onChange={(v) => set({ marginBottom: v })} />
-            </Field>
-          </>
-        )}
       </CollapsibleGroup>
 
       <CollapsibleGroup label="Color" defaultOpen={false}>

@@ -28,7 +28,7 @@ import BlockContextMenu from '../../../../components/storefront/BlockContextMenu
 import ConfirmDialog from '../../../../components/ConfirmDialog';
 import { EditorStateProvider, useEditorState } from '../../../../components/storefront/editorState';
 import {
-  BLOCK_GROUPS, BLOCK_LABELS, BlockType, BlockStyle, BlockVisibility, SiteBlock,
+  BLOCK_GROUPS, BLOCK_LABELS, BlockType, BlockStyle, BlockVisibility, SiteBlock, Device,
   createDefaultBlock, isBlockHiddenOn,
 } from '../../../../components/storefront/blockTypes';
 
@@ -954,26 +954,68 @@ function StoreBuildEditorPage() {
         {/* Top bar */}
         <div className="sbld-topbar">
           <div className="sbld-topbar-left">
-            <button className="sbld-icon-btn" onClick={() => router.push('/dashboard/store-build')}><ArrowLeft size={15} /></button>
+            <button className="sbld-icon-btn" onClick={() => router.push('/dashboard/store-build')} title="Back to stores"><ArrowLeft size={15} /></button>
             <div className="sbld-crumb">
               <span className="sbld-store">{store.store_name || store.username}</span>
-              <span className="sbld-tool">{site.name} <span className="sbld-legend-badge">★ Legend</span></span>
+              <span className="sbld-tool">{site.name}</span>
+            </div>
+
+            {/* Page Selector Dropdown */}
+            <div className="sbld-page-selector" style={{ marginLeft: 12, position: 'relative' }}>
+              <select
+                value={activePageId || ''}
+                onChange={(e) => switchToPage(e.target.value)}
+                style={{
+                  background: '#0D2036', border: '1px solid #1E3350', color: '#EAF1F8',
+                  borderRadius: 8, padding: '5px 24px 5px 10px', fontSize: 12, fontWeight: 600,
+                  cursor: 'pointer', outline: 'none'
+                }}
+              >
+                {pages.map((p) => (
+                  <option key={p.id} value={p.id}>Page: {p.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          <div className="sbld-devices">
-            <button className={`sbld-device-btn${device === 'desktop' ? ' active' : ''}`} onClick={() => setDevice('desktop')}><Monitor size={15} /></button>
-            <button className={`sbld-device-btn${device === 'tablet' ? ' active' : ''}`} onClick={() => setDevice('tablet')}><Tablet size={14} /></button>
-            <button className={`sbld-device-btn${device === 'mobile' ? ' active' : ''}`} onClick={() => setDevice('mobile')}><Smartphone size={12} /></button>
+          <div className="sbld-center-controls" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {/* Width Indicator */}
+            <span style={{ fontSize: 11.5, color: '#7E93AE', fontWeight: 600, background: 'rgba(255,255,255,0.04)', padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.08)' }}>
+              Width: <strong style={{ color: '#64FFDA' }}>{DEVICE_WIDTHS[device]}px</strong>
+            </span>
+
+            {/* Responsive Breakpoints */}
+            <div className="sbld-devices">
+              {([['desktop', 'xxl', Monitor], ['desktop', 'xl', Monitor], ['tablet', 'lg', Tablet], ['tablet', 'md', Tablet], ['mobile', 'sm', Smartphone]] as const).map(([devKey, bpLabel, Icon], idx) => (
+                <button
+                  key={`${devKey}-${bpLabel}-${idx}`}
+                  className={`sbld-device-btn${device === devKey ? ' active' : ''}`}
+                  onClick={() => setDevice(devKey as Device)}
+                  title={`Breakpoint ${bpLabel.toUpperCase()}`}
+                  style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', padding: '4px 7px' }}
+                >
+                  {bpLabel}
+                </button>
+              ))}
+            </div>
+
+            {/* Zoom Controls */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#0D2036', border: '1px solid #1E3350', borderRadius: 6, padding: '2px 6px' }}>
+              <button style={{ background: 'none', border: 'none', color: '#7E93AE', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>-</button>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#EAF1F8' }}>100%</span>
+              <button style={{ background: 'none', border: 'none', color: '#7E93AE', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>+</button>
+            </div>
           </div>
 
           <div className="sbld-topbar-right">
-            <span className="sbld-save-indicator">{saveState === 'saving' ? 'Saving…' : saveState === 'saved' ? 'Saved' : ''}</span>
-            <button className="sbld-icon-btn" disabled={historyIndex.current <= 0} onClick={undo}><Undo2 size={15} /></button>
-            <button className="sbld-icon-btn" disabled={historyIndex.current >= history.current.length - 1} onClick={redo}><Redo2 size={15} /></button>
+            <span className="sbld-save-indicator" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#64FFDA', fontSize: 11, fontWeight: 600 }}>
+              ☁ {saveState === 'saving' ? 'Saving…' : 'Synced'}
+            </span>
+            <button className="sbld-icon-btn" disabled={historyIndex.current <= 0} onClick={undo} title="Undo (⌘Z)"><Undo2 size={15} /></button>
+            <button className="sbld-icon-btn" disabled={historyIndex.current >= history.current.length - 1} onClick={redo} title="Redo (⌘⇧Z)"><Redo2 size={15} /></button>
             <div className="sbld-divider-v" />
             <div className="sbld-more-wrap">
-              <button className="sbld-btn ghost" onClick={() => setShowMoreMenu((v) => !v)}><Settings2 size={13} /> Site settings</button>
+              <button className="sbld-btn ghost" onClick={() => setShowMoreMenu((v) => !v)}><Settings2 size={13} /> Settings</button>
               {showMoreMenu && (
                 <div className="sbld-more-menu" onMouseLeave={() => setShowMoreMenu(false)}>
                   <button onClick={() => { setShowMoreMenu(false); openThemeModal(); }}><Palette size={13} /> Theme</button>
@@ -986,7 +1028,14 @@ function StoreBuildEditorPage() {
               )}
             </div>
             <button className="sbld-btn ghost" onClick={() => setShowPreview(true)}><Eye size={13} /> Preview</button>
-            <button className="sbld-btn primary" onClick={handlePublish} disabled={publishing || !activePageId}>{publishing ? 'Publishing…' : activePage?.is_published ? 'Republish' : 'Publish'}</button>
+            <button
+              className="sbld-btn primary"
+              onClick={handlePublish}
+              disabled={publishing || !activePageId}
+              style={{ background: 'linear-gradient(135deg, #128C7E, #25D366)', color: '#fff', fontWeight: 800, borderRadius: 8, padding: '7px 18px', boxShadow: '0 4px 14px rgba(37,211,102,0.35)' }}
+            >
+              {publishing ? 'Publishing…' : activePage?.is_published ? 'Republish' : 'Publish'}
+            </button>
           </div>
         </div>
 
