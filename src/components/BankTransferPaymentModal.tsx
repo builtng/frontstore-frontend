@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast as sonnerToast } from "sonner";
-import { Copy, Check, X, Landmark } from "lucide-react";
+import { Copy, Check, X, Landmark, Loader2 } from "lucide-react";
+
+const CONFIRM_WINDOW_SECONDS = 60;
+const POLL_INTERVAL_MS = 5000;
+const MAX_RETRY_WINDOW_MS = 45 * 60 * 1000;
 
 export interface BankTransferDetails {
   order_id?: string;
@@ -26,9 +30,34 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   NGN: "₦", GHS: "GH₵", KES: "KSh", ZAR: "R", USD: "$", GBP: "£", EUR: "€",
 };
 
+type Phase = "idle" | "notifying" | "confirming" | "waiting" | "expired";
+
 export default function BankTransferPaymentModal({ open, onClose, details, currencySymbol, onPaid }: BankTransferPaymentModalProps) {
-  const [notifying, setNotifying] = useState(false);
-  const [notified, setNotified] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [countdown, setCountdown] = useState(CONFIRM_WINDOW_SECONDS);
+
+  const firstAttemptAt = useRef<number | null>(null);
+  const countdownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearTimers = () => {
+    if (countdownTimer.current) clearInterval(countdownTimer.current);
+    if (pollTimer.current) clearInterval(pollTimer.current);
+    countdownTimer.current = null;
+    pollTimer.current = null;
+  };
+
+  // Reset on every open/close toggle and whenever the order changes, rather
+  // than leaking intervals or stale countdown state from a component that
+  // stays mounted (it just renders null when closed) between opens.
+  useEffect(() => {
+    clearTimers();
+    setPhase("idle");
+    setCountdown(CONFIRM_WINDOW_SECONDS);
+    firstAttemptAt.current = null;
+    return clearTimers;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, details?.order_id]);
 
   if (!open || !details) return null;
 
@@ -43,12 +72,69 @@ export default function BankTransferPaymentModal({ open, onClose, details, curre
     sonnerToast.success("Account number copied");
   };
 
-  const handleImSent = async () => {
-    if (!details.order_id || notifying) return;
-    setNotifying(true);
+  const apiUrl = () => (process.env.NEXT_PUBLIC_API_URL || "https://api.frontstore.ng/api").replace(/\/+$/, "");
+
+  const checkPaymentStatus = async (): Promise<boolean> => {
+    if (!details?.order_id) return false;
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://api.frontstore.ng/api").replace(/\/+$/, "");
-      const res = await fetch(`${API_URL}/v1/public/orders/${details.order_id}/notify-payment-sent`, {
+      const res = await fetch(`${apiUrl()}/v1/public/orders/${details.order_id}`);
+      if (!res.ok) return false;
+      const json = await res.json();
+      return json?.data?.payment_status === "paid";
+    } catch {
+      return false;
+    }
+  };
+
+  // Watches for the webhook for CONFIRM_WINDOW_SECONDS. If it lands, we jump
+  // straight to the paid state; if the window runs out first, the button
+  // re-arms so the buyer can trigger another window rather than being stuck
+  // on a dead "notified" state that never checks again.
+  const startConfirmCycle = () => {
+    clearTimers();
+    setPhase("confirming");
+    setCountdown(CONFIRM_WINDOW_SECONDS);
+
+    pollTimer.current = setInterval(async () => {
+      const paid = await checkPaymentStatus();
+      if (paid) {
+        clearTimers();
+        onPaid?.();
+        onClose();
+      }
+    }, POLL_INTERVAL_MS);
+
+    countdownTimer.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearTimers();
+          setPhase("waiting");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleImSent = async () => {
+    if (!details.order_id || phase === "notifying" || phase === "confirming") return;
+
+    if (firstAttemptAt.current && Date.now() - firstAttemptAt.current >= MAX_RETRY_WINDOW_MS) {
+      setPhase("expired");
+      return;
+    }
+
+    // Retrying after a timed-out window — just re-check, no need to notify
+    // the merchant a second (or fifth) time for the same order.
+    if (phase === "waiting") {
+      startConfirmCycle();
+      return;
+    }
+
+    firstAttemptAt.current = Date.now();
+    setPhase("notifying");
+    try {
+      const res = await fetch(`${apiUrl()}/v1/public/orders/${details.order_id}/notify-payment-sent`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -60,11 +146,10 @@ export default function BankTransferPaymentModal({ open, onClose, details, curre
         onClose();
         return;
       }
-      setNotified(true);
+      startConfirmCycle();
     } catch (err: any) {
       sonnerToast.error(err.message || "Could not notify the merchant. Please try again.");
-    } finally {
-      setNotifying(false);
+      setPhase("idle");
     }
   };
 
@@ -161,20 +246,39 @@ export default function BankTransferPaymentModal({ open, onClose, details, curre
           <span>Transfer the exact amount above — your payment is matched to this order automatically and you'll be notified the moment it's confirmed.</span>
         </div>
 
-        {details.order_id && (
+        {details.order_id && phase !== "expired" && (
           <button
             onClick={handleImSent}
-            disabled={notifying || notified}
+            disabled={phase === "notifying" || phase === "confirming"}
             style={{
               width: "100%", marginTop: 16, padding: "13px 20px", borderRadius: 10,
-              background: notified ? "var(--bg-2, #f1f5f9)" : "var(--brand, #16a34a)",
-              color: notified ? "var(--muted, #64748b)" : "#fff",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              background: phase === "confirming" ? "var(--bg-2, #f1f5f9)" : "var(--brand, #16a34a)",
+              color: phase === "confirming" ? "var(--text, #0A192F)" : "#fff",
               border: "none", fontWeight: 700, fontSize: 14.5,
-              cursor: notifying || notified ? "default" : "pointer",
+              cursor: phase === "notifying" || phase === "confirming" ? "default" : "pointer",
             }}
           >
-            {notified ? "Merchant notified ✓" : notifying ? "Notifying merchant..." : "I've sent the money"}
+            {phase === "confirming" && <Loader2 size={16} className="bt-spin" />}
+            {phase === "confirming"
+              ? `Confirming your payment… ${countdown}s`
+              : phase === "notifying"
+              ? "Notifying merchant..."
+              : phase === "waiting"
+              ? "Still not received? Check again"
+              : "I've sent the money"}
           </button>
+        )}
+
+        {phase === "expired" && (
+          <div style={{
+            marginTop: 16, padding: "13px 16px", borderRadius: 10,
+            background: "var(--bg-2, #f1f5f9)", color: "var(--muted, #64748b)",
+            fontSize: 13, lineHeight: 1.5, textAlign: "center",
+          }}>
+            We still haven't received confirmation for this transfer. Please contact the merchant directly so they can confirm your payment.
+          </div>
+        )}
         )}
 
         <button
