@@ -140,6 +140,7 @@ interface CreatedOrderReceipt {
     order_status: string;
     delivery_method: string;
     delivery_address: string;
+    items?: any[];
   };
   whatsapp_url: string;
 }
@@ -1746,7 +1747,7 @@ export default function BeautyStorefront({
       <BankTransferPaymentModal
         open={!!bankTransferDetails}
         onClose={() => setBankTransferDetails(null)}
-        onPaid={() => { setBagOpen(false); setCheckoutStep('cart'); setOrderReceipt(null); }}
+        onPaid={() => { setOrderReceipt((prev: any) => prev ? { ...prev, order: { ...prev.order, payment_status: 'paid' } } : prev); }}
         details={bankTransferDetails}
       />
       <WhatsAppDisclaimerModal
@@ -2392,9 +2393,16 @@ export default function BeautyStorefront({
                     <Check size={26} />
                   </div>
                 </div>
-                <h4 style={{ textAlign: 'center', fontSize: 16, fontWeight: 700 }}>Order Received!</h4>
+                <h4 style={{ textAlign: 'center', fontSize: 16, fontWeight: 700 }}>{orderReceipt.order.payment_status === 'paid' ? 'Order Confirmed!' : 'Review Your Order'}</h4>
                 <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>Reference: #{orderReceipt.order.order_number}</p>
                 <div className="receipt-summary" style={{ background: '#f9f5f3', borderRadius: 12, padding: 14, marginTop: 16 }}>
+                  {(orderReceipt.order.items || []).map((it: any) => (
+                    <div key={it.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                      <span>{it.quantity}x {it.product_name}</span>
+                      <b>{money(it.product_price * it.quantity)}</b>
+                    </div>
+                  ))}
+                  <div style={{ borderTop: '1px solid var(--line, #eee0dd)', margin: '4px 0 10px' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span>Customer</span>
                     <b>{orderReceipt.order.customer_name}</b>
@@ -2408,9 +2416,11 @@ export default function BeautyStorefront({
                     <span style={{ color: '#047857', fontWeight: 600 }}>Secured</span>
                   </div>
                 </div>
-                <button className="ps-sheet-cta" onClick={handlePayOnline} disabled={isPaying} style={{ marginTop: 20 }}>
-                  {isPaying ? "Initializing secure payment..." : "Pay Securely Online Now"}
-                </button>
+                {orderReceipt.order.payment_status !== 'paid' && (
+                  <button className="ps-sheet-cta" onClick={handlePayOnline} disabled={isPaying} style={{ marginTop: 20 }}>
+                    {isPaying ? "Initializing secure payment..." : "Pay Securely Online Now"}
+                  </button>
+                )}
                 <button className="ps-sheet-cta" onClick={() => { setBagOpen(false); setCheckoutStep('cart'); setOrderReceipt(null); }} style={{ marginTop: 10, background: 'none', border: '1px solid var(--line, #e2e8f0)', color: 'inherit', boxShadow: 'none' }}>
                   Continue Shopping
                 </button>

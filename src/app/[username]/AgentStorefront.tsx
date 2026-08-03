@@ -147,6 +147,7 @@ interface CreatedOrderReceipt {
     order_status: string;
     delivery_method: string;
     delivery_address: string;
+    items?: any[];
   };
   whatsapp_url: string;
 }
@@ -723,10 +724,18 @@ export default function AgentStorefront({
               <div style={{ width: 56, height: 56, background: '#e6f4ea', color: '#137333', borderRadius: '50%', display: 'grid', placeItems: 'center', margin: '0 auto 16px' }}>
                 <Check size={28} />
               </div>
-              <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>Order Placed!</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 900, marginBottom: 6 }}>{orderReceipt.order.payment_status === 'paid' ? 'Order Confirmed!' : 'Review Your Order'}</h3>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 16 }}>Your order reference is <b>{orderReceipt.order.order_number}</b>.</p>
+              <div style={{ textAlign: 'left', background: 'var(--card, #f9f9f9)', borderRadius: 12, padding: 14, marginBottom: 16 }}>
+                {(orderReceipt.order.items || []).map((it: any) => (
+                  <div key={it.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                    <span>{it.quantity}x {it.product_name}</span>
+                    <b>{money(it.product_price * it.quantity)}</b>
+                  </div>
+                ))}
+              </div>
               
-              {store.payment_provider && store.payment_provider !== 'manual' && (
+              {store.payment_provider && store.payment_provider !== 'manual' && orderReceipt.order.payment_status !== 'paid' && (
                 <div style={{ background: '#f9f5f3', borderRadius: 12, padding: 14, marginTop: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
                     <span>Total Amount</span>
@@ -2865,7 +2874,7 @@ export default function AgentStorefront({
       <BankTransferPaymentModal
         open={!!bankTransferDetails}
         onClose={() => setBankTransferDetails(null)}
-        onPaid={() => { setBag(false); setCheckoutStep('cart'); setOrderReceipt(null); }}
+        onPaid={() => { setOrderReceipt((prev: any) => prev ? { ...prev, order: { ...prev.order, payment_status: 'paid' } } : prev); }}
         details={bankTransferDetails}
       />
       <WhatsAppDisclaimerModal

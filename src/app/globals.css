@@ -5532,6 +5532,30 @@ svg.spinner {
   color: var(--text-muted);
 }
 
+.site-footer__socials {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.site-footer__socials a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--surface-2, rgba(127, 127, 127, 0.1));
+  color: var(--text-muted);
+  transition: color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.site-footer__socials a:hover {
+  color: var(--primary);
+  background: var(--surface-3, rgba(127, 127, 127, 0.18));
+}
+
 .site-footer__col h4 {
   margin: 0 0 14px;
   font-size: 11.5px;

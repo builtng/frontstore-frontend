@@ -684,19 +684,28 @@ export default function FashionStorefront({
               <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#e8f5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#2e7d32' }}>
                 <Check size={28} />
               </div>
-              <div style={{ fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 600, marginBottom: 8 }}>{orderReceipt.order?.payment_status === 'paid' ? 'Order Confirmed!' : 'Order Placed!'}</div>
+              <div style={{ fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 600, marginBottom: 8 }}>{orderReceipt.order?.payment_status === 'paid' ? 'Order Confirmed!' : 'Review Your Order'}</div>
               <div style={{ fontSize: 13, color: '#6e545d', lineHeight: 1.6, marginBottom: 16 }}>
-                Your order has been placed. Tap below to track it and notify {store.store_name} on WhatsApp.
+                {orderReceipt.order?.payment_status === 'paid' ? `Your order has been placed. Tap below to track it and notify ${store.store_name} on WhatsApp.` : 'Here\'s what you\'re about to buy — pay securely online to complete your order.'}
               </div>
               <div style={{ background: '#faf6f4', borderRadius: 12, padding: 16, border: '1px solid #eee0dd', marginBottom: 16, textAlign: 'left' }}>
+                {(orderReceipt.order?.items || []).map((it: any) => (
+                  <div key={it.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                    <span>{it.quantity}x {it.product_name}</span>
+                    <b>{money(it.product_price * it.quantity)}</b>
+                  </div>
+                ))}
+                <div style={{ borderTop: '1px solid #eee0dd', margin: '6px 0 10px' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Order #</span><b>{orderReceipt.order?.order_number}</b></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Status</span><b>{orderReceipt.order?.order_status}</b></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Payment</span><b>{orderReceipt.order?.payment_status}</b></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>Total</span><b>{money(orderReceipt.order?.total_amount)}</b></div>
               </div>
-              <button className="ps-sheet-cta" style={{ marginTop: 10 }} onClick={handlePayOnline} disabled={isPaying}>
-                {isPaying ? 'Redirecting to payment...' : 'Pay Securely Online Now'}
-              </button>
+              {orderReceipt.order?.payment_status !== 'paid' && (
+                <button className="ps-sheet-cta" style={{ marginTop: 10 }} onClick={handlePayOnline} disabled={isPaying}>
+                  {isPaying ? 'Redirecting to payment...' : 'Pay Securely Online Now'}
+                </button>
+              )}
               <button className="ps-sheet-cta" style={{ marginTop: 10, background: 'none', border: '1px solid #eee0dd', color: 'inherit' }} onClick={() => { setBagOpen(false); setCheckoutStep('cart'); setOrderReceipt(null); }}>
                 Continue Shopping
               </button>
@@ -1274,7 +1283,7 @@ export default function FashionStorefront({
       <BankTransferPaymentModal
         open={!!bankTransferDetails}
         onClose={() => setBankTransferDetails(null)}
-        onPaid={() => { setBagOpen(false); setCheckoutStep('cart'); setOrderReceipt(null); }}
+        onPaid={() => { setOrderReceipt((prev: any) => prev ? { ...prev, order: { ...prev.order, payment_status: 'paid' } } : prev); }}
         details={bankTransferDetails}
       />
 

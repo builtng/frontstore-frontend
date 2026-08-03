@@ -142,6 +142,7 @@ interface CreatedOrderReceipt {
     order_status: string;
     delivery_method: string;
     delivery_address: string;
+    items?: any[];
   };
   whatsapp_url: string;
 }
@@ -1904,17 +1905,26 @@ export default function ThriftStorefront({
         {checkoutStep === 'success' && orderReceipt && (
           <div className="th-receipt" style={{ padding: "20px 0" }}>
             <div className="th-receipt-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><Receipt size={48} style={{ color: 'var(--brand)' }} /></div>
-            <h2 className="th-receipt-title" style={{ fontFamily: 'Fraunces', fontSize: 24, textAlign: 'center', marginBottom: 8 }}>{orderReceipt.order.payment_status === 'paid' ? 'Order Confirmed!' : 'Order Placed!'}</h2>
-            <p className="th-receipt-sub" style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', marginBottom: 20 }}>Your order has been placed. Tap below to track it and notify the store on WhatsApp.</p>
+            <h2 className="th-receipt-title" style={{ fontFamily: 'Fraunces', fontSize: 24, textAlign: 'center', marginBottom: 8 }}>{orderReceipt.order.payment_status === 'paid' ? 'Order Confirmed!' : 'Review Your Order'}</h2>
+            <p className="th-receipt-sub" style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', marginBottom: 20 }}>{orderReceipt.order.payment_status === 'paid' ? 'Your order has been placed. Tap below to track it and notify the store on WhatsApp.' : "Here's what you're about to buy — pay securely online to complete your order."}</p>
             <div className="th-receipt-detail" style={{ background: 'var(--bg)', borderRadius: 12, padding: 16, border: '1px solid var(--line)', marginBottom: 20 }}>
+              {(orderReceipt.order.items || []).map((it: any) => (
+                <div className="th-receipt-row" key={it.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                  <span>{it.quantity}x {it.product_name}</span>
+                  <b>{money(it.product_price * it.quantity)}</b>
+                </div>
+              ))}
+              <div style={{ borderTop: '1px solid var(--line)', margin: '6px 0 10px' }} />
               <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Order #</span><b>{orderReceipt.order.order_number}</b></div>
               <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Status</span><b style={{ color: ['cancelled', 'refunded'].includes(orderReceipt.order.order_status) ? '#c0392b' : orderReceipt.order.order_status === 'pending' ? '#b7791f' : 'var(--ok)' }}>{orderReceipt.order.order_status}</b></div>
               <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span>Payment</span><b>{orderReceipt.order.payment_status}</b></div>
               <div className="th-receipt-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span>Total</span><b>{money(orderReceipt.order.total_amount)}</b></div>
             </div>
-            <button className="ps-sheet-cta" onClick={handlePayOnline} disabled={isPaying} style={{ background: 'var(--brand)', color: '#fff', padding: '13px', width: '100%', fontWeight: 700, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 10 }}>
-              {isPaying ? 'Redirecting to payment...' : 'Pay Securely Online Now'}
-            </button>
+            {orderReceipt.order.payment_status !== 'paid' && (
+              <button className="ps-sheet-cta" onClick={handlePayOnline} disabled={isPaying} style={{ background: 'var(--brand)', color: '#fff', padding: '13px', width: '100%', fontWeight: 700, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 10 }}>
+                {isPaying ? 'Redirecting to payment...' : 'Pay Securely Online Now'}
+              </button>
+            )}
             <button className="bk-ghost" style={{ background: 'none', border: '1px solid var(--line)', color: 'var(--ink)', padding: '12px', width: '100%', fontWeight: 600, borderRadius: '12px', display: 'block', textAlign: 'center' }} onClick={() => { setBag(false); setCheckoutStep('cart'); setOrderReceipt(null); }}>Continue Shopping</button>
           </div>
         )}
@@ -1930,7 +1940,7 @@ export default function ThriftStorefront({
       <BankTransferPaymentModal
         open={!!bankTransferDetails}
         onClose={() => setBankTransferDetails(null)}
-        onPaid={() => { setBag(false); setCheckoutStep('cart'); setOrderReceipt(null); }}
+        onPaid={() => { setOrderReceipt((prev: any) => prev ? { ...prev, order: { ...prev.order, payment_status: 'paid' } } : prev); }}
         details={bankTransferDetails}
       />
       <WhatsAppDisclaimerModal open={!!pendingWaUrl} storeName={store.store_name} isVerified={!!store.is_verified}

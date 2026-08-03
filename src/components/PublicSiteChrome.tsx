@@ -5,6 +5,7 @@ import { ArrowRight, Calculator, ChevronRight, HelpCircle, Menu, Newspaper, Play
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 import { openCookiePreferences } from '@/lib/cookieConsent';
+import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon, LinkedInIcon } from './SocialIcons';
 
 const NAV_LINKS = [
   { href: '/stores', label: 'Stores', icon: Store },
@@ -167,6 +168,7 @@ export function PublicSiteNav() {
 export function PublicSiteFooter() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [appName, setAppName] = useState('Front Store');
+  const [socials, setSocials] = useState({ instagram: '', twitter: '', tiktok: '', facebook: '', linkedin: '' });
 
   useEffect(() => {
     try {
@@ -186,12 +188,21 @@ export function PublicSiteFooter() {
         if (!res.ok) return;
         const json = await res.json();
         if (json.data?.app_name) setAppName(json.data.app_name);
+        setSocials({
+          instagram: json.data?.social_instagram || '',
+          twitter: json.data?.social_twitter || '',
+          tiktok: json.data?.social_tiktok || '',
+          facebook: json.data?.social_facebook || '',
+          linkedin: json.data?.social_linkedin || '',
+        });
       } catch {
         // Keep the local fallback when settings cannot be loaded.
       }
     };
     loadPublicSettings();
   }, []);
+
+  const hasSocials = socials.instagram || socials.twitter || socials.tiktok || socials.facebook || socials.linkedin;
 
   return (
     <footer className="site-footer">
@@ -204,6 +215,35 @@ export function PublicSiteFooter() {
               <Logo size={22} textColor="var(--primary)" text={appName} />
             </a>
             <p>The WhatsApp commerce platform for African sellers — sell, get paid, and manage orders without leaving the chat.</p>
+            {hasSocials && (
+              <div className="site-footer__socials">
+                {socials.instagram && (
+                  <a href={`https://instagram.com/${socials.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <InstagramIcon size={18} />
+                  </a>
+                )}
+                {socials.twitter && (
+                  <a href={`https://x.com/${socials.twitter.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="Twitter / X">
+                    <TwitterXIcon size={18} />
+                  </a>
+                )}
+                {socials.tiktok && (
+                  <a href={`https://tiktok.com/@${socials.tiktok.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                    <TikTokIcon size={18} />
+                  </a>
+                )}
+                {socials.facebook && (
+                  <a href={`https://facebook.com/${socials.facebook.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                    <FacebookIcon size={18} />
+                  </a>
+                )}
+                {socials.linkedin && (
+                  <a href={`https://linkedin.com/company/${socials.linkedin.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                    <LinkedInIcon size={18} />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="site-footer__col">

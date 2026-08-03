@@ -125,6 +125,7 @@ interface CreatedOrderReceipt {
     order_status: string;
     delivery_method: string;
     delivery_address: string;
+    items?: any[];
   };
   whatsapp_url: string;
 }
@@ -1532,7 +1533,7 @@ export default function TechStorefront({
       <BankTransferPaymentModal
         open={!!bankTransferDetails}
         onClose={() => setBankTransferDetails(null)}
-        onPaid={() => { setBagOpen(false); setCheckoutStep('cart'); setOrderReceipt(null); }}
+        onPaid={() => { setOrderReceipt((prev: any) => prev ? { ...prev, order: { ...prev.order, payment_status: 'paid' } } : prev); }}
         details={bankTransferDetails}
       />
       <WhatsAppDisclaimerModal
@@ -1971,17 +1972,26 @@ export default function TechStorefront({
               <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(37, 211, 102, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#25d366' }}>
                 <Check size={28} />
               </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>{orderReceipt.order.payment_status === 'paid' ? 'Order Confirmed!' : 'Order Placed!'}</h3>
-              <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>{STORE.name} will reach out shortly via WhatsApp.</p>
+              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>{orderReceipt.order.payment_status === 'paid' ? 'Order Confirmed!' : 'Review Your Order'}</h3>
+              <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>{orderReceipt.order.payment_status === 'paid' ? `${STORE.name} will reach out shortly via WhatsApp.` : "Here's what you're about to buy — pay securely online to complete your order."}</p>
               <div style={{ background: '#111b21', padding: 14, borderRadius: 10, textAlign: 'left', marginBottom: 20 }}>
+                {(orderReceipt.order.items || []).map((it: any) => (
+                  <div key={it.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                    <span style={{ color: 'var(--muted)' }}>{it.quantity}x {it.product_name}</span>
+                    <b>{money(it.product_price * it.quantity)}</b>
+                  </div>
+                ))}
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '6px 0 10px' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span style={{ color: 'var(--muted)' }}>Order ID</span><b>{orderReceipt.order.order_number}</b></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span style={{ color: 'var(--muted)' }}>Status</span><b>{orderReceipt.order.order_status}</b></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}><span style={{ color: 'var(--muted)' }}>Payment</span><b>{orderReceipt.order.payment_status}</b></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}><span style={{ color: 'var(--muted)' }}>Total Amount</span><b>{money(orderReceipt.order.total_amount)}</b></div>
               </div>
-              <button className="ps-sheet-cta" style={{ background: 'var(--brand)' }} onClick={handlePayOnline} disabled={isPaying}>
-                {isPaying ? 'Redirecting to payment...' : 'Pay Online Now'}
-              </button>
+              {orderReceipt.order.payment_status !== 'paid' && (
+                <button className="ps-sheet-cta" style={{ background: 'var(--brand)' }} onClick={handlePayOnline} disabled={isPaying}>
+                  {isPaying ? 'Redirecting to payment...' : 'Pay Online Now'}
+                </button>
+              )}
               <button className="blog-convert-ghost" style={{ marginTop: 14 }} onClick={() => { setBagOpen(false); setCheckoutStep('cart'); setOrderReceipt(null); }}>Continue Shopping</button>
             </div>
           )}

@@ -198,7 +198,7 @@ export function createDefaultBlock(type: BlockType): SiteBlock {
         id, type, data: {
           eyebrow: '', headline: 'A headline your customers will remember',
           subheadline: 'Say what makes this store worth ordering from today.',
-          ctaLabel: 'Chat to Order', background: 'brand', align: 'center', layout: 'centered', imageUrl: '',
+          ctaLabel: 'Chat to Order', background: 'navy', align: 'center', layout: 'centered', imageUrl: '',
         },
       };
     case 'product_grid':

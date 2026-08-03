@@ -6643,9 +6643,9 @@ export default function DashboardPage() {
                           <div>
                             <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Payment Provider</label>
                             <SearchableSelect
-                              options={Array.from(new Set([...availableProviders, 'manual'])).map(p => ({
+                              options={Array.from(new Set(availableProviders)).map(p => ({
                                 value: p,
-                                label: p === 'paystack' ? 'Paystack' : p === 'flutterwave' ? 'Flutterwave' : p === 'stripe' ? 'Stripe' : 'Manual (Bank Transfer)',
+                                label: p === 'paystack' ? 'Paystack' : p === 'flutterwave' ? 'Flutterwave' : p === 'stripe' ? 'Stripe' : p,
                               }))}
                               value={setPaymentProvider}
                               onChange={val => setSetPaymentProvider(val)}
