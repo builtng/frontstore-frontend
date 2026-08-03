@@ -273,6 +273,7 @@ export function PublicSiteFooter() {
             <h4>Legal</h4>
             <a href="/privacy">Privacy</a>
             <a href="/terms">Terms</a>
+            <a href="/return-policy">Return Policy</a>
             <a href="/dmca">DMCA</a>
           </div>
         </div>
