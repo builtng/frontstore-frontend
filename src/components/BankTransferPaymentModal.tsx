@@ -174,7 +174,7 @@ export default function BankTransferPaymentModal({ open, onClose, details, curre
           animation: "bt-modal-up 0.22s ease-out",
         }}
       >
-        <style>{`@keyframes bt-modal-up { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } } @media (min-width: 480px) { .bt-modal-backdrop { align-items: center !important; } }`}</style>
+        <style>{`@keyframes bt-modal-up { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } } @media (min-width: 480px) { .bt-modal-backdrop { align-items: center !important; } } @keyframes bt-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .bt-spin { animation: bt-spin 0.8s linear infinite; }`}</style>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -278,7 +278,6 @@ export default function BankTransferPaymentModal({ open, onClose, details, curre
           }}>
             We still haven't received confirmation for this transfer. Please contact the merchant directly so they can confirm your payment.
           </div>
-        )}
         )}
 
         <button
