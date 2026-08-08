@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Reserved subdomains — these must never be treated as storefronts.
-// Keeping this list inline (duplicated from reservedKeywords.ts) because
-// middleware runs in the Edge runtime and cannot import from src/utils.
 const RESERVED_SUBDOMAINS = new Set([
   'admin', 'administrator', 'adm', 'root', 'sys', 'system', 'manager',
   'dashboard', 'portal', 'control', 'panel', 'cpanel', 'whm',
@@ -31,15 +29,29 @@ const RESERVED_SUBDOMAINS = new Set([
   'security', 'abuse', 'compliance', 'copyright',
 ]);
 
-// frontstore.ng is the default platform domain; frontstore.app is kept running
-// alongside it (not redirected) so existing links and bookmarks keep working.
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const hostname = request.headers.get('host') || '';
 
   // Remove port from host if present
   const cleanHost = hostname.split(':')[0];
   const parts = cleanHost.split('.');
+  const { pathname, search } = url;
+
+  // Do NOT rewrite Next.js assets, system paths, standard global pages, or API requests
+  const isSystemPath =
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/favicon.ico') ||
+    pathname.startsWith('/globals.css') ||
+    pathname === '/signup' ||
+    pathname.startsWith('/track') ||
+    /\.(png|jpg|jpeg|gif|svg|ico|css|js|json|txt|xml|woff|woff2|ttf|otf)$/i.test(pathname);
+
+  // 1. Enforce canonical domain (redirect www.frontstore.ng, frontstore.app, www.frontstore.app to frontstore.ng)
+  if (!isSystemPath && (cleanHost === 'www.frontstore.ng' || cleanHost === 'frontstore.app' || cleanHost === 'www.frontstore.app')) {
+    return NextResponse.redirect(`https://frontstore.ng${pathname}${search}`, 301);
+  }
 
   let subdomain = '';
 
@@ -47,34 +59,25 @@ export function proxy(request: NextRequest) {
   const isLocal = cleanHost.endsWith('localhost') || cleanHost.endsWith('lvh.me');
 
   if (isLocal) {
-    // e.g. storename.localhost or storename.lvh.me
     if (parts.length > 1 && parts[0] !== 'www' && parts[0] !== 'localhost' && parts[0] !== 'lvh') {
       subdomain = parts[0];
     }
   } else {
-    // e.g. storename.frontstore.app or storename.customdomain.com
     if (parts.length >= 3 && parts[0] !== 'www') {
       subdomain = parts[0];
     }
   }
 
-  // If the detected subdomain is a reserved platform word (admin, login, dashboard …)
-  // do NOT treat it as a storefront — let the request fall through to the real page.
   if (subdomain && RESERVED_SUBDOMAINS.has(subdomain)) {
     subdomain = '';
   }
 
-  // Identify platform domains & local hosts to distinguish custom domains
   const isMainDomain =
     cleanHost === 'frontstore.ng' || cleanHost === 'www.frontstore.ng' ||
     cleanHost === 'frontstore.app' || cleanHost === 'www.frontstore.app';
   const isLocalMain = cleanHost === 'localhost' || cleanHost === 'lvh.me' || cleanHost === 'www.localhost' || cleanHost === 'www.lvh.me';
-
-  // Any *.localhost or *.lvh.me host is a loopback host — never a custom domain.
   const isLoopbackHost = isLocal;
 
-  // A domain is a platform domain if it's one of our main domains, a loopback host,
-  // or ends with one of our domain suffixes (meaning it's a subdomain like admin.frontstore.ng).
   const isPlatformDomain =
     isMainDomain ||
     isLocalMain ||
@@ -86,9 +89,7 @@ export function proxy(request: NextRequest) {
 
   const isCustomDomain = !isPlatformDomain && parts.length >= 2;
 
-
   // Redirect dashboard, admin, login, and signup routes on subdomains back to the main domain
-  const { pathname } = url;
   const isAuthOrDashboard =
     pathname === '/login' ||
     pathname === '/signup' ||
@@ -104,18 +105,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(mainUrl);
   }
 
-  // Do NOT rewrite Next.js assets, system paths, standard global pages, or API requests
-  const isSystemPath =
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
-    pathname.startsWith('/favicon.ico') ||
-    pathname.startsWith('/globals.css') ||
-    pathname === '/signup' ||
-    pathname.startsWith('/track') ||
-    /\.(png|jpg|jpeg|gif|svg|ico|css|js|json|txt|xml|woff|woff2|ttf|otf)$/i.test(pathname);
-
-  // Platform storefronts now live on path URLs (e.g. frontstore.ng/ade).
-  // Redirect old subdomain links so shared legacy URLs resolve to the canonical path.
+  // Redirect legacy subdomain storefront links to canonical path URLs (e.g. frontstore.ng/ade)
   if (subdomain && isPlatformDomain && !isSystemPath) {
     const mainUrl = request.nextUrl.clone();
     const hostHeader = request.headers.get('host') || '';
@@ -124,7 +114,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(mainUrl, 308);
   }
 
-  // If a custom domain is identified, rewrite requests internally using the clean host as the identifier
+  // Rewrite custom domain requests internally
   if (isCustomDomain && !isSystemPath) {
     url.pathname = `/${cleanHost}${pathname}`;
     return NextResponse.rewrite(url);
@@ -133,18 +123,10 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-// ── Matcher ────────────────────────────────────────────────────────────────
-// Only run middleware on application pages — skip internal Next.js routes,
-// static files, and the public directory so that crawlers & assets aren't slowed.
+export { middleware as proxy };
+
 export const config = {
   matcher: [
-    /*
-     * Match all request paths EXCEPT:
-     *  - _next/static  (static files)
-     *  - _next/image   (image optimisation)
-     *  - favicon.ico
-     *  - public root files (robots.txt, sitemap.xml, llm.txt, manifest.json, etc.)
-     */
     '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap.*\\.xml|llm\\.txt|manifest\\.json|.*\\.(?:png|jpg|jpeg|gif|webp|avif|svg|ico|woff|woff2|ttf|otf|css|js)).*)',
   ],
 };

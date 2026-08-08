@@ -60,15 +60,6 @@ export const metadata: Metadata = {
   publisher: "Frontstore Technologies",
   alternates: {
     canonical: '/',
-    languages: {
-      'en': 'https://frontstore.ng',
-      'en-NG': 'https://frontstore.ng',
-      'en-GH': 'https://frontstore.ng',
-      'en-KE': 'https://frontstore.ng',
-      'en-UG': 'https://frontstore.ng',
-      'en-ZA': 'https://frontstore.ng',
-      'x-default': 'https://frontstore.ng',
-    },
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
