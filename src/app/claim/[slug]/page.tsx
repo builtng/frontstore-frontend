@@ -35,6 +35,8 @@ interface ClaimListing {
   address: string | null;
   city: string | null;
   state: string | null;
+  postcode: string | null;
+  opening_hours: string | null;
   is_claimed: boolean;
   claim_status: 'unclaimed' | 'pending_verification' | 'claimed' | 'rejected';
   token_state: 'valid' | 'expired' | 'already_claimed' | null;
@@ -152,7 +154,15 @@ export default async function ClaimListingPage({ params }: { params: Promise<{ s
 
   const blocked = listing.is_claimed || listing.token_state === 'already_claimed' || listing.token_state === 'expired';
 
-  const { intro, faqs } = getClaimPageContent(persona, { name: listing.name, categoryLabel, city: listing.city, state: listing.state });
+  const { intro, faqs } = getClaimPageContent(persona, {
+    name: listing.name,
+    categoryLabel,
+    city: listing.city,
+    state: listing.state,
+    specificLabel: formatOsmCategory(listing.category_value),
+    openingHours: listing.opening_hours,
+    postcode: listing.postcode,
+  });
   const nearbyListings = blocked ? [] : await getNearbyListings(listing.city, listing.slug);
   const stateSlugForLinks = listing.state ? resolveStateSlug(listing.state) : null;
 
@@ -282,6 +292,9 @@ export default async function ClaimListingPage({ params }: { params: Promise<{ s
                   )}
                   {listing.website && (
                     <DetailRow icon={<Globe size={15} />} label="Website on file" value={listing.website} />
+                  )}
+                  {listing.opening_hours && (
+                    <DetailRow icon={<Clock size={15} />} label="Hours (public map data)" value={listing.opening_hours} />
                   )}
                   {!listing.address && !listing.phone && !listing.website && (
                     <p style={{ fontSize: 13, color: 'var(--text-faint)' }}>No contact details on file yet — you can add them once you claim this listing.</p>

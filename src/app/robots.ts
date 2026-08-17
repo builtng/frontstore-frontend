@@ -42,7 +42,9 @@ export default function robots(): MetadataRoute.Robots {
           '/nigeria-states/',
         ],
         disallow: [
+          '/dashboard',
           '/dashboard/',
+          '/admin',
           '/admin/',
           '/api/',
           '/track/',
@@ -82,21 +84,21 @@ export default function robots(): MetadataRoute.Robots {
           '/nigeria-states',
           '/nigeria-states/',
         ],
-        disallow: ['/dashboard/', '/api/', '/admin/', '/track/', '/confirm/', '/buyer/', '/merchant/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/track/', '/_next/', '/confirm/', '/buyer/', '/merchant/'],
       },
 
       // ── Google Image bot — allow all images on public pages ──────────────────
       {
         userAgent: 'Googlebot-Image',
         allow: ['/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
 
       // ── Google Video bot ──────────────────────────────────────────────────────
       {
         userAgent: 'Googlebot-Video',
         allow: ['/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
 
       // ── Bing ──────────────────────────────────────────────────────────────────
@@ -117,7 +119,7 @@ export default function robots(): MetadataRoute.Robots {
           '/nigeria-states',
           '/nigeria-states/',
         ],
-        disallow: ['/dashboard/', '/api/', '/login', '/signup', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/login', '/signup', '/admin', '/admin/', '/_next/'],
         crawlDelay: 2,
       },
 
@@ -125,7 +127,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'YandexBot',
         allow: ['/', '/stores', '/blog', '/about', '/privacy', '/terms'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
         crawlDelay: 2,
       },
 
@@ -133,14 +135,14 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Applebot',
         allow: ['/', '/stores', '/blog', '/solutions', '/tools', '/marketplace', '/about', '/nigeria-states', '/nigeria-states/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
 
       // ── DuckDuckGo ───────────────────────────────────────────────────────────
       {
         userAgent: 'DuckDuckBot',
         allow: ['/', '/stores', '/blog', '/marketplace', '/about', '/privacy', '/terms', '/nigeria-states', '/nigeria-states/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
 
       // ── OpenAI / ChatGPT ─────────────────────────────────────────────────────
@@ -163,7 +165,7 @@ export default function robots(): MetadataRoute.Robots {
           '/nigeria-states',
           '/nigeria-states/',
         ],
-        disallow: ['/dashboard/', '/api/', '/login', '/signup', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/login', '/signup', '/admin', '/admin/', '/_next/'],
       },
       {
         userAgent: 'ChatGPT-User',
@@ -181,12 +183,12 @@ export default function robots(): MetadataRoute.Robots {
           '/nigeria-states',
           '/nigeria-states/',
         ],
-        disallow: ['/dashboard/', '/api/', '/login', '/signup'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/login', '/signup', '/_next/'],
       },
       {
         userAgent: 'OAI-SearchBot',
         allow: ['/', '/stores', '/blog', '/marketplace', '/solutions', '/about', '/llm.txt', '/nigeria-states', '/nigeria-states/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
 
       // ── Anthropic (Claude) ────────────────────────────────────────────────────
@@ -207,7 +209,7 @@ export default function robots(): MetadataRoute.Robots {
           '/nigeria-states',
           '/nigeria-states/',
         ],
-        disallow: ['/dashboard/', '/api/', '/login', '/signup'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/login', '/signup', '/_next/'],
       },
       {
         userAgent: 'anthropic-ai',
@@ -226,12 +228,12 @@ export default function robots(): MetadataRoute.Robots {
           '/nigeria-states',
           '/nigeria-states/',
         ],
-        disallow: ['/dashboard/', '/api/', '/login', '/signup'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/login', '/signup', '/_next/'],
       },
       {
         userAgent: 'ClaudeBot',
         allow: ['/', '/stores', '/blog', '/marketplace', '/solutions', '/about', '/llm.txt', '/nigeria-states', '/nigeria-states/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
 
       // ── Perplexity AI ─────────────────────────────────────────────────────────
@@ -252,7 +254,7 @@ export default function robots(): MetadataRoute.Robots {
           '/nigeria-states',
           '/nigeria-states/',
         ],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
 
       // ── Google Gemini / Bard ──────────────────────────────────────────────────
@@ -270,28 +272,28 @@ export default function robots(): MetadataRoute.Robots {
           '/nigeria-states',
           '/nigeria-states/',
         ],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
 
       // ── Meta AI ──────────────────────────────────────────────────────────────
       {
         userAgent: 'meta-externalagent',
         allow: ['/', '/stores', '/blog', '/about', '/llm.txt'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
 
       // ── Cohere AI ────────────────────────────────────────────────────────────
       {
         userAgent: 'cohere-ai',
         allow: ['/', '/stores', '/blog', '/solutions', '/about', '/llm.txt'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
 
       // ── Common AI Training Crawlers ───────────────────────────────────────────
       {
         userAgent: 'CCBot',
         allow: ['/', '/stores', '/blog', '/about', '/privacy', '/terms'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
         crawlDelay: 5,
       },
 
@@ -299,32 +301,32 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'facebookexternalhit',
         allow: ['/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
       {
         userAgent: 'Twitterbot',
         allow: ['/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
       {
         userAgent: 'LinkedInBot',
         allow: ['/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
       {
         userAgent: 'WhatsApp',
         allow: ['/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
       {
         userAgent: 'Slackbot',
         allow: ['/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
       {
         userAgent: 'TelegramBot',
         allow: ['/'],
-        disallow: ['/dashboard/', '/api/', '/admin/'],
+        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/_next/'],
       },
 
       // ── Block resource-heavy scrapers with no indexing value ──────────────────
