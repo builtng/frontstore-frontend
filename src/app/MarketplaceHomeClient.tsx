@@ -551,8 +551,7 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
                   h: "Shop",
                   links: [
                     { label: "Marketplace", href: "/", onClick: (e: React.MouseEvent) => { e.preventDefault(); setTab("browse"); } },
-                    { label: "Categories", href: "/", onClick: (e: React.MouseEvent) => { e.preventDefault(); setTab("browse"); } },
-                    { label: "Stores", href: "/stores" }
+                    { label: "Categories", href: "/", onClick: (e: React.MouseEvent) => { e.preventDefault(); setTab("browse"); } }
                   ]
                 },
                 {

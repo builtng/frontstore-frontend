@@ -24,18 +24,9 @@ const QUICK_TAGS = [
   { label: 'Gadgets & Electronics', query: 'electronics' },
   { label: 'Personal Care & Beauty', query: 'beauty' },
   { label: 'Shoes & Sneakers', query: 'shoes' },
-  { label: 'Popular Stores', href: '/stores' },
 ];
 
 const NAVIGATION_CARDS = [
-  {
-    icon: Store,
-    title: 'Store Directory',
-    description: 'Browse thousands of verified merchant storefronts selling on WhatsApp.',
-    href: '/stores',
-    badge: 'Popular',
-    color: '#128C7E',
-  },
   {
     icon: ShoppingBag,
     title: 'Product Marketplace',
@@ -69,7 +60,7 @@ export default function NotFoundClient() {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    router.push(`/stores?q=${encodeURIComponent(searchQuery.trim())}`);
+    router.push(`/?q=${encodeURIComponent(searchQuery.trim())}`);
   };
 
   const handleGoBack = () => {
@@ -267,7 +258,7 @@ export default function NotFoundClient() {
             {QUICK_TAGS.map((tag) => (
               <Link
                 key={tag.label}
-                href={tag.href || `/stores?q=${tag.query}`}
+                href={`/?q=${tag.query}`}
                 style={{
                   fontSize: 13,
                   fontWeight: 500,

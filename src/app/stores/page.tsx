@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import StoresClient from './StoresClient';
 import { UnclaimedListing } from './StoresClient';
 
@@ -39,32 +40,5 @@ export const metadata: Metadata = {
 };
 
 export default async function StoresDirectoryPage() {
-  const [stores, unclaimedListings] = await Promise.all([getStores(), getUnclaimedListings()]);
-
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    name: 'Explore Stores on Frontstore',
-    description: 'Directory of verified WhatsApp-native stores on Frontstore.',
-    url: 'https://frontstore.ng/stores',
-    mainEntity: {
-      '@type': 'ItemList',
-      itemListElement: stores.slice(0, 100).map((store: { username: string; store_name: string }, index: number) => ({
-        '@type': 'ListItem',
-        position: index + 1,
-        url: `https://frontstore.ng/${store.username}`,
-        name: store.store_name,
-      })),
-    },
-  };
-
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <StoresClient initialStores={stores} initialUnclaimed={unclaimedListings} />
-    </>
-  );
+  notFound();
 }

@@ -147,7 +147,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         <div className="home-hero-grid">
           <div className="home-hero-copy">
             {(homeContent.hero.badges[0] || homeContent.hero.badges[1]) && (
-              <span className="home-eyebrow">
+              <span className="home-eyebrow hide-on-mobile">
                 <Zap size={12} /> {homeContent.hero.badges[0]}
                 {homeContent.hero.badges[1] && <>&nbsp;·&nbsp;{homeContent.hero.badges[1]}</>}
               </span>
@@ -433,7 +433,11 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               <span className="home-price-badge">Most popular</span>
               <span className="home-price-icon"><Zap size={21} color="#fff" fill="#fff" /></span>
               <h3>Pro</h3>
-              <p className="home-price-amt">₦4,999<span>/mo</span></p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '14px 0 8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 18, textDecoration: 'line-through', color: 'var(--text-faint)', fontWeight: 600 }}>₦4,999</span>
+                <p className="home-price-amt" style={{ margin: 0 }}>₦2,000<span>/mo</span></p>
+                <span style={{ fontSize: 11, fontWeight: 800, background: '#e11d48', color: '#fff', padding: '3px 8px', borderRadius: 12, textTransform: 'uppercase', letterSpacing: '0.04em' }}>60% OFF</span>
+              </div>
               <p className="home-price-desc">For sellers ready to scale — unlimited products, AI studio, and custom branding.</p>
               <ul className="home-price-feats">
                 <li><Check size={15} color="var(--primary)" strokeWidth={3} />Everything in Free</li>
@@ -445,7 +449,11 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
             <div className="home-price-card home-price-legend home-price-business">
               <span className="home-price-icon"><Crown size={21} color="var(--primary)" /></span>
               <h3>Business</h3>
-              <p className="home-price-amt">₦14,999<span>/mo</span></p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '14px 0 8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 18, textDecoration: 'line-through', color: 'var(--text-faint)', fontWeight: 600 }}>₦14,999</span>
+                <p className="home-price-amt" style={{ margin: 0 }}>₦7,000<span>/mo</span></p>
+                <span style={{ fontSize: 11, fontWeight: 800, background: '#e11d48', color: '#fff', padding: '3px 8px', borderRadius: 12, textTransform: 'uppercase', letterSpacing: '0.04em' }}>53% OFF</span>
+              </div>
               <p className="home-price-desc">Full power for high-volume stores, custom domain, and ad tracking.</p>
               <ul className="home-price-feats">
                 <li><Check size={15} color="var(--primary)" strokeWidth={3} />Everything in Pro</li>

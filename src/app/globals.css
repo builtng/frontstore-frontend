@@ -3911,6 +3911,10 @@ select.input {
 
 /* ── Mobile Responsive Rules ── */
 @media (max-width: 900px) {
+  .hide-on-mobile,
+  .home-hero-copy .home-eyebrow {
+    display: none !important;
+  }
   .home-hero {
     padding: 44px 20px 56px;
   }
@@ -3956,10 +3960,7 @@ select.input {
     grid-template-columns: 1fr;
     max-width: 440px;
   }
-  .home-price-legend,
-  .home-price-business {
-    display: none;
-  }
+
   .home-price-card.featured {
     transform: none;
   }

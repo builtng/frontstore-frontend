@@ -8,7 +8,6 @@ import { openCookiePreferences } from '@/lib/cookieConsent';
 import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon, LinkedInIcon } from './SocialIcons';
 
 const NAV_LINKS = [
-  { href: '/stores', label: 'Stores', icon: Store },
   { href: '/pricing', label: 'Pricing', icon: Percent },
   { href: '/demo', label: 'Live Demo', icon: PlayCircle },
   { href: '/tools', label: 'Free Tools', icon: Calculator },
@@ -248,7 +247,6 @@ export function PublicSiteFooter() {
 
           <div className="site-footer__col">
             <h4>Product</h4>
-            <a href="/stores">Stores</a>
             <a href="/pricing">Pricing</a>
             <a href="/demo">Live Demo</a>
             <a href="/tools">Free Tools</a>
