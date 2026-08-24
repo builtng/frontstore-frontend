@@ -320,8 +320,13 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // The real credential is an httpOnly cookie the backend sets on login/register
+  // (see AuthController::authCookie) — JS never sees the token value, so `token`
+  // here is just a truthy marker for "we believe we're authenticated," kept so
+  // existing `if (!token) return;` guards below still work. Every request that
+  // needs auth relies on `credentials: 'include'` sending that cookie, not on
+  // an Authorization header built from this value.
   const login = (newToken: string, newUser: any, newStore: any = null) => {
-    localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
     localStorage.setItem('store', JSON.stringify(newStore));
 
@@ -332,13 +337,23 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       newUser?.is_admin === '1';
 
     setAdminEmail(newUser?.email || newUser?.phone_number || 'admin@frontstore.ng');
-    setToken(newToken);
+    setToken(newToken ? 'session' : null);
     setIsAuthenticated(true);
     setIsAdmin(userIsAdmin);
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    fetch(`${apiUrl}/v1/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: getHeaders(),
+    }).catch(() => {
+      // Best-effort — the cookie is httpOnly so we can't clear it from here
+      // ourselves either way; a failed revoke just leaves a stale token that
+      // will keep failing auth on its own.
+    });
+    localStorage.removeItem('user');
+    localStorage.removeItem('store');
     setToken(null);
     setIsAuthenticated(false);
     setIsAdmin(false);
@@ -346,7 +361,6 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getHeaders = () => ({
-    Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
     Accept: 'application/json',
   });
@@ -354,7 +368,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const handleFetchResponse = async (res: Response, defaultError: string) => {
     if (res.status === 401) {
       toast.error('Session expired. Please log in again.');
-      localStorage.clear();
+      localStorage.removeItem('user');
+      localStorage.removeItem('store');
       setToken(null);
       setIsAuthenticated(false);
       setIsAdmin(false);
@@ -371,7 +386,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     if (!token) return;
     try {
       setSettingsLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/settings`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/settings`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch settings.');
       setSettings({ ...defaultSettings, ...(json.data || {}) });
     } catch (error: any) {
@@ -385,7 +400,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     if (!token) return;
     try {
       setHealthLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/health`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/health`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch health status.');
       if (json.status === 'success') setHealthStatus(json.data);
     } catch {
@@ -399,7 +414,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     if (!token) return;
     try {
       setRolesLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/roles`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/roles`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch roles.');
       setRoles(json.data || []);
     } catch (error: any) {
@@ -414,6 +429,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/roles`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ name, permissions }),
       });
@@ -431,6 +447,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/roles/${id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ name, permissions }),
       });
@@ -448,6 +465,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/roles/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
         headers: getHeaders(),
       });
       const json = await handleFetchResponse(res, 'Could not delete role.');
@@ -466,7 +484,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       const query = new URLSearchParams({ page: String(page), limit: String(limit) });
       if (search) query.append('search', search);
 
-      const res = await fetch(`${apiUrl}/v1/admin/users?${query.toString()}`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/users?${query.toString()}`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch staff & users.');
       setUsers(json.data?.data || []);
       return json.data;
@@ -482,6 +500,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/users/${userId}/role`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ role_id: roleId }),
       });
@@ -502,6 +521,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/users/invite`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ name, email, role_id: isAdmin ? null : roleId, is_admin: isAdmin }),
       });
@@ -515,34 +535,40 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
     const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
-
     setApiUrl(savedApiUrl);
 
-    if (!storedToken || !storedUser || storedUser === 'undefined' || storedUser === 'null') {
-      setIsAuthChecking(false);
-      return;
-    }
+    // The token lives in an httpOnly cookie now, so the only way to know
+    // whether we're actually still logged in is to ask the server.
+    fetch(`${savedApiUrl}/v1/auth/me`, { credentials: 'include' })
+      .then(async (res) => {
+        if (!res.ok) {
+          localStorage.removeItem('user');
+          localStorage.removeItem('store');
+          setIsAuthChecking(false);
+          return;
+        }
 
-    try {
-      const parsedUser = JSON.parse(storedUser);
-      const userIsAdmin =
-        parsedUser?.is_admin === true ||
-        parsedUser?.is_admin === 1 ||
-        parsedUser?.is_admin === 'true' ||
-        parsedUser?.is_admin === '1';
+        const json = await res.json();
+        const user = json.data?.user;
+        const userIsAdmin =
+          user?.is_admin === true ||
+          user?.is_admin === 1 ||
+          user?.is_admin === 'true' ||
+          user?.is_admin === '1';
 
-      setAdminEmail(parsedUser?.email || parsedUser?.phone_number || 'admin@frontstore.ng');
-      setToken(storedToken);
-      setIsAuthenticated(true);
-      setIsAdmin(userIsAdmin);
-    } catch (error) {
-      console.error('Failed to parse stored user:', error);
-    } finally {
-      setIsAuthChecking(false);
-    }
+        localStorage.setItem('user', JSON.stringify(user));
+        if (json.data?.store) localStorage.setItem('store', JSON.stringify(json.data.store));
+
+        setAdminEmail(user?.email || user?.phone_number || 'admin@frontstore.ng');
+        setToken('session');
+        setIsAuthenticated(true);
+        setIsAdmin(userIsAdmin);
+        setIsAuthChecking(false);
+      })
+      .catch(() => {
+        setIsAuthChecking(false);
+      });
   }, []);
 
   return (

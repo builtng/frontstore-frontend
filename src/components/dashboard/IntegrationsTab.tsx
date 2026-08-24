@@ -33,11 +33,6 @@ function getApiUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 }
 
-function getToken(): string | null {
-  if (typeof window !== 'undefined') return localStorage.getItem('token');
-  return null;
-}
-
 const CATEGORY_ICON: Record<string, React.ReactNode> = {
   analytics: <BarChart3 size={20} />,
   email: <Mail size={20} />,
@@ -67,7 +62,7 @@ export default function IntegrationsTab() {
     setLoading(true);
     try {
       const res = await fetch(`${getApiUrl()}/v1/integrations`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: 'include',
       });
       const json = await res.json();
       if (json.status === 'success') {
@@ -115,9 +110,9 @@ export default function IntegrationsTab() {
 
       const res = await fetch(url, {
         method,
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
         },
         body: JSON.stringify(formValues),
       });
@@ -147,16 +142,16 @@ export default function IntegrationsTab() {
         disconnectTarget.fields.forEach((f) => { clearedValues[f.key] = null; });
         await fetch(`${getApiUrl()}/v1/store`, {
           method: 'PUT',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${getToken()}`,
           },
           body: JSON.stringify(clearedValues),
         });
       } else {
         await fetch(`${getApiUrl()}/v1/integrations/${disconnectTarget.id}/disconnect`, {
           method: 'POST',
-          headers: { Authorization: `Bearer ${getToken()}` },
+          credentials: 'include',
         });
       }
       toast.success(`${disconnectTarget.name} disconnected.`);

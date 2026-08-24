@@ -51,7 +51,7 @@ export default function AdminOverviewPage() {
     if (!token) return;
     try {
       setStatsLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/stats`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/stats`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch dashboard analytics.');
       setStats(json.data);
     } catch (error: any) {
@@ -65,7 +65,7 @@ export default function AdminOverviewPage() {
     if (!token) return;
     try {
       setStoresLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/stores?page=1&limit=5`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/stores?page=1&limit=5`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch stores.');
       setStores(json.data?.data || []);
     } catch (error: any) {

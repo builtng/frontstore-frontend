@@ -7,11 +7,25 @@ import {
   ArrowLeft,
   ArrowRight,
   Search,
+  ShieldAlert,
 } from 'lucide-react';
-import { TableSkeleton, StatusChip, EmptyState } from '../components';
+import { TableSkeleton, StatusChip, EmptyState, StatusTone } from '../components';
+
+function riskTone(level?: string | null): StatusTone {
+  switch (level) {
+    case 'high':
+      return 'red';
+    case 'medium':
+      return 'orange';
+    case 'low':
+      return 'green';
+    default:
+      return 'gray';
+  }
+}
 
 export default function AdminOrdersPage() {
-  const { token, apiUrl, getHeaders, handleFetchResponse } = useAdmin();
+  const { token, apiUrl, getHeaders, handleFetchResponse, openConfirmationDialog } = useAdmin();
 
   const [orders, setOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -24,7 +38,7 @@ export default function AdminOrdersPage() {
     try {
       setOrdersLoading(true);
       const url = `${apiUrl}/v1/admin/orders?page=${page}&search=${encodeURIComponent(search)}`;
-      const res = await fetch(url, { headers: getHeaders() });
+      const res = await fetch(url, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch platform orders.');
       setOrders(json.data?.data || []);
       setOrdersPage(json.data?.current_page || 1);
@@ -42,6 +56,29 @@ export default function AdminOrdersPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  const handleReleaseHold = (id: string, orderNumber: string) => {
+    openConfirmationDialog(
+      'Release payout hold',
+      `Release the held payout for order #${orderNumber} to the merchant's withdrawable balance? This order was flagged for manual review.`,
+      async () => {
+        try {
+          const res = await fetch(`${apiUrl}/v1/admin/orders/${id}/release-hold`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: getHeaders(),
+          });
+          const json = await handleFetchResponse(res, 'Failed to release payout hold.');
+          toast.success(json.message || 'Payout released.');
+          loadOrders(ordersPage, ordersSearch);
+        } catch (error: any) {
+          if (error.message !== 'Session expired') toast.error(error.message);
+        }
+      },
+      'Release',
+      'Cancel'
+    );
+  };
 
   return (
     <section className="admin-section animate-fade-in">
@@ -76,12 +113,14 @@ export default function AdminOrdersPage() {
               <th>Customer details</th>
               <th>Subtotal</th>
               <th>Status</th>
+              <th>Payout risk</th>
               <th>Date</th>
+              <th />
             </tr>
           </thead>
           <tbody>
             {ordersLoading ? (
-              <TableSkeleton rows={6} columns={6} />
+              <TableSkeleton rows={6} columns={8} />
             ) : orders.length ? (
               orders.map((order) => {
                 const dateStr = new Date(order.created_at).toLocaleDateString(undefined, {
@@ -144,14 +183,41 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
                     <td>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {order.risk_level ? (
+                          <StatusChip tone={riskTone(order.risk_level)} label={order.risk_level} />
+                        ) : (
+                          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>—</span>
+                        )}
+                        {order.payout_hold_reason && (
+                          <span style={{ fontSize: 11 }}>{order.payout_hold_reason}</span>
+                        )}
+                        {order.risk_reasons && (
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{order.risk_reasons}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
                       <span style={{ fontSize: 12 }}>{dateStr}</span>
+                    </td>
+                    <td className="admin-table__actions">
+                      {order.risk_requires_admin_review && (
+                        <button
+                          type="button"
+                          className="admin-action"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleReleaseHold(order.id, order.order_number)}
+                        >
+                          <ShieldAlert size={14} /> Release hold
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
               })
             ) : (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={8}>
                   <EmptyState label="No orders match this search." />
                 </td>
               </tr>

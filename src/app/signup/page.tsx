@@ -316,6 +316,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
 
       const verifyRes = await fetch(`${API_URL}/v1/auth/verify-email-otp`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           email: email.trim(),
@@ -330,10 +331,12 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
         throw new Error(verifyJson.message || 'Incorrect verification code. Please check and try again.');
       }
 
-      // Existing user → log in immediately
+      // Existing user → log in immediately. The real credential is the httpOnly
+      // fs_auth_token cookie the request above just received (credentials:
+      // 'include' makes the browser store it) — we only cache non-sensitive
+      // display data here.
       if (!verifyJson.is_new_user) {
         if (typeof window !== 'undefined' && verifyJson.token) {
-          localStorage.setItem('token', verifyJson.token);
           localStorage.setItem('user', JSON.stringify(verifyJson.data?.user));
           localStorage.setItem('store', JSON.stringify(verifyJson.data?.user?.store));
         }
@@ -379,6 +382,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
 
       const setupRes = await fetch(`${API_URL}/v1/auth/complete-setup`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           setup_token: setupToken,
@@ -399,9 +403,9 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
         throw new Error(setupJson.message || 'Failed to complete store setup. Please check your inputs.');
       }
 
-      // Store credentials locally for automatic login
+      // The real credential is the httpOnly fs_auth_token cookie the request
+      // above just received — only cache non-sensitive display data here.
       if (typeof window !== 'undefined' && setupJson.token) {
-        localStorage.setItem('token', setupJson.token);
         localStorage.setItem('user', JSON.stringify(setupJson.data?.user));
         localStorage.setItem('store', JSON.stringify(setupJson.data?.store));
       }

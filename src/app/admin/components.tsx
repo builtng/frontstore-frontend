@@ -1,5 +1,9 @@
 import React from 'react';
 
+export { default as EmptyState } from '@/components/EmptyState';
+export { SkeletonGrid } from '@/components/Skeleton';
+export { default as TableSkeleton } from '@/components/TableSkeleton';
+
 export function Metric({ icon, label, value, detail, tone = 'gray' }: { icon: React.ReactNode; label: string; value: string; detail?: string; tone?: 'green' | 'gray' }) {
   return (
     <div className={`admin-metric admin-metric--${tone}`}>
@@ -51,36 +55,6 @@ export function PlanMeter({ label, value, total, tone }: { label: string; value:
         <span className={`admin-meter__fill admin-meter__fill--${tone}`} style={{ width: `${width}%` }} />
       </span>
     </div>
-  );
-}
-
-export function EmptyState({ label }: { label: string }) {
-  return <div className="admin-empty">{label}</div>;
-}
-
-export function SkeletonGrid() {
-  return (
-    <div className="admin-metric-grid">
-      {[1, 2, 3, 4].map((item) => (
-        <div key={item} className="admin-skeleton" />
-      ))}
-    </div>
-  );
-}
-
-export function TableSkeleton({ rows, columns }: { rows: number; columns: number }) {
-  return (
-    <>
-      {Array.from({ length: rows }).map((_, row) => (
-        <tr key={row}>
-          {Array.from({ length: columns }).map((__, column) => (
-            <td key={column}>
-              <span className="admin-table-skeleton" />
-            </td>
-          ))}
-        </tr>
-      ))}
-    </>
   );
 }
 

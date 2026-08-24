@@ -76,6 +76,7 @@ function AcceptInviteContent() {
       setSubmitting(true);
       const res = await fetch(`${API_URL}/v1/public/affiliate-invitations/${token}/accept`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
@@ -86,7 +87,6 @@ function AcceptInviteContent() {
       });
       const json = await res.json();
       if (res.ok && json.token) {
-        localStorage.setItem('token', json.token);
         toast.success('You are now an affiliate!');
         router.push('/affiliate');
       } else {
@@ -107,21 +107,20 @@ function AcceptInviteContent() {
       setSubmitting(true);
       const loginRes = await fetch(`${API_URL}/v1/auth/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: invite.email, password: loginPassword }),
       });
       const loginJson = await loginRes.json();
-      const loginToken = loginJson.data?.token;
-      if (!loginRes.ok || !loginToken) {
+      if (!loginRes.ok || !loginJson.data?.token) {
         toast.error(loginJson.message || 'Login failed.');
         return;
       }
 
-      localStorage.setItem('token', loginToken);
-
       const claimRes = await fetch(`${API_URL}/v1/affiliate-invitations/${token}/claim`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${loginToken}`, 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
       });
       const claimJson = await claimRes.json();
       if (claimRes.ok) {

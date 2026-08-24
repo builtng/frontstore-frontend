@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Plus_Jakarta_Sans, Outfit } from "next/font/google";
 import "./globals.css";
 import ToastProvider from '@/components/ToastProvider';
 import AccessGuard from '@/components/AccessGuard';
@@ -7,11 +7,12 @@ import AnalyticsScripts from '@/components/AnalyticsScripts';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
 
 // ── Fonts via next/font — zero render-blocking, automatic preload ────────────
-const inter = Inter({
+// Plus Jakarta Sans is the brand book's mandated body/UI font (brand_book.md).
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700', '800'],
   style: ['normal', 'italic'],
-  variable: '--font-inter',
+  variable: '--font-jakarta',
   display: 'swap',
   preload: true,   // body font — used on every route, safe to preload
 });
@@ -131,7 +132,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${outfit.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${plusJakartaSans.variable} ${outfit.variable}`}>
       <head>
         {/* llm.txt — AI crawler discoverability (llmstxt.org spec) */}
         <link rel="llms-txt" href="/llm.txt" />

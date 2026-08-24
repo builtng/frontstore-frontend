@@ -29,10 +29,6 @@ function getApiUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 }
 
-function getToken(): string | null {
-  if (typeof window !== 'undefined') return localStorage.getItem('token');
-  return null;
-}
 
 interface NinaWidgetProps {
   ninaAvatarUrl?: string | null;
@@ -72,9 +68,9 @@ export default function NinaWidget({ ninaAvatarUrl }: NinaWidgetProps = {}) {
     try {
       const res = await fetch(`${getApiUrl()}/v1/nina/chat`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
         },
         body: JSON.stringify({ message: trimmed, history: historyForApi }),
       });

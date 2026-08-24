@@ -34,7 +34,7 @@ export default function AdminProductsPage() {
     try {
       setProductsLoading(true);
       const url = `${apiUrl}/v1/admin/products?page=${page}&search=${encodeURIComponent(search)}${sponsoredFilter ? '&sponsored=1' : ''}`;
-      const res = await fetch(url, { headers: getHeaders() });
+      const res = await fetch(url, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch products directory.');
       setProducts(json.data?.data || []);
       setProductsCurrentPage(json.data?.current_page || 1);
@@ -50,6 +50,7 @@ export default function AdminProductsPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/products/${product.id}/toggle-sponsor`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: getHeaders(),
       });
       const json = await handleFetchResponse(res, 'Failed to update sponsored placement.');

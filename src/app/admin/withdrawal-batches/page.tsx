@@ -63,7 +63,7 @@ export default function AdminWithdrawalBatchesPage() {
     if (!token) return;
     try {
       setPendingLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/withdrawals?status=pending&limit=100`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/withdrawals?status=pending&limit=100`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch pending withdrawals.');
       setPending(json.data?.data || []);
       setSelectedIds(new Set());
@@ -78,7 +78,7 @@ export default function AdminWithdrawalBatchesPage() {
     if (!token) return;
     try {
       setBatchesLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/withdrawal-batches?page=${page}&limit=20`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/withdrawal-batches?page=${page}&limit=20`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch batch history.');
       setBatches(json.data?.data || []);
       setBatchesPage(json.data?.current_page || 1);
@@ -138,6 +138,7 @@ export default function AdminWithdrawalBatchesPage() {
       setSendingOtp(true);
       const res = await fetch(`${apiUrl}/v1/admin/withdrawal-batches`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ withdrawal_ids: Array.from(selectedIds) }),
       });
@@ -161,6 +162,7 @@ export default function AdminWithdrawalBatchesPage() {
       setOtpResending(true);
       const res = await fetch(`${apiUrl}/v1/admin/withdrawal-batches/${batchId}/resend-otp`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
       });
       const json = await handleFetchResponse(res, 'Failed to resend OTP.');
@@ -181,6 +183,7 @@ export default function AdminWithdrawalBatchesPage() {
       setOtpError('');
       const res = await fetch(`${apiUrl}/v1/admin/withdrawal-batches/${batchId}/verify-otp`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ otp_code: otpCode }),
       });

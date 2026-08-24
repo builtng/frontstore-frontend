@@ -164,30 +164,37 @@ function StoreBuildEditorPage() {
   const skipHistoryPush = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Auth is the httpOnly fs_auth_token cookie now — `t` is kept only as a
+  // truthy in-memory marker so existing call sites don't need restructuring.
+  // Every fetch using these headers must also pass `credentials: 'include'`.
   const authHeaders = useCallback((t: string | null) => ({
-    'Authorization': `Bearer ${t}`,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   }), []);
 
   useEffect(() => {
     let cancelled = false;
-    const storedToken = localStorage.getItem('token');
-    setToken(storedToken);
-    if (!storedToken || !siteId) { setLoading(false); return; }
+    if (!siteId) { setLoading(false); return; }
 
     (async () => {
       try {
         const [storeRes, siteRes, pagesRes, productsRes, categoriesRes, faqsRes, reviewsRes, whatsappLinesRes] = await Promise.all([
-          fetch(`${apiUrl}/v1/store`, { headers: authHeaders(storedToken) }),
-          fetch(`${apiUrl}/v1/store/sites/${siteId}`, { headers: authHeaders(storedToken) }),
-          fetch(`${apiUrl}/v1/store/sites/${siteId}/pages`, { headers: authHeaders(storedToken) }),
-          fetch(`${apiUrl}/v1/products?limit=200`, { headers: authHeaders(storedToken) }),
-          fetch(`${apiUrl}/v1/categories`, { headers: authHeaders(storedToken) }),
-          fetch(`${apiUrl}/v1/faqs`, { headers: authHeaders(storedToken) }),
-          fetch(`${apiUrl}/v1/store/reviews`, { headers: authHeaders(storedToken) }),
-          fetch(`${apiUrl}/v1/store/whatsapp-lines`, { headers: authHeaders(storedToken) }),
+          fetch(`${apiUrl}/v1/store`, { credentials: 'include', headers: authHeaders(null) }),
+          fetch(`${apiUrl}/v1/store/sites/${siteId}`, { credentials: 'include', headers: authHeaders(null) }),
+          fetch(`${apiUrl}/v1/store/sites/${siteId}/pages`, { credentials: 'include', headers: authHeaders(null) }),
+          fetch(`${apiUrl}/v1/products?limit=200`, { credentials: 'include', headers: authHeaders(null) }),
+          fetch(`${apiUrl}/v1/categories`, { credentials: 'include', headers: authHeaders(null) }),
+          fetch(`${apiUrl}/v1/faqs`, { credentials: 'include', headers: authHeaders(null) }),
+          fetch(`${apiUrl}/v1/store/reviews`, { credentials: 'include', headers: authHeaders(null) }),
+          fetch(`${apiUrl}/v1/store/whatsapp-lines`, { credentials: 'include', headers: authHeaders(null) }),
         ]);
+
+        if (storeRes.status === 401 || siteRes.status === 401) {
+          setToken(null);
+          setLoading(false);
+          return;
+        }
+        setToken('session');
 
         const storeJson = await storeRes.json();
         const siteJson = await siteRes.json();
@@ -288,7 +295,7 @@ function StoreBuildEditorPage() {
     saveTimer.current = setTimeout(async () => {
       try {
         const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}`, {
-          method: 'PUT', headers: authHeaders(token), body: JSON.stringify({ layout }),
+          method: 'PUT', credentials: 'include', headers: authHeaders(token), body: JSON.stringify({ layout }),
         });
         setSaveState(res.ok ? 'saved' : 'idle');
         if (res.ok) {
@@ -324,7 +331,7 @@ function StoreBuildEditorPage() {
     const slug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `page-${Date.now()}`;
     try {
       const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages`, {
-        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ name, slug }),
+        method: 'POST', credentials: 'include', headers: authHeaders(token), body: JSON.stringify({ name, slug }),
       });
       const json = await res.json();
       if (res.ok) {
@@ -344,7 +351,7 @@ function StoreBuildEditorPage() {
     if (!token) return;
     try {
       const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${pageId}/duplicate`, {
-        method: 'POST', headers: authHeaders(token),
+        method: 'POST', credentials: 'include', headers: authHeaders(token),
       });
       const json = await res.json();
       if (res.ok) {
@@ -363,7 +370,7 @@ function StoreBuildEditorPage() {
     if (!token) return;
     try {
       const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${pageId}`, {
-        method: 'DELETE', headers: authHeaders(token),
+        method: 'DELETE', credentials: 'include', headers: authHeaders(token),
       });
       if (res.ok) {
         const remaining = pages.filter((p) => p.id !== pageId);
@@ -391,7 +398,7 @@ function StoreBuildEditorPage() {
     setPages(reordered);
     if (token) {
       fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/reorder`, {
-        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ page_ids: reordered.map((p) => p.id) }),
+        method: 'POST', credentials: 'include', headers: authHeaders(token), body: JSON.stringify({ page_ids: reordered.map((p) => p.id) }),
       }).catch(() => toast.error('Network error saving page order.'));
     }
   };
@@ -540,8 +547,8 @@ function StoreBuildEditorPage() {
     if (!token || !activePageId) return;
     setPublishing(true);
     try {
-      await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}`, { method: 'PUT', headers: authHeaders(token), body: JSON.stringify({ layout }) });
-      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/publish`, { method: 'POST', headers: authHeaders(token) });
+      await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}`, { method: 'PUT', credentials: 'include', headers: authHeaders(token), body: JSON.stringify({ layout }) });
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/publish`, { method: 'POST', credentials: 'include', headers: authHeaders(token) });
       const json = await res.json();
       if (res.ok) {
         setPages((prev) => prev.map((p) => (p.id === activePageId ? { ...p, is_published: true } : p)));
@@ -561,7 +568,7 @@ function StoreBuildEditorPage() {
     if (themes.length > 0 || !token) return;
     setThemesLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/v1/store/themes`, { headers: authHeaders(token) });
+      const res = await fetch(`${apiUrl}/v1/store/themes`, { credentials: 'include', headers: authHeaders(token) });
       const json = await res.json();
       if (res.ok) setThemes(json.data || []);
       else toast.error(json.message || 'Could not load themes.');
@@ -578,7 +585,7 @@ function StoreBuildEditorPage() {
     try {
       const nextTheme = { ...theme.tokens, appliedThemeKey: theme.key };
       const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}`, {
-        method: 'PUT', headers: authHeaders(token), body: JSON.stringify({ theme: nextTheme }),
+        method: 'PUT', credentials: 'include', headers: authHeaders(token), body: JSON.stringify({ theme: nextTheme }),
       });
       const json = await res.json();
       if (res.ok) {
@@ -599,7 +606,7 @@ function StoreBuildEditorPage() {
     setAddingLine(true);
     try {
       const res = await fetch(`${apiUrl}/v1/store/whatsapp-lines`, {
-        method: 'POST', headers: authHeaders(token),
+        method: 'POST', credentials: 'include', headers: authHeaders(token),
         body: JSON.stringify({ label: newLineLabel.trim(), phone: newLinePhone.trim(), department: newLineDepartment.trim() || undefined }),
       });
       const json = await res.json();
@@ -620,7 +627,7 @@ function StoreBuildEditorPage() {
   const deleteWhatsappLine = async (id: string) => {
     if (!token) return;
     try {
-      const res = await fetch(`${apiUrl}/v1/store/whatsapp-lines/${id}`, { method: 'DELETE', headers: authHeaders(token) });
+      const res = await fetch(`${apiUrl}/v1/store/whatsapp-lines/${id}`, { method: 'DELETE', credentials: 'include', headers: authHeaders(token) });
       if (res.ok) setWhatsappLines((prev) => prev.filter((l) => l.id !== id));
       else toast.error('Could not delete this line.');
     } catch {
@@ -639,7 +646,7 @@ function StoreBuildEditorPage() {
     setSeoSaving(true);
     try {
       const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}`, {
-        method: 'PUT', headers: authHeaders(token),
+        method: 'PUT', credentials: 'include', headers: authHeaders(token),
         body: JSON.stringify({ seo_title: seoTitle || null, seo_description: seoDescription || null }),
       });
       const json = await res.json();
@@ -662,7 +669,7 @@ function StoreBuildEditorPage() {
     if (!token || !activePageId) return;
     setVersionsLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/versions`, { headers: authHeaders(token) });
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/versions`, { credentials: 'include', headers: authHeaders(token) });
       const json = await res.json();
       if (res.ok) setVersions(json.data || []);
       else toast.error(json.message || 'Could not load version history.');
@@ -677,7 +684,7 @@ function StoreBuildEditorPage() {
     if (!token || !activePageId) return;
     try {
       const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/versions`, {
-        method: 'POST', headers: authHeaders(token), body: JSON.stringify({}),
+        method: 'POST', credentials: 'include', headers: authHeaders(token), body: JSON.stringify({}),
       });
       const json = await res.json();
       if (res.ok) {
@@ -696,7 +703,7 @@ function StoreBuildEditorPage() {
     setRestoringVersionId(versionId);
     try {
       const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/versions/${versionId}/restore`, {
-        method: 'POST', headers: authHeaders(token),
+        method: 'POST', credentials: 'include', headers: authHeaders(token),
       });
       const json = await res.json();
       if (res.ok) {
@@ -723,7 +730,7 @@ function StoreBuildEditorPage() {
     if (!token) return;
     setInsightsLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/analytics`, { headers: authHeaders(token) });
+      const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/analytics`, { credentials: 'include', headers: authHeaders(token) });
       const json = await res.json();
       if (res.ok) setInsights(json.data);
       else toast.error(json.message || 'Could not load insights.');
@@ -738,7 +745,7 @@ function StoreBuildEditorPage() {
     if (savedSectionsLoaded || !token) return;
     setSavedSectionsLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/v1/store/sections`, { headers: authHeaders(token) });
+      const res = await fetch(`${apiUrl}/v1/store/sections`, { credentials: 'include', headers: authHeaders(token) });
       const json = await res.json();
       if (res.ok) { setSavedSections(json.data || []); setSavedSectionsLoaded(true); }
       else toast.error(json.message || 'Could not load saved sections.');
@@ -754,7 +761,7 @@ function StoreBuildEditorPage() {
     setAiGenerating(true);
     try {
       const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/pages/${activePageId}/ai/generate`, {
-        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ prompt, scope }),
+        method: 'POST', credentials: 'include', headers: authHeaders(token), body: JSON.stringify({ prompt, scope }),
       });
       const json = await res.json();
       if (typeof json.quota_remaining === 'number' || json.quota_remaining === null) {
@@ -796,7 +803,7 @@ function StoreBuildEditorPage() {
   const deleteSavedSection = async (id: string) => {
     if (!token) return;
     try {
-      const res = await fetch(`${apiUrl}/v1/store/sections/${id}`, { method: 'DELETE', headers: authHeaders(token) });
+      const res = await fetch(`${apiUrl}/v1/store/sections/${id}`, { method: 'DELETE', credentials: 'include', headers: authHeaders(token) });
       if (res.ok) setSavedSections((prev) => prev.filter((s) => s.id !== id));
       else toast.error('Could not delete this section.');
     } catch {
@@ -810,7 +817,7 @@ function StoreBuildEditorPage() {
     if (!block) { setSaveSectionTarget(null); return; }
     try {
       const res = await fetch(`${apiUrl}/v1/store/sections`, {
-        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ name: saveSectionName.trim(), block }),
+        method: 'POST', credentials: 'include', headers: authHeaders(token), body: JSON.stringify({ name: saveSectionName.trim(), block }),
       });
       const json = await res.json();
       if (res.ok) {
@@ -832,7 +839,7 @@ function StoreBuildEditorPage() {
     setDomainSaving(true);
     try {
       const res = await fetch(`${apiUrl}/v1/store/sites/${siteId}/domain`, {
-        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ custom_domain: domainInput.trim() }),
+        method: 'POST', credentials: 'include', headers: authHeaders(token), body: JSON.stringify({ custom_domain: domainInput.trim() }),
       });
       const json = await res.json();
       if (res.ok) {
@@ -856,7 +863,7 @@ function StoreBuildEditorPage() {
     form.append('image', file);
     try {
       const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form,
+        method: 'POST', credentials: 'include', body: form,
       });
       const json = await res.json();
       if (res.ok) return json.url;
@@ -872,7 +879,7 @@ function StoreBuildEditorPage() {
     if (!token) return null;
     try {
       const res = await fetch(`${apiUrl}/v1/store/ai/copy`, {
-        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ kind, context }),
+        method: 'POST', credentials: 'include', headers: authHeaders(token), body: JSON.stringify({ kind, context }),
       });
       const json = await res.json();
       if (typeof json.quota_remaining === 'number' || json.quota_remaining === null) {

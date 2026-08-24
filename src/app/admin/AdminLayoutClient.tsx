@@ -51,6 +51,7 @@ const navGroups = [
     label: 'Finance',
     items: [
       { href: '/admin/withdrawals', label: 'Payouts', icon: <DollarSign size={16} />, permission: 'payouts' },
+      { href: '/admin/payout-sla', label: 'Payout SLA', icon: <Activity size={16} />, permission: 'payouts' },
       { href: '/admin/withdrawal-batches', label: 'Withdrawal Batches', icon: <Layers size={16} />, permission: 'payouts' },
       { href: '/admin/payout-account-changes', label: 'Payout Account Changes', icon: <ShieldAlert size={16} />, permission: 'payouts' },
       { href: '/admin/payments', label: 'Payment Gateways', icon: <CreditCard size={16} />, permission: 'payments' },

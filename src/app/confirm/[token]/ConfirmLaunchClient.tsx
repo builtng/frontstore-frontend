@@ -86,6 +86,7 @@ export default function ConfirmLaunchClient({ token }: Props) {
     try {
       const res = await fetch(`${API}/v1/auth/confirm-launch`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ token, password, password_confirmation: confirm }),
       });
@@ -96,10 +97,9 @@ export default function ConfirmLaunchClient({ token }: Props) {
         return;
       }
 
-      // Store auth data exactly as the dashboard expects
+      // The real credential is the httpOnly fs_auth_token cookie the request
+      // above just received — only cache non-sensitive display data here.
       if (typeof window !== 'undefined') {
-        localStorage.setItem('token', data.data.token);
-        localStorage.setItem('auth_token', data.data.token);
         localStorage.setItem('user', JSON.stringify(data.data.user));
         localStorage.setItem('store', JSON.stringify(data.data.store));
       }
@@ -130,6 +130,7 @@ export default function ConfirmLaunchClient({ token }: Props) {
       try {
         const res = await fetch(`${API}/v1/auth/confirm-launch`, {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({ token }),
         });
@@ -142,8 +143,6 @@ export default function ConfirmLaunchClient({ token }: Props) {
         }
 
         if (typeof window !== 'undefined') {
-          localStorage.setItem('token', data.data.token);
-          localStorage.setItem('auth_token', data.data.token);
           localStorage.setItem('user', JSON.stringify(data.data.user));
           localStorage.setItem('store', JSON.stringify(data.data.store));
         }

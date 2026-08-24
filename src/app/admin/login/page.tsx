@@ -22,19 +22,21 @@ export default function AdminLoginPage() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
-  // Redirect if already logged in as admin
+  // Redirect if already logged in as admin — the token lives in an httpOnly
+  // cookie now, so ask the server rather than trusting a localStorage flag.
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    if (token && storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        const isAdmin = parsedUser?.is_admin === true || parsedUser?.is_admin === 1 || parsedUser?.is_admin === 'true' || parsedUser?.is_admin === '1';
+    fetch(`${API_URL}/v1/auth/me`, { credentials: 'include' })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const json = await res.json();
+        const user = json.data?.user;
+        const isAdmin = user?.is_admin === true || user?.is_admin === 1 || user?.is_admin === 'true' || user?.is_admin === '1';
         if (isAdmin) router.replace('/admin');
-      } catch {
-        // ignore parse errors
-      }
-    }
+      })
+      .catch(() => {
+        // not logged in — stay on the login page
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   // Load app name
@@ -65,6 +67,7 @@ export default function AdminLoginPage() {
 
       const res = await fetch(`${API_URL}/v1/auth/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
           email: email.trim(),

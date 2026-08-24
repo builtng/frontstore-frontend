@@ -25,7 +25,7 @@ export default function AdminVerificationsPage() {
     if (!token) return;
     try {
       setVerificationsLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/verifications?page=${page}`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/verifications?page=${page}`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch verifications list.');
       setVerifications(json.data?.data || []);
       setVerificationsPage(json.data?.current_page || 1);
@@ -45,6 +45,7 @@ export default function AdminVerificationsPage() {
         try {
           const res = await fetch(`${apiUrl}/v1/admin/verifications/${id}/approve`, {
             method: 'POST',
+            credentials: 'include',
             headers: getHeaders(),
           });
           const json = await handleFetchResponse(res, 'Failed to approve verification.');
@@ -67,6 +68,7 @@ export default function AdminVerificationsPage() {
         try {
           const res = await fetch(`${apiUrl}/v1/admin/verifications/${id}/reject`, {
             method: 'POST',
+            credentials: 'include',
             headers: getHeaders(),
           });
           const json = await handleFetchResponse(res, 'Failed to reject verification.');

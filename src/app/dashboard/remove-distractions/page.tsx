@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Loader2, Sparkles, Save, EyeOff, LayoutGrid, BarChart3,
-  ShoppingBag, Package, Tag, Users, DollarSign, Link, Gift, Share2, QrCode,
+  ShoppingBag, Package, Tag, Users, DollarSign, Link, Share2, QrCode,
   Star, BookOpen, Clock, Calendar, Settings, Plug, Zap, Menu, X, LogOut,
   Archive, FileText, Receipt,
 } from 'lucide-react';
@@ -33,7 +33,6 @@ const NAV_ITEMS: { id: string; label: string; icon: React.ReactNode }[] = [
   { id: 'payment-links', label: 'Payment Links', icon: <Link size={18} /> },
   { id: 'invoices', label: 'Invoices', icon: <FileText size={18} /> },
   { id: 'receipts', label: 'Receipts', icon: <Receipt size={18} /> },
-  { id: 'giveaways', label: 'Giveaways', icon: <Gift size={18} /> },
   { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
   { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
   { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} /> },
@@ -56,7 +55,6 @@ const SIDEBAR_ITEMS: { id: string; label: string }[] = [
   { id: 'payment-links', label: 'Payment Links' },
   { id: 'invoices', label: 'Invoices' },
   { id: 'receipts', label: 'Receipts' },
-  { id: 'giveaways', label: 'Giveaways' },
   { id: 'whatsapp', label: 'WhatsApp Inbox' },
   { id: 'share', label: 'Share & Earn' },
   { id: 'qr', label: 'My QR Code' },
@@ -94,16 +92,15 @@ export default function RemoveDistractionsPage() {
   const [storeUsername, setStoreUsername] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Auth is the httpOnly fs_auth_token cookie now — `t` is kept only as a
+  // truthy in-memory marker so existing call sites don't need restructuring.
+  // Every fetch using these headers must also pass `credentials: 'include'`.
   const authHeaders = (t: string | null) => ({
-    'Authorization': `Bearer ${t}`,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   });
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    setToken(storedToken);
-
     const cachedStore = localStorage.getItem('store');
     if (cachedStore) {
       try {
@@ -113,14 +110,15 @@ export default function RemoveDistractionsPage() {
       } catch { }
     }
 
-    if (!storedToken) {
-      setLoading(false);
-      return;
-    }
-
     (async () => {
       try {
-        const res = await fetch(`${apiUrl}/v1/store`, { headers: authHeaders(storedToken) });
+        const res = await fetch(`${apiUrl}/v1/store`, { credentials: 'include', headers: authHeaders(null) });
+        if (res.status === 401) {
+          setToken(null);
+          setLoading(false);
+          return;
+        }
+        setToken('session');
         const json = await res.json();
         if (res.ok && json.data) {
           const liveStore: StoreShape = json.data;
@@ -154,6 +152,7 @@ export default function RemoveDistractionsPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/store`, {
         method: 'PUT',
+        credentials: 'include',
         headers: authHeaders(token),
         body: JSON.stringify({ hidden_dashboard_items: hidden }),
       });
@@ -181,7 +180,7 @@ export default function RemoveDistractionsPage() {
   };
 
   const handleLogout = () => {
-    fetch(`${apiUrl}/v1/auth/logout`, { method: 'POST', headers: authHeaders(token) }).catch(() => { });
+    fetch(`${apiUrl}/v1/auth/logout`, { method: 'POST', credentials: 'include', headers: authHeaders(token) }).catch(() => { });
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('store');

@@ -29,7 +29,7 @@ export default function AdminWithdrawalBatchReportPage() {
     if (!token || !id) return;
     try {
       setLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/withdrawal-batches/${id}`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/withdrawal-batches/${id}`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch batch report.');
       setBatch(json.data?.batch || null);
       setLogs(json.data?.logs || []);
@@ -51,6 +51,7 @@ export default function AdminWithdrawalBatchReportPage() {
       setRetrying(true);
       const res = await fetch(`${apiUrl}/v1/admin/withdrawal-batches/${id}/retry-failed`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
       });
       const json = await handleFetchResponse(res, 'Failed to retry failed transfers.');
@@ -67,7 +68,7 @@ export default function AdminWithdrawalBatchReportPage() {
     if (!token || !id) return;
     try {
       setExporting(true);
-      const res = await fetch(`${apiUrl}/v1/admin/withdrawal-batches/${id}/export?format=csv`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/withdrawal-batches/${id}/export?format=csv`, { credentials: 'include', headers: getHeaders() });
       if (res.status === 401) {
         toast.error('Session expired. Please log in again.');
         return;

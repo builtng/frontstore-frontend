@@ -97,6 +97,7 @@ export default function AdminEmailsPage() {
         setCountLoading(true);
         const query = new URLSearchParams({ segment, days: String(days), month: String(month), year: String(year) });
         const res = await fetch(`${apiUrl}/v1/admin/${channel === 'email' ? 'emails' : 'whatsapp'}/audience-preview?${query.toString()}`, {
+          credentials: 'include',
           headers: getHeaders(),
         });
         const json = await handleFetchResponse(res, 'Could not load audience count.');
@@ -124,6 +125,7 @@ export default function AdminEmailsPage() {
       try {
         setRecipientSearching(true);
         const res = await fetch(`${apiUrl}/v1/admin/emails/search-recipients?q=${encodeURIComponent(recipientQuery.trim())}`, {
+          credentials: 'include',
           headers: getHeaders(),
         });
         const json = await handleFetchResponse(res, 'Could not search merchants.');
@@ -155,7 +157,7 @@ export default function AdminEmailsPage() {
 
       const res = await fetch(`${apiUrl}/v1/admin/emails/upload-image`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
         body: formData,
       });
       const json = await handleFetchResponse(res, 'Could not upload image.');
@@ -185,6 +187,7 @@ export default function AdminEmailsPage() {
       setAiSuggesting(true);
       const res = await fetch(`${apiUrl}/v1/admin/emails/suggest-content`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ topic: aiTopic.trim(), segment }),
       });
@@ -215,6 +218,7 @@ export default function AdminEmailsPage() {
       setPreviewOpen(true);
       const res = await fetch(`${apiUrl}/v1/admin/emails/preview`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ subject: subject.trim(), body: body.trim(), image_url: imageUrl }),
       });
@@ -264,6 +268,7 @@ export default function AdminEmailsPage() {
 
           const res = await fetch(`${apiUrl}/v1/admin/${channel === 'email' ? 'emails' : 'whatsapp'}/send`, {
             method: 'POST',
+            credentials: 'include',
             headers: getHeaders(),
             body: JSON.stringify(payload),
           });

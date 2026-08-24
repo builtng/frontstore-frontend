@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight, Check, CreditCard, Building2, Smartphone,
-  ShieldCheck, Clock, Zap, Percent, BadgeCheck, X, ListChecks,
+  Percent, X, ListChecks, Sparkles,
 } from 'lucide-react';
 import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
 
@@ -16,13 +16,6 @@ const PAYMENT_METHODS = [
 ] as const;
 
 const COMING_SOON_METHODS = ['Flutterwave', 'M-Pesa'] as const;
-
-const PAYOUT_TIERS = [
-  { level: 1, name: 'New Seller', range: '0–40 pts', payout: '5-day hold', icon: Clock },
-  { level: 2, name: 'Verified Seller', range: '41–70 pts', payout: 'Next-day payout', icon: ShieldCheck },
-  { level: 3, name: 'Trusted Seller', range: '71–90 pts', payout: 'Same-day payout', icon: BadgeCheck },
-  { level: 4, name: 'Elite Seller', range: '91–100 pts', payout: 'Instant payout', icon: Zap },
-] as const;
 
 export interface ApiPlanSku {
   key: string;
@@ -57,6 +50,7 @@ function toDisplayTier(group: ApiPlanGroup) {
   return {
     name: group.name,
     tagline: group.tagline || '',
+    tierRank: group.tier_rank,
     monthly: formatNaira(monthlySku?.price || 0),
     yearly: formatNaira(yearlySku?.price || 0),
     highlight: group.highlight,
@@ -66,9 +60,13 @@ function toDisplayTier(group: ApiPlanGroup) {
 }
 
 export default function PricingPageClient({ plans }: PricingPageClientProps) {
-  const [activeTier, setActiveTier] = useState(1);
   const [benefitsModalTier, setBenefitsModalTier] = useState<string | null>(null);
   const tiers = plans.map(toDisplayTier);
+  // Free and Pro are the decision a new merchant actually needs to make on
+  // first contact. Anything ranked above Pro is an advanced upgrade they'll
+  // grow into, not a plan they should be weighing on day one.
+  const primaryTiers = tiers.filter((t) => t.tierRank <= 10);
+  const advancedTiers = tiers.filter((t) => t.tierRank > 10);
   const modalTier = tiers.find((t) => t.name === benefitsModalTier) || null;
 
   return (
@@ -85,19 +83,19 @@ export default function PricingPageClient({ plans }: PricingPageClientProps) {
             <Percent size={12} color="var(--accent)" /> <b>Pricing</b>
           </div>
           <h1 className="text-display" style={{ fontSize: 'clamp(28px, 5vw, 44px)', color: '#fff', lineHeight: 1.15, marginBottom: 16 }}>
-            Simple plans. <span className="mark-highlight">No transaction fees.</span>
+            Sell online. <span className="mark-highlight">Get paid fast.</span>
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.78)', fontSize: 'clamp(15px, 2vw, 17px)', lineHeight: 1.65, maxWidth: 480, margin: '0 auto' }}>
-            {tiers.map((t) => t.name).join(', ')} — whichever you pick, you keep 100% of every sale. Upgrading unlocks features, never a cut of your revenue.
+            Create your store for ₦0, keep 100% of every sale, and get your payouts within 24 hours.
           </p>
         </div>
       </header>
 
       <main style={{ flex: 1, width: '100%' }}>
-        {/* ── Plan tier cards, overlapping the hero ── */}
-        <section style={{ maxWidth: 980, margin: 'clamp(-56px, -6vw, -40px) auto 0', padding: '0 20px', position: 'relative', zIndex: 2 }}>
+        {/* ── Free & Pro: the decision that actually matters on day one ── */}
+        <section style={{ maxWidth: 700, margin: 'clamp(-56px, -6vw, -40px) auto 0', padding: '0 20px', position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
-            {tiers.map((tier) => (
+            {primaryTiers.map((tier) => (
               <div
                 key={tier.name}
                 className="card"
@@ -197,66 +195,50 @@ export default function PricingPageClient({ plans }: PricingPageClientProps) {
 
         {/* ── Payouts ── */}
         <section style={{ padding: 'clamp(56px, 8vw, 88px) 20px' }}>
-          <div style={{ maxWidth: 900, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'clamp(28px, 5vw, 48px)', alignItems: 'center' }}>
-            <div>
-              <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-block' }}>Payouts</span>
-              <h2 className="text-title" style={{ marginBottom: 12 }}>Payout speed you can grow into</h2>
-              <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: 16 }}>
-                Frontstore doesn&apos;t hold your money by country — it holds it by trust score. Every new store starts with a short settlement hold, and every sale, low dispute rate, and clean refund record moves you up.
-              </p>
-              <ul style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13.5, color: 'var(--text-2)' }}>
-                <li style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                  <Check size={15} color="var(--primary)" style={{ marginTop: 2, flexShrink: 0 }} /> Same payout ladder in every market we support
-                </li>
-                <li style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                  <Check size={15} color="var(--primary)" style={{ marginTop: 2, flexShrink: 0 }} /> Trust score is visible on your dashboard, so you always know what unlocks the next tier
-                </li>
-                <li style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                  <Check size={15} color="var(--primary)" style={{ marginTop: 2, flexShrink: 0 }} /> Frontstore Protect orders follow their own milestone-based escrow release, separate from this ladder
-                </li>
-              </ul>
-            </div>
-
-            <div className="card" style={{ padding: 'clamp(20px, 3vw, 28px)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {PAYOUT_TIERS.map((t) => (
-                  <button
-                    key={t.level}
-                    type="button"
-                    onClick={() => setActiveTier(t.level)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 14,
-                      padding: '14px 16px',
-                      borderRadius: 'var(--r-lg)',
-                      border: `1.5px solid ${activeTier === t.level ? 'var(--primary)' : 'var(--border)'}`,
-                      background: activeTier === t.level ? 'var(--primary-light)' : 'transparent',
-                      cursor: 'pointer', textAlign: 'left', width: '100%',
-                      transition: 'all var(--t-fast) var(--ease)',
-                    }}
-                  >
-                    <div style={{
-                      width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: activeTier === t.level ? 'var(--primary)' : 'var(--surface-2)',
-                      color: activeTier === t.level ? '#fff' : 'var(--text-muted)',
-                    }}>
-                      <t.icon size={16} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text)' }}>
-                        Level {t.level} · {t.name}
-                      </p>
-                      <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t.range}</p>
-                    </div>
-                    <p style={{ fontSize: 13, fontWeight: 800, color: activeTier === t.level ? 'var(--primary)' : 'var(--text-faint)', whiteSpace: 'nowrap' }}>
-                      {t.payout}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
+            <span className="badge badge-primary" style={{ marginBottom: 12, display: 'inline-block' }}>Payouts</span>
+            <h2 className="text-title" style={{ marginBottom: 12 }}>Payouts within 24 hours</h2>
+            <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.65 }}>
+              We review every order automatically the moment it&apos;s paid for. Most payouts reach your bank the same day; a small number are held briefly for a security check before release. Frontstore Protect orders follow their own milestone-based release once the customer confirms delivery.
+            </p>
           </div>
         </section>
+
+        {/* ── Legend: advanced growth, not a first-day decision ── */}
+        {advancedTiers.length > 0 && (
+          <section style={{ padding: '0 20px clamp(56px, 8vw, 88px)' }}>
+            <div className="card" style={{ maxWidth: 640, margin: '0 auto', padding: 'clamp(20px, 3vw, 28px)', display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between' }}>
+              {advancedTiers.map((tier) => (
+                <React.Fragment key={tier.name}>
+                  <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flex: '1 1 320px' }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 'var(--r-lg)', flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'var(--primary-light)', color: 'var(--primary)',
+                    }}>
+                      <Sparkles size={18} />
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: 4 }}>
+                        Advanced growth
+                      </p>
+                      <h3 className="text-title" style={{ fontSize: 18, marginBottom: 4 }}>{tier.name}</h3>
+                      <p style={{ fontSize: 13.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>{tier.tagline}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setBenefitsModalTier(tier.name)}
+                    className="btn btn-outline"
+                    style={{ padding: '10px 18px', fontSize: 13.5, display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
+                  >
+                    See {tier.name} features <ArrowRight size={14} />
+                  </button>
+                </React.Fragment>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ── Final CTA ── */}
         <section style={{ padding: 'clamp(40px, 8vw, 64px) 20px' }}>
@@ -265,10 +247,10 @@ export default function PricingPageClient({ plans }: PricingPageClientProps) {
             <div className="hero-blob" style={{ bottom: '-45%', right: '-8%', width: 340, height: 340, background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }} />
             <div style={{ position: 'relative', zIndex: 1, maxWidth: 500, margin: '0 auto' }}>
               <h2 className="text-title" style={{ color: '#fff', marginBottom: 12 }}>
-                Ready to start selling on WhatsApp?
+                Ready to start selling?
               </h2>
               <p style={{ color: 'rgba(255,255,255,0.78)', marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
-                Simple plans, no transaction fees, no surprises at settlement. Free to start — no credit card needed.
+                ₦0 to start, 0% transaction fees, payouts within 24 hours. No credit card needed.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
                 <Link

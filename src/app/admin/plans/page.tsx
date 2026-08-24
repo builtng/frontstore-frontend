@@ -54,7 +54,7 @@ const DASHBOARD_GROUPS: { label: string; keys: string[] }[] = [
     label: 'Sidebar',
     keys: [
       'orders', 'products', 'inventory', 'coupons', 'customers', 'wallet',
-      'payment-links', 'invoices', 'receipts', 'giveaways', 'whatsapp',
+      'payment-links', 'invoices', 'receipts', 'whatsapp',
       'share', 'qr', 'reviews', 'blog', 'availability', 'bookings',
       'integrations', 'billing',
     ],
@@ -82,7 +82,7 @@ export default function AdminPlansPage() {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/v1/admin/plan-groups`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/plan-groups`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not load plans.');
       setGroups(json.data || []);
     } catch (err: any) {
@@ -103,6 +103,7 @@ export default function AdminPlansPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/plan-groups`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({
           name: newName.trim(),
@@ -137,6 +138,7 @@ export default function AdminPlansPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/plan-groups/${group.id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({
           plans: group.plans.map((p) => ({ id: p.id, price: Number(p.price) })),
@@ -162,6 +164,7 @@ export default function AdminPlansPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/plan-groups/${group.id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({
           tagline: group.tagline || '',
@@ -182,6 +185,7 @@ export default function AdminPlansPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/plan-groups/${group.id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ highlight }),
       });
@@ -203,6 +207,7 @@ export default function AdminPlansPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/plan-groups/${group.id}/features`, {
         method: 'PUT',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ features: { [featureKey]: enabled } }),
       });
@@ -224,6 +229,7 @@ export default function AdminPlansPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/plan-groups/${group.id}/dashboard-items`, {
         method: 'PUT',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ items: { [itemKey]: visible } }),
       });

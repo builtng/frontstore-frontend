@@ -73,7 +73,7 @@ export default function AdminStoresPage() {
     try {
       setStoresLoading(true);
       const url = `${apiUrl}/v1/admin/stores?page=${page}&search=${encodeURIComponent(search)}`;
-      const res = await fetch(url, { headers: getHeaders() });
+      const res = await fetch(url, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch stores directory.');
       setStores(json.data?.data || []);
       setCurrentPage(json.data?.current_page || 1);
@@ -89,6 +89,7 @@ export default function AdminStoresPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}/toggle-status`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: getHeaders(),
       });
       const json = await handleFetchResponse(res, 'Failed to update store status.');
@@ -105,6 +106,7 @@ export default function AdminStoresPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}`, {
         method: 'DELETE',
+        credentials: 'include',
         headers: getHeaders(),
       });
       const json = await handleFetchResponse(res, 'Failed to delete store.');
@@ -121,6 +123,7 @@ export default function AdminStoresPage() {
       setSendingLimitEmailFor(storeId);
       const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}/send-limit-email`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
       });
       const json = await handleFetchResponse(res, 'Failed to send limit-reached email.');
@@ -137,6 +140,7 @@ export default function AdminStoresPage() {
       setGeneratingDvaFor(storeId);
       const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}/generate-dva`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
       });
       const json = await handleFetchResponse(res, 'Failed to generate dedicated account.');
@@ -179,7 +183,7 @@ export default function AdminStoresPage() {
       formData.append('avatar', file);
       const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}/nina-avatar`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
         body: formData,
       });
       const json = await handleFetchResponse(res, 'Could not upload Nina avatar.');
@@ -199,6 +203,7 @@ export default function AdminStoresPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/users/${userId}/plan`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ plan }),
       });

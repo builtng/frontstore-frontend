@@ -70,13 +70,33 @@ export default function AffiliatePortalPage() {
   const [otpCode, setOtpCode] = useState('');
   const [withdrawing, setWithdrawing] = useState(false);
 
+  // Auth is the httpOnly fs_auth_token cookie now — `token` here is just a
+  // truthy in-memory marker, and every fetch using authHeaders() must also
+  // pass `credentials: 'include'` so the browser sends that cookie.
   useEffect(() => {
-    setToken(localStorage.getItem('token'));
-    setCheckingAuth(false);
+    (async () => {
+      try {
+        const res = await fetch(`${API_URL}/v1/affiliate/dashboard`, { credentials: 'include', headers: authHeaders() });
+        if (!res.ok) {
+          setCheckingAuth(false);
+          return;
+        }
+        const json = await res.json();
+        setData(json.data);
+        setBankName(json.data.bank_name || '');
+        setAccountNumber(json.data.bank_account_number || '');
+        setAccountName(json.data.bank_account_name || '');
+        setToken('session');
+      } catch {
+        // not logged in — show the login form
+      } finally {
+        setCheckingAuth(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const authHeaders = () => ({
-    'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   });
@@ -85,7 +105,7 @@ export default function AffiliatePortalPage() {
     if (!token) return;
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/v1/affiliate/dashboard`, { headers: authHeaders() });
+      const res = await fetch(`${API_URL}/v1/affiliate/dashboard`, { credentials: 'include', headers: authHeaders() });
       const json = await res.json();
       if (res.ok) {
         setData(json.data);
@@ -112,13 +132,13 @@ export default function AffiliatePortalPage() {
       setLoggingIn(true);
       const res = await fetch(`${API_URL}/v1/auth/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
       });
       const json = await res.json();
       if (res.ok && json.data?.token) {
-        localStorage.setItem('token', json.data.token);
-        setToken(json.data.token);
+        setToken('session'); // triggers the loadDashboard() effect below
       } else {
         toast.error(json.message || 'Login failed.');
       }
@@ -135,6 +155,7 @@ export default function AffiliatePortalPage() {
       setSavingBank(true);
       const res = await fetch(`${API_URL}/v1/affiliate/bank-details`, {
         method: 'PUT',
+        credentials: 'include',
         headers: authHeaders(),
         body: JSON.stringify({ bank_name: bankName, account_number: accountNumber, account_name: accountName }),
       });
@@ -154,7 +175,7 @@ export default function AffiliatePortalPage() {
 
   const handleSendOtp = async () => {
     try {
-      const res = await fetch(`${API_URL}/v1/affiliate/withdraw/send-otp`, { method: 'POST', headers: authHeaders() });
+      const res = await fetch(`${API_URL}/v1/affiliate/withdraw/send-otp`, { method: 'POST', credentials: 'include', headers: authHeaders() });
       const json = await res.json();
       if (res.ok) {
         toast.success('Verification code sent.');
@@ -174,6 +195,7 @@ export default function AffiliatePortalPage() {
       setWithdrawing(true);
       const res = await fetch(`${API_URL}/v1/affiliate/withdraw`, {
         method: 'POST',
+        credentials: 'include',
         headers: authHeaders(),
         body: JSON.stringify({ amount: parseFloat(withdrawAmount), otp_code: otpCode }),
       });

@@ -69,13 +69,17 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        // Long-lived cache for static assets
-        source: '/(.*)\\.(ico|png|jpg|jpeg|gif|webp|avif|svg|woff|woff2|ttf|otf|css|js)',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
+      ...(process.env.NODE_ENV === 'production'
+        ? [
+            {
+              // Long-lived cache for static assets in production
+              source: '/(.*)\\.(ico|png|jpg|jpeg|gif|webp|avif|svg|woff|woff2|ttf|otf|css|js)',
+              headers: [
+                { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+              ],
+            },
+          ]
+        : []),
       {
         // Never cache robots or sitemaps so crawlers always get fresh data
         source: '/(robots.txt|sitemap.xml|sitemap-:id.xml)',

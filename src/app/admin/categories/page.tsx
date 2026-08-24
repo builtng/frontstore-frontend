@@ -27,7 +27,7 @@ export default function AdminCategoriesPage() {
     if (!token) return;
     try {
       setCategoriesLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/categories`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/categories`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch global categories.');
       setCategories(json.data || []);
     } catch (error: any) {
@@ -44,6 +44,7 @@ export default function AdminCategoriesPage() {
       setCatActionSaving(true);
       const res = await fetch(`${apiUrl}/v1/admin/categories`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ name: newCatName.trim() }),
       });
@@ -65,6 +66,7 @@ export default function AdminCategoriesPage() {
       setCatActionSaving(true);
       const res = await fetch(`${apiUrl}/v1/admin/categories/${editingCatId}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ name: editingCatName.trim() }),
       });
@@ -88,6 +90,7 @@ export default function AdminCategoriesPage() {
         try {
           const res = await fetch(`${apiUrl}/v1/admin/categories/${id}`, {
             method: 'DELETE',
+            credentials: 'include',
             headers: getHeaders(),
           });
           await handleFetchResponse(res, 'Could not delete category.');

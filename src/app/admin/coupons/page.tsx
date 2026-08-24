@@ -36,7 +36,7 @@ export default function AdminCouponsPage() {
     if (!token) return;
     try {
       setCouponsLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/coupons`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/coupons`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch coupons.');
       setCoupons(json.data || []);
     } catch (error: any) {
@@ -50,6 +50,7 @@ export default function AdminCouponsPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/coupons/${id}/toggle-status`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: getHeaders(),
       });
       const json = await handleFetchResponse(res, 'Failed to update coupon status.');
@@ -68,6 +69,7 @@ export default function AdminCouponsPage() {
         try {
           const res = await fetch(`${apiUrl}/v1/admin/coupons/${id}`, {
             method: 'DELETE',
+            credentials: 'include',
             headers: getHeaders(),
           });
           await handleFetchResponse(res, 'Could not delete coupon.');
@@ -93,6 +95,7 @@ export default function AdminCouponsPage() {
       setCouponSaving(true);
       const res = await fetch(`${apiUrl}/v1/admin/coupons`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({
           code: newCouponCode.trim(),

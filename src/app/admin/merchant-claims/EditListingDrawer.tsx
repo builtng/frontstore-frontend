@@ -54,6 +54,7 @@ export default function EditListingDrawer({ listing, onClose, onSaved }: EditLis
       setSubmitting(true);
       const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/${listing.id}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: { ...getHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),

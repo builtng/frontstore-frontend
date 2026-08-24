@@ -68,7 +68,7 @@ export default function AdminSettingsPage() {
       // Fetch available countries
       const fetchCountries = async () => {
         try {
-          const res = await fetch(`${apiUrl}/v1/meta/countries`);
+          const res = await fetch(`${apiUrl}/v1/meta/countries`, { credentials: 'include' });
           if (res.ok) {
             const json = await res.json();
             setCountries(json.data || []);
@@ -164,6 +164,7 @@ export default function AdminSettingsPage() {
 
       const res = await fetch(`${apiUrl}/v1/admin/settings`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify(payload),
       });
@@ -189,7 +190,7 @@ export default function AdminSettingsPage() {
 
       const res = await fetch(`${apiUrl}/v1/admin/settings/upload-logo`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
         body: formData,
       });
       const json = await handleFetchResponse(res, 'Could not upload logo.');

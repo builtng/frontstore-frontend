@@ -41,6 +41,7 @@ function AcceptInviteForm() {
 
       const res = await fetch(`${API_URL}/v1/auth/accept-staff-invite`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
           token,

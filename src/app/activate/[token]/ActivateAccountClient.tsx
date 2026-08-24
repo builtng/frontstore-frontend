@@ -101,6 +101,7 @@ export default function ActivateAccountClient({ token }: Props) {
     try {
       const res = await fetch(`${API}/v1/auth/activate/verify-email-otp`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ token, otp: otp.trim() }),
       });
@@ -112,8 +113,6 @@ export default function ActivateAccountClient({ token }: Props) {
       }
 
       if (typeof window !== 'undefined') {
-        localStorage.setItem('token', data.data.token);
-        localStorage.setItem('auth_token', data.data.token);
         localStorage.setItem('user', JSON.stringify(data.data.user));
         localStorage.setItem('store', JSON.stringify(data.data.store));
       }

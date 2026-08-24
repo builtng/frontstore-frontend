@@ -718,7 +718,7 @@ export default function OrderTrackingPage() {
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
               <strong style={{ fontSize: '14px', color: 'var(--text)' }}>{store.store_name}</strong>
-              {(order.store as any).trust_score >= 41 && (
+              {(order.store as any).is_verified && (
                 <span style={{
                   background: 'rgba(37, 211, 102, 0.12)',
                   color: '#25D366',
@@ -734,9 +734,6 @@ export default function OrderTrackingPage() {
                 </span>
               )}
             </div>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: 2, margin: 0 }}>
-              Trust Score: <strong style={{ color: 'var(--text)' }}>{(order.store as any).trust_score ?? 20}</strong>/100 • Level {(order.store as any).seller_level ?? 1} Seller
-            </p>
           </div>
         </div>
 

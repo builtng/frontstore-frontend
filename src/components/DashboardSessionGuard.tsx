@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 export default function DashboardSessionGuard({ children }: { children: React.ReactNode }) {
   const [isVerifying, setIsVerifying] = useState(true);
@@ -32,23 +33,32 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
     };
 
     const verifyAccount = async () => {
-      const storedToken = localStorage.getItem('token');
+      // Auth is the httpOnly fs_auth_token cookie now, not localStorage —
+      // storedUser is just a display-cache presence check before we ask the
+      // server (via that cookie, sent automatically with credentials: 'include')
+      // whether the session is actually still valid.
       const storedUser = localStorage.getItem('user');
-      const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+      const savedApiUrl = getApiUrl();
 
-      if (!storedToken || !storedUser || storedUser === 'undefined' || storedUser === 'null') {
+      if (!storedUser || storedUser === 'undefined' || storedUser === 'null') {
         destroySession('Your session has expired. Please log in again.');
         return;
+      }
+
+      const storedToken = localStorage.getItem('token');
+      const authHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      if (storedToken) {
+        authHeaders['Authorization'] = `Bearer ${storedToken}`;
       }
 
       try {
         const response = await fetch(`${savedApiUrl}/v1/auth/me`, {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${storedToken}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
+          credentials: 'include',
+          headers: authHeaders,
         });
 
         if (!active) return;
@@ -84,10 +94,22 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
     // Intercept client-side fetch calls to catch session invalidation or deletion in real time
     const originalFetch = window.fetch;
     const interceptedFetch = async (...args: Parameters<typeof originalFetch>) => {
-      const response = await originalFetch(...args);
-      
-      const url = typeof args[0] === 'string' ? args[0] : (args[0] instanceof URL ? args[0].href : args[0].url);
+      let [resource, config] = args;
+      const url = typeof resource === 'string' ? resource : (resource instanceof URL ? resource.href : resource.url);
       const isBackendApi = url.includes('/v1/');
+      const storedToken = localStorage.getItem('token');
+
+      if (isBackendApi && storedToken) {
+        config = config || {};
+        const headers = new Headers(config.headers || {});
+        if (!headers.has('Authorization')) {
+          headers.set('Authorization', `Bearer ${storedToken}`);
+        }
+        config.headers = headers;
+        args[1] = config;
+      }
+
+      const response = await originalFetch(resource, config);
 
       if (isBackendApi && active) {
         if (response.status === 401) {

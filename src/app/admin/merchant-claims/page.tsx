@@ -118,7 +118,7 @@ export default function MerchantClaimsPage() {
   const loadStats = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/stats`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/stats`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch claim stats.');
       setStats(json.data);
     } catch (error: any) {
@@ -135,7 +135,7 @@ export default function MerchantClaimsPage() {
       if (claimStatusFilter) params.set('claim_status', claimStatusFilter);
       if (inviteStatusFilter) params.set('invite_status', inviteStatusFilter);
 
-      const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims?${params.toString()}`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims?${params.toString()}`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch merchant claim listings.');
       setListings(json.data?.data || []);
       setCurrentPage(json.data?.current_page || 1);
@@ -184,6 +184,7 @@ export default function MerchantClaimsPage() {
       setSendingInvites(true);
       const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/bulk-invite`, {
         method: 'POST',
+        credentials: 'include',
         headers: { ...getHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: selectedIds, channels: selectedChannels }),
       });
@@ -206,6 +207,7 @@ export default function MerchantClaimsPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/regenerate-links`, {
         method: 'POST',
+        credentials: 'include',
         headers: { ...getHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: selectedIds }),
       });
@@ -220,6 +222,7 @@ export default function MerchantClaimsPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/retry-failed`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
       });
       const json = await handleFetchResponse(res, 'Failed to queue retries.');

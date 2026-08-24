@@ -31,7 +31,7 @@ export default function AdminWithdrawalsPage() {
     if (!token) return;
     try {
       setWithdrawalsLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/withdrawals?page=${page}`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/withdrawals?page=${page}`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch withdrawals list.');
       setWithdrawals(json.data?.data || []);
       setWithdrawalsPage(json.data?.current_page || 1);
@@ -51,6 +51,7 @@ export default function AdminWithdrawalsPage() {
         try {
           const res = await fetch(`${apiUrl}/v1/admin/withdrawals/${id}/approve`, {
             method: 'POST',
+            credentials: 'include',
             headers: getHeaders(),
           });
           const json = await handleFetchResponse(res, 'Failed to approve withdrawal.');
@@ -73,6 +74,7 @@ export default function AdminWithdrawalsPage() {
         try {
           const res = await fetch(`${apiUrl}/v1/admin/withdrawals/${id}/reject`, {
             method: 'POST',
+            credentials: 'include',
             headers: getHeaders(),
           });
           const json = await handleFetchResponse(res, 'Failed to reject withdrawal.');
@@ -119,23 +121,28 @@ export default function AdminWithdrawalsPage() {
               <th>Store / Merchant</th>
               <th>Amount</th>
               <th>Destination Bank details</th>
-              <th>Date Requested</th>
+              <th>Requested</th>
+              <th>Processing</th>
+              <th>Completed</th>
               <th>Status</th>
               <th />
             </tr>
           </thead>
           <tbody>
             {withdrawalsLoading ? (
-              <TableSkeleton rows={6} columns={6} />
+              <TableSkeleton rows={6} columns={8} />
             ) : withdrawals.length ? (
               withdrawals.map((w: any) => {
-                const dateStr = new Date(w.created_at).toLocaleDateString(undefined, {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                });
+                const formatDateTime = (value?: string | null) =>
+                  value
+                    ? new Date(value).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : '—';
                 const amountStr = formatMoney(w.amount, w.store?.currency_code);
                 return (
                   <tr key={w.id}>
@@ -153,7 +160,13 @@ export default function AdminWithdrawalsPage() {
                       </span>
                     </td>
                     <td>
-                      <span>{dateStr}</span>
+                      <span style={{ fontSize: 12 }}>{formatDateTime(w.requested_at || w.created_at)}</span>
+                    </td>
+                    <td>
+                      <span style={{ fontSize: 12 }}>{formatDateTime(w.processing_at)}</span>
+                    </td>
+                    <td>
+                      <span style={{ fontSize: 12 }}>{formatDateTime(w.completed_at)}</span>
                     </td>
                     <td>
                       <StatusChip tone={withdrawalStatusTone(w.status)} label={w.status} />
@@ -185,7 +198,7 @@ export default function AdminWithdrawalsPage() {
               })
             ) : (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={8}>
                   <EmptyState label="No withdrawal requests found." />
                 </td>
               </tr>

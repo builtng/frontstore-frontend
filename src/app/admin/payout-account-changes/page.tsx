@@ -30,7 +30,7 @@ export default function AdminPayoutAccountChangesPage() {
     if (!token) return;
     try {
       setLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/payout-account-change-requests?page=${p}`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/payout-account-change-requests?page=${p}`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch payout account change requests.');
       setRequests(json.data?.data || []);
       setPage(json.data?.current_page || 1);
@@ -50,6 +50,7 @@ export default function AdminPayoutAccountChangesPage() {
         try {
           const res = await fetch(`${apiUrl}/v1/admin/payout-account-change-requests/${id}/approve`, {
             method: 'POST',
+            credentials: 'include',
             headers: getHeaders(),
           });
           const json = await handleFetchResponse(res, 'Failed to approve request.');
@@ -72,6 +73,7 @@ export default function AdminPayoutAccountChangesPage() {
         try {
           const res = await fetch(`${apiUrl}/v1/admin/payout-account-change-requests/${id}/reject`, {
             method: 'POST',
+            credentials: 'include',
             headers: getHeaders(),
           });
           const json = await handleFetchResponse(res, 'Failed to reject request.');

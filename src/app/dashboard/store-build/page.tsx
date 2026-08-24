@@ -38,22 +38,21 @@ export default function StoreBuildPage() {
   const [creating, setCreating] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; site: StoreSite | null; loading: boolean }>({ open: false, site: null, loading: false });
 
+  // Auth is the httpOnly fs_auth_token cookie now — `t` is kept only as a
+  // truthy in-memory marker so existing call sites don't need restructuring.
+  // Every fetch using these headers must also pass `credentials: 'include'`.
   const authHeaders = (t: string | null) => ({
-    'Authorization': `Bearer ${t}`,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   });
 
   const loadSites = async (t: string) => {
-    const res = await fetch(`${apiUrl}/v1/store/sites`, { headers: authHeaders(t) });
+    const res = await fetch(`${apiUrl}/v1/store/sites`, { credentials: 'include', headers: authHeaders(t) });
     const json = await res.json();
     if (res.ok) setSites(json.data || []);
   };
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    setToken(storedToken);
-
     const cachedStore = localStorage.getItem('store');
     if (cachedStore) {
       try {
@@ -63,21 +62,22 @@ export default function StoreBuildPage() {
       } catch { }
     }
 
-    if (!storedToken) {
-      setLoading(false);
-      return;
-    }
-
     (async () => {
       try {
-        const res = await fetch(`${apiUrl}/v1/store`, { headers: authHeaders(storedToken) });
+        const res = await fetch(`${apiUrl}/v1/store`, { credentials: 'include', headers: authHeaders(null) });
+        if (res.status === 401) {
+          setToken(null);
+          setLoading(false);
+          return;
+        }
+        setToken('session');
         const json = await res.json();
         if (res.ok && json.data) {
           const hasStoreBuild = (json.data.plan_features || []).includes('store_build');
           setCanUseStoreBuild(hasStoreBuild);
           setStoreName(json.data.store_name || json.data.username || '');
           setStoreUsername(json.data.username || '');
-          if (hasStoreBuild) await loadSites(storedToken);
+          if (hasStoreBuild) await loadSites('session');
         }
       } catch {
         toast.error('Network error loading Store Build.');
@@ -96,6 +96,7 @@ export default function StoreBuildPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/store/sites`, {
         method: 'POST',
+        credentials: 'include',
         headers: authHeaders(token),
         body: JSON.stringify({ name: newName.trim(), slug: slugify(newName) || `site-${Date.now()}` }),
       });
@@ -118,7 +119,7 @@ export default function StoreBuildPage() {
   const handleDuplicate = async (site: StoreSite) => {
     if (!token) return;
     try {
-      const res = await fetch(`${apiUrl}/v1/store/sites/${site.id}/duplicate`, { method: 'POST', headers: authHeaders(token) });
+      const res = await fetch(`${apiUrl}/v1/store/sites/${site.id}/duplicate`, { method: 'POST', credentials: 'include', headers: authHeaders(token) });
       const json = await res.json();
       if (res.ok) {
         toast.success('Site duplicated.');
@@ -137,7 +138,7 @@ export default function StoreBuildPage() {
     if (!token || !confirmDialog.site) return;
     setConfirmDialog((prev) => ({ ...prev, loading: true }));
     try {
-      const res = await fetch(`${apiUrl}/v1/store/sites/${confirmDialog.site.id}`, { method: 'DELETE', headers: authHeaders(token) });
+      const res = await fetch(`${apiUrl}/v1/store/sites/${confirmDialog.site.id}`, { method: 'DELETE', credentials: 'include', headers: authHeaders(token) });
       if (res.ok) {
         toast.success('Site deleted.');
         setSites((prev) => prev.filter((s) => s.id !== confirmDialog.site!.id));
@@ -152,7 +153,7 @@ export default function StoreBuildPage() {
   };
 
   const handleLogout = () => {
-    fetch(`${apiUrl}/v1/auth/logout`, { method: 'POST', headers: authHeaders(token) }).catch(() => { });
+    fetch(`${apiUrl}/v1/auth/logout`, { method: 'POST', credentials: 'include', headers: authHeaders(token) }).catch(() => { });
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('store');

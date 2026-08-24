@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  Globe, Loader2, ArrowRight, Check, LogIn, Mail, MessageSquare, RefreshCw, ShieldCheck
+  Globe, Loader2, ArrowRight, Check, LogIn, Mail, MessageSquare, RefreshCw, ShieldCheck, Zap
 } from 'lucide-react';
 
 const countries = [
@@ -119,12 +119,61 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
     setLoginIdentifier(value);
   };
 
-  // If already logged in, redirect appropriately
+  const [devLoggingIn, setDevLoggingIn] = useState<string | null>(null);
+
+  const handleDevLogin = async (role: 'merchant' | 'admin' = 'merchant') => {
+    try {
+      setDevLoggingIn(role);
+      setError(null);
+      const res = await fetch(`${API_URL}/v1/auth/dev-login`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ role }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || 'Dev login failed.');
+
+      if (json.token && json.data) {
+        localStorage.setItem('token', json.token);
+        localStorage.setItem('user', JSON.stringify(json.data.user));
+        localStorage.setItem('store', JSON.stringify(json.data.store || null));
+        const isAdmin = json.data.user?.is_admin === true || json.data.user?.is_admin === 1 || json.data.user?.is_admin === 'true' || json.data.user?.is_admin === '1';
+        toast.success(isAdmin ? 'Welcome, Administrator! 🛡️' : `Welcome back to ${appName}! 👋`);
+        router.push(isAdmin ? '/admin' : '/dashboard');
+      } else {
+        throw new Error('Unexpected response from dev login.');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Auto-login failed');
+      setError(err.message);
+    } finally {
+      setDevLoggingIn(null);
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
+      const params = new URLSearchParams(window.location.search);
+      const auto = params.get('auto');
+      if (auto === 'merchant' || auto === 'true' || auto === '1') {
+        handleDevLogin('merchant');
+      } else if (auto === 'admin') {
+        handleDevLogin('admin');
+      }
+    }
+  }, []);
+
+  // If already logged in, redirect appropriately. The real credential is the
+  // httpOnly fs_auth_token cookie now — storedUser is just cached display
+  // data, but its presence is a good enough signal to attempt the redirect;
+  // if the cookie's actually gone, the destination page's own auth check
+  // (DashboardSessionGuard / AdminContext) will bounce back here anyway.
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem('user');
-      if (token && storedUser) {
+      if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
           const isAdmin = parsedUser?.is_admin === true || parsedUser?.is_admin === 1 || parsedUser?.is_admin === 'true' || parsedUser?.is_admin === '1';
@@ -200,6 +249,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
       const isEmail = isAdminMode || loginMethod === 'email' || normalizedPhone.includes('@');
       const res = await fetch(`${API_URL}/v1/auth/${isEmail ? 'verify-email-otp' : 'verify-otp'}`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(
           isEmail
@@ -648,6 +698,77 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
             ← Change phone / email
           </button>
         </form>
+      )}
+
+      {/* ── Quick Dev Auto-Login (Localhost Development) ── */}
+      {typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+        <div style={{
+          marginTop: 28,
+          padding: '16px 18px',
+          borderRadius: 'var(--r-xl)',
+          background: 'linear-gradient(135deg, rgba(238, 77, 45, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%)',
+          border: '1.5px dashed var(--primary)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Zap size={15} /> Quick Dev Auto-Login
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: 'rgba(238,77,45,0.1)', color: 'var(--primary)' }}>Localhost</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <button
+              type="button"
+              id="dev-login-merchant-btn"
+              disabled={!!devLoggingIn}
+              onClick={() => handleDevLogin('merchant')}
+              className="btn clickable"
+              style={{
+                padding: '11px 14px',
+                fontSize: 13,
+                fontWeight: 750,
+                borderRadius: 'var(--r-lg)',
+                background: 'var(--surface, #fff)',
+                border: '1.5px solid var(--border)',
+                color: 'var(--text)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+              }}
+            >
+              {devLoggingIn === 'merchant' ? <Loader2 size={15} className="animate-spin" /> : '🏪 Merchant'}
+            </button>
+            <button
+              type="button"
+              id="dev-login-admin-btn"
+              disabled={!!devLoggingIn}
+              onClick={() => handleDevLogin('admin')}
+              className="btn clickable"
+              style={{
+                padding: '11px 14px',
+                fontSize: 13,
+                fontWeight: 750,
+                borderRadius: 'var(--r-lg)',
+                background: 'var(--surface, #fff)',
+                border: '1.5px solid var(--border)',
+                color: 'var(--text)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+              }}
+            >
+              {devLoggingIn === 'admin' ? <Loader2 size={15} className="animate-spin" /> : '🛡️ Admin'}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

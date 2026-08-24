@@ -17,7 +17,7 @@ export default function AdminPaymentsPage() {
     if (!token) return;
     try {
       setPaymentProviderSettingsLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/payment-providers`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/payment-providers`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch payment provider settings.');
       setPaymentProviderSettings(json.data || []);
     } catch (error: any) {
@@ -40,6 +40,7 @@ export default function AdminPaymentsPage() {
     try {
       const res = await fetch(`${apiUrl}/v1/admin/payment-providers`, {
         method: 'POST',
+        credentials: 'include',
         headers: getHeaders(),
         body: JSON.stringify({ settings: [{ country_code: countryCode, provider, is_enabled: nextValue }] }),
       });

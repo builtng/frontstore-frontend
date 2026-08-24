@@ -63,7 +63,7 @@ export default function EvidenceReviewDrawer({ listingId, onClose, onDecided }: 
   const load = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/${listingId}/evidence`, { headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/${listingId}/evidence`, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not load evidence.');
       setListing(json.data.listing);
       setEvidence(json.data.evidence);
@@ -93,6 +93,7 @@ export default function EvidenceReviewDrawer({ listingId, onClose, onDecided }: 
     try {
       const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/${listingId}/evidence/${evidenceId}/decide`, {
         method: 'POST',
+        credentials: 'include',
         headers: { ...getHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
@@ -110,6 +111,7 @@ export default function EvidenceReviewDrawer({ listingId, onClose, onDecided }: 
       setBusy(true);
       const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/${listingId}/request-more-info`, {
         method: 'POST',
+        credentials: 'include',
         headers: { ...getHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ note: note.trim() }),
       });
@@ -126,7 +128,7 @@ export default function EvidenceReviewDrawer({ listingId, onClose, onDecided }: 
   const approve = async () => {
     try {
       setBusy(true);
-      const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/${listingId}/approve-manual`, { method: 'POST', headers: getHeaders() });
+      const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/${listingId}/approve-manual`, { method: 'POST', credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Failed to approve claim.');
       toast.success(json.message);
       onDecided();
@@ -143,6 +145,7 @@ export default function EvidenceReviewDrawer({ listingId, onClose, onDecided }: 
       setBusy(true);
       const res = await fetch(`${apiUrl}/v1/admin/frontstore-claims/${listingId}/reject-manual`, {
         method: 'POST',
+        credentials: 'include',
         headers: { ...getHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: note.trim() || undefined }),
       });

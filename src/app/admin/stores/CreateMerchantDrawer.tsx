@@ -46,6 +46,7 @@ export default function CreateMerchantDrawer({ onClose, onCreated }: CreateMerch
       setSubmitting(true);
       const res = await fetch(`${apiUrl}/v1/admin/stores`, {
         method: 'POST',
+        credentials: 'include',
         headers: { ...getHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
