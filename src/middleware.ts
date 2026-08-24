@@ -27,6 +27,9 @@ const RESERVED_SUBDOMAINS = new Set([
   'mail', 'email', 'newsletter', 'blog', 'news', 'press',
   'legal', 'terms', 'privacy', 'policy', 'tos',
   'security', 'abuse', 'compliance', 'copyright',
+  'access-refused', 'activate', 'affiliate', 'business', 'buyer', 'confirm',
+  'marketplace', 'merchant', 'pricing', 'ref', 'refund-policy', 'return-policy',
+  'returns', 'solutions', 'stores', 'tools', 'vs'
 ]);
 
 export function middleware(request: NextRequest) {
@@ -105,13 +108,47 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(mainUrl);
   }
 
-  // Redirect legacy subdomain storefront links to canonical path URLs (e.g. frontstore.ng/ade)
+  // Rewrite subdomain storefront requests internally (e.g. debugstore.frontstore.ng -> /[username])
   if (subdomain && isPlatformDomain && !isSystemPath) {
-    const mainUrl = request.nextUrl.clone();
-    const hostHeader = request.headers.get('host') || '';
-    mainUrl.host = hostHeader.replace(`${subdomain}.`, '');
-    mainUrl.pathname = `/${subdomain}${pathname}`;
-    return NextResponse.redirect(mainUrl, 308);
+    const segments = pathname.split('/').filter(Boolean);
+
+    // Handle subdomain referral links (e.g. dbgstore.frontstore.ng/ref -> /ref/dbgstore)
+    if (pathname === '/ref' || pathname === '/ref/') {
+      url.pathname = `/ref/${subdomain}`;
+      return NextResponse.rewrite(url);
+    }
+
+    // 1. storeusername.domain/category/product-slug -> /[username]/products/[product-slug]
+    if (segments.length === 2 && segments[0] !== 'products' && segments[0] !== 'paymentlink' && segments[0] !== 'site') {
+      url.pathname = `/${subdomain}/products/${segments[1]}`;
+      return NextResponse.rewrite(url);
+    }
+
+    // 2. storeusername.domain/product-slug -> /[username]/products/[product-slug] (if 1 segment and not reserved)
+    if (segments.length === 1 && segments[0] !== 'products' && segments[0] !== 'paymentlink' && segments[0] !== 'site') {
+      url.pathname = `/${subdomain}/products/${segments[0]}`;
+      return NextResponse.rewrite(url);
+    }
+
+    url.pathname = `/${subdomain}${pathname === '/' ? '' : pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
+  // Redirect main domain storefront visits to canonical subdomain (e.g. frontstore.ng/debugstore -> https://debugstore.frontstore.ng/)
+  if (!subdomain && isPlatformDomain && !isSystemPath) {
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length >= 1 && !RESERVED_SUBDOMAINS.has(segments[0])) {
+      const storeUsername = segments[0];
+      const remainingPath = segments.slice(1).join('/');
+      const targetPath = remainingPath ? `/${remainingPath}` : '';
+
+      const targetHost = isLocal
+        ? `${storeUsername}.localhost:3000`
+        : `${storeUsername}.frontstore.ng`;
+
+      const protocol = isLocal ? 'http' : 'https';
+      return NextResponse.redirect(`${protocol}://${targetHost}${targetPath}${search ? search : ''}`, 301);
+    }
   }
 
   // Rewrite custom domain requests internally

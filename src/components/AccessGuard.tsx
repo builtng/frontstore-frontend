@@ -20,7 +20,15 @@ export default function AccessGuard({ children }: { children: React.ReactNode })
     const checkAccess = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
-        const res = await fetch(`${apiUrl}/v1/public/settings`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+        const res = await fetch(`${apiUrl}/v1/public/settings`, {
+          signal: controller.signal,
+          headers: { Accept: 'application/json' },
+        });
+        clearTimeout(timeoutId);
+
         if (res.ok) {
           const json = await res.json();
           if (json.data?.is_restricted) {
@@ -28,8 +36,8 @@ export default function AccessGuard({ children }: { children: React.ReactNode })
             return;
           }
         }
-      } catch (error) {
-        console.error('Access control check failed:', error);
+      } catch {
+        // Fallback gracefully on local dev or temporary network blips without blocking UI
       } finally {
         setChecking(false);
       }

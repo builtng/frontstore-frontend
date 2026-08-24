@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, Calculator, ChevronRight, HelpCircle, Menu, Newspaper, PlayCircle, Store, Percent, X } from 'lucide-react';
+import { AlignRight, ArrowRight, Calculator, ChevronRight, HelpCircle, Newspaper, PlayCircle, Store, Percent, X } from 'lucide-react';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 import { openCookiePreferences } from '@/lib/cookieConsent';
@@ -98,7 +98,7 @@ export function PublicSiteNav() {
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen(true)}
           >
-            <Menu size={19} />
+            <AlignRight size={20} />
           </button>
         </div>
       </nav>

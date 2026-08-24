@@ -15,7 +15,7 @@ interface ModalProps {
 
 // Dialog shell extracted from the pattern already proven in IntegrationsTab.tsx
 // — the one modal shape in the dashboard that's already shipped and working.
-export default function Modal({ open, onClose, title, children, footer, maxWidth = 440, className }: ModalProps) {
+export default function Modal({ open, onClose, title, children, footer, maxWidth = 560, className }: ModalProps) {
   if (!open) return null;
 
   return (

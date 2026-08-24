@@ -21,8 +21,9 @@ export default function BuiltWithFrontstoreBadge({
         .built-with-frontstore-badge {
           position: fixed;
           bottom: 20px;
-          right: 20px;
-          z-index: 9990;
+          left: 20px;
+          right: auto;
+          z-index: 30;
           display: inline-flex;
           align-items: center;
           gap: 7px;
@@ -62,32 +63,19 @@ export default function BuiltWithFrontstoreBadge({
           color: #111827;
         }
 
-        /* If Nina AI assistant launcher is present on desktop, offset to the left */
-        @media (min-width: 769px) {
-          body:has(.nina-launcher) .built-with-frontstore-badge {
-            right: 98px;
-            bottom: 24px;
-          }
-        }
-
         /* Responsive positioning on mobile view */
         @media (max-width: 768px) {
           .built-with-frontstore-badge {
             bottom: 16px;
-            right: 16px;
+            left: 16px;
+            right: auto;
             padding: 6px 13px;
             font-size: 12px;
           }
 
-          /* If sticky mobile navigation bottom bar (.ps-bottom) is present */
+          /* If sticky mobile navigation bottom bar is present */
           body:has(.ps-bottom) .built-with-frontstore-badge {
             bottom: calc(68px + env(safe-area-inset-bottom, 0px));
-          }
-
-          /* If Nina launcher is present on mobile */
-          body:has(.nina-launcher) .built-with-frontstore-badge {
-            left: 16px;
-            right: auto;
           }
         }
       `}</style>

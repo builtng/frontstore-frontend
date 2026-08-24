@@ -42,7 +42,6 @@ interface PlanGroup {
 }
 
 const FEATURE_LABELS: Record<string, string> = {
-  store_build: 'Store Build (drag-and-drop site builder)',
   custom_domain: 'Custom Domain',
   remove_distractions: 'Remove Distractions (dashboard customization)',
   pixel_tracking: 'Pixel Tracking (Facebook/GTM/TikTok)',

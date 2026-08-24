@@ -7,7 +7,6 @@ import { businessPersonas } from '@/utils/businessPersonas';
 import { NIGERIAN_STATES } from '@/utils/nigerianStates';
 import { NIGERIAN_CITIES } from '@/utils/nigerianCities';
 import { locationMatchesState, normalizePersonaId, locationMatchesCity } from '@/utils/directoryContent';
-import { NIGERIAN_STATES_DATA } from '@/utils/nigerianStatesData';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://frontstore.ng';
@@ -51,12 +50,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.75,
-    },
-    {
-      url: `${baseUrl}/compare`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.7,
     },
     {
       url: `${baseUrl}/tools`,
@@ -104,22 +97,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/docs/buyer`,
       lastModified: now,
       changeFrequency: 'weekly',
-      priority: 0.45,
+      priority: 0.55,
     },
     {
       url: `${baseUrl}/login`,
       lastModified: now,
       changeFrequency: 'monthly',
-      priority: 0.4,
+      priority: 0.5,
     },
     {
-      url: `${baseUrl}/privacy`,
+      url: `${baseUrl}/pricing`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/terms`,
       lastModified: now,
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
-      url: `${baseUrl}/terms`,
+      url: `${baseUrl}/privacy`,
       lastModified: now,
       changeFrequency: 'yearly',
       priority: 0.3,
@@ -136,27 +135,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
-    // ── Nigeria States hub page ─────────────────────────────────────────
-    {
-      url: `${baseUrl}/nigeria-states`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.85,
-    },
   ];
 
-  // ── Individual Nigerian state pages ─────────────────────────────────────
-  NIGERIAN_STATES_DATA.forEach((state) => {
-    routes.push({
-      url: `${baseUrl}/nigeria-states/${state.slug}`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    });
-  });
-
   // ── PSEO Blog Articles ────────────────────────────────────────────────────
-  // Grouped by recency — newer articles get a slight priority bump
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   BLOG_ARTICLES.forEach((article) => {
     const countrySlug = article.country.toLowerCase().replace(/\s+/g, '-');
@@ -232,38 +213,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('[sitemap] Failed to fetch dynamic storefronts:', error);
   }
 
-  // ── OSM-sourced unclaimed listings: claim pages + directory hasMatch ───────
-  interface FrontstoreListingEntry {
-    slug: string;
-    persona_id: string;
-    state_slug: string | null;
-    city: string | null;
-    updated_at?: string;
-  }
-  let unclaimedListings: FrontstoreListingEntry[] = [];
-  try {
-    const res = await fetch(`${apiHost}/v1/public/sitemap/frontstore-stores`, {
-      next: { revalidate: 3600 },
-    });
-    if (res.ok) {
-      const json = await res.json();
-      unclaimedListings = Array.isArray(json.data) ? json.data : [];
-    }
-  } catch (error) {
-    console.error('[sitemap] Failed to fetch unclaimed OSM listings:', error);
-  }
-
-  // ── Individual "Claim your business" pages ──────────────────────────────
-  unclaimedListings.forEach((listing) => {
-    if (!listing.slug) return;
-    routes.push({
-      url: `${baseUrl}/claim/${listing.slug}`,
-      lastModified: listing.updated_at ? new Date(listing.updated_at) : now,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    });
-  });
-
   // ── Category × state merchant directory pages ─────────────────────────────
   try {
     const res = await fetch(`${apiHost}/v1/public/stores`, {
@@ -280,8 +229,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           const hasMatch = stores.some((store) =>
             normalizePersonaId(store.business_persona) === persona.id &&
             locationMatchesState(store.location, state)
-          ) || unclaimedListings.some((listing) =>
-            listing.persona_id === persona.id && listing.state_slug === state.slug
           );
 
           if (hasMatch) {
@@ -300,17 +247,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         NIGERIAN_STATES.forEach((state) => {
           const cities = NIGERIAN_CITIES[state.slug] || [];
           cities.forEach((city) => {
-            // For Delta, Edo, Rivers, Lagos, Abuja (FCT), Kaduna, Kano, Abia, Anambra, Imo, and Enugu States, we always include the URL in the sitemap to ensure indexing
-            // For other states, we include if there is at least one local matching store
             const isAlwaysIndexed = state.slug === 'delta' || state.slug === 'edo' || state.slug === 'rivers' || state.slug === 'lagos' || state.slug === 'fct-abuja' || state.slug === 'kaduna' || state.slug === 'kano' || state.slug === 'abia' || state.slug === 'anambra' || state.slug === 'imo' || state.slug === 'enugu';
-            const cityAliases = city.aliases || [city.name.toLowerCase()];
             const hasMatch = isAlwaysIndexed || stores.some((store) =>
               normalizePersonaId(store.business_persona) === persona.id &&
               locationMatchesCity(store.location, city)
-            ) || unclaimedListings.some((listing) =>
-              listing.persona_id === persona.id &&
-              listing.state_slug === state.slug &&
-              cityAliases.some((alias) => (listing.city || '').toLowerCase().includes(alias))
             );
 
             if (hasMatch) {
@@ -353,32 +293,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch (error) {
     console.error('[sitemap] Failed to fetch product pages:', error);
-  }
-
-  // ── PSEO price-comparison pages ───────────────────────────────────────────
-  try {
-    const res = await fetch(`${apiHost}/v1/public/sitemap/compare`, {
-      next: { revalidate: 3600 },
-    });
-
-    if (res.ok) {
-      const json = await res.json();
-      const entries: Array<{ product_slug: string; state_slug: string; updated_at?: string }> =
-        Array.isArray(json.data) ? json.data : [];
-
-      entries.forEach((entry) => {
-        if (!entry.product_slug || !entry.state_slug) return;
-
-        routes.push({
-          url: `${baseUrl}/compare/${entry.product_slug}/${entry.state_slug}`,
-          lastModified: entry.updated_at ? new Date(entry.updated_at) : now,
-          changeFrequency: 'weekly',
-          priority: 0.65,
-        });
-      });
-    }
-  } catch (error) {
-    console.error('[sitemap] Failed to fetch compare pages:', error);
   }
 
   // ── Deduplicate (safety guard — prevents duplicate URL submissions) ────────

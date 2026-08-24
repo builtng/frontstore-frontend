@@ -130,7 +130,7 @@ const ORIGINAL_ARTICLES = [
       },
       {
         question: 'How do I handle cake deliveries in Abuja?',
-        answer: 'Most Abuja bakers utilize specialized car dispatch services for large cakes to prevent damage, while pastries are delivered via standard dispatch riders.'
+        answer: 'Most Abuja bakers use specialized car dispatch services for large cakes to prevent damage, while pastries are delivered via standard dispatch riders.'
       }
     ],
     ctaText: 'Claim Your Abuja Bakery Menu'
@@ -932,7 +932,7 @@ function buildArticle(city, category) {
       },
       {
         heading: `Verifying Payments and Dispatching Electronics`,
-        body: `Electronics are high-value items, making payment security essential. Utilize secure transactions via ${gateway} and rely on verified transport partners like ${logistics} to ship items safely.`
+        body: `Electronics are high-value items, making payment security essential. Use secure transactions via ${gateway} and rely on verified transport partners like ${logistics} to ship items safely.`
       }
     ];
     faqs = [

@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import {
   X, Loader2, ShoppingBag, Laptop, Bell, Package, Ticket, ExternalLink,
-  Clock, Edit2, Trash2,
+  Clock, Edit2, Trash2, Upload, ImagePlus,
 } from 'lucide-react';
 import SearchableSelect from '../../SearchableSelect';
 import FileUpload from '../../FileUpload';
@@ -14,6 +14,7 @@ import { resilientFetch } from '@/utils/resilientFetch';
 import { getCurrencySymbol } from '@/utils/currency';
 import { getServiceFactPresets } from '@/utils/serviceFactPresets';
 import { businessPersonas } from '@/utils/businessPersonas';
+import { getColorHex } from '@/utils/colorUtils';
 import type { StoreInfo, Category, Product, UserInfo } from '@/types/dashboard';
 
 const authHeaders = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
@@ -333,106 +334,173 @@ export default function AddProductModal({
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)' }} className="responsive-modal-overlay" />
       <div className="card glass animate-scale-in responsive-modal-container" style={{ position: 'relative', width: '100%', maxWidth: 820, padding: 28, zIndex: 10, maxHeight: '90vh', overflowY: 'auto' }}>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900 }}>Create Store Product</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-faint)' }}><X size={18} /></button>
+        {/* ── Modal Header ── */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, borderBottom: '1px solid var(--border)', paddingBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 'var(--r-lg)',
+              background: 'var(--primary-light)', color: 'var(--primary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <Package size={20} />
+            </div>
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em' }}>New Product</h3>
+              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 1 }}>Upload a photo to get started — AI will fill in the details.</p>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-faint)', padding: 4, borderRadius: 'var(--r-sm)', cursor: 'pointer', flexShrink: 0 }} className="clickable"><X size={18} /></button>
         </div>
 
         <form onSubmit={handleCreateProductSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-          {/* ── STEP 1: Primary Image Upload (Full-width, prominent) ── */}
-          <div style={{ background: 'linear-gradient(135deg, rgba(37,211,102,0.05), rgba(37,211,102,0.02))', border: '2px dashed rgba(37,211,102,0.3)', borderRadius: 'var(--r-lg)', padding: 18 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase' }}>Product Photo</div>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
-                  Upload your main image — AI will auto-fill title, description & tags.
-                  <span style={{ color: '#25D366', fontWeight: 700, marginLeft: 4 }}>
-                    ({(user?.plan === 'pro_yearly' || isLegend)
-                      ? 'Unlimited AI credits'
-                      : `${Math.max(0, (user?.plan === 'pro_monthly' ? 15 : 3) - (user?.ai_analyses_used ?? 0))} AI credit(s) remaining`})
-                  </span>
-                </div>
-              </div>
-              {aiAnalyzing && (
-                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(37,211,102,0.1)', border: '1px solid rgba(37,211,102,0.2)', borderRadius: 'var(--r-full)', padding: '4px 10px' }}>
-                  <Loader2 size={12} className="spinner" style={{ color: '#25D366' }} />
-                  <span style={{ fontSize: 11, color: '#25D366', fontWeight: 700 }}>AI analyzing...</span>
-                </div>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: prodImageUrls.length === 0 ? 'center' : 'flex-start' }}>
-              {prodImageUrls.map((url, idx) => (
-                <div key={idx} className="fu-tile-img" style={{ position: 'relative', width: idx === 0 ? 120 : 80, height: idx === 0 ? 120 : 80 }}>
-                  <img src={url} alt={`Product image ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--r-md)' }} />
-                  {idx === 0 && <span style={{ position: 'absolute', top: 4, left: 4, fontSize: 9, fontWeight: 900, background: '#25D366', color: '#fff', padding: '2px 6px', borderRadius: 4, textTransform: 'uppercase' }}>Main</span>}
-                  <button
-                    type="button"
-                    onClick={() => setProdImageUrls(prev => prev.filter((_, i) => i !== idx))}
-                    className="fu-tile-img__remove"
-                    title="Remove image"
-                  >✕</button>
-                </div>
-              ))}
-              {prodImageUrls.length < 3 && (
-                <FileUpload
-                  variant="tile"
-                  accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                  uploading={prodImageUploading}
-                  disabled={prodImageUploading}
-                  onFile={async (file) => {
-                    try {
-                      setProdImageUploading(true);
-                      const fd = new FormData();
-                      fd.append('image', file);
-                      const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
-                        method: 'POST',
-                        credentials: 'include',
-                        headers: { 'Accept': 'application/json' },
-                        body: fd
-                      });
-                      const json = await res.json();
-                      if (res.ok && json.url) {
-                        const isFirstImage = prodImageUrls.length === 0;
-                        setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
-                        toast.success('Image uploaded!');
-                        if (isFirstImage) {
-                          handleAutoAnalyzeImage(file);
-                        }
-                      } else throw new Error(json.message || 'Upload failed');
-                    } catch (err: any) {
-                      toast.error(err.message || 'Image upload error');
-                    } finally {
-                      setProdImageUploading(false);
-                    }
-                  }}
-                />
-              )}
-            </div>
-            <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8 }}>
-              {prodImageUrls.length === 0
-                ? 'Add your first photo to unlock AI auto-fill for title, price, description & tags.'
-                : `${prodImageUrls.length}/3 photos added. ${prodImageUrls.length < 3 ? 'You can add ' + (3 - prodImageUrls.length) + ' more.' : 'All slots filled.'}`
+          {/* ── STEP 1: Product Photo Upload — Full-bleed drop zone ── */}
+          {(() => {
+            const [isDraggingOver, setIsDraggingOver] = useState(false);
+            const imgInputRef = useRef<HTMLInputElement>(null);
+
+            const handleImageFile = async (file: File) => {
+              if (prodImageUrls.length >= 3) return;
+              try {
+                setProdImageUploading(true);
+                const fd = new FormData();
+                fd.append('image', file);
+                const res = await fetch(`${apiUrl}/v1/products/upload-image`, {
+                  method: 'POST', credentials: 'include',
+                  headers: { 'Accept': 'application/json' }, body: fd
+                });
+                const json = await res.json();
+                if (res.ok && json.url) {
+                  const isFirstImage = prodImageUrls.length === 0;
+                  setProdImageUrls(prev => [...prev, json.url].slice(0, 3));
+                  toast.success('Image uploaded!');
+                  if (isFirstImage) handleAutoAnalyzeImage(file);
+                } else throw new Error(json.message || 'Upload failed');
+              } catch (err: any) {
+                toast.error(err.message || 'Image upload error');
+              } finally {
+                setProdImageUploading(false);
               }
-            </p>
-          </div>
+            };
+
+            return (
+              <div style={{ borderRadius: 'var(--r-xl)', border: `1.5px ${prodImageUrls.length === 0 ? 'dashed' : 'solid'} ${isDraggingOver ? 'var(--primary)' : 'var(--border)'}`, background: isDraggingOver ? 'var(--primary-light)' : 'var(--bg-2)', overflow: 'hidden', transition: 'all 0.15s ease' }}>
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: prodImageUrls.length > 0 ? '1px solid var(--border)' : 'none' }}>
+                  <div>
+                    <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--text)' }}>Product Photos</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>Upload up to 3 — AI auto-fills title, price & description.</div>
+                  </div>
+                  {aiAnalyzing ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--primary-light)', border: '1px solid rgba(18,140,126,0.2)', borderRadius: 'var(--r-full)', padding: '5px 12px', flexShrink: 0 }}>
+                      <Loader2 size={12} className="spinner" style={{ color: 'var(--primary)' }} />
+                      <span style={{ fontSize: 11.5, color: 'var(--primary)', fontWeight: 750 }}>AI analyzing...</span>
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: 11, fontWeight: 750, padding: '4px 10px', borderRadius: 'var(--r-full)', background: 'var(--primary-light)', color: 'var(--primary)', flexShrink: 0 }}>
+                      {(user?.plan === 'pro_yearly' || isLegend) ? '✦ Unlimited AI' : `${Math.max(0, (user?.plan === 'pro_monthly' ? 15 : 3) - (user?.ai_analyses_used ?? 0))} AI credits left`}
+                    </span>
+                  )}
+                </div>
+
+                {/* Hidden file input */}
+                <input
+                  ref={imgInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                  style={{ display: 'none' }}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ''; }}
+                />
+
+                {prodImageUrls.length === 0 ? (
+                  /* ── Full-bleed empty drop zone ── */
+                  <div
+                    onClick={() => !prodImageUploading && imgInputRef.current?.click()}
+                    onDragOver={e => { e.preventDefault(); setIsDraggingOver(true); }}
+                    onDragLeave={() => setIsDraggingOver(false)}
+                    onDrop={e => { e.preventDefault(); setIsDraggingOver(false); const f = e.dataTransfer.files[0]; if (f) handleImageFile(f); }}
+                    style={{ padding: '36px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, cursor: prodImageUploading ? 'not-allowed' : 'pointer' }}
+                  >
+                    <div style={{ width: 52, height: 52, borderRadius: 'var(--r-full)', background: isDraggingOver ? 'rgba(18,140,126,0.15)' : 'var(--surface)', border: '1.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isDraggingOver ? 'var(--primary)' : 'var(--text-muted)', transition: 'all 0.15s ease' }}>
+                      {prodImageUploading ? <Loader2 size={22} className="spinner" style={{ color: 'var(--primary)' }} /> : <Upload size={22} strokeWidth={1.8} />}
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ fontSize: 13.5, fontWeight: 750, color: isDraggingOver ? 'var(--primary)' : 'var(--text)', marginBottom: 4 }}>
+                        {prodImageUploading ? 'Uploading...' : isDraggingOver ? 'Drop your photo here' : 'Click to upload or drag & drop'}
+                      </p>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>JPG, PNG, WEBP · AI fills in price, title & description</p>
+                    </div>
+                  </div>
+                ) : (
+                  /* ── Has images: tile grid + small add-more ── */
+                  <div
+                    onDragOver={e => { e.preventDefault(); if (prodImageUrls.length < 3) setIsDraggingOver(true); }}
+                    onDragLeave={() => setIsDraggingOver(false)}
+                    onDrop={e => { e.preventDefault(); setIsDraggingOver(false); const f = e.dataTransfer.files[0]; if (f && prodImageUrls.length < 3) handleImageFile(f); }}
+                    style={{ padding: 16, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}
+                  >
+                    {prodImageUrls.map((url, idx) => (
+                      <div key={idx} className="fu-tile-img" style={{ position: 'relative', width: idx === 0 ? 110 : 80, height: idx === 0 ? 110 : 80, flexShrink: 0 }}>
+                        <img src={url} alt={`Product image ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--r-lg)' }} />
+                        {idx === 0 && <span style={{ position: 'absolute', top: 6, left: 6, fontSize: 9, fontWeight: 900, background: 'var(--primary)', color: '#fff', padding: '2px 6px', borderRadius: 4, textTransform: 'uppercase' }}>Cover</span>}
+                        <button type="button" onClick={() => setProdImageUrls(prev => prev.filter((_, i) => i !== idx))} className="fu-tile-img__remove" title="Remove">✕</button>
+                      </div>
+                    ))}
+                    {prodImageUrls.length < 3 && (
+                      <button
+                        type="button"
+                        onClick={() => imgInputRef.current?.click()}
+                        disabled={prodImageUploading}
+                        style={{ width: 80, height: 80, borderRadius: 'var(--r-lg)', border: '1.5px dashed var(--border)', background: 'var(--surface)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', color: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }}
+                      >
+                        {prodImageUploading ? <Loader2 size={18} className="spinner" style={{ color: 'var(--primary)' }} /> : <><ImagePlus size={18} strokeWidth={1.8} /><span>ADD</span></>}
+                      </button>
+                    )}
+                    <div style={{ width: '100%', fontSize: 11.5, color: 'var(--text-faint)', paddingTop: 4 }}>
+                      {prodImageUrls.length}/3 photos · {prodImageUrls.length < 3 ? `Add ${3 - prodImageUrls.length} more for a richer listing` : 'All slots filled'}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* ── STEP 2+: Rest of the form — revealed once the main image is uploaded & analyzed ── */}
           {prodImageUrls.length === 0 ? (
-            <p style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center', padding: '4px 0' }}>
-              Upload a product photo above to continue.
-            </p>
+            /* ── Locked State — shown before first image is uploaded ── */
+            <div style={{
+              borderRadius: 'var(--r-xl)',
+              border: '1px dashed var(--border)',
+              background: 'var(--surface)',
+              padding: '28px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 10,
+              opacity: 0.65
+            }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, width: '100%', maxWidth: 320, pointerEvents: 'none' }}>
+                {['Product Title', 'Price', 'Category', 'Description'].map(field => (
+                  <div key={field} style={{ padding: '8px 10px', background: 'var(--bg-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-faint)', textTransform: 'uppercase', marginBottom: 4 }}>{field}</div>
+                    <div style={{ height: 8, background: 'var(--border)', borderRadius: 4, width: field === 'Description' ? '80%' : '60%' }} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--primary)' }}><rect width="11" height="11" x="3" y="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Upload a photo above to unlock the full form</span>
+              </div>
+            </div>
           ) : aiAnalyzing ? null : (
           <>
           <div>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>What are you selling?</label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
               {[
-                { id: 'physical', icon: ShoppingBag, label: 'Physical', sublabel: 'Shipped or handed over', active: !prodIsDigital && prodType !== 'service' && prodType !== 'bundle' && prodType !== 'ticket' },
+                { id: 'physical', icon: ShoppingBag, label: 'Physical', sublabel: 'Shipped or handed over', active: !prodIsDigital && prodType !== 'bundle' },
                 { id: 'digital', icon: Laptop, label: 'Digital', sublabel: 'Downloads, files, links', active: prodIsDigital },
-                { id: 'service', icon: Bell, label: 'Service', sublabel: 'Sessions, bookings, jobs', active: prodType === 'service' },
                 { id: 'bundle', icon: Package, label: 'Bundle', sublabel: 'Combo of other products', active: prodType === 'bundle' },
-                { id: 'ticket', icon: Ticket, label: 'Ticket', sublabel: 'Event with check-in', active: prodType === 'ticket' },
               ].map(opt => (
                 <button
                   key={opt.id}
@@ -440,9 +508,7 @@ export default function AddProductModal({
                   onClick={() => {
                     if (opt.id === 'physical') { setProdIsDigital(false); setProdType('product'); }
                     if (opt.id === 'digital') { setProdIsDigital(true); setProdType('product'); setProdStock('in_stock'); }
-                    if (opt.id === 'service') { setProdIsDigital(false); setProdType('service'); }
                     if (opt.id === 'bundle') { setProdIsDigital(false); setProdType('bundle'); setProdStock('in_stock'); }
-                    if (opt.id === 'ticket') { setProdIsDigital(false); setProdType('ticket'); }
                   }}
                   style={{
                     padding: '12px 8px',
@@ -547,24 +613,85 @@ export default function AddProductModal({
                 <button
                   type="button"
                   className="btn clickable"
-                  onClick={() => setProdVariants(prev => [...prev, { size: '', color: '', price: '', inventory_quantity: '0' }])}
+                  onClick={() => setProdVariants(prev => [...prev, { size: '', color: '', price: '', inventory_quantity: '1' }])}
                   style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, borderRadius: 8, background: 'var(--primary)', color: '#fff', border: 'none' }}
                 >
                   + Add Variant
                 </button>
               </div>
-              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>Let buyers pick a size and/or colour before adding to cart. Leave empty if this product has no options.</p>
-              {prodVariants.map((v, i) => (
-                <div key={i} className="pv-variant-row">
-                  <input className="input-field" placeholder="Size (e.g. M)" value={v.size} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, size: e.target.value } : row))} />
-                  <input className="input-field" placeholder="Colour (e.g. Red)" value={v.color} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, color: e.target.value } : row))} />
-                  <input className="input-field" type="number" min={0} step="0.01" placeholder="Price override" value={v.price} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, price: e.target.value } : row))} />
-                  <input className="input-field" type="number" min={0} placeholder="Stock qty" value={v.inventory_quantity} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, inventory_quantity: e.target.value } : row))} />
-                  <button type="button" className="pv-variant-remove" onClick={() => setProdVariants(prev => prev.filter((_, ri) => ri !== i))}>
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
+              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>Let buyers pick a size and/or colour before adding to cart. Use the color picker to set visual swatches.</p>
+
+              {/* Preset Color Swatches */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 4, marginBottom: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>Quick Swatches:</span>
+                {['#000000', '#ffffff', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#d97706', '#94a3b8'].map((hex) => (
+                  <button
+                    key={hex}
+                    type="button"
+                    title={`Add variant with color ${hex}`}
+                    onClick={() => {
+                      setProdVariants(prev => {
+                        if (prev.length === 0) return [{ size: '', color: hex, price: '', inventory_quantity: '1' }];
+                        const lastEmptyIdx = prev.findIndex(row => !row.color);
+                        if (lastEmptyIdx !== -1) {
+                          return prev.map((row, ri) => ri === lastEmptyIdx ? { ...row, color: hex } : row);
+                        }
+                        return [...prev, { size: '', color: hex, price: '', inventory_quantity: '1' }];
+                      });
+                    }}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 10,
+                      background: hex,
+                      border: hex === '#ffffff' ? '1.5px solid #cbd5e1' : '1px solid rgba(0,0,0,0.15)',
+                      cursor: 'pointer',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    }}
+                  />
+                ))}
+              </div>
+
+              {prodVariants.map((v, i) => {
+                const currentHex = getColorHex(v.color) || '#3b82f6';
+                return (
+                  <div key={i} className="pv-variant-row">
+                    <input className="input-field" placeholder="Size (e.g. M)" value={v.size} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, size: e.target.value } : row))} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '1 1 140px' }}>
+                      <input
+                        type="color"
+                        value={currentHex}
+                        onChange={e => {
+                          const hex = e.target.value;
+                          setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, color: hex } : row));
+                        }}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          padding: 0,
+                          border: 'none',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          background: 'transparent',
+                          flexShrink: 0,
+                        }}
+                        title="Pick visual color"
+                      />
+                      <input
+                        className="input-field"
+                        placeholder="Colour (e.g. Red / #ef4444)"
+                        value={v.color}
+                        onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, color: e.target.value } : row))}
+                      />
+                    </div>
+                    <input className="input-field" type="number" min={0} step="0.01" placeholder="Price override" value={v.price} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, price: e.target.value } : row))} />
+                    <input className="input-field" type="number" min={0} placeholder="Stock qty" value={v.inventory_quantity} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, inventory_quantity: e.target.value } : row))} />
+                    <button type="button" className="pv-variant-remove" onClick={() => setProdVariants(prev => prev.filter((_, ri) => ri !== i))}>
+                      <X size={16} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -1005,10 +1132,41 @@ export default function AddProductModal({
           </>
           )}
 
-          <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-            <button type="button" onClick={onClose} className="btn btn-outline clickable" style={{ flex: 1, padding: 12 }}>Cancel</button>
-            <button type="submit" disabled={productPublishing} className="btn btn-primary clickable" style={{ flex: 1, padding: 12 }}>
-              {productPublishing ? <><Loader2 size={14} className="spinner" /> Publishing...</> : 'Publish Product'}
+          {/* ── Footer Actions ── */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            marginTop: 10, paddingTop: 16,
+            borderTop: '1px solid var(--border)'
+          }}>
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn-ghost clickable"
+              style={{ padding: '10px 18px', fontSize: 13.5, fontWeight: 700, color: 'var(--text-muted)' }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={productPublishing || prodImageUrls.length === 0}
+              className="btn btn-primary clickable"
+              style={{
+                padding: '11px 28px',
+                fontSize: 14,
+                fontWeight: 800,
+                borderRadius: 'var(--r-lg)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                boxShadow: prodImageUrls.length > 0 ? '0 4px 14px rgba(18, 140, 126, 0.3)' : 'none',
+                opacity: prodImageUrls.length === 0 ? 0.45 : 1,
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {productPublishing
+                ? <><Loader2 size={15} className="spinner" /> Publishing...</>
+                : <><Package size={15} /> Publish Product</>
+              }
             </button>
           </div>
         </form>

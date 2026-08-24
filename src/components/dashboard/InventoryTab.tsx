@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Archive } from 'lucide-react';
+import { Archive, Boxes, Layers, BellRing, History, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Modal from '@/components/Modal';
 import SearchableSelect from '@/components/SearchableSelect';
+import ProFeatureGate from '@/components/dashboard/ProFeatureGate';
 import type { Product, DashboardTab } from '@/types/dashboard';
 
 interface InventoryLog {
@@ -105,35 +106,97 @@ export default function InventoryTab({ isPro, products, navigateDashboardTab, re
       </div>
 
       {!isPro ? (
-        <div className="card text-center animate-fade-in" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
-          <div style={{
-            width: 64, height: 64, borderRadius: 'var(--r-full)',
-            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
-          }}>
-            <Archive size={28} color="#fff" />
-          </div>
-          <div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>
-              Advanced Inventory & Variants
-            </h3>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
-              Track product sizes and colors, automatically deduct stock levels upon successful customer purchase, and configure instant notifications for low stock counts.
-            </p>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 8 }}>
-            <button
-              onClick={() => navigateDashboardTab('billing')}
-              className="btn btn-primary clickable"
-              style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}
-            >
-              🚀 Upgrade to Pro
-            </button>
-          </div>
-        </div>
+        <ProFeatureGate
+          title="Advanced Inventory & Variants"
+          subtitle="Gain total control over product stock levels, variant SKUs, automated order deductions, and real-time restock audit trails."
+          icon={Archive}
+          badgeText="PRO INVENTORY MANAGEMENT"
+          onUpgrade={() => navigateDashboardTab('billing')}
+          features={[
+            {
+              icon: Boxes,
+              title: 'Automated Stock Sync',
+              description: 'Stock levels automatically deduct upon customer checkout to prevent overselling.',
+            },
+            {
+              icon: Layers,
+              title: 'Size & Color Variants',
+              description: 'Track distinct stock quantities for every size, color, or custom option variant.',
+            },
+            {
+              icon: BellRing,
+              title: 'Low Stock Alerts',
+              description: 'Get automated warnings when product quantities drop below custom safety thresholds.',
+            },
+            {
+              icon: History,
+              title: 'Audit & Restock History',
+              description: 'Detailed logs for manual stock adjustments, supplier restocks, and order deductions.',
+            },
+          ]}
+          previewChildren={
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontWeight: 800, fontSize: 14 }}>Inventory Status (34 Items)</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ padding: '4px 12px', borderRadius: 9999, background: '#ECFDF5', color: '#059669', fontSize: 12, fontWeight: 700 }}>In Stock (28)</div>
+                  <div style={{ padding: '4px 12px', borderRadius: 9999, background: '#FEF2F2', color: '#DC2626', fontSize: 12, fontWeight: 700 }}>Low Stock (6)</div>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: 12, borderRadius: 12, background: '#F8FAFC', fontSize: 12, fontWeight: 700 }}>
+                <div>Product</div>
+                <div>Variant</div>
+                <div>Available Stock</div>
+                <div>Status</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: 12, borderBottom: '1px solid #E2E8F0', fontSize: 12 }}>
+                <div style={{ fontWeight: 700 }}>Luxe Velvet Dress</div>
+                <div>Red / M</div>
+                <div style={{ fontWeight: 700, color: '#059669' }}>42 units</div>
+                <span style={{ color: '#059669', fontWeight: 600 }}>Healthy</span>
+              </div>
+            </div>
+          }
+        />
       ) : (
         <>
+          {/* Summary Metric Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+            <div className="card" style={{ padding: 18, display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(99, 102, 241, 0.1)', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Boxes size={22} />
+              </div>
+              <div>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700 }}>Total Products</p>
+                <h3 style={{ fontSize: 20, fontWeight: 900, marginTop: 2 }}>{products.length}</h3>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: 18, display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AlertTriangle size={22} />
+              </div>
+              <div>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700 }}>Low / Out of Stock</p>
+                <h3 style={{ fontSize: 20, fontWeight: 900, marginTop: 2, color: '#EF4444' }}>
+                  {products.filter(p => (p as any).stock_status === 'low_stock' || (p as any).stock_status === 'out_of_stock').length}
+                </h3>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: 18, display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(16, 185, 129, 0.1)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CheckCircle2 size={22} />
+              </div>
+              <div>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700 }}>Healthy Stock Items</p>
+                <h3 style={{ fontSize: 20, fontWeight: 900, marginTop: 2, color: '#10B981' }}>
+                  {products.filter(p => !(p as any).stock_status || (p as any).stock_status === 'in_stock').length}
+                </h3>
+              </div>
+            </div>
+          </div>
+
           {/* Sub-tabs toggle */}
           <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
             <button

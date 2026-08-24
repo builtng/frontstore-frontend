@@ -17,7 +17,7 @@ const TEAM_PERMISSIONS = [
   { id: 'manage team members', label: 'Manage Team Members', desc: 'Invite, edit, and remove staff' },
   { id: 'view orders', label: 'View Orders', desc: 'Read-only access to order data' },
   { id: 'edit orders', label: 'Edit / Process Orders & Refunds', desc: 'Update statuses and process refunds' },
-  { id: 'access analytics', label: 'View Profit & Expenses', desc: 'Access financial reports' },
+  { id: 'access analytics', label: 'View Profit Analytics', desc: 'Access financial reports' },
   { id: 'access customer data', label: 'Inbox & Customer Profiles', desc: 'Read and reply to customer messages' },
 ];
 

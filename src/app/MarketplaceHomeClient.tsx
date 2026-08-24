@@ -4,13 +4,13 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import ThemeToggle from "../components/ThemeToggle";
 import ProductImage from "../components/ProductImage";
 import {
-  Menu, X, Search, MapPin, ChevronDown, Heart, Star, ShieldCheck,
+  AlignRight, X, Search, MapPin, ChevronDown, Heart, Star, ShieldCheck,
   Receipt, Truck, Clock, Flame, Store, BadgeCheck,
   ChevronRight, Home, LayoutGrid, User, Bookmark, ArrowRight,
   MessageCircle, Plus, Minus, SlidersHorizontal, Package, Bell,
   CreditCard, Settings, LogOut, ChevronLeft, TrendingUp,
   ShoppingBag, Globe, Lock, HelpCircle, Edit3, Camera,
-  CheckCircle, AlertCircle, Trash2, Loader2
+  CheckCircle, AlertCircle, Trash2, Loader2, Zap, Sparkles, Crown
 } from "lucide-react";
 
 /* ─── TOKENS & REGIONS ───────────────────────────── */
@@ -38,14 +38,28 @@ const unitsPerNgn = (ccy: string) => liveRates?.[ccy] ?? (MARKETS.find(m => m.cc
 
 // Category styling tokens mapping
 const CATS_MAP: Record<string, { icon: any; from: string; to: string }> = {
-  "Fashion":           { icon:Store,      from:"#25D366", to:"#4ADE80" },
-  "Apparel":           { icon:Store,      from:"#25D366", to:"#4ADE80" },
-  "Footwear":          { icon:Store,      from:"#c2557a", to:"#e0789a" },
-  "Beauty & Cosmetics":{ icon:Heart,      from:"#c2557a", to:"#e0789a" },
-  "Gadgets":           { icon:LayoutGrid, from:"#2f6f9e", to:"#4f97c7" },
-  "Accessories":       { icon:LayoutGrid, from:"#2f6f9e", to:"#4f97c7" },
-  "Food":              { icon:Flame,      from:"#d98324", to:"#eaa64a" },
-  "Digital Products":  { icon:BadgeCheck, from:"#6a52b8", to:"#8b73d8" },
+  "Retail & Groceries":    { icon:ShoppingBag,from:"#128C7E", to:"#25D366" },
+  "Groceries":             { icon:Package,    from:"#059669", to:"#34d399" },
+  "Fashion & Clothing":    { icon:Store,      from:"#E23F84", to:"#f472b6" },
+  "Fashion & Apparel":     { icon:Store,      from:"#E23F84", to:"#f472b6" },
+  "Confectionaries & Food":{ icon:Flame,      from:"#FF9F43", to:"#fbbf24" },
+  "Food & Kitchens":       { icon:Flame,      from:"#FF9F43", to:"#fbbf24" },
+  "Personal Care & Beauty":{ icon:Heart,      from:"#9B5DE5", to:"#c084fc" },
+  "Beauty & Barbering":    { icon:Heart,      from:"#9B5DE5", to:"#c084fc" },
+  "Gadgets & Electronics": { icon:Zap,        from:"#2563EB", to:"#60a5fa" },
+  "Tech & Gadgets":        { icon:Zap,        from:"#2563EB", to:"#60a5fa" },
+  "Shoes & Sneakers":      { icon:ShoppingBag,from:"#0D9488", to:"#14b8a6" },
+  "Jewellery":             { icon:Sparkles,   from:"#D97706", to:"#f59e0b" },
+  "Gifts & Hampers":       { icon:Crown,      from:"#E11D48", to:"#fb7185" },
+  "Home & Auto Services":  { icon:Truck,      from:"#118AB2", to:"#38bdf8" },
+  "Digital Products":      { icon:BadgeCheck, from:"#6D5AE6", to:"#818cf8" },
+  "Pharmacy & Health":     { icon:Sparkles,   from:"#DC2626", to:"#f87171" },
+  "Schools & Faith":       { icon:Crown,      from:"#0E9BB3", to:"#2dd4bf" },
+  "Fashion":               { icon:Store,      from:"#E23F84", to:"#f472b6" },
+  "Apparel":               { icon:Store,      from:"#E23F84", to:"#f472b6" },
+  "Beauty & Cosmetics":    { icon:Heart,      from:"#9B5DE5", to:"#c084fc" },
+  "Gadgets":               { icon:Zap,        from:"#2563EB", to:"#60a5fa" },
+  "Food":                  { icon:Flame,      from:"#FF9F43", to:"#fbbf24" },
 };
 
 const FAQS = [
@@ -159,7 +173,7 @@ function StoreCard({ s }: { s: any }) {
       </span>
       {s.location && <span className="store-loc"><MapPin size={11} />{s.location}</span>}
       {isRising && <span className="rising-tag">Rising</span>}
-      <span className="store-url">frontstore.ng/{slug}</span>
+      <span className="store-url">{slug}.frontstore.ng</span>
     </a>
   );
 }
@@ -212,7 +226,7 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer, b
       <header className="top-nav">
         <div className="nav-inner">
           <button className="logo" onClick={() => setTab("home")}>
-            <img src="/logo.png" alt="" className="logo-mark" />
+            <img src="/logo.svg" alt="" className="logo-mark" />
             <span className="logo-word">front<span>store</span></span>
           </button>
 
@@ -248,7 +262,7 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer, b
               <button className="signin-btn" onClick={() => setTab("account")}>Sign in</button>
             )}
             <button className="open-store-btn" onClick={goToMerchantArea}>Open store</button>
-            <button className="icon-btn hamburger" aria-label="Open menu" onClick={() => setDrawer(true)}><Menu size={21} /></button>
+            <button className="icon-btn hamburger" aria-label="Open menu" onClick={() => setDrawer(true)}><AlignRight size={21} /></button>
           </div>
         </div>
       </header>
@@ -265,7 +279,7 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer, b
       >
         <div className="drawer-head">
           <span className="logo sm">
-            <img src="/logo.png" alt="" className="logo-mark" />
+            <img src="/logo.svg" alt="" className="logo-mark" />
             <span className="logo-word">front<span>store</span></span>
           </span>
           <button className="icon-btn" onClick={() => setDrawer(false)}><X size={20} /></button>
@@ -278,7 +292,7 @@ function Shell({ tab, setTab, market, setMarket, onSearchTap, children, buyer, b
         <div className="drawer-sell">
           <p>Got something to sell?</p>
           <button className="ds-btn">Open your free store <ArrowRight size={14} /></button>
-          <span>frontstore.ng/yourname</span>
+          <span>yourname.frontstore.ng</span>
         </div>
       </aside>
 
@@ -345,7 +359,7 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
       <section className="hero">
         <div className="mkt-hero-grid" />
         <div className="hero-glow" />
-        <img src="/logo.png" alt="" className="hero-mark" />
+        <img src="/logo.svg" alt="" className="hero-mark" />
         <div className="hero-inner">
           <div className="hero-copy">
             <p className="eyebrow">Africa's marketplace for everyday stores</p>
@@ -505,13 +519,13 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
 
       {/* SELL BAND */}
       <section className="sell-band">
-        <img src="/logo.png" alt="" className="sell-mark" />
+        <img src="/logo.svg" alt="" className="sell-mark" />
         <div className="sell-inner">
           <div className="sell-copy">
             <h2>Selling something? Your store is two minutes away.</h2>
             <p>Claim your link, add products, and share it anywhere. We handle payments and receipts.</p>
             <button className="sell-cta">Open your free store <ArrowRight size={15} /></button>
-            <span className="sell-url">frontstore.ng/yourname</span>
+            <span className="sell-url">yourname.frontstore.ng</span>
           </div>
           <div className="sell-blob" />
         </div>
@@ -525,7 +539,7 @@ function PageHome({ market, liked, toggleLike, setTab, products, categories, sto
         <div className="footer-inner">
           <div className="footer-top">
             <span className="logo sm">
-              <img src="/logo.png" alt="" className="logo-mark" />
+              <img src="/logo.svg" alt="" className="logo-mark" />
               <span className="logo-word">front<span>store</span></span>
             </span>
             <p className="footer-tag">Conversational commerce for Africa and beyond.</p>

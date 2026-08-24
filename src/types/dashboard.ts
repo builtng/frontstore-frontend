@@ -59,7 +59,6 @@ export interface StoreInfo {
   reviews_intro_text?: string | null;
   faq_help_text?: string | null;
   about_intro_text?: string | null;
-  portfolio_intro_text?: string | null;
   policy_bookings?: string | null;
   policy_products?: string | null;
   policy_refunds?: string | null;
@@ -129,6 +128,7 @@ export interface Category {
 export interface Product {
   id: string;
   name: string;
+  slug?: string | null;
   price: number | string;
   compare_at_price?: number | string | null;
   stock_status: string;
@@ -193,6 +193,8 @@ export interface Order {
   payout_hold_until?: string | null;
 }
 
+export type OrderInfo = Order;
+
 export interface DashboardStats {
   revenue: number;
   counts: {
@@ -236,7 +238,6 @@ export interface PayoutStatusSummary {
 
 export type DashboardTab =
   | 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates'
-  | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'blog' | 'availability'
-  | 'bookings' | 'invoices' | 'receipts' | 'payment-links' | 'inventory'
+  | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'invoices' | 'receipts' | 'payment-links' | 'inventory'
   | 'automations' | 'analytics' | 'team' | 'finance' | 'refunds' | 'inbox' | 'coupons'
   | 'affiliates' | 'integrations' | 'customers';

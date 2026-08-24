@@ -11,6 +11,7 @@ import { WhatsAppIcon } from "../../../../components/WhatsAppIcon";
 import WhatsAppDisclaimerModal from "../../../../components/WhatsAppDisclaimerModal";
 import ImageLightbox from "../../../../components/ImageLightbox";
 import ProductImage from "../../../../components/ProductImage";
+import { getColorHex } from '@/utils/colorUtils';
 
 // --- Types & Interfaces ---
 interface Category {
@@ -85,7 +86,7 @@ interface Review {
   reviewer_name: string;
   body: string;
   rating: number;
-  created_at?: string;
+  created_at?: string | null;
 }
 
 interface ProductVariant {
@@ -171,6 +172,10 @@ type StoreTheme = React.CSSProperties & {
   '--brand': string;
   '--brand-deep': string;
   '--tint': string;
+  '--primary'?: string;
+  '--primary-dark'?: string;
+  '--primary-light'?: string;
+  '--primary-border'?: string;
 };
 
 const TEMPLATE_THEME: Record<string, StoreTheme> = {
@@ -212,6 +217,10 @@ function resolveStoreTheme(store: Pick<Store, 'primary_color' | 'business_person
       '--brand': store.primary_color,
       '--brand-deep': store.primary_color,
       '--tint': `color-mix(in srgb, ${store.primary_color} 14%, white)`,
+      '--primary': store.primary_color,
+      '--primary-dark': store.primary_color,
+      '--primary-light': `color-mix(in srgb, ${store.primary_color} 14%, white)`,
+      '--primary-border': `${store.primary_color}3D`,
     };
   }
 
@@ -244,6 +253,7 @@ export default function ProductDetailClient({
   store,
   allProducts,
   reviews,
+  systemDomain,
   storeDisclaimer
 }: ProductDetailClientProps) {
   const storeLabel = store.store_label || 'store';
@@ -312,10 +322,23 @@ export default function ProductDetailClient({
 
   const productVariants = useMemo(() => {
     if (initialProduct.variants && initialProduct.variants.length > 0) {
-      return initialProduct.variants.map(v => ({ l: v.label, price: parseFloat(v.price) }));
+      return initialProduct.variants.map((v: any) => {
+        const rawLabel = v.label || [v.size, v.color].filter(Boolean).join(' / ') || 'Option';
+        const colorVal = v.color || (v.size && getColorHex(v.size) ? v.size : null);
+        const hex = getColorHex(colorVal) || getColorHex(rawLabel);
+        return {
+          id: v.id,
+          l: rawLabel,
+          label: rawLabel,
+          size: v.size || null,
+          color: v.color || null,
+          colorHex: hex,
+          price: parseFloat(v.price || initialProduct.price),
+        };
+      });
     }
     return null;
-  }, [initialProduct.variants]);
+  }, [initialProduct.variants, initialProduct.price]);
 
   const unitPrice = productVariants ? productVariants[size].price : parseFloat(initialProduct.price);
   const mobileFeeAmount = kind === 'service' && deliveryMethod === 'delivery' && initialProduct.mobile_fee
@@ -360,17 +383,47 @@ export default function ProductDetailClient({
     return others.slice(0, 4);
   }, [allProducts, initialProduct.id, initialProduct.related_product_ids, initialProduct.category_id]);
 
+  // Resolve clean canonical product URL (storeusername.domain/product-name)
+  const getShareUrl = () => {
+    if (typeof window === 'undefined') {
+      return `https://${store.username}.${systemDomain}/${initialProduct.slug}`;
+    }
+    const host = window.location.host;
+    const isSubdomain = host.startsWith(`${store.username}.`) || (host.includes('.localhost') && host.startsWith(store.username));
+    return isSubdomain
+      ? `${window.location.origin}/${initialProduct.slug}`
+      : `${window.location.origin}/${store.username}/${initialProduct.slug}`;
+  };
+
+  const getStoreHomeUrl = () => {
+    if (typeof window === 'undefined') {
+      return `/${store.username}`;
+    }
+    const host = window.location.host;
+    const isSubdomain = host.startsWith(`${store.username}.`) || (host.includes('.localhost') && host.startsWith(store.username)) || host.endsWith('.frontstore.ng');
+    return isSubdomain ? '/' : `/${store.username}`;
+  };
+
+  const getProductDetailUrl = (productSlug: string) => {
+    if (typeof window === 'undefined') {
+      return `/${store.username}/products/${productSlug}`;
+    }
+    const host = window.location.host;
+    const isSubdomain = host.startsWith(`${store.username}.`) || (host.includes('.localhost') && host.startsWith(store.username)) || host.endsWith('.frontstore.ng');
+    return isSubdomain ? `/${productSlug}` : `/${store.username}/products/${productSlug}`;
+  };
+
   // Handle WhatsApp Question Link
   const handleAskQuestion = () => {
     const shareText = `Hi ${store.store_name}, I have a question about the ${kind === 'service' ? 'service' : 'product'} "${initialProduct.name}":`;
-    const shareUrl = `${window.location.origin}/${store.username}/products/${initialProduct.slug}`;
+    const shareUrl = getShareUrl();
     const fullMsg = `${shareText}\n${shareUrl}`;
     setPendingWaUrl(`https://wa.me/${store.whatsapp_phone.replace(/[^\d]/g, '')}?text=${encodeURIComponent(fullMsg)}`);
   };
 
   // Copy product link to clipboard
   const handleShareProduct = async () => {
-    const productUrl = `${window.location.origin}/${store.username}/products/${initialProduct.slug}`;
+    const productUrl = getShareUrl();
     const shareText = `${initialProduct.name} — ${fmt(initialProduct.price, currencySymbol)}`;
     if (navigator.share) {
       await navigator.share({ title: initialProduct.name, text: shareText, url: productUrl });
@@ -480,6 +533,22 @@ export default function ProductDetailClient({
   const images = initialProduct.image_urls || [];
   const storeTheme = useMemo(() => resolveStoreTheme(store), [store]);
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const pColor = (storeTheme as any)['--brand'] || store.primary_color || '#128C7E';
+      const pDeep = (storeTheme as any)['--brand-deep'] || pColor;
+      const pTint = (storeTheme as any)['--tint'] || `color-mix(in srgb, ${pColor} 14%, white)`;
+
+      document.documentElement.style.setProperty('--primary', pColor);
+      document.documentElement.style.setProperty('--primary-dark', pDeep);
+      document.documentElement.style.setProperty('--primary-light', pTint);
+      document.documentElement.style.setProperty('--primary-border', `${pColor}3D`);
+      document.documentElement.style.setProperty('--brand', pColor);
+      document.documentElement.style.setProperty('--brand-deep', pDeep);
+      document.documentElement.style.setProperty('--tint', pTint);
+    }
+  }, [store, storeTheme]);
+
   return (
     <div className="fs-root" style={storeTheme}>
       <style suppressHydrationWarning>{CSS}</style>
@@ -503,7 +572,12 @@ export default function ProductDetailClient({
       {/* Top Nav */}
       <header className="fs-nav">
         <div className="fs-nav-inner">
-          <button className="fs-back" onClick={() => window.location.href = `/${store.username}`}>
+          <button
+            className="fs-back"
+            onClick={() => {
+              window.location.href = getStoreHomeUrl();
+            }}
+          >
             <ChevronLeft size={18} /> {store.store_name.split(' ')[0]}
           </button>
           <span className="fs-nav-store">{store.store_name} {store.is_verified ? <BadgeCheck size={13} className="fs-verif" /> : null}</span>
@@ -525,7 +599,7 @@ export default function ProductDetailClient({
           {/* Gallery Slider */}
           <div className="fs-gallery">
             {images.length > 0 ? (
-              <div className="fs-hero relative overflow-hidden bg-neutral-50 dark:bg-neutral-900 rounded-2xl cursor-pointer" onClick={() => setLightboxOpen(true)}>
+              <div className="fs-hero relative overflow-hidden bg-neutral-50 rounded-2xl cursor-pointer" onClick={() => setLightboxOpen(true)}>
                 <ProductImage src={images[slide]} alt={`${initialProduct.name} - slide ${slide + 1}`} aspectRatio="4/5" priority />
                 <span className="fs-type-badge z-20">{kind === "service" ? "Service" : "Product"}</span>
                 {initialProduct.compare_at_price && (
@@ -717,17 +791,73 @@ export default function ProductDetailClient({
             {kind === "product" && (
               <div className="fs-options">
                 {productVariants && (
-                  <>
-                    <p className="fs-opt-lbl">Option</p>
-                    <div className="fs-sizes">
-                      {productVariants.map((v, i) => (
-                        <button key={i} className={`fs-size ${size === i ? "on" : ""}`} onClick={() => setSize(i)}>
-                          <b>{v.l}</b>
-                          <span>{fmt(v.price, currencySymbol)}</span>
-                        </button>
-                      ))}
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <p className="fs-opt-lbl" style={{ margin: 0 }}>
+                        {productVariants[size]?.color || productVariants[size]?.colorHex ? (
+                          <>
+                            Color: <b style={{ color: 'var(--text-main, #0f172a)' }}>{productVariants[size].color || productVariants[size].l}</b>
+                          </>
+                        ) : (
+                          'Select Option'
+                        )}
+                      </p>
                     </div>
-                  </>
+
+                    <div className="fs-sizes" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+                      {productVariants.map((v, i) => {
+                        const isSelected = size === i;
+                        const hex = v.colorHex;
+
+                        if (hex) {
+                          const isLight = hex.toLowerCase() === '#ffffff' || hex.toLowerCase() === '#fff' || hex.toLowerCase() === '#f5f5dc' || hex.toLowerCase() === '#fffdd0';
+                          return (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => setSize(i)}
+                              title={`${v.color || v.label} — ${fmt(v.price, currencySymbol)}`}
+                              style={{
+                                position: 'relative',
+                                width: 36,
+                                height: 36,
+                                borderRadius: 18,
+                                background: hex,
+                                border: isLight ? '1.5px solid #cbd5e1' : '1.5px solid rgba(0,0,0,0.12)',
+                                outline: isSelected ? `3px solid ${storeTheme['--brand'] || 'var(--primary, #075E54)'}` : 'none',
+                                outlineOffset: 2,
+                                cursor: 'pointer',
+                                boxShadow: isSelected ? '0 4px 12px rgba(0,0,0,0.18)' : '0 2px 5px rgba(0,0,0,0.06)',
+                                transition: 'transform 0.15s ease, outline 0.15s ease',
+                                transform: isSelected ? 'scale(1.08)' : 'scale(1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              {isSelected && (
+                                <Check
+                                  size={16}
+                                  color={isLight ? '#0f172a' : '#ffffff'}
+                                />
+                              )}
+                            </button>
+                          );
+                        }
+
+                        return (
+                          <button
+                            key={i}
+                            className={`fs-size ${isSelected ? "on" : ""}`}
+                            onClick={() => setSize(i)}
+                          >
+                            <b>{v.l}</b>
+                            <span>{fmt(v.price, currencySymbol)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
                 <div className="fs-qty-row">
                   <p className="fs-opt-lbl">Quantity</p>
@@ -776,7 +906,7 @@ export default function ProductDetailClient({
                 <b>{store.store_name} {store.is_verified ? <BadgeCheck size={13} className="fs-verif" /> : null}</b>
                 <span>{store.rating != null ? <><Star size={11} fill="#c79a4b" color="#c79a4b" /> {store.rating} · </> : ''}{allProducts.length} items</span>
               </div>
-              <button className="fs-store-go" onClick={() => window.location.href = `/${store.username}`}>
+              <button className="fs-store-go" onClick={() => window.location.href = getStoreHomeUrl()}>
                 Store <ChevronRight size={14} />
               </button>
             </div>
@@ -797,7 +927,7 @@ export default function ProductDetailClient({
                     key={i} 
                     className="fs-more-card" 
                     onClick={() => {
-                      window.location.href = `/${store.username}/products/${r.slug}`;
+                      window.location.href = getProductDetailUrl(r.slug);
                     }}
                   >
                     <span className="fs-more-img overflow-hidden relative block w-full">
@@ -980,21 +1110,22 @@ export default function ProductDetailClient({
 
         {storeDisclaimer && (
           <div style={{
-            background: 'rgba(245, 158, 11, 0.08)',
-            color: '#d97706',
-            borderRadius: 12,
-            border: '1px solid rgba(245, 158, 11, 0.25)',
-            padding: '10px 14px',
-            fontSize: 12.5,
+            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(251, 191, 36, 0.09) 100%)',
+            color: '#b45309',
+            borderRadius: 14,
+            border: '1px solid rgba(245, 158, 11, 0.22)',
+            padding: '11px 15px',
+            fontSize: 13,
             fontWeight: 600,
             display: 'flex',
-            gap: 8,
-            alignItems: 'center',
-            marginBottom: 12,
-            lineHeight: 1.4
+            gap: 10,
+            alignItems: 'flex-start',
+            marginBottom: 16,
+            lineHeight: 1.45,
+            boxShadow: '0 1px 3px rgba(245, 158, 11, 0.05)'
           }}>
-            <AlertCircle size={16} style={{ flexShrink: 0 }} />
-            <div>{storeDisclaimer}</div>
+            <AlertCircle size={17} style={{ flexShrink: 0, marginTop: 1, color: '#d97706' }} />
+            <div style={{ flex: 1 }}>{storeDisclaimer}</div>
           </div>
         )}
 
@@ -1357,15 +1488,23 @@ const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
 
 .fs-root {
-  /* --bg/--surface inherit from the shared :root / :root.dark theme so dark mode applies here too;
-     --ink/--muted/--line alias the shared text/border tokens for the same reason */
-  --ink: var(--text);
-  --muted: var(--text-muted);
+  /* Storefronts default to a bright, clean light theme for buyers */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --ink: #0f172a;
+  --text: #0f172a;
+  --text-2: #334155;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --line: #e2e8f0;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
   --brand: #25D366;
   --brand-deep: #128c7e;
   --tint: #dcf8c6;
   --gold: #c79a4b;
-  --line: var(--border);
+  color-scheme: light;
   font-family: 'Hanken Grotesk', sans-serif;
   color: var(--ink);
   background: var(--bg);
@@ -2418,12 +2557,12 @@ const CSS = `
   width: 100%;
   padding: 15px;
   border-radius: 14px;
-  background: var(--brand);
-  color: #fff;
+  background: var(--brand, var(--primary, #128C7E)) !important;
+  color: #ffffff !important;
   font-size: 15px;
   font-weight: 700;
-  border: none;
-  box-shadow: 0 4px 12px rgba(37, 211, 102, .18);
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   cursor: pointer;
   display: flex;
   align-items: center;

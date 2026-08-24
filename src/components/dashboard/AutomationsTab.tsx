@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ShoppingCart, MessageSquare, Gift, RotateCcw } from 'lucide-react';
 import { api } from '@/lib/api';
 import Toggle from '@/components/Toggle';
+import ProFeatureGate from '@/components/dashboard/ProFeatureGate';
 
 interface AutomationSetting {
   cart_recovery_enabled: boolean;
@@ -103,33 +104,35 @@ export default function AutomationsTab({ isPro, navigateDashboardTab }: Automati
       </div>
 
       {!isPro ? (
-        <div className="card text-center animate-fade-in" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
-          <div style={{
-            width: 64, height: 64, borderRadius: 'var(--r-full)',
-            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
-          }}>
-            <Sparkles size={28} color="#fff" />
-          </div>
-          <div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>
-              Growth & Marketing Journeys
-            </h3>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
-              Launch multi-channel buyer automation flows. Recover abandoned checkouts, send automatic coupon thank-you gifts, dispatch reviews, and trigger win-back campaigns on Email & WhatsApp.
-            </p>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 8 }}>
-            <button
-              onClick={() => navigateDashboardTab('billing')}
-              className="btn btn-primary clickable"
-              style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}
-            >
-              🚀 Upgrade to Pro
-            </button>
-          </div>
-        </div>
+        <ProFeatureGate
+          title="Growth & Marketing Journeys"
+          subtitle="Launch automated multi-channel buyer flows. Recover abandoned carts, dispatch instant WhatsApp receipts, and trigger win-back coupon offers."
+          icon={Sparkles}
+          badgeText="PRO MARKETING AUTOMATION"
+          onUpgrade={() => navigateDashboardTab('billing')}
+          features={[
+            {
+              icon: ShoppingCart,
+              title: 'Cart Recovery Flows',
+              description: 'Automatically follow up on abandoned checkouts via WhatsApp & Email.',
+            },
+            {
+              icon: MessageSquare,
+              title: 'WhatsApp Receipts',
+              description: 'Send instant automated WhatsApp order confirmations & payment receipts.',
+            },
+            {
+              icon: Gift,
+              title: 'Automated Coupons',
+              description: 'Trigger thank-you gifts and post-purchase discount codes automatically.',
+            },
+            {
+              icon: RotateCcw,
+              title: 'Customer Win-Backs',
+              description: 'Re-engage inactive buyers with scheduled automated promo campaigns.',
+            },
+          ]}
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Channels selector */}

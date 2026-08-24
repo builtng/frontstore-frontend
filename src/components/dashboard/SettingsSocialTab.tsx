@@ -19,6 +19,8 @@ interface SettingsSocialTabProps {
   openUpgradePrompt: (title: string, description: string) => void;
   legendMonthlyPrice: number;
   store: StoreInfo | null;
+  settingsSaving: boolean;
+  handleSettingsSave: (e: React.FormEvent) => void;
 
   customDomainSaving: boolean;
   handleRemoveCustomDomain: () => void;
@@ -72,7 +74,7 @@ interface SettingsSocialTabProps {
 }
 
 export default function SettingsSocialTab({
-  isLegend, openUpgradePrompt, legendMonthlyPrice, store,
+  isLegend, openUpgradePrompt, legendMonthlyPrice, store, settingsSaving, handleSettingsSave,
   customDomainSaving, handleRemoveCustomDomain, handleLinkCustomDomain,
   customDomainInput, setCustomDomainInput, customDomainBypassDNS, setCustomDomainBypassDNS,
   domainTargetCname, domainTargetIp,
@@ -754,6 +756,22 @@ export default function SettingsSocialTab({
 
               </div>
             </div>
+          </div>
+
+          {/* Save Button Bar */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+            <button
+              onClick={handleSettingsSave as any}
+              disabled={settingsSaving}
+              className="btn btn-primary clickable"
+              style={{ padding: '13px 28px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
+            >
+              {settingsSaving ? (
+                <><Loader2 size={16} className="spinner" /> Saving...</>
+              ) : (
+                <><Link size={16} /> Save Social &amp; Linktree Settings</>
+              )}
+            </button>
           </div>
         </div>
       </div>

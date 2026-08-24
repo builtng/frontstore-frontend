@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import {
   Lock, Eye, EyeOff, Loader2, ArrowRight, ShoppingBag, Check
 } from 'lucide-react';
+import Logo from '@/components/Logo';
 
 const countries = [
   { code: 'NG', name: 'Nigeria', dialCode: '+234', flag: '🇳🇬' },
@@ -100,20 +101,8 @@ export default function BuyerLoginPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '40px 20px' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         <header style={{ textAlign: 'center', marginBottom: 28 }}>
-          <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', marginBottom: 12 }}>
-            <img 
-              src="/logo.png" 
-              alt="Logo"
-              width={24}
-              height={24}
-              style={{
-                width: 24,
-                height: 24,
-                objectFit: 'contain',
-                flexShrink: 0,
-              }}
-            />
-            <span>frontstore</span>
+          <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', marginBottom: 12 }}>
+            <Logo size={24} textColor="var(--primary)" text="Frontstore" />
           </a>
           <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
             <ShoppingBag size={22} style={{ color: 'var(--primary)' }} />

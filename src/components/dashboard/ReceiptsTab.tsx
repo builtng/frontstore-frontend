@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Receipt, Plus, Loader2 } from 'lucide-react';
+import { Receipt, Plus, Loader2, Printer, Send, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { api, getApiUrl } from '@/lib/api';
 import Modal from '@/components/Modal';
 import SearchableSelect from '@/components/SearchableSelect';
+import ProFeatureGate from '@/components/dashboard/ProFeatureGate';
 import type { StoreInfo } from '@/types/dashboard';
 
 interface StoreReceipt {
@@ -134,33 +135,55 @@ export default function ReceiptsTab({ store, isPro, navigateDashboardTab }: Rece
       </div>
 
       {!isPro ? (
-        <div className="card text-center animate-fade-in" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
-          <div style={{
-            width: 64, height: 64, borderRadius: 'var(--r-full)',
-            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
-          }}>
-            <Receipt size={28} color="#fff" />
-          </div>
-          <div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>
-              Automated Digital Receipts
-            </h3>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
-              Deliver automated customer receipts on successful checkout payment verification, complete with customized PDF layouts for mobile printers.
-            </p>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 8 }}>
-            <button
-              onClick={() => navigateDashboardTab('billing')}
-              className="btn btn-primary clickable"
-              style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}
-            >
-              🚀 Upgrade to Pro
-            </button>
-          </div>
-        </div>
+        <ProFeatureGate
+          title="Automated Digital Receipts"
+          subtitle="Generate instant digital sales receipts for online and in-person buyers. Auto-send PDF copies on checkout completion and format for thermal Bluetooth printers."
+          icon={Receipt}
+          badgeText="PRO DIGITAL RECEIPTS"
+          onUpgrade={() => navigateDashboardTab('billing')}
+          features={[
+            {
+              icon: Send,
+              title: 'Auto WhatsApp & Email Receipts',
+              description: 'Automatically dispatch payment receipts right after customer checkout verification.',
+            },
+            {
+              icon: Printer,
+              title: 'Thermal & POS Printing',
+              description: 'Formatted layouts optimized for Bluetooth thermal printers and in-store counters.',
+            },
+            {
+              icon: ShieldCheck,
+              title: 'Tamper-Proof Receipt Verification',
+              description: 'Unique digital receipt numbers and verification hashes for financial auditing.',
+            },
+            {
+              icon: CheckCircle2,
+              title: 'Manual Receipt Generation',
+              description: 'Issue quick custom receipts for direct bank transfer or cash payments.',
+            },
+          ]}
+          previewChildren={
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontWeight: 800, fontSize: 14 }}>Issued Digital Receipts (48 Receipts)</div>
+                <div style={{ padding: '4px 12px', borderRadius: 9999, background: '#ECFDF5', color: '#059669', fontSize: 12, fontWeight: 700 }}>Total Verified: ₦2,450,000</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 1fr 1fr', padding: 12, borderRadius: 12, background: '#F8FAFC', fontSize: 12, fontWeight: 700 }}>
+                <div>Receipt #</div>
+                <div>Customer Name</div>
+                <div>Amount</div>
+                <div>Channel</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 1fr 1fr', padding: 12, borderBottom: '1px solid #E2E8F0', fontSize: 12 }}>
+                <div style={{ fontWeight: 700 }}>REC-8841</div>
+                <div>Toluwase Ojo</div>
+                <div style={{ fontWeight: 700, color: '#059669' }}>₦65,000.00</div>
+                <span style={{ color: '#25D366', fontWeight: 600 }}>WhatsApp</span>
+              </div>
+            </div>
+          }
+        />
       ) : (
         <>
           {/* Search Bar */}
@@ -248,7 +271,7 @@ export default function ReceiptsTab({ store, isPro, navigateDashboardTab }: Rece
         open={isAddReceiptOpen}
         onClose={() => setIsAddReceiptOpen(false)}
         title="Create Receipt"
-        maxWidth={520}
+        maxWidth={660}
         className="responsive-modal-container"
       >
         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -10, marginBottom: 16 }}>Issue a receipt for a payment received off-platform (cash, bank transfer, etc.)</p>

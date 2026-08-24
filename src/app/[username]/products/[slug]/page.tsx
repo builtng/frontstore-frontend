@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import ProductDetailClient from './ProductDetailClient';
 import { calculateShippingFee } from '../../../../utils/shippingFee';
 
@@ -122,7 +123,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = `${productName} - ${symbol}${price} at ${storeName}`;
   const description = safeText(product.description, `Buy ${productName} from ${storeName}. Order directly on WhatsApp.`);
   const image = product.image_urls?.[0] || store.logo_url || storeData.logo_url || `https://${systemDomain}/icon.png`;
-  const url = `https://${systemDomain}/${productUsername}/products/${safePathSegment(product.slug) || slug}`;
+  const url = `https://${productUsername}.${systemDomain}/${safePathSegment(product.slug) || slug}`;
 
   return {
     title,
@@ -172,15 +173,7 @@ export default async function ProductPage({ params }: PageProps) {
   ]);
 
   if (!storeData?.store || !product) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24, textAlign: 'center', background: '#f8f1ee', fontFamily: 'system-ui, sans-serif' }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: '#2b1d2a' }}>Product Not Found</h1>
-        <p style={{ color: '#8a7782', marginBottom: 24, maxWidth: 300, lineHeight: 1.6 }}>We couldn't locate the requested product. It may have been removed or set to draft mode.</p>
-        <a href={`/${username}`} style={{ textDecoration: 'none', background: '#b14a6e', color: '#fff', padding: '12px 24px', borderRadius: 12, fontWeight: 700 }}>
-          Go to Storefront
-        </a>
-      </div>
-    );
+    return notFound();
   }
 
   const rawDomain = storeData.system_domain || 'frontstore.ng';

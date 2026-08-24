@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { FileText, Plus, Loader2, Trash2 } from 'lucide-react';
+import { FileText, Plus, Loader2, Trash2, Send, Download, Clock, ShieldCheck } from 'lucide-react';
 import { api, getApiUrl } from '@/lib/api';
 import Modal from '@/components/Modal';
+import ProFeatureGate from '@/components/dashboard/ProFeatureGate';
 import type { StoreInfo } from '@/types/dashboard';
 
 interface Invoice {
@@ -145,33 +146,58 @@ export default function InvoicesTab({ store, isPro, navigateDashboardTab }: Invo
       </div>
 
       {!isPro ? (
-        <div className="card text-center animate-fade-in" style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, maxWidth: 600, margin: '40px auto' }}>
-          <div style={{
-            width: 64, height: 64, borderRadius: 'var(--r-full)',
-            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)'
-          }}>
-            <FileText size={28} color="#fff" />
-          </div>
-          <div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 900 }}>
-              Professional Merchant Invoices
-            </h3>
-            <p style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, lineHeight: 1.5 }}>
-              Request direct payments, track unpaid client orders, and generate download-ready PDF invoices tailored for African commerce.
-            </p>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', marginTop: 8 }}>
-            <button
-              onClick={() => navigateDashboardTab('billing')}
-              className="btn btn-primary clickable"
-              style={{ width: '100%', padding: 14, fontSize: 15, fontWeight: 800 }}
-            >
-              🚀 Upgrade to Pro
-            </button>
-          </div>
-        </div>
+        <ProFeatureGate
+          title="Professional Merchant Invoices"
+          subtitle="Send branded PDF invoices directly to clients, track unpaid balances, schedule automatic due date reminders, and collect payments seamlessly."
+          icon={FileText}
+          badgeText="PRO MERCHANT INVOICING"
+          onUpgrade={() => navigateDashboardTab('billing')}
+          features={[
+            {
+              icon: Send,
+              title: 'Direct Client Dispatch',
+              description: 'Send invoices instantly via WhatsApp or Email with custom merchant branding.',
+            },
+            {
+              icon: Download,
+              title: 'Branded PDF Generation',
+              description: 'Generate itemized PDF invoices styled with your store logo and legal details.',
+            },
+            {
+              icon: Clock,
+              title: 'Overdue Tracking & Reminders',
+              description: 'Automatically monitor due dates and dispatch automated payment reminders.',
+            },
+            {
+              icon: ShieldCheck,
+              title: 'Instant Reconciliation',
+              description: 'Payments auto-update invoice status to paid upon buyer checkout completion.',
+            },
+          ]}
+          previewChildren={
+            <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontWeight: 800, fontSize: 14 }}>Client Invoices (12 Issued)</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ padding: '4px 12px', borderRadius: 9999, background: '#ECFDF5', color: '#059669', fontSize: 12, fontWeight: 700 }}>Paid (₦1.2M)</div>
+                  <div style={{ padding: '4px 12px', borderRadius: 9999, background: '#FEF3C7', color: '#D97706', fontSize: 12, fontWeight: 700 }}>Pending (₦350K)</div>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 1fr 1fr', padding: 12, borderRadius: 12, background: '#F8FAFC', fontSize: 12, fontWeight: 700 }}>
+                <div>Invoice #</div>
+                <div>Client Name</div>
+                <div>Amount</div>
+                <div>Status</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 1fr 1fr', padding: 12, borderBottom: '1px solid #E2E8F0', fontSize: 12 }}>
+                <div style={{ fontWeight: 700 }}>INV-2026-089</div>
+                <div>Kemi Adeleke Design Co.</div>
+                <div style={{ fontWeight: 700, color: '#059669' }}>₦280,000.00</div>
+                <span style={{ color: '#059669', fontWeight: 600 }}>Paid</span>
+              </div>
+            </div>
+          }
+        />
       ) : (
         <>
           {/* Filter tabs */}
@@ -288,7 +314,7 @@ export default function InvoicesTab({ store, isPro, navigateDashboardTab }: Invo
         open={isAddInvoiceOpen}
         onClose={() => setIsAddInvoiceOpen(false)}
         title="Create New Invoice"
-        maxWidth={600}
+        maxWidth={700}
         className="responsive-modal-container"
       >
         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -10, marginBottom: 16 }}>Fill in customer and item details</p>

@@ -204,7 +204,7 @@ export default function BillingTab({
     }
 
     const isLegendTarget = targetPlan === 'legend_monthly' || targetPlan === 'legend_yearly';
-    const planLabel = isLegendTarget ? 'Legend' : 'Pro';
+    const planLabel = isLegendTarget ? 'Business' : 'Pro';
 
     // Paid plans require real payment via Paystack
     try {
@@ -300,7 +300,7 @@ export default function BillingTab({
             Subscription Plans & Billing
           </h2>
           <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
-            Unlock store bio profile description, product details, and AI features.
+            Unlock unlimited products, AI studio tools, custom domain, and pixel tracking.
           </p>
         </div>
       </div>
@@ -384,35 +384,27 @@ export default function BillingTab({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="var(--primary)" />
-              <span><strong>No transaction fees</strong> — on every plan</span>
+              <span><strong>No transaction fees</strong> — 0% on every plan</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="var(--primary)" />
-              <span>Limit of {freeProductLimit} products total</span>
+              <span>Up to {freeProductLimit} products listed at once</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="var(--primary)" />
-              <span>Unlimited WhatsApp orders</span>
+              <span>WhatsApp checkout on every order</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="var(--primary)" />
-              <span>Public catalog storefront</span>
+              <span>Public storefront page with your own link</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="var(--primary)" />
-              <span>Verify Paystack bank account</span>
+              <span>Bank transfer &amp; MTN MoMo Agent payment methods</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="var(--primary)" />
-              <span>Manually edit store title, bio &amp; description</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              <CheckCircle2 size={16} color="var(--primary)" />
-              <span>Manually upload product images</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, opacity: 0.5 }}>
-              <span style={{ color: 'var(--danger)', fontWeight: 900, marginRight: 6 }}>✕</span>
-              <span style={{ textDecoration: 'line-through' }}>AI description auto-write</span>
+              <span>Next-day payouts to your bank</span>
             </div>
           </div>
 
@@ -556,27 +548,35 @@ export default function BillingTab({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="#d97706" />
-              <span><strong>No transaction fees</strong> — on every plan</span>
+              <span><strong>No transaction fees</strong> — 0% on every plan</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="#d97706" />
-              <span><strong>Unlimited products</strong> (unlimited listings)</span>
+              <span><strong>Everything in Free, plus:</strong></span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="#d97706" />
-              <span><strong>AI auto-write</strong> — generate title, bio &amp; descriptions instantly</span>
+              <span><strong>Unlimited products &amp; categories</strong></span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="#d97706" />
-              <span><strong>AI product description</strong> generation for every listing</span>
+              <span><strong>AI photo-to-listing &amp; AI auto-write</strong> descriptions</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="#d97706" />
-              <span>Priority support &amp; instant feature updates</span>
+              <span>Custom storefront branding &amp; colors</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, opacity: 0.5 }}>
-              <span style={{ color: 'var(--danger)', fontWeight: 900, marginRight: 6 }}>✕</span>
-              <span style={{ textDecoration: 'line-through' }}>WhatsApp Product Posting</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+              <CheckCircle2 size={16} color="#d97706" />
+              <span>Sales &amp; visitor analytics with report exports</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+              <CheckCircle2 size={16} color="#d97706" />
+              <span>Invoice &amp; receipt generation, coupons &amp; flash sales</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+              <CheckCircle2 size={16} color="#d97706" />
+              <span>Nina AI Chat Widget &amp; priority feature updates</span>
             </div>
           </div>
 
@@ -672,7 +672,7 @@ export default function BillingTab({
               {user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly'
                 ? `✓ Active Plan (${user?.plan === 'pro_yearly' ? 'Yearly' : 'Monthly'})`
                 : isLegend
-                  ? '✓ Included in Legend'
+                  ? '✓ Included in Business'
                   : isInitializingPayment
                     ? 'Processing...'
                     : appliedCoupon && appliedCoupon.final_price === 0
@@ -706,14 +706,14 @@ export default function BillingTab({
               fontSize: 10, fontWeight: 900, padding: '4px 10px',
               borderRadius: 'var(--r-full)', textTransform: 'uppercase', letterSpacing: '0.05em',
               display: 'flex', alignItems: 'center', gap: 4
-            }}><Zap size={8} /> Active Legend ({user?.plan === 'legend_yearly' ? 'Yearly' : 'Monthly'})</span>
+            }}><Zap size={8} /> Active Business ({user?.plan === 'legend_yearly' ? 'Yearly' : 'Monthly'})</span>
           )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--text)' }}>Legend Plan</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--text)' }}>Business Plan</h3>
             <span style={{ background: '#ede9fe', color: '#6d28d9', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4 }}>UNLIMITED AI</span>
           </div>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Everything in Pro, plus unlimited AI and a Legend storefront badge.</p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Everything in Pro, plus custom domain, ad pixels, and unlimited AI.</p>
 
           {/* Billing Cycle Toggle */}
           <div style={{
@@ -812,23 +812,35 @@ export default function BillingTab({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="#7c3aed" />
-              <span><strong>No transaction fees</strong> — on every plan</span>
+              <span><strong>No transaction fees</strong> — 0% on every plan</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="#7c3aed" />
-              <span>Everything in Pro — unlimited products, AI auto-write, priority support</span>
+              <span><strong>Everything in Pro, plus:</strong></span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="#7c3aed" />
-              <span><strong>Unlimited AI analyses</strong> on any billing cycle (Pro Monthly caps at 15/mo)</span>
+              <span>Connect a custom domain (e.g. <strong>yourbrand.com</strong>)</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="#7c3aed" />
-              <span><strong>Legend storefront badge</strong> — a status signal shown to buyers</span>
+              <span>Facebook Pixel, Google Tag Manager &amp; TikTok Pixel tracking</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <CheckCircle2 size={16} color="#7c3aed" />
-              <span><strong>WhatsApp Product Posting</strong> — add products to your store directly from chat</span>
+              <span>Custom Storefront Builder with advanced section layouts</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+              <CheckCircle2 size={16} color="#7c3aed" />
+              <span><strong>Unlimited AI Studio generations</strong> on any billing cycle</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+              <CheckCircle2 size={16} color="#7c3aed" />
+              <span>Dashboard customization (Remove distractions)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+              <CheckCircle2 size={16} color="#7c3aed" />
+              <span>Business storefront badge &amp; priority founder support</span>
             </div>
           </div>
 
@@ -928,8 +940,8 @@ export default function BillingTab({
                   : appliedLegendCoupon && appliedLegendCoupon.final_price === 0
                     ? 'Activate Plan Free'
                     : legendBillingCycle === 'monthly'
-                      ? 'Go Legend Monthly'
-                      : 'Go Legend Yearly'}
+                      ? 'Go Business Monthly'
+                      : 'Go Business Yearly'}
             </button>
             {!isLegend && !(appliedLegendCoupon && appliedLegendCoupon.final_price === 0) && (
               <p style={{ fontSize: 11, color: 'var(--text-faint)', textAlign: 'center', lineHeight: 1.5 }}>

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
-  CheckCircle2, Zap, RefreshCw, Loader2, ChevronDown, Receipt, Check, Package, X, Eye,
+  CheckCircle2, Zap, RefreshCw, Loader2, ChevronDown, Receipt, Check, Package, X, Eye, Search,
 } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/WhatsAppIcon';
 import { getApiUrl } from '@/lib/api';
@@ -34,6 +34,12 @@ export default function WhatsappTab({
   const [waSearch, setWaSearch] = useState('');
   const [activeWaView, setActiveWaView] = useState<'list' | 'chat'>('list');
   const [sendingReceiptId, setSendingReceiptId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isPro && waOrders.length === 0 && !waLoading) {
+      loadWaOrders();
+    }
+  }, [isPro]);
 
   const handleSendReceipt = async (orderId: string, phone: string) => {
     setSendingReceiptId(orderId);
@@ -98,7 +104,6 @@ export default function WhatsappTab({
     );
   }
 
-  if (waOrders.length === 0 && !waLoading) loadWaOrders();
   const sym = getCurrencySymbol(store?.currency_code);
   const filtered = waOrders.filter(o =>
     !waSearch ||
@@ -130,7 +135,7 @@ export default function WhatsappTab({
           <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 8 }}>AI Conversational assistant replying to your customer chats 24/7.</p>
           <div style={{ position: 'relative' }}>
             <input type="text" placeholder="Search by name, phone, order #..." value={waSearch} onChange={e => setWaSearch(e.target.value)} style={{ width: '100%', padding: '8px 12px 8px 30px', fontSize: 12.5, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', outline: 'none', color: 'var(--text)' }} />
-            <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', fontSize: 11 }}>🔍</span>
+            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)' }} />
           </div>
           <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 8 }}>
             {waOrders.length} WA order{waOrders.length !== 1 ? 's' : ''} • {waOrders.filter(o => o.payment_status === 'unpaid').length} unpaid

@@ -56,6 +56,25 @@ export default function SettingsTab({
   const [settingsSubTab, setSettingsSubTab] = useState<'profile' | 'design' | 'social' | 'payment' | 'security'>('profile');
   const [settingsSaving, setSettingsSaving] = useState(false);
 
+  // Sync sub-tab from/to URL query parameter (?subtab=payment or ?sub=payment)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const sub = params.get('subtab') || params.get('sub');
+    if (sub && ['profile', 'design', 'social', 'payment', 'security'].includes(sub)) {
+      setSettingsSubTab(sub as any);
+    }
+  }, []);
+
+  const handleSubTabChange = (tab: 'profile' | 'design' | 'social' | 'payment' | 'security') => {
+    setSettingsSubTab(tab);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('subtab', tab);
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
+
   // Profile
   const [setStoreUsername, setSetStoreUsername] = useState('');
   const [setStoreName, setSetStoreName] = useState('');
@@ -180,7 +199,7 @@ export default function SettingsTab({
     setSetStoreLocation(store.location || '');
     setIsOnlineOnly(!!store.is_online_only);
     setSetStoreSince(store.since || '');
-    setDeliveryInfo(store.delivery_info || '');
+    setDeliveryInfo(store.delivery_info || 'Orders are dispatched within 24 hours of confirmation. Lagos deliveries arrive same-day or next-day. Nationwide deliveries arrive in 24–48 hours.');
     setShippingType(store.shipping_type || 'customer_pays');
     setShippingFlatFee(store.shipping_flat_fee != null ? String(store.shipping_flat_fee) : '');
     setShippingFreeThreshold(store.shipping_free_threshold != null ? String(store.shipping_free_threshold) : '');
@@ -190,12 +209,12 @@ export default function SettingsTab({
         ? store.shipping_custom_rules.map((r: any) => ({ min_subtotal: String(r.min_subtotal ?? ''), fee: String(r.fee ?? '') }))
         : []
     );
-    setReturnPolicy(store.return_policy || '');
+    setReturnPolicy(store.return_policy || 'All online payments made through Frontstore are held under buyer protection until delivery confirmation.');
     setReviewsIntroText(store.reviews_intro_text || '');
     setFaqHelpText(store.faq_help_text || '');
     setAboutIntroText(store.about_intro_text || '');
-    setPolicyBookings(store.policy_bookings || '');
-    setPolicyProducts(store.policy_products || '');
+    setPolicyBookings(store.policy_bookings || 'Reschedule or cancel up to 24 hours before your appointment for a full refund.');
+    setPolicyProducts(store.policy_products || 'We only sell 100% genuine and verified items. Inspect your order on delivery.');
     setPolicyRefunds(store.policy_refunds || '');
     setAnnouncementTitle(store.announcement_title || '');
     setAnnouncementBody(store.announcement_body || '');
@@ -287,10 +306,7 @@ export default function SettingsTab({
   }, []);
 
   // For a store that has no country locked in yet, auto-select the Store Country + Currency
-  // from the merchant's detected IP location. If detection fails (or the detected country
-  // isn't in our supported list), leave both fields unset rather than silently guessing USD —
-  // countryDetectionFailed drives a prompt telling the merchant to pick their country manually.
-  // Runs once; never overrides an existing selection or a saved store.country_code.
+  // based on IP location, currency, phone prefix, or default supported country.
   useEffect(() => {
     if (autoDetectAppliedRef.current) return;
     if (store?.country_code) return; // already saved server-side — field is locked, leave it alone
@@ -298,16 +314,47 @@ export default function SettingsTab({
     if (!geoDetectionDone || metaCountries.length === 0) return;
 
     autoDetectAppliedRef.current = true;
-    const match = detectedCountryCode
-      ? metaCountries.find(c => c.code.toUpperCase() === detectedCountryCode)
-      : undefined;
+
+    let targetCode = detectedCountryCode;
+
+    if (!targetCode && setCurrency) {
+      const matchByCurrency = metaCountries.find(c => c.default_currency === setCurrency);
+      if (matchByCurrency) targetCode = matchByCurrency.code;
+    }
+
+    if (!targetCode && store?.whatsapp_phone) {
+      const wa = String(store.whatsapp_phone).trim();
+      if (wa.startsWith('+234') || wa.startsWith('234')) targetCode = 'NG';
+      else if (wa.startsWith('+233') || wa.startsWith('233')) targetCode = 'GH';
+      else if (wa.startsWith('+254') || wa.startsWith('254')) targetCode = 'KE';
+      else if (wa.startsWith('+27') || wa.startsWith('27')) targetCode = 'ZA';
+      else if (wa.startsWith('+44') || wa.startsWith('44')) targetCode = 'GB';
+      else if (wa.startsWith('+1') || wa.startsWith('1')) targetCode = 'US';
+    }
+
+    if (!targetCode) {
+      targetCode = 'NG'; // Default supported country (Nigeria)
+    }
+
+    const match = metaCountries.find(c => c.code.toUpperCase() === targetCode?.toUpperCase())
+      || metaCountries.find(c => c.code === 'NG');
+
     if (match) {
       setSetStoreCountryCode(match.code);
       setSetCurrency(match.default_currency || detectedCurrencyCode || 'NGN');
-    } else {
-      setCountryDetectionFailed(true);
+      setCountryDetectionFailed(false);
     }
-  }, [geoDetectionDone, metaCountries, detectedCountryCode, detectedCurrencyCode, setStoreCountryCode, store]);
+  }, [geoDetectionDone, metaCountries, detectedCountryCode, detectedCurrencyCode, setStoreCountryCode, setCurrency, store]);
+
+  // Auto-sync Store Country when Store Currency is changed (for unsaved stores)
+  useEffect(() => {
+    if (store?.country_code) return;
+    if (!setCurrency || metaCountries.length === 0) return;
+    const match = metaCountries.find(c => c.default_currency === setCurrency);
+    if (match && match.code !== setStoreCountryCode) {
+      setSetStoreCountryCode(match.code);
+    }
+  }, [setCurrency, metaCountries, store, setStoreCountryCode]);
 
   // Keep the Payment Provider options in sync with the (possibly unsaved) Store
   // Country selection, instead of only reflecting whatever country was last saved.
@@ -320,7 +367,7 @@ export default function SettingsTab({
         if (cancelled || !json.data) return;
         setAvailableProviders(json.data);
         if (!json.data.includes(setPaymentProvider)) {
-          setSetPaymentProvider(json.data[0] || '');
+          setSetPaymentProvider(json.data[0] || 'paystack');
         }
       })
       .catch(() => {});
@@ -520,7 +567,7 @@ export default function SettingsTab({
           bank_account_verified: accountVerified,
           custom_links: customLinks,
           logo_url: logoUrl,
-          primary_color: isPro ? primaryColor : (store?.primary_color || '#25D366'),
+          primary_color: primaryColor || store?.primary_color || '#25D366',
           store_template: personaPreset?.template || selectedTemplate,
           business_persona: selectedPersona || null,
           catalog_label: personaPreset?.catalogLabel || catalogLabel || null,
@@ -884,7 +931,7 @@ export default function SettingsTab({
           <button
             key={sub.id}
             type="button"
-            onClick={() => setSettingsSubTab(sub.id)}
+            onClick={() => handleSubTabChange(sub.id)}
             className="clickable"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -914,7 +961,6 @@ export default function SettingsTab({
           setSetStoreUsername={setSetStoreUsername}
           setStoreLocation={setStoreLocation}
           setSetStoreLocation={setSetStoreLocation}
-          detectedMerchantLocation={detectedMerchantLocation}
           isOnlineOnly={isOnlineOnly}
           setIsOnlineOnly={setIsOnlineOnly}
           setStoreSince={setStoreSince}
@@ -958,32 +1004,10 @@ export default function SettingsTab({
           setAnnouncementBody={setAnnouncementBody}
           announcementCtaPage={announcementCtaPage}
           setAnnouncementCtaPage={setAnnouncementCtaPage}
-          selectedPersona={selectedPersona}
-          applyPersonaPreset={applyPersonaPreset}
-          catalogLabel={catalogLabel}
-          setCatalogLabel={setCatalogLabel}
-          categoryLabel={categoryLabel}
-          setCategoryLabel={setCategoryLabel}
-          storeLabel={storeLabel}
-          setStoreLabel={setStoreLabel}
-          templateHighlightLabel={templateHighlightLabel}
-          setTemplateHighlightLabel={setTemplateHighlightLabel}
-          productSectionEyebrow={productSectionEyebrow}
-          setProductSectionEyebrow={setProductSectionEyebrow}
-          productSectionTitle={productSectionTitle}
-          setProductSectionTitle={setProductSectionTitle}
-          reviewsIntroText={reviewsIntroText}
-          setReviewsIntroText={setReviewsIntroText}
-          faqHelpText={faqHelpText}
-          setFaqHelpText={setFaqHelpText}
-          aboutIntroText={aboutIntroText}
-          setAboutIntroText={setAboutIntroText}
           policyBookings={policyBookings}
           setPolicyBookings={setPolicyBookings}
           policyProducts={policyProducts}
           setPolicyProducts={setPolicyProducts}
-          policyRefunds={policyRefunds}
-          setPolicyRefunds={setPolicyRefunds}
         />
       )}
 
@@ -1004,18 +1028,10 @@ export default function SettingsTab({
           setBannerUploading={setBannerUploading}
           primaryColor={primaryColor}
           setPrimaryColor={setPrimaryColor}
-          storefrontSections={storefrontSections}
-          setStorefrontSections={setStorefrontSections}
-          replyTimeMinutes={replyTimeMinutes}
-          setReplyTimeMinutes={setReplyTimeMinutes}
           ninaChatQrEnabled={ninaChatQrEnabled}
           setNinaChatQrEnabled={setNinaChatQrEnabled}
           featuredCarouselEnabled={featuredCarouselEnabled}
           setFeaturedCarouselEnabled={setFeaturedCarouselEnabled}
-          featuredCarouselEyebrow={featuredCarouselEyebrow}
-          setFeaturedCarouselEyebrow={setFeaturedCarouselEyebrow}
-          featuredCarouselTitle={featuredCarouselTitle}
-          setFeaturedCarouselTitle={setFeaturedCarouselTitle}
           featuredProductIds={featuredProductIds}
           toggleFeaturedProduct={toggleFeaturedProduct}
         />
@@ -1048,6 +1064,8 @@ export default function SettingsTab({
           openUpgradePrompt={openUpgradePrompt}
           legendMonthlyPrice={legendMonthlyPrice}
           store={store}
+          settingsSaving={settingsSaving}
+          handleSettingsSave={handleSettingsSave}
           customDomainSaving={customDomainSaving}
           handleRemoveCustomDomain={handleRemoveCustomDomain}
           handleLinkCustomDomain={handleLinkCustomDomain}

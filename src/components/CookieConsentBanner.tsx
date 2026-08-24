@@ -173,7 +173,7 @@ export default function CookieConsentBanner() {
 const primaryButtonStyle: React.CSSProperties = {
   appearance: 'none',
   border: 'none',
-  background: 'var(--primary, #128C7E)',
+  background: 'var(--primary)',
   color: '#fff',
   borderRadius: 12,
   padding: '11px 18px',

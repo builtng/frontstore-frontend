@@ -3,8 +3,9 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import Logo from '@/components/Logo';
 import {
-  Globe, Copy, CheckCircle2, Lock,
+  Globe, Copy, CheckCircle2, Lock, Sparkles,
   Share2, Store, AlertCircle, Eye, EyeOff, Loader2, ArrowRight, User, Phone, Check, ShieldCheck, Mail
 } from 'lucide-react';
 import SearchableSelect from '../../components/SearchableSelect';
@@ -91,7 +92,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
   const businessPersonaOptions = businessPersonas.map(persona => ({
     value: persona.id,
     label: persona.name,
-    sublabel: `${persona.persona} · ${persona.templateName} · ${persona.summary}`,
+    sublabel: persona.summary,
   }));
 
   const [successData, setSuccessData] = useState<{
@@ -510,24 +511,22 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       {/* Header */}
-      <header style={{ textAlign: 'center', marginBottom: 32 }}>
+      <header style={{ textAlign: 'center', marginBottom: 32, position: 'relative' }}>
         <a
           href="/"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', marginBottom: 12 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontFamily: 'var(--font-heading)', fontSize: 26, fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', marginBottom: 16 }}
         >
-          <img
-            src="/logo.png"
-            alt="Logo"
-            width={28}
-            height={28}
-            style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }}
-          />
-          <span>{appName}</span>
+          <Logo size={32} textColor="var(--text)" text={appName} />
         </a>
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em' }}>
-          Create Your Storefront
+
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(18, 140, 126, 0.08)', color: 'var(--primary)', padding: '5px 14px', borderRadius: 99, fontSize: 12, fontWeight: 700, marginBottom: 14, border: '1px solid rgba(18, 140, 126, 0.15)' }}>
+          <Sparkles size={13} /> Instant Setup • No Credit Card Required
+        </div>
+
+        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+          Create Your <span style={{ background: 'linear-gradient(135deg, #128C7E 0%, #059669 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Storefront</span>
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 14.5, lineHeight: 1.5 }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.5, maxWidth: 440, margin: '0 auto' }}>
           Launch your digital shop and start taking orders in under 2 minutes.
         </p>
       </header>
@@ -536,38 +535,43 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
       {error && (
         <div style={{
           background: 'var(--danger-light)', color: 'var(--danger)',
-          border: '1.5px solid rgba(239, 68, 68, 0.15)',
+          border: '1.5px solid rgba(239, 68, 68, 0.2)',
           borderRadius: 'var(--r-xl)', padding: '14px 18px',
           fontSize: 14, marginBottom: 24, fontWeight: 600,
           display: 'flex', gap: 10, alignItems: 'center',
-          boxShadow: '0 4px 12px rgba(239, 68, 68, 0.05)'
+          boxShadow: '0 8px 20px -6px rgba(239, 68, 68, 0.15)'
         }}>
           <AlertCircle size={18} style={{ flexShrink: 0 }} /> {error}
         </div>
       )}
 
       {/* Step Indicators */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 28, position: 'relative' }}>
         {[
-          { label: '1. Email & Store', active: currentStep === 1, done: currentStep > 1 },
-          { label: '2. Verify Code', active: currentStep === 2, done: currentStep > 2 },
-          { label: '3. WhatsApp', active: currentStep === 3, done: false },
+          { num: 1, label: '1. Email & Store', active: currentStep === 1, done: currentStep > 1 },
+          { num: 2, label: '2. Verify Code', active: currentStep === 2, done: currentStep > 2 },
+          { num: 3, label: '3. WhatsApp', active: currentStep === 3, done: false },
         ].map((step) => (
-          <div key={step.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div key={step.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{
-              height: 4, width: '100%', borderRadius: 99,
-              background: step.done || step.active ? 'var(--primary)' : 'var(--border)',
-              opacity: step.done || step.active ? 1 : 0.6,
-              transition: 'all 0.3s var(--ease)'
+              height: 5, width: '100%', borderRadius: 99,
+              background: step.done || step.active ? 'linear-gradient(90deg, #128C7E 0%, #059669 100%)' : 'var(--border)',
+              boxShadow: step.active ? '0 0 12px rgba(18, 140, 126, 0.4)' : 'none',
+              transition: 'all 0.4s var(--ease)'
             }} />
             <span style={{
-              fontSize: 10,
-              color: step.done || step.active ? 'var(--primary)' : 'var(--text-muted)',
-              fontWeight: 700,
+              fontSize: 11,
+              color: step.done || step.active ? 'var(--primary-dark)' : 'var(--text-muted)',
+              fontWeight: step.active ? 800 : 700,
               textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-              textAlign: 'center'
+              letterSpacing: '0.03em',
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 4
             }}>
+              {step.done ? <CheckCircle2 size={12} style={{ color: 'var(--primary)' }} /> : null}
               {step.label}
             </span>
           </div>
@@ -579,18 +583,30 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
 
         {/* ── STEP 1: Email + Store Info ── */}
         {currentStep === 1 && (
-          <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: 'var(--r-xl)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)', paddingBottom: 12, marginBottom: 4 }}>
-              <div style={{ background: 'var(--primary-light)', padding: 6, borderRadius: 'var(--r-sm)', color: 'var(--primary)' }}>
-                <Mail size={16} />
+          <div className="card" style={{
+            padding: '28px 26px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20,
+            border: '1px solid rgba(18, 140, 126, 0.18)',
+            background: 'var(--surface)',
+            borderRadius: '24px',
+            boxShadow: '0 20px 48px -12px rgba(18, 140, 126, 0.09), 0 2px 6px rgba(0, 0, 0, 0.03)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid var(--border)', paddingBottom: 14, marginBottom: 4 }}>
+              <div style={{ background: 'linear-gradient(135deg, rgba(18, 140, 126, 0.12) 0%, rgba(5, 150, 105, 0.12) 100%)', padding: 8, borderRadius: 'var(--r-md)', color: 'var(--primary)' }}>
+                <Mail size={18} />
               </div>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 800 }}>Store & Email Setup</h3>
+              <div>
+                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 800, color: 'var(--text)', margin: 0 }}>Store & Email Setup</h3>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>Enter your basic store details to get started</p>
+              </div>
             </div>
 
             {/* Email Address */}
             <div>
-              <label htmlFor="email-signup" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
-                Email Address <span style={{ color: 'var(--danger)' }}>*</span>
+              <label htmlFor="email-signup" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                <span>Email Address <span style={{ color: 'var(--danger)' }}>*</span></span>
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -603,12 +619,18 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                   onFocus={() => setFocusedInput('email')}
                   onBlur={() => setFocusedInput(null)}
                   className="input-field"
-                  style={{ paddingLeft: 44, borderColor: focusedInput === 'email' ? 'var(--primary)' : 'var(--border)' }}
+                  style={{
+                    paddingLeft: 44,
+                    borderColor: focusedInput === 'email' ? 'var(--primary)' : 'var(--border)',
+                    boxShadow: focusedInput === 'email' ? '0 0 0 4px rgba(18, 140, 126, 0.12)' : 'none',
+                    borderRadius: 'var(--r-lg)',
+                    transition: 'all 0.2s ease'
+                  }}
                   autoComplete="email"
                 />
-                <Mail size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focusedInput === 'email' ? 'var(--primary)' : 'var(--text-faint)', transition: 'color var(--t-fast)' }} />
+                <Mail size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focusedInput === 'email' ? 'var(--primary)' : 'var(--text-faint)', transition: 'color 0.2s ease' }} />
               </div>
-              <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+              <span style={{ fontSize: 11.5, color: 'var(--text-muted)', display: 'block', marginTop: 6 }}>
                 We will send a verification code to this email.
               </span>
             </div>
@@ -638,10 +660,16 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                   onFocus={() => setFocusedInput('store-name')}
                   onBlur={() => setFocusedInput(null)}
                   className="input-field"
-                  style={{ paddingLeft: 44, borderColor: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--border)' }}
+                  style={{
+                    paddingLeft: 44,
+                    borderColor: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--border)',
+                    boxShadow: focusedInput === 'store-name' ? '0 0 0 4px rgba(18, 140, 126, 0.12)' : 'none',
+                    borderRadius: 'var(--r-lg)',
+                    transition: 'all 0.2s ease'
+                  }}
                   autoComplete="organization"
                 />
-                <Store size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--text-faint)', transition: 'color var(--t-fast)' }} />
+                <Store size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focusedInput === 'store-name' ? 'var(--primary)' : 'var(--text-faint)', transition: 'color 0.2s ease' }} />
               </div>
             </div>
 
@@ -653,14 +681,14 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
               <div style={{
                 display: 'flex', alignItems: 'center',
                 border: focusedInput === 'store-username' ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
-                borderRadius: 'var(--r-md)',
+                borderRadius: 'var(--r-lg)',
                 background: 'var(--surface)',
-                boxShadow: focusedInput === 'store-username' ? '0 0 0 3px var(--primary-glow)' : 'none',
-                transition: 'all var(--t-fast)',
+                boxShadow: focusedInput === 'store-username' ? '0 0 0 4px rgba(18, 140, 126, 0.12)' : 'none',
+                transition: 'all 0.2s ease',
                 position: 'relative'
               }}>
-                <Globe size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focusedInput === 'store-username' ? 'var(--primary)' : 'var(--text-faint)', transition: 'color var(--t-fast)' }} />
-                <span style={{ padding: '0 0 0 44px', color: 'var(--text-muted)', fontSize: 13.5, fontWeight: 600, whiteSpace: 'nowrap', userSelect: 'none' }}>
+                <Globe size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: focusedInput === 'store-username' ? 'var(--primary)' : 'var(--text-faint)', transition: 'color 0.2s ease' }} />
+                <span style={{ padding: '0 0 0 44px', color: 'var(--text-muted)', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', userSelect: 'none' }}>
                   frontstore.ng/
                 </span>
                 <input
@@ -676,16 +704,19 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
                     setIsUsernameManuallyEdited(val !== '');
                   }}
                   placeholder="yourname"
-                  style={{ flex: 1, border: 'none', padding: '14px 14px 14px 0', fontSize: 15, outline: 'none', background: 'transparent', color: 'var(--text)', minWidth: 0 }}
+                  style={{ flex: 1, border: 'none', padding: '14px 14px 14px 0', fontSize: 15, outline: 'none', background: 'transparent', color: 'var(--text)', minWidth: 0, fontWeight: 600 }}
                   autoComplete="off"
                   spellCheck={false}
                 />
               </div>
-              {username && (
-                <span style={{ fontSize: 11.5, color: 'var(--primary)', display: 'block', marginTop: 6, fontWeight: 700 }}>
-                  Live link: frontstore.ng/{username.toLowerCase()}
-                </span>
-              )}
+              {username ? (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '4px 10px', borderRadius: 99, background: 'rgba(18, 140, 126, 0.08)', border: '1px solid rgba(18, 140, 126, 0.15)' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
+                  <span style={{ fontSize: 12, color: 'var(--primary-dark)', fontWeight: 700 }}>
+                    frontstore.ng/{username.toLowerCase()}
+                  </span>
+                </div>
+              ) : null}
             </div>
 
             {/* Business Category */}
@@ -708,7 +739,24 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
               type="submit"
               disabled={loading}
               className="btn btn-primary clickable"
-              style={{ padding: '16px', fontSize: 16, borderRadius: 'var(--r-xl)', marginTop: 4, fontFamily: 'var(--font-heading)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: 'var(--shadow-primary)', width: '100%' }}
+              style={{
+                padding: '16px',
+                fontSize: 16,
+                borderRadius: 'var(--r-xl)',
+                marginTop: 6,
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 800,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                background: 'linear-gradient(135deg, #128C7E 0%, #059669 100%)',
+                boxShadow: '0 12px 24px -6px rgba(18, 140, 126, 0.35)',
+                border: 'none',
+                width: '100%',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease'
+              }}
             >
               {loading ? <Loader2 size={18} className="animate-spin" /> : null}
               <span>{loading ? 'Sending Code...' : 'Send Verification Code'}</span>
@@ -1032,30 +1080,22 @@ export default function SignupPage() {
 
         {/* Content */}
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 520 }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            fontFamily: 'var(--font-heading)',
-            fontSize: 24,
-            fontWeight: 900,
-            marginBottom: 48,
-            color: '#fff'
-          }}>
-            <img 
-              src="/logo.png" 
-              alt="Logo"
-              width={26}
-              height={26}
-              style={{
-                width: 26,
-                height: 26,
-                objectFit: 'contain',
-                flexShrink: 0,
-              }}
-            />
-            <span>{appName}</span>
-          </div>
+          <a
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontFamily: 'var(--font-heading)',
+              fontSize: 24,
+              fontWeight: 900,
+              marginBottom: 48,
+              color: '#fff',
+              textDecoration: 'none'
+            }}
+          >
+            <Logo size={26} textColor="#ffffff" text={appName} />
+          </a>
 
           <h2 style={{
             fontFamily: 'var(--font-heading)',

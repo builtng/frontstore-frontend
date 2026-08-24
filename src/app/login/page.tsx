@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import Logo from '@/components/Logo';
 import {
-  Globe, Loader2, ArrowRight, Check, LogIn, Mail, MessageSquare, RefreshCw, ShieldCheck, Zap
+  Globe, Loader2, ArrowRight, Check, LogIn, Mail, MessageSquare, RefreshCw, ShieldCheck, Zap, Search, Sparkles, Store, Lock, ChevronDown
 } from 'lucide-react';
 
 const countries = [
@@ -69,8 +70,10 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
   const [mounted, setMounted] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
   const [hoveredCountryIndex, setHoveredCountryIndex] = useState<number | null>(null);
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
   useEffect(() => {
@@ -87,7 +90,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
           if (found) setSelectedCountry(found);
         }
       } catch {
-        // Keep Nigeria as the default when detection is unavailable.
+        // Keep Nigeria as default
       }
     };
     if (!isAdminMode) detectCountry();
@@ -95,9 +98,13 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
 
   useEffect(() => {
     if (!isCountryDropdownOpen) return;
-    const handleOutsideClick = () => setIsCountryDropdownOpen(false);
-    const timer = setTimeout(() => window.addEventListener('click', handleOutsideClick), 50);
-    return () => { clearTimeout(timer); window.removeEventListener('click', handleOutsideClick); };
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsCountryDropdownOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', handleOutsideClick);
+    return () => window.removeEventListener('mousedown', handleOutsideClick);
   }, [isCountryDropdownOpen]);
 
   // Resend cooldown ticker
@@ -165,11 +172,6 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
     }
   }, []);
 
-  // If already logged in, redirect appropriately. The real credential is the
-  // httpOnly fs_auth_token cookie now — storedUser is just cached display
-  // data, but its presence is a good enough signal to attempt the redirect;
-  // if the cookie's actually gone, the destination page's own auth check
-  // (DashboardSessionGuard / AdminContext) will bounce back here anyway.
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem('user');
@@ -185,7 +187,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
     }
   }, [router]);
 
-  // ── Step 1: request OTP ─────────────────────────────────────────────────────
+  // Step 1: Request OTP
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setError(null);
@@ -234,7 +236,7 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
     }
   };
 
-  // ── Step 2: verify OTP ──────────────────────────────────────────────────────
+  // Step 2: Verify OTP
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -271,7 +273,6 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
           router.push(isAdmin ? '/admin' : '/dashboard');
         }
       } else if (json.is_new_user) {
-        // New merchant — redirect to complete setup
         toast.info('Account not found. Please sign up first.');
         router.push('/signup');
       } else {
@@ -288,90 +289,119 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
     }
   };
 
+  const filteredCountries = countries.filter(c => 
+    c.name.toLowerCase().includes(countrySearch.toLowerCase()) || 
+    c.dialCode.includes(countrySearch) ||
+    c.code.toLowerCase().includes(countrySearch.toLowerCase())
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       {/* Header */}
-      <header style={{ textAlign: 'center', marginBottom: 32 }}>
+      <header style={{ textAlign: 'center', marginBottom: 28 }}>
         <a
           href="/"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 900, color: 'var(--primary)', textDecoration: 'none', marginBottom: 12 }}
+          style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: 10, 
+            fontFamily: 'var(--font-heading)', 
+            fontSize: 26, 
+            fontWeight: 900, 
+            color: 'var(--primary)', 
+            textDecoration: 'none', 
+            marginBottom: 16 
+          }}
         >
-          <img
-            src="/logo.png"
-            alt="Logo"
-            width={28}
-            height={28}
-            style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }}
-          />
-          <span>{appName}</span>
+          <Logo size={30} textColor="var(--text)" text={appName} />
         </a>
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em' }}>
-          {isAdminMode ? 'Admin Log In' : 'Merchant Log In'}
+        
+        <h1 style={{ 
+          fontFamily: 'var(--font-heading)', 
+          fontSize: 26, 
+          fontWeight: 900, 
+          color: 'var(--text)', 
+          marginBottom: 8, 
+          letterSpacing: '-0.025em' 
+        }}>
+          {isAdminMode ? 'Admin Portal Sign In' : 'Merchant Log In'}
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 14.5, lineHeight: 1.5 }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14.5, lineHeight: 1.5, maxWidth: 380, margin: '0 auto' }}>
           {isAdminMode
-            ? 'Access the platform management, configure global settings, and view growth statistics.'
-            : 'Access your digital storefront dashboard, manage orders, and upload products.'
+            ? 'Access platform management, configure global settings, and view growth analytics.'
+            : 'Access your storefront dashboard, manage orders, and upload products.'
           }
         </p>
       </header>
 
-      {/* Step indicator */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 28, justifyContent: 'center' }}>
-        {(['identifier', 'otp'] as const).map((s, i) => (
-          <React.Fragment key={s}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              fontWeight: 700, fontSize: 12.5,
-              color: step === s ? 'var(--primary)' : (i === 0 && step === 'otp') ? 'var(--success, #16a34a)' : 'var(--text-faint)',
-              transition: 'color 0.2s',
-            }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 800,
-                background: step === s ? 'var(--primary)' : (i === 0 && step === 'otp') ? 'var(--success, #16a34a)' : 'var(--border)',
-                color: (step === s || (i === 0 && step === 'otp')) ? '#fff' : 'var(--text-muted)',
-                transition: 'all 0.2s',
-                flexShrink: 0,
-              }}>
-                {i === 0 && step === 'otp' ? <Check size={11} strokeWidth={3} /> : i + 1}
-              </div>
-              {s === 'identifier' ? (isAdminMode ? 'Enter Email' : 'Enter Number') : 'Verify Code'}
-            </div>
-            {i < 1 && (
-              <div style={{
-                flex: 1, height: 2, maxWidth: 48, margin: '0 10px',
-                background: step === 'otp' ? 'var(--primary)' : 'var(--border)',
-                borderRadius: 2, transition: 'background 0.3s',
-              }} />
-            )}
-          </React.Fragment>
-        ))}
+      {/* Step Indicator */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, justifyContent: 'center' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '6px 14px', borderRadius: 20,
+          background: step === 'identifier' ? 'var(--primary-light)' : 'var(--bg-2)',
+          border: `1px solid ${step === 'identifier' ? 'var(--primary)' : 'var(--border)'}`,
+          color: step === 'identifier' ? 'var(--primary)' : 'var(--text-muted)',
+          fontSize: 12.5, fontWeight: 750, transition: 'all 0.2s ease'
+        }}>
+          <div style={{
+            width: 18, height: 18, borderRadius: '50%',
+            background: step === 'identifier' ? 'var(--primary)' : (step === 'otp' ? 'var(--wa-green)' : 'var(--border-strong)'),
+            color: '#fff', fontSize: 10, fontWeight: 900,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            {step === 'otp' ? <Check size={10} strokeWidth={3} /> : '1'}
+          </div>
+          <span>{isAdminMode ? 'Email' : 'Authentication'}</span>
+        </div>
+
+        <div style={{ width: 24, height: 2, borderRadius: 2, background: step === 'otp' ? 'var(--primary)' : 'var(--border)' }} />
+
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '6px 14px', borderRadius: 20,
+          background: step === 'otp' ? 'var(--primary-light)' : 'var(--bg-2)',
+          border: `1px solid ${step === 'otp' ? 'var(--primary)' : 'var(--border)'}`,
+          color: step === 'otp' ? 'var(--primary)' : 'var(--text-faint)',
+          fontSize: 12.5, fontWeight: 750, transition: 'all 0.2s ease'
+        }}>
+          <div style={{
+            width: 18, height: 18, borderRadius: '50%',
+            background: step === 'otp' ? 'var(--primary)' : 'var(--border-strong)',
+            color: '#fff', fontSize: 10, fontWeight: 900,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            2
+          </div>
+          <span>Verify OTP</span>
+        </div>
       </div>
 
       {/* Error banner */}
       {error && (
         <div style={{
           background: 'var(--danger-light)', color: 'var(--danger)',
-          border: '1.5px solid rgba(239, 68, 68, 0.15)',
-          borderRadius: 'var(--r-xl)', padding: '14px 18px',
-          fontSize: 14, marginBottom: 24, fontWeight: 600,
+          border: '1.5px solid rgba(239, 68, 68, 0.2)',
+          borderRadius: 'var(--r-lg)', padding: '12px 16px',
+          fontSize: 13.5, marginBottom: 20, fontWeight: 600,
           display: 'flex', gap: 10, alignItems: 'center',
-          boxShadow: '0 4px 12px rgba(239, 68, 68, 0.05)'
+          boxShadow: '0 4px 14px rgba(239, 68, 68, 0.06)',
+          animation: 'fadeIn 0.2s ease'
         }}>
-          <LogIn size={18} style={{ flexShrink: 0 }} /> {error}
+          <LogIn size={17} style={{ flexShrink: 0 }} /> 
+          <span style={{ flex: 1 }}>{error}</span>
         </div>
       )}
 
       {/* Success banner */}
       {successMsg && step === 'otp' && (
         <div style={{
-          background: 'var(--success-light, #f0fdf4)', color: 'var(--success, #16a34a)',
-          border: '1.5px solid rgba(22, 163, 74, 0.2)',
-          borderRadius: 'var(--r-xl)', padding: '12px 16px',
+          background: 'var(--primary-light)', color: 'var(--primary)',
+          border: '1.5px solid color-mix(in srgb, var(--primary) 30%, transparent)',
+          borderRadius: 'var(--r-lg)', padding: '12px 16px',
           fontSize: 13.5, marginBottom: 20, fontWeight: 600,
           display: 'flex', gap: 10, alignItems: 'center',
+          animation: 'fadeIn 0.2s ease'
         }}>
           <ShieldCheck size={17} style={{ flexShrink: 0 }} /> {successMsg}
         </div>
@@ -380,49 +410,82 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
       {/* ── STEP 1: Identifier ── */}
       {step === 'identifier' && (
         <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)' }}>
-
+          <div style={{ 
+            padding: 24, 
+            borderRadius: 'var(--r-2xl)',
+            background: 'var(--surface)', 
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-md)',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: 20 
+          }}>
             {!isAdminMode && (
-              <div style={{ display: 'flex', gap: 8, padding: 4, borderRadius: 'var(--r-md)', background: 'var(--bg-2)', border: '1px solid var(--border)' }}>
+              <div style={{ 
+                display: 'flex', 
+                gap: 6, 
+                padding: 4, 
+                borderRadius: 'var(--r-lg)', 
+                background: 'var(--bg-2)', 
+                border: '1px solid var(--border)' 
+              }}>
                 <button
                   type="button"
                   onClick={() => { setLoginMethod('phone'); setLoginIdentifier(''); setError(null); setNeedsEmail(false); setOtpEmail(''); }}
                   style={{
-                    flex: 1, padding: '8px 12px', borderRadius: 'var(--r-md)', border: 'none', cursor: 'pointer',
+                    flex: 1, padding: '10px 14px', borderRadius: 'var(--r-md)', border: 'none', cursor: 'pointer',
                     background: loginMethod === 'phone' ? 'var(--surface)' : 'transparent',
                     color: loginMethod === 'phone' ? 'var(--primary)' : 'var(--text-muted)',
-                    fontWeight: 750, fontSize: 13, transition: 'all 0.2s',
-                    boxShadow: loginMethod === 'phone' ? 'var(--shadow-sm)' : 'none',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    fontWeight: 800, fontSize: 13, transition: 'all 0.2s',
+                    boxShadow: loginMethod === 'phone' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   }}
                 >
-                  <MessageSquare size={13} /> WhatsApp Phone
+                  <MessageSquare size={15} style={{ color: loginMethod === 'phone' ? 'var(--wa-green)' : 'currentColor' }} />
+                  WhatsApp Phone
                 </button>
                 <button
                   type="button"
                   onClick={() => { setLoginMethod('email'); setLoginIdentifier(''); setError(null); setNeedsEmail(false); setOtpEmail(''); }}
                   style={{
-                    flex: 1, padding: '8px 12px', borderRadius: 'var(--r-md)', border: 'none', cursor: 'pointer',
+                    flex: 1, padding: '10px 14px', borderRadius: 'var(--r-md)', border: 'none', cursor: 'pointer',
                     background: loginMethod === 'email' ? 'var(--surface)' : 'transparent',
                     color: loginMethod === 'email' ? 'var(--primary)' : 'var(--text-muted)',
-                    fontWeight: 750, fontSize: 13, transition: 'all 0.2s',
-                    boxShadow: loginMethod === 'email' ? 'var(--shadow-sm)' : 'none',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    fontWeight: 800, fontSize: 13, transition: 'all 0.2s',
+                    boxShadow: loginMethod === 'email' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   }}
                 >
-                  <Mail size={13} /> Email Address
+                  <Mail size={15} /> Email Address
                 </button>
               </div>
             )}
 
-            {/* Phone Number / Email */}
+            {/* Input Field Area */}
             <div>
               <label
                 htmlFor="loginIdentifier"
-                style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: 12, 
+                  fontWeight: 800, 
+                  color: 'var(--text-2)', 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '0.05em', 
+                  marginBottom: 8 
+                }}
               >
-                {isAdminMode ? 'Admin Email Address' : loginMethod === 'email' ? 'Email Address' : 'WhatsApp Phone Number'}
+                <span>{isAdminMode ? 'Admin Email Address' : loginMethod === 'email' ? 'Email Address' : 'WhatsApp Phone Number'}</span>
+                {loginMethod === 'phone' && !isAdminMode && (
+                  <span style={{ fontSize: 11, color: 'var(--wa-green)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--wa-green)', display: 'inline-block' }} />
+                    Instant Verification
+                  </span>
+                )}
               </label>
+
               {isAdminMode || loginMethod === 'email' ? (
                 <div style={{ position: 'relative' }}>
                   <input
@@ -435,36 +498,46 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
                     onFocus={() => setFocusedInput('loginIdentifier')}
                     onBlur={() => setFocusedInput(null)}
                     className="input-field"
-                    style={{ paddingLeft: 44, borderColor: focusedInput === 'loginIdentifier' ? 'var(--primary)' : 'var(--border)' }}
+                    style={{ 
+                      paddingLeft: 44, 
+                      height: 48,
+                      borderRadius: 'var(--r-xl)',
+                      borderColor: focusedInput === 'loginIdentifier' ? 'var(--primary)' : 'var(--border)',
+                      fontSize: 15,
+                    }}
                     autoComplete="email"
                   />
                   <Mail size={18} style={{
-                    position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                    position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
                     color: focusedInput === 'loginIdentifier' ? 'var(--primary)' : 'var(--text-faint)',
-                    transition: 'color var(--t-fast)'
+                    transition: 'color 0.2s'
                   }} />
                 </div>
               ) : (
-                <div style={{
-                  display: 'flex', alignItems: 'center',
-                  border: focusedInput === 'loginIdentifier' ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
-                  borderRadius: 'var(--r-md)', background: 'var(--surface)',
-                  boxShadow: focusedInput === 'loginIdentifier' ? '0 0 0 3px var(--primary-glow)' : 'none',
-                  transition: 'all var(--t-fast)', position: 'relative'
-                }}>
+                <div 
+                  ref={dropdownRef}
+                  style={{
+                    display: 'flex', alignItems: 'center',
+                    border: focusedInput === 'loginIdentifier' ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
+                    borderRadius: 'var(--r-xl)', background: 'var(--surface)',
+                    boxShadow: focusedInput === 'loginIdentifier' ? '0 0 0 4px var(--primary-glow)' : 'none',
+                    transition: 'all 0.2s', position: 'relative', height: 48
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '0 14px', height: '100%', minHeight: 46,
+                      padding: '0 12px', height: '100%',
                       background: 'none', border: 'none', borderRight: '1px solid var(--border)',
-                      cursor: 'pointer', fontSize: 15, color: 'var(--text)', fontWeight: 600, userSelect: 'none'
+                      cursor: 'pointer', fontSize: 14, color: 'var(--text)', fontWeight: 700, userSelect: 'none',
+                      flexShrink: 0
                     }}
                   >
                     <span style={{ fontSize: 18 }}>{selectedCountry.flag}</span>
                     <span>{selectedCountry.dialCode}</span>
-                    <span style={{ fontSize: 9, opacity: 0.6 }}>▼</span>
+                    <ChevronDown size={14} style={{ color: 'var(--text-muted)', transform: isCountryDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                   </button>
                   <input
                     id="loginIdentifier"
@@ -475,61 +548,85 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
                     onChange={e => handleMerchantPhoneChange(e.target.value)}
                     onFocus={() => setFocusedInput('loginIdentifier')}
                     onBlur={() => setFocusedInput(null)}
-                    style={{ flex: 1, padding: '13px 14px', border: 'none', fontSize: 15, outline: 'none', background: 'transparent', color: 'var(--text)', minWidth: 0 }}
+                    style={{ 
+                      flex: 1, padding: '0 14px', border: 'none', fontSize: 15, 
+                      outline: 'none', background: 'transparent', color: 'var(--text)', 
+                      minWidth: 0, fontWeight: 600 
+                    }}
                     autoComplete="tel"
                   />
+
+                  {/* Country Selector Dropdown */}
                   {isCountryDropdownOpen && (
-                    <div className="glass animate-scale-in" style={{
-                      position: 'absolute', top: '110%', left: 0, width: 280, maxHeight: 250, overflowY: 'auto',
-                      borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', background: 'var(--surface)',
-                      boxShadow: 'var(--shadow-lg)', zIndex: 100, padding: '6px 0'
+                    <div style={{
+                      position: 'absolute', top: '115%', left: 0, width: 300, maxHeight: 280, overflow: 'hidden',
+                      borderRadius: 'var(--r-xl)', border: '1px solid var(--border)', background: 'var(--surface)',
+                      boxShadow: 'var(--shadow-xl)', zIndex: 100, display: 'flex', flexDirection: 'column',
+                      animation: 'scaleIn 0.15s ease-out'
                     }}>
-                      {countries.map((c, idx) => (
-                        <button
-                          key={c.code}
-                          type="button"
-                          onMouseEnter={() => setHoveredCountryIndex(idx)}
-                          onMouseLeave={() => setHoveredCountryIndex(null)}
-                          onClick={() => { setSelectedCountry(c); setIsCountryDropdownOpen(false); }}
-                          style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            width: '100%', padding: '10px 14px',
-                            background: selectedCountry.code === c.code ? 'var(--primary-light)' : hoveredCountryIndex === idx ? 'var(--bg-2)' : 'none',
-                            border: 'none', cursor: 'pointer', fontSize: 14, textAlign: 'left',
-                            color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)',
-                            fontWeight: selectedCountry.code === c.code ? 750 : 600,
-                            transition: 'background var(--t-fast)'
-                          }}
-                        >
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <span style={{ fontSize: 18 }}>{c.flag}</span>
-                            <span>{c.name}</span>
-                          </span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 13 }}>
-                            {c.dialCode}
-                            {selectedCountry.code === c.code ? <Check size={13} color="var(--primary)" /> : null}
-                          </span>
-                        </button>
-                      ))}
+                      <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', background: 'var(--bg-2)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Search size={14} style={{ color: 'var(--text-muted)' }} />
+                        <input
+                          type="text"
+                          placeholder="Search country or code..."
+                          value={countrySearch}
+                          onChange={e => setCountrySearch(e.target.value)}
+                          style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, width: '100%', color: 'var(--text)' }}
+                          autoFocus
+                        />
+                      </div>
+                      <div style={{ overflowY: 'auto', padding: '6px 0', flex: 1 }}>
+                        {filteredCountries.length === 0 ? (
+                          <div style={{ padding: '16px', fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>No countries found</div>
+                        ) : (
+                          filteredCountries.map((c, idx) => (
+                            <button
+                              key={c.code}
+                              type="button"
+                              onMouseEnter={() => setHoveredCountryIndex(idx)}
+                              onMouseLeave={() => setHoveredCountryIndex(null)}
+                              onClick={() => { setSelectedCountry(c); setIsCountryDropdownOpen(false); setCountrySearch(''); }}
+                              style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                width: '100%', padding: '10px 14px',
+                                background: selectedCountry.code === c.code ? 'var(--primary-light)' : hoveredCountryIndex === idx ? 'var(--bg-2)' : 'none',
+                                border: 'none', cursor: 'pointer', fontSize: 14, textAlign: 'left',
+                                color: selectedCountry.code === c.code ? 'var(--primary)' : 'var(--text)',
+                                fontWeight: selectedCountry.code === c.code ? 750 : 600,
+                                transition: 'background 0.15s'
+                              }}
+                            >
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <span style={{ fontSize: 18 }}>{c.flag}</span>
+                                <span>{c.name}</span>
+                              </span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 13 }}>
+                                {c.dialCode}
+                                {selectedCountry.code === c.code ? <Check size={14} color="var(--primary)" strokeWidth={2.5} /> : null}
+                              </span>
+                            </button>
+                          ))
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
               )}
-              <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-faint)', display: 'block', marginTop: 7 }}>
                 {isAdminMode || loginMethod === 'email'
-                  ? 'A one-time login code will be sent to your email.'
-                  : 'A one-time code will be sent to the email on your account.'
+                  ? 'We will send a one-time verification code to your email.'
+                  : 'A 6-digit code will be sent to the email registered on your account.'
                 }
               </span>
             </div>
 
             {!isAdminMode && loginMethod === 'phone' && needsEmail && (
-              <div>
+              <div style={{ animation: 'fadeIn 0.2s ease' }}>
                 <label
                   htmlFor="otpEmail"
                   style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
                 >
-                  Email Address
+                  Email Address Required
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
@@ -542,80 +639,84 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
                     onFocus={() => setFocusedInput('otpEmail')}
                     onBlur={() => setFocusedInput(null)}
                     className="input-field"
-                    style={{ paddingLeft: 44, borderColor: focusedInput === 'otpEmail' ? 'var(--primary)' : 'var(--border)' }}
+                    style={{ paddingLeft: 44, height: 48, borderRadius: 'var(--r-xl)', borderColor: focusedInput === 'otpEmail' ? 'var(--primary)' : 'var(--border)' }}
                     autoComplete="email"
                     autoFocus
                   />
                   <Mail size={18} style={{
-                    position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                    position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
                     color: focusedInput === 'otpEmail' ? 'var(--primary)' : 'var(--text-faint)',
-                    transition: 'color var(--t-fast)'
                   }} />
                 </div>
                 <span style={{ fontSize: 11.5, color: 'var(--text-faint)', display: 'block', marginTop: 5 }}>
-                  We couldn't find an email on this account — enter one to receive your code.
+                  No email associated with this number yet. Please provide your email to receive the code.
                 </span>
               </div>
             )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary clickable"
+              id="send-otp-btn"
+              style={{
+                height: 50, fontSize: 15.5, borderRadius: 'var(--r-xl)',
+                fontFamily: 'var(--font-heading)', fontWeight: 800,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                boxShadow: '0 8px 24px rgba(18, 140, 126, 0.35)',
+                width: '100%', marginTop: 4
+              }}
+            >
+              {mounted && loading ? <Loader2 size={19} className="animate-spin" /> : null}
+              <span>
+                {!mounted ? 'Send Verification Code' : (loading ? 'Sending Code...' : 'Send Verification Code')}
+              </span>
+              {mounted && !loading ? <ArrowRight size={18} /> : null}
+            </button>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn btn-primary clickable"
-            id="send-otp-btn"
-            style={{
-              padding: '16px', fontSize: 16, borderRadius: 'var(--r-xl)',
-              marginTop: 8, fontFamily: 'var(--font-heading)', fontWeight: 800,
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              boxShadow: 'var(--shadow-primary)'
-            }}
-          >
-            {mounted && loading ? <Loader2 size={18} className="animate-spin" /> : null}
-            <span>
-              {!mounted ? 'Send Code' : (loading ? 'Sending Code...' : 'Send Verification Code')}
-            </span>
-            {mounted && !loading ? <ArrowRight size={18} /> : null}
-          </button>
-
-          {isAdminMode ? (
-            <p style={{ textAlign: 'center', fontSize: 13.5, color: 'var(--text-muted)', marginTop: 8 }}>
-              Looking for merchant login?{' '}
-              <a href={merchantLoginUrl} style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>
-                Go to merchant login
-              </a>
-            </p>
-          ) : (
-            <>
-              <p style={{ textAlign: 'center', fontSize: 13.5, color: 'var(--text-muted)', marginTop: 8 }}>
-                Don't have a store yet?{' '}
-                <a href="/signup" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'underline' }}>
-                  Create storefront
+          {/* Footer Links (BUYER LINK REMOVED PER USER REQUEST) */}
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+            {isAdminMode ? (
+              <p style={{ fontSize: 13.5, color: 'var(--text-muted)' }}>
+                Merchant account?{' '}
+                <a href={merchantLoginUrl} style={{ color: 'var(--primary)', fontWeight: 750, textDecoration: 'none' }}>
+                  Go to merchant login →
                 </a>
               </p>
-              <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-faint)', marginTop: 4 }}>
-                Just here to shop?{' '}
-                <a href="/buyer/login" style={{ color: 'var(--text-muted)', fontWeight: 700, textDecoration: 'underline' }}>
-                  Sign in as a buyer
+            ) : (
+              <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
+                Don't have a storefront yet?{' '}
+                <a href="/signup" style={{ color: 'var(--primary)', fontWeight: 800, textDecoration: 'none' }}>
+                  Create a free store
                 </a>
               </p>
-            </>
-          )}
+            )}
+          </div>
         </form>
       )}
 
       {/* ── STEP 2: Enter OTP ── */}
       {step === 'otp' && (
         <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18, border: '1px solid var(--border)', background: 'var(--surface)' }}>
-
+          <div style={{ 
+            padding: 24, 
+            borderRadius: 'var(--r-2xl)',
+            background: 'var(--surface)', 
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-md)',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: 20 
+          }}>
             <div>
               <label
                 htmlFor="otp-input"
-                style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}
+                style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12, textAlign: 'center' }}
               >
-                6-Digit Verification Code
+                Enter 6-Digit Code
               </label>
+              
               <input
                 id="otp-input"
                 type="text"
@@ -623,31 +724,37 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
                 pattern="[0-9]{6}"
                 maxLength={6}
                 required
-                placeholder="e.g. 482 917"
+                placeholder="••••••"
                 value={otp}
                 onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 onFocus={() => setFocusedInput('otp')}
                 onBlur={() => setFocusedInput(null)}
                 className="input-field"
                 autoComplete="one-time-code"
+                autoFocus
                 style={{
                   textAlign: 'center',
-                  fontSize: 26,
-                  letterSpacing: '0.35em',
+                  fontSize: 28,
+                  letterSpacing: '0.4em',
                   fontFamily: 'var(--font-heading)',
                   fontWeight: 900,
+                  height: 56,
+                  borderRadius: 'var(--r-xl)',
                   borderColor: focusedInput === 'otp' ? 'var(--primary)' : 'var(--border)',
+                  boxShadow: focusedInput === 'otp' ? '0 0 0 4px var(--primary-glow)' : 'none',
                 }}
               />
-              <span style={{ fontSize: 12, color: 'var(--text-faint)', display: 'block', marginTop: 6, textAlign: 'center' }}>
-                Code sent to <strong style={{ color: 'var(--text-2)' }}>{normalizedPhone}</strong>. Check WhatsApp or your email.
+              
+              <span style={{ fontSize: 13, color: 'var(--text-muted)', display: 'block', marginTop: 10, textAlign: 'center', lineHeight: 1.4 }}>
+                Code sent to <strong style={{ color: 'var(--text)' }}>{normalizedPhone}</strong>. Check your WhatsApp or email inbox.
               </span>
             </div>
 
-            {/* Resend */}
+            {/* Resend Cooldown */}
             <div style={{ textAlign: 'center' }}>
               {resendCooldown > 0 ? (
-                <span style={{ fontSize: 13, color: 'var(--text-faint)' }}>
+                <span style={{ fontSize: 13, color: 'var(--text-faint)', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--bg-2)', borderRadius: 20 }}>
+                  <RefreshCw size={13} className="animate-spin" />
                   Resend available in <strong>{resendCooldown}s</strong>
                 </span>
               ) : (
@@ -656,67 +763,69 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
                   onClick={() => handleSendOtp()}
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--primary)', fontWeight: 700, fontSize: 13,
-                    display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0,
+                    color: 'var(--primary)', fontWeight: 800, fontSize: 13.5,
+                    display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 8px',
                   }}
                 >
-                  <RefreshCw size={13} /> Resend code
+                  <RefreshCw size={14} /> Resend verification code
                 </button>
               )}
             </div>
+
+            <button
+              type="submit"
+              disabled={loading || otp.length < 6}
+              className="btn btn-primary clickable"
+              id="verify-otp-btn"
+              style={{
+                height: 50, fontSize: 15.5, borderRadius: 'var(--r-xl)',
+                fontFamily: 'var(--font-heading)', fontWeight: 800,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                boxShadow: '0 8px 24px rgba(18, 140, 126, 0.35)',
+                opacity: otp.length < 6 ? 0.6 : 1,
+                width: '100%'
+              }}
+            >
+              {mounted && loading ? <Loader2 size={19} className="animate-spin" /> : null}
+              <span>
+                {!mounted ? 'Verify & Sign In' : (loading ? 'Verifying Code...' : 'Verify & Sign In')}
+              </span>
+              {mounted && !loading ? <ArrowRight size={18} /> : null}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setStep('identifier'); setOtp(''); setError(null); setSuccessMsg(null); }}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--text-muted)', fontWeight: 700, fontSize: 13.5,
+                textAlign: 'center', padding: '4px 0',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+              }}
+            >
+              ← Back to login details
+            </button>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading || otp.length < 6}
-            className="btn btn-primary clickable"
-            id="verify-otp-btn"
-            style={{
-              padding: '16px', fontSize: 16, borderRadius: 'var(--r-xl)',
-              marginTop: 8, fontFamily: 'var(--font-heading)', fontWeight: 800,
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              boxShadow: 'var(--shadow-primary)',
-              opacity: otp.length < 6 ? 0.6 : 1,
-            }}
-          >
-            {mounted && loading ? <Loader2 size={18} className="animate-spin" /> : null}
-            <span>
-              {!mounted ? 'Verify & Sign In' : (loading ? 'Verifying...' : 'Verify & Sign In')}
-            </span>
-            {mounted && !loading ? <ArrowRight size={18} /> : null}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => { setStep('identifier'); setOtp(''); setError(null); setSuccessMsg(null); }}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--text-muted)', fontWeight: 700, fontSize: 13.5,
-              textAlign: 'center', padding: '8px 0',
-            }}
-          >
-            ← Change phone / email
-          </button>
         </form>
       )}
 
       {/* ── Quick Dev Auto-Login (Localhost Development) ── */}
       {typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
         <div style={{
-          marginTop: 28,
+          marginTop: 24,
           padding: '16px 18px',
           borderRadius: 'var(--r-xl)',
-          background: 'linear-gradient(135deg, rgba(238, 77, 45, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%)',
+          background: 'linear-gradient(135deg, rgba(18, 140, 126, 0.05) 0%, rgba(37, 211, 102, 0.05) 100%)',
           border: '1.5px dashed var(--primary)',
           display: 'flex',
           flexDirection: 'column',
           gap: 12,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Zap size={15} /> Quick Dev Auto-Login
             </span>
-            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: 'rgba(238,77,45,0.1)', color: 'var(--primary)' }}>Localhost</span>
+            <span style={{ fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 10, background: 'var(--primary-light)', color: 'var(--primary)' }}>Localhost</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <button
@@ -726,9 +835,9 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
               onClick={() => handleDevLogin('merchant')}
               className="btn clickable"
               style={{
-                padding: '11px 14px',
+                padding: '10px 14px',
                 fontSize: 13,
-                fontWeight: 750,
+                fontWeight: 800,
                 borderRadius: 'var(--r-lg)',
                 background: 'var(--surface, #fff)',
                 border: '1.5px solid var(--border)',
@@ -750,9 +859,9 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
               onClick={() => handleDevLogin('admin')}
               className="btn clickable"
               style={{
-                padding: '11px 14px',
+                padding: '10px 14px',
                 fontSize: 13,
-                fontWeight: 750,
+                fontWeight: 800,
                 borderRadius: 'var(--r-lg)',
                 background: 'var(--surface, #fff)',
                 border: '1.5px solid var(--border)',
@@ -788,7 +897,7 @@ export default function LoginPage() {
         const json = await res.json();
         if (json.data?.app_name) setAppName(json.data.app_name);
       } catch {
-        // Keep the local fallback when settings cannot be loaded.
+        // Keep the local fallback
       }
     };
     loadPublicSettings();
@@ -824,79 +933,120 @@ export default function LoginPage() {
       flexDirection: 'row',
       width: '100%'
     }}>
-      {/* LEFT PANEL: Premium value prop (visible on desktop) */}
+      {/* LEFT PANEL: Modern Hero & Brand Panel (Visible on Desktop) */}
       <div className="left-hero-panel" style={{
-        flex: 1,
-        background: 'linear-gradient(135deg, var(--primary-dark), var(--primary))',
+        flex: 1.1,
+        background: 'linear-gradient(135deg, #0b4d44 0%, #128C7E 50%, #075e54 100%)',
         color: '#fff',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: 'space-between',
         padding: '60px 80px',
         position: 'relative',
         overflow: 'hidden',
       }}>
-        {/* Soft floating blur shapes */}
+        {/* Decorative ambient glowing orbs */}
+        <div style={{
+          position: 'absolute', width: 450, height: 450, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(37, 211, 102, 0.25) 0%, rgba(0,0,0,0) 70%)',
+          top: '-10%', right: '-15%', filter: 'blur(40px)', pointerEvents: 'none'
+        }} />
         <div style={{
           position: 'absolute', width: 350, height: 350, borderRadius: '50%',
-          background: 'rgba(255, 255, 255, 0.1)', top: '-10%', right: '-10%', filter: 'blur(80px)'
-        }} />
-        <div style={{
-          position: 'absolute', width: 250, height: 250, borderRadius: '50%',
-          background: 'rgba(255, 255, 255, 0.08)', bottom: '-5%', left: '-5%', filter: 'blur(60px)'
+          background: 'radial-gradient(circle, rgba(18, 140, 126, 0.4) 0%, rgba(0,0,0,0) 70%)',
+          bottom: '-10%', left: '-10%', filter: 'blur(50px)', pointerEvents: 'none'
         }} />
 
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: 520 }}>
+        {/* Top Header Logo */}
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <a
+            href="/"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 12,
+              fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, color: '#fff',
+              background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(12px)',
+              padding: '8px 18px', borderRadius: 40, border: '1px solid rgba(255, 255, 255, 0.18)',
+              textDecoration: 'none'
+            }}
+          >
+            <Logo size={24} textColor="#ffffff" text={appName} />
+          </a>
+        </div>
+
+        {/* Center Main Copy */}
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: 540, margin: 'auto 0' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 48, color: '#fff'
+            padding: '6px 14px', borderRadius: 30, background: 'rgba(37, 211, 102, 0.2)',
+            color: '#25D366', fontSize: 13, fontWeight: 800, marginBottom: 24,
+            border: '1px solid rgba(37, 211, 102, 0.3)'
           }}>
-            <img src="/logo.png" alt="Logo" width={26} height={26} style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0 }} />
-            <span>{appName}</span>
+            <Sparkles size={14} />
+            <span>{isAdminMode ? 'System Control Center' : 'WhatsApp Social Commerce'}</span>
           </div>
 
           <h2 style={{
-            fontFamily: 'var(--font-heading)', fontSize: 42, fontWeight: 900,
-            lineHeight: 1.15, marginBottom: 24, letterSpacing: '-0.03em'
+            fontFamily: 'var(--font-heading)', fontSize: 44, fontWeight: 900,
+            lineHeight: 1.12, marginBottom: 20, letterSpacing: '-0.03em', textShadow: '0 2px 10px rgba(0,0,0,0.1)'
           }}>
-            {isAdminMode ? 'Welcome Back to Your Admin Control Center.' : 'Welcome Back to Your Store Headquarters.'}
+            {isAdminMode ? 'Welcome Back to Your Admin Center.' : 'Welcome Back to Your Store Headquarters.'}
           </h2>
 
-          <p style={{ fontSize: 17, opacity: 0.9, lineHeight: 1.6, marginBottom: 40, fontWeight: 500 }}>
+          <p style={{ fontSize: 17, color: 'rgba(255, 255, 255, 0.88)', lineHeight: 1.6, marginBottom: 36, fontWeight: 500 }}>
             {isAdminMode
-              ? 'Sign in to monitor system performance, manage merchants, resolve support queries, and configure global platform settings.'
-              : 'Sign in to manage your orders, tweak storefront settings, create products with AI-generated descriptions, and interact with prospective buyers in real time.'
+              ? 'Sign in to monitor system activity, manage merchant accounts, track platform metrics, and configure environment settings.'
+              : 'Sign in to manage orders, customize your digital storefront, auto-generate AI descriptions, and connect with customers.'
             }
           </p>
 
-          {/* Quick specs */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Value Props Pills */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             {(isAdminMode
               ? [
-                'Monitor real-time platform transactions',
-                'Manage storefront statuses & active plans',
-                'Configure application-wide settings & APIs',
-                'Audit system activity & user accounts'
+                { title: 'Live Platform Stats', desc: 'Real-time GMV & order tracking' },
+                { title: 'Merchant Management', desc: 'Plan billing & store status' },
+                { title: 'Global Settings', desc: 'API keys & system controls' },
+                { title: 'Audit Trail', desc: 'Full activity & security log' }
               ]
               : [
-                'Track visitor views & conversion rates',
-                'Update order shipping & payment statuses',
-                'Generate AI-written product descriptions',
-                'Manage storefront details in real-time'
+                { title: 'WhatsApp Checkout', desc: 'Instant 1-click cart links' },
+                { title: 'AI Product Generator', desc: 'Automated description writing' },
+                { title: 'Order Management', desc: 'Real-time payment tracking' },
+                { title: 'Store Analytics', desc: 'Visitor counts & conversions' }
               ]
-            ).map(spec => (
-              <div key={spec} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            ).map((item, i) => (
+              <div key={i} style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: 16,
+                padding: '14px 16px',
+                display: 'flex',
+                gap: 12,
+                alignItems: 'flex-start'
+              }}>
                 <div style={{
                   width: 24, height: 24, borderRadius: '50%',
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                  background: '#25D366', color: '#0b4d44',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, marginTop: 2
                 }}>
-                  <Check size={14} style={{ color: '#fff', strokeWidth: 3 }} />
+                  <Check size={14} strokeWidth={3} />
                 </div>
-                <span style={{ fontSize: 15, fontWeight: 600 }}>{spec}</span>
+                <div>
+                  <h4 style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 2 }}>{item.title}</h4>
+                  <p style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.7)', margin: 0 }}>{item.desc}</p>
+                </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Bottom Trust Badge */}
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 16, paddingTop: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>
+            <Lock size={14} style={{ color: '#25D366' }} />
+            256-Bit Encrypted Sessions
           </div>
         </div>
       </div>
@@ -905,19 +1055,13 @@ export default function LoginPage() {
       <div className="right-form-panel" style={{
         flex: 1, display: 'flex', flexDirection: 'column',
         justifyContent: 'center', alignItems: 'center',
-        padding: '40px 20px', position: 'relative', width: '100%', minHeight: '100vh',
+        padding: '40px 24px', position: 'relative', width: '100%', minHeight: '100vh',
       }}>
-        {/* Subtle decorative blob */}
-        <div style={{
-          position: 'absolute', width: 200, height: 200, borderRadius: '50%',
-          background: 'var(--primary-glow)', zIndex: -1, top: '30%', right: '5%', filter: 'blur(40px)'
-        }} />
-
-        <div style={{ width: '100%', maxWidth: 500, display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
+        <div style={{ width: '100%', maxWidth: 440, display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
           <Suspense fallback={
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
               <div className="spinner spinner-primary" style={{ width: 36, height: 36 }} />
-              <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading storefront dashboard login...</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading merchant portal...</span>
             </div>
           }>
             <LoginFormContent isAdminMode={isAdminMode} merchantLoginUrl={merchantLoginUrl} appName={appName} />
@@ -926,15 +1070,16 @@ export default function LoginPage() {
       </div>
 
       <style>{`
-        @media (max-width: 900px) {
+        @media (max-width: 960px) {
           .left-hero-panel {
             display: none !important;
           }
           .right-form-panel {
-            padding: 32px 16px !important;
+            padding: 32px 20px !important;
           }
         }
       `}</style>
     </div>
   );
 }
+

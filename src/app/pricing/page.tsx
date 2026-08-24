@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const systemDomain = rawDomain === 'frontstore.app' ? 'frontstore.ng' : rawDomain;
 
   const title = `Pricing – ${appName}`;
-  const description = 'Free, Pro, and Legend plans with no transaction fees, 14+ supported currencies, and payout speed that gets faster as your store earns trust.';
+  const description = 'Free, Pro, and Business plans with no transaction fees, 14+ supported currencies, and payout speed that gets faster as your store earns trust.';
   const url = `https://${systemDomain}/pricing`;
 
   return {

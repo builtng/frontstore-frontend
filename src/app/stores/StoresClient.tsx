@@ -88,8 +88,6 @@ export default function StoresClient({ initialStores, initialUnclaimed }: { init
     return ['All', ...Array.from(set).sort()];
   }, [stores]);
 
-  const verifiedCount = useMemo(() => stores.filter(s => s.is_verified).length, [stores]);
-
   const filteredStores = useMemo(() => {
     let list = stores.filter(store =>
       (store.store_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -150,17 +148,34 @@ export default function StoresClient({ initialStores, initialUnclaimed }: { init
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 36, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginTop: 32, flexWrap: 'wrap' }}>
             {[
-              { label: 'Active stores', val: stores.length },
-              { label: 'Verified sellers', val: verifiedCount },
-              { label: 'Categories', val: categories.length - 1 },
-            ].map(stat => (
-              <div key={stat.label} style={{ textAlign: 'center' }}>
-                <div className="font-heading" style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)' }}>{stat.val}</div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{stat.label}</div>
-              </div>
-            ))}
+              { icon: ShieldCheck, text: 'Verified Sellers' },
+              { icon: WhatsAppIcon, text: 'Direct WhatsApp Checkout' },
+              { icon: Package, text: 'Direct Delivery & Pickup' },
+            ].map((pill, idx) => {
+              const Icon = pill.icon;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 16px',
+                    borderRadius: 'var(--r-full)',
+                    background: 'var(--surface-2, rgba(255,255,255,0.06))',
+                    border: '1px solid var(--border)',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  <Icon size={15} color="var(--primary)" />
+                  <span>{pill.text}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </header>

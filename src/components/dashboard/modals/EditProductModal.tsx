@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { X, Loader2, ExternalLink, Clock, Edit2, Trash2 } from 'lucide-react';
+import { X, Loader2, ExternalLink, Clock, Edit2, Trash2, ShoppingBag, Laptop, Bell, Package, Ticket } from 'lucide-react';
 import SearchableSelect from '../../SearchableSelect';
 import FileUpload from '../../FileUpload';
 import Toggle from '../../Toggle';
@@ -11,6 +11,7 @@ import { resilientFetch } from '@/utils/resilientFetch';
 import { getCurrencySymbol } from '@/utils/currency';
 import { getServiceFactPresets } from '@/utils/serviceFactPresets';
 import { businessPersonas } from '@/utils/businessPersonas';
+import { getColorHex } from '@/utils/colorUtils';
 import type { StoreInfo, Category, Product, UserInfo } from '@/types/dashboard';
 
 const authHeaders = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
@@ -438,44 +439,129 @@ export default function EditProductModal({
                 <button
                   type="button"
                   className="btn clickable"
-                  onClick={() => setProdVariants(prev => [...prev, { size: '', color: '', price: '', inventory_quantity: '0' }])}
+                  onClick={() => setProdVariants(prev => [...prev, { size: '', color: '', price: '', inventory_quantity: '1' }])}
                   style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, borderRadius: 8, background: 'var(--primary)', color: '#fff', border: 'none' }}
                 >
                   + Add Variant
                 </button>
               </div>
-              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>Let buyers pick a size and/or colour before adding to cart. Leave empty if this product has no options.</p>
-              {prodVariants.map((v, i) => (
-                <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-                  <input className="input-field" style={{ flex: '1 1 90px', minWidth: 80 }} placeholder="Size (e.g. M)" value={v.size} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, size: e.target.value } : row))} />
-                  <input className="input-field" style={{ flex: '1 1 90px', minWidth: 80 }} placeholder="Colour (e.g. Red)" value={v.color} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, color: e.target.value } : row))} />
-                  <input className="input-field" style={{ flex: '1 1 110px', minWidth: 90 }} type="number" min={0} step="0.01" placeholder="Price override" value={v.price} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, price: e.target.value } : row))} />
-                  <input className="input-field" style={{ flex: '1 1 90px', minWidth: 80 }} type="number" min={0} placeholder="Stock qty" value={v.inventory_quantity} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, inventory_quantity: e.target.value } : row))} />
-                  <button type="button" onClick={() => setProdVariants(prev => prev.filter((_, ri) => ri !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e53e3e', flexShrink: 0 }}>
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
+              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>Let buyers pick a size and/or colour before adding to cart. Use the color picker to set visual swatches.</p>
+
+              {/* Preset Color Swatches */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 4, marginBottom: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>Quick Swatches:</span>
+                {['#000000', '#ffffff', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#d97706', '#94a3b8'].map((hex) => (
+                  <button
+                    key={hex}
+                    type="button"
+                    title={`Add variant with color ${hex}`}
+                    onClick={() => {
+                      setProdVariants(prev => {
+                        if (prev.length === 0) return [{ size: '', color: hex, price: '', inventory_quantity: '1' }];
+                        const lastEmptyIdx = prev.findIndex(row => !row.color);
+                        if (lastEmptyIdx !== -1) {
+                          return prev.map((row, ri) => ri === lastEmptyIdx ? { ...row, color: hex } : row);
+                        }
+                        return [...prev, { size: '', color: hex, price: '', inventory_quantity: '1' }];
+                      });
+                    }}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 10,
+                      background: hex,
+                      border: hex === '#ffffff' ? '1.5px solid #cbd5e1' : '1px solid rgba(0,0,0,0.15)',
+                      cursor: 'pointer',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    }}
+                  />
+                ))}
+              </div>
+
+              {prodVariants.map((v, i) => {
+                const currentHex = getColorHex(v.color) || '#3b82f6';
+                return (
+                  <div key={i} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                    <input className="input-field" style={{ flex: '1 1 90px', minWidth: 80 }} placeholder="Size (e.g. M)" value={v.size} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, size: e.target.value } : row))} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '1 1 140px' }}>
+                      <input
+                        type="color"
+                        value={currentHex}
+                        onChange={e => {
+                          const hex = e.target.value;
+                          setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, color: hex } : row));
+                        }}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          padding: 0,
+                          border: 'none',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          background: 'transparent',
+                          flexShrink: 0,
+                        }}
+                        title="Pick visual color"
+                      />
+                      <input
+                        className="input-field"
+                        style={{ flex: '1 1 90px', minWidth: 80 }}
+                        placeholder="Colour (e.g. Red / #ef4444)"
+                        value={v.color}
+                        onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, color: e.target.value } : row))}
+                      />
+                    </div>
+                    <input className="input-field" style={{ flex: '1 1 110px', minWidth: 90 }} type="number" min={0} step="0.01" placeholder="Price override" value={v.price} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, price: e.target.value } : row))} />
+                    <input className="input-field" style={{ flex: '1 1 90px', minWidth: 80 }} type="number" min={0} placeholder="Stock qty" value={v.inventory_quantity} onChange={e => setProdVariants(prev => prev.map((row, ri) => ri === i ? { ...row, inventory_quantity: e.target.value } : row))} />
+                    <button type="button" onClick={() => setProdVariants(prev => prev.filter((_, ri) => ri !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e53e3e', flexShrink: 0 }}>
+                      <X size={16} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
 
+          {/* Product Type & Fulfillment Selector */}
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 8 }}>Product Type & Fulfillment</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {[
+                { id: 'physical', icon: ShoppingBag, label: 'Physical', sublabel: 'Shipped item', active: !prodIsDigital && prodType !== 'bundle' },
+                { id: 'digital', icon: Laptop, label: 'Digital', sublabel: 'File / Download', active: prodIsDigital },
+                { id: 'bundle', icon: Package, label: 'Bundle', sublabel: 'Combo items', active: prodType === 'bundle' && !prodIsDigital },
+              ].map(opt => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => {
+                    if (opt.id === 'physical') { setProdIsDigital(false); setProdType('product'); }
+                    if (opt.id === 'digital') { setProdIsDigital(true); setProdType('product'); setProdStock('in_stock'); }
+                    if (opt.id === 'bundle') { setProdIsDigital(false); setProdType('bundle'); setProdStock('in_stock'); }
+                  }}
+                  style={{
+                    padding: '10px 6px',
+                    border: opt.active ? '2px solid var(--primary)' : '1.5px solid var(--border)',
+                    borderRadius: 'var(--r-md)',
+                    background: opt.active ? 'var(--primary-light)' : 'var(--surface)',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all var(--t-fast)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4
+                  }}
+                >
+                  <opt.icon size={18} strokeWidth={2} color={opt.active ? 'var(--primary)' : 'var(--text-faint)'} />
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: opt.active ? 'var(--primary)' : 'var(--text)' }}>{opt.label}</span>
+                  <span style={{ fontSize: 9.5, color: 'var(--text-faint)', lineHeight: 1.2 }}>{opt.sublabel}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Bundle Product Settings */}
-          <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px dashed rgba(16, 185, 129, 0.3)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Toggle
-              checked={prodType === 'bundle'}
-              onChange={(next) => {
-                setProdType(next ? 'bundle' : 'product');
-                setProdIsDigital(false);
-                if (next) setProdStock('in_stock');
-              }}
-              label={
-                <div>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Bundle Product</span>
-                  <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Combine other products into one discounted combo.</span>
-                </div>
-              }
-            />
-            {prodType === 'bundle' && (
+          {prodType === 'bundle' && (
+            <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px dashed rgba(16, 185, 129, 0.3)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>Bundle Items</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} className="animate-fade-in">
                 {products.filter(p => p.type !== 'bundle' && p.id !== product?.id).map(p => {
                   const selected = prodBundleItems.find(bi => bi.product_id === p.id);
@@ -510,25 +596,13 @@ export default function EditProductModal({
                   );
                 })}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Ticket (Event) Product Settings */}
-          <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px dashed rgba(16, 185, 129, 0.3)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Toggle
-              checked={prodType === 'ticket'}
-              onChange={(next) => {
-                setProdType(next ? 'ticket' : 'product');
-                setProdIsDigital(false);
-              }}
-              label={
-                <div>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Event Ticket</span>
-                  <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Sell tickets with a QR check-in code.</span>
-                </div>
-              }
-            />
-            {prodType === 'ticket' && (
+          {prodType === 'ticket' && (
+            <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1.5px dashed rgba(16, 185, 129, 0.3)', borderRadius: 'var(--r-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>Event Ticket Details</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }} className="animate-fade-in">
                 <div>
                   <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Event Date & Time</label>
@@ -550,36 +624,21 @@ export default function EditProductModal({
                   />
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Digital Product Settings */}
-          <div style={{
-            background: 'rgba(16, 185, 129, 0.04)',
-            border: '1.5px dashed rgba(16, 185, 129, 0.3)',
-            borderRadius: 'var(--r-md)',
-            padding: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12
-          }}>
-            <Toggle
-              checked={prodIsDigital}
-              onChange={(next) => {
-                setProdIsDigital(next);
-                if (next) {
-                  setProdStock('in_stock');
-                }
-              }}
-              label={
-                <div>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>Digital Product</span>
-                  <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Sell eBooks, courses, templates, music, PDFs, etc.</span>
-                </div>
-              }
-            />
-
-            {prodIsDigital && (
+          {prodIsDigital && (
+            <div style={{
+              background: 'rgba(16, 185, 129, 0.04)',
+              border: '1.5px dashed rgba(16, 185, 129, 0.3)',
+              borderRadius: 'var(--r-md)',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12
+            }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>Digital Product Details</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(16, 185, 129, 0.15)', paddingTop: 14 }} className="animate-fade-in">
 
                 {/* File Upload Slot */}
@@ -708,31 +767,21 @@ export default function EditProductModal({
                 )}
 
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Service Settings */}
-          <div style={{
-            background: 'rgba(129, 0, 209, 0.04)',
-            border: '1.5px dashed rgba(129, 0, 209, 0.25)',
-            borderRadius: 'var(--r-md)',
-            padding: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12
-          }}>
-            <Toggle
-              checked={prodType === 'service'}
-              onChange={(next) => setProdType(next ? 'service' : 'product')}
-              label={
-                <div>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', display: 'block' }}>This is a Service</span>
-                  <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Bookable services like appointments, sessions, or consultations.</span>
-                </div>
-              }
-            />
-
-            {prodType === 'service' && (
+          {prodType === 'service' && !prodIsDigital && (
+            <div style={{
+              background: 'rgba(129, 0, 209, 0.04)',
+              border: '1.5px dashed rgba(129, 0, 209, 0.25)',
+              borderRadius: 'var(--r-md)',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12
+            }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)' }}>Service Settings</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderTop: '1px solid rgba(129, 0, 209, 0.15)', paddingTop: 14 }} className="animate-fade-in">
                 <div>
                   <label style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>
@@ -847,8 +896,8 @@ export default function EditProductModal({
                   <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>Extra charge added when a customer selects Mobile Session. Give it a name so they know what it covers (e.g. &ldquo;Bike Fee&rdquo;, &ldquo;Travel Fee&rdquo;).</p>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
 
           {/* Multi-Image Upload Slots (up to 3) */}

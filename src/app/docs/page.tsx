@@ -143,7 +143,7 @@ export default function DocsLandingPage() {
                 For Shoppers & Buyers
               </h2>
               <p style={{ color: 'var(--text-muted)', fontSize: 14.5, lineHeight: 1.6, minHeight: 96 }}>
-                Find out how to browse storefronts, book appointments with calendar slots, pay securely using local cards, bank transfers, or mobile money, utilize Escrow protection for safe shopping, and complete order checkout directly inside WhatsApp.
+                Find out how to browse storefronts, book appointments with calendar slots, pay securely using local cards, bank transfers, or mobile money, use Escrow protection for safe shopping, and complete order checkout directly inside WhatsApp.
               </p>
             </div>
             <a href="/docs/buyer" className="btn btn-outline clickable" style={{ width: '100%', gap: 8, padding: '14px 20px', fontSize: 14.5, textDecoration: 'none' }}>

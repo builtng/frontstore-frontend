@@ -3,12 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import {
-  Link, CheckCircle2, Zap, Loader2, Plus, Copy, BarChart3, Trash2,
+  Link, CheckCircle2, Zap, Loader2, Plus, Copy, BarChart3, Trash2, Share2, CreditCard, Repeat,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Modal from '@/components/Modal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import Toggle from '@/components/Toggle';
+import ProFeatureGate from '@/components/dashboard/ProFeatureGate';
 import { WhatsAppIcon } from '@/components/WhatsAppIcon';
 import { getCurrencySymbol } from '@/utils/currency';
 import type { StoreInfo } from '@/types/dashboard';
@@ -148,42 +149,58 @@ export default function PaymentLinksTab({ store, isPro, openUpgradePrompt }: Pay
 
   if (!isPro) {
     return (
-      <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
-        <div style={{ background: 'rgba(37, 211, 102, 0.15)', color: 'var(--primary)', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-          <Link size={32} />
-        </div>
-        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Payment Links</h2>
-        <p style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Get Paid Instantly</p>
-        <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
-          Generate a shareable link customers can pay directly — no cart or storefront needed. Perfect for one-off sales, deposits, and tips.
-        </p>
-
-        <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
-            <span style={{ fontSize: 13.5, fontWeight: 700 }}>Fixed-price or custom-amount links</span>
-          </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
-            <span style={{ fontSize: 13.5, fontWeight: 700 }}>One-time or reusable payment links</span>
-          </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />
-            <span style={{ fontSize: 13.5, fontWeight: 700 }}>Share anywhere — no storefront required</span>
-          </div>
-        </div>
-
-        <button
-          onClick={() => openUpgradePrompt(
+      <ProFeatureGate
+        title="Instant Payment Links"
+        subtitle="Generate shareable checkout links customers can pay directly — no storefront or complex catalog needed. Perfect for custom quotes, deposits, and direct sales."
+        icon={Link}
+        badgeText="PRO PAYMENT LINKS"
+        onUpgrade={() =>
+          openUpgradePrompt(
             'Payment Links requires Pro',
             'Shareable payment links for instant checkout are available on Pro. You can review the plan before upgrading.'
-          )}
-          className="btn btn-primary clickable"
-          style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800 }}
-        >
-          <Zap size={16} /> Upgrade to Pro to Unlock Payment Links
-        </button>
-      </div>
+          )
+        }
+        features={[
+          {
+            icon: Share2,
+            title: 'Share Anywhere',
+            description: 'Send directly on WhatsApp, Instagram DMs, SMS, or email for instant collection.',
+          },
+          {
+            icon: CreditCard,
+            title: 'Fixed or Custom Amounts',
+            description: 'Set strict product prices or allow open customer-entered payment amounts.',
+          },
+          {
+            icon: Repeat,
+            title: 'One-Time or Standing Links',
+            description: 'Create single-use invoice links or permanent reusable checkout buttons.',
+          },
+          {
+            icon: BarChart3,
+            title: 'Real-Time Revenue Analytics',
+            description: 'Track link views, payment conversions, and total revenue collected instantly.',
+          },
+        ]}
+        previewChildren={
+          <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontWeight: 800, fontSize: 14 }}>Payment Links (3 Active)</div>
+              <div style={{ padding: '4px 12px', borderRadius: 9999, background: '#ECFDF5', color: '#059669', fontSize: 12, fontWeight: 700 }}>Total Collected: ₦450,000</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', padding: 12, borderRadius: 12, background: '#F8FAFC', fontSize: 12, fontWeight: 700 }}>
+              <div>Link Title</div>
+              <div>Amount</div>
+              <div>Status</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', padding: 12, borderBottom: '1px solid #E2E8F0', fontSize: 12 }}>
+              <div style={{ fontWeight: 700 }}>VIP Bridal Makeup Deposit</div>
+              <div style={{ fontWeight: 700, color: '#059669' }}>₦50,000.00</div>
+              <span style={{ color: '#059669', fontWeight: 600 }}>Active (14 Paid)</span>
+            </div>
+          </div>
+        }
+      />
     );
   }
 
@@ -327,7 +344,7 @@ export default function PaymentLinksTab({ store, isPro, openUpgradePrompt }: Pay
         open={isAddPaymentLinkOpen}
         onClose={() => setIsAddPaymentLinkOpen(false)}
         title={createdPaymentLink ? 'Payment Link Ready' : 'Create Payment Link'}
-        maxWidth={460}
+        maxWidth={580}
         className="responsive-modal-container"
       >
         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -10, marginBottom: 16 }}>
@@ -454,7 +471,7 @@ export default function PaymentLinksTab({ store, isPro, openUpgradePrompt }: Pay
         open={!!statsModalLink}
         onClose={() => setStatsModalLink(null)}
         title="Payment Link Stats"
-        maxWidth={560}
+        maxWidth={640}
         className="responsive-modal-container"
       >
         {statsModalLink && (

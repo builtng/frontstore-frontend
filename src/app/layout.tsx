@@ -301,15 +301,19 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
+                var isDashboardOrAdmin = window.location.pathname.startsWith('/dashboard') || window.location.pathname.startsWith('/admin');
                 var theme = localStorage.getItem('frontstore-theme');
-                var isDashboard = window.location.pathname.startsWith('/dashboard') || window.location.pathname.startsWith('/admin');
-                if (!theme && isDashboard) {
-                  theme = 'dark';
-                }
-                if (theme === 'dark') {
-                  document.documentElement.classList.add('dark');
-                  document.documentElement.classList.remove('light');
-                } else if (theme === 'light') {
+                if (isDashboardOrAdmin) {
+                  if (!theme) theme = 'dark';
+                  if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                  } else {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.classList.remove('dark');
+                  }
+                } else {
+                  // Customer storefronts and public shopping routes always default to light mode
                   document.documentElement.classList.add('light');
                   document.documentElement.classList.remove('dark');
                 }

@@ -65,7 +65,7 @@ const TRUST_POINTS = [
 const PLAN_SNAPSHOT = [
   { name: 'Free', note: 'For a business just getting its structure in place', highlight: false },
   { name: 'Pro', note: 'For businesses ready to hand off the manual work', highlight: true },
-  { name: 'Legend', note: 'For established operations running a full team', highlight: false },
+  { name: 'Business', note: 'For established operations running a full team', highlight: false },
 ] as const;
 
 export default function BusinessPageClient({ initialSettings }: { initialSettings?: any }) {
@@ -74,7 +74,6 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
     const val = initialSettings?.system_domain || 'frontstore.ng';
     return val === 'frontstore.app' ? 'frontstore.ng' : val;
   });
-  const [sellerCount, setSellerCount] = useState<number | null>(initialSettings?.real_store_count || null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
@@ -97,7 +96,6 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
           const domain = json.data.system_domain;
           setSystemDomain(domain === 'frontstore.app' ? 'frontstore.ng' : domain);
         }
-        if (json.data?.real_store_count) setSellerCount(json.data.real_store_count);
       })
       .catch(err => console.error('Failed to fetch public settings:', err));
   }, [initialSettings, API_URL]);
@@ -146,11 +144,9 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
               </a>
             </div>
 
-            {sellerCount && sellerCount > 0 && (
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.72)' }}>
-                Already running the back office for <strong style={{ color: '#fff' }}>{sellerCount.toLocaleString()}+ businesses</strong> across Africa.
-              </p>
-            )}
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.72)' }}>
+              Powering the back office for independent businesses across Africa.
+            </p>
           </div>
 
           {/* ── Dashboard mockup ── */}
@@ -323,7 +319,7 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
           <span className="badge badge-accent" style={{ marginBottom: 12 }}>Pricing for growing teams</span>
           <h2 className="text-title" style={{ fontSize: 'clamp(24px, 4vw, 36px)', marginBottom: 12 }}>No transaction fees, whatever size you're at</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: 16, maxWidth: 560, margin: '0 auto 40px' }}>
-            Free, Pro, or Legend, you keep 100% of every sale. Upgrading unlocks more of the back office, never a cut of your revenue.
+            Free, Pro, or Business, you keep 100% of every sale. Upgrading unlocks more of the back office, never a cut of your revenue.
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 28 }}>

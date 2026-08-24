@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Inbox, MessageSquare } from 'lucide-react';
+import { Inbox, MessageSquare, Sparkles } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
 import Modal from '@/components/Modal';
 
@@ -238,8 +238,8 @@ export default function InboxTab({ isPro, navigateDashboardTab }: InboxTabProps)
                             color: self ? '#fff' : 'var(--text)',
                           }}>
                             {isAi && (
-                              <div style={{ fontSize: 9, textTransform: 'uppercase', fontWeight: 900, color: 'var(--primary)', marginBottom: 4 }}>
-                                🤖 AI Copilot Response
+                              <div style={{ fontSize: 9, textTransform: 'uppercase', fontWeight: 900, color: 'var(--primary)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <Sparkles size={11} /> AI Copilot Response
                               </div>
                             )}
                             <p style={{ fontSize: 13, lineHeight: 1.4, margin: 0 }}>{m.message}</p>

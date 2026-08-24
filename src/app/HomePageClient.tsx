@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   ArrowRight, Check, Truck, CreditCard, ShoppingBag, Crown, Zap,
-  Minus, Plus, Star, BarChart3,
+  Minus, Plus, Star, BarChart3, Sparkles, Lock,
 } from 'lucide-react';
 import { PublicSiteNav, PublicSiteFooter } from '../components/PublicSiteChrome';
 import { WhatsAppIcon } from '../components/WhatsAppIcon';
@@ -26,12 +26,15 @@ const HOW_IT_WORKS = [
 
 const CATEGORIES = [
   { title: 'Retail & Groceries', color: '#128C7E' },
-  { title: 'Fashion & Apparel', color: '#E23F84' },
-  { title: 'Food & Kitchens', color: '#FF9F43' },
-  { title: 'Beauty & Barbering', color: '#9B5DE5' },
+  { title: 'Fashion & Clothing', color: '#E23F84' },
+  { title: 'Confectionaries & Food', color: '#FF9F43' },
+  { title: 'Personal Care & Beauty', color: '#9B5DE5' },
+  { title: 'Gadgets & Electronics', color: '#2563EB' },
+  { title: 'Shoes & Sneakers', color: '#0D9488' },
+  { title: 'Jewellery', color: '#D97706' },
+  { title: 'Gifts & Hampers', color: '#E11D48' },
   { title: 'Home & Auto Services', color: '#118AB2' },
   { title: 'Digital Products', color: '#6D5AE6' },
-  { title: 'Tech & Gadgets', color: '#2563EB' },
   { title: 'Pharmacy & Health', color: '#DC2626' },
   { title: 'Schools & Faith', color: '#0E9BB3' },
 ] as const;
@@ -47,7 +50,7 @@ const FAQS = [
   },
   {
     q: 'Can I use my own domain instead of frontstore.ng/yourname?',
-    a: 'Yes, on the Pro and Legend plans you can connect a custom domain to your storefront.',
+    a: 'Yes, on the Pro and Business plans you can connect a custom domain to your storefront.',
   },
   {
     q: 'What happens after a customer pays?',
@@ -69,8 +72,8 @@ const DEFAULT_HOME_CONTENT = {
     secondaryButton: { label: 'See how it works', href: '#how-it-works' },
   },
   stats: {
-    sellerCount: '1,200+ sellers',
-    text: 'already selling on Frontstore',
+    sellerCount: 'Trusted platform',
+    text: 'for independent sellers across Africa',
   },
   testimonials: {
     eyebrow: 'Testimonials',
@@ -81,13 +84,8 @@ const DEFAULT_HOME_CONTENT = {
 
 type HomeContent = typeof DEFAULT_HOME_CONTENT;
 
-function mergeHomeContent(raw?: string, realStoreCount?: number): HomeContent {
-  // Real, live store count is the default stat unless the admin has typed an
-  // explicit override into the homepage content settings — a marketing figure
-  // should never sit on the page divorced from the actual number of sellers.
-  const liveDefault: HomeContent = realStoreCount && realStoreCount > 0
-    ? { ...DEFAULT_HOME_CONTENT, stats: { ...DEFAULT_HOME_CONTENT.stats, sellerCount: `${realStoreCount.toLocaleString()}+ sellers` } }
-    : DEFAULT_HOME_CONTENT;
+function mergeHomeContent(raw?: string): HomeContent {
+  const liveDefault: HomeContent = DEFAULT_HOME_CONTENT;
 
   if (!raw) return liveDefault;
   try {
@@ -119,7 +117,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
     const val = initialSettings?.system_domain || 'frontstore.ng';
     return val === 'frontstore.app' ? 'frontstore.ng' : val;
   });
-  const [homeContent, setHomeContent] = useState<HomeContent>(() => mergeHomeContent(initialSettings?.homepage_content, initialSettings?.real_store_count));
+  const [homeContent, setHomeContent] = useState<HomeContent>(() => mergeHomeContent(initialSettings?.homepage_content));
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
@@ -133,7 +131,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               const domain = json.data.system_domain;
               setSystemDomain(domain === 'frontstore.app' ? 'frontstore.ng' : domain);
             }
-            setHomeContent(mergeHomeContent(json.data.homepage_content, json.data.real_store_count));
+            setHomeContent(mergeHomeContent(json.data.homepage_content));
           }
         })
         .catch(err => console.error('Failed to fetch public settings:', err));
@@ -155,7 +153,8 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               </span>
             )}
             <h1 className="balance">
-              {homeContent.hero.titlePrefix}{' '}
+              {homeContent.hero.titlePrefix}
+              <br />
               <span className="mark-highlight">{homeContent.hero.titleHighlight}</span>
             </h1>
             <p>{homeContent.hero.description}</p>
@@ -220,17 +219,88 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
       <section className="home-steps-sec" id="how-it-works">
         <div className="home-steps-glow" />
         <div className="home-inner">
-          <span className="home-eyebrow">How it works</span>
-          <h2 className="balance">Start selling in three simple steps</h2>
+          <div className="home-steps-header">
+            <span className="home-eyebrow"><Zap size={12} /> Quick Setup</span>
+            <h2 className="balance">Start selling in three simple steps</h2>
+            <p>No complicated website builders or coding required. Get your store live and start collecting orders in under two minutes.</p>
+          </div>
+
           <div className="home-steps-grid">
-            {HOW_IT_WORKS.map((step, i) => (
-              <div className="home-step" key={step.title}>
-                <span className="home-step-n">{i + 1}</span>
-                <span className="home-step-tag">Step 0{i + 1}</span>
-                <h3>{step.title}</h3>
-                <p>{step.body}</p>
+            {/* Step 1 */}
+            <div className="home-step-card">
+              <div className="home-step-head">
+                <span className="home-step-badge">Step 01</span>
+                <span className="home-step-time"><Zap size={11} /> 30 secs</span>
               </div>
-            ))}
+              <div className="home-step-body">
+                <h3>Claim your URL</h3>
+                <p>Type your business name and secure your branded storefront link instantly.</p>
+              </div>
+              <div className="home-step-visual v-url">
+                <div className="step-url-box">
+                  <span className="step-url-prefix">{systemDomain}/</span>
+                  <span className="step-url-handle">yourbrand</span>
+                  <span className="step-url-status">
+                    <span className="step-url-dot" /> Available
+                  </span>
+                </div>
+                <div className="step-url-features">
+                  <span><Lock size={10} /> Free SSL</span>
+                  <span><Zap size={10} /> Instant Live</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="home-step-card">
+              <div className="home-step-head">
+                <span className="home-step-badge">Step 02</span>
+                <span className="home-step-time ai">
+                  <Sparkles size={11} /> Nina AI
+                </span>
+              </div>
+              <div className="home-step-body">
+                <h3>Add your products</h3>
+                <p>Upload photos, set prices, and let Frontstore Nina craft descriptions automatically.</p>
+              </div>
+              <div className="home-step-visual v-product">
+                <div className="step-product-preview">
+                  <img src="/home-hero-bag.jpg" alt="Product" className="step-product-img" />
+                  <div className="step-product-info">
+                    <strong>Leather Tote Bag</strong>
+                    <span className="step-product-price">₦18,500</span>
+                    <span className="step-ai-tag"><Sparkles size={10} /> AI description ready</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="home-step-card">
+              <div className="home-step-head">
+                <span className="home-step-badge">Step 03</span>
+                <span className="home-step-time wa">
+                  <WhatsAppIcon size={11} /> Instant Orders
+                </span>
+              </div>
+              <div className="home-step-body">
+                <h3>Share & get paid</h3>
+                <p>Drop your link anywhere — customers browse and checkout straight to your WhatsApp.</p>
+              </div>
+              <div className="home-step-visual v-chat">
+                <div className="step-chat-bubble">
+                  <p className="step-chat-text"><ShoppingBag size={12} /> <em>"Hi! I want to order 1x Leather Tote Bag"</em></p>
+                  <div className="step-chat-meta">
+                    <span className="step-paid-chip"><Check size={10} strokeWidth={3} /> Paid via Paystack</span>
+                  </div>
+                </div>
+                <div className="step-share-channels">
+                  <span className="channel-chip wa"><WhatsAppIcon size={12} /> WhatsApp</span>
+                  <span className="channel-chip ig"><InstagramIcon size={12} /> IG</span>
+                  <span className="channel-chip tt"><TikTokIcon size={12} /> TikTok</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -240,7 +310,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
         <div className="home-diag-grid">
           <div>
             <h2 className="balance">One Platform, Every African Market</h2>
-            <p>From Lagos to Nairobi to Accra, Frontstore speaks the local currency and the local hustle — {homeContent.stats.sellerCount} already trading across four countries.</p>
+            <p>From Lagos to Nairobi to Accra, Frontstore speaks the local currency and the local hustle — empowering independent businesses and creators across four countries.</p>
             <a href="/demo" className="btn" style={{ background: 'transparent', color: '#fff', border: '1.5px solid rgba(255,255,255,0.4)' }}>See a live demo</a>
           </div>
           <div className="home-diag-phone">
@@ -261,7 +331,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
                 </div>
               </div>
             </div>
-            <span className="home-float-flag home-flag-2">{homeContent.stats.sellerCount}</span>
+            <span className="home-float-flag home-flag-2">Active in 4 Countries</span>
           </div>
         </div>
       </section>
@@ -321,7 +391,7 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               <span className="home-comm-dot" style={{ width: 30, height: 30, bottom: 24, left: 24, background: '#25D366', color: '#06331f' }}>S</span>
             </div>
             <h3>Real Community, Real Support</h3>
-            <p>{homeContent.stats.sellerCount} sharing what works — backed by a support team that actually replies.</p>
+            <p>A thriving merchant community sharing what works — backed by a support team that actually replies.</p>
             <a href="/docs" className="home-link-arrow">Join the community ›</a>
           </div>
         </div>
@@ -351,10 +421,10 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               <span className="home-price-icon"><ShoppingBag size={21} color="var(--primary)" /></span>
               <h3>Free</h3>
               <p className="home-price-amt">₦0</p>
-              <p className="home-price-desc">Everything to launch your first store and start taking orders.</p>
+              <p className="home-price-desc">Everything to launch your first store and start taking orders — free forever.</p>
               <ul className="home-price-feats">
                 <li><Check size={15} color="var(--primary)" strokeWidth={3} />1 storefront</li>
-                <li><Check size={15} color="var(--primary)" strokeWidth={3} />Unlimited products</li>
+                <li><Check size={15} color="var(--primary)" strokeWidth={3} />Up to 10 products</li>
                 <li><Check size={15} color="var(--primary)" strokeWidth={3} />WhatsApp checkout</li>
               </ul>
               <a href="/signup" className="btn btn-ghost" style={{ padding: '10px 18px', fontSize: 13 }}>Start Free</a>
@@ -363,26 +433,26 @@ export default function HomePageClient({ initialSettings }: { initialSettings?: 
               <span className="home-price-badge">Most popular</span>
               <span className="home-price-icon"><Zap size={21} color="#fff" fill="#fff" /></span>
               <h3>Pro</h3>
-              <p className="home-price-amt">₦2,000<span>/mo</span></p>
-              <p className="home-price-desc">For sellers ready to scale — broadcasts, AI listings, and more.</p>
+              <p className="home-price-amt">₦4,999<span>/mo</span></p>
+              <p className="home-price-desc">For sellers ready to scale — unlimited products, AI studio, and custom branding.</p>
               <ul className="home-price-feats">
                 <li><Check size={15} color="var(--primary)" strokeWidth={3} />Everything in Free</li>
-                <li><Check size={15} color="var(--primary)" strokeWidth={3} />AI listings with Nina</li>
-                <li><Check size={15} color="var(--primary)" strokeWidth={3} />Broadcast messages</li>
+                <li><Check size={15} color="var(--primary)" strokeWidth={3} />Unlimited products</li>
+                <li><Check size={15} color="var(--primary)" strokeWidth={3} />AI photo &amp; description generator</li>
               </ul>
               <a href="/signup?plan=pro" className="btn btn-primary" style={{ padding: '10px 18px', fontSize: 13 }}>Start Pro</a>
             </div>
-            <div className="home-price-card">
+            <div className="home-price-card home-price-legend home-price-business">
               <span className="home-price-icon"><Crown size={21} color="var(--primary)" /></span>
-              <h3>Legend</h3>
-              <p className="home-price-amt">₦7,000<span>/mo</span></p>
-              <p className="home-price-desc">Full power for high-volume stores and growing teams.</p>
+              <h3>Business</h3>
+              <p className="home-price-amt">₦14,999<span>/mo</span></p>
+              <p className="home-price-desc">Full power for high-volume stores, custom domain, and ad tracking.</p>
               <ul className="home-price-feats">
                 <li><Check size={15} color="var(--primary)" strokeWidth={3} />Everything in Pro</li>
                 <li><Check size={15} color="var(--primary)" strokeWidth={3} />Custom domain</li>
-                <li><Check size={15} color="var(--primary)" strokeWidth={3} />Dedicated support</li>
+                <li><Check size={15} color="var(--primary)" strokeWidth={3} />Ad pixel tracking &amp; priority support</li>
               </ul>
-              <a href="/signup?plan=legend" className="btn btn-ghost" style={{ padding: '10px 18px', fontSize: 13 }}>Start Legend</a>
+              <a href="/signup?plan=legend" className="btn btn-ghost" style={{ padding: '10px 18px', fontSize: 13 }}>Start Business</a>
             </div>
           </div>
           <p className="home-price-note">No transaction fees on any tier · <a href="/pricing" style={{ color: 'var(--primary-dark)', fontWeight: 700 }}>see full pricing ›</a></p>

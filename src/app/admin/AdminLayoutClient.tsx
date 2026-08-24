@@ -219,11 +219,14 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="admin-brand">
           <div className="admin-brand__logo-wrap">
             <img
-              src="/logo.png"
+              src="/logo.svg"
               alt={settings.app_name || 'Logo'}
               width={34}
               height={34}
               style={{ width: 34, height: 34, objectFit: 'contain', display: 'block' }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/logo.png';
+              }}
             />
           </div>
           <div className="admin-brand__text">

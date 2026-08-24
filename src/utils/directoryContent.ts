@@ -49,14 +49,12 @@ export function getDirectoryContent(
   const groupLabel = persona.name.toLowerCase();
 
   const metaTitle = `${persona.name} Sellers in ${state.name} | Frontstore`;
-  const metaDescription = storeCount > 0
-    ? `Browse ${storeCount} ${groupLabel} seller${storeCount === 1 ? '' : 's'} in ${state.name} on Frontstore. Order directly on WhatsApp — no middlemen.`
-    : `Find ${groupLabel} sellers in ${state.name} on Frontstore. Every store on this list takes orders directly on WhatsApp.`;
+  const metaDescription = `Browse verified ${groupLabel} sellers in ${state.name} on Frontstore. Order directly on WhatsApp — no middlemen.`;
 
   const headline = `${persona.name} in ${state.name}`;
 
   const intro = storeCount > 0
-    ? `${persona.summary} Below are ${storeCount} verified ${groupLabel} store${storeCount === 1 ? '' : 's'} operating out of ${state.name}, each running their own Frontstore storefront with WhatsApp checkout built in — no marketplace commission, no middleman.`
+    ? `${persona.summary} Below are verified ${groupLabel} stores operating out of ${state.name}, each running their own Frontstore storefront with WhatsApp checkout built in — no marketplace commission, no middleman.`
     : `${persona.summary} Frontstore doesn't yet have a ${groupLabel} store listed with ${state.name} as their location, but new stores join every week. Check the full ${persona.name.toLowerCase()} directory below or explore other categories in ${state.name}.`;
 
   const guideBullets = [
@@ -68,10 +66,8 @@ export function getDirectoryContent(
 
   const faqs = [
     {
-      question: `How many ${groupLabel} sellers are on Frontstore in ${state.name}?`,
-      answer: storeCount > 0
-        ? `There are currently ${storeCount} ${groupLabel} store${storeCount === 1 ? '' : 's'} on Frontstore listing ${state.name} as their base. This list updates automatically as new merchants join and set their location.`
-        : `None yet have ${state.name} set as their location, but the ${persona.name.toLowerCase()} category is active across other states — check the full directory or check back soon.`,
+      question: `How do I find verified ${groupLabel} sellers in ${state.name}?`,
+      answer: `Browse the list above and look for the "Verified Seller" badge. Frontstore verifies seller identities so you can order with confidence.`,
     },
     {
       question: `How do I order from a ${groupLabel} seller in ${state.name}?`,
@@ -110,14 +106,12 @@ export function getCityDirectoryContent(
   const groupLabel = persona.name.toLowerCase();
 
   const metaTitle = `Best ${persona.name} Sellers in ${city.name}, ${state.name} | Frontstore`;
-  const metaDescription = storeCount > 0
-    ? `Browse ${storeCount} verified ${groupLabel} store${storeCount === 1 ? '' : 's'} in ${city.name}, ${state.name} on Frontstore. Order directly on WhatsApp — no middlemen.`
-    : `Find ${groupLabel} sellers in ${city.name}, ${state.name} on Frontstore. Every store on this list takes orders directly on WhatsApp.`;
+  const metaDescription = `Browse verified ${groupLabel} stores in ${city.name}, ${state.name} on Frontstore. Order directly on WhatsApp — no middlemen.`;
 
   const headline = `${persona.name} in ${city.name}, ${state.name}`;
 
   const intro = storeCount > 0
-    ? `${persona.summary} Below are ${storeCount} verified ${groupLabel} store${storeCount === 1 ? '' : 's'} operating out of ${city.name}, ${state.name}, each running their own Frontstore storefront with WhatsApp checkout built in — no marketplace commission, no middleman.`
+    ? `${persona.summary} Below are verified ${groupLabel} stores operating out of ${city.name}, ${state.name}, each running their own Frontstore storefront with WhatsApp checkout built in — no marketplace commission, no middleman.`
     : `${persona.summary} Frontstore doesn't yet have a ${groupLabel} store listed with ${city.name}, ${state.name} as their location, but new stores join every week. Check the full state directory or explore other categories in ${city.name}.`;
 
   const guideBullets = [
@@ -129,10 +123,8 @@ export function getCityDirectoryContent(
 
   const faqs = [
     {
-      question: `How many ${groupLabel} sellers are on Frontstore in ${city.name}?`,
-      answer: storeCount > 0
-        ? `There are currently ${storeCount} ${groupLabel} store${storeCount === 1 ? '' : 's'} on Frontstore listing ${city.name} as their base. This list updates automatically as new merchants join and set their location.`
-        : `None yet have ${city.name} set as their location, but the ${persona.name.toLowerCase()} category is active across other cities — check the full directory or check back soon.`,
+      question: `How do I find verified ${groupLabel} sellers in ${city.name}?`,
+      answer: `Browse the list above and look for the "Verified Seller" badge. Frontstore verifies seller identities so you can order with confidence.`,
     },
     {
       question: `How do I order from a ${groupLabel} seller in ${city.name}?`,

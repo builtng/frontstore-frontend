@@ -26,7 +26,7 @@ export default function Logo({
       }}
     >
       <img 
-        src="/logo.png" 
+        src="/logo.svg" 
         alt={text}
         width={size}
         height={size}
@@ -35,6 +35,9 @@ export default function Logo({
           height: size,
           objectFit: 'contain',
           flexShrink: 0,
+        }}
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = '/logo.png';
         }}
       />
 

@@ -3,10 +3,12 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { ShoppingBag } from 'lucide-react';
+import { getOptimizedImageUrl, ImageSizeVariant } from '@/lib/image';
 
 export interface ProductImageProps {
   src?: string | null;
   alt: string;
+  variant?: ImageSizeVariant;
   aspectRatio?: '4/5' | '1/1' | '3/4' | '16/9' | string;
   fit?: 'cover' | 'contain';
   className?: string;
@@ -24,6 +26,7 @@ export interface ProductImageProps {
 export default function ProductImage({
   src,
   alt,
+  variant = 'md',
   aspectRatio = '4/5',
   fit = 'cover',
   className = '',
@@ -50,7 +53,8 @@ export default function ProductImage({
     return ratio;
   };
 
-  const cleanSrc = src ? src.trim() : null;
+  const optimizedSrc = src ? getOptimizedImageUrl(src, variant) : null;
+  const cleanSrc = optimizedSrc ? optimizedSrc.trim() : null;
   const showFallback = !cleanSrc || hasError;
 
   return (

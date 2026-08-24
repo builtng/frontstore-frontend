@@ -17,7 +17,9 @@ interface SearchableSelectProps {
   placeholder?: string;
   searchPlaceholder?: string;
   disabled?: boolean;
+  searchable?: boolean;
   style?: React.CSSProperties;
+  triggerStyle?: React.CSSProperties;
   className?: string;
   prefixIcon?: React.ReactNode;
 }
@@ -29,7 +31,9 @@ export default function SearchableSelect({
   placeholder = 'Select option...',
   searchPlaceholder = 'Search...',
   disabled = false,
+  searchable = true,
   style = {},
+  triggerStyle = {},
   className = '',
   prefixIcon,
 }: SearchableSelectProps) {
@@ -58,20 +62,22 @@ export default function SearchableSelect({
       setSearchQuery('');
     } else {
       setActiveIndex(0);
-      // Focus search input after transition/open
-      const timer = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 60);
-      return () => clearTimeout(timer);
+      if (searchable) {
+        // Focus search input after transition/open
+        const timer = setTimeout(() => {
+          inputRef.current?.focus();
+        }, 60);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, searchable]);
 
   const selectedOption = options.find(opt => opt.value === value);
 
-  const filteredOptions = options.filter(opt =>
+  const filteredOptions = searchable ? options.filter(opt =>
     opt.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (opt.sublabel && opt.sublabel.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  ) : options;
 
   // Keep activeIndex within bounds when filtered results change
   useEffect(() => {
@@ -171,6 +177,7 @@ export default function SearchableSelect({
           transition: 'all var(--t-fast) var(--ease)',
           textAlign: 'left',
           fontWeight: 500,
+          ...triggerStyle,
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
@@ -204,71 +211,74 @@ export default function SearchableSelect({
             top: 'calc(100% + 6px)',
             left: 0,
             right: 0,
+            minWidth: '100%',
             background: 'var(--surface)',
             border: '1.5px solid var(--border)',
             borderRadius: 'var(--r-lg)',
             boxShadow: 'var(--shadow-lg)',
             zIndex: 9999,
-            padding: '8px',
+            padding: '6px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px',
+            gap: '4px',
             animation: 'slideDown var(--t-fast) var(--ease) both',
           }}
         >
-          {/* Search Box Input */}
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Search
-              size={14}
-              style={{
-                position: 'absolute',
-                left: '12px',
-                color: 'var(--text-faint)',
-                pointerEvents: 'none'
-              }}
-            />
-            <input
-              ref={inputRef}
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onClick={e => e.stopPropagation()}
-              style={{
-                width: '100%',
-                padding: '10px 12px 10px 34px',
-                background: 'var(--bg-2)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--r-md)',
-                fontSize: '13px',
-                color: 'var(--text)',
-                outline: 'none',
-                transition: 'border-color var(--t-fast) var(--ease)',
-              }}
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSearchQuery('');
-                }}
+          {/* Search Box Input (only if searchable) */}
+          {searchable && (
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <Search
+                size={14}
                 style={{
                   position: 'absolute',
-                  right: '10px',
-                  background: 'none',
-                  border: 'none',
+                  left: '12px',
                   color: 'var(--text-faint)',
-                  cursor: 'pointer',
-                  padding: 2,
-                  display: 'flex',
-                  alignItems: 'center'
+                  pointerEvents: 'none'
                 }}
-              >
-                <X size={12} />
-              </button>
-            )}
-          </div>
+              />
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder={searchPlaceholder}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onClick={e => e.stopPropagation()}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px 10px 34px',
+                  background: 'var(--bg-2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--r-md)',
+                  fontSize: '13px',
+                  color: 'var(--text)',
+                  outline: 'none',
+                  transition: 'border-color var(--t-fast) var(--ease)',
+                }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSearchQuery('');
+                  }}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-faint)',
+                    cursor: 'pointer',
+                    padding: 2,
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Options list container */}
           <div

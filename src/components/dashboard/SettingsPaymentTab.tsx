@@ -6,6 +6,7 @@ import {
   AlertCircle, Loader2, Truck, Zap,
 } from 'lucide-react';
 import Toggle from '../Toggle';
+import SearchableSelect from '../SearchableSelect';
 import { getCurrencySymbol } from '@/utils/currency';
 import type { StoreInfo, UserInfo } from '@/types/dashboard';
 
@@ -93,9 +94,9 @@ export default function SettingsPaymentTab({
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
           <div style={{
             width: 44, height: 44, borderRadius: 'var(--r-md)',
-            background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(37, 211, 102, 0.35)', flexShrink: 0
+            boxShadow: '0 4px 16px var(--primary-light)', flexShrink: 0
           }}>
             <DollarSign size={22} color="#fff" />
           </div>
@@ -173,35 +174,36 @@ export default function SettingsPaymentTab({
       ) : (
       <div className="card" style={{ padding: 28 }}>
 
-        {/* Card Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+        {/* Main Card Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, paddingBottom: 18, borderBottom: '1px solid var(--border)' }}>
           <div style={{
             width: 44, height: 44, borderRadius: 'var(--r-md)',
-            background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(37, 211, 102, 0.35)', flexShrink: 0
+            boxShadow: '0 4px 16px var(--primary-light)', flexShrink: 0
           }}>
             <DollarSign size={22} color="#fff" />
           </div>
           <div>
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, lineHeight: 1.2 }}>
-              Withdrawal & Payout Bank Details
+              Withdrawal &amp; Payout Settings
             </h2>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-              Configure the bank account where your store earnings are paid. Customer payments will be made to your dedicated virtual account or via standard Paystack checkout.
+              Configure your bank payout destination, checkout payment instructions, and delivery rates.
             </p>
           </div>
         </div>
 
-        {/* Step 1: Bank selector */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+          {/* Dedicated Virtual Account Banner */}
           <div style={{
-            padding: 18,
+            padding: 20,
             borderRadius: 'var(--r-xl)',
-            border: '1.5px solid var(--border)',
+            border: '1px solid var(--border)',
             background: store?.paystack_dva_active
               ? 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(15,23,42,0.03))'
-              : 'var(--surface-2)',
+              : 'var(--card-hover)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -211,7 +213,7 @@ export default function SettingsPaymentTab({
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                 <Landmark size={18} color="var(--primary)" />
-                <strong style={{ fontSize: 14.5 }}>Dedicated Paystack account</strong>
+                <strong style={{ fontSize: 14.5 }}>Dedicated Paystack Account</strong>
                 {store?.paystack_dva_active && (
                   <span className="badge badge-primary" style={{ fontSize: 10 }}>Active</span>
                 )}
@@ -243,7 +245,7 @@ export default function SettingsPaymentTab({
                 handleGenerateDedicatedAccount();
               }}
               disabled={isGeneratingDedicatedAccount}
-              style={{ padding: '11px 16px', borderRadius: 'var(--r-lg)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
+              style={{ padding: '11px 18px', borderRadius: 'var(--r-lg)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
             >
               {isGeneratingDedicatedAccount ? (
                 <><Loader2 size={15} className="spinner" /> Generating...</>
@@ -257,354 +259,379 @@ export default function SettingsPaymentTab({
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-
-            {/* Bank Searchable Dropdown */}
-            <div style={{ position: 'relative' }}>
-              <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
-                Bank / Provider
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  value={paymentBankName}
-                  onChange={e => {
-                    setPaymentBankName(e.target.value);
-                    setPaymentBankCode('');
-                    setPaymentAccountName('');
-                    setAccountVerified(false);
-                    setNameMatchOk(null);
-                    setVerifyError('');
-                    setBankDropdownOpen(true);
-                  }}
-                  onFocus={() => setBankDropdownOpen(true)}
-                  className="input-field"
-                  placeholder={bankList.length > 0 ? 'Search bank or provider...' : 'Loading banks...'}
-                  id="payment-bank-name"
-                  autoComplete="off"
-                />
-                <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+          {/* Section 1: Manual Bank Payout Details */}
+          <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20, background: 'var(--card-hover)', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--card)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--primary)' }}>
+                <Landmark size={18} />
               </div>
-              {/* Bank dropdown list */}
-              {bankDropdownOpen && (() => {
-                const q = paymentBankName.toLowerCase();
-                const filtered = bankList.filter(b => b.name.toLowerCase().includes(q));
-                if (filtered.length === 0) return null;
-                return (
-                  <div style={{
-                    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 300,
-                    background: 'var(--surface)', border: '1.5px solid var(--border)',
-                    borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-lg)',
-                    maxHeight: 230, overflowY: 'auto', marginTop: 4,
-                  }}>
-                    {filtered.map((bank, i) => (
-                      <button
-                        key={bank.code}
-                        type="button"
-                        onMouseDown={e => {
-                          e.preventDefault();
-                          setPaymentBankName(bank.name);
-                          setPaymentBankCode(bank.code);
-                          setBankDropdownOpen(false);
-                          // Auto-resolve if account number already entered
-                          if (paymentAccountNumber.length === 10) {
-                            resolveAccountName(paymentAccountNumber, bank.code);
-                          }
-                        }}
-                        style={{
-                          width: '100%', textAlign: 'left', background: 'none',
-                          border: 'none', padding: '10px 14px', fontSize: 13.5,
-                          fontWeight: 600, cursor: 'pointer', color: 'var(--text)',
-                          borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
-                          display: 'flex', alignItems: 'center', gap: 8,
-                          transition: 'background var(--t-fast)',
-                        }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-2)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                      >
-                        <Landmark size={16} color="var(--text-muted)" />
-                        <span style={{ flex: 1 }}>{bank.name}</span>
-                        <span style={{ fontSize: 11, color: 'var(--text-faint)', fontFamily: 'monospace' }}>{bank.code}</span>
-                      </button>
-                    ))}
-                  </div>
-                );
-              })()}
-              {paymentBankCode && (
-                <span style={{ fontSize: 11, color: 'var(--primary)', fontWeight: 700, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Check size={11} /> Bank selected
-                </span>
-              )}
-            </div>
-
-            {/* Account Number — auto-resolves on 10 digits */}
-            <div>
-              <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
-                Account Number
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={10}
-                  value={paymentAccountNumber}
-                  onChange={e => {
-                    const val = e.target.value.replace(/\D/g, '');
-                    setPaymentAccountNumber(val);
-                    setPaymentAccountName('');
-                    setAccountVerified(false);
-                    setNameMatchOk(null);
-                    setVerifyError('');
-                    if (val.length === 10 && paymentBankCode) {
-                      resolveAccountName(val, paymentBankCode);
-                    }
-                  }}
-                  className="input-field"
-                  placeholder="10-digit account number"
-                  id="payment-account-number"
-                  style={{
-                    paddingRight: 44,
-                    fontFamily: 'monospace',
-                    letterSpacing: '0.08em',
-                    fontSize: 15,
-                    borderColor: accountVerified ? '#25D366' : undefined,
-                  }}
-                />
-                {/* Right-side indicator */}
-                <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
-                  {isVerifying ? (
-                    <Loader2 size={15} className="spinner" style={{ color: 'var(--primary)' }} />
-                  ) : accountVerified ? (
-                    <span style={{ color: '#25D366', display: 'flex' }}><CheckCircle2 size={17} /></span>
-                  ) : paymentAccountNumber.length === 10 && paymentBankCode ? (
-                    <span style={{ color: 'var(--danger)', display: 'flex' }}><AlertCircle size={17} /></span>
-                  ) : null}
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 800 }}>Bank Account Details</div>
+                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>
+                  Receiving bank account for manual transfers and Paystack settlements.
                 </div>
               </div>
-              {/* Resolve status messages */}
-              {isVerifying && (
-                <p style={{ fontSize: 11.5, color: 'var(--primary)', marginTop: 5, fontWeight: 600 }}>⏳ Verifying account with Paystack...</p>
-              )}
-              {verifyError && !isVerifying && (
-                <p style={{ fontSize: 11.5, color: 'var(--danger)', marginTop: 5, fontWeight: 600 }}>⚠️ {verifyError}</p>
-              )}
-              {!paymentBankCode && paymentAccountNumber.length > 0 && (
-                <p style={{ fontSize: 11.5, color: 'var(--accent)', marginTop: 5, fontWeight: 600 }}>⬆️ Please select a bank first.</p>
-              )}
             </div>
 
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+              {/* Bank Searchable Dropdown */}
+              <div style={{ position: 'relative' }}>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                  Bank / Provider
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={paymentBankName}
+                    onChange={e => {
+                      setPaymentBankName(e.target.value);
+                      setPaymentBankCode('');
+                      setPaymentAccountName('');
+                      setAccountVerified(false);
+                      setNameMatchOk(null);
+                      setVerifyError('');
+                      setBankDropdownOpen(true);
+                    }}
+                    onFocus={() => setBankDropdownOpen(true)}
+                    className="input-field"
+                    placeholder={bankList.length > 0 ? 'Search bank or provider...' : 'Loading banks...'}
+                    id="payment-bank-name"
+                    autoComplete="off"
+                    style={{ height: 42, fontSize: 13.5 }}
+                  />
+                  <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+                </div>
+                {/* Bank dropdown list */}
+                {bankDropdownOpen && (() => {
+                  const q = paymentBankName.toLowerCase();
+                  const filtered = bankList.filter(b => b.name.toLowerCase().includes(q));
+                  if (filtered.length === 0) return null;
+                  return (
+                    <div style={{
+                      position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 300,
+                      background: 'var(--surface)', border: '1.5px solid var(--border)',
+                      borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-lg)',
+                      maxHeight: 230, overflowY: 'auto', marginTop: 4,
+                    }}>
+                      {filtered.map((bank, i) => (
+                        <button
+                          key={bank.code}
+                          type="button"
+                          onMouseDown={e => {
+                            e.preventDefault();
+                            setPaymentBankName(bank.name);
+                            setPaymentBankCode(bank.code);
+                            setBankDropdownOpen(false);
+                            if (paymentAccountNumber.length === 10) {
+                              resolveAccountName(paymentAccountNumber, bank.code);
+                            }
+                          }}
+                          style={{
+                            width: '100%', textAlign: 'left', background: 'none',
+                            border: 'none', padding: '10px 14px', fontSize: 13.5,
+                            fontWeight: 600, cursor: 'pointer', color: 'var(--text)',
+                            borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            transition: 'background var(--t-fast)',
+                          }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-2)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                        >
+                          <Landmark size={16} color="var(--text-muted)" />
+                          <span style={{ flex: 1 }}>{bank.name}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-faint)', fontFamily: 'monospace' }}>{bank.code}</span>
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+                {paymentBankCode && (
+                  <span style={{ fontSize: 11, color: 'var(--primary)', fontWeight: 700, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Check size={11} /> Bank selected
+                  </span>
+                )}
+              </div>
+
+              {/* Account Number */}
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                  Account Number
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={paymentAccountNumber}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      setPaymentAccountNumber(val);
+                      setPaymentAccountName('');
+                      setAccountVerified(false);
+                      setNameMatchOk(null);
+                      setVerifyError('');
+                      if (val.length === 10 && paymentBankCode) {
+                        resolveAccountName(val, paymentBankCode);
+                      }
+                    }}
+                    className="input-field"
+                    placeholder="10-digit account number"
+                    id="payment-account-number"
+                    style={{
+                      height: 42,
+                      paddingRight: 44,
+                      fontFamily: 'monospace',
+                      letterSpacing: '0.08em',
+                      fontSize: 15,
+                      borderColor: accountVerified ? '#25D366' : undefined,
+                    }}
+                  />
+                  <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
+                    {isVerifying ? (
+                      <Loader2 size={15} className="spinner" style={{ color: 'var(--primary)' }} />
+                    ) : accountVerified ? (
+                      <span style={{ color: '#25D366', display: 'flex' }}><CheckCircle2 size={17} /></span>
+                    ) : paymentAccountNumber.length === 10 && paymentBankCode ? (
+                      <span style={{ color: 'var(--danger)', display: 'flex' }}><AlertCircle size={17} /></span>
+                    ) : null}
+                  </div>
+                </div>
+                {isVerifying && (
+                  <p style={{ fontSize: 11.5, color: 'var(--primary)', marginTop: 5, fontWeight: 600 }}>⏳ Verifying account with Paystack...</p>
+                )}
+                {verifyError && !isVerifying && (
+                  <p style={{ fontSize: 11.5, color: 'var(--danger)', marginTop: 5, fontWeight: 600 }}>⚠️ {verifyError}</p>
+                )}
+                {!paymentBankCode && paymentAccountNumber.length > 0 && (
+                  <p style={{ fontSize: 11.5, color: 'var(--accent)', marginTop: 5, fontWeight: 600 }}>⬆️ Please select a bank first.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Verified Account Name banner */}
+            {(accountVerified || isVerifying) && (
+              <div style={{
+                padding: '14px 18px',
+                borderRadius: 'var(--r-md)',
+                border: `1.5px solid ${nameMatchOk === false ? 'var(--danger)' : '#25D366'}`,
+                background: nameMatchOk === false ? 'rgba(239,68,68,0.06)' : 'rgba(37, 211, 102, 0.07)',
+                display: 'flex', flexDirection: 'column', gap: 6,
+                transition: 'all 0.3s'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <div>
+                    <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>Verified Account Name</span>
+                    <p style={{ fontSize: 15, fontWeight: 900, marginTop: 2, color: 'var(--text)', fontFamily: 'var(--font-heading)' }}>
+                      {paymentAccountName || '...'}
+                    </p>
+                  </div>
+                  {nameMatchOk === true && (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      background: '#25D366', color: '#fff',
+                      padding: '4px 10px', borderRadius: 'var(--r-full)',
+                      fontSize: 11.5, fontWeight: 800
+                    }}>
+                      <Check size={12} /> Name Verified
+                    </span>
+                  )}
+                  {nameMatchOk === false && (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      background: 'var(--danger)', color: '#fff',
+                      padding: '4px 10px', borderRadius: 'var(--r-full)',
+                      fontSize: 11.5, fontWeight: 800
+                    }}>
+                      <AlertCircle size={12} /> Name Mismatch
+                    </span>
+                  )}
+                </div>
+                {nameMatchOk === false && (
+                  <p style={{ fontSize: 11.5, color: 'var(--danger)', fontWeight: 600, marginTop: 2, lineHeight: 1.4 }}>
+                    ⚠️ Account name <strong>{paymentAccountName}</strong> does not match profile name <strong>{user?.name}</strong>.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Verified Account Name — read-only result */}
-          {(accountVerified || isVerifying) && (
-            <div style={{
-              padding: '16px 20px',
-              borderRadius: 'var(--r-lg)',
-              border: `2px solid ${nameMatchOk === false ? 'var(--danger)' : '#25D366'}`,
-              background: nameMatchOk === false ? 'rgba(239,68,68,0.06)' : 'rgba(37, 211, 102, 0.07)',
-              display: 'flex', flexDirection: 'column', gap: 6,
-              transition: 'all 0.3s'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <div>
-                  <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>Verified Account Name</span>
-                  <p style={{ fontSize: 16, fontWeight: 900, marginTop: 2, color: 'var(--text)', fontFamily: 'var(--font-heading)' }}>
-                    {paymentAccountName || '...'}
-                  </p>
-                </div>
-                {nameMatchOk === true && (
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                    background: '#25D366', color: '#fff',
-                    padding: '5px 12px', borderRadius: 'var(--r-full)',
-                    fontSize: 12, fontWeight: 800
-                  }}>
-                    <Check size={13} /> Name Match
-                  </span>
-                )}
-                {nameMatchOk === false && (
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                    background: 'var(--danger)', color: '#fff',
-                    padding: '5px 12px', borderRadius: 'var(--r-full)',
-                    fontSize: 12, fontWeight: 800
-                  }}>
-                    <AlertCircle size={13} /> Mismatch
-                  </span>
-                )}
+          {/* Section 2: Payment Instructions */}
+          <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20, background: 'var(--card-hover)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div>
+              <div style={{ fontSize: 13.5, fontWeight: 800 }}>Payment Instructions <span style={{ fontWeight: 500, color: 'var(--text-faint)', fontSize: 11 }}>(optional)</span></div>
+              <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                Custom instructions shown to buyers on the confirmation screen after checkout.
               </div>
-              {nameMatchOk === false && (
-                <p style={{ fontSize: 12, color: 'var(--danger)', fontWeight: 600, marginTop: 4, lineHeight: 1.5 }}>
-                  ⚠️ The verified name <strong>{paymentAccountName}</strong> does not match your registered name (<strong>{user?.name}</strong>) or store name. Please use a bank account that matches your identity.
-                </p>
-              )}
-              {nameMatchOk === true && (
-                <p style={{ fontSize: 12, color: '#25D366', fontWeight: 600, marginTop: 2 }}>
-                  ✅ Account verified — name matches your profile. You can save.
-                </p>
-              )}
             </div>
-          )}
-
-          {/* Payment Instructions */}
-          <div>
-            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
-              Payment Instructions <span style={{ fontWeight: 500, textTransform: 'none', color: 'var(--text-faint)', fontSize: 11 }}>(optional)</span>
-            </label>
             <textarea
               rows={2}
               value={paymentInstructions}
               onChange={e => setPaymentInstructions(e.target.value)}
               className="input-field"
-              style={{ resize: 'vertical' }}
-              placeholder="e.g. Send payment screenshot to WhatsApp after transfer."
+              style={{ resize: 'vertical', fontSize: 13 }}
+              placeholder="e.g. Please send payment screenshot to WhatsApp (+234...) after bank transfer."
               id="payment-instructions"
             />
-            <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, display: 'block' }}>Shown to buyers after checkout so they know next steps.</span>
           </div>
 
-          {/* Shipping & Delivery Fees */}
-          <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20, background: 'var(--card-hover)', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Truck size={17} color="#fff" />
+          {/* Section 3: Shipping & Delivery Fees */}
+          {store?.business_persona === 'creator-digital' || store?.store_template === 'digital-studio' ? (
+            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20, background: 'var(--card-hover)', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--card)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Truck size={17} color="var(--text-muted)" />
               </div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 800 }}>Shipping &amp; Delivery Fees</div>
-                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>
-                  Frontstore never covers delivery costs — whatever you charge here is what the customer pays at checkout.
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700 }}>Physical Shipping (Digital Store)</div>
+                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                  Your store is configured for instant digital downloads. Delivery fees are automatically skipped at checkout.
                 </div>
               </div>
             </div>
+          ) : (
+            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20, background: 'var(--card-hover)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Truck size={17} color="#fff" />
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 800 }}>Shipping &amp; Delivery Fees</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>
+                    Set the delivery fee added to your customer's order total at checkout.
+                  </div>
+                </div>
+              </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Shipping Type</label>
-              <select
-                value={shippingType}
-                onChange={e => setShippingType(e.target.value)}
-                className="input"
-                id="shipping-type"
-              >
-                <option value="customer_pays">Customer pays shipping (default)</option>
-                <option value="free">Free shipping</option>
-                <option value="free_above_threshold">Free shipping above an order amount</option>
-                <option value="flat_rate">Flat-rate shipping</option>
-                <option value="custom">Custom rules by order amount</option>
-              </select>
-            </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Shipping Rate Structure</label>
+                <SearchableSelect
+                  value={shippingType}
+                  onChange={v => setShippingType(v)}
+                  searchable={false}
+                  options={[
+                    { value: 'customer_pays', label: 'Standard flat delivery fee' },
+                    { value: 'free', label: 'Free delivery (₦0.00)' },
+                    { value: 'free_above_threshold', label: 'Free delivery above order threshold' },
+                    { value: 'flat_rate', label: 'Flat rate per order' },
+                    { value: 'custom', label: 'Custom rates by order total' },
+                  ]}
+                />
+              </div>
 
-            {(shippingType === 'customer_pays' || shippingType === 'flat_rate' || shippingType === 'free_above_threshold') && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                {shippingType === 'free_above_threshold' && (
+              {(shippingType === 'customer_pays' || shippingType === 'flat_rate' || shippingType === 'free_above_threshold') && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  {shippingType === 'free_above_threshold' && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>
+                        Free Above ({getCurrencySymbol(store?.currency_code)})
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={shippingFreeThreshold}
+                        onChange={e => setShippingFreeThreshold(e.target.value)}
+                        className="input"
+                        placeholder="e.g. 50000"
+                        id="shipping-free-threshold"
+                        style={{ height: 42, fontSize: 13.5 }}
+                      />
+                    </div>
+                  )}
                   <div>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>
-                      Free Above ({getCurrencySymbol(store?.currency_code)})
+                      {shippingType === 'free_above_threshold' ? 'Fee Below Threshold' : 'Shipping Fee'} ({getCurrencySymbol(store?.currency_code)})
                     </label>
                     <input
                       type="number"
                       min={0}
                       step="0.01"
-                      value={shippingFreeThreshold}
-                      onChange={e => setShippingFreeThreshold(e.target.value)}
+                      value={shippingFlatFee}
+                      onChange={e => setShippingFlatFee(e.target.value)}
                       className="input"
-                      placeholder="e.g. 50000"
-                      id="shipping-free-threshold"
+                      placeholder="e.g. 2500"
+                      id="shipping-flat-fee"
+                      style={{ height: 42, fontSize: 13.5 }}
                     />
                   </div>
-                )}
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>
-                    {shippingType === 'free_above_threshold' ? 'Fee Below Threshold' : 'Shipping Fee'} ({getCurrencySymbol(store?.currency_code)})
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={shippingFlatFee}
-                    onChange={e => setShippingFlatFee(e.target.value)}
-                    className="input"
-                    placeholder="e.g. 2500"
-                    id="shipping-flat-fee"
-                  />
                 </div>
-              </div>
-            )}
+              )}
 
-            {shippingType === 'custom' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
-                  Charge different fees depending on the order subtotal. The highest threshold the order clears wins.
-                </span>
-                {shippingCustomRules.map((rule, idx) => (
-                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 10, alignItems: 'center' }}>
-                    <input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={rule.min_subtotal}
-                      onChange={e => setShippingCustomRules(prev => prev.map((r, i) => i === idx ? { ...r, min_subtotal: e.target.value } : r))}
-                      className="input"
-                      placeholder={`Order total ≥ (${getCurrencySymbol(store?.currency_code)})`}
-                    />
-                    <input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={rule.fee}
-                      onChange={e => setShippingCustomRules(prev => prev.map((r, i) => i === idx ? { ...r, fee: e.target.value } : r))}
-                      className="input"
-                      placeholder={`Fee (${getCurrencySymbol(store?.currency_code)})`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShippingCustomRules(prev => prev.filter((_, i) => i !== idx))}
-                      className="btn btn-outline"
-                      style={{ padding: '8px 12px' }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setShippingCustomRules(prev => [...prev, { min_subtotal: '', fee: '' }])}
-                  className="btn btn-outline"
-                  style={{ alignSelf: 'flex-start' }}
-                >
-                  + Add rule
-                </button>
-              </div>
-            )}
+              {shippingType === 'custom' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                    Charge different fees depending on the order subtotal. The highest threshold the order clears wins.
+                  </span>
+                  {shippingCustomRules.map((rule, idx) => (
+                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 10, alignItems: 'center' }}>
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={rule.min_subtotal}
+                        onChange={e => setShippingCustomRules(prev => prev.map((r, i) => i === idx ? { ...r, min_subtotal: e.target.value } : r))}
+                        className="input"
+                        placeholder={`Order total ≥ (${getCurrencySymbol(store?.currency_code)})`}
+                      />
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={rule.fee}
+                        onChange={e => setShippingCustomRules(prev => prev.map((r, i) => i === idx ? { ...r, fee: e.target.value } : r))}
+                        className="input"
+                        placeholder={`Fee (${getCurrencySymbol(store?.currency_code)})`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShippingCustomRules(prev => prev.filter((_, i) => i !== idx))}
+                        className="btn btn-outline"
+                        style={{ padding: '8px 12px' }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setShippingCustomRules(prev => [...prev, { min_subtotal: '', fee: '' }])}
+                    className="btn btn-outline"
+                    style={{ alignSelf: 'flex-start' }}
+                  >
+                    + Add rule
+                  </button>
+                </div>
+              )}
 
-            <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>
-                Handling Fee ({getCurrencySymbol(store?.currency_code)}) <span style={{ fontWeight: 500, textTransform: 'none', color: 'var(--text-faint)', fontSize: 11 }}>(optional, added on top)</span>
-              </label>
-              <input
-                type="number"
-                min={0}
-                step="0.01"
-                value={shippingHandlingFee}
-                onChange={e => setShippingHandlingFee(e.target.value)}
-                className="input"
-                placeholder="e.g. 500"
-                id="shipping-handling-fee"
-                style={{ maxWidth: 220 }}
-              />
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>
+                  Handling Fee ({getCurrencySymbol(store?.currency_code)}) <span style={{ fontWeight: 500, textTransform: 'none', color: 'var(--text-faint)', fontSize: 11 }}>(optional, added on top)</span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={shippingHandlingFee}
+                  onChange={e => setShippingHandlingFee(e.target.value)}
+                  className="input"
+                  placeholder="e.g. 500"
+                  id="shipping-handling-fee"
+                  style={{ maxWidth: 240, height: 42, fontSize: 13.5 }}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* MTN MoMo Agent — only shown in supported countries */}
+          {/* Section 4: MTN MoMo Agent */}
           {['NG','GH','UG','CM','CI','BJ','SN'].includes((store?.country_code || '').toUpperCase()) && (
           <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20, background: 'var(--card-hover)', display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#FFCC00,#FF6600)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontSize: 17 }}>📲</span>
+                <div style={{ width: 38, height: 38, borderRadius: 11, background: 'linear-gradient(135deg,#FFCC00,#FF6600)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 12px rgba(255,102,0,0.2)' }}>
+                  <span style={{ fontSize: 18 }}>📲</span>
                 </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 800 }}>MTN MoMo Agent</div>
-                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>Customers pay directly to your mobile money number</div>
+                  <div style={{ fontSize: 14, fontWeight: 800 }}>MTN MoMo Mobile Money</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>Allow customers to pay directly to your mobile money account</div>
                 </div>
               </div>
               <Toggle
@@ -615,20 +642,20 @@ export default function SettingsPaymentTab({
             </div>
 
             {momoAgentEnabled && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4, borderTop: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>Network</label>
-                  <select
+                  <SearchableSelect
                     value={momoAgentNetwork}
-                    onChange={e => setMomoAgentNetwork(e.target.value)}
-                    className="input"
-                    id="momo-agent-network"
-                  >
-                    <option value="mtn">MTN MoMo</option>
-                    <option value="vodafone">Vodafone Cash</option>
-                    <option value="airtel">Airtel Money</option>
-                    <option value="tigo">Tigo Cash</option>
-                  </select>
+                    onChange={v => setMomoAgentNetwork(v)}
+                    searchable={false}
+                    options={[
+                      { value: 'mtn', label: 'MTN MoMo' },
+                      { value: 'vodafone', label: 'Vodafone Cash' },
+                      { value: 'airtel', label: 'Airtel Money' },
+                      { value: 'tigo', label: 'Tigo Cash' },
+                    ]}
+                  />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
@@ -641,6 +668,7 @@ export default function SettingsPaymentTab({
                       placeholder="e.g. 0241234567"
                       maxLength={15}
                       id="momo-agent-number"
+                      style={{ height: 42, fontSize: 13.5 }}
                     />
                   </div>
                   <div>
@@ -650,40 +678,66 @@ export default function SettingsPaymentTab({
                       value={momoAgentName}
                       onChange={e => setMomoAgentName(e.target.value)}
                       className="input"
-                      placeholder="e.g. John's Fashion Store"
+                      placeholder="e.g. John's Store"
                       maxLength={120}
                       id="momo-agent-name"
+                      style={{ height: 42, fontSize: 13.5 }}
                     />
                   </div>
                 </div>
-                <div style={{ background: 'rgba(255,204,0,0.08)', border: '1px solid rgba(255,204,0,0.25)', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>
-                  💡 When enabled, customers will see your MoMo number and payment instructions immediately after checkout. You confirm payment manually in the Orders section.
+                <div style={{ background: 'rgba(255,204,0,0.1)', border: '1px solid rgba(255,204,0,0.3)', borderRadius: 10, padding: '10px 14px', fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>
+                  💡 Customers see your MoMo details after checkout and upload transfer confirmation.
                 </div>
               </div>
             )}
           </div>
           )}
 
-          {/* Save Button */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', paddingTop: 4 }}>
-            <button
-              onClick={handleSettingsSave as any}
-              disabled={settingsSaving || !accountVerified || nameMatchOk === false}
-              className="btn btn-primary clickable"
-              style={{ padding: '13px 28px', borderRadius: 'var(--r-xl)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8 }}
-            >
-              {settingsSaving ? <><Loader2 size={16} className="spinner" /> Saving...</> : <><CreditCard size={16} /> Save Payment Details</>}
-            </button>
-            {!accountVerified && (
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
-                Account must be verified before saving.
-              </span>
-            )}
-            {accountVerified && nameMatchOk === false && (
-              <span style={{ fontSize: 12, color: 'var(--danger)', fontWeight: 700 }}>
-                Name mismatch — cannot save until resolved.
-              </span>
-            )}
+          {/* Section 5: Save Action Footer */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+            paddingTop: 16, borderTop: '1px solid var(--border)', flexWrap: 'wrap'
+          }}>
+            {(() => {
+              const isEnteringBankDetails = paymentAccountNumber.trim().length > 0 || paymentBankCode.trim().length > 0;
+              const isUnverifiedBank = isEnteringBankDetails && !accountVerified;
+              const isNameMismatch = isEnteringBankDetails && nameMatchOk === false;
+              const isSaveDisabled = settingsSaving || isUnverifiedBank || isNameMismatch;
+
+              return (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {isUnverifiedBank && (
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
+                        ⚠️ Verify bank account number before saving.
+                      </span>
+                    )}
+                    {isNameMismatch && (
+                      <span style={{ fontSize: 12, color: 'var(--danger)', fontWeight: 700 }}>
+                        ⚠️ Name mismatch — please use a matching bank account.
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={handleSettingsSave as any}
+                    disabled={isSaveDisabled}
+                    className="btn btn-primary clickable"
+                    style={{
+                      padding: '12px 28px', height: 44, borderRadius: 'var(--r-md)',
+                      fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8,
+                      fontSize: 13.5, marginLeft: 'auto'
+                    }}
+                  >
+                    {settingsSaving ? (
+                      <><Loader2 size={16} className="spinner" /> Saving Changes...</>
+                    ) : (
+                      <><CreditCard size={16} /> Save Payment &amp; Shipping Details</>
+                    )}
+                  </button>
+                </>
+              );
+            })()}
           </div>
 
         </div>

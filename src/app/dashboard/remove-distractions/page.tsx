@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Loader2, Sparkles, Save, EyeOff, LayoutGrid, BarChart3,
   ShoppingBag, Package, Tag, Users, DollarSign, Link, Share2, QrCode,
-  Star, BookOpen, Clock, Calendar, Settings, Plug, Zap, Menu, X, LogOut,
-  Archive, FileText, Receipt,
+  Star, Menu, X, LogOut, Archive, FileText, Receipt, Copy, ExternalLink, Check,
+  Search, ChevronDown, Zap, ArrowRight, Settings, Plug, ArrowUpRight,
 } from 'lucide-react';
 import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
 import ThemeToggle from '../../../components/ThemeToggle';
@@ -16,38 +16,58 @@ import Toggle from '../../../components/Toggle';
 interface StoreShape {
   store_name?: string;
   username?: string;
+  custom_domain?: string | null;
+  logo_url?: string | null;
+  currency_code?: string | null;
   is_pro?: boolean;
   is_legend?: boolean;
   hidden_dashboard_items?: string[] | null;
   plan_dashboard_items?: string[] | null;
 }
 
-const NAV_ITEMS: { id: string; label: string; icon: React.ReactNode }[] = [
-  { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={18} /> },
-  { id: 'orders', label: 'My Orders', icon: <ShoppingBag size={18} /> },
-  { id: 'products', label: 'My Products', icon: <Package size={18} /> },
-  { id: 'inventory', label: 'Inventory', icon: <Archive size={18} /> },
-  { id: 'coupons', label: 'Store Coupons', icon: <Tag size={18} /> },
-  { id: 'customers', label: 'Customers', icon: <Users size={18} /> },
-  { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={18} /> },
-  { id: 'payment-links', label: 'Payment Links', icon: <Link size={18} /> },
-  { id: 'invoices', label: 'Invoices', icon: <FileText size={18} /> },
-  { id: 'receipts', label: 'Receipts', icon: <Receipt size={18} /> },
-  { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={18} /> },
-  { id: 'share', label: 'Share & Earn', icon: <Share2 size={18} /> },
-  { id: 'qr', label: 'My QR Code', icon: <QrCode size={18} /> },
-  { id: 'reviews', label: 'Customer Reviews', icon: <Star size={18} /> },
-  { id: 'blog', label: 'Blog Posts', icon: <BookOpen size={18} /> },
-  { id: 'availability', label: 'Availability', icon: <Clock size={18} /> },
-  { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} /> },
-  { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
-  { id: 'integrations', label: 'Integrations', icon: <Plug size={18} /> },
-  { id: 'billing', label: 'Plans & Billing', icon: <Zap size={18} /> },
+interface UserShape {
+  id?: number;
+  name?: string;
+  email?: string;
+  plan?: string;
+  role?: string;
+}
+
+const SIDEBAR_SECTIONS = [
+  {
+    group: 'Core',
+    items: [
+      { id: 'overview', label: 'Overview', icon: <BarChart3 size={17} /> },
+      { id: 'orders', label: 'Orders', icon: <ShoppingBag size={17} /> },
+      { id: 'products', label: 'Products', icon: <Package size={17} /> },
+      { id: 'customers', label: 'Customers', icon: <Users size={17} />, pro: true },
+    ],
+  },
+  {
+    group: 'Commerce',
+    items: [
+      { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={17} /> },
+      { id: 'payment-links', label: 'Payment Links', icon: <Link size={17} />, pro: true },
+      { id: 'invoices', label: 'Invoices', icon: <FileText size={17} />, pro: true },
+      { id: 'receipts', label: 'Receipts', icon: <Receipt size={17} />, pro: true },
+      { id: 'inventory', label: 'Inventory', icon: <Archive size={17} />, pro: true },
+    ],
+  },
+  {
+    group: 'Marketing',
+    items: [
+      { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={17} /> },
+      { id: 'coupons', label: 'Store Coupons', icon: <Tag size={17} />, pro: true },
+      { id: 'qr', label: 'My QR Code', icon: <QrCode size={17} />, pro: true },
+      { id: 'reviews', label: 'Reviews', icon: <Star size={17} /> },
+      { id: 'share', label: 'Share & Earn', icon: <Share2 size={17} /> },
+    ],
+  },
 ];
 
-const SIDEBAR_ITEMS: { id: string; label: string }[] = [
-  { id: 'orders', label: 'My Orders' },
-  { id: 'products', label: 'My Products' },
+const TOGGLEABLE_SIDEBAR_ITEMS: { id: string; label: string }[] = [
+  { id: 'orders', label: 'Orders' },
+  { id: 'products', label: 'Products' },
   { id: 'inventory', label: 'Inventory' },
   { id: 'coupons', label: 'Store Coupons' },
   { id: 'customers', label: 'Customers' },
@@ -58,12 +78,7 @@ const SIDEBAR_ITEMS: { id: string; label: string }[] = [
   { id: 'whatsapp', label: 'WhatsApp Inbox' },
   { id: 'share', label: 'Share & Earn' },
   { id: 'qr', label: 'My QR Code' },
-  { id: 'reviews', label: 'Customer Reviews' },
-  { id: 'blog', label: 'Blog Posts' },
-  { id: 'availability', label: 'Availability' },
-  { id: 'bookings', label: 'Bookings' },
-  { id: 'integrations', label: 'Integrations' },
-  { id: 'billing', label: 'Plans & Billing' },
+  { id: 'reviews', label: 'Reviews' },
 ];
 
 const STAT_ITEMS: { id: string; label: string }[] = [
@@ -75,12 +90,13 @@ const STAT_ITEMS: { id: string; label: string }[] = [
 ];
 
 const FEATURE_SECTIONS: { id: string; label: string; hint: string }[] = [
-  { id: 'section_charts', label: 'Charts & Analytics', hint: 'Weekly traffic graph, AI coach card, and top products list on the Dashboard tab' },
+  { id: 'section_charts', label: 'Charts & Analytics', hint: 'Weekly traffic graph, AI coach card, and top products list on the Overview tab' },
 ];
 
 export default function RemoveDistractionsPage() {
   const router = useRouter();
   const apiUrl = (typeof window !== 'undefined' && localStorage.getItem('dev_api_url')) || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const systemDomain = process.env.NEXT_PUBLIC_SYSTEM_DOMAIN || 'frontstore.ng';
 
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -88,47 +104,78 @@ export default function RemoveDistractionsPage() {
   const [isLegend, setIsLegend] = useState(false);
   const [hidden, setHidden] = useState<string[]>([]);
   const [planItems, setPlanItems] = useState<string[] | null>(null);
-  const [storeName, setStoreName] = useState('');
-  const [storeUsername, setStoreUsername] = useState('');
+  const [store, setStore] = useState<StoreShape | null>(null);
+  const [user, setUser] = useState<UserShape | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [aiCommand, setAiCommand] = useState('');
+  const [aiResponseBubble, setAiResponseBubble] = useState<string | null>(null);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  // Auth is the httpOnly fs_auth_token cookie now — `t` is kept only as a
-  // truthy in-memory marker so existing call sites don't need restructuring.
-  // Every fetch using these headers must also pass `credentials: 'include'`.
   const authHeaders = (t: string | null) => ({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   });
 
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     const cachedStore = localStorage.getItem('store');
     if (cachedStore) {
       try {
         const parsed = JSON.parse(cachedStore);
-        setStoreName(parsed.store_name || parsed.username || '');
-        setStoreUsername(parsed.username || '');
+        setStore(parsed);
+        setIsLegend(!!parsed.is_legend);
+        setHidden(parsed.hidden_dashboard_items || []);
+        setPlanItems(parsed.plan_dashboard_items ?? null);
+      } catch { }
+    }
+
+    const cachedUser = localStorage.getItem('user');
+    if (cachedUser) {
+      try {
+        setUser(JSON.parse(cachedUser));
       } catch { }
     }
 
     (async () => {
       try {
-        const res = await fetch(`${apiUrl}/v1/store`, { credentials: 'include', headers: authHeaders(null) });
-        if (res.status === 401) {
+        const [resStore, resMe] = await Promise.all([
+          fetch(`${apiUrl}/v1/store`, { credentials: 'include', headers: authHeaders(null) }),
+          fetch(`${apiUrl}/v1/auth/me`, { credentials: 'include', headers: authHeaders(null) }).catch(() => null),
+        ]);
+
+        if (resStore.status === 401) {
           setToken(null);
           setLoading(false);
           return;
         }
         setToken('session');
-        const json = await res.json();
-        if (res.ok && json.data) {
-          const liveStore: StoreShape = json.data;
+
+        const jsonStore = await resStore.json();
+        if (resStore.ok && jsonStore.data) {
+          const liveStore: StoreShape = jsonStore.data;
+          setStore(liveStore);
           setIsLegend(!!liveStore.is_legend);
           setHidden(liveStore.hidden_dashboard_items || []);
           setPlanItems(liveStore.plan_dashboard_items ?? null);
-          setStoreName(liveStore.store_name || liveStore.username || '');
-          setStoreUsername(liveStore.username || '');
-        } else {
-          toast.error('Could not load your dashboard preferences.');
+        }
+
+        if (resMe && resMe.ok) {
+          const jsonMe = await resMe.json();
+          if (jsonMe.data && jsonMe.data.user) {
+            setUser(jsonMe.data.user);
+            localStorage.setItem('user', JSON.stringify(jsonMe.data.user));
+          }
         }
       } catch {
         toast.error('Network error loading your dashboard preferences.');
@@ -138,12 +185,50 @@ export default function RemoveDistractionsPage() {
     })();
   }, [apiUrl]);
 
+  const handleAiCommandSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiCommand.trim()) return;
+
+    const text = aiCommand.toLowerCase().trim();
+    setAiCommand('');
+
+    if (text.includes('add') || text.includes('product') || text.includes('sell') || text.includes('list') || text.includes('create product')) {
+      setAiResponseBubble('✨ AI Copilot: Redirecting to Products section...');
+      setTimeout(() => {
+        setAiResponseBubble(null);
+        router.push('/dashboard?page=products');
+      }, 1000);
+    } else if (text.includes('discount') || text.includes('coupon') || text.includes('promo')) {
+      setAiResponseBubble('✨ AI Copilot: Redirecting to Coupons section...');
+      setTimeout(() => {
+        setAiResponseBubble(null);
+        router.push('/dashboard?page=coupons');
+      }, 1000);
+    } else if (text.includes('order') || text.includes('sale') || text.includes('shipping')) {
+      setAiResponseBubble('✨ AI Copilot: Redirecting to Orders section...');
+      setTimeout(() => {
+        setAiResponseBubble(null);
+        router.push('/dashboard?page=orders');
+      }, 1000);
+    } else if (text.includes('setting') || text.includes('bio') || text.includes('phone')) {
+      setAiResponseBubble('✨ AI Copilot: Navigating to Settings...');
+      setTimeout(() => {
+        setAiResponseBubble(null);
+        router.push('/dashboard?page=settings');
+      }, 1000);
+    } else {
+      setAiResponseBubble(`✨ AI Copilot: Navigating to Dashboard for "${text}"...`);
+      setTimeout(() => {
+        setAiResponseBubble(null);
+        router.push('/dashboard');
+      }, 1200);
+    }
+  };
+
   const toggleItem = (id: string, next: boolean) => {
     setHidden(prev => (next ? prev.filter(x => x !== id) : [...prev, id]));
   };
 
-  // Admin has hidden this item for the merchant's plan entirely — a merchant
-  // can hide further within what their plan allows, but never un-hide this.
   const isPlanDisabled = (id: string) => planItems !== null && !planItems.includes(id);
 
   const handleSave = async () => {
@@ -165,9 +250,7 @@ export default function RemoveDistractionsPage() {
             const parsed = JSON.parse(cachedStore);
             parsed.hidden_dashboard_items = hidden;
             localStorage.setItem('store', JSON.stringify(parsed));
-          } catch {
-            // cached store payload wasn't valid JSON — next dashboard load will refetch it anyway
-          }
+          } catch { }
         }
       } else {
         toast.error(json.message || 'Could not save your dashboard preferences.');
@@ -186,6 +269,22 @@ export default function RemoveDistractionsPage() {
     localStorage.removeItem('store');
     toast.info('Merchant session ended.');
     router.push('/login');
+  };
+
+  const liveStoreUrl = store
+    ? store.custom_domain
+      ? `https://${store.custom_domain}`
+      : typeof window !== 'undefined' && window.location.hostname.includes('localhost')
+        ? `http://${store.username}.localhost:3000`
+        : `https://${store.username}.${systemDomain}`
+    : '';
+
+  const handleCopyLink = () => {
+    if (!liveStoreUrl) return;
+    navigator.clipboard.writeText(liveStoreUrl);
+    setCopiedLink(true);
+    toast.success('Store URL copied! 📋');
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   if (loading) {
@@ -211,78 +310,104 @@ export default function RemoveDistractionsPage() {
         bottom: 0,
         height: '100vh',
         zIndex: 40,
-        padding: '24px 16px',
+        padding: '20px 14px',
         flexShrink: 0,
+        background: 'var(--surface)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32, paddingLeft: 8 }}>
-          <img src="/logo.png" alt="Frontstore" width={36} height={36} style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }} />
-          <div>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>frontstore</h1>
-            <span style={{ fontSize: 10, color: 'var(--primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Merchant Dashboard v2.0</span>
+        {/* Brand Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, padding: '0 6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} alt="Frontstore" width={32} height={32} style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0, borderRadius: 'var(--r-sm)' }} />
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--text)' }}>frontstore</span>
           </div>
         </div>
 
-        {storeUsername && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--bg-2)', padding: '10px 12px', borderRadius: 'var(--r-lg)', marginBottom: 24, border: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, fontFamily: 'var(--font-heading)' }}>
-                {(storeName || storeUsername).charAt(0).toUpperCase() || 'S'}
-              </div>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <p style={{ fontSize: 13, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{storeName || storeUsername}</p>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>@{storeUsername}</span>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Grouped Sidebar Navigation */}
+        <nav className="no-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1, overflowY: 'auto', paddingRight: 2 }}>
+          {SIDEBAR_SECTIONS.map(section => {
+            const visibleItems = section.items.filter(item => item.id === 'overview' || !hidden.includes(item.id));
+            if (visibleItems.length === 0) return null;
 
-        <nav className="no-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto' }}>
-          {NAV_ITEMS
-            .filter(item => item.id === 'overview' || item.id === 'settings' || !hidden.includes(item.id))
-            .map(item => (
-              <button
-                key={item.id}
-                onClick={() => router.push(`/dashboard?page=${item.id}`)}
-                className="clickable"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  width: '100%',
-                  padding: '12px 14px',
-                  borderRadius: 'var(--r-md)',
-                  border: 'none',
-                  background: 'transparent',
-                  color: 'var(--text-muted)',
-                  fontSize: 14.5,
-                  fontWeight: 600,
-                  textAlign: 'left',
-                }}
-              >
-                {item.icon}
-                <span style={{ flex: 1 }}>{item.label}</span>
-              </button>
-            ))}
+            return (
+              <div key={section.group} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: 'var(--text-faint)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  padding: '4px 10px',
+                }}>
+                  {section.group}
+                </span>
+                {visibleItems.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => router.push(`/dashboard?page=${item.id}`)}
+                    className="clickable"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: 'var(--r-md)',
+                      border: 'none',
+                      background: 'transparent',
+                      color: 'var(--text-muted)',
+                      fontSize: 13.5,
+                      fontWeight: 600,
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span style={{ color: 'var(--text-faint)' }}>{item.icon}</span>
+                    <span style={{ flex: 1 }}>{item.label}</span>
+                    {item.pro && !store?.is_pro && (
+                      <span style={{
+                        fontSize: 9.5,
+                        fontWeight: 800,
+                        color: '#9333ea',
+                        background: 'rgba(147, 51, 234, 0.12)',
+                        padding: '1px 5px',
+                        borderRadius: 'var(--r-sm)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}>
+                        Pro
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            );
+          })}
         </nav>
 
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* Footer Actions */}
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <button
+            onClick={() => router.push('/dashboard/remove-distractions')}
             className="btn btn-ghost clickable"
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-start', padding: '10px 14px', borderRadius: 'var(--r-md)', background: 'var(--primary-light)', color: 'var(--primary)' }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-start', padding: '7px 10px', borderRadius: 'var(--r-md)', background: 'var(--primary-light)', color: 'var(--primary)', fontSize: 12.5 }}
           >
-            <EyeOff size={16} />
-            <span style={{ flex: 1, textAlign: 'left', fontWeight: 750 }}>Remove Distractions</span>
+            <EyeOff size={15} />
+            <span style={{ flex: 1, textAlign: 'left', fontWeight: 750 }}>Focus Mode</span>
+            {!isLegend && (
+              <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7c3aed', background: 'rgba(124, 58, 237, 0.08)', padding: '1px 5px', borderRadius: 'var(--r-sm)' }}>Legend</span>
+            )}
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>Theme Mode</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 10px' }}>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Dark Theme</span>
             <ThemeToggle />
           </div>
           <button
             onClick={handleLogout}
             className="btn btn-ghost clickable"
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-start', padding: '10px 14px', borderRadius: 'var(--r-md)', color: 'var(--danger)' }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-start', padding: '7px 10px', borderRadius: 'var(--r-md)', color: 'var(--danger)', fontSize: 12.5 }}
           >
-            <LogOut size={16} />
+            <LogOut size={15} />
             <span>Sign Out</span>
           </button>
         </div>
@@ -302,13 +427,14 @@ export default function RemoveDistractionsPage() {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            padding: 24,
+            padding: 20,
             borderRight: '1px solid var(--border)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, padding: '0 6px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <img src="/logo.png" alt="Frontstore" width={22} height={22} style={{ width: 22, height: 22, objectFit: 'contain' }} />
-                <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 18 }}>frontstore</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.svg" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} alt="Frontstore" width={26} height={26} style={{ width: 26, height: 26, objectFit: 'contain' }} />
+                <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 16 }}>frontstore</span>
               </div>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -318,55 +444,79 @@ export default function RemoveDistractionsPage() {
               </button>
             </div>
 
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, overflowY: 'auto' }}>
-              {NAV_ITEMS
-                .filter(item => item.id === 'overview' || item.id === 'settings' || !hidden.includes(item.id))
-                .map(item => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      router.push(`/dashboard?page=${item.id}`);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      width: '100%',
-                      padding: '12px 14px',
-                      borderRadius: 'var(--r-md)',
-                      border: 'none',
-                      background: 'transparent',
-                      color: 'var(--text-muted)',
-                      fontSize: 14.5,
-                      fontWeight: 600,
-                      textAlign: 'left'
-                    }}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                ))}
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1, overflowY: 'auto' }}>
+              {SIDEBAR_SECTIONS.map(section => {
+                const visibleItems = section.items.filter(item => item.id === 'overview' || !hidden.includes(item.id));
+                if (visibleItems.length === 0) return null;
+
+                return (
+                  <div key={section.group} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-faint)', textTransform: 'uppercase', padding: '4px 10px' }}>
+                      {section.group}
+                    </span>
+                    {visibleItems.map(item => (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          router.push(`/dashboard?page=${item.id}`);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: 'var(--r-md)',
+                          border: 'none',
+                          background: 'transparent',
+                          color: 'var(--text-muted)',
+                          fontSize: 13.5,
+                          fontWeight: 600,
+                          textAlign: 'left'
+                        }}
+                      >
+                        <span style={{ color: 'var(--text-faint)' }}>{item.icon}</span>
+                        <span style={{ flex: 1 }}>{item.label}</span>
+                        {item.pro && !store?.is_pro && (
+                          <span style={{
+                            fontSize: 9.5,
+                            fontWeight: 800,
+                            color: '#9333ea',
+                            background: 'rgba(147, 51, 234, 0.12)',
+                            padding: '1px 5px',
+                            borderRadius: 'var(--r-sm)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}>
+                            Pro
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
             </nav>
 
-            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
               <button
                 className="btn btn-ghost clickable"
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-start', padding: '10px 14px', borderRadius: 'var(--r-md)', background: 'var(--primary-light)', color: 'var(--primary)' }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-start', padding: '7px 10px', borderRadius: 'var(--r-md)', background: 'var(--primary-light)', color: 'var(--primary)', fontSize: 12.5 }}
               >
-                <EyeOff size={16} />
-                <span style={{ flex: 1, textAlign: 'left', fontWeight: 750 }}>Remove Distractions</span>
+                <EyeOff size={15} />
+                <span style={{ flex: 1, textAlign: 'left', fontWeight: 750 }}>Focus Mode</span>
               </button>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
-                <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>Theme Mode</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 10px' }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>Dark Theme</span>
                 <ThemeToggle />
               </div>
               <button
                 onClick={handleLogout}
                 className="btn btn-ghost clickable"
-                style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--danger)', justifyContent: 'flex-start', padding: 10 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--danger)', justifyContent: 'flex-start', padding: '7px 10px', fontSize: 12.5 }}
               >
-                <LogOut size={16} />
+                <LogOut size={15} />
                 <span>Sign Out</span>
               </button>
             </div>
@@ -382,32 +532,389 @@ export default function RemoveDistractionsPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingTop: '12px',
-          paddingBottom: '12px',
-          padding: '12px 24px',
+          padding: '10px 24px',
+          background: 'var(--surface)',
         }}>
+          {/* Left section: mobile toggle and mobile brand logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Mobile menu trigger */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="mobile-burger-btn"
               style={{ background: 'none', border: 'none', color: 'var(--text)', display: 'none', padding: 4 }}
             >
-              <Menu size={24} />
+              <Menu size={22} />
             </button>
+
+            {/* Mobile logo (hidden on desktop via css) */}
             <div className="header-logo-mobile" style={{ display: 'none', alignItems: 'center', gap: 6 }}>
-              <img src="/logo.png" alt="Frontstore" width={28} height={28} style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }} />
-              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em' }}>frontstore</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.svg" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} alt="Frontstore" width={26} height={26} style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 15, letterSpacing: '-0.02em' }}>frontstore</span>
             </div>
+
             <button
               onClick={() => router.push('/dashboard')}
-              className="clickable desktop-only-text"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 13, fontWeight: 700, padding: 0 }}
+              className="btn btn-outline clickable"
+              style={{
+                padding: '6px 12px',
+                fontSize: 12,
+                borderRadius: 'var(--r-md)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                justifyContent: 'center',
+                whiteSpace: 'nowrap',
+                fontWeight: 600,
+                background: 'var(--surface)',
+                border: '1px solid var(--border)'
+              }}
             >
-              <ArrowLeft size={16} /> Back to Dashboard
+              <ArrowLeft size={13} />
+              <span>Dashboard</span>
             </button>
           </div>
 
-          <ThemeToggle />
+          {/* AI Command Input Bar */}
+          <form onSubmit={handleAiCommandSubmit} className="header-search-form" style={{ display: 'flex', flex: 1, maxWidth: 420, position: 'relative', margin: '0 16px' }}>
+            <input
+              type="text"
+              placeholder="Search or ask AI copilot... (e.g. /discount)"
+              value={aiCommand}
+              onChange={e => setAiCommand(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px 8px 34px',
+                fontSize: 12.5,
+                background: 'var(--bg)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--r-full)',
+                outline: 'none',
+                color: 'var(--text)',
+                transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+              }}
+            />
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)' }} />
+
+            {aiResponseBubble && (
+              <div className="card glass animate-scale-in" style={{ position: 'absolute', top: '115%', left: 0, right: 0, padding: 12, fontSize: 13, fontWeight: 600, border: '1px solid var(--primary)', zIndex: 50, color: 'var(--text)', borderRadius: 'var(--r-lg)' }}>
+                {aiResponseBubble}
+              </div>
+            )}
+          </form>
+
+          {/* Right Action Widgets */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 'auto' }}>
+            <ThemeToggle />
+
+            {/* Store Profile Menu Dropdown */}
+            {store && (
+              <div ref={profileMenuRef} style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsProfileMenuOpen(prev => !prev)}
+                  className="clickable"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '3px 7px 3px 3px',
+                    borderRadius: 'var(--r-full)',
+                    background: isProfileMenuOpen ? 'var(--bg-2)' : 'transparent',
+                    border: '1.5px solid var(--border)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  aria-label="Account and store menu"
+                  aria-expanded={isProfileMenuOpen}
+                >
+                  {store.logo_url ? (
+                    <img
+                      src={store.logo_url}
+                      alt={store.store_name || store.username}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        flexShrink: 0,
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #128C7E, #25D366)',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 900,
+                        fontSize: 12,
+                        fontFamily: 'var(--font-heading)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {(store.store_name || store.username || '').charAt(0).toUpperCase() || 'S'}
+                    </div>
+                  )}
+                  <ChevronDown
+                    size={13}
+                    style={{
+                      color: 'var(--text-muted)',
+                      transform: isProfileMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                    }}
+                  />
+                </button>
+
+                {isProfileMenuOpen && (
+                  <div
+                    className="card glass animate-scale-in"
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 8px)',
+                      right: 0,
+                      width: 260,
+                      padding: '8px',
+                      borderRadius: 'var(--r-xl)',
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      boxShadow: '0 16px 40px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08)',
+                      zIndex: 100,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3,
+                    }}
+                  >
+                    {/* Header Store Profile Card */}
+                    <div style={{ padding: '8px 10px 10px', borderBottom: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        {store.logo_url ? (
+                          <img
+                            src={store.logo_url}
+                            alt=""
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: 'var(--r-md)',
+                              objectFit: 'cover',
+                              flexShrink: 0,
+                              border: '1px solid var(--border)'
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: 'var(--r-md)',
+                              background: 'linear-gradient(135deg, #128C7E, #25D366)',
+                              color: '#fff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 900,
+                              fontSize: 14,
+                              fontFamily: 'var(--font-heading)',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {(store.store_name || store.username || '').charAt(0).toUpperCase() || 'S'}
+                          </div>
+                        )}
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <p style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
+                            {store.store_name || store.username}
+                          </p>
+                          <span style={{ fontSize: 11.5, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                            @{store.username}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Plan Tag */}
+                      <div style={{ marginTop: 9, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 800,
+                            padding: '2px 7px',
+                            borderRadius: 'var(--r-sm)',
+                            background: isLegend ? 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)' : store.is_pro ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'var(--bg-2)',
+                            color: (store.is_pro || isLegend) ? '#fff' : 'var(--text-muted)',
+                            border: (store.is_pro || isLegend) ? 'none' : '1px solid var(--border)',
+                            letterSpacing: '0.04em',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4
+                          }}
+                        >
+                          {store.is_pro ? <Zap size={8} /> : null}
+                          {user?.plan === 'pro_monthly' ? 'Pro' : user?.plan === 'pro_yearly' ? 'Pro Yearly' : user?.plan === 'legend_monthly' ? 'Legend' : user?.plan === 'legend_yearly' ? 'Legend' : store.is_pro ? 'Pro Tier' : 'Free Tier'}
+                        </span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)' }}>
+                          {store.currency_code || 'NGN'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Upgrade / Billing Action */}
+                    {(!user?.plan || user?.plan === 'free') && !store.is_pro && !isLegend ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          router.push('/dashboard?page=billing');
+                        }}
+                        className="clickable"
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 12px',
+                          borderRadius: 'var(--r-md)',
+                          background: 'linear-gradient(135deg, rgba(18,140,126,0.12), rgba(37,211,102,0.12))',
+                          border: '1px solid var(--primary-border, rgba(18,140,126,0.3))',
+                          color: 'var(--primary)',
+                          fontSize: 12.5,
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          marginTop: 4,
+                          marginBottom: 3,
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Zap size={14} color="var(--primary)" />
+                          <span>Upgrade to Pro</span>
+                        </div>
+                        <ArrowRight size={13} />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          router.push('/dashboard?page=billing');
+                        }}
+                        className="clickable"
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 9,
+                          padding: '8px 10px',
+                          borderRadius: 'var(--r-md)',
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--text)',
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <Zap size={14} style={{ color: 'var(--primary)' }} />
+                        <span>Manage Subscription</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        router.push('/dashboard?page=settings');
+                      }}
+                      className="clickable"
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 'var(--r-md)', background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+                    >
+                      <Settings size={14} style={{ color: 'var(--text-muted)' }} />
+                      <span>Settings</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        router.push('/dashboard?page=integrations');
+                      }}
+                      className="clickable"
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 'var(--r-md)', background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+                    >
+                      <Plug size={14} style={{ color: 'var(--text-muted)' }} />
+                      <span>Integrations</span>
+                      {!isLegend && (
+                        <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7c3aed', background: 'rgba(124,58,237,0.08)', padding: '1px 5px', borderRadius: 'var(--r-sm)', marginLeft: 'auto' }}>Legend</span>
+                      )}
+                    </button>
+
+                    {liveStoreUrl && (
+                      <a
+                        href={liveStoreUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className="clickable"
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 10px',
+                          borderRadius: 'var(--r-md)',
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--text)',
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          textDecoration: 'none',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                          <ExternalLink size={14} style={{ color: 'var(--text-muted)' }} />
+                          <span>View Live Store</span>
+                        </div>
+                        <ArrowUpRight size={13} style={{ color: 'var(--text-faint)' }} />
+                      </a>
+                    )}
+
+                    <div style={{ height: 1, background: 'var(--border)', margin: '3px 0' }} />
+
+                    {/* Log out */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="clickable"
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 9,
+                        padding: '8px 10px',
+                        borderRadius: 'var(--r-md)',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#ef4444',
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <LogOut size={14} />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </header>
 
         <div style={{ padding: 'clamp(16px, 4vw, 32px)', flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -445,7 +952,7 @@ export default function RemoveDistractionsPage() {
                     <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 14.5, fontWeight: 800, margin: 0 }}>Sidebar Items</h3>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
-                    {SIDEBAR_ITEMS.map(item => (
+                    {TOGGLEABLE_SIDEBAR_ITEMS.map(item => (
                       <div key={item.id}>
                         <Toggle
                           checked={!isPlanDisabled(item.id) && !hidden.includes(item.id)}
@@ -539,7 +1046,7 @@ export default function RemoveDistractionsPage() {
           .header-logo-mobile {
             display: flex !important;
           }
-          .desktop-only-text {
+          .desktop-only-flex {
             display: none !important;
           }
         }
