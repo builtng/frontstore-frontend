@@ -134,22 +134,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  // Redirect main domain storefront visits to canonical subdomain (e.g. frontstore.ng/debugstore -> https://debugstore.frontstore.ng/)
-  if (!subdomain && isPlatformDomain && !isSystemPath) {
-    const segments = pathname.split('/').filter(Boolean);
-    if (segments.length >= 1 && !RESERVED_SUBDOMAINS.has(segments[0])) {
-      const storeUsername = segments[0];
-      const remainingPath = segments.slice(1).join('/');
-      const targetPath = remainingPath ? `/${remainingPath}` : '';
-
-      const targetHost = isLocal
-        ? `${storeUsername}.localhost:3000`
-        : `${storeUsername}.frontstore.ng`;
-
-      const protocol = isLocal ? 'http' : 'https';
-      return NextResponse.redirect(`${protocol}://${targetHost}${targetPath}${search ? search : ''}`, 301);
-    }
-  }
+  // Note: We allow direct path visits on main domain (e.g. frontstore.ng/storename)
+  // so stores work reliably even if wildcard DNS (*.frontstore.ng) is not configured.
+  // If a subdomain is accessed directly (e.g. storename.frontstore.ng), lines 112-135 rewrite it internally.
 
   // Rewrite custom domain requests internally
   if (isCustomDomain && !isSystemPath) {
