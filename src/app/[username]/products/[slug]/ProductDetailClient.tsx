@@ -12,6 +12,7 @@ import WhatsAppDisclaimerModal from "../../../../components/WhatsAppDisclaimerMo
 import ImageLightbox from "../../../../components/ImageLightbox";
 import ProductImage from "../../../../components/ProductImage";
 import { getColorHex } from '@/utils/colorUtils';
+import { getOptimizedImageUrl } from '@/lib/image';
 
 // --- Types & Interfaces ---
 interface Category {
@@ -898,7 +899,7 @@ export default function ProductDetailClient({
             {/* Store Profile Card */}
             <div className="fs-store-card">
               {store.logo_url ? (
-                <img src={store.logo_url} alt="Store logo" loading="lazy" style={{ width: 42, height: 42, borderRadius: 12, objectFit: 'cover' }} />
+                <img src={getOptimizedImageUrl(store.logo_url, 'thumb')} alt="Store logo" loading="lazy" style={{ width: 42, height: 42, borderRadius: 12, objectFit: 'cover' }} />
               ) : (
                 <span className="fs-store-av">{store.store_name[0].toUpperCase()}</span>
               )}

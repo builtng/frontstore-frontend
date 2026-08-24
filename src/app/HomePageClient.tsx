@@ -67,7 +67,7 @@ const DEFAULT_HOME_CONTENT = {
     badges: ['Under 2 Minutes Setup', 'Conversational Commerce'],
     titlePrefix: 'Start selling online.',
     titleHighlight: 'Get paid fast.',
-    description: 'Launch your online store for free, share it anywhere your customers already are, accept payments, and get your money within 24 hours.',
+    description: 'Launch your online store for free, share it anywhere your customers already are, and start accepting payments instantly.',
     primaryButton: { label: 'Create Your Free Store', href: '/signup' },
     secondaryButton: { label: 'See how it works', href: '#how-it-works' },
   },

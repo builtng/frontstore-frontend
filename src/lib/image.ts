@@ -17,7 +17,24 @@ export function getOptimizedImageUrl(
 ): string {
   if (!url || typeof url !== 'string') return '';
 
-  const cleanUrl = url.trim();
+  let cleanUrl = url.trim();
+
+  // If relative path (e.g. "logos/abc.png" or "/storage/logos/abc.png"), convert to full backend storage URL
+  if (
+    !cleanUrl.startsWith('http://') &&
+    !cleanUrl.startsWith('https://') &&
+    !cleanUrl.startsWith('data:') &&
+    !cleanUrl.startsWith('blob:')
+  ) {
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+    const baseUrl = rawApiUrl.replace(/\/api\/?$/, '');
+
+    let cleanPath = cleanUrl.startsWith('/') ? cleanUrl : `/${cleanUrl}`;
+    if (!cleanPath.startsWith('/storage/')) {
+      cleanPath = `/storage${cleanPath}`;
+    }
+    cleanUrl = `${baseUrl}${cleanPath}`;
+  }
 
   // 1. Unsplash dynamic CDN
   if (cleanUrl.includes('images.unsplash.com')) {

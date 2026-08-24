@@ -639,7 +639,7 @@ export default function UniversalStorefront({
           >
             {store.logo_url ? (
               <img
-                src={store.logo_url}
+                src={getOptimizedImageUrl(store.logo_url, 'thumb')}
                 alt={store.store_name}
                 style={{
                   width: 44,

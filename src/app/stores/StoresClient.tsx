@@ -6,6 +6,7 @@ import { Store, ArrowRight, Search, Instagram, ShieldCheck, MapPin, Star, Packag
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import { PublicSiteNav, PublicSiteFooter } from '../../components/PublicSiteChrome';
 import { formatOsmCategory } from '../../utils/osmCategoryLabels';
+import { getOptimizedImageUrl } from '../../lib/image';
 
 export interface UnclaimedListing {
   id: string;
@@ -283,18 +284,26 @@ export function StoreDirectoryCard({ store }: { store: StoreItem }) {
   const storeUrl = `/${store.username}`;
   const initials = (store.store_name || store.username || 'S').charAt(0).toUpperCase();
   const rating = typeof store.reviews_avg_rating === 'number' ? store.reviews_avg_rating : null;
+  const [imgError, setImgError] = useState(false);
+
+  const logoSrc = store.logo_url ? getOptimizedImageUrl(store.logo_url, 'thumb') : null;
 
   return (
     <div className="card card-hover hover-lift" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
         <div style={{
           width: 48, height: 48, borderRadius: 14, flexShrink: 0, overflow: 'hidden',
-          background: store.logo_url ? 'transparent' : 'linear-gradient(135deg, var(--primary), hsl(178, 76%, 45%))',
+          background: (logoSrc && !imgError) ? 'transparent' : 'linear-gradient(135deg, var(--primary), hsl(178, 76%, 45%))',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: '#fff', fontWeight: 800, fontSize: 18, fontFamily: 'var(--font-heading)',
         }}>
-          {store.logo_url ? (
-            <img src={store.logo_url} alt={store.store_name || store.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {logoSrc && !imgError ? (
+            <img
+              src={logoSrc}
+              alt={store.store_name || store.username}
+              onError={() => setImgError(true)}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           ) : initials}
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
