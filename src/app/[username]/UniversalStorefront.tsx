@@ -662,14 +662,14 @@ export default function UniversalStorefront({
         }}
       >
         <div
-          className="px-3 sm:px-5 py-2.5 sm:py-3"
+          className="px-2.5 sm:px-5 py-2.5 sm:py-3"
           style={{
             maxWidth: 1120,
             margin: '0 auto',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 10,
+            gap: 6,
           }}
         >
           {/* Brand Identity */}
@@ -685,7 +685,7 @@ export default function UniversalStorefront({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
+              gap: 8,
               minWidth: 0,
               textDecoration: 'none',
               color: 'inherit',
@@ -702,41 +702,43 @@ export default function UniversalStorefront({
                 src={getOptimizedImageUrl(store.logo_url, 'thumb')}
                 alt={store.store_name}
                 style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 12,
+                  width: 38,
+                  height: 38,
+                  borderRadius: 10,
                   objectFit: 'cover',
                   border: '1.5px solid #e2e8f0',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                   flexShrink: 0,
                 }}
+                className="sm:w-[42px] sm:h-[42px] sm:rounded-xl"
               />
             ) : (
               <div
                 style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 12,
+                  width: 38,
+                  height: 38,
+                  borderRadius: 10,
                   background: primaryColor,
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontWeight: 800,
-                  fontSize: 18,
+                  fontSize: 16,
                   boxShadow: `0 4px 12px ${primaryColor}33`,
                   flexShrink: 0,
                 }}
+                className="sm:w-[42px] sm:h-[42px] sm:rounded-xl sm:text-[18px]"
               >
                 {store.store_name?.charAt(0)?.toUpperCase() || 'S'}
               </div>
             )}
 
             <div style={{ minWidth: 0, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
                 <span
                   style={{
-                    fontSize: 15.5,
+                    fontSize: 14.5,
                     fontWeight: 800,
                     color: '#0f172a',
                     letterSpacing: '-0.02em',
@@ -745,6 +747,7 @@ export default function UniversalStorefront({
                     textOverflow: 'ellipsis',
                     minWidth: 0,
                   }}
+                  className="sm:text-[15.5px]"
                 >
                   {store.store_name}
                 </span>
@@ -758,14 +761,14 @@ export default function UniversalStorefront({
                       flexShrink: 0,
                     }}
                   >
-                    <ShieldCheck size={16} />
+                    <ShieldCheck size={15} />
                   </span>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, overflow: 'hidden' }}>
                 <span
                   style={{
-                    fontSize: 11.5,
+                    fontSize: 11,
                     color: '#64748b',
                     fontWeight: 500,
                     whiteSpace: 'nowrap',
@@ -781,13 +784,13 @@ export default function UniversalStorefront({
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 3.5,
-                    fontSize: 10.5,
+                    gap: 3,
+                    fontSize: 10,
                     fontWeight: 600,
                     color: primaryColor,
                     background: `${primaryColor}14`,
                     border: `1px solid ${primaryColor}29`,
-                    padding: '1px 6px',
+                    padding: '1px 5px',
                     borderRadius: 10,
                     flexShrink: 0,
                     whiteSpace: 'nowrap',
@@ -801,15 +804,15 @@ export default function UniversalStorefront({
           </Link>
 
           {/* Quick Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }} className="sm:gap-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }} className="sm:gap-2">
             {/* QR Scanner modal trigger */}
             <button
               onClick={() => setIsQrOpen(true)}
               aria-label="Store QR Code"
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
+                width: 34,
+                height: 34,
+                borderRadius: 9,
                 background: '#f1f5f9',
                 border: '1px solid #e2e8f0',
                 display: 'flex',
@@ -819,8 +822,9 @@ export default function UniversalStorefront({
                 cursor: 'pointer',
                 flexShrink: 0,
               }}
+              className="sm:w-[36px] sm:h-[36px] sm:rounded-[10px]"
             >
-              <QrCode size={16} />
+              <QrCode size={15} />
             </button>
 
             {/* Share Store */}
@@ -828,9 +832,9 @@ export default function UniversalStorefront({
               onClick={handleShare}
               aria-label="Share Store"
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
+                width: 34,
+                height: 34,
+                borderRadius: 9,
                 background: '#f1f5f9',
                 border: '1px solid #e2e8f0',
                 display: 'flex',
@@ -840,8 +844,9 @@ export default function UniversalStorefront({
                 cursor: 'pointer',
                 flexShrink: 0,
               }}
+              className="sm:w-[36px] sm:h-[36px] sm:rounded-[10px]"
             >
-              <Share2 size={16} />
+              <Share2 size={15} />
             </button>
 
             {/* Wishlist Header Button */}
@@ -850,9 +855,9 @@ export default function UniversalStorefront({
               aria-label="View Saved Items"
               style={{
                 position: 'relative',
-                width: 36,
-                height: 36,
-                borderRadius: 10,
+                width: 34,
+                height: 34,
+                borderRadius: 9,
                 background: '#f1f5f9',
                 border: '1px solid #e2e8f0',
                 display: 'flex',
@@ -863,8 +868,9 @@ export default function UniversalStorefront({
                 transition: 'background 0.15s ease',
                 flexShrink: 0,
               }}
+              className="sm:w-[36px] sm:h-[36px] sm:rounded-[10px]"
             >
-              <Heart size={16} fill={wishlist.length > 0 ? '#ef4444' : 'transparent'} />
+              <Heart size={15} fill={wishlist.length > 0 ? '#ef4444' : 'transparent'} />
               {wishlist.length > 0 && (
                 <span
                   style={{
@@ -873,11 +879,11 @@ export default function UniversalStorefront({
                     right: -4,
                     background: '#ef4444',
                     color: '#fff',
-                    fontSize: 10,
+                    fontSize: 9.5,
                     fontWeight: 800,
-                    width: 17,
-                    height: 17,
-                    borderRadius: 9,
+                    width: 16,
+                    height: 16,
+                    borderRadius: 8,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -892,34 +898,38 @@ export default function UniversalStorefront({
             {/* Floating Cart Button */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className="px-2.5 sm:px-4 py-2"
               style={{
                 background: primaryColor,
                 color: '#fff',
                 border: 'none',
-                borderRadius: 12,
+                borderRadius: 10,
+                height: 34,
+                padding: '0 10px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
+                justifyContent: 'center',
+                gap: 5,
                 fontWeight: 700,
-                fontSize: 13.5,
+                fontSize: 12.5,
                 cursor: 'pointer',
                 boxShadow: `0 4px 14px ${primaryColor}40`,
                 transition: 'transform 0.15s ease',
                 flexShrink: 0,
               }}
+              className="sm:h-[36px] sm:px-3.5 sm:rounded-[12px] sm:text-[13.5px]"
             >
-              <ShoppingBag size={16} />
-              <span className="hidden sm:inline">Bag</span>
+              <ShoppingBag size={15} />
+              <span style={{ fontWeight: 700 }}>Bag</span>
               {totalCartCount > 0 && (
                 <span
                   style={{
                     background: '#fff',
                     color: primaryColor,
-                    fontSize: 11.5,
+                    fontSize: 11,
                     fontWeight: 800,
-                    padding: '1.5px 6px',
-                    borderRadius: 9,
+                    padding: '1px 5px',
+                    borderRadius: 8,
+                    marginLeft: 1,
                   }}
                 >
                   {totalCartCount}
