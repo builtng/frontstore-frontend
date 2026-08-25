@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Landmark,
   Mail,
+  Palette,
   Power,
   Search,
   ShieldCheck,
@@ -22,6 +23,18 @@ import {
 } from 'lucide-react';
 import { TableSkeleton, StatusChip, EmptyState } from '../components';
 import CreateMerchantDrawer from './CreateMerchantDrawer';
+
+const STORE_COLOR_PRESETS = [
+  { name: 'Frontstore', value: '#25D366' },
+  { name: 'Ruby', value: '#e11d48' },
+  { name: 'Royal', value: '#4f46e5' },
+  { name: 'Ocean', value: '#0284c7' },
+  { name: 'Amber', value: '#d97706' },
+  { name: 'Graphite', value: '#27272a' },
+  { name: 'Teal', value: '#128c7e' },
+  { name: 'Violet', value: '#7c3aed' },
+  { name: 'Deep Purple', value: '#62109f' },
+];
 
 const formatMoney = (value?: number, currencyCode: string = 'NGN') =>
   new Intl.NumberFormat('en-NG', {
@@ -56,10 +69,18 @@ export default function AdminStoresPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [selectedStore, setSelectedStore] = useState<StoreInfo | null>(null);
+  const [drawerColor, setDrawerColor] = useState('#25D366');
+  const [savingColorFor, setSavingColorFor] = useState<string | null>(null);
   const [showCreateDrawer, setShowCreateDrawer] = useState(false);
   const [sendingLimitEmailFor, setSendingLimitEmailFor] = useState<string | null>(null);
   const [generatingDvaFor, setGeneratingDvaFor] = useState<string | null>(null);
   const [uploadingNinaAvatarFor, setUploadingNinaAvatarFor] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedStore) {
+      setDrawerColor(selectedStore.primary_color || '#25D366');
+    }
+  }, [selectedStore]);
 
   const freeProductLimit = Number(settings?.free_plan_product_limit) || 10;
   const hasReachedProductLimit = (store: StoreInfo) =>
@@ -198,6 +219,32 @@ export default function AdminStoresPage() {
     }
   };
 
+  const handleUpdateStoreColor = async (storeId: string, color: string) => {
+    if (!color || !/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color)) {
+      toast.error('Please provide a valid hex color code (e.g. #25D366).');
+      return;
+    }
+    try {
+      setSavingColorFor(storeId);
+      const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}/color`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { ...getHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ primary_color: color }),
+      });
+      const json = await handleFetchResponse(res, 'Failed to update store color.');
+      toast.success(json.message || 'Store color updated.');
+      setStores((items) =>
+        items.map((store) => (store.id === storeId ? { ...store, primary_color: color } : store))
+      );
+      setSelectedStore((prev) => (prev && prev.id === storeId ? { ...prev, primary_color: color } : prev));
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    } finally {
+      setSavingColorFor(null);
+    }
+  };
+
   const handleUpdateUserPlan = async (userId: string | undefined, plan: string) => {
     if (!userId) return;
     try {
@@ -276,6 +323,7 @@ export default function AdminStoresPage() {
             <tr>
               <th>Store</th>
               <th>Merchant</th>
+              <th>Color</th>
               <th>Plan</th>
               <th>Status</th>
               <th />
@@ -283,7 +331,7 @@ export default function AdminStoresPage() {
           </thead>
           <tbody>
             {storesLoading ? (
-              <TableSkeleton rows={6} columns={5} />
+              <TableSkeleton rows={6} columns={6} />
             ) : stores.length ? (
               stores.map((store) => (
                 <tr
@@ -313,6 +361,25 @@ export default function AdminStoresPage() {
                   <td>
                     <strong>{store.user?.name || 'Unnamed merchant'}</strong>
                     <span>{store.user?.email || store.user?.phone_number || 'No contact'}</span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                      <span
+                        style={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: '50%',
+                          backgroundColor: store.primary_color || '#25D366',
+                          border: '1px solid rgba(255,255,255,0.25)',
+                          flexShrink: 0,
+                          display: 'inline-block',
+                          boxShadow: `0 0 8px ${store.primary_color || '#25D366'}40`,
+                        }}
+                      />
+                      <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--text-2, #d4d4d8)' }}>
+                        {store.primary_color || '#25D366'}
+                      </span>
+                    </div>
                   </td>
                   <td>
                     <div className="admin-plan-cell" onClick={(e) => e.stopPropagation()}>
@@ -419,7 +486,7 @@ export default function AdminStoresPage() {
               ))
             ) : (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={6}>
                   <EmptyState label="No stores match this search." />
                 </td>
               </tr>
@@ -594,6 +661,140 @@ export default function AdminStoresPage() {
                 ) : (
                   <EmptyState label="No dedicated account generated yet." />
                 )}
+              </div>
+
+              <div className="admin-drawer__section">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <h3 style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <Palette size={16} /> Storefront Color & Branding
+                  </h3>
+                  <span style={{ fontSize: 12, fontFamily: 'monospace', fontWeight: 800, color: 'var(--text-2, #d4d4d8)' }}>
+                    {drawerColor}
+                  </span>
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--text-muted, #64748b)', marginTop: 0, marginBottom: 14 }}>
+                  Controls buttons, highlights, badges, and accents on this merchant&apos;s customer storefront.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {/* Presets */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted, #8b8b9a)', textTransform: 'uppercase', marginBottom: 8, letterSpacing: '0.04em' }}>
+                      Color Presets
+                    </label>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {STORE_COLOR_PRESETS.map((preset) => {
+                        const isSelected = drawerColor.toLowerCase() === preset.value.toLowerCase();
+                        return (
+                          <button
+                            key={preset.value}
+                            type="button"
+                            onClick={() => setDrawerColor(preset.value)}
+                            title={`${preset.name} (${preset.value})`}
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              background: preset.value,
+                              border: isSelected ? '2px solid #ffffff' : '1px solid rgba(255,255,255,0.15)',
+                              boxShadow: isSelected ? '0 0 0 2px var(--surface, #141417), 0 2px 8px rgba(0,0,0,0.4)' : 'none',
+                              cursor: 'pointer',
+                              transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                              transition: 'transform 0.15s ease, border-color 0.15s ease',
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Custom Picker & Input */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr auto', gap: 10, alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      value={drawerColor.startsWith('#') && (drawerColor.length === 7 || drawerColor.length === 4) ? drawerColor : '#25D366'}
+                      onChange={(e) => setDrawerColor(e.target.value)}
+                      style={{
+                        width: 44,
+                        height: 38,
+                        borderRadius: 8,
+                        border: '1px solid var(--border-strong, #30303a)',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        padding: 2,
+                      }}
+                      aria-label="Store color picker"
+                    />
+                    <input
+                      type="text"
+                      value={drawerColor}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val.startsWith('#') && val.length <= 7) {
+                          setDrawerColor(val);
+                        } else if (!val.startsWith('#') && val.length <= 6) {
+                          setDrawerColor(`#${val}`);
+                        }
+                      }}
+                      placeholder="#25D366"
+                      style={{
+                        fontFamily: 'monospace',
+                        fontWeight: 700,
+                        fontSize: 13,
+                        background: 'var(--surface-2, #1c1c21)',
+                        border: '1px solid var(--border-strong, #30303a)',
+                        borderRadius: 8,
+                        padding: '8px 12px',
+                        color: 'var(--text, #f2f2f4)',
+                        height: 38,
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="admin-action"
+                      disabled={savingColorFor === selectedStore.id || drawerColor.toLowerCase() === (selectedStore.primary_color || '#25D366').toLowerCase()}
+                      onClick={() => handleUpdateStoreColor(selectedStore.id, drawerColor)}
+                      style={{ height: 38, padding: '0 14px' }}
+                    >
+                      <Palette size={15} />
+                      {savingColorFor === selectedStore.id ? 'Saving…' : 'Save Color'}
+                    </button>
+                  </div>
+
+                  {/* Live Preview Card */}
+                  <div
+                    style={{
+                      borderRadius: 12,
+                      padding: '14px 16px',
+                      background: `linear-gradient(135deg, ${drawerColor} 0%, color-mix(in srgb, ${drawerColor} 40%, #0a0a0d) 100%)`,
+                      color: '#ffffff',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 10,
+                      boxShadow: `0 6px 20px ${drawerColor}30`,
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em', opacity: 0.9 }}>
+                        Live Storefront Accent Preview
+                      </span>
+                      <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: 999 }}>
+                        @{selectedStore.username}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span style={{ padding: '6px 14px', borderRadius: 8, background: '#ffffff', color: drawerColor, fontSize: 12, fontWeight: 800 }}>
+                        Order on WhatsApp
+                      </span>
+                      <span style={{ padding: '6px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.18)', color: '#ffffff', fontSize: 12, fontWeight: 700 }}>
+                        Featured Catalog
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="admin-drawer__section">

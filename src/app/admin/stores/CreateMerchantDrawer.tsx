@@ -26,6 +26,7 @@ export default function CreateMerchantDrawer({ onClose, onCreated }: CreateMerch
   const [storeName, setStoreName] = useState('');
   const [username, setUsername] = useState('');
   const [businessPersona, setBusinessPersona] = useState('general-store');
+  const [primaryColor, setPrimaryColor] = useState('#25D366');
   const [submitting, setSubmitting] = useState(false);
 
   const personaOptions = businessPersonas.map((p) => ({ value: p.id, label: p.name, sublabel: p.persona }));
@@ -56,6 +57,7 @@ export default function CreateMerchantDrawer({ onClose, onCreated }: CreateMerch
           store_name: storeName.trim(),
           username: username.trim().toLowerCase(),
           business_persona: businessPersona,
+          primary_color: primaryColor,
         }),
       });
       const json = await handleFetchResponse(res, 'Failed to create merchant.');
@@ -108,6 +110,41 @@ export default function CreateMerchantDrawer({ onClose, onCreated }: CreateMerch
                   searchPlaceholder="Search business type..."
                 />
               </label>
+              <div className="admin-field admin-field--full">
+                <span>Storefront Primary Color</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
+                  <input
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    style={{ width: 44, height: 38, border: '1px solid var(--border-strong, #30303a)', borderRadius: 8, background: 'transparent', cursor: 'pointer', padding: 2 }}
+                    aria-label="Store color"
+                  />
+                  <input
+                    type="text"
+                    value={primaryColor}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val.startsWith('#') && val.length <= 7) setPrimaryColor(val);
+                      else if (!val.startsWith('#') && val.length <= 6) setPrimaryColor(`#${val}`);
+                    }}
+                    style={{
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      fontSize: 13,
+                      background: 'var(--surface-2, #1c1c21)',
+                      border: '1px solid var(--border-strong, #30303a)',
+                      borderRadius: 8,
+                      padding: '8px 12px',
+                      color: 'var(--text, #f2f2f4)',
+                      height: 38,
+                      flex: 1,
+                      boxSizing: 'border-box',
+                    }}
+                    placeholder="#25D366"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

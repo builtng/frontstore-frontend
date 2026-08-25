@@ -53,6 +53,7 @@ export interface StoreInfo {
   paystack_dva_account_name?: string | null;
   paystack_dva_active?: boolean;
   nina_avatar_url?: string | null;
+  primary_color?: string | null;
 }
 
 export interface Category {
