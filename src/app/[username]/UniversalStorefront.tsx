@@ -298,6 +298,13 @@ export default function UniversalStorefront({
     : `https://${username}.${systemDomain}`;
 
   const getProductUrl = (item: Product) => {
+    if (typeof window !== 'undefined') {
+      const host = window.location.host;
+      const isSubdomain = host.startsWith(`${username}.`) || host.endsWith('.localhost:3000') || host.endsWith('.frontstore.ng');
+      if (isSubdomain) {
+        return `/${item.slug}`;
+      }
+    }
     return `/${username}/${item.slug}`;
   };
 
