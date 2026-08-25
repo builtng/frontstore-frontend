@@ -368,7 +368,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
   const handleFetchResponse = async (res: Response, defaultError: string) => {
     if (res.status === 401) {
-      toast.error('Session expired. Please log in again.');
+      toast.error('Session expired. Please log in again.', { id: 'session-expired' });
       localStorage.removeItem('user');
       localStorage.removeItem('store');
       setToken(null);

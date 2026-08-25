@@ -70,7 +70,7 @@ export default function AdminWithdrawalBatchReportPage() {
       setExporting(true);
       const res = await fetch(`${apiUrl}/v1/admin/withdrawal-batches/${id}/export?format=csv`, { credentials: 'include', headers: getHeaders() });
       if (res.status === 401) {
-        toast.error('Session expired. Please log in again.');
+        toast.error('Session expired. Please log in again.', { id: 'session-expired' });
         return;
       }
       if (!res.ok) throw new Error('Failed to export batch report.');
