@@ -50,17 +50,17 @@ const nextConfig: NextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           // Restrict browser features
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-          // Basic CSP — tightened; allow Google Fonts, Supabase, Paystack, Vercel Live, and IP country lookup
+          // Basic CSP — tightened; allow Google Fonts, Supabase, Paystack, Vercel Live, Facebook Pixel, TikTok Pixel, GTM, and IP country lookup
           {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://checkout.paystack.com https://vercel.live https://*.vercel.live https://static.cloudflareinsights.com https://www.googletagmanager.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://checkout.paystack.com https://vercel.live https://*.vercel.live https://static.cloudflareinsights.com https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https: http:",
-              `connect-src 'self' https://api.frontstore.ng https://*.supabase.co https://*.supabase.in https://api.paystack.co https://fonts.googleapis.com https://ipapi.co https://vercel.live wss://ws-us3.pusher.com wss://*.vercel.live https://*.vercel.com wss://*.vercel.com https://cloudflareinsights.com https://*.cloudflareinsights.com https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com${devOrigins}${envApiOrigin}`,
-              "frame-src https://checkout.paystack.com https://vercel.live https://*.vercel.live https://*.vercel.com",
+              `connect-src 'self' https://api.frontstore.ng https://*.supabase.co https://*.supabase.in https://api.paystack.co https://fonts.googleapis.com https://ipapi.co https://vercel.live wss://ws-us3.pusher.com wss://*.vercel.live https://*.vercel.com wss://*.vercel.com https://cloudflareinsights.com https://*.cloudflareinsights.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://connect.facebook.net https://www.facebook.com https://analytics.tiktok.com https://*.tiktok.com${devOrigins}${envApiOrigin}`,
+              "frame-src https://checkout.paystack.com https://vercel.live https://*.vercel.live https://*.vercel.com https://www.googletagmanager.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
