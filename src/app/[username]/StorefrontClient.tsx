@@ -49,7 +49,7 @@ interface Store {
   rating?: number | null;
   review_count?: number | null;
   total_orders?: number | string | null;
-  working_hours?: string | null;
+  working_hours?: any;
   announcement_title?: string | null;
   announcement_body?: string | null;
   announcement_cta_label?: string | null;

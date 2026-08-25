@@ -50,7 +50,7 @@ export interface StoreType {
   custom_links?: StoreLink[] | null;
   primary_color?: string | null;
   location?: string | null;
-  working_hours?: string | null;
+  working_hours?: any;
   announcement_title?: string | null;
   announcement_body?: string | null;
   rating?: number | null;
@@ -142,9 +142,60 @@ function formatCurrency(amount: number, currency: string = 'NGN'): string {
   return `${symbol}${Math.round(amount).toLocaleString('en-US')}`;
 }
 
+export function formatWorkingHours(value: unknown): string {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return formatWorkingHours(parsed);
+      } catch {
+        return trimmed;
+      }
+    }
+    return trimmed;
+  }
+  if (typeof value === 'object' && value !== null) {
+    const obj = value as Record<string, any>;
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const activeDays = days.filter(d => obj[d] && obj[d].enabled !== false);
+    if (activeDays.length === 0) return 'Closed';
+
+    const firstDay = obj[activeDays[0]];
+    const openTime = firstDay?.open || firstDay?.from || '';
+    const closeTime = firstDay?.close || firstDay?.to || '';
+
+    if (openTime && closeTime) {
+      const dayRange =
+        activeDays.length === 7
+          ? 'Daily'
+          : activeDays.length >= 5 && activeDays.includes('monday') && activeDays.includes('friday')
+          ? activeDays.includes('saturday')
+            ? 'Mon–Sat'
+            : 'Mon–Fri'
+          : activeDays.map(d => d.slice(0, 3).toUpperCase()).join(', ');
+      return `${dayRange} (${openTime} - ${closeTime})`;
+    }
+
+    const entries = Object.entries(obj).filter(([_, v]) => Boolean(v));
+    if (entries.length > 0) {
+      return entries
+        .map(([k, v]) =>
+          typeof v === 'object' && v
+            ? `${k.slice(0, 3)}: ${v.open || ''}-${v.close || ''}`
+            : `${k.slice(0, 3)}: ${v}`
+        )
+        .join(' | ');
+    }
+  }
+  return '';
+}
+
 function optimizeImageUrl(url: string | null | undefined, variant: 'thumb' | 'md' | 'lg' = 'md'): string {
   return getOptimizedImageUrl(url, variant);
 }
+
 
 function getWishlistFromStorage(storeUsername: string): string[] {
   if (typeof window === 'undefined') return [];
@@ -238,6 +289,7 @@ export default function UniversalStorefront({
   const primaryColor = store.primary_color || '#075E54';
   const currencyCode = store.currency_code || 'NGN';
   const isVerified = Boolean(store.is_verified);
+  const workingHoursDisplay = useMemo(() => formatWorkingHours(store.working_hours), [store.working_hours]);
   const storeUrl = typeof window !== 'undefined'
     ? (window.location.hostname.includes('localhost')
         ? `http://${username}.localhost:3000`
@@ -936,7 +988,7 @@ export default function UniversalStorefront({
               </button>
             )}
 
-            {store.working_hours && (
+            {workingHoursDisplay && (
               <span
                 style={{
                   display: 'inline-flex',
@@ -949,7 +1001,7 @@ export default function UniversalStorefront({
                   fontWeight: 500,
                 }}
               >
-                <Clock size={14} color={primaryColor} /> {store.working_hours}
+                <Clock size={14} color={primaryColor} /> {workingHoursDisplay}
               </span>
             )}
 
@@ -2710,11 +2762,11 @@ export default function UniversalStorefront({
                 </div>
               </div>
 
-              {store.working_hours && (
+              {workingHoursDisplay && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 8, borderTop: '1px solid #edf2f7' }}>
                   <Clock size={15} color={primaryColor} style={{ flexShrink: 0 }} />
                   <span style={{ fontSize: 13, color: '#475569', fontWeight: 500 }}>
-                    Working hours: <strong>{store.working_hours}</strong>
+                    Working hours: <strong>{workingHoursDisplay}</strong>
                   </span>
                 </div>
               )}
