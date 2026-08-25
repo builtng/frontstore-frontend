@@ -387,13 +387,9 @@ export default function ProductDetailClient({
   // Resolve clean canonical product URL (storeusername.domain/product-name)
   const getShareUrl = () => {
     if (typeof window === 'undefined') {
-      return `https://${store.username}.${systemDomain}/${initialProduct.slug}`;
+      return `https://${store.username}.${systemDomain}/${store.username}/${initialProduct.slug}`;
     }
-    const host = window.location.host;
-    const isSubdomain = host.startsWith(`${store.username}.`) || (host.includes('.localhost') && host.startsWith(store.username));
-    return isSubdomain
-      ? `${window.location.origin}/${initialProduct.slug}`
-      : `${window.location.origin}/${store.username}/${initialProduct.slug}`;
+    return `${window.location.origin}/${store.username}/${initialProduct.slug}`;
   };
 
   const getStoreHomeUrl = () => {
@@ -406,12 +402,7 @@ export default function ProductDetailClient({
   };
 
   const getProductDetailUrl = (productSlug: string) => {
-    if (typeof window === 'undefined') {
-      return `/${store.username}/products/${productSlug}`;
-    }
-    const host = window.location.host;
-    const isSubdomain = host.startsWith(`${store.username}.`) || (host.includes('.localhost') && host.startsWith(store.username)) || host.endsWith('.frontstore.ng');
-    return isSubdomain ? `/${productSlug}` : `/${store.username}/products/${productSlug}`;
+    return `/${store.username}/${productSlug}`;
   };
 
   // Handle WhatsApp Question Link
