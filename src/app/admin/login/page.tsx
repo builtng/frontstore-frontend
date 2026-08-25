@@ -23,12 +23,20 @@ export default function AdminLoginPage() {
 
   const API_URL = getApiUrl();
 
-  // Redirect if already logged in as admin — the token lives in an httpOnly
-  // cookie now, so ask the server rather than trusting a localStorage flag.
+  // Redirect if already logged in as admin
   useEffect(() => {
+    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    if (!storedUser || storedUser === 'null' || storedUser === 'undefined') {
+      return;
+    }
+
     fetch(`${API_URL}/v1/auth/me`, { credentials: 'include' })
       .then(async (res) => {
-        if (!res.ok) return;
+        if (!res.ok) {
+          localStorage.removeItem('user');
+          localStorage.removeItem('store');
+          return;
+        }
         const json = await res.json();
         const user = json.data?.user;
         const isAdmin = user?.is_admin === true || user?.is_admin === 1 || user?.is_admin === 'true' || user?.is_admin === '1';
@@ -38,7 +46,7 @@ export default function AdminLoginPage() {
         // not logged in — stay on the login page
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router]);
+  }, [router, API_URL]);
 
   // Load app name
   useEffect(() => {

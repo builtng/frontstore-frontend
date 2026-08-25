@@ -41,7 +41,11 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
       const savedApiUrl = getApiUrl();
 
       if (!storedUser || storedUser === 'undefined' || storedUser === 'null') {
-        destroySession('Your session has expired. Please log in again.');
+        if (typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard')) {
+          destroySession('Your session has expired. Please log in again.');
+        } else {
+          setIsVerifying(false);
+        }
         return;
       }
 

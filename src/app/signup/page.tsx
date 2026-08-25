@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import Logo from '@/components/Logo';
 import {
-  Globe, Copy, CheckCircle2, Lock, Sparkles,
+  Globe, Copy, CheckCircle2, Lock,
   Share2, Store, AlertCircle, Eye, EyeOff, Loader2, ArrowRight, User, Phone, Check, ShieldCheck, Mail
 } from 'lucide-react';
 import SearchableSelect from '../../components/SearchableSelect';
@@ -518,10 +518,6 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
         >
           <Logo size={32} textColor="var(--text)" text={appName} />
         </a>
-
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(18, 140, 126, 0.08)', color: 'var(--primary)', padding: '5px 14px', borderRadius: 99, fontSize: 12, fontWeight: 700, marginBottom: 14, border: '1px solid rgba(18, 140, 126, 0.15)' }}>
-          <Sparkles size={13} /> Instant Setup • No Credit Card Required
-        </div>
 
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
           Create Your <span style={{ background: 'linear-gradient(135deg, #128C7E 0%, #059669 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Storefront</span>

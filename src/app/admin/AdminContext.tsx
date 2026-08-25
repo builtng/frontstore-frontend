@@ -539,13 +539,24 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
     setApiUrl(savedApiUrl);
 
-    // The token lives in an httpOnly cookie now, so the only way to know
-    // whether we're actually still logged in is to ask the server.
+    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    if (!storedUser || storedUser === 'null' || storedUser === 'undefined') {
+      setIsAuthChecking(false);
+      setIsAuthenticated(false);
+      setIsAdmin(false);
+      setToken(null);
+      return;
+    }
+
+    // Ask server if the httpOnly session cookie is still valid
     fetch(`${savedApiUrl}/v1/auth/me`, { credentials: 'include' })
       .then(async (res) => {
         if (!res.ok) {
           localStorage.removeItem('user');
           localStorage.removeItem('store');
+          setToken(null);
+          setIsAuthenticated(false);
+          setIsAdmin(false);
           setIsAuthChecking(false);
           return;
         }

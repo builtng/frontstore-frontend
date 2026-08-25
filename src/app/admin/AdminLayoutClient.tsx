@@ -103,6 +103,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const isLoginPage = pathname === '/admin/login' || pathname === '/admin/accept-invite';
 
   const isStaff = () => {
+    if (!isAuthenticated) return false;
     if (isAdmin) return true;
     const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
     if (storedUser) {
