@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAdmin } from '../AdminContext';
+import { getApiUrl } from '@/lib/api';
 import {
   Shield, Lock, Eye, EyeOff, Loader2, ArrowRight, Mail, LogIn,
 } from 'lucide-react';
@@ -20,7 +21,7 @@ export default function AdminLoginPage() {
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [appName, setAppName] = useState('Frontstore');
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const API_URL = getApiUrl();
 
   // Redirect if already logged in as admin — the token lives in an httpOnly
   // cookie now, so ask the server rather than trusting a localStorage flag.
