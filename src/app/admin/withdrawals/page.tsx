@@ -100,18 +100,39 @@ export default function AdminWithdrawalsPage() {
     <section className="admin-section animate-fade-in">
       <div className="admin-section-heading">
         <div>
-          <h2>Withdrawal requests</h2>
-          <p>Review and approve pending withdrawal payout requests from store wallets.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>Payouts Hub</h2>
+            <span className="admin-chip admin-chip--green" style={{ fontSize: 11 }}>Financial Management</span>
+          </div>
+          <p style={{ marginTop: 4, color: 'var(--text-muted)', fontSize: 13 }}>
+            Review, audit, and approve withdrawal requests, automated payout batches, SLA thresholds, and bank security logs.
+          </p>
         </div>
         <button
           type="button"
           className="btn btn-outline"
           onClick={() => loadWithdrawals(1)}
           disabled={withdrawalsLoading}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 10 }}
         >
-          <RefreshCw size={16} className={withdrawalsLoading ? 'admin-spin' : ''} /> Refresh
+          <RefreshCw size={15} className={withdrawalsLoading ? 'admin-spin' : ''} /> Refresh
         </button>
+      </div>
+
+      {/* Unified Payout Sub-Navigation Tabs */}
+      <div className="admin-sub-tabs" style={{ display: 'flex', gap: 10, marginBottom: 20, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+        <a href="/admin/withdrawals" className="admin-sub-tab is-active" style={{ padding: '8px 16px', borderRadius: 8, background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
+          Payout Requests
+        </a>
+        <a href="/admin/withdrawal-batches" className="admin-sub-tab" style={{ padding: '8px 16px', borderRadius: 8, background: 'transparent', color: 'var(--text-muted)', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
+          Withdrawal Batches
+        </a>
+        <a href="/admin/payout-sla" className="admin-sub-tab" style={{ padding: '8px 16px', borderRadius: 8, background: 'transparent', color: 'var(--text-muted)', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
+          Payout SLA Monitor
+        </a>
+        <a href="/admin/payout-account-changes" className="admin-sub-tab" style={{ padding: '8px 16px', borderRadius: 8, background: 'transparent', color: 'var(--text-muted)', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
+          Account Security Changes
+        </a>
       </div>
 
       <div className="admin-table-wrap">

@@ -4,10 +4,31 @@ export { default as EmptyState } from '@/components/EmptyState';
 export { SkeletonGrid } from '@/components/Skeleton';
 export { default as TableSkeleton } from '@/components/TableSkeleton';
 
-export function Metric({ icon, label, value, detail, tone = 'gray' }: { icon: React.ReactNode; label: string; value: string; detail?: string; tone?: 'green' | 'gray' }) {
+export function Metric({
+  icon,
+  label,
+  value,
+  detail,
+  trend,
+  tone = 'gray',
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  detail?: string;
+  trend?: { value: string; positive?: boolean };
+  tone?: 'green' | 'gray' | 'blue' | 'purple';
+}) {
   return (
     <div className={`admin-metric admin-metric--${tone}`}>
-      <span>{icon}</span>
+      <div className="admin-metric__top">
+        <span className="admin-metric__icon">{icon}</span>
+        {trend && (
+          <span className={`admin-metric__trend ${trend.positive ? 'is-positive' : 'is-negative'}`}>
+            {trend.positive ? '↑' : '↓'} {trend.value}
+          </span>
+        )}
+      </div>
       <p>{label}</p>
       <strong>{value}</strong>
       {detail && <small>{detail}</small>}
@@ -17,8 +38,13 @@ export function Metric({ icon, label, value, detail, tone = 'gray' }: { icon: Re
 
 export type StatusTone = 'green' | 'gray' | 'red' | 'blue' | 'orange';
 
-export function StatusChip({ label, tone }: { label: string; tone: StatusTone }) {
-  return <span className={`admin-chip admin-chip--${tone}`}>{label}</span>;
+export function StatusChip({ label, tone, pulse = false }: { label: string; tone: StatusTone; pulse?: boolean }) {
+  return (
+    <span className={`admin-chip admin-chip--${tone}`}>
+      {pulse && <span className="admin-chip__dot" />}
+      {label}
+    </span>
+  );
 }
 
 export function withdrawalStatusTone(status: string): StatusTone {
@@ -36,7 +62,6 @@ export function withdrawalStatusTone(status: string): StatusTone {
       return 'red';
     case 'rejected':
     case 'awaiting_otp':
-      return 'gray';
     case 'pending':
     default:
       return 'gray';
@@ -49,7 +74,7 @@ export function PlanMeter({ label, value, total, tone }: { label: string; value:
     <div className="admin-meter">
       <div>
         <span>{label}</span>
-        <strong>{value}</strong>
+        <strong>{value} <small className="text-muted">({width}%)</small></strong>
       </div>
       <span className="admin-meter__track">
         <span className={`admin-meter__fill admin-meter__fill--${tone}`} style={{ width: `${width}%` }} />
@@ -139,18 +164,7 @@ export function SelectField({
         value={value || ''}
         onChange={(event) => onChange(event.target.value)}
         required={required}
-        style={{
-          width: '100%',
-          padding: '10px 12px',
-          background: 'var(--surface-2)',
-          border: '1px solid var(--border)',
-          borderRadius: '8px',
-          color: 'var(--text)',
-          fontSize: 14,
-          fontWeight: 600,
-          height: '42px',
-          outline: 'none',
-        }}
+        className="admin-select-input"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -174,3 +188,29 @@ export function SettingsGroup({ icon, title, children, id }: { icon: React.React
     </div>
   );
 }
+
+export function PageHeader({
+  title,
+  subtitle,
+  badge,
+  actions,
+}: {
+  title: string;
+  subtitle?: string;
+  badge?: string;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <div className="admin-section-heading" style={{ marginBottom: 24 }}>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>{title}</h2>
+          {badge && <span className="admin-chip admin-chip--blue" style={{ fontSize: 11 }}>{badge}</span>}
+        </div>
+        {subtitle && <p style={{ margin: '4px 0 0', color: 'var(--text-muted)', fontSize: 13 }}>{subtitle}</p>}
+      </div>
+      {actions && <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>{actions}</div>}
+    </div>
+  );
+}
+

@@ -286,87 +286,152 @@ export default function AdminRolesPage() {
       </div>
 
       {activeSubTab === 'roles' ? (
-        rolesLoading && roles.length === 0 ? (
-          <SkeletonGrid />
-        ) : roles.length === 0 ? (
-          <EmptyState label="No platform roles have been configured yet." />
-        ) : (
-          <div className="admin-metric-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
-            {roles.map((role) => (
-              <div
-                key={role.id}
-                className="admin-panel animate-fade-in"
-                style={{
-                  padding: 24,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                  minHeight: 220,
-                  border: '1.5px solid var(--border)',
-                  background: 'linear-gradient(180deg, var(--surface) 0%, rgba(20, 20, 22, 0.95) 100%)',
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                    <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)' }}>{role.name}</h3>
-                    <span
-                      className="admin-chip admin-chip--green"
-                      style={{ fontSize: 11, padding: '3px 8px', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                    >
-                      <Check size={11} /> {role.permissions?.length} Modules
-                    </span>
+        <>
+          {rolesLoading && roles.length === 0 ? (
+            <SkeletonGrid />
+          ) : roles.length === 0 ? (
+            <EmptyState label="No platform roles have been configured yet." />
+          ) : (
+            <div className="admin-metric-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
+              {roles.map((role) => (
+                <div
+                  key={role.id}
+                  className="admin-panel animate-fade-in"
+                  style={{
+                    padding: 24,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    height: '100%',
+                    minHeight: 220,
+                    border: '1.5px solid var(--border)',
+                    background: 'linear-gradient(180deg, var(--surface) 0%, rgba(20, 20, 22, 0.95) 100%)',
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                      <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)' }}>{role.name}</h3>
+                      <span
+                        className="admin-chip admin-chip--green"
+                        style={{ fontSize: 11, padding: '3px 8px', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                      >
+                        <Check size={11} /> {role.permissions?.length} Modules
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
+                      Granted access to key console operations.
+                    </p>
+                    
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
+                      {role.permissions?.map((perm) => {
+                        const match = PERMISSIONS.find((p) => p.value === perm);
+                        return (
+                          <span
+                            key={perm}
+                            className="admin-chip admin-chip--gray"
+                            style={{ fontSize: 10.5, textTransform: 'capitalize', padding: '2px 6px', fontWeight: 650 }}
+                            title={match?.desc}
+                          >
+                            {match?.label || perm}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
-                    Granted access to key console operations.
-                  </p>
-                  
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
-                    {role.permissions?.map((perm) => {
-                      const match = PERMISSIONS.find((p) => p.value === perm);
-                      return (
-                        <span
-                          key={perm}
-                          className="admin-chip admin-chip--gray"
-                          style={{ fontSize: 10.5, textTransform: 'capitalize', padding: '2px 6px', fontWeight: 650 }}
-                          title={match?.desc}
-                        >
-                          {match?.label || perm}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
 
-                <div style={{
-                  display: 'flex',
-                  gap: 12,
-                  paddingTop: 16,
-                  borderTop: '1px solid var(--border)',
-                  marginTop: 'auto',
-                }}>
-                  <button
-                    type="button"
-                    className="btn btn-outline"
-                    onClick={() => handleOpenEditRole(role)}
-                    style={{ flex: 1, justifyContent: 'center', fontSize: 13, padding: '8px 12px' }}
-                  >
-                    <Edit2 size={13} style={{ marginRight: 6 }} /> Edit Permissions
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline danger"
-                    onClick={() => handleDeleteRole(role)}
-                    style={{ padding: '8px 12px' }}
-                    title="Delete Role"
-                  >
-                    <Trash2 size={13} style={{ color: 'var(--danger)' }} />
-                  </button>
+                  <div style={{
+                    display: 'flex',
+                    gap: 12,
+                    paddingTop: 16,
+                    borderTop: '1px solid var(--border)',
+                    marginTop: 'auto',
+                  }}>
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      onClick={() => handleOpenEditRole(role)}
+                      style={{ flex: 1, justifyContent: 'center', fontSize: 13, padding: '8px 12px' }}
+                    >
+                      <Edit2 size={13} style={{ marginRight: 6 }} /> Edit Permissions
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline danger"
+                      onClick={() => handleDeleteRole(role)}
+                      style={{ padding: '8px 12px' }}
+                      title="Delete Role"
+                    >
+                      <Trash2 size={13} style={{ color: 'var(--danger)' }} />
+                    </button>
+                  </div>
                 </div>
+              ))}
+            </div>
+          )}
+
+          {/* Platform Account Matrix & Capabilities Reference */}
+          <div className="admin-panel" style={{ marginTop: 32 }}>
+            <div className="admin-panel__header" style={{ borderBottom: '1px solid var(--border)', paddingBottom: 16, marginBottom: 20 }}>
+              <div>
+                <h3 style={{ fontSize: 17, fontWeight: 800 }}>Account Types & Platform Matrix</h3>
+                <p>Role tier feature capabilities, restrictions, and administration privileges.</p>
               </div>
-            ))}
+              <Shield size={18} className="text-muted" />
+            </div>
+
+            <div className="admin-privileges-grid">
+              {/* Role Card: Free Merchant */}
+              <div className="privilege-card">
+                <div className="privilege-card-header">
+                  <span className="badge-gray">Free Merchant</span>
+                  <h4>Essential WhatsApp Store</h4>
+                </div>
+                <ul className="privilege-list">
+                  <li><Check size={14} className="text-green" /> Direct WhatsApp Order checkout</li>
+                  <li><Check size={14} className="text-green" /> Standard Catalog Template</li>
+                  <li><Check size={14} className="text-green" /> Local bank transfer instructions</li>
+                  <li><Check size={14} className="text-green" /> Basic storefront hosting</li>
+                  <li className="text-muted"><X size={14} className="text-red" /> No Custom domain support</li>
+                  <li className="text-muted"><X size={14} className="text-red" /> Standard styling (No color override)</li>
+                  <li className="text-muted"><X size={14} className="text-red" /> Manual verification uploads</li>
+                </ul>
+              </div>
+
+              {/* Role Card: Pro Merchant */}
+              <div className="privilege-card featured">
+                <div className="privilege-card-header">
+                  <span className="badge-green">Pro Merchant</span>
+                  <h4>Premium Growth Suite</h4>
+                </div>
+                <ul className="privilege-list">
+                  <li><Check size={14} className="text-green" /> Branded Custom Domain integration</li>
+                  <li><Check size={14} className="text-green" /> Advanced Layouts (Luxe, Editorial, Atelier)</li>
+                  <li><Check size={14} className="text-green" /> Primary brand color & customization overrides</li>
+                  <li><Check size={14} className="text-green" /> Interactive Appointment Booking & Slot Scheduler</li>
+                  <li><Check size={14} className="text-green" /> Pinned product signature treatments</li>
+                  <li><Check size={14} className="text-green" /> Customer Broadcast Campaigns (Reach)</li>
+                  <li><Check size={14} className="text-green" /> Priority AI Sales Agent (Nina) automation</li>
+                </ul>
+              </div>
+
+              {/* Role Card: Platform Admin */}
+              <div className="privilege-card">
+                <div className="privilege-card-header">
+                  <span className="badge-primary">Platform Admin</span>
+                  <h4>Full Control Console</h4>
+                </div>
+                <ul className="privilege-list">
+                  <li><Check size={14} className="text-green" /> Suspend / activate any merchant store</li>
+                  <li><Check size={14} className="text-green" /> Approve or reject verification requests</li>
+                  <li><Check size={14} className="text-green" /> Change merchant plans (Free / Pro)</li>
+                  <li><Check size={14} className="text-green" /> Escrow payment auditing & payouts release</li>
+                  <li><Check size={14} className="text-green" /> System-wide promo coupon codes CRUD</li>
+                  <li><Check size={14} className="text-green" /> Global settings (SMTP, Twilio, KYC provider)</li>
+                </ul>
+              </div>
+            </div>
           </div>
-        )
+        </>
       ) : (
         /* Staff & User Assignment View */
         <div className="admin-panel animate-fade-in" style={{ padding: 24 }}>

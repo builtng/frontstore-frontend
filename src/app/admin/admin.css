@@ -1,35 +1,45 @@
 /* ═══════════════════════════════════════════════
-   ADMIN SHELL — Design System
+   ADMIN SHELL — Billion Dollar Glass Design System
 ══════════════════════════════════════════════ */
 .admin-shell {
-  /* Dark mode tokens (default) */
-  --bg:            #0a0a0d;
-  --bg-2:          #0f0f13;
-  --surface:       #141417;
-  --surface-2:     #1c1c21;
-  --surface-3:     #22222a;
-  --border:        #222228;
-  --border-strong: #30303a;
-  --text:          #f2f2f4;
-  --text-2:        #d4d4d8;
-  --text-muted:    #8b8b9a;
-  --text-faint:    #55555e;
-  --primary:       #128C7E;
-  --primary-light: rgba(18, 140, 126, 0.12);
-  --primary-hover: #25D366;
-  --danger:        #ef4444;
-  --danger-light:  rgba(239, 68, 68, 0.12);
+  /* Dark mode obsidian luxury tokens (default) */
+  --bg:            #08090c;
+  --bg-2:          #0d0e12;
+  --surface:       rgba(18, 20, 26, 0.75);
+  --surface-solid: #12141a;
+  --surface-2:     rgba(28, 31, 40, 0.65);
+  --surface-2-solid: #1c1f28;
+  --surface-3:     rgba(36, 40, 52, 0.7);
+  --border:        rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-glow:   rgba(16, 185, 129, 0.35);
+  --text:          #f8fafc;
+  --text-2:        #e2e8f0;
+  --text-muted:    #94a3b8;
+  --text-faint:    #64748b;
+  --primary:       #10b981;
+  --primary-light: rgba(16, 185, 129, 0.12);
+  --primary-hover: #34d399;
+  --primary-glow:  rgba(16, 185, 129, 0.25);
+  --danger:        #f43f5e;
+  --danger-light:  rgba(244, 63, 94, 0.12);
   --accent:        #f59e0b;
   --accent-light:  rgba(245, 158, 11, 0.12);
-  --rail-bg:       #0d0d10;
-  --rail-width:    268px;
+  --rail-bg:       rgba(10, 11, 15, 0.95);
+  --rail-width:    260px;
+  --glass-blur:    blur(16px);
+  --font-sans:     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-heading:  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   min-height: 100vh;
   display: grid;
   grid-template-columns: var(--rail-width) minmax(0, 1fr);
-  background: var(--bg);
+  background: radial-gradient(circle at 15% 10%, rgba(16, 185, 129, 0.06) 0%, transparent 40%),
+              radial-gradient(circle at 85% 60%, rgba(99, 102, 241, 0.04) 0%, transparent 40%),
+              var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
 .admin-shell ::-webkit-scrollbar {

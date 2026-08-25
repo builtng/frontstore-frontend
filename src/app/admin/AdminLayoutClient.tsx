@@ -50,10 +50,7 @@ const navGroups = [
   {
     label: 'Finance',
     items: [
-      { href: '/admin/withdrawals', label: 'Payouts', icon: <DollarSign size={16} />, permission: 'payouts' },
-      { href: '/admin/payout-sla', label: 'Payout SLA', icon: <Activity size={16} />, permission: 'payouts' },
-      { href: '/admin/withdrawal-batches', label: 'Withdrawal Batches', icon: <Layers size={16} />, permission: 'payouts' },
-      { href: '/admin/payout-account-changes', label: 'Payout Account Changes', icon: <ShieldAlert size={16} />, permission: 'payouts' },
+      { href: '/admin/withdrawals', label: 'Payouts Hub', icon: <DollarSign size={16} />, permission: 'payouts' },
       { href: '/admin/payments', label: 'Payment Gateways', icon: <CreditCard size={16} />, permission: 'payments' },
       { href: '/admin/coupons', label: 'Coupons', icon: <Tag size={16} />, permission: 'coupons' },
       { href: '/admin/plans', label: 'Plans', icon: <LayoutTemplate size={16} />, permission: 'plans' },
@@ -81,8 +78,13 @@ const navGroups = [
   },
 ];
 
-// Flat list for active-tab matching
-const allTabs = navGroups.flatMap((g) => g.items);
+// Flat list for active-tab matching (includes sub-routes for payout sub-modules)
+const allTabs = [
+  ...navGroups.flatMap((g) => g.items),
+  { href: '/admin/payout-sla', label: 'Payout SLA', icon: <Activity size={16} />, permission: 'payouts' },
+  { href: '/admin/withdrawal-batches', label: 'Withdrawal Batches', icon: <Layers size={16} />, permission: 'payouts' },
+  { href: '/admin/payout-account-changes', label: 'Payout Security', icon: <ShieldAlert size={16} />, permission: 'payouts' },
+];
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -281,7 +283,16 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* ─── MAIN CONTENT ─── */}
       <main className="admin-workspace">
-        <header className="admin-topbar" style={{ justifyContent: 'flex-end' }}>
+        <header className="admin-topbar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span className="admin-topbar__breadcrumb">
+              Platform / {activeTabLabel}
+            </span>
+            <div className="admin-health-pulse" title="All platform services operational">
+              <span className="admin-health-pulse__dot" />
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.04em' }}>OPERATIONAL</span>
+            </div>
+          </div>
           <div className="admin-topbar__actions">
             <ThemeToggle />
             <button type="button" className="admin-icon-button" onClick={handleLogout} title="Log out">

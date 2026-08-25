@@ -61,8 +61,13 @@ export default function AdminPayoutSlaPage() {
     <section className="admin-section animate-fade-in">
       <div className="admin-section-heading">
         <div>
-          <h2>Payout SLA Performance</h2>
-          <p>Whether the "payouts within 24 hours" promise is actually being kept, measured from risk-engine settlement data.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>Payouts Hub</h2>
+            <span className="admin-chip admin-chip--blue" style={{ fontSize: 11 }}>Payout SLA Monitor</span>
+          </div>
+          <p style={{ marginTop: 4, color: 'var(--text-muted)', fontSize: 13 }}>
+            Monitor payout fulfillment speed, risk distribution, and 24-hour guarantee performance.
+          </p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: 4 }}>
@@ -83,11 +88,27 @@ export default function AdminPayoutSlaPage() {
             className="btn btn-outline"
             onClick={() => loadReport(windowDays)}
             disabled={loading}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 10 }}
           >
-            <RefreshCw size={16} className={loading ? 'admin-spin' : ''} /> Refresh
+            <RefreshCw size={15} className={loading ? 'admin-spin' : ''} /> Refresh
           </button>
         </div>
+      </div>
+
+      {/* Unified Payout Sub-Navigation Tabs */}
+      <div className="admin-sub-tabs" style={{ display: 'flex', gap: 10, marginBottom: 20, borderBottom: '1px solid var(--border)', paddingBottom: 10 }}>
+        <a href="/admin/withdrawals" className="admin-sub-tab" style={{ padding: '8px 16px', borderRadius: 8, background: 'transparent', color: 'var(--text-muted)', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
+          Payout Requests
+        </a>
+        <a href="/admin/withdrawal-batches" className="admin-sub-tab" style={{ padding: '8px 16px', borderRadius: 8, background: 'transparent', color: 'var(--text-muted)', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
+          Withdrawal Batches
+        </a>
+        <a href="/admin/payout-sla" className="admin-sub-tab is-active" style={{ padding: '8px 16px', borderRadius: 8, background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
+          Payout SLA Monitor
+        </a>
+        <a href="/admin/payout-account-changes" className="admin-sub-tab" style={{ padding: '8px 16px', borderRadius: 8, background: 'transparent', color: 'var(--text-muted)', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
+          Account Security Changes
+        </a>
       </div>
 
       {loading && !report ? (
