@@ -275,6 +275,7 @@ export default function UniversalStorefront({
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [activeFaqId, setActiveFaqId] = useState<string | null>(null);
   const [wishlist, setWishlist] = useState<string[]>([]);
+  const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
 
   useEffect(() => {
     const storeUser = store.username || username;
@@ -443,6 +444,11 @@ export default function UniversalStorefront({
         },
       ];
     });
+
+    setRecentlyAddedId(product.id);
+    setTimeout(() => {
+      setRecentlyAddedId((curr) => (curr === product.id ? null : curr));
+    }, 1400);
 
     sonnerToast.success(`Added ${quantity > 1 ? `${quantity}x ` : ''}${product.name} to bag`);
   };
@@ -1400,14 +1406,8 @@ export default function UniversalStorefront({
             </button>
           </div>
         ) : viewMode === 'grid' ? (
-          /* GRID VIEW */
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-              gap: 'clamp(16px, 2.5vw, 24px)',
-            }}
-          >
+          /* GRID VIEW (2 columns on mobile, auto-fill on desktop) */
+          <div className="storefront-product-grid">
             {paginatedItems.map((item, index) => {
               const priceNum = parseFloat(item.price || '0');
               const compareNum = item.compare_at_price ? parseFloat(item.compare_at_price) : 0;
@@ -1418,6 +1418,7 @@ export default function UniversalStorefront({
               const imageUrl = optimizeImageUrl(rawImageUrl, 'thumb');
               const isService = item.type === 'service';
               const isSaved = wishlist.includes(item.id);
+              const isJustAdded = recentlyAddedId === item.id;
               const stockText = isOutOfStock
                 ? 'Sold out'
                 : item.stock_quantity && item.stock_quantity > 0
@@ -1428,27 +1429,11 @@ export default function UniversalStorefront({
                 <Link
                   key={item.id}
                   href={getProductUrl(item)}
-                  style={{
-                    background: '#ffffff',
-                    borderRadius: 20,
-                    border: '1.5px solid #e2e8f0',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.04)',
-                    transition: 'transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease',
-                  }}
+                  className="storefront-product-card"
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.boxShadow = '0 12px 30px -4px rgba(15, 23, 42, 0.08)';
                     e.currentTarget.style.borderColor = primaryColor;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 20px -2px rgba(15, 23, 42, 0.04)';
                     e.currentTarget.style.borderColor = '#e2e8f0';
                   }}
                 >
@@ -1457,7 +1442,7 @@ export default function UniversalStorefront({
                     style={{
                       position: 'relative',
                       width: '100%',
-                      aspectRatio: '1 / 1.02',
+                      aspectRatio: '1 / 1',
                       background: '#f1f5f9',
                       overflow: 'hidden',
                     }}
@@ -1472,13 +1457,12 @@ export default function UniversalStorefront({
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
-                          borderRadius: '18px 18px 0 0',
                           transition: 'transform 0.3s ease',
                         }}
                       />
                     ) : (
                       <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}>
-                        <ShoppingBag size={40} />
+                        <ShoppingBag size={32} />
                       </div>
                     )}
 
@@ -1487,14 +1471,14 @@ export default function UniversalStorefront({
                       <span
                         style={{
                           position: 'absolute',
-                          top: 12,
-                          left: 12,
+                          top: 8,
+                          left: 8,
                           background: '#ef4444',
                           color: '#fff',
-                          fontSize: 11.5,
+                          fontSize: 10.5,
                           fontWeight: 800,
-                          padding: '4px 9px',
-                          borderRadius: 8,
+                          padding: '3px 7px',
+                          borderRadius: 6,
                           boxShadow: '0 2px 8px rgba(239, 68, 68, 0.35)',
                         }}
                       >
@@ -1512,12 +1496,12 @@ export default function UniversalStorefront({
                       aria-label="Save to Wishlist"
                       style={{
                         position: 'absolute',
-                        top: 12,
-                        right: 12,
-                        width: 34,
-                        height: 34,
-                        borderRadius: 17,
-                        background: 'rgba(255, 255, 255, 0.92)',
+                        top: 8,
+                        right: 8,
+                        width: 30,
+                        height: 30,
+                        borderRadius: 15,
+                        background: 'rgba(255, 255, 255, 0.94)',
                         backdropFilter: 'blur(6px)',
                         border: 'none',
                         display: 'flex',
@@ -1528,48 +1512,36 @@ export default function UniversalStorefront({
                         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                       }}
                     >
-                      <Heart size={16} fill={isSaved ? '#ef4444' : 'transparent'} />
+                      <Heart size={15} fill={isSaved ? '#ef4444' : 'transparent'} />
                     </button>
                   </div>
 
                   {/* Body Content */}
-                  <div style={{ padding: '16px 18px 18px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+                  <div className="storefront-card-body">
                     <div>
-                      <h4
-                        style={{
-                          fontSize: 16,
-                          fontWeight: 700,
-                          color: '#0f172a',
-                          margin: '0 0 10px',
-                          lineHeight: 1.35,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                        }}
-                      >
+                      <h4 className="storefront-card-title">
                         {item.name}
                       </h4>
 
-                      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: 17.5, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+                      <div className="storefront-card-price-row">
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, flexWrap: 'wrap' }}>
+                          <span className="storefront-card-price">
                             {formatCurrency(priceNum, currencyCode)}
                           </span>
                           {hasDiscount && (
-                            <span style={{ fontSize: 12, color: '#94a3b8', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: 11, color: '#94a3b8', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
                               {formatCurrency(compareNum, currencyCode)}
                             </span>
                           )}
                         </div>
 
-                        <span style={{ fontSize: 12.5, fontWeight: 600, color: isOutOfStock ? '#ef4444' : '#64748b', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: isOutOfStock ? '#ef4444' : '#64748b', whiteSpace: 'nowrap', flexShrink: 0 }}>
                           {stockText}
                         </span>
                       </div>
                     </div>
 
-                    {/* Add to Cart Pill Button */}
+                    {/* Add to Cart Button */}
                     <button
                       disabled={isOutOfStock}
                       onClick={(e) => {
@@ -1577,26 +1549,33 @@ export default function UniversalStorefront({
                         e.stopPropagation();
                         addToCart(item);
                       }}
+                      className="storefront-card-btn"
                       style={{
-                        width: '100%',
-                        padding: '12px 18px',
-                        borderRadius: 9999,
-                        background: isOutOfStock ? '#f1f5f9' : primaryColor,
+                        background: isOutOfStock
+                          ? '#f1f5f9'
+                          : isJustAdded
+                          ? '#10b981'
+                          : primaryColor,
                         color: isOutOfStock ? '#94a3b8' : '#ffffff',
-                        border: 'none',
-                        fontSize: 14,
-                        fontWeight: 700,
                         cursor: isOutOfStock ? 'not-allowed' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 8,
-                        boxShadow: isOutOfStock ? 'none' : `0 4px 14px ${primaryColor}38`,
-                        transition: 'transform 0.15s ease, opacity 0.15s ease',
+                        boxShadow: isOutOfStock
+                          ? 'none'
+                          : isJustAdded
+                          ? '0 4px 14px rgba(16, 185, 129, 0.45)'
+                          : `0 4px 14px ${primaryColor}38`,
                       }}
                     >
-                      <ShoppingBag size={16} />
-                      {isService ? 'Book Service' : 'Add to Cart'}
+                      {isJustAdded ? (
+                        <>
+                          <Check size={15} />
+                          Added!
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag size={15} />
+                          {isService ? 'Book' : 'Add to Cart'}
+                        </>
+                      )}
                     </button>
                   </div>
                 </Link>
@@ -1669,7 +1648,7 @@ export default function UniversalStorefront({
                     style={{
                       padding: '10px 16px',
                       borderRadius: 10,
-                      background: primaryColor,
+                      background: recentlyAddedId === item.id ? '#10b981' : primaryColor,
                       color: '#fff',
                       border: 'none',
                       fontSize: 13.5,
@@ -1678,9 +1657,18 @@ export default function UniversalStorefront({
                       display: 'flex',
                       alignItems: 'center',
                       gap: 6,
+                      transition: 'background-color 0.2s ease, transform 0.15s ease',
                     }}
                   >
-                    <Plus size={15} /> Add
+                    {recentlyAddedId === item.id ? (
+                      <>
+                        <Check size={15} /> Added
+                      </>
+                    ) : (
+                      <>
+                        <Plus size={15} /> Add
+                      </>
+                    )}
                   </button>
                 </Link>
               );

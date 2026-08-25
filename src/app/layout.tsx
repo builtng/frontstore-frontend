@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Outfit } from "next/font/google";
 import "./globals.css";
@@ -5,6 +6,7 @@ import ToastProvider from '@/components/ToastProvider';
 import AccessGuard from '@/components/AccessGuard';
 import AnalyticsScripts from '@/components/AnalyticsScripts';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
+import NavigationProgressBar from '@/components/NavigationProgressBar';
 
 // ── Fonts via next/font — zero render-blocking, automatic preload ────────────
 // Plus Jakarta Sans is the brand book's mandated body/UI font (brand_book.md).
@@ -321,8 +323,16 @@ export default function RootLayout({
             `
           }}
         />
+        {/* Preconnect to core APIs and asset domains */}
+        <link rel="preconnect" href="https://api.frontstore.ng" />
+        <link rel="dns-prefetch" href="https://api.frontstore.ng" />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
       </head>
       <body>
+        <Suspense fallback={null}>
+          <NavigationProgressBar />
+        </Suspense>
         <AnalyticsScripts />
         <AccessGuard>
           {children}
