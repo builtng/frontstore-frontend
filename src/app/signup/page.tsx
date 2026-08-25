@@ -404,11 +404,11 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
         throw new Error(setupJson.message || 'Failed to complete store setup. Please check your inputs.');
       }
 
-      // The real credential is the httpOnly fs_auth_token cookie the request
-      // above just received — only cache non-sensitive display data here.
-      if (typeof window !== 'undefined' && setupJson.token) {
-        localStorage.setItem('user', JSON.stringify(setupJson.data?.user));
-        localStorage.setItem('store', JSON.stringify(setupJson.data?.store));
+      const setupTokenResult = setupJson.data?.token || setupJson.token;
+      if (typeof window !== 'undefined') {
+        if (setupTokenResult) localStorage.setItem('token', setupTokenResult);
+        if (setupJson.data?.user) localStorage.setItem('user', JSON.stringify(setupJson.data.user));
+        if (setupJson.data?.store) localStorage.setItem('store', JSON.stringify(setupJson.data.store));
       }
 
       toast.success('Store created successfully! Redirecting to dashboard...');

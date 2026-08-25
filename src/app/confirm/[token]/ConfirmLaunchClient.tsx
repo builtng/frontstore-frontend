@@ -97,11 +97,11 @@ export default function ConfirmLaunchClient({ token }: Props) {
         return;
       }
 
-      // The real credential is the httpOnly fs_auth_token cookie the request
-      // above just received — only cache non-sensitive display data here.
+      const launchToken = data.data?.token || data.token;
       if (typeof window !== 'undefined') {
-        localStorage.setItem('user', JSON.stringify(data.data.user));
-        localStorage.setItem('store', JSON.stringify(data.data.store));
+        if (launchToken) localStorage.setItem('token', launchToken);
+        if (data.data?.user) localStorage.setItem('user', JSON.stringify(data.data.user));
+        if (data.data?.store) localStorage.setItem('store', JSON.stringify(data.data.store));
       }
 
       setDone(true);

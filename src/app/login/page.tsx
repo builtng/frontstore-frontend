@@ -263,9 +263,10 @@ function LoginFormContent({ isAdminMode, merchantLoginUrl, appName }: { isAdminM
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'Invalid or expired code.');
 
-      if (json.token && json.data) {
+      const authToken = json.data?.token || json.token;
+      if (authToken && json.data) {
         if (typeof window !== 'undefined') {
-          localStorage.setItem('token', json.token);
+          localStorage.setItem('token', authToken);
           localStorage.setItem('user', JSON.stringify(json.data.user));
           localStorage.setItem('store', JSON.stringify(json.data.store || null));
           const isAdmin = json.data.user?.is_admin === true || json.data.user?.is_admin === 1 || json.data.user?.is_admin === 'true' || json.data.user?.is_admin === '1';

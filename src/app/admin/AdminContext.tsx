@@ -328,6 +328,9 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   // needs auth relies on `credentials: 'include'` sending that cookie, not on
   // an Authorization header built from this value.
   const login = (newToken: string, newUser: any, newStore: any = null) => {
+    if (newToken) {
+      localStorage.setItem('token', newToken);
+    }
     localStorage.setItem('user', JSON.stringify(newUser));
     localStorage.setItem('store', JSON.stringify(newStore));
 
@@ -338,7 +341,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       newUser?.is_admin === '1';
 
     setAdminEmail(newUser?.email || newUser?.phone_number || 'admin@frontstore.ng');
-    setToken(newToken ? 'session' : null);
+    setToken(newToken || 'session');
     setIsAuthenticated(true);
     setIsAdmin(userIsAdmin);
   };
@@ -349,10 +352,9 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       credentials: 'include',
       headers: getHeaders(),
     }).catch(() => {
-      // Best-effort — the cookie is httpOnly so we can't clear it from here
-      // ourselves either way; a failed revoke just leaves a stale token that
-      // will keep failing auth on its own.
+      // Best-effort
     });
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('store');
     setToken(null);
@@ -361,14 +363,22 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     router.push('/admin/login');
   };
 
-  const getHeaders = () => ({
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  });
+  const getHeaders = () => {
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+    if (storedToken && storedToken !== 'session') {
+      headers['Authorization'] = `Bearer ${storedToken}`;
+    }
+    return headers;
+  };
 
   const handleFetchResponse = async (res: Response, defaultError: string) => {
     if (res.status === 401) {
       toast.error('Session expired. Please log in again.', { id: 'session-expired' });
+      localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('store');
       setToken(null);
@@ -540,6 +550,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     setApiUrl(savedApiUrl);
 
     const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     if (!storedUser || storedUser === 'null' || storedUser === 'undefined') {
       setIsAuthChecking(false);
       setIsAuthenticated(false);
@@ -548,10 +559,13 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Ask server if the httpOnly session cookie is still valid
-    fetch(`${savedApiUrl}/v1/auth/me`, { credentials: 'include' })
+    const headers = getHeaders();
+
+    // Ask server if the session/token is still valid
+    fetch(`${savedApiUrl}/v1/auth/me`, { credentials: 'include', headers })
       .then(async (res) => {
         if (!res.ok) {
+          localStorage.removeItem('token');
           localStorage.removeItem('user');
           localStorage.removeItem('store');
           setToken(null);

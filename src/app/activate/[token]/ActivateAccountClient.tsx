@@ -112,9 +112,11 @@ export default function ActivateAccountClient({ token }: Props) {
         return;
       }
 
+      const activateToken = data.data?.token || data.token;
       if (typeof window !== 'undefined') {
-        localStorage.setItem('user', JSON.stringify(data.data.user));
-        localStorage.setItem('store', JSON.stringify(data.data.store));
+        if (activateToken) localStorage.setItem('token', activateToken);
+        if (data.data?.user) localStorage.setItem('user', JSON.stringify(data.data.user));
+        if (data.data?.store) localStorage.setItem('store', JSON.stringify(data.data.store));
       }
 
       setStep('done');
