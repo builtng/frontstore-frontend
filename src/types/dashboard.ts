@@ -237,7 +237,14 @@ export interface PayoutStatusSummary {
 }
 
 export type DashboardTab =
-  | 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates'
-  | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'invoices' | 'receipts' | 'payment-links' | 'inventory'
-  | 'automations' | 'analytics' | 'team' | 'finance' | 'refunds' | 'inbox' | 'coupons'
-  | 'affiliates' | 'integrations' | 'customers';
+  | 'overview'
+  | 'orders'
+  | 'products'
+  | 'whatsapp'
+  | 'wallet'
+  | 'coupons'
+  | 'qr'
+  | 'customers'
+  | 'reviews'
+  | 'billing'
+  | 'settings';

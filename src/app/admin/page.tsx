@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useAdmin, AdminStats, StoreInfo } from './AdminContext';
 import { toast } from 'sonner';
 import {
   BarChart3,
   Check,
+  ChevronRight,
   DollarSign,
   Package,
   RefreshCw,
@@ -14,6 +16,7 @@ import {
   TrendingUp,
   Users,
   X,
+  Zap,
 } from 'lucide-react';
 import { Metric, PlanMeter, SkeletonGrid, EmptyState } from './components';
 
@@ -243,44 +246,69 @@ export default function AdminOverviewPage() {
           </div>
 
           {/* Platform Quick Operations */}
-          <div className="admin-panel" style={{ marginTop: 20 }}>
-            <div className="admin-panel__header" style={{ marginBottom: 16 }}>
+          <div className="admin-panel" style={{ marginTop: 24 }}>
+            <div className="admin-panel__header" style={{ marginBottom: 18 }}>
               <div>
-                <h3 style={{ fontSize: 16, fontWeight: 800 }}>Platform Quick Actions</h3>
-                <p>High-frequency administrative shortcuts</p>
+                <h3 style={{ fontSize: 16, fontWeight: 800, letterSpacing: '-0.01em' }}>Platform Quick Actions</h3>
+                <p>High-frequency administrative shortcuts & operational controls</p>
               </div>
-              <Shield size={18} className="text-muted" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 12, fontWeight: 700 }}>
+                <Zap size={15} style={{ color: 'var(--primary)' }} /> Shortcuts
+              </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-              <a href="/admin/stores" className="admin-quick-action-card">
-                <Store size={20} className="text-green" />
-                <div>
+            <div className="admin-quick-actions-grid">
+              <Link href="/admin/stores" className="admin-quick-action-card">
+                <div className="admin-quick-action-card__icon admin-quick-action-card__icon--green">
+                  <Store size={20} />
+                </div>
+                <div className="admin-quick-action-card__info">
                   <strong>Merchant Stores</strong>
                   <span>Manage storefronts & plans</span>
                 </div>
-              </a>
-              <a href="/admin/withdrawals" className="admin-quick-action-card">
-                <DollarSign size={20} className="text-green" />
-                <div>
+                <div className="admin-quick-action-card__arrow">
+                  <ChevronRight size={16} />
+                </div>
+              </Link>
+
+              <Link href="/admin/withdrawals" className="admin-quick-action-card">
+                <div className="admin-quick-action-card__icon admin-quick-action-card__icon--green">
+                  <DollarSign size={20} />
+                </div>
+                <div className="admin-quick-action-card__info">
                   <strong>Payouts & Batches</strong>
                   <span>Process merchant withdrawals</span>
                 </div>
-              </a>
-              <a href="/admin/verifications" className="admin-quick-action-card">
-                <Shield size={20} className="text-blue" />
-                <div>
+                <div className="admin-quick-action-card__arrow">
+                  <ChevronRight size={16} />
+                </div>
+              </Link>
+
+              <Link href="/admin/verifications" className="admin-quick-action-card">
+                <div className="admin-quick-action-card__icon admin-quick-action-card__icon--blue">
+                  <Shield size={20} />
+                </div>
+                <div className="admin-quick-action-card__info">
                   <strong>KYC Verifications</strong>
                   <span>Review identity uploads</span>
                 </div>
-              </a>
-              <a href="/admin/roles" className="admin-quick-action-card">
-                <Users size={20} className="text-purple" />
-                <div>
+                <div className="admin-quick-action-card__arrow">
+                  <ChevronRight size={16} />
+                </div>
+              </Link>
+
+              <Link href="/admin/roles" className="admin-quick-action-card">
+                <div className="admin-quick-action-card__icon admin-quick-action-card__icon--purple">
+                  <Users size={20} />
+                </div>
+                <div className="admin-quick-action-card__info">
                   <strong>Roles & Staff</strong>
                   <span>Permissions & team access</span>
                 </div>
-              </a>
+                <div className="admin-quick-action-card__arrow">
+                  <ChevronRight size={16} />
+                </div>
+              </Link>
             </div>
           </div>
         </>

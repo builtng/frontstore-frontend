@@ -44,23 +44,18 @@ const SIDEBAR_SECTIONS = [
     ],
   },
   {
-    group: 'Commerce',
+    group: 'Finance & Sales',
     items: [
       { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={17} /> },
-      { id: 'payment-links', label: 'Payment Links', icon: <Link size={17} />, pro: true },
-      { id: 'invoices', label: 'Invoices', icon: <FileText size={17} />, pro: true },
-      { id: 'receipts', label: 'Receipts', icon: <Receipt size={17} />, pro: true },
-      { id: 'inventory', label: 'Inventory', icon: <Archive size={17} />, pro: true },
+      { id: 'coupons', label: 'Store Coupons', icon: <Tag size={17} />, pro: true },
+      { id: 'qr', label: 'My QR Code', icon: <QrCode size={17} />, pro: true },
     ],
   },
   {
-    group: 'Marketing',
+    group: 'Conversations & Growth',
     items: [
-      { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={17} /> },
-      { id: 'coupons', label: 'Store Coupons', icon: <Tag size={17} />, pro: true },
-      { id: 'qr', label: 'My QR Code', icon: <QrCode size={17} />, pro: true },
+      { id: 'whatsapp', label: 'WhatsApp & Growth', icon: <WhatsAppIcon size={17} /> },
       { id: 'reviews', label: 'Reviews', icon: <Star size={17} /> },
-      { id: 'share', label: 'Share & Earn', icon: <Share2 size={17} /> },
     ],
   },
 ];
@@ -68,16 +63,11 @@ const SIDEBAR_SECTIONS = [
 const TOGGLEABLE_SIDEBAR_ITEMS: { id: string; label: string }[] = [
   { id: 'orders', label: 'Orders' },
   { id: 'products', label: 'Products' },
-  { id: 'inventory', label: 'Inventory' },
-  { id: 'coupons', label: 'Store Coupons' },
   { id: 'customers', label: 'Customers' },
   { id: 'wallet', label: 'Wallet & Payouts' },
-  { id: 'payment-links', label: 'Payment Links' },
-  { id: 'invoices', label: 'Invoices' },
-  { id: 'receipts', label: 'Receipts' },
-  { id: 'whatsapp', label: 'WhatsApp Inbox' },
-  { id: 'share', label: 'Share & Earn' },
+  { id: 'coupons', label: 'Store Coupons' },
   { id: 'qr', label: 'My QR Code' },
+  { id: 'whatsapp', label: 'WhatsApp & Growth' },
   { id: 'reviews', label: 'Reviews' },
 ];
 

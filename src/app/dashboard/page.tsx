@@ -22,33 +22,18 @@ import FileUpload from '../../components/FileUpload';
 import ThemeToggle from '../../components/ThemeToggle';
 import Toggle from '../../components/Toggle';
 import NinaWidget from '../../components/NinaWidget';
-import IntegrationsTab from '../../components/dashboard/IntegrationsTab';
-import { getColorHex } from '@/utils/colorUtils';
-import ShareTab from '../../components/dashboard/ShareTab';
-import TemplatesTab from '../../components/dashboard/TemplatesTab';
 import SettingsTab from '../../components/dashboard/SettingsTab';
-import ReachTab from '../../components/dashboard/ReachTab';
-import AnalyticsTab from '../../components/dashboard/AnalyticsTab';
-import FinanceTab from '../../components/dashboard/FinanceTab';
-import RefundsTab from '../../components/dashboard/RefundsTab';
 import CouponsTab from '../../components/dashboard/CouponsTab';
-import InvoicesTab from '../../components/dashboard/InvoicesTab';
-import ReceiptsTab from '../../components/dashboard/ReceiptsTab';
-import InventoryTab from '../../components/dashboard/InventoryTab';
-import AutomationsTab from '../../components/dashboard/AutomationsTab';
-import PaymentLinksTab from '../../components/dashboard/PaymentLinksTab';
-import AffiliatesTab from '../../components/dashboard/AffiliatesTab';
-import TeamTab from '../../components/dashboard/TeamTab';
-import InboxTab from '../../components/dashboard/InboxTab';
+import QrTab from '../../components/dashboard/QrTab';
 import ReviewsTab from '../../components/dashboard/ReviewsTab';
 import OrdersTab from '../../components/dashboard/OrdersTab';
 import ProductsTab from '../../components/dashboard/ProductsTab';
 import WhatsappTab from '../../components/dashboard/WhatsappTab';
-import QrTab from '../../components/dashboard/QrTab';
 import BillingTab from '../../components/dashboard/BillingTab';
 import OverviewTab from '../../components/dashboard/OverviewTab';
 import CustomersTab from '../../components/dashboard/CustomersTab';
 import WalletTab from '../../components/dashboard/WalletTab';
+import { getColorHex } from '@/utils/colorUtils';
 import { businessPersonas } from '../../utils/businessPersonas';
 import { getServiceFactPresets } from '../../utils/serviceFactPresets';
 import { resilientFetch } from '../../utils/resilientFetch';
@@ -274,14 +259,57 @@ interface DashboardStats {
   };
 }
 
-type DashboardTab = 'overview' | 'orders' | 'products' | 'whatsapp' | 'share' | 'qr' | 'templates' | 'settings' | 'billing' | 'wallet' | 'reach' | 'reviews' | 'invoices' | 'receipts' | 'payment-links' | 'inventory' | 'automations' | 'analytics' | 'team' | 'finance' | 'refunds' | 'inbox' | 'coupons' | 'affiliates' | 'integrations' | 'customers';
+type DashboardTab =
+  | 'overview'
+  | 'orders'
+  | 'products'
+  | 'whatsapp'
+  | 'wallet'
+  | 'coupons'
+  | 'qr'
+  | 'customers'
+  | 'reviews'
+  | 'billing'
+  | 'settings';
 
-const DASHBOARD_TABS: DashboardTab[] = ['overview', 'orders', 'products', 'whatsapp', 'share', 'qr', 'templates', 'settings', 'billing', 'wallet', 'reach', 'reviews', 'invoices', 'receipts', 'payment-links', 'inventory', 'automations', 'analytics', 'team', 'finance', 'refunds', 'inbox', 'coupons', 'affiliates', 'integrations', 'customers'];
+const DASHBOARD_TABS: DashboardTab[] = [
+  'overview',
+  'orders',
+  'products',
+  'whatsapp',
+  'wallet',
+  'coupons',
+  'qr',
+  'customers',
+  'reviews',
+  'billing',
+  'settings',
+];
+
+const LEGACY_TAB_MAP: Record<string, DashboardTab> = {
+  inventory: 'products',
+  invoices: 'orders',
+  receipts: 'orders',
+  refunds: 'orders',
+  finance: 'wallet',
+  analytics: 'wallet',
+  'payment-links': 'wallet',
+  templates: 'settings',
+  share: 'overview',
+  reach: 'whatsapp',
+  automations: 'whatsapp',
+  inbox: 'whatsapp',
+  affiliates: 'overview',
+  integrations: 'settings',
+  team: 'settings',
+};
 
 const getDashboardTabFromUrl = (): DashboardTab => {
   if (typeof window === 'undefined') return 'overview';
   const tab = new URLSearchParams(window.location.search).get('page');
-  return DASHBOARD_TABS.includes(tab as DashboardTab) ? tab as DashboardTab : 'overview';
+  if (tab && DASHBOARD_TABS.includes(tab as DashboardTab)) return tab as DashboardTab;
+  if (tab && LEGACY_TAB_MAP[tab]) return LEGACY_TAB_MAP[tab];
+  return 'overview';
 };
 
 const countries = [
@@ -2010,23 +2038,25 @@ export default function DashboardPage() {
               ]
             },
             {
-              group: 'Commerce',
+              group: 'Finance & Sales',
               items: [
                 { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={17} /> },
-                { id: 'payment-links', label: 'Payment Links', icon: <Link size={17} />, pro: !isPro },
-                { id: 'invoices', label: 'Invoices', icon: <FileText size={17} />, pro: !isPro },
-                { id: 'receipts', label: 'Receipts', icon: <Receipt size={17} />, pro: !isPro },
-                { id: 'inventory', label: 'Inventory', icon: <Archive size={17} />, pro: !isPro },
+                { id: 'coupons', label: 'Store Coupons', icon: <Tag size={17} />, pro: !isPro },
+                { id: 'qr', label: 'My QR Code', icon: <QrCode size={17} />, pro: !isPro },
               ]
             },
             {
-              group: 'Marketing',
+              group: 'Conversations & Growth',
               items: [
-                { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={17} />, count: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
-                { id: 'coupons', label: 'Store Coupons', icon: <Tag size={17} />, pro: !isPro },
-                { id: 'qr', label: 'My QR Code', icon: <QrCode size={17} />, pro: !isPro },
+                { id: 'whatsapp', label: 'WhatsApp & Growth', icon: <WhatsAppIcon size={17} />, count: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
                 { id: 'reviews', label: 'Reviews', icon: <Star size={17} />, count: reviews.filter(r => !r.reply).length || undefined },
-                { id: 'share', label: 'Share & Earn', icon: <Share2 size={17} /> },
+              ]
+            },
+            {
+              group: 'Store & Account',
+              items: [
+                { id: 'settings', label: 'Store Settings', icon: <Settings size={17} /> },
+                { id: 'billing', label: 'Billing & Plan', icon: <Rocket size={17} /> },
               ]
             }
           ] as Array<{ group: string; items: Array<{ id: string; label: string; icon: React.ReactNode; count?: number; pro?: boolean; legend?: boolean }> }>).map(section => {
@@ -2455,21 +2485,6 @@ export default function DashboardPage() {
                       <span>Settings</span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        navigateDashboardTab('integrations');
-                      }}
-                      className="clickable"
-                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 'var(--r-md)', background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
-                    >
-                      <Plug size={14} style={{ color: 'var(--text-muted)' }} />
-                      <span>Integrations</span>
-                      {!isLegend && (
-                        <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7c3aed', background: 'rgba(124,58,237,0.08)', padding: '1px 5px', borderRadius: 'var(--r-sm)', marginLeft: 'auto' }}>Business</span>
-                      )}
-                    </button>
 
                     <a
                       href={liveStoreUrl}
@@ -2599,29 +2614,7 @@ export default function DashboardPage() {
                 />
               )}
 
-              {/* ── TAB 5: SHARE & REFERRALS ── */}
-              {activeTab === 'share' && (
-                <ShareTab store={store} products={products} systemDomain={systemDomain} />
-              )}
-
-              {/* ── TAB: MY QR CODE ── */}
-              {activeTab === 'qr' && (
-                <QrTab store={store} systemDomain={systemDomain} isPro={isPro} openUpgradePrompt={openUpgradePrompt} />
-              )}
-
-              {/* ── TAB: STOREFRONT DESIGN (color only) ── */}
-              {activeTab === 'templates' && (
-                <TemplatesTab
-                  liveStoreUrl={liveStoreUrl}
-                  personaPresetName={getSelectedPersonaPreset()?.name ?? null}
-                  primaryColor={primaryColor}
-                  setPrimaryColor={setPrimaryColor}
-                  selectedTemplate={selectedTemplate}
-                  templateSaving={templateSaving}
-                  onSaveColor={handleTemplateColorSave}
-                />
-              )}
-
+              {/* ── TAB 4: STORE SETTINGS ── */}
               {activeTab === 'settings' && (
                 <SettingsTab
                   store={store}
@@ -2647,57 +2640,7 @@ export default function DashboardPage() {
                 />
               )}
 
-              {/* ── TAB: BROADCAST MESSAGES ── */}
-              {activeTab === 'reach' && (
-                <ReachTab isPro={isPro} openUpgradePrompt={openUpgradePrompt} />
-              )}
-
-              {activeTab === 'integrations' && !isLegend && (
-                <div className="card animate-fade-in" style={{ padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', maxWidth: 650, margin: '40px auto' }}>
-                  <div style={{ background: 'rgba(124, 58, 237, 0.1)', color: '#7c3aed', width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-                    <Plug size={32} />
-                  </div>
-                  <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>Integrations</h2>
-                  <p style={{ fontSize: 11.5, fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Marketing & Automation</p>
-                  <p style={{ fontSize: 14.5, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
-                    Connect Facebook Pixel, Google Tag Manager, and other marketing tools to track conversions and automate your storefront.
-                  </p>
-
-                  <div style={{ alignSelf: 'stretch', background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-xl)', padding: 20, textAlign: 'left', marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <CheckCircle2 size={16} style={{ color: '#7c3aed' }} />
-                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Facebook Pixel & Google Tag Manager</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <CheckCircle2 size={16} style={{ color: '#7c3aed' }} />
-                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Marketing & automation tool connections</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <CheckCircle2 size={16} style={{ color: '#7c3aed' }} />
-                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Track ad conversions across your storefront</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => openUpgradePrompt(
-                      'Integrations requires Business',
-                      'Connecting marketing pixels and automation tools is available on the Business plan. You can review the plan before upgrading.'
-                    )}
-                    className="btn btn-primary clickable"
-                    style={{ padding: '12px 24px', borderRadius: 'var(--r-lg)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 800, background: '#7c3aed', borderColor: '#7c3aed' }}
-                  >
-                    <Zap size={16} /> Upgrade to Business to Unlock Integrations
-                  </button>
-                </div>
-              )}
-
-              {activeTab === 'integrations' && isLegend && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
-                  <IntegrationsTab />
-                </div>
-              )}
-
-              {/* ── TAB 7: PLANS & BILLING ── */}
+              {/* ── TAB 5: PLANS & BILLING ── */}
               {activeTab === 'billing' && (
                 <BillingTab
                   user={user}
@@ -2713,37 +2656,7 @@ export default function DashboardPage() {
                 />
               )}
 
-              {/* ── TAB: INVOICES ── */}
-              {activeTab === 'invoices' && (
-                <InvoicesTab store={store} isPro={isPro} navigateDashboardTab={navigateDashboardTab} />
-              )}
-
-              {/* ── TAB: PAYMENT LINKS ── */}
-              {activeTab === 'payment-links' && (
-                <PaymentLinksTab store={store} isPro={isPro} openUpgradePrompt={openUpgradePrompt} />
-              )}
-
-              {/* ── TAB: RECEIPTS ── */}
-              {activeTab === 'receipts' && (
-                <ReceiptsTab store={store} isPro={isPro} navigateDashboardTab={navigateDashboardTab} />
-              )}
-
-              {/* ── TAB: INVENTORY ── */}
-              {activeTab === 'inventory' && (
-                <InventoryTab isPro={isPro} products={products} navigateDashboardTab={navigateDashboardTab} refreshProducts={() => loadAllData(true)} />
-              )}
-
-              {/* ── TAB: AUTOMATIONS ── */}
-              {activeTab === 'automations' && (
-                <AutomationsTab isPro={isPro} navigateDashboardTab={navigateDashboardTab} />
-              )}
-
-              {/* ── TAB: PRO ANALYTICS ── */}
-              {activeTab === 'analytics' && (
-                <AnalyticsTab store={store} isPro={isPro} navigateDashboardTab={navigateDashboardTab} />
-              )}
-
-              {/* ── TAB 8: WALLET & PAYOUTS ── */}
+              {/* ── TAB 6: WALLET & PAYOUTS ── */}
               {activeTab === 'wallet' && (
                 <WalletTab
                   store={store}
@@ -2754,7 +2667,7 @@ export default function DashboardPage() {
                 />
               )}
 
-              {/* ── TAB: CUSTOMERS (CRM) ── */}
+              {/* ── TAB 7: CUSTOMERS (CRM) ── */}
               {activeTab === 'customers' && (
                 <CustomersTab
                   isPro={isPro}
@@ -2778,7 +2691,7 @@ export default function DashboardPage() {
                 />
               )}
 
-              {/* ── TAB 11: REVIEWS MANAGER ── */}
+              {/* ── TAB 8: REVIEWS MANAGER ── */}
               {activeTab === 'reviews' && (
                 <ReviewsTab
                   isPro={isPro}
@@ -2791,34 +2704,14 @@ export default function DashboardPage() {
                 />
               )}
 
-              {/* ── TAB: STOREFRONT COUPONS ── */}
+              {/* ── TAB 9: STOREFRONT COUPONS ── */}
               {activeTab === 'coupons' && (
                 <CouponsTab store={store} isPro={isPro} openUpgradePrompt={openUpgradePrompt} />
               )}
 
-              {/* ── TAB: AFFILIATES ── */}
-              {activeTab === 'affiliates' && (
-                <AffiliatesTab store={store} products={products} />
-              )}
-
-              {/* ── TAB 21: TEAM & STAFF ── */}
-              {activeTab === 'team' && (
-                <TeamTab isPro={isPro} navigateDashboardTab={navigateDashboardTab} />
-              )}
-
-              {/* ── TAB 22: PROFIT ANALYTICS ── */}
-              {activeTab === 'finance' && (
-                <FinanceTab store={store} isPro={isPro} navigateDashboardTab={navigateDashboardTab} />
-              )}
-
-              {/* ── TAB 23: REFUND REQUESTS ── */}
-              {activeTab === 'refunds' && (
-                <RefundsTab store={store} isPro={isPro} navigateDashboardTab={navigateDashboardTab} />
-              )}
-
-              {/* ── TAB 24: UNIFIED COMMUNICATIONS INBOX ── */}
-              {activeTab === 'inbox' && (
-                <InboxTab isPro={isPro} navigateDashboardTab={navigateDashboardTab} />
+              {/* ── TAB 10: MY QR CODE ── */}
+              {activeTab === 'qr' && (
+                <QrTab store={store} systemDomain={systemDomain} isPro={isPro} openUpgradePrompt={openUpgradePrompt} />
               )}
             </>
           )}
@@ -2873,23 +2766,25 @@ export default function DashboardPage() {
                   ]
                 },
                 {
-                  group: 'Commerce',
+                  group: 'Finance & Sales',
                   items: [
                     { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={17} /> },
-                    { id: 'payment-links', label: 'Payment Links', icon: <Link size={17} />, pro: !isPro },
-                    { id: 'invoices', label: 'Invoices', icon: <FileText size={17} />, pro: !isPro },
-                    { id: 'receipts', label: 'Receipts', icon: <Receipt size={17} />, pro: !isPro },
-                    { id: 'inventory', label: 'Inventory', icon: <Archive size={17} />, pro: !isPro },
-                  ]
-                },
-                  {
-                  group: 'Marketing',
-                  items: [
-                    { id: 'whatsapp', label: 'WhatsApp Inbox', icon: <WhatsAppIcon size={17} />, count: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
                     { id: 'coupons', label: 'Store Coupons', icon: <Tag size={17} />, pro: !isPro },
                     { id: 'qr', label: 'My QR Code', icon: <QrCode size={17} />, pro: !isPro },
+                  ]
+                },
+                {
+                  group: 'Conversations & Growth',
+                  items: [
+                    { id: 'whatsapp', label: 'WhatsApp & Growth', icon: <WhatsAppIcon size={17} />, count: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
                     { id: 'reviews', label: 'Reviews', icon: <Star size={17} />, count: reviews.filter(r => !r.reply).length || undefined },
-                    { id: 'share', label: 'Share & Earn', icon: <Share2 size={17} /> },
+                  ]
+                },
+                {
+                  group: 'Store & Account',
+                  items: [
+                    { id: 'settings', label: 'Store Settings', icon: <Settings size={17} /> },
+                    { id: 'billing', label: 'Billing & Plan', icon: <Rocket size={17} /> },
                   ]
                 }
               ] as { group: string; items: { id: string; label: string; icon: React.ReactNode; count?: number; pro?: boolean; legend?: boolean }[] }[]).map(section => {

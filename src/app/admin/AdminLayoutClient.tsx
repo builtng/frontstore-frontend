@@ -26,54 +26,41 @@ import {
   ShoppingBag,
   Store,
   Tag,
-  UserPlus,
   Users,
 } from 'lucide-react';
 
 const navGroups = [
   {
-    label: 'Analytics',
+    label: 'Overview & Health',
     items: [
       { href: '/admin', label: 'Overview', icon: <BarChart3 size={16} />, permission: 'overview' },
+      { href: '/admin/health', label: 'System Health', icon: <Activity size={16} />, permission: 'health' },
     ],
   },
   {
-    label: 'Marketplace',
+    label: 'Marketplace & Stores',
     items: [
       { href: '/admin/stores', label: 'Stores', icon: <Store size={16} />, permission: 'stores' },
-      { href: '/admin/merchant-claims', label: 'Merchant Claims', icon: <UserPlus size={16} />, permission: 'merchant-claims' },
       { href: '/admin/products', label: 'Products', icon: <Package size={16} />, permission: 'products' },
       { href: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={16} />, permission: 'orders' },
       { href: '/admin/categories', label: 'Categories', icon: <Tag size={16} />, permission: 'categories' },
-    ],
-  },
-  {
-    label: 'Finance',
-    items: [
-      { href: '/admin/withdrawals', label: 'Payouts Hub', icon: <DollarSign size={16} />, permission: 'payouts' },
-      { href: '/admin/payments', label: 'Payment Gateways', icon: <CreditCard size={16} />, permission: 'payments' },
-      { href: '/admin/coupons', label: 'Coupons', icon: <Tag size={16} />, permission: 'coupons' },
-      { href: '/admin/plans', label: 'Plans', icon: <LayoutTemplate size={16} />, permission: 'plans' },
-    ],
-  },
-  {
-    label: 'Compliance',
-    items: [
       { href: '/admin/verifications', label: 'Verifications', icon: <Shield size={16} />, permission: 'verifications' },
     ],
   },
   {
-    label: 'Engagement',
+    label: 'Finance & Payouts',
     items: [
-      { href: '/admin/emails', label: 'Merchant Messages', icon: <Mail size={16} />, permission: 'emails' },
+      { href: '/admin/withdrawals', label: 'Payouts Hub', icon: <DollarSign size={16} />, permission: 'payouts' },
+      { href: '/admin/coupons', label: 'Platform Coupons', icon: <Tag size={16} />, permission: 'coupons' },
+      { href: '/admin/payments', label: 'Payment Gateways', icon: <CreditCard size={16} />, permission: 'payments' },
+      { href: '/admin/plans', label: 'Plans & Pricing', icon: <LayoutTemplate size={16} />, permission: 'plans' },
     ],
   },
   {
-    label: 'Administration',
+    label: 'Communications & Config',
     items: [
-      { href: '/admin/roles', label: 'Roles & Staff', icon: <Users size={16} />, permission: 'roles' },
-      { href: '/admin/health', label: 'System Health', icon: <Activity size={16} />, permission: 'health' },
-      { href: '/admin/settings', label: 'Settings', icon: <Settings size={16} />, permission: 'settings' },
+      { href: '/admin/emails', label: 'Merchant Messages', icon: <Mail size={16} />, permission: 'emails' },
+      { href: '/admin/settings', label: 'Platform Settings', icon: <Settings size={16} />, permission: 'settings' },
     ],
   },
 ];
@@ -84,6 +71,10 @@ const allTabs = [
   { href: '/admin/payout-sla', label: 'Payout SLA', icon: <Activity size={16} />, permission: 'payouts' },
   { href: '/admin/withdrawal-batches', label: 'Withdrawal Batches', icon: <Layers size={16} />, permission: 'payouts' },
   { href: '/admin/payout-account-changes', label: 'Payout Security', icon: <ShieldAlert size={16} />, permission: 'payouts' },
+  { href: '/admin/roles', label: 'Roles & Staff', icon: <Users size={16} />, permission: 'roles' },
+  { href: '/admin/emails', label: 'Merchant Messages', icon: <Mail size={16} />, permission: 'emails' },
+  { href: '/admin/coupons', label: 'Coupons', icon: <Tag size={16} />, permission: 'coupons' },
+  { href: '/admin/categories', label: 'Categories', icon: <Tag size={16} />, permission: 'categories' },
 ];
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {

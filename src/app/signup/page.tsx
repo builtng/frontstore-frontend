@@ -175,13 +175,8 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
     }
   }, [searchParams]);
 
-  // Pre-fill from a "Claim your business" listing page
-  const [claimSlug, setClaimSlug] = useState<string>('');
+  // Pre-fill business persona if provided in URL
   useEffect(() => {
-    const claimParam = searchParams.get('claim');
-    if (!claimParam) return;
-    setClaimSlug(claimParam);
-
     const personaParam = searchParams.get('business_persona');
     if (personaParam && businessPersonas.some(p => p.id === personaParam)) {
       setSelectedPersona(personaParam);
@@ -394,8 +389,7 @@ function SignupFormContent({ appName, registrationMethod = 'whatsapp' }: { appNa
           email: email.trim() || undefined,
           phone_number: normalizedPhone,
           country_dial_code: selectedCountry.dialCode,
-          referred_by: referredBy || undefined,
-          claim_slug: claimSlug || undefined
+          referred_by: referredBy || undefined
         })
       });
 
