@@ -182,7 +182,7 @@ export default async function ProductPage({ params }: PageProps) {
   const productUsername = productPathUsername(store.username, username);
   const storeName = safeText(store.store_name, productUsername || 'Store');
   const productName = safeText(product.name, safePathSegment(slug) || 'Product');
-  const productUrl = `https://${systemDomain}/${productUsername}/products/${safePathSegment(product.slug) || slug}`;
+  const productUrl = `https://${productUsername}.${systemDomain}/${safePathSegment(product.slug) || slug}`;
 
   const validReviews = productReviews.filter((r) => Number.isFinite(r.rating) && r.rating > 0);
   const aggregateRating = validReviews.length > 0 ? {

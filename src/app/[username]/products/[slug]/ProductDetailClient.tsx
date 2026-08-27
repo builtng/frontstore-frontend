@@ -393,25 +393,25 @@ export default function ProductDetailClient({
     const isSubdomain = host.startsWith(`${store.username}.`) || (host.includes('.localhost') && host.startsWith(store.username));
     return isSubdomain
       ? `${window.location.origin}/${initialProduct.slug}`
-      : `${window.location.origin}/${store.username}/${initialProduct.slug}`;
+      : `https://${store.username}.${systemDomain}/${initialProduct.slug}`;
   };
 
   const getStoreHomeUrl = () => {
     if (typeof window === 'undefined') {
-      return `/${store.username}`;
+      return `https://${store.username}.${systemDomain}`;
     }
     const host = window.location.host;
     const isSubdomain = host.startsWith(`${store.username}.`) || (host.includes('.localhost') && host.startsWith(store.username)) || host.endsWith('.frontstore.ng');
-    return isSubdomain ? '/' : `/${store.username}`;
+    return isSubdomain ? '/' : `https://${store.username}.${systemDomain}`;
   };
 
   const getProductDetailUrl = (productSlug: string) => {
     if (typeof window === 'undefined') {
-      return `/${store.username}/products/${productSlug}`;
+      return `https://${store.username}.${systemDomain}/${productSlug}`;
     }
     const host = window.location.host;
     const isSubdomain = host.startsWith(`${store.username}.`) || (host.includes('.localhost') && host.startsWith(store.username)) || host.endsWith('.frontstore.ng');
-    return isSubdomain ? `/${productSlug}` : `/${store.username}/products/${productSlug}`;
+    return isSubdomain ? `/${productSlug}` : `https://${store.username}.${systemDomain}/${productSlug}`;
   };
 
   // Handle WhatsApp Question Link

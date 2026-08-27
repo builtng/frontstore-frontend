@@ -134,7 +134,7 @@ export default function AdminProductsPage() {
                     <strong>{product.name}</strong>
                     {product.store?.username && (
                       <a
-                        href={`${window.location.origin}/${product.store.username}/products/${product.slug}`}
+                        href={`https://${product.store.username}.frontstore.ng/${product.slug}`}
                         target="_blank"
                         rel="noreferrer"
                       >

@@ -283,8 +283,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       products.forEach((product) => {
         if (!product.slug || !product.username) return;
 
+        const domain = baseUrl.replace(/^https?:\/\//, '');
         routes.push({
-          url: `${baseUrl}/${product.username}/products/${product.slug}`,
+          url: `https://${product.username}.${domain}/${product.slug}`,
           lastModified: product.updated_at ? new Date(product.updated_at) : now,
           changeFrequency: 'weekly',
           priority: 0.75,

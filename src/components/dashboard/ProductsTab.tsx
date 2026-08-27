@@ -65,7 +65,9 @@ export default function ProductsTab({
 
   const handleCopyProductLink = (product: Product) => {
     if (!store?.username) return;
-    const url = `${window.location.origin}/${store.username}/products/${product.slug || product.id}`;
+    const systemDomain = typeof window !== 'undefined' && (localStorage.getItem('system_domain') || process.env.NEXT_PUBLIC_SYSTEM_DOMAIN) || 'frontstore.ng';
+    const domain = systemDomain === 'frontstore.app' ? 'frontstore.ng' : systemDomain;
+    const url = `https://${store.username}.${domain}/${product.slug || product.id}`;
     navigator.clipboard.writeText(url);
     setCopiedId(product.id);
     toast.success('Product link copied! 📋');
