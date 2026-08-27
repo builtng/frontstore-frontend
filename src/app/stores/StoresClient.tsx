@@ -2,10 +2,23 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Store, ArrowRight, Search, Instagram, ShieldCheck, MapPin, Star, Package, Sparkles, X } from 'lucide-react';
+import { Store, ArrowRight, Search, Instagram, ShieldCheck, MapPin, Star, Package, Sparkles, X, Megaphone } from 'lucide-react';
 import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import { PublicSiteNav, PublicSiteFooter } from '../../components/PublicSiteChrome';
+import { formatOsmCategory } from '../../utils/osmCategoryLabels';
 import { getOptimizedImageUrl } from '../../lib/image';
+
+export interface UnclaimedListing {
+  id: string;
+  name: string;
+  slug: string;
+  category_key: string | null;
+  category_value: string | null;
+  persona_id: string;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+}
 
 export interface StoreItem {
   id: string;
@@ -34,12 +47,15 @@ const SORTS = [
 
 type SortKey = (typeof SORTS)[number]['key'];
 
-export default function StoresClient({ initialStores }: { initialStores: StoreItem[] }) {
+const UNCLAIMED_DISPLAY_LIMIT = 60;
+
+export default function StoresClient({ initialStores, initialUnclaimed }: { initialStores: StoreItem[]; initialUnclaimed?: UnclaimedListing[] }) {
   const [stores, setStores] = useState<StoreItem[]>(initialStores || []);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [sortBy, setSortBy] = useState<SortKey>('featured');
   const [loading, setLoading] = useState(!initialStores || initialStores.length === 0);
+  const unclaimedListings = (initialUnclaimed || []).slice(0, UNCLAIMED_DISPLAY_LIMIT);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
@@ -211,6 +227,24 @@ export default function StoresClient({ initialStores }: { initialStores: StoreIt
             <p style={{ color: 'var(--text-muted)', fontSize: 13.5 }}>Try a different keyword or clear your filters.</p>
           </div>
         )}
+
+        {unclaimedListings.length > 0 && (
+          <section style={{ marginTop: 56 }}>
+            <div style={{ marginBottom: 20 }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>
+                More businesses to discover
+              </h2>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                Found on public map data but not yet on Frontstore — the owner can claim any of these for free.
+              </p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 20 }}>
+              {unclaimedListings.map((listing) => (
+                <UnclaimedListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Merchant CTA band */}
@@ -339,6 +373,55 @@ export function StoreDirectoryCard({ store }: { store: StoreItem }) {
           style={{ padding: '7px 14px', fontSize: 12.5, borderRadius: 'var(--r-sm)', textDecoration: 'none' }}
         >
           Visit store <ArrowRight size={12} />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export function UnclaimedListingCard({ listing }: { listing: UnclaimedListing }) {
+  const initials = (listing.name || 'B').charAt(0).toUpperCase();
+  const location = [listing.city, listing.state].filter(Boolean).join(', ');
+
+  return (
+    <div className="card card-hover hover-lift" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 14, borderStyle: 'dashed' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+          background: 'var(--surface-2)', border: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'var(--text-faint)', fontWeight: 800, fontSize: 18, fontFamily: 'var(--font-heading)',
+        }}>
+          {initials}
+        </div>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h4 style={{ fontSize: 15.5, fontWeight: 800, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {listing.name}
+          </h4>
+          {location && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>
+              <MapPin size={10} />{location}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span className="badge" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
+          {formatOsmCategory(listing.category_value)}
+        </span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--accent)', fontWeight: 700 }}>
+          <Megaphone size={11} /> Unclaimed listing
+        </span>
+      </div>
+
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginTop: 'auto' }}>
+        <Link
+          href={`/claim/${listing.slug}`}
+          className="btn btn-outline clickable"
+          style={{ padding: '7px 14px', fontSize: 12.5, borderRadius: 'var(--r-sm)', textDecoration: 'none', width: '100%', justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        >
+          Is this your business? Claim it <ArrowRight size={12} />
         </Link>
       </div>
     </div>
