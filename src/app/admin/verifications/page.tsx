@@ -135,7 +135,7 @@ export default function AdminVerificationsPage() {
                         href={
                           v.custom_domain
                             ? `https://${v.custom_domain}`
-                            : `${window.location.origin}/${v.username}`
+                            : `https://${v.username}.frontstore.ng`
                         }
                         target="_blank"
                         rel="noreferrer"

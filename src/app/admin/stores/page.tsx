@@ -349,7 +349,7 @@ export default function AdminStoresPage() {
                       href={
                         store.custom_domain
                           ? `https://${store.custom_domain}`
-                          : `${window.location.origin}/${store.username}`
+                          : `https://${store.username}.frontstore.ng`
                       }
                       target="_blank"
                       rel="noreferrer"

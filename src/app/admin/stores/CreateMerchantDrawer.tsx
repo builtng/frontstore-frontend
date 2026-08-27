@@ -55,7 +55,7 @@ export default function CreateMerchantDrawer({ onClose, onCreated }: CreateMerch
           country_dial_code: countryDialCode.trim() || undefined,
           phone_number: phoneNumber.trim() || undefined,
           store_name: storeName.trim(),
-          username: username.trim().toLowerCase(),
+          username: (username.includes('@') ? username.split('@')[0] : username).trim().toLowerCase(),
           business_persona: businessPersona,
           primary_color: primaryColor,
         }),
@@ -99,7 +99,17 @@ export default function CreateMerchantDrawer({ onClose, onCreated }: CreateMerch
             <h3>Store</h3>
             <div className="admin-drawer__grid admin-drawer__grid--cols-2">
               <Field label="Store name" value={storeName} onChange={setStoreName} placeholder="Store name" required />
-              <Field label="Username" value={username} onChange={setUsername} placeholder="store-handle" required />
+              <Field
+                label="Username"
+                value={username}
+                onChange={(val) => {
+                  const raw = val.toLowerCase();
+                  const cleaned = raw.includes('@') ? raw.split('@')[0] : raw;
+                  setUsername(cleaned.replace(/_/g, '-').replace(/[^a-z0-9-]/g, ''));
+                }}
+                placeholder="store-handle"
+                required
+              />
               <label className="admin-field admin-field--full">
                 <span>Business type</span>
                 <SearchableSelect
