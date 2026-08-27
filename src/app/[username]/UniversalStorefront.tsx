@@ -142,6 +142,68 @@ function formatCurrency(amount: number, currency: string = 'NGN'): string {
   return `${symbol}${Math.round(amount).toLocaleString('en-US')}`;
 }
 
+function ProductImageWithSkeleton({
+  src,
+  alt,
+  loading = 'lazy',
+  style,
+}: {
+  src: string | null;
+  alt: string;
+  loading?: 'eager' | 'lazy';
+  style?: React.CSSProperties;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  if (!src || error) {
+    return (
+      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1', background: '#f1f5f9' }}>
+        <ShoppingBag size={32} />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', background: '#f1f5f9' }}>
+      {!loaded && (
+        <div className="skeleton" style={{ position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0 }} />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        loading={loading}
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: loaded ? 1 : 0,
+          transition: 'opacity 0.3s ease, transform 0.3s ease',
+          ...style,
+        }}
+      />
+    </div>
+  );
+}
+
+function ProductCardSkeleton() {
+  return (
+    <div className="storefront-product-card" style={{ borderColor: '#e2e8f0', pointerEvents: 'none' }}>
+      <div style={{ width: '100%', aspectRatio: '1 / 1', background: '#f1f5f9', position: 'relative', overflow: 'hidden' }}>
+        <div className="skeleton" style={{ position: 'absolute', inset: 0 }} />
+      </div>
+      <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="skeleton" style={{ width: '75%', height: 16, borderRadius: 4 }} />
+        <div className="skeleton" style={{ width: '45%', height: 14, borderRadius: 4 }} />
+        <div className="skeleton" style={{ width: '100%', height: 36, borderRadius: 8, marginTop: 8 }} />
+      </div>
+    </div>
+  );
+}
+
 export function formatWorkingHours(value: unknown): string {
   if (!value) return '';
   if (typeof value === 'string') {
@@ -1477,24 +1539,11 @@ export default function UniversalStorefront({
                       overflow: 'hidden',
                     }}
                   >
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={item.name}
-                        loading={index < 4 ? 'eager' : 'lazy'}
-                        decoding="async"
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          transition: 'transform 0.3s ease',
-                        }}
-                      />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}>
-                        <ShoppingBag size={32} />
-                      </div>
-                    )}
+                    <ProductImageWithSkeleton
+                      src={imageUrl}
+                      alt={item.name}
+                      loading={index < 4 ? 'eager' : 'lazy'}
+                    />
 
                     {/* Discount Pill */}
                     {hasDiscount && (
