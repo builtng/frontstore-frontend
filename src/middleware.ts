@@ -134,9 +134,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  // Note: We allow direct path visits on main domain (e.g. frontstore.ng/storename)
-  // so stores work reliably even if wildcard DNS (*.frontstore.ng) is not configured.
-  // If a subdomain is accessed directly (e.g. storename.frontstore.ng), lines 112-135 rewrite it internally.
+  // Rewrite direct main-domain path product visits (e.g. frontstore.ng/storeusername/product-slug -> /[username]/products/[product-slug])
+  if (!subdomain && isMainDomain && !isSystemPath) {
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length === 2 && !RESERVED_SUBDOMAINS.has(segments[0]) && segments[1] !== 'products' && segments[1] !== 'paymentlink' && segments[1] !== 'site') {
+      url.pathname = `/${segments[0]}/products/${segments[1]}`;
+      return NextResponse.rewrite(url);
+    }
+  }
 
   // Rewrite custom domain requests internally
   if (isCustomDomain && !isSystemPath) {
