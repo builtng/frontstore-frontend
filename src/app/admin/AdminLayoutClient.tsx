@@ -18,6 +18,7 @@ import {
   Loader2,
   LogOut,
   Mail,
+  MapPin,
   Package,
   Settings,
   LayoutTemplate,
@@ -41,6 +42,7 @@ const navGroups = [
     label: 'Marketplace & Stores',
     items: [
       { href: '/admin/stores', label: 'Stores', icon: <Store size={16} />, permission: 'stores' },
+      { href: '/admin/merchant-claims', label: 'Merchant Claims', icon: <MapPin size={16} />, permission: 'stores' },
       { href: '/admin/products', label: 'Products', icon: <Package size={16} />, permission: 'products' },
       { href: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={16} />, permission: 'orders' },
       { href: '/admin/categories', label: 'Categories', icon: <Tag size={16} />, permission: 'categories' },
@@ -75,6 +77,7 @@ const allTabs = [
   { href: '/admin/emails', label: 'Merchant Messages', icon: <Mail size={16} />, permission: 'emails' },
   { href: '/admin/coupons', label: 'Coupons', icon: <Tag size={16} />, permission: 'coupons' },
   { href: '/admin/categories', label: 'Categories', icon: <Tag size={16} />, permission: 'categories' },
+  { href: '/admin/merchant-claims', label: 'Merchant Claims', icon: <MapPin size={16} />, permission: 'stores' },
 ];
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {

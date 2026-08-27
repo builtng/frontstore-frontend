@@ -40,5 +40,7 @@ export const metadata: Metadata = {
 };
 
 export default async function StoresDirectoryPage() {
-  notFound();
+  const [stores, unclaimed] = await Promise.all([getStores(), getUnclaimedListings()]);
+  return <StoresClient initialStores={stores} initialUnclaimed={unclaimed} />;
 }
+
