@@ -155,6 +155,23 @@ function ProductImageWithSkeleton({
 }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const imgRef = React.useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    setLoaded(false);
+    setError(false);
+
+    if (imgRef.current && imgRef.current.complete) {
+      setLoaded(true);
+    }
+
+    // Safety fallback: if image is taking long or onLoad event was missed, show image after 500ms
+    const timer = setTimeout(() => {
+      setLoaded(true);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [src]);
 
   if (!src || error) {
     return (
@@ -167,9 +184,10 @@ function ProductImageWithSkeleton({
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', background: '#f1f5f9' }}>
       {!loaded && (
-        <div className="skeleton" style={{ position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0 }} />
+        <div className="skeleton" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', borderRadius: 0 }} />
       )}
       <img
+        ref={imgRef}
         src={src}
         alt={alt}
         loading={loading}
@@ -181,7 +199,7 @@ function ProductImageWithSkeleton({
           height: '100%',
           objectFit: 'cover',
           opacity: loaded ? 1 : 0,
-          transition: 'opacity 0.3s ease, transform 0.3s ease',
+          transition: 'opacity 0.25s ease, transform 0.3s ease',
           ...style,
         }}
       />
