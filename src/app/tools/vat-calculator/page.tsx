@@ -191,7 +191,7 @@ export default function VatCalculatorPage() {
             Frontstore keeps a clear record of every sale so VAT and reporting are never a guessing game.
           </p>
           <a href="/signup" className="btn btn-primary" style={{ padding: '12px 24px', fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 12 }}>
-            Get Started Free <ArrowRight size={15} />
+            Set Up Your Store Free <ArrowRight size={15} />
           </a>
         </div>
       </main>

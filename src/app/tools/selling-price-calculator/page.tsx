@@ -191,7 +191,7 @@ export default function SellingPriceCalculatorPage() {
             Frontstore lets you set cost price per product and see your margin before you publish to WhatsApp.
           </p>
           <a href="/signup" className="btn btn-primary" style={{ padding: '12px 24px', fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 12 }}>
-            Get Started Free <ArrowRight size={15} />
+            Set Up Your Store Free <ArrowRight size={15} />
           </a>
         </div>
       </main>

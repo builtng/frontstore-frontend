@@ -234,7 +234,7 @@ export default function ToolsIndexPage() {
                 borderRadius: 14,
               }}
             >
-              Start Free Trial <ArrowRight size={16} />
+              Set Up Your Store Free <ArrowRight size={16} />
             </a>
           </div>
 

@@ -150,7 +150,7 @@ export function ToolsSidebar({ currentSlug, proTip }: ToolsSidebarProps) {
               borderRadius: 12,
             }}
           >
-            <span>Get Started Free</span> <ArrowRight size={14} />
+            <span>Set Up Your Store Free</span> <ArrowRight size={14} />
           </a>
         </div>
       </div>
