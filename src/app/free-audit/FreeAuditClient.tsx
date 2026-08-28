@@ -32,6 +32,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
+import SearchableSelect from '@/components/SearchableSelect';
 import { toast } from 'sonner';
 import { generateAiAudit, AiAuditResult } from '@/lib/aiAnalyzer';
 
@@ -209,7 +210,7 @@ export default function FreeAuditClient() {
         }}
       >
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.2)', padding: '3px 10px', borderRadius: 20 }}>
-          <Bot size={14} color="#ffd700" /> AI-Powered Store Optimizer
+          <Zap size={14} color="#ffd700" /> Store Optimizer
         </span>
         <span>
           ⚡ Limited Quota: Only <strong>14 Free AI Audits</strong> Remaining Today
@@ -337,35 +338,35 @@ export default function FreeAuditClient() {
                     <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
                       Niche / Industry
                     </label>
-                    <select
+                    <SearchableSelect
+                      options={[
+                        { value: 'Fashion & Apparel', label: 'Fashion & Apparel' },
+                        { value: 'Beauty & Cosmetics', label: 'Beauty & Cosmetics' },
+                        { value: 'Gadgets & Electronics', label: 'Gadgets & Electronics' },
+                        { value: 'Health & Supplements', label: 'Health & Supplements' },
+                        { value: 'Food & Groceries', label: 'Food & Groceries' },
+                        { value: 'Digital Services & Consulting', label: 'Digital Services & Consulting' },
+                      ]}
                       value={industry}
-                      onChange={(e) => setIndustry(e.target.value)}
-                      style={{ width: '100%', padding: '11px 12px', borderRadius: 10, border: '1px solid var(--border)', fontSize: 13, background: 'var(--surface)', outline: 'none' }}
-                    >
-                      <option>Fashion & Apparel</option>
-                      <option>Beauty & Cosmetics</option>
-                      <option>Gadgets & Electronics</option>
-                      <option>Health & Supplements</option>
-                      <option>Food & Groceries</option>
-                      <option>Digital Services & Consulting</option>
-                    </select>
+                      onChange={setIndustry}
+                    />
                   </div>
 
                   <div>
                     <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
                       Main Traffic Source
                     </label>
-                    <select
+                    <SearchableSelect
+                      options={[
+                        { value: 'Facebook & Instagram Ads', label: 'Facebook & Instagram Ads' },
+                        { value: 'TikTok Ads & Organic', label: 'TikTok Ads & Organic' },
+                        { value: 'WhatsApp Status & Groups', label: 'WhatsApp Status & Groups' },
+                        { value: 'Google Ads & SEO', label: 'Google Ads & SEO' },
+                        { value: 'Influencer Promotions', label: 'Influencer Promotions' },
+                      ]}
                       value={trafficSource}
-                      onChange={(e) => setTrafficSource(e.target.value)}
-                      style={{ width: '100%', padding: '11px 12px', borderRadius: 10, border: '1px solid var(--border)', fontSize: 13, background: 'var(--surface)', outline: 'none' }}
-                    >
-                      <option>Facebook & Instagram Ads</option>
-                      <option>TikTok Ads & Organic</option>
-                      <option>WhatsApp Status & Groups</option>
-                      <option>Google Ads & SEO</option>
-                      <option>Influencer Promotions</option>
-                    </select>
+                      onChange={setTrafficSource}
+                    />
                   </div>
                 </div>
 
@@ -373,17 +374,17 @@ export default function FreeAuditClient() {
                   <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
                     Primary Conversion Struggle
                   </label>
-                  <select
+                  <SearchableSelect
+                    options={[
+                      { value: 'High clicks, but low sales/conversions', label: 'High clicks, but low sales/conversions' },
+                      { value: 'Cart abandonment during checkout', label: 'Cart abandonment during checkout' },
+                      { value: 'Low WhatsApp message replies', label: 'Low WhatsApp message replies' },
+                      { value: 'High cost per customer acquisition', label: 'High cost per customer acquisition' },
+                      { value: 'Slow page loading & mobile friction', label: 'Slow page loading & mobile friction' },
+                    ]}
                     value={primaryStruggle}
-                    onChange={(e) => setPrimaryStruggle(e.target.value)}
-                    style={{ width: '100%', padding: '11px 12px', borderRadius: 10, border: '1px solid var(--border)', fontSize: 13, background: 'var(--surface)', outline: 'none' }}
-                  >
-                    <option>High clicks, but low sales/conversions</option>
-                    <option>Cart abandonment during checkout</option>
-                    <option>Low WhatsApp message replies</option>
-                    <option>High cost per customer acquisition</option>
-                    <option>Slow page loading & mobile friction</option>
-                  </select>
+                    onChange={setPrimaryStruggle}
+                  />
                 </div>
 
                 <button
@@ -503,7 +504,7 @@ export default function FreeAuditClient() {
                   <div style={{ background: 'color-mix(in srgb, var(--danger) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)', borderRadius: 16, padding: 20, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                     <div>
                       <span style={{ fontSize: 12, textTransform: 'uppercase', fontWeight: 800, color: 'var(--danger)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                        <Bot size={14} /> AI Diagnostic Report Complete
+                        <Search size={14} /> Store Diagnostic Report Complete
                       </span>
                       <h4 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', marginTop: 4 }}>
                         Overall Health Score: <span style={{ color: 'var(--danger)' }}>{aiResult.overallScore}/100 ({aiResult.grade})</span>
@@ -576,17 +577,17 @@ export default function FreeAuditClient() {
                       <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
                         Current Monthly Sales Range
                       </label>
-                      <select
+                      <SearchableSelect
+                        options={[
+                          { value: 'Under ₦100,000 / month', label: 'Under ₦100,000 / month' },
+                          { value: '₦100,000 - ₦500,000 / month', label: '₦100,000 - ₦500,000 / month' },
+                          { value: '₦500,000 - ₦2,000,000 / month', label: '₦500,000 - ₦2,000,000 / month' },
+                          { value: '₦2,000,000 - ₦10,000,000 / month', label: '₦2,000,000 - ₦10,000,000 / month' },
+                          { value: 'Over ₦10,000,000 / month', label: 'Over ₦10,000,000 / month' },
+                        ]}
                         value={monthlyRevenue}
-                        onChange={(e) => setMonthlyRevenue(e.target.value)}
-                        style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1px solid var(--border)', fontSize: 14, outline: 'none', background: 'var(--surface-2)' }}
-                      >
-                        <option>Under ₦100,000 / month</option>
-                        <option>₦100,000 - ₦500,000 / month</option>
-                        <option>₦500,000 - ₦2,000,000 / month</option>
-                        <option>₦2,000,000 - ₦10,000,000 / month</option>
-                        <option>Over ₦10,000,000 / month</option>
-                      </select>
+                        onChange={setMonthlyRevenue}
+                      />
                     </div>
 
                     <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13, color: 'var(--text-2)', marginTop: 4 }}>
@@ -627,7 +628,7 @@ export default function FreeAuditClient() {
                 <div>
                   <div style={{ textAlign: 'center', marginBottom: 20 }}>
                     <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                      <Bot size={28} />
+                      <BarChart3 size={28} />
                     </div>
                     <h3 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>
                       AI Store Audit Dashboard: {businessName}
@@ -748,7 +749,7 @@ export default function FreeAuditClient() {
         <section style={{ marginBottom: 80 }}>
           <div style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto 48px' }}>
             <span className="hero-eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 12, padding: '4px 12px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: 20, fontSize: 12, fontWeight: 800 }}>
-              <Cpu size={14} /> AI ENGINE TECHNOLOGY
+              <Zap size={14} /> ENGINE TECHNOLOGY
             </span>
             <h2 className="text-display" style={{ fontSize: 'clamp(26px, 4vw, 38px)', color: 'var(--text)', marginBottom: 14, fontWeight: 800 }}>
               How Our AI Optimizer Fixes Your Ad Funnel

@@ -24,6 +24,7 @@ import {
   Smartphone
 } from 'lucide-react';
 import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
+import SearchableSelect from '@/components/SearchableSelect';
 import { toast } from 'sonner';
 
 export default function CartAbandonmentClient() {
@@ -225,24 +226,17 @@ export default function CartAbandonmentClient() {
                 <label style={{ display: 'block', fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>
                   Primary Recovery Follow-Up Channel:
                 </label>
-                <select
+                <SearchableSelect
+                  options={[
+                    { value: 'WhatsApp & Automated DMs (Highest Conversion)', label: 'WhatsApp & Automated DMs (Highest Conversion)' },
+                    { value: 'Email Automated Sequences', label: 'Email Automated Sequences' },
+                    { value: 'SMS Text Notifications', label: 'SMS Text Notifications' },
+                    { value: 'None (Manual Follow-ups)', label: 'None (Manual Follow-ups)' },
+                  ]}
                   value={calcChannel}
-                  onChange={(e) => setCalcChannel(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px 14px',
-                    borderRadius: 10,
-                    border: '1px solid var(--border)',
-                    fontSize: 14,
-                    background: 'var(--surface-2)',
-                    outline: 'none'
-                  }}
-                >
-                  <option>WhatsApp & Automated DMs (Highest Conversion)</option>
-                  <option>Email Automated Sequences</option>
-                  <option>SMS Text Notifications</option>
-                  <option>None (Manual Follow-ups)</option>
-                </select>
+                  onChange={setCalcChannel}
+                  searchable={false}
+                />
               </div>
             </div>
           </div>
@@ -497,34 +491,34 @@ export default function CartAbandonmentClient() {
                   <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
                     Store Platform
                   </label>
-                  <select
+                  <SearchableSelect
+                    options={[
+                      { value: 'WhatsApp Store', label: 'WhatsApp Store' },
+                      { value: 'Instagram / FB Store', label: 'Instagram / FB Store' },
+                      { value: 'Shopify Store', label: 'Shopify Store' },
+                      { value: 'WooCommerce', label: 'WooCommerce' },
+                      { value: 'Custom Website', label: 'Custom Website' },
+                    ]}
                     value={storePlatform}
-                    onChange={(e) => setStorePlatform(e.target.value)}
-                    style={{ width: '100%', padding: '11px 12px', borderRadius: 10, border: '1px solid var(--border)', fontSize: 13, outline: 'none', background: 'var(--surface-2)' }}
-                  >
-                    <option>WhatsApp Store</option>
-                    <option>Instagram / FB Store</option>
-                    <option>Shopify Store</option>
-                    <option>WooCommerce</option>
-                    <option>Custom Website</option>
-                  </select>
+                    onChange={setStorePlatform}
+                  />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
                     Monthly Revenue Band
                   </label>
-                  <select
+                  <SearchableSelect
+                    options={[
+                      { value: 'Under ₦100k / month', label: 'Under ₦100k / month' },
+                      { value: '₦100k - ₦500k / month', label: '₦100k - ₦500k / month' },
+                      { value: '₦500k - ₦2m / month', label: '₦500k - ₦2m / month' },
+                      { value: '₦2m - ₦10m / month', label: '₦2m - ₦10m / month' },
+                      { value: 'Over ₦10m / month', label: 'Over ₦10m / month' },
+                    ]}
                     value={monthlyRevenueBand}
-                    onChange={(e) => setMonthlyRevenueBand(e.target.value)}
-                    style={{ width: '100%', padding: '11px 12px', borderRadius: 10, border: '1px solid var(--border)', fontSize: 13, outline: 'none', background: 'var(--surface-2)' }}
-                  >
-                    <option>Under ₦100k / month</option>
-                    <option>₦100k - ₦500k / month</option>
-                    <option>₦500k - ₦2m / month</option>
-                    <option>₦2m - ₦10m / month</option>
-                    <option>Over ₦10m / month</option>
-                  </select>
+                    onChange={setMonthlyRevenueBand}
+                  />
                 </div>
               </div>
 
