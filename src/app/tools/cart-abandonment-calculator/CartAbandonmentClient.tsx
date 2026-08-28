@@ -140,7 +140,7 @@ export default function CartAbandonmentClient() {
       </header>
 
       {/* Main Calculator Content */}
-      <main style={{ flex: 1, width: '100%', maxWidth: 1100, margin: '0 auto', padding: 'clamp(48px, 7vw, 88px) 20px' }}>
+      <main style={{ flex: 1, width: '100%', maxWidth: 1140, margin: '0 auto', padding: 'clamp(48px, 7vw, 88px) 20px' }}>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 36, alignItems: 'start' }}>
           
@@ -462,7 +462,7 @@ export default function CartAbandonmentClient() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
                     Business Email *
@@ -492,7 +492,7 @@ export default function CartAbandonmentClient() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
                     Store Platform

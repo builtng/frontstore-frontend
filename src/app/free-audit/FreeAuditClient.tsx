@@ -36,6 +36,21 @@ import { toast } from 'sonner';
 import { generateAiAudit, AiAuditResult } from '@/lib/aiAnalyzer';
 
 export default function FreeAuditClient() {
+  // Element Refs for smooth scrolling & focus
+  const auditFormRef = React.useRef<HTMLDivElement>(null);
+  const businessNameInputRef = React.useRef<HTMLInputElement>(null);
+
+  const scrollToAuditForm = () => {
+    if (auditFormRef.current) {
+      auditFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => {
+        businessNameInputRef.current?.focus();
+      }, 350);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   // Audit Form Inputs
   const [businessName, setBusinessName] = useState('');
   const [storeUrl, setStoreUrl] = useState('');
@@ -261,6 +276,7 @@ export default function FreeAuditClient() {
           {/* Hero Right: AI Audit Input Box */}
           <div>
             <div 
+              ref={auditFormRef}
               style={{ 
                 background: 'rgba(255, 255, 255, 0.97)', 
                 borderRadius: 24, 
@@ -272,7 +288,7 @@ export default function FreeAuditClient() {
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <span style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Bot size={13} /> AI Store Diagnostic
+                  <Zap size={13} /> Store Audit Scanner
                 </span>
                 <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Clock size={13} /> Instant 60s Scan
@@ -280,10 +296,10 @@ export default function FreeAuditClient() {
               </div>
 
               <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8, color: 'var(--text)', lineHeight: 1.25 }}>
-                Run Your Free AI Business Audit
+                Run Your Free Store Audit
               </h2>
               <p style={{ fontSize: 13.5, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.5 }}>
-                Input your brand info below to launch our AI intelligence scanner on your storefront.
+                Input your brand info below to launch our diagnostic scanner on your storefront.
               </p>
 
               <form onSubmit={handleStartAudit} style={{ display: 'grid', gap: 14 }}>
@@ -292,6 +308,7 @@ export default function FreeAuditClient() {
                     Business or Brand Name *
                   </label>
                   <input
+                    ref={businessNameInputRef}
                     type="text"
                     required
                     placeholder="e.g. Bella Fashion House, Glam Beauty, TechHub"
@@ -315,7 +332,7 @@ export default function FreeAuditClient() {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
                   <div>
                     <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
                       Niche / Industry
@@ -387,14 +404,14 @@ export default function FreeAuditClient() {
                     cursor: 'pointer'
                   }}
                 >
-                  <Bot size={18} />
-                  <span>Launch AI Store Audit Engine</span>
+                  <Zap size={18} />
+                  <span>Launch Free Store Audit</span>
                   <ArrowRight size={16} />
                 </button>
               </form>
 
               <div style={{ marginTop: 14, textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                <Lock size={12} color="var(--primary)" /> 100% Secure AI Analysis. No login required.
+                <Lock size={12} color="var(--primary)" /> 100% Secure Analysis. No login required.
               </div>
             </div>
           </div>
@@ -525,7 +542,7 @@ export default function FreeAuditClient() {
                       />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                       <div>
                         <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
                           Business Email *
@@ -682,7 +699,7 @@ export default function FreeAuditClient() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                     <a
                       href={`https://wa.me/?text=Hello%20Frontstore%20team,%20I%20just%20completed%20the%20AI%20Store%20Audit%20for%20${encodeURIComponent(businessName)}.%20I%20would%20like%20to%20review%20my%20conversion%20fixes!`}
                       target="_blank"
@@ -744,7 +761,7 @@ export default function FreeAuditClient() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
             {[
               {
-                icon: Bot,
+                icon: Search,
                 title: '1. AI Ad-to-Page Hook Match',
                 desc: 'Compares your Facebook, TikTok, or Instagram ad copy against your landing page headline to ensure immediate message alignment.'
               },
@@ -880,7 +897,8 @@ export default function FreeAuditClient() {
               </p>
 
               <button
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                type="button"
+                onClick={scrollToAuditForm}
                 className="btn"
                 style={{
                   width: '100%',
@@ -1125,7 +1143,8 @@ export default function FreeAuditClient() {
               Join 4,800+ merchants who boosted their social media conversions with our AI Store Optimizer.
             </p>
             <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              type="button"
+              onClick={scrollToAuditForm}
               className="btn btn-primary"
               style={{
                 padding: '16px 32px',
@@ -1139,8 +1158,8 @@ export default function FreeAuditClient() {
                 cursor: 'pointer'
               }}
             >
-              <Bot size={18} />
-              <span>Launch Free AI Store Audit Engine</span>
+              <Zap size={18} />
+              <span>Launch Free Store Audit Engine</span>
               <ArrowRight size={18} />
             </button>
           </div>
