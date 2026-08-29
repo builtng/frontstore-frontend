@@ -236,15 +236,70 @@ export interface PayoutStatusSummary {
   next_payout_at: string | null;
 }
 
+export interface BookkeepingRecord {
+  id: string;
+  store_id: string;
+  type: 'income' | 'expense' | 'receivable' | 'payable';
+  category: string;
+  amount: number | string;
+  currency: string;
+  title: string;
+  reference_no?: string | null;
+  status: 'completed' | 'pending' | 'overdue' | 'cancelled';
+  transaction_date: string;
+  due_date?: string | null;
+  party_name?: string | null;
+  receipt_url?: string | null;
+  tax_amount?: number | string;
+  is_auto_generated?: boolean;
+  order_id?: string | null;
+  notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface BookkeepingSummary {
+  currency: string;
+  summary: {
+    total_income: number;
+    total_expense: number;
+    net_profit: number;
+    profit_margin: number;
+    total_receivable: number;
+    total_payable: number;
+    total_tax: number;
+  };
+  expense_categories: Array<{
+    category: string;
+    amount: number;
+    count: number;
+    percentage: number;
+  }>;
+  income_categories: Array<{
+    category: string;
+    amount: number;
+    count: number;
+    percentage: number;
+  }>;
+  monthly_trends: Array<{
+    month: string;
+    income: number;
+    expense: number;
+    profit: number;
+  }>;
+}
+
 export type DashboardTab =
   | 'overview'
   | 'orders'
   | 'products'
   | 'whatsapp'
   | 'wallet'
+  | 'bookkeeping'
   | 'coupons'
   | 'qr'
   | 'customers'
   | 'reviews'
   | 'billing'
   | 'settings';
+

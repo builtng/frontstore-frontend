@@ -33,10 +33,13 @@ import BillingTab from '../../components/dashboard/BillingTab';
 import OverviewTab from '../../components/dashboard/OverviewTab';
 import CustomersTab from '../../components/dashboard/CustomersTab';
 import WalletTab from '../../components/dashboard/WalletTab';
+import BookkeepingTab from '../../components/dashboard/BookkeepingTab';
+
 import { getColorHex } from '@/utils/colorUtils';
 import { businessPersonas } from '../../utils/businessPersonas';
 import { getServiceFactPresets } from '../../utils/serviceFactPresets';
 import { resilientFetch } from '../../utils/resilientFetch';
+import { getApiUrl } from '@/lib/api';
 
 // --- Currency Configuration ---
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -265,6 +268,7 @@ type DashboardTab =
   | 'products'
   | 'whatsapp'
   | 'wallet'
+  | 'bookkeeping'
   | 'coupons'
   | 'qr'
   | 'customers'
@@ -278,6 +282,7 @@ const DASHBOARD_TABS: DashboardTab[] = [
   'products',
   'whatsapp',
   'wallet',
+  'bookkeeping',
   'coupons',
   'qr',
   'customers',
@@ -473,7 +478,7 @@ export default function DashboardPage() {
   const [systemDomain, setSystemDomain] = useState('frontstore.ng');
   const [domainTargetCname, setDomainTargetCname] = useState('');
   const [domainTargetIp, setDomainTargetIp] = useState('');
-  const [apiUrl, setApiUrl] = useState('https://api.frontstore.ng/api');
+  const [apiUrl, setApiUrl] = useState(getApiUrl());
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
@@ -757,7 +762,7 @@ export default function DashboardPage() {
   const [customerTagSaving, setCustomerTagSaving] = useState<string | null>(null);
 
   // Settings Form
-  const [primaryColor, setPrimaryColor] = useState('#25D366');
+  const [primaryColor, setPrimaryColor] = useState('#0B5D39');
   const [selectedTemplate, setSelectedTemplate] = useState('luxe-market');
   const [selectedPersona, setSelectedPersona] = useState('');
   
@@ -834,7 +839,7 @@ export default function DashboardPage() {
     if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem('user');
       const storedStore = localStorage.getItem('store');
-      const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+      const savedApiUrl = getApiUrl();
 
       setApiUrl(savedApiUrl);
       setDevApiInput(savedApiUrl);
@@ -844,10 +849,7 @@ export default function DashboardPage() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('store');
-        if (reason) {
-          console.warn(`Account verification failed: ${reason}`);
-          toast.error('Your session has expired. Please log in again.');
-        }
+
         router.replace('/login');
         setTimeout(() => {
           if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
@@ -858,11 +860,12 @@ export default function DashboardPage() {
 
       const verifyAccountExists = async (apiUrl: string) => {
         try {
-          const response = await fetch(`${apiUrl}/v1/auth/me`, {
+          const response = await resilientFetch(`${apiUrl}/v1/auth/me`, {
             method: 'GET',
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
+              'Accept': 'application/json',
             },
           });
 
@@ -880,8 +883,14 @@ export default function DashboardPage() {
             }
           }
 
-          const data = await response.json();
-          if (!data.data || !data.data.user) {
+          const ct = response.headers.get('content-type');
+          if (!ct || !ct.includes('application/json')) {
+            console.warn('Account verification returned non-JSON response');
+            return { accountExists: true };
+          }
+
+          const data = await response.json().catch(() => null);
+          if (!data?.data || !data.data.user) {
             triggerRedirect('Account data is missing - account may have been deleted');
             return { accountExists: false };
           }
@@ -921,7 +930,7 @@ export default function DashboardPage() {
             if (currentStore) {
               setStore(currentStore);
               localStorage.setItem('store', JSON.stringify(currentStore));
-              setPrimaryColor(currentStore.primary_color || '#25D366');
+              setPrimaryColor(currentStore.primary_color || '#0B5D39');
               setSelectedTemplate(currentStore.store_template || 'luxe-market');
             }
             setIsAuthenticated(true);
@@ -949,9 +958,15 @@ export default function DashboardPage() {
   // Fetch admin-configured Pro subscription pricing so the upgrade UI never drifts from what checkout actually charges
   useEffect(() => {
     if (!apiUrl) return;
-    fetch(`${apiUrl}/v1/public/settings`)
-      .then(res => res.json())
+    resilientFetch(`${apiUrl}/v1/public/settings`)
+      .then(async res => {
+        if (!res.ok) return null;
+        const ct = res.headers.get('content-type');
+        if (!ct || !ct.includes('application/json')) return null;
+        return res.json().catch(() => null);
+      })
       .then(json => {
+        if (!json?.data) return;
         const monthly = Number(json?.data?.pro_monthly_price);
         const yearly = Number(json?.data?.pro_yearly_price);
         if (!Number.isNaN(monthly) && monthly > 0) setProMonthlyPrice(monthly);
@@ -983,15 +998,15 @@ export default function DashboardPage() {
     const verifyPayment = async () => {
       setIsVerifyingPayment(true);
       try {
-        const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
-        const res = await fetch(`${url}/v1/payments/verify-subscription`, {
+        const url = getApiUrl();
+        const res = await resilientFetch(`${url}/v1/payments/verify-subscription`, {
           method: 'POST',
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
           body: JSON.stringify({ reference }),
         });
-        const json = await res.json();
-        if (res.ok && json.data?.user) {
+        const json = await res.json().catch(() => null);
+        if (res.ok && json?.data?.user) {
           setUser(json.data.user);
           localStorage.setItem('user', JSON.stringify(json.data.user));
           if (json.data.store) {
@@ -1006,7 +1021,7 @@ export default function DashboardPage() {
           toast.success('🎉 Payment verified! Your Pro plan is now active.');
           navigateDashboardTab('billing', true);
         } else {
-          toast.error(json.message || 'Payment verification failed. Contact support.');
+          toast.error(json?.message || 'Payment verification failed. Contact support.');
         }
       } catch {
         toast.error('Could not verify payment. Please try again or contact support.');
@@ -1032,14 +1047,14 @@ export default function DashboardPage() {
 
     const refreshStripeStatus = async () => {
       try {
-        const url = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
-        const res = await fetch(`${url}/v1/payments/stripe/return`, {
+        const url = getApiUrl();
+        const res = await resilientFetch(`${url}/v1/payments/stripe/return`, {
           method: 'GET',
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         });
-        const json = await res.json();
-        if (res.ok && json.data) {
+        const json = await res.json().catch(() => null);
+        if (res.ok && json?.data) {
           setStore(json.data);
           localStorage.setItem('store', JSON.stringify(json.data));
           if (json.data.stripe_payouts_enabled) {
@@ -1075,28 +1090,37 @@ export default function DashboardPage() {
       else setIsRefreshing(true);
 
       const [statsRes, productsRes, ordersRes, categoriesRes, storeRes, reviewsRes] = await Promise.all([
-        fetch(`${apiUrl}/v1/orders/stats`, { credentials: 'include', headers: getAuthHeaders() }),
-        fetch(`${apiUrl}/v1/products`, { credentials: 'include', headers: getAuthHeaders() }),
-        fetch(`${apiUrl}/v1/orders`, { credentials: 'include', headers: getAuthHeaders() }),
-        fetch(`${apiUrl}/v1/categories`, { credentials: 'include', headers: getAuthHeaders() }),
-        fetch(`${apiUrl}/v1/store`, { credentials: 'include', headers: getAuthHeaders() }),
-        fetch(`${apiUrl}/v1/store/reviews`, { credentials: 'include', headers: getAuthHeaders() })
+        resilientFetch(`${apiUrl}/v1/orders/stats`, { credentials: 'include', headers: getAuthHeaders() }),
+        resilientFetch(`${apiUrl}/v1/products`, { credentials: 'include', headers: getAuthHeaders() }),
+        resilientFetch(`${apiUrl}/v1/orders`, { credentials: 'include', headers: getAuthHeaders() }),
+        resilientFetch(`${apiUrl}/v1/categories`, { credentials: 'include', headers: getAuthHeaders() }),
+        resilientFetch(`${apiUrl}/v1/store`, { credentials: 'include', headers: getAuthHeaders() }),
+        resilientFetch(`${apiUrl}/v1/store/reviews`, { credentials: 'include', headers: getAuthHeaders() })
       ]);
 
-      const statsJson = await statsRes.json();
-      const productsJson = await productsRes.json();
-      const ordersJson = await ordersRes.json();
-      const categoriesJson = await categoriesRes.json();
-      const storeJson = await storeRes.json();
-      const reviewsJson = await reviewsRes.json();
+      const parseJsonSafe = async (res: Response) => {
+        if (!res.ok) return null;
+        const ct = res.headers.get('content-type');
+        if (!ct || !ct.includes('application/json')) return null;
+        return res.json().catch(() => null);
+      };
 
-      if (statsRes.ok) setStats(statsJson.data);
-      if (productsRes.ok) setProducts(productsJson.data?.data || productsJson.data || []);
-      if (ordersRes.ok) setOrders(ordersJson.data?.data || ordersJson.data || []);
-      if (categoriesRes.ok) setCategories(categoriesJson.data || []);
-      if (reviewsRes.ok) setReviews(reviewsJson.data || []);
+      const [statsJson, productsJson, ordersJson, categoriesJson, storeJson, reviewsJson] = await Promise.all([
+        parseJsonSafe(statsRes),
+        parseJsonSafe(productsRes),
+        parseJsonSafe(ordersRes),
+        parseJsonSafe(categoriesRes),
+        parseJsonSafe(storeRes),
+        parseJsonSafe(reviewsRes),
+      ]);
 
-      if (storeRes.ok && storeJson.data) {
+      if (statsRes.ok && statsJson?.data) setStats(statsJson.data);
+      if (productsRes.ok && productsJson) setProducts(productsJson.data?.data || productsJson.data || []);
+      if (ordersRes.ok && ordersJson) setOrders(ordersJson.data?.data || ordersJson.data || []);
+      if (categoriesRes.ok && categoriesJson) setCategories(categoriesJson.data || []);
+      if (reviewsRes.ok && reviewsJson) setReviews(reviewsJson.data || []);
+
+      if (storeRes.ok && storeJson?.data) {
         const liveStore = storeJson.data;
         setStore(liveStore);
         localStorage.setItem('store', JSON.stringify(liveStore));
@@ -1105,7 +1129,7 @@ export default function DashboardPage() {
           setSystemDomain(domain);
           localStorage.setItem('system_domain', domain);
         }
-        setPrimaryColor(liveStore.primary_color || '#25D366');
+        setPrimaryColor(liveStore.primary_color || '#0B5D39');
         setSelectedTemplate(liveStore.store_template || 'luxe-market');
         setSelectedPersona(liveStore.business_persona || '');
       }
@@ -1863,7 +1887,7 @@ export default function DashboardPage() {
 
   const handleTemplateColorSave = async () => {
     const isProUser = !!user?.is_pro;
-    if (!isProUser && primaryColor !== '#25D366') {
+    if (!isProUser && primaryColor !== '#0B5D39') {
       openUpgradePrompt(
         'Custom storefront colors require Pro',
         'Free stores use the default brand color. Upgrade to Pro when you want custom theme colors across your storefront.'
@@ -1887,7 +1911,7 @@ export default function DashboardPage() {
 
       setStore(json.data);
       localStorage.setItem('store', JSON.stringify(json.data));
-      setPrimaryColor(json.data.primary_color || '#25D366');
+      setPrimaryColor(json.data.primary_color || '#0B5D39');
       toast.success('Template color updated.');
     } catch (e: any) {
       toast.error(e.message || 'Could not update template color.');
@@ -2015,21 +2039,86 @@ export default function DashboardPage() {
         flexShrink: 0,
         background: 'var(--surface)',
       }}>
-        {/* Brand Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, padding: '0 6px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src="/logo.svg" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} alt="Frontstore" width={32} height={32} style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0, borderRadius: 'var(--r-sm)' }} />
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--text)' }}>frontstore</span>
-          </div>
+        {/* Merchant Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, padding: '0 4px' }}>
+          <span style={{
+            fontSize: 10,
+            fontWeight: 800,
+            color: 'var(--primary)',
+            background: 'var(--primary-light)',
+            padding: '3px 8px',
+            borderRadius: 'var(--r-full)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            display: 'inline-flex',
+            alignItems: 'center'
+          }}>
+            Merchant
+          </span>
         </div>
 
-
+        {/* Merchant Workspace Identity Badge */}
+        {store && (
+          <a
+            href={liveStoreUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="dash-store-badge"
+            style={{ marginBottom: 14, textDecoration: 'none' }}
+            title="Open Live Storefront in new tab"
+          >
+            {store.logo_url ? (
+              <img
+                src={store.logo_url}
+                alt=""
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 'var(--r-md)',
+                  objectFit: 'cover',
+                  flexShrink: 0,
+                  border: '1px solid var(--border)'
+                }}
+              />
+            ) : (
+              <div style={{
+                width: 32,
+                height: 32,
+                borderRadius: 'var(--r-md)',
+                background: 'linear-gradient(135deg, #074328, #0B5D39)',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 900,
+                fontSize: 13,
+                fontFamily: 'var(--font-heading)',
+                flexShrink: 0
+              }}>
+                {(store.store_name || store.username || 'S').charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                  {store.store_name || store.username}
+                </span>
+                {store.is_verified && <BadgeCheck size={13} color="var(--primary)" />}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
+                <span className="live-dot-pulse" style={{ width: 6, height: 6 }} />
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Online Store</span>
+              </div>
+            </div>
+            <ArrowUpRight size={13} color="var(--text-faint)" />
+          </a>
+        )}
 
         {/* Grouped Sidebar Navigation */}
         <nav className="no-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1, overflowY: 'auto', paddingRight: 2 }}>
           {([
             {
-              group: 'Core',
+              group: 'Core Commerce',
               items: [
                 { id: 'overview', label: 'Overview', icon: <BarChart3 size={17} /> },
                 { id: 'orders', label: 'Orders', icon: <ShoppingBag size={17} />, count: orders.filter(o => o.order_status === 'pending').length },
@@ -2041,6 +2130,7 @@ export default function DashboardPage() {
               group: 'Finance & Sales',
               items: [
                 { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={17} /> },
+                { id: 'bookkeeping', label: 'Bookkeeping', icon: <FileText size={17} /> },
                 { id: 'coupons', label: 'Store Coupons', icon: <Tag size={17} />, pro: !isPro },
                 { id: 'qr', label: 'My QR Code', icon: <QrCode size={17} />, pro: !isPro },
               ]
@@ -2081,24 +2171,9 @@ export default function DashboardPage() {
                     <button
                       key={item.id}
                       onClick={() => navigateDashboardTab(item.id as DashboardTab)}
-                      className="clickable"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        width: '100%',
-                        padding: '8px 10px',
-                        borderRadius: 'var(--r-md)',
-                        border: 'none',
-                        background: active ? 'var(--primary-light)' : 'transparent',
-                        color: active ? 'var(--primary)' : 'var(--text-muted)',
-                        fontSize: 13.5,
-                        fontWeight: active ? 750 : 600,
-                        textAlign: 'left',
-                        transition: 'all 0.15s ease',
-                      }}
+                      className={`dashboard-sidebar-item ${active ? 'active' : ''}`}
                     >
-                      <span style={{ color: active ? 'var(--primary)' : 'var(--text-faint)' }}>{item.icon}</span>
+                      <span style={{ color: active ? 'var(--primary)' : 'var(--text-faint)', display: 'inline-flex', alignItems: 'center' }}>{item.icon}</span>
                       <span style={{ flex: 1 }}>{item.label}</span>
                       
                       {/* Pro Badge Tag */}
@@ -2106,10 +2181,10 @@ export default function DashboardPage() {
                         <span style={{
                           fontSize: 9.5,
                           fontWeight: 800,
-                          color: '#9333ea',
-                          background: 'rgba(147, 51, 234, 0.12)',
-                          padding: '1px 5px',
-                          borderRadius: 'var(--r-sm)',
+                          color: '#0B5D39',
+                          background: 'rgba(11, 93, 57, 0.12)',
+                          padding: '1px 6px',
+                          borderRadius: 'var(--r-full)',
                           textTransform: 'uppercase',
                           letterSpacing: '0.04em',
                         }}>
@@ -2124,10 +2199,11 @@ export default function DashboardPage() {
                           fontWeight: 800,
                           color: '#fff',
                           background: item.id === 'orders' ? 'var(--accent)' : 'var(--primary)',
-                          padding: '1px 6px',
+                          padding: '1px 7px',
                           borderRadius: 'var(--r-full)',
                           minWidth: 18,
-                          textAlign: 'center'
+                          textAlign: 'center',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                         }}>
                           {item.count}
                         </span>
@@ -2150,7 +2226,7 @@ export default function DashboardPage() {
             <EyeOff size={15} />
             <span style={{ flex: 1, textAlign: 'left' }}>Focus Mode</span>
             {!isLegend && (
-              <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7c3aed', background: 'rgba(124, 58, 237, 0.08)', padding: '1px 5px', borderRadius: 'var(--r-sm)' }}>Business</span>
+              <span style={{ fontSize: 9.5, fontWeight: 800, color: '#0B5D39', background: 'rgba(11, 93, 57, 0.08)', padding: '1px 5px', borderRadius: 'var(--r-sm)' }}>Business</span>
             )}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 10px' }}>
@@ -2177,14 +2253,12 @@ export default function DashboardPage() {
       <main className="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
 
         {/* Desktop & Mobile Header Topbar */}
-        <header className="glass main-header" style={{
+        <header className="dash-topbar main-header" style={{
           position: 'sticky', top: 0, zIndex: 30,
-          borderBottom: '1px solid var(--border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '10px 24px',
-          background: 'var(--surface)',
         }}>
           {/* Left section: mobile toggle and mobile brand logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -2192,41 +2266,30 @@ export default function DashboardPage() {
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="mobile-burger-btn"
-              style={{ background: 'none', border: 'none', color: 'var(--text)', display: 'none', padding: 4 }}
+              style={{ background: 'none', border: 'none', color: 'var(--text)', display: 'none', padding: 4, cursor: 'pointer' }}
             >
               <Menu size={22} />
             </button>
 
-            {/* Mobile logo (hidden on desktop via css) */}
-            <div className="header-logo-mobile" style={{ display: 'none', alignItems: 'center', gap: 6 }}>
-              <img src="/logo.svg" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} alt="Frontstore" width={26} height={26} style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0 }} />
-              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 15, letterSpacing: '-0.02em' }}>frontstore</span>
-            </div>
+
           </div>
 
-          {/* AI Command Input Bar */}
-          <form onSubmit={handleAiCommandSubmit} className="header-search-form" style={{ display: 'flex', flex: 1, maxWidth: 420, position: 'relative', margin: '0 16px' }}>
+          {/* AI Command Input Bar / Omni-Search */}
+          <form onSubmit={handleAiCommandSubmit} className="header-search-form" style={{ display: 'flex', flex: 1, maxWidth: 460, position: 'relative', margin: '0 16px' }}>
             <input
               type="text"
-              placeholder="Search or ask AI copilot... (e.g. /discount)"
+              placeholder="Search orders, products, customers or /ask Nina AI..."
               value={aiCommand}
               onChange={e => setAiCommand(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px 12px 8px 34px',
-                fontSize: 12.5,
-                background: 'var(--bg)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--r-full)',
-                outline: 'none',
-                color: 'var(--text)',
-                transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-              }}
+              className="dash-omni-input"
             />
-            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)' }} />
+            <Search size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)' }} />
+            <span className="kbd-shortcut" style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+              ⌘K
+            </span>
 
             {aiResponseBubble && (
-              <div className="card glass animate-scale-in" style={{ position: 'absolute', top: '115%', left: 0, right: 0, padding: 12, fontSize: 13, fontWeight: 600, border: '1px solid var(--primary)', zIndex: 50, color: 'var(--text)', borderRadius: 'var(--r-lg)' }}>
+              <div className="card glass animate-scale-in" style={{ position: 'absolute', top: '115%', left: 0, right: 0, padding: 14, fontSize: 13, fontWeight: 600, border: '1px solid var(--primary)', zIndex: 50, color: 'var(--text)', borderRadius: 'var(--r-lg)', boxShadow: 'var(--shadow-lg)' }}>
                 {aiResponseBubble}
               </div>
             )}
@@ -2234,6 +2297,21 @@ export default function DashboardPage() {
 
           {/* Right Action Widgets */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 'auto' }}>
+            {store?.username && (
+              <a
+                href={liveStoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="live-store-pill clickable desktop-only-text"
+                style={{ textDecoration: 'none', padding: '6px 12px' }}
+                title="View your public store link"
+              >
+                <span className="live-dot-pulse" />
+                <span>Live Store</span>
+                <ArrowUpRight size={13} />
+              </a>
+            )}
+
             <button
               onClick={() => loadAllData(true)}
               disabled={isRefreshing}
@@ -2241,16 +2319,16 @@ export default function DashboardPage() {
               style={{
                 padding: '7px 12px',
                 fontSize: 12,
-                borderRadius: 'var(--r-md)',
+                borderRadius: 'var(--r-full)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
                 justifyContent: 'center',
                 whiteSpace: 'nowrap',
-                fontWeight: 600,
+                fontWeight: 650,
                 background: 'var(--surface)'
               }}
-              title="Refresh Stats"
+              title="Sync Live Datasets"
             >
               <RefreshCw size={13} className={isRefreshing ? 'spin' : ''} />
               <span className="desktop-only-text">Sync Live</span>
@@ -2296,7 +2374,7 @@ export default function DashboardPage() {
                         width: 28,
                         height: 28,
                         borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #128C7E, #25D366)',
+                        background: 'linear-gradient(135deg, #074328, #0B5D39)',
                         color: '#fff',
                         display: 'flex',
                         alignItems: 'center',
@@ -2361,7 +2439,7 @@ export default function DashboardPage() {
                               width: 36,
                               height: 36,
                               borderRadius: 'var(--r-md)',
-                              background: 'linear-gradient(135deg, #128C7E, #25D366)',
+                              background: 'linear-gradient(135deg, #074328, #0B5D39)',
                               color: '#fff',
                               display: 'flex',
                               alignItems: 'center',
@@ -2393,7 +2471,7 @@ export default function DashboardPage() {
                             fontWeight: 800,
                             padding: '2px 7px',
                             borderRadius: 'var(--r-sm)',
-                            background: isLegend ? 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)' : isPro ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'var(--bg-2)',
+                            background: isLegend ? 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)' : isPro ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'var(--bg-2)',
                             color: (isPro || isLegend) ? '#fff' : 'var(--text-muted)',
                             border: (isPro || isLegend) ? 'none' : '1px solid var(--border)',
                             letterSpacing: '0.04em',
@@ -2667,6 +2745,16 @@ export default function DashboardPage() {
                 />
               )}
 
+              {/* ── BOOKKEEPING & LEDGER ── */}
+              {activeTab === 'bookkeeping' && (
+                <BookkeepingTab
+                  store={store}
+                  isPro={isPro}
+                  navigateDashboardTab={navigateDashboardTab}
+                />
+              )}
+
+
               {/* ── TAB 7: CUSTOMERS (CRM) ── */}
               {activeTab === 'customers' && (
                 <CustomersTab
@@ -2726,38 +2814,80 @@ export default function DashboardPage() {
           {/* Overlay mask */}
           <div
             onClick={() => setIsMobileMenuOpen(false)}
-            style={{ position: 'absolute', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)' }}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(6px)' }}
           />
           {/* Drawer content */}
           <div className="animate-drawer" style={{
             position: 'relative',
-            width: 280,
+            width: 290,
             background: 'var(--surface)',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            padding: 24,
+            padding: '20px 16px',
             borderRight: '1px solid var(--border)',
             overflowY: 'auto',
-            WebkitOverflowScrolling: 'touch'
+            WebkitOverflowScrolling: 'touch',
+            boxShadow: 'var(--shadow-xl)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Store size={22} style={{ color: 'var(--primary)' }} />
-                <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 18 }}>frontstore</span>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 16, padding: '0 4px' }}>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)' }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}
               >
                 <X size={20} />
               </button>
             </div>
 
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1, paddingRight: 4 }}>
+            {/* Merchant Workspace Badge (Mobile) */}
+            {store && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 12px',
+                borderRadius: 'var(--r-lg)',
+                background: 'var(--bg-2)',
+                border: '1px solid var(--border)',
+                marginBottom: 16
+              }}>
+                {store.logo_url ? (
+                  <img
+                    src={store.logo_url}
+                    alt=""
+                    style={{ width: 32, height: 32, borderRadius: 'var(--r-md)', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 'var(--r-md)',
+                    background: 'linear-gradient(135deg, #074328, #0B5D39)',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 900,
+                    fontSize: 13
+                  }}>
+                    {(store.store_name || store.username || 'S').charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                    {store.store_name || store.username}
+                  </span>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    @{store.username}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1, paddingRight: 2 }}>
               {([
                 {
-                  group: 'Core',
+                  group: 'Core Commerce',
                   items: [
                     { id: 'overview', label: 'Overview', icon: <BarChart3 size={17} /> },
                     { id: 'orders', label: 'Orders', icon: <ShoppingBag size={17} />, count: orders.filter(o => o.order_status === 'pending').length },
@@ -2769,6 +2899,7 @@ export default function DashboardPage() {
                   group: 'Finance & Sales',
                   items: [
                     { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={17} /> },
+                    { id: 'bookkeeping', label: 'Bookkeeping', icon: <FileText size={17} /> },
                     { id: 'coupons', label: 'Store Coupons', icon: <Tag size={17} />, pro: !isPro },
                     { id: 'qr', label: 'My QR Code', icon: <QrCode size={17} />, pro: !isPro },
                   ]
@@ -2812,23 +2943,27 @@ export default function DashboardPage() {
                             navigateDashboardTab(item.id as DashboardTab);
                             setIsMobileMenuOpen(false);
                           }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 10,
-                            width: '100%',
-                            padding: '8px 10px',
-                            borderRadius: 'var(--r-md)',
-                            border: 'none',
-                            background: active ? 'var(--primary-light)' : 'transparent',
-                            color: active ? 'var(--primary)' : 'var(--text-muted)',
-                            fontSize: 13.5,
-                            fontWeight: active ? 750 : 600,
-                            textAlign: 'left'
-                          }}
+                          className={`dashboard-sidebar-item ${active ? 'active' : ''}`}
+                          style={{ border: 'none' }}
                         >
-                          <span style={{ color: active ? 'var(--primary)' : 'var(--text-faint)' }}>{item.icon}</span>
+                          <span style={{ color: active ? 'var(--primary)' : 'var(--text-faint)', display: 'inline-flex', alignItems: 'center' }}>{item.icon}</span>
                           <span style={{ flex: 1 }}>{item.label}</span>
+
+                          {item.pro && (
+                            <span style={{
+                              fontSize: 9.5,
+                              fontWeight: 800,
+                              color: '#0B5D39',
+                              background: 'rgba(11, 93, 57, 0.12)',
+                              padding: '1px 6px',
+                              borderRadius: 'var(--r-full)',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.04em',
+                            }}>
+                              Pro
+                            </span>
+                          )}
+
                           {Boolean(item.count && item.count > 0) && (
                             <span style={{
                               fontSize: 10,
@@ -2850,6 +2985,17 @@ export default function DashboardPage() {
             </nav>
 
             <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <a
+                href={liveStoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="btn btn-outline clickable"
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', padding: '8px 10px', borderRadius: 'var(--r-md)', fontSize: 12.5, textDecoration: 'none', color: 'var(--text)' }}
+              >
+                <ExternalLink size={14} />
+                <span>View Live Storefront</span>
+              </a>
               <button
                 onClick={() => {
                   router.push('/dashboard/remove-distractions');
@@ -2861,7 +3007,7 @@ export default function DashboardPage() {
                 <EyeOff size={15} />
                 <span style={{ flex: 1, textAlign: 'left' }}>Focus Mode</span>
                 {!isLegend && (
-                  <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7c3aed', background: 'rgba(124, 58, 237, 0.08)', padding: '1px 5px', borderRadius: 'var(--r-sm)' }}>Legend</span>
+                  <span style={{ fontSize: 9.5, fontWeight: 800, color: '#0B5D39', background: 'rgba(11, 93, 57, 0.08)', padding: '1px 5px', borderRadius: 'var(--r-sm)' }}>Business</span>
                 )}
               </button>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px' }}>
@@ -4735,17 +4881,16 @@ export default function DashboardPage() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             <label style={{ fontSize: 11, fontWeight: 800 }}>Select Carrier Provider</label>
-                            <select
+                            <SearchableSelect
+                              options={shippingRates.map((r: any) => ({
+                                value: r.carrier,
+                                label: `${r.carrier} - ${getCurrencySymbol(store?.currency_code)}${r.price} (${r.eta})`,
+                              }))}
                               value={selectedCarrier}
-                              onChange={e => setSelectedCarrier(e.target.value)}
-                              style={{ width: '100%', padding: '8px 10px', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 13, color: 'var(--text)' }}
-                            >
-                              {shippingRates.map((r: any) => (
-                                <option key={r.carrier} value={r.carrier}>
-                                  {r.carrier} - {getCurrencySymbol(store?.currency_code)}{r.price} ({r.eta})
-                                </option>
-                              ))}
-                            </select>
+                              onChange={(val) => setSelectedCarrier(val)}
+                              searchable={false}
+                              triggerStyle={{ padding: '8px 12px', fontSize: '13px', borderRadius: 'var(--r-sm)' }}
+                            />
                           </div>
                           <div style={{ display: 'flex', gap: 8 }}>
                             <button

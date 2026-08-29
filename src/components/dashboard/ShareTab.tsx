@@ -163,7 +163,7 @@ export default function ShareTab({ store, products, systemDomain }: ShareTabProp
             onClick={handleShareWhatsApp}
             className="clickable"
             style={{
-              background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+              background: 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)',
               color: '#fff',
               padding: '16px 20px',
               borderRadius: 16,

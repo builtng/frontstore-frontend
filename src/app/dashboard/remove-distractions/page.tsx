@@ -12,6 +12,8 @@ import {
 import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
 import ThemeToggle from '../../../components/ThemeToggle';
 import Toggle from '../../../components/Toggle';
+import { getApiUrl } from '@/lib/api';
+import { resilientFetch } from '@/utils/resilientFetch';
 
 interface StoreShape {
   store_name?: string;
@@ -47,6 +49,7 @@ const SIDEBAR_SECTIONS = [
     group: 'Finance & Sales',
     items: [
       { id: 'wallet', label: 'Wallet & Payouts', icon: <DollarSign size={17} /> },
+      { id: 'bookkeeping', label: 'Bookkeeping', icon: <FileText size={17} /> },
       { id: 'coupons', label: 'Store Coupons', icon: <Tag size={17} />, pro: true },
       { id: 'qr', label: 'My QR Code', icon: <QrCode size={17} />, pro: true },
     ],
@@ -65,6 +68,7 @@ const TOGGLEABLE_SIDEBAR_ITEMS: { id: string; label: string }[] = [
   { id: 'products', label: 'Products' },
   { id: 'customers', label: 'Customers' },
   { id: 'wallet', label: 'Wallet & Payouts' },
+  { id: 'bookkeeping', label: 'Bookkeeping' },
   { id: 'coupons', label: 'Store Coupons' },
   { id: 'qr', label: 'My QR Code' },
   { id: 'whatsapp', label: 'WhatsApp & Growth' },
@@ -85,7 +89,7 @@ const FEATURE_SECTIONS: { id: string; label: string; hint: string }[] = [
 
 export default function RemoveDistractionsPage() {
   const router = useRouter();
-  const apiUrl = (typeof window !== 'undefined' && localStorage.getItem('dev_api_url')) || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const apiUrl = getApiUrl();
   const systemDomain = process.env.NEXT_PUBLIC_SYSTEM_DOMAIN || 'frontstore.ng';
 
   const [token, setToken] = useState<string | null>(null);
@@ -140,8 +144,8 @@ export default function RemoveDistractionsPage() {
     (async () => {
       try {
         const [resStore, resMe] = await Promise.all([
-          fetch(`${apiUrl}/v1/store`, { credentials: 'include', headers: authHeaders(null) }),
-          fetch(`${apiUrl}/v1/auth/me`, { credentials: 'include', headers: authHeaders(null) }).catch(() => null),
+          resilientFetch(`${apiUrl}/v1/store`, { credentials: 'include', headers: authHeaders(null) }),
+          resilientFetch(`${apiUrl}/v1/auth/me`, { credentials: 'include', headers: authHeaders(null) }).catch(() => null),
         ]);
 
         if (resStore.status === 401) {
@@ -151,8 +155,8 @@ export default function RemoveDistractionsPage() {
         }
         setToken('session');
 
-        const jsonStore = await resStore.json();
-        if (resStore.ok && jsonStore.data) {
+        const jsonStore = await resStore.json().catch(() => null);
+        if (resStore.ok && jsonStore?.data) {
           const liveStore: StoreShape = jsonStore.data;
           setStore(liveStore);
           setIsLegend(!!liveStore.is_legend);
@@ -161,8 +165,8 @@ export default function RemoveDistractionsPage() {
         }
 
         if (resMe && resMe.ok) {
-          const jsonMe = await resMe.json();
-          if (jsonMe.data && jsonMe.data.user) {
+          const jsonMe = await resMe.json().catch(() => null);
+          if (jsonMe?.data?.user) {
             setUser(jsonMe.data.user);
             localStorage.setItem('user', JSON.stringify(jsonMe.data.user));
           }
@@ -304,13 +308,22 @@ export default function RemoveDistractionsPage() {
         flexShrink: 0,
         background: 'var(--surface)',
       }}>
-        {/* Brand Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, padding: '0 6px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} alt="Frontstore" width={32} height={32} style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0, borderRadius: 'var(--r-sm)' }} />
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 17, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--text)' }}>frontstore</span>
-          </div>
+        {/* Merchant Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16, padding: '0 4px' }}>
+          <span style={{
+            fontSize: 10,
+            fontWeight: 800,
+            color: 'var(--primary)',
+            background: 'var(--primary-light)',
+            padding: '3px 8px',
+            borderRadius: 'var(--r-full)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            display: 'inline-flex',
+            alignItems: 'center'
+          }}>
+            Merchant
+          </span>
         </div>
 
         {/* Grouped Sidebar Navigation */}
@@ -358,8 +371,8 @@ export default function RemoveDistractionsPage() {
                       <span style={{
                         fontSize: 9.5,
                         fontWeight: 800,
-                        color: '#9333ea',
-                        background: 'rgba(147, 51, 234, 0.12)',
+                        color: '#0B5D39',
+                        background: 'rgba(11, 93, 57, 0.12)',
                         padding: '1px 5px',
                         borderRadius: 'var(--r-sm)',
                         textTransform: 'uppercase',
@@ -385,7 +398,7 @@ export default function RemoveDistractionsPage() {
             <EyeOff size={15} />
             <span style={{ flex: 1, textAlign: 'left', fontWeight: 750 }}>Focus Mode</span>
             {!isLegend && (
-              <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7c3aed', background: 'rgba(124, 58, 237, 0.08)', padding: '1px 5px', borderRadius: 'var(--r-sm)' }}>Legend</span>
+              <span style={{ fontSize: 9.5, fontWeight: 800, color: '#0B5D39', background: 'rgba(11, 93, 57, 0.08)', padding: '1px 5px', borderRadius: 'var(--r-sm)' }}>Business</span>
             )}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 10px' }}>
@@ -422,8 +435,6 @@ export default function RemoveDistractionsPage() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, padding: '0 6px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.svg" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} alt="Frontstore" width={26} height={26} style={{ width: 26, height: 26, objectFit: 'contain' }} />
                 <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 16 }}>frontstore</span>
               </div>
               <button
@@ -472,8 +483,8 @@ export default function RemoveDistractionsPage() {
                           <span style={{
                             fontSize: 9.5,
                             fontWeight: 800,
-                            color: '#9333ea',
-                            background: 'rgba(147, 51, 234, 0.12)',
+                            color: '#0B5D39',
+                            background: 'rgba(11, 93, 57, 0.12)',
                             padding: '1px 5px',
                             borderRadius: 'var(--r-sm)',
                             textTransform: 'uppercase',
@@ -538,8 +549,6 @@ export default function RemoveDistractionsPage() {
 
             {/* Mobile logo (hidden on desktop via css) */}
             <div className="header-logo-mobile" style={{ display: 'none', alignItems: 'center', gap: 6 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.svg" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} alt="Frontstore" width={26} height={26} style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0 }} />
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 15, letterSpacing: '-0.02em' }}>frontstore</span>
             </div>
 
@@ -636,7 +645,7 @@ export default function RemoveDistractionsPage() {
                         width: 28,
                         height: 28,
                         borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #128C7E, #25D366)',
+                        background: 'linear-gradient(135deg, #0B5D39, #10B981)',
                         color: '#fff',
                         display: 'flex',
                         alignItems: 'center',
@@ -701,7 +710,7 @@ export default function RemoveDistractionsPage() {
                               width: 36,
                               height: 36,
                               borderRadius: 'var(--r-md)',
-                              background: 'linear-gradient(135deg, #128C7E, #25D366)',
+                              background: 'linear-gradient(135deg, #0B5D39, #10B981)',
                               color: '#fff',
                               display: 'flex',
                               alignItems: 'center',
@@ -733,7 +742,7 @@ export default function RemoveDistractionsPage() {
                             fontWeight: 800,
                             padding: '2px 7px',
                             borderRadius: 'var(--r-sm)',
-                            background: isLegend ? 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)' : store.is_pro ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'var(--bg-2)',
+                            background: isLegend ? 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)' : store.is_pro ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'var(--bg-2)',
                             color: (store.is_pro || isLegend) ? '#fff' : 'var(--text-muted)',
                             border: (store.is_pro || isLegend) ? 'none' : '1px solid var(--border)',
                             letterSpacing: '0.04em',
@@ -743,7 +752,7 @@ export default function RemoveDistractionsPage() {
                           }}
                         >
                           {store.is_pro ? <Zap size={8} /> : null}
-                          {user?.plan === 'pro_monthly' ? 'Pro' : user?.plan === 'pro_yearly' ? 'Pro Yearly' : user?.plan === 'legend_monthly' ? 'Legend' : user?.plan === 'legend_yearly' ? 'Legend' : store.is_pro ? 'Pro Tier' : 'Free Tier'}
+                          {user?.plan === 'pro_monthly' ? 'Pro' : user?.plan === 'pro_yearly' ? 'Pro Yearly' : user?.plan === 'legend_monthly' ? 'Business' : user?.plan === 'legend_yearly' ? 'Business' : store.is_pro ? 'Pro Tier' : 'Free Tier'}
                         </span>
                         <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)' }}>
                           {store.currency_code || 'NGN'}
@@ -837,7 +846,7 @@ export default function RemoveDistractionsPage() {
                       <Plug size={14} style={{ color: 'var(--text-muted)' }} />
                       <span>Integrations</span>
                       {!isLegend && (
-                        <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7c3aed', background: 'rgba(124,58,237,0.08)', padding: '1px 5px', borderRadius: 'var(--r-sm)', marginLeft: 'auto' }}>Legend</span>
+                        <span style={{ fontSize: 9.5, fontWeight: 800, color: '#0B5D39', background: 'rgba(11,93,57,0.08)', padding: '1px 5px', borderRadius: 'var(--r-sm)', marginLeft: 'auto' }}>Business</span>
                       )}
                     </button>
 
@@ -921,17 +930,17 @@ export default function RemoveDistractionsPage() {
 
             {!isLegend ? (
               <div className="card" style={{ padding: 28, textAlign: 'center', border: '1.5px dashed var(--border-strong)' }}>
-                <Sparkles size={28} style={{ color: '#7c3aed', marginBottom: 12 }} />
-                <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, margin: '0 0 8px' }}>This is a Frontstore Legend feature</h2>
+                <Sparkles size={28} style={{ color: '#0B5D39', marginBottom: 12 }} />
+                <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, margin: '0 0 8px' }}>This is a Frontstore Business feature</h2>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 18 }}>
-                  Upgrade to Legend to customize which sidebar items, stats, and feature sections show up on your dashboard.
+                  Upgrade to Business to customize which sidebar items, stats, and feature sections show up on your dashboard.
                 </p>
                 <button
                   onClick={() => router.push('/dashboard?page=billing')}
                   className="btn btn-primary clickable"
-                  style={{ padding: '10px 20px', borderRadius: 'var(--r-lg)', background: '#7c3aed', borderColor: '#7c3aed' }}
+                  style={{ padding: '10px 20px', borderRadius: 'var(--r-lg)', background: '#0B5D39', borderColor: '#0B5D39' }}
                 >
-                  Upgrade to Legend
+                  Upgrade to Business
                 </button>
               </div>
             ) : (

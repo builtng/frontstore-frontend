@@ -567,7 +567,7 @@ export default function SettingsTab({
           bank_account_verified: accountVerified,
           custom_links: customLinks,
           logo_url: logoUrl,
-          primary_color: primaryColor || store?.primary_color || '#25D366',
+          primary_color: primaryColor || store?.primary_color || '#0B5D39',
           store_template: personaPreset?.template || selectedTemplate,
           business_persona: selectedPersona || null,
           catalog_label: personaPreset?.catalogLabel || catalogLabel || null,
@@ -642,7 +642,7 @@ export default function SettingsTab({
         setAccountVerified(!!json.data.bank_account_verified);
         setNameMatchOk(json.data.bank_account_verified ? true : null);
         setCustomLinks(json.data.custom_links || []);
-        setPrimaryColor(json.data.primary_color || '#25D366');
+        setPrimaryColor(json.data.primary_color || '#0B5D39');
         setSelectedTemplate(json.data.store_template || 'luxe-market');
         setSelectedPersona(json.data.business_persona || '');
         setCatalogLabel(json.data.catalog_label || 'product');

@@ -109,19 +109,25 @@ export default function NinaWidget({ ninaAvatarUrl }: NinaWidgetProps = {}) {
           width: 56,
           height: 56,
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #128C7E, #25D366)',
+          background: 'linear-gradient(135deg, #074328, #0B5D39)',
           border: 'none',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 8px 24px rgba(18, 140, 126, 0.45)',
+          boxShadow: '0 8px 24px rgba(11, 93, 57, 0.45)',
           transition: 'transform 0.15s ease, box-shadow 0.15s ease',
         }}
         onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.07)'; }}
         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
       >
-        {open ? <X size={22} color="#fff" strokeWidth={2.5} /> : <img src={avatarUrl} alt="Nina" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover' }} />}
+        {open ? (
+          <X size={22} color="#fff" strokeWidth={2.5} />
+        ) : ninaAvatarUrl ? (
+          <img src={ninaAvatarUrl} alt="Nina" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <Sparkles size={24} color="#fff" strokeWidth={2.2} />
+        )}
       </button>
 
       {/* Chat panel */}
@@ -149,14 +155,20 @@ export default function NinaWidget({ ninaAvatarUrl }: NinaWidgetProps = {}) {
             alignItems: 'center',
             gap: 10,
             padding: '14px 16px',
-            background: 'linear-gradient(135deg, #128C7E, #25D366)',
+            background: 'linear-gradient(135deg, #074328, #0B5D39)',
           }}>
-            <img src={avatarUrl} alt="Nina" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(255, 255, 255, 0.4)' }} />
+            {ninaAvatarUrl ? (
+              <img src={ninaAvatarUrl} alt="Nina" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(255, 255, 255, 0.4)' }} />
+            ) : (
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(255, 255, 255, 0.3)' }}>
+                <Sparkles size={18} color="#fff" />
+              </div>
+            )}
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: '#fff', fontFamily: 'var(--font-heading)' }}>Nina</div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: '#fff', fontFamily: 'var(--font-heading)' }}>Nina AI</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80' }} />
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>Your store assistant</span>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>Store Assistant</span>
               </div>
             </div>
             <button
@@ -173,7 +185,13 @@ export default function NinaWidget({ ninaAvatarUrl }: NinaWidgetProps = {}) {
             {displayMessages.map((msg) => (
               <div key={msg.id} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', alignItems: 'flex-end', gap: 7 }}>
                 {msg.role === 'assistant' && (
-                  <img src={avatarUrl} alt="Nina" style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(0,0,0,0.08)', flexShrink: 0 }} />
+                  ninaAvatarUrl ? (
+                    <img src={ninaAvatarUrl} alt="Nina" style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(0,0,0,0.08)', flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Sparkles size={13} />
+                    </div>
+                  )
                 )}
                 <div style={{
                   maxWidth: '76%',

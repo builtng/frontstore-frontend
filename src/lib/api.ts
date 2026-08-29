@@ -1,18 +1,24 @@
 import { resilientFetch } from '@/utils/resilientFetch';
 
 export function getApiUrl(): string {
+  const envUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8002/api').replace(/\/+$/, '');
   if (typeof window !== 'undefined') {
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const devApi = localStorage.getItem('dev_api_url');
+    const devApi = localStorage.getItem('dev_api_url')?.trim()?.replace(/\/+$/, '');
     if (isLocalhost) {
-      if (devApi && (devApi.includes('localhost') || devApi.includes('127.0.0.1'))) {
+      if (devApi && (devApi.includes(':8000') || devApi.includes(':8001'))) {
+        try {
+          localStorage.removeItem('dev_api_url');
+        } catch {}
+      }
+      if (devApi && (devApi.includes('localhost') || devApi.includes('127.0.0.1')) && !devApi.includes(':8000') && !devApi.includes(':8001')) {
         return devApi;
       }
-      return process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+      return envUrl;
     }
-    return devApi || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+    return devApi || envUrl;
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  return envUrl;
 }
 
 export class ApiError extends Error {
@@ -75,5 +81,7 @@ export const api = {
   patch: <T = unknown>(path: string, body?: unknown, options?: ApiRequestOptions) =>
     apiFetch<T>(path, { ...options, method: 'PATCH', body }),
   del: <T = unknown>(path: string, options?: ApiRequestOptions) =>
+    apiFetch<T>(path, { ...options, method: 'DELETE' }),
+  delete: <T = unknown>(path: string, options?: ApiRequestOptions) =>
     apiFetch<T>(path, { ...options, method: 'DELETE' }),
 };

@@ -41,7 +41,7 @@ const NAVIGATION_CARDS = [
     description: 'Start selling on WhatsApp with an automated checkout store in minutes.',
     href: '/pricing',
     badge: 'For Sellers',
-    color: '#8B5CF6',
+    color: '#0B5D39',
   },
   {
     icon: HelpCircle,

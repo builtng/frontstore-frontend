@@ -189,7 +189,7 @@ export default function FreeAuditClient() {
   const monthlyLeak = Math.max(0, optimizedRevenue - currentRevenue);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg, color-mix(in srgb, var(--primary) 5%, var(--bg)) 0%, var(--bg) 480px)' }}>
       {/* Urgency Top Bar */}
       <div 
         style={{ 

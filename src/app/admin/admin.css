@@ -12,15 +12,15 @@
   --surface-3:     rgba(36, 40, 52, 0.7);
   --border:        rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);
-  --border-glow:   rgba(16, 185, 129, 0.35);
+  --border-glow:   rgba(11, 93, 57, 0.40);
   --text:          #f8fafc;
   --text-2:        #e2e8f0;
   --text-muted:    #94a3b8;
   --text-faint:    #64748b;
-  --primary:       #10b981;
-  --primary-light: rgba(16, 185, 129, 0.12);
-  --primary-hover: #34d399;
-  --primary-glow:  rgba(16, 185, 129, 0.25);
+  --primary:       #0B5D39;
+  --primary-light: rgba(11, 93, 57, 0.15);
+  --primary-hover: #0F7649;
+  --primary-glow:  rgba(11, 93, 57, 0.35);
   --danger:        #f43f5e;
   --danger-light:  rgba(244, 63, 94, 0.12);
   --accent:        #f59e0b;
@@ -1897,9 +1897,9 @@
 }
 
 .admin-quick-action-card__icon--purple {
-  background: rgba(168, 85, 247, 0.12);
-  color: #a855f7;
-  border: 1px solid rgba(168, 85, 247, 0.25);
+  background: rgba(11, 93, 57, 0.12);
+  color: #0B5D39;
+  border: 1px solid rgba(11, 93, 57, 0.25);
 }
 
 .admin-quick-action-card__icon--amber {

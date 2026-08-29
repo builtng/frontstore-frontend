@@ -14,10 +14,18 @@ export interface SolutionFaq {
   answer: string;
 }
 
+export interface ProductSample {
+  name: string;
+  price: string;
+  originalPrice?: string;
+  image: string;
+  badge?: string;
+}
+
 export interface SolutionPage {
   slug: string;
   keyword: string;
-  category: 'Getting Started' | 'By Business Type' | 'AI & Automation';
+  category: 'Getting Started' | 'By Business Type' | 'AI & Automation' | 'What Can I Sell';
   metaTitle: string;
   metaDescription: string;
   eyebrow: string;
@@ -25,12 +33,270 @@ export interface SolutionPage {
   headlineHighlight: string;
   subhead: string;
   directAnswer: string;
+  bannerImage?: string;
+  iconName?: string;
+  productSamples?: ProductSample[];
   sections: SolutionSection[];
   steps?: SolutionStep[];
   faqs: SolutionFaq[];
 }
 
 export const SOLUTION_PAGES: SolutionPage[] = [
+  {
+    slug: 'food-drinks',
+    keyword: 'sell food and drinks online WhatsApp',
+    category: 'What Can I Sell',
+    metaTitle: 'Sell Food & Drinks Online via WhatsApp - Frontstore',
+    metaDescription: 'Run a high-speed online food, bakery, or beverage business with automated WhatsApp order routing, daily stock updates, and delivery zone options.',
+    eyebrow: 'Food & Drinks',
+    headline: 'Sell Food & Drinks',
+    headlineHighlight: 'Online with Zero Friction',
+    subhead: 'From artisan bakeries and gourmet meals to fresh juices and catering—take organized WhatsApp orders with instant customer details.',
+    directAnswer: 'Selling food and drinks online requires fast order processing, daily perishable stock updates, and clear delivery rules. Frontstore gives food vendors a high-speed digital menu link where customers pick items, select delivery preferences, and checkout directly into WhatsApp with zero back-and-forth.',
+    bannerImage: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1000&q=80',
+    iconName: 'Utensils',
+    productSamples: [
+      { name: 'Artisanal Sourdough & Pastry Box', price: '₦15,000', originalPrice: '₦18,000', image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=400&q=80', badge: 'Fresh Daily' },
+      { name: 'Belgian Chocolate Drip Cake', price: '₦32,000', image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=400&q=80', badge: 'Best Seller' },
+      { name: 'Cold-Pressed Tropical Juice Pack (6x)', price: '₦11,500', image: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?auto=format&fit=crop&w=400&q=80' },
+      { name: 'Gourmet Macaron Assortment (12pcs)', price: '₦12,000', image: 'https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&w=400&q=80' }
+    ],
+    sections: [
+      {
+        heading: 'Why Traditional Chat Ordering Fails Food Vendors',
+        body: 'Food items move fast and perish quickly. Taking meal or bakery orders via unstructured DMs leads to missed delivery times, wrong item selections, and price confusion during peak hours.',
+        bullets: [
+          'Unclear customer delivery addresses causing logistics delays',
+          'Selling items that sold out earlier in the morning',
+          'Manual price calculations for custom add-ons and side dishes',
+          'Lost order receipts during busy flash sales'
+        ]
+      },
+      {
+        heading: 'Optimized Digital Menus & Instant WhatsApp Routing',
+        body: 'Frontstore allows food vendors to publish organized digital menus with categories like Breakfast, Pastries, Main Dishes, and Beverages. Customers tap to add items to their cart, enter delivery instructions, and send a complete formatted order straight to your WhatsApp.'
+      },
+      {
+        heading: 'Delivery Zones & Minimum Order Limits',
+        body: 'Set up clear delivery rules for different neighborhoods or set minimum order totals for free shipping. Customers see delivery costs before checking out, avoiding surprises.'
+      }
+    ],
+    steps: [
+      { title: 'Create Menu Categories', body: 'Organize your dishes into clear sections like Starters, Mains, Bakery, and Drinks.' },
+      { title: 'Add Dishes & Prices', body: 'Upload appetizing photos, set prices, and list ingredients or allergen notes.' },
+      { title: 'Share Your Storefront Link', body: 'Put your frontstore link in your Instagram bio, WhatsApp Status, and TikTok profile.' },
+      { title: 'Receive Formatted Orders', body: 'Get instant WhatsApp messages with exact items, delivery address, and payment status.' }
+    ],
+    faqs: [
+      { question: 'Can I set daily stock limits for items that sell out fast?', answer: 'Yes! You can mark items out-of-stock in 1-click from your mobile dashboard so customers cannot order unavailable items.' },
+      { question: 'How do customers pay for food orders?', answer: 'Customers can pay via card or direct bank transfer via Paystack, or select Pay on Delivery depending on your business rules.' },
+      { question: 'Is Frontstore suitable for home bakers and dark kitchens?', answer: 'Absolutely! Thousands of independent home bakers, meal prep services, and dark kitchens run their daily operations on Frontstore.' }
+    ]
+  },
+  {
+    slug: 'fashion-items',
+    keyword: 'sell fashion clothes online WhatsApp',
+    category: 'What Can I Sell',
+    metaTitle: 'Sell Fashion & Apparel Online via WhatsApp - Frontstore',
+    metaDescription: 'Run a high-converting online fashion boutique with size/color variant matrix, automated stock deduction, and WhatsApp checkout.',
+    eyebrow: 'Fashion & Apparel',
+    headline: 'Sell Fashion & Clothing',
+    headlineHighlight: 'With Variant Matrix',
+    subhead: 'Effortlessly manage size (S, M, L, XL) and color variants, drop new collections, and eliminate DM pricing chaos.',
+    directAnswer: 'Fashion boutiques and clothing brands require size and color variant selection, quick collection drops, and clean inventory management. Frontstore gives apparel merchants a sleek storefront where buyers pick their exact size and color before ordering via WhatsApp.',
+    bannerImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1000&q=80',
+    iconName: 'Shirt',
+    productSamples: [
+      { name: 'Silk Satin Wrap Evening Dress', price: '₦28,500', originalPrice: '₦35,000', image: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=400&q=80', badge: 'Hot Drop' },
+      { name: 'Minimalist Genuine Leather Tote', price: '₦18,000', image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=80', badge: 'Best Seller' },
+      { name: 'Oversized Street Linen Shirt', price: '₦14,500', originalPrice: '₦18,000', image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=400&q=80' },
+      { name: 'Handcrafted Ankara Print Kimono', price: '₦22,000', image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=400&q=80' }
+    ],
+    sections: [
+      {
+        heading: 'Why DM Fashion Sales Cause Double-Selling & Frustration',
+        body: 'When selling clothes over DMs, buyers constantly ask "Is this available in Medium?" or "Do you have red?". Answering dozens of sizing questions manually leads to overselling items and lost sales when buyers give up waiting for a response.',
+        bullets: [
+          'Double-selling the last piece in a specific size to two different customers',
+          'Endless back-and-forth messaging about measurements and fabric type',
+          'Unorganized collection drops that get buried in chat feeds',
+          'Manual bank transfer verification slowing down order dispatch'
+        ]
+      },
+      {
+        heading: 'Size & Color Variant Matrix for Clothing',
+        body: 'Frontstore allows fashion sellers to add customizable variant attributes (Size: S, M, L, XL; Color: Black, Beige, Emerald) with individual stock counts. When a size sells out, it automatically greys out on your storefront.'
+      },
+      {
+        heading: 'Collection Drops & Instant Pre-Orders',
+        body: 'Group new arrivals into named collections like "Summer Linen 2026" or "Weekend Luxury". Share direct links to specific collections on Instagram Stories and TikTok.'
+      }
+    ],
+    steps: [
+      { title: 'Upload Outfit Photos', body: 'Use clear photo angles showing fit and fabric texture.' },
+      { title: 'Set Size & Color Variants', body: 'Specify available sizes and colors with remaining stock numbers.' },
+      { title: 'Group into Collections', body: 'Organize items under New Arrivals, Workwear, Evening Dresses, or Accessories.' },
+      { title: 'Share & Receive Orders', body: 'Buyers select size & color, checkout, and send a clear WhatsApp order.' }
+    ],
+    faqs: [
+      { question: 'Can customers select their size before checking out?', answer: 'Yes! Customers select their exact size and color variant, which is clearly formatted in the WhatsApp order message.' },
+      { question: 'How do I handle out-of-stock sizes?', answer: 'Frontstore automatically updates stock numbers. When a size reaches zero, it prevents buyers from ordering that variant.' },
+      { question: 'Can I add sizing chart guides?', answer: 'Yes, you can add measurement notes or sizing chart images to product descriptions.' }
+    ]
+  },
+  {
+    slug: 'gadgets',
+    keyword: 'sell gadgets electronics online WhatsApp',
+    category: 'What Can I Sell',
+    metaTitle: 'Sell Gadgets & Electronics Online via WhatsApp - Frontstore',
+    metaDescription: 'Set up an online store for tech gadgets, smartphones, wireless earbuds, and accessories with spec tags, warranty details, and card payments.',
+    eyebrow: 'Gadgets & Tech',
+    headline: 'Sell Gadgets & Electronics',
+    headlineHighlight: 'With Tech Spec Tags',
+    subhead: 'Showcase specifications, battery capacity, warranty terms, and accessories with instant card payment support.',
+    directAnswer: 'Gadget and electronics stores require detailed technical specs, warranty information, and secure card or bank transfer payments. Frontstore provides tech merchants with a high-tech digital storefront to showcase specs, handle accessory bundles, and collect payments securely.',
+    bannerImage: 'https://images.unsplash.com/photo-1498049860654-af1a5c566876?auto=format&fit=crop&w=1000&q=80',
+    iconName: 'Smartphone',
+    productSamples: [
+      { name: 'Wireless Active Noise-Canceling Buds', price: '₦35,000', originalPrice: '₦42,000', image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=400&q=80', badge: '1 Yr Warranty' },
+      { name: 'Ultra-Slim 20,000mAh Magnetic Power Bank', price: '₦16,500', image: 'https://images.unsplash.com/photo-1609592424074-c7151e399583?auto=format&fit=crop&w=400&q=80', badge: 'Fast Charge' },
+      { name: 'Smart Fitness & AMOLED Health Watch', price: '₦24,900', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80' },
+      { name: '4K Ultra-HD Mechanical Vlogging Tripod', price: '₦19,800', image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=400&q=80' }
+    ],
+    sections: [
+      {
+        heading: 'Overcoming Buyer Hesitation in Online Electronics Sales',
+        body: 'Electronics buyers want reassurance about compatibility, battery life, authenticity, and warranty coverage. Listing specs clearly on your storefront builds instant trust before the buyer ever reaches out.',
+        bullets: [
+          'Clear technical specifications (RAM, Storage, Battery, Compatibility)',
+          'Warranty coverage badges and return policy transparency',
+          'Instant card payments via Paystack for high-value items',
+          'Automated PDF invoice generation for customer proof of purchase'
+        ]
+      },
+      {
+        heading: 'Accessory Bundling & Upselling',
+        body: 'Offer buyers complementary accessories—like screen protectors, charging cables, or protective cases—during checkout to increase average order values effortlessly.'
+      },
+      {
+        heading: 'Automated Invoice PDF Receipts',
+        body: 'Every completed purchase generates an official PDF receipt with item serial notes, pricing, and warranty terms sent directly to customer email and WhatsApp.'
+      }
+    ],
+    steps: [
+      { title: 'List Device Specifications', body: 'Add key tech specs, compatibility notes, and box contents.' },
+      { title: 'Set Warranty Tags', body: 'Highlight warranty duration (e.g., 6 Months / 1 Year Warranty).' },
+      { title: 'Enable Card Payments', body: 'Connect Paystack for instant card & transfer verification.' },
+      { title: 'Fulfill & Issue Invoices', body: 'Send automatic PDF receipts to buyers upon payment completion.' }
+    ],
+    faqs: [
+      { question: 'Can I add warranty information to product listings?', answer: 'Yes! You can add warranty duration badges and terms to every gadget listing.' },
+      { question: 'How do high-value payment transactions work?', answer: 'Frontstore integrates with Paystack and Stripe so buyers can pay via credit/debit card, bank transfer, or international cards with instant payment verification.' },
+      { question: 'Can I generate official invoice receipts for buyers?', answer: 'Yes, Frontstore automatically generates PDF invoices with order breakdowns for every completed purchase.' }
+    ]
+  },
+  {
+    slug: 'beauty-makeup',
+    keyword: 'sell beauty makeup cosmetics online WhatsApp',
+    category: 'What Can I Sell',
+    metaTitle: 'Sell Beauty, Makeup & Skincare Online via WhatsApp - Frontstore',
+    metaDescription: 'Create a high-converting online beauty storefront for cosmetics, organic skincare, hair extensions, and makeup with shade selectors and trust badges.',
+    eyebrow: 'Beauty & Cosmetics',
+    headline: 'Sell Beauty & Skincare',
+    headlineHighlight: 'With Shade Selectors',
+    subhead: 'Showcase cosmetics, organic skincare serums, hair extensions, and makeup bundles with trust badges and shade selection.',
+    directAnswer: 'Beauty and skincare brands need clear shade selection, ingredient breakdown, skin-type tagging, and authentic customer reviews. Frontstore provides beauty vendors with a clean storefront to showcase products, manage shade options, and route orders to WhatsApp.',
+    bannerImage: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1000&q=80',
+    iconName: 'Sparkles',
+    productSamples: [
+      { name: 'Hydrating Botanical Niacinamide Elixir', price: '₦12,500', image: 'https://images.unsplash.com/photo-1608248597261-833258657640?auto=format&fit=crop&w=400&q=80', badge: '100% Organic' },
+      { name: 'Radiance Vitamin C Glow Serum', price: '₦9,800', originalPrice: '₦12,000', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80', badge: 'Best Seller' },
+      { name: 'Sheer Hydrating Tinted Lip Oil', price: '₦6,500', image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=400&q=80' },
+      { name: 'Raw Unprocessed HD Lace Frontal Wig (24")', price: '₦85,000', originalPrice: '₦95,000', image: 'https://images.unsplash.com/photo-1562157873-818bc0726f68?auto=format&fit=crop&w=400&q=80' }
+    ],
+    sections: [
+      {
+        heading: 'Building Trust in Online Skincare & Cosmetics',
+        body: 'Skincare and makeup buyers look for ingredient transparency, skin-type suitability (Oily, Dry, Sensitive), and authentic reviews. Listing ingredients and shade options on your storefront removes buying hesitation.',
+        bullets: [
+          'Shade and tone variant selection for foundations, lipsticks, and concealers',
+          'Clear skin-type tags (Oily, Combination, Sensitive) and ingredient notes',
+          'Organic and cruelty-free trust badges',
+          'Routine product bundles (Cleanse, Tone, Hydrate) for higher order values'
+        ]
+      },
+      {
+        heading: 'Routine Bundles & Upselling',
+        body: 'Create multi-step skincare kits or makeup sets that give buyers a discount when purchasing the complete routine together.'
+      },
+      {
+        heading: 'Repeated Restock Reminders',
+        body: 'Beauty items are repurchased regularly. Storefront customer records help you send timely WhatsApp restock reminders to past buyers.'
+      }
+    ],
+    steps: [
+      { title: 'Upload Product & Swatch Photos', body: 'Include clean photos showing product swatches and real skin results.' },
+      { title: 'Add Shade & Skin-Type Tags', body: 'Specify available shades and recommend skin types for each product.' },
+      { title: 'Create Routine Bundles', body: 'Bundle complementary products into discounted 3-step routine kits.' },
+      { title: 'Receive Clean WhatsApp Orders', body: 'Buyers select shades, checkout, and send formatted orders directly to your chat.' }
+    ],
+    faqs: [
+      { question: 'Can customers pick foundation shades before buying?', answer: 'Yes! You can set up shade variants so buyers choose their exact shade code before checking out.' },
+      { question: 'Can I list ingredient notes and usage instructions?', answer: 'Yes, product descriptions support formatted ingredient lists, skin-type recommendations, and usage directions.' },
+      { question: 'How do routine bundles work?', answer: 'You can create composite product listings (e.g. 3-Step Acne Kit) with a special bundled price.' }
+    ]
+  },
+  {
+    slug: 'physical-products',
+    keyword: 'sell physical products online WhatsApp',
+    category: 'What Can I Sell',
+    metaTitle: 'Sell Any Physical Products Online via WhatsApp - Frontstore',
+    metaDescription: 'The ultimate online store builder for any physical products: home goods, handmade crafts, jewelry, baby items, and general retail.',
+    eyebrow: 'Physical Products',
+    headline: 'Sell Any Physical Product',
+    headlineHighlight: 'Online in 30 Seconds',
+    subhead: 'From home decor, handmade crafts, and jewelry to baby goods and general retail—launch your store with zero coding.',
+    directAnswer: 'Selling physical products online requires an organized catalog, flexible shipping zone options, stock inventory control, and automated order confirmation. Frontstore gives retail sellers a complete digital storefront to showcase any physical items and take WhatsApp orders instantly.',
+    bannerImage: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=1000&q=80',
+    iconName: 'ShoppingBag',
+    productSamples: [
+      { name: 'Handcrafted Ceramic Coffee Mug Set', price: '₦14,000', image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=400&q=80', badge: 'Handmade' },
+      { name: 'Aromatic Soy Wax Scented Candle (300g)', price: '₦8,500', image: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=400&q=80', badge: 'Eco Friendly' },
+      { name: 'Minimalist Nordic Desk Lamp', price: '₦22,500', originalPrice: '₦28,000', image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=400&q=80' },
+      { name: 'Ergonomic Memory Foam Baby Pillow', price: '₦12,000', image: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&w=400&q=80' }
+    ],
+    sections: [
+      {
+        heading: 'Universal Catalog Management for Any Business',
+        body: 'Whether you sell 5 items or 500 items, Frontstore gives you a clean digital catalog accessible via a single memorable link (e.g. frontstore.ng/yourstore).',
+        bullets: [
+          'Custom categories and tags for easy store navigation',
+          'Instant inventory stock tracking and low-stock alerts',
+          'Integrated local and international payment gateways',
+          'Automated WhatsApp order routing with customer contact info'
+        ]
+      },
+      {
+        heading: 'Nationwide & International Delivery Support',
+        body: 'Configure shipping rules for different cities or regions, enabling buyers to select their delivery zone during checkout.'
+      },
+      {
+        heading: 'Custom Domain & Professional Branding',
+        body: 'Connect your custom domain (e.g. www.yourbrand.com) or use your branded frontstore link with zero server configuration.'
+      }
+    ],
+    steps: [
+      { title: 'Upload Product Inventory', body: 'Add product photos, titles, prices, and available stock counts.' },
+      { title: 'Configure Delivery Zones', body: 'Set delivery fees for your local city and nationwide dispatch.' },
+      { title: 'Share Your Store Link', body: 'Post your link across Instagram, TikTok, WhatsApp, and Facebook.' },
+      { title: 'Receive Orders & Get Paid', body: 'Orders arrive in WhatsApp formatted with item list and delivery details.' }
+    ],
+    faqs: [
+      { question: 'What types of physical products can I sell?', answer: 'You can sell any physical goods including home decor, jewelry, crafts, books, baby items, tools, accessories, and general merchandise.' },
+      { question: 'Do I need a computer to manage my store?', answer: 'No! Frontstore is 100% mobile-friendly. You can manage products, track orders, and update stock directly from your phone.' },
+      { question: 'Is there a limit on how many products I can list?', answer: 'Frontstore allows you to list products smoothly without artificial restrictions on your catalog growth.' }
+    ]
+  },
   {
     slug: 'sell-on-whatsapp-nigeria',
     keyword: 'sell on WhatsApp in Nigeria',
@@ -70,8 +336,8 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     ],
     faqs: [
       { question: 'Do I need a website to sell on WhatsApp in Nigeria?', answer: 'No. A storefront link like yourbrand.frontstore.ng works entirely on a phone and doesn\'t require a domain, hosting, or any technical setup — customers browse it in their mobile browser before their order opens in WhatsApp.' },
-      { question: 'Is it free to start selling on WhatsApp with Frontstore?', answer: 'Yes, merchants can claim a store and start listing products on the Free plan. Pro (₦2,000/month or ₦24,000/year) unlocks the full feature set, and Legend (₦7,000/month) adds unlimited AI on top — none of the three plans carry a transaction fee.' },
-      { question: 'How do buyers pay after messaging on WhatsApp?', answer: 'A buyer can pay by bank transfer, Paystack, Flutterwave, or mobile money — whichever the merchant has enabled — directly from the order flow, without leaving the chat context.' },
+      { question: 'Is it free to start selling on WhatsApp with Frontstore?', answer: 'Yes, merchants can claim a store and start listing products on the Free plan. Pro (₦2,000/month or ₦24,000/year) unlocks the full feature set, and Business (₦7,000/month) adds unlimited AI on top — none of the three plans carry a transaction fee.' },
+      { question: 'How do buyers pay after messaging on WhatsApp?', answer: 'A buyer can pay by bank transfer, Paystack, or mobile money — whichever the merchant has enabled — directly from the order flow, without leaving the chat context.' },
       { question: 'Can I still use my Instagram bio link for WhatsApp sales?', answer: 'Yes. Most sellers put the same storefront link in their Instagram bio, WhatsApp Status, and TikTok profile, so every channel drives to one organized catalog.' },
     ],
   },
@@ -96,7 +362,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
         body: 'Three things: product photos, a name for the store, and a way to get paid. Everything else — the catalog layout, the order form, the payment page — is handled by the platform.',
         bullets: [
           'A phone with a camera — no professional photography required to start',
-          'A business or personal bank account, or a Paystack/Flutterwave account for card payments',
+          'A business or personal bank account, or a Paystack account for card payments',
           'A list of what you\'re selling and roughly what it costs',
         ],
       },
@@ -108,11 +374,11 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     steps: [
       { title: 'Choose your store name', body: 'This becomes your link — yourbusinessname.frontstore.ng.' },
       { title: 'Upload your first products', body: 'AI writes the listing copy from each photo, so there\'s no blank-page problem.' },
-      { title: 'Connect a payment method', body: 'Add Paystack, Flutterwave, or bank transfer details so orders convert into confirmed payments.' },
+      { title: 'Connect a payment method', body: 'Add Paystack or bank transfer details so orders convert into confirmed payments.' },
       { title: 'Share and go live', body: 'Post the link everywhere your customers already are — no separate marketing push needed to launch.' },
     ],
     faqs: [
-      { question: 'How much does it cost to create an online store in Nigeria?', answer: 'With Frontstore, listing products and setting up a storefront is free to start. Pro is ₦2,000/month or ₦24,000/year, or Legend at ₦7,000/month for unlimited AI — both considerably less than the $19+/month typical of global website builders.' },
+      { question: 'How much does it cost to create an online store in Nigeria?', answer: 'With Frontstore, listing products and setting up a storefront is free to start. Pro is ₦2,000/month or ₦24,000/year, or Business at ₦7,000/month for unlimited AI — both considerably less than the $19+/month typical of global website builders.' },
       { question: 'Do I need a domain name to create an online store?', answer: 'No. A storefront link (yourbrand.frontstore.ng) works without buying a separate domain, though merchants who already own one can connect it later.' },
       { question: 'Is CAC business registration required to sell online in Nigeria?', answer: 'It\'s not required to launch a storefront and start taking orders. CAC registration becomes more relevant as a business scales, opens a corporate bank account, or needs higher payment processing limits.' },
       { question: 'How long does it actually take to create a store?', answer: 'Claiming a link and publishing a basic storefront takes under 2 minutes. Building out a full catalog depends on how many products a merchant is listing, but AI-generated descriptions remove most of the manual typing.' },
@@ -149,7 +415,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
       },
     ],
     faqs: [
-      { question: 'Is Frontstore completely free?', answer: 'Setting up a storefront and listing products is free to start on the Free plan. Pro (₦2,000/month or ₦24,000/year) and Legend (₦7,000/month) unlock more features. There\'s currently no transaction fee on sales on any plan, including Free.' },
+      { question: 'Is Frontstore completely free?', answer: 'Setting up a storefront and listing products is free to start on the Free plan. Pro (₦2,000/month or ₦24,000/year) and Business (₦7,000/month) unlock more features. There\'s currently no transaction fee on sales on any plan, including Free.' },
       { question: 'Do free online store builders take a cut of my sales?', answer: 'Many do — a percentage-based transaction fee is common even on free tiers of other platforms. It\'s worth checking a platform\'s fee structure specifically, not just its subscription price, before assuming it\'s free.' },
       { question: 'What\'s the catch with free online store builders?', answer: 'Usually a cap on products, orders, or features rather than an outright cost — free tiers are often designed to get a merchant started and then charge once the store is actually working.' },
     ],
@@ -293,7 +559,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
       },
     ],
     faqs: [
-      { question: 'Is the AI product description tool free?', answer: 'It\'s included on the Pro plan (₦2,000/month or ₦24,000/year) and Legend plan (₦7,000/month, with unlimited AI analyses), with no separate charge per listing generated.' },
+      { question: 'Is the AI product description tool free?', answer: 'It\'s included on the Pro plan (₦2,000/month or ₦24,000/year) and Business plan (₦7,000/month, with unlimited AI analyses), with no separate charge per listing generated.' },
       { question: 'Can I edit what the AI writes?', answer: 'Yes. The AI draft is fully editable before publishing — merchants commonly use it as a starting point and adjust wording, pricing, or tags to match their own voice and margins.' },
       { question: 'Does it work for any type of product?', answer: 'It works best for visually identifiable products — clothing, food, electronics, beauty items, and similar categories. Highly technical or custom products may need more manual editing after the initial draft.' },
     ],

@@ -91,7 +91,7 @@ export default function CookieConsentBanner() {
               placeItems: 'center',
               borderRadius: '50%',
               background: 'var(--primary-light, rgba(18, 140, 126, 0.12))',
-              color: 'var(--primary, #128C7E)',
+              color: 'var(--primary, #0B5D39)',
             }}
           >
             <Cookie size={20} />
@@ -104,7 +104,7 @@ export default function CookieConsentBanner() {
             <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: 'var(--text-muted, #475569)' }}>
               We use essential cookies to keep checkout and your dashboard working, plus optional
               analytics and preference cookies to improve the experience. Read our{' '}
-              <a href="/privacy" style={{ color: 'var(--primary, #128C7E)', fontWeight: 600 }}>
+              <a href="/privacy" style={{ color: 'var(--primary, #0B5D39)', fontWeight: 600 }}>
                 Privacy Policy
               </a>{' '}
               to learn more.

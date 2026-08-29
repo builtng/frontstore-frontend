@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import SearchableSelect from "../../components/SearchableSelect";
+import BuiltWithFrontstoreBadge from "@/components/BuiltWithFrontstoreBadge";
 
 interface Store {
   id: string;
@@ -247,7 +248,9 @@ export default function ComingSoonStorefront({
 
       <footer className="cs-foot">
         <span className="cs-foot-line">{appName} gives small businesses their own shop on WhatsApp.</span>
-        <a className="cs-foot-claim" href={`https://${systemDomain}`} target="_blank" rel="noopener noreferrer">Run a business? Claim your own link</a>
+        <div style={{ marginTop: 8 }}>
+          <BuiltWithFrontstoreBadge href={`https://${systemDomain}`} />
+        </div>
       </footer>
 
       {open && (

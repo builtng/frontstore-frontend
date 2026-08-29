@@ -38,8 +38,8 @@ const AUTOMATIC_EMAILS = [
   { title: 'Welcome Email', trigger: 'Sent automatically right after a merchant completes signup.' },
   { title: 'Store Live — First Product Posted', trigger: 'Sent the moment a merchant publishes their very first product or service.' },
   { title: 'First Sale Celebration', trigger: 'Sent the moment a merchant receives their first paid order.' },
-  { title: 'Payment Failed', trigger: 'Sent when a Pro/Legend subscription renewal charge fails.' },
-  { title: 'Pro/Legend Upgrade Confirmation', trigger: 'Sent immediately after a successful plan upgrade.' },
+  { title: 'Payment Failed', trigger: 'Sent when a Pro/Business subscription renewal charge fails.' },
+  { title: 'Pro/Business Upgrade Confirmation', trigger: 'Sent immediately after a successful plan upgrade.' },
 ];
 
 const CURRENT_YEAR = new Date().getFullYear();

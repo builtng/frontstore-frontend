@@ -3,12 +3,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  Search, ShoppingBag, Plus, Minus, Trash2, X, Check,
-  MapPin, Clock, ShieldCheck, Star, ChevronDown, ChevronUp,
+  ShoppingBag, Plus, Minus, Trash2, X, Check,
+  MapPin, Clock, ShieldCheck, Star, ChevronDown, ChevronUp, ChevronLeft, ChevronRight,
   Share2, ArrowRight, Phone, MessageCircle, ExternalLink,
   Sparkles, Tag, Info, AlertCircle, QrCode, Copy,
-  CheckCircle2, Truck, ShieldAlert, LayoutGrid, List,
-  Filter, Zap, Heart, RefreshCw, Layers, CreditCard, Lock,
+  Truck, ShieldAlert, Bell, User, Edit3, Package, Building,
+  Filter, Heart, RefreshCw, Layers, CreditCard, Lock,
   Navigation
 } from 'lucide-react';
 import { toast as sonnerToast } from 'sonner';
@@ -17,7 +17,7 @@ import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon } from '../../components/SocialIcons';
 import { resilientFetch } from '../../utils/resilientFetch';
 import { getOptimizedImageUrl } from '@/lib/image';
-import SearchableSelect from '@/components/SearchableSelect';
+import BuiltWithFrontstoreBadge from '@/components/BuiltWithFrontstoreBadge';
 
 export interface StoreLink {
   id: string;
@@ -64,6 +64,11 @@ export interface StoreType {
   faq_help_text?: string | null;
   payment_provider?: string | null;
   reply_time_minutes?: number | null;
+  shipping_type?: string | null;
+  shipping_flat_fee?: string | number | null;
+  shipping_free_threshold?: string | number | null;
+  shipping_handling_fee?: string | number | null;
+  shipping_custom_rules?: { min_subtotal: string | number; fee: string | number }[] | null;
 }
 
 export interface Category {
@@ -137,9 +142,23 @@ interface UniversalStorefrontProps {
   appName: string;
 }
 
+export const CURRENCY_CONFIG: Record<string, { symbol: string; rate: number; label: string; flag: string }> = {
+  NGN: { symbol: '₦', rate: 1, label: 'NGN', flag: '🇳🇬' },
+  USD: { symbol: '$', rate: 0.00072, label: 'USD', flag: '🇺🇸' },
+  KES: { symbol: 'KES ', rate: 0.093, label: 'KES', flag: '🇰🇪' },
+  ZAR: { symbol: 'R ', rate: 0.012, label: 'ZAR', flag: '🇿🇦' },
+  GHS: { symbol: 'GH₵ ', rate: 0.0084, label: 'GHS', flag: '🇬🇭' },
+  GBP: { symbol: '£', rate: 0.00053, label: 'GBP', flag: '🇬🇧' },
+  EUR: { symbol: '€', rate: 0.00062, label: 'EUR', flag: '🇪🇺' },
+};
+
 function formatCurrency(amount: number, currency: string = 'NGN'): string {
-  const symbol = currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '₦';
-  return `${symbol}${Math.round(amount).toLocaleString('en-US')}`;
+  const config = CURRENCY_CONFIG[currency] || { symbol: currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency === 'EUR' ? '€' : '₦', rate: 1, flag: '' };
+  const converted = amount * (config.rate || 1);
+  if (currency === 'USD' || currency === 'GBP' || currency === 'EUR') {
+    return `${config.symbol}${converted.toFixed(2)}`;
+  }
+  return `${config.symbol}${Math.round(converted).toLocaleString('en-US')}`;
 }
 
 function ProductImageWithSkeleton({
@@ -165,7 +184,6 @@ function ProductImageWithSkeleton({
       setLoaded(true);
     }
 
-    // Safety fallback: if image is taking long or onLoad event was missed, show image after 500ms
     const timer = setTimeout(() => {
       setLoaded(true);
     }, 500);
@@ -273,6 +291,7 @@ export function formatWorkingHours(value: unknown): string {
 }
 
 function optimizeImageUrl(url: string | null | undefined, variant: 'thumb' | 'md' | 'lg' = 'md'): string {
+  if (!url) return '';
   return getOptimizedImageUrl(url, variant);
 }
 
@@ -281,22 +300,8 @@ function getWishlistFromStorage(storeUsername: string): string[] {
   if (typeof window === 'undefined') return [];
   try {
     const key = `fs_wishlist_${storeUsername}`;
-    const name = `${key}=`;
-    const decodedCookie = decodeURIComponent(document.cookie);
-    const ca = decodedCookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i].trim();
-      if (c.indexOf(name) === 0) {
-        const val = c.substring(name.length, c.length);
-        const parsed = JSON.parse(val);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    }
-    const localVal = localStorage.getItem(key);
-    if (localVal) {
-      const parsed = JSON.parse(localVal);
-      if (Array.isArray(parsed)) return parsed;
-    }
+    const item = localStorage.getItem(key);
+    if (item) return JSON.parse(item);
   } catch (e) {
     console.error('Error reading wishlist storage', e);
   }
@@ -326,6 +331,13 @@ export default function UniversalStorefront({
   storeDisclaimer,
   appName = 'Frontstore',
 }: UniversalStorefrontProps) {
+  const [isMounted, setIsMounted] = useState(false);
+  const [selectedCurrency, setSelectedCurrency] = useState<string>(store.currency_code || 'NGN');
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Navigation & Filtering
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
@@ -336,10 +348,20 @@ export default function UniversalStorefront({
   // Cart & Checkout
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartStep, setCartStep] = useState<'cart' | 'checkout_step1' | 'checkout_step2' | 'checkout_step3' | 'payment'>('cart');
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [customerNote, setCustomerNote] = useState('');
+  const [orderNotes, setOrderNotes] = useState('');
+  const [deliveryLocation, setDeliveryLocation] = useState('Lagos State');
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [isRecipientDifferent, setIsRecipientDifferent] = useState(false);
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientPhone, setRecipientPhone] = useState('');
+  const [isTotalExpanded, setIsTotalExpanded] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -356,6 +378,9 @@ export default function UniversalStorefront({
   const [activeFaqId, setActiveFaqId] = useState<string | null>(null);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [quickViewImageIndex, setQuickViewImageIndex] = useState(0);
+  const [quickViewQty, setQuickViewQty] = useState(1);
 
   useEffect(() => {
     const storeUser = store.username || username;
@@ -367,18 +392,47 @@ export default function UniversalStorefront({
     }
   }, [store.username, username]);
 
-  const primaryColor = store.primary_color || '#075E54';
+  useEffect(() => {
+    if (isCartOpen) setCartStep('cart');
+  }, [isCartOpen]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedName = localStorage.getItem('fs_customer_name');
+      const savedPhone = localStorage.getItem('fs_customer_phone');
+      const savedEmail = localStorage.getItem('fs_customer_email');
+      const savedAddress = localStorage.getItem('fs_customer_address');
+      const savedLocation = localStorage.getItem('fs_delivery_location');
+      if (savedName) setCustomerName(savedName);
+      if (savedPhone) setCustomerPhone(savedPhone);
+      if (savedEmail) setCustomerEmail(savedEmail);
+      if (savedAddress) setCustomerNote(savedAddress);
+      if (savedLocation) setDeliveryLocation(savedLocation);
+    }
+  }, []);
+
+  const saveCustomerDetailsToStorage = (name: string, phone: string, email: string, address: string, location: string) => {
+    if (typeof window !== 'undefined') {
+      if (name) localStorage.setItem('fs_customer_name', name);
+      if (phone) localStorage.setItem('fs_customer_phone', phone);
+      if (email) localStorage.setItem('fs_customer_email', email);
+      if (address) localStorage.setItem('fs_customer_address', address);
+      if (location) localStorage.setItem('fs_delivery_location', location);
+    }
+  };
+
+  const primaryColor = store.primary_color || '#0B5D39';
   const currencyCode = store.currency_code || 'NGN';
   const isVerified = Boolean(store.is_verified);
   const workingHoursDisplay = useMemo(() => formatWorkingHours(store.working_hours), [store.working_hours]);
-  const storeUrl = typeof window !== 'undefined'
+  const storeUrl = isMounted && typeof window !== 'undefined'
     ? (window.location.hostname.includes('localhost')
         ? `http://${username}.localhost:3000`
         : `https://${username}.${systemDomain}`)
     : `https://${username}.${systemDomain}`;
 
   const getProductUrl = (item: Product) => {
-    if (typeof window !== 'undefined') {
+    if (isMounted && typeof window !== 'undefined') {
       const host = window.location.host;
       const isSubdomain = host.startsWith(`${username}.`) || host.endsWith('.localhost:3000') || host.endsWith('.frontstore.ng');
       if (isSubdomain) {
@@ -389,7 +443,7 @@ export default function UniversalStorefront({
   };
 
   const getStoreHomeUrl = () => {
-    if (typeof window !== 'undefined') {
+    if (isMounted && typeof window !== 'undefined') {
       const host = window.location.host;
       const isSubdomain = host.startsWith(`${username}.`) || host.endsWith('.localhost:3000') || host.endsWith('.frontstore.ng');
       if (isSubdomain) {
@@ -415,6 +469,35 @@ export default function UniversalStorefront({
   const totalCartCount = useMemo(() => cart.reduce((acc, item) => acc + item.qty, 0), [cart]);
   const cartSubtotal = useMemo(() => cart.reduce((acc, item) => acc + item.price * item.qty, 0), [cart]);
   const cartTotal = useMemo(() => Math.max(0, cartSubtotal - appliedDiscount), [cartSubtotal, appliedDiscount]);
+
+  // Mirrors the backend's ShippingFeeCalculator so the buyer sees the same
+  // fee here that the order will actually be charged at creation time.
+  const shippingFee = useMemo(() => {
+    if (deliveryMethod !== 'delivery') return 0;
+    const type = store.shipping_type || 'customer_pays';
+    const flatFee = parseFloat(String(store.shipping_flat_fee ?? 0)) || 0;
+    if (type === 'free') return 0;
+    if (type === 'free_above_threshold') {
+      const threshold = parseFloat(String(store.shipping_free_threshold ?? 0)) || 0;
+      return cartTotal >= threshold ? 0 : flatFee;
+    }
+    if (type === 'custom' && Array.isArray(store.shipping_custom_rules) && store.shipping_custom_rules.length > 0) {
+      const matched = [...store.shipping_custom_rules]
+        .map((r) => ({ min: parseFloat(String(r.min_subtotal)) || 0, fee: parseFloat(String(r.fee)) || 0 }))
+        .sort((a, b) => a.min - b.min)
+        .filter((r) => cartTotal >= r.min)
+        .pop();
+      return matched ? matched.fee : flatFee;
+    }
+    return flatFee;
+  }, [deliveryMethod, cartTotal, store.shipping_type, store.shipping_flat_fee, store.shipping_free_threshold, store.shipping_custom_rules]);
+
+  const handlingFee = useMemo(() => {
+    if (deliveryMethod !== 'delivery') return 0;
+    return parseFloat(String(store.shipping_handling_fee ?? 0)) || 0;
+  }, [deliveryMethod, store.shipping_handling_fee]);
+
+  const orderTotal = cartTotal + shippingFee + handlingFee;
 
   const hasProducts = useMemo(() => products.some(p => p.type !== 'service'), [products]);
   const hasServices = useMemo(() => products.some(p => p.type === 'service'), [products]);
@@ -581,18 +664,21 @@ export default function UniversalStorefront({
       const unitPrice = v?.price ? parseFloat(String(v.price)) : parseFloat(p.price || '0');
       const totalItemPrice = unitPrice * quantity;
       const varInfo = v ? ` (${v.title || v.name})` : '';
-      message += `• *${p.name}${varInfo}* x ${quantity} — ${formatCurrency(totalItemPrice, currencyCode)}\n\n`;
-      message += `💰 *Total:* ${formatCurrency(totalItemPrice, currencyCode)}\n`;
+      message += `• *${p.name}${varInfo}* x ${quantity} — ${formatCurrency(totalItemPrice, selectedCurrency)}\n\n`;
+      message += `💰 *Total:* ${formatCurrency(totalItemPrice, selectedCurrency)}\n`;
     } else {
       cart.forEach((item, index) => {
         const varInfo = item.variantName ? ` (${item.variantName})` : '';
-        message += `${index + 1}. *${item.name}${varInfo}* x ${item.qty} — ${formatCurrency(item.price * item.qty, currencyCode)}\n`;
+        message += `${index + 1}. *${item.name}${varInfo}* x ${item.qty} — ${formatCurrency(item.price * item.qty, selectedCurrency)}\n`;
       });
       message += `──────────────────────\n`;
       if (appliedDiscount > 0) {
-        message += `🏷️ *Discount applied:* -${formatCurrency(appliedDiscount, currencyCode)}\n`;
+        message += `🏷️ *Discount applied:* -${formatCurrency(appliedDiscount, selectedCurrency)}\n`;
       }
-      message += `💰 *Total Amount:* ${formatCurrency(cartTotal, currencyCode)}\n`;
+      if (shippingFee > 0) {
+        message += `🚚 *Shipping:* ${formatCurrency(shippingFee, selectedCurrency)}\n`;
+      }
+      message += `💰 *Total Amount:* ${formatCurrency(orderTotal, selectedCurrency)}\n`;
     }
 
     if (customerName.trim()) {
@@ -601,8 +687,11 @@ export default function UniversalStorefront({
     if (customerPhone.trim()) {
       message += `\n📱 *Phone:* ${customerPhone.trim()}`;
     }
+    if (!singleItem) {
+      message += `\n🚛 *Method:* ${deliveryMethod === 'pickup' ? 'Store Pickup' : 'Delivery'}`;
+    }
     if (customerNote.trim()) {
-      message += `\n📝 *Delivery / Note:* ${customerNote.trim()}`;
+      message += `\n📝 *${deliveryMethod === 'pickup' ? 'Note' : 'Delivery Address'}:* ${customerNote.trim()}`;
     }
 
     message += `\n\n🔗 *Storefront:* ${storeUrl}`;
@@ -616,10 +705,19 @@ export default function UniversalStorefront({
     if (cart.length === 0) return;
     if (!customerName.trim()) {
       sonnerToast.error('Please enter your full name before placing an order.');
+      setCartStep('checkout_step1');
+      setIsEditingDetails(true);
       return;
     }
     if (!customerPhone.trim()) {
       sonnerToast.error('Please enter your WhatsApp phone number before placing an order.');
+      setCartStep('checkout_step1');
+      setIsEditingDetails(true);
+      return;
+    }
+    if (deliveryMethod === 'delivery' && !customerNote.trim()) {
+      sonnerToast.error('Please enter a delivery address before placing an order.');
+      setCartStep('checkout_step1');
       return;
     }
 
@@ -632,34 +730,38 @@ export default function UniversalStorefront({
         body: JSON.stringify({
           items: cart.map((i) => ({
             product_id: i.productId,
-            variant_id: i.variantId,
+            product_variant_id: i.variantId,
             quantity: i.qty,
           })),
           customer_name: customerName || 'Guest Shopper',
           customer_phone: customerPhone,
-          delivery_note: customerNote,
+          customer_email: customerEmail || undefined,
+          delivery_method: deliveryMethod,
+          delivery_address: deliveryMethod === 'delivery' ? customerNote : undefined,
+          delivery_location: deliveryLocation || undefined,
+          notes: orderNotes || undefined,
           payment_method: 'paystack',
         }),
       });
 
       const data = await res.json();
-      const orderId = data?.data?.order?.id || data?.order?.id;
       const checkoutUrl = data?.checkout_url || data?.data?.checkout_url;
 
       if (res.ok && checkoutUrl) {
         window.location.href = checkoutUrl;
-      } else if (res.ok && orderId) {
-        sonnerToast.success('Order created! Redirecting to payment page...');
-        window.location.href = `/track/${orderId}`;
       } else {
-        const errorMsg = data?.message || data?.error || 'Could not initialize order payment. Redirecting to WhatsApp...';
-        sonnerToast.error(errorMsg);
-        handleWhatsAppCheckout();
+        // Show payment screen modal so user can choose payment method
+        setCartStep('payment');
+        if (res.ok) {
+          sonnerToast.success('Order created! Please complete payment below.');
+        } else {
+          const errorMsg = data?.message || data?.error;
+          if (errorMsg) sonnerToast.error(errorMsg);
+        }
       }
     } catch (err) {
       console.error('Online checkout failed:', err);
-      sonnerToast.error('Network error during checkout. Falling back to WhatsApp...');
-      handleWhatsAppCheckout();
+      setCartStep('payment');
     } finally {
       setIsCheckingOut(false);
     }
@@ -727,298 +829,29 @@ export default function UniversalStorefront({
         color: '#0f172a',
       }}
     >
-      {/* ── STICKY LUXURY HEADER ── */}
-      <header
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-          background: 'rgba(255, 255, 255, 0.94)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
-          boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.03)',
-          transition: 'all 0.2s ease',
-        }}
-      >
+      {/* ── TOP ANNOUNCEMENT / PROMO BANNER ── */}
+      {(store.announcement_title || store.announcement_body) && (
         <div
-          className="px-2.5 sm:px-5 py-2.5 sm:py-3"
           style={{
-            maxWidth: 1120,
-            margin: '0 auto',
+            background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}e6)`,
+            color: '#ffffff',
+            fontSize: 12.5,
+            fontWeight: 700,
+            padding: '7.5px 16px',
+            textAlign: 'center',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 6,
+            justifyContent: 'center',
+            gap: 8,
+            letterSpacing: '-0.01em',
+            position: 'relative',
+            zIndex: 41,
           }}
         >
-          {/* Brand Identity */}
-          <Link
-            href={getStoreHomeUrl()}
-            onClick={(e) => {
-              setSelectedCategoryId('all');
-              setSearchTerm('');
-              if (typeof window !== 'undefined' && (window.location.pathname === '/' || window.location.pathname === `/${username}`)) {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              minWidth: 0,
-              textDecoration: 'none',
-              color: 'inherit',
-              cursor: 'pointer',
-              transition: 'opacity 0.15s ease',
-              flex: '1 1 auto',
-              overflow: 'hidden',
-            }}
-            className="hover:opacity-85"
-            title={`Go to ${store.store_name} home`}
-          >
-            {store.logo_url ? (
-              <img
-                src={getOptimizedImageUrl(store.logo_url, 'thumb')}
-                alt={store.store_name}
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 10,
-                  objectFit: 'cover',
-                  border: '1.5px solid #e2e8f0',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                  flexShrink: 0,
-                }}
-                className="sm:w-[42px] sm:h-[42px] sm:rounded-xl"
-              />
-            ) : (
-              <div
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 10,
-                  background: primaryColor,
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 800,
-                  fontSize: 16,
-                  boxShadow: `0 4px 12px ${primaryColor}33`,
-                  flexShrink: 0,
-                }}
-                className="sm:w-[42px] sm:h-[42px] sm:rounded-xl sm:text-[18px]"
-              >
-                {store.store_name?.charAt(0)?.toUpperCase() || 'S'}
-              </div>
-            )}
-
-            <div style={{ minWidth: 0, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
-                <span
-                  style={{
-                    fontSize: 14.5,
-                    fontWeight: 800,
-                    color: '#0f172a',
-                    letterSpacing: '-0.02em',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    minWidth: 0,
-                  }}
-                  className="sm:text-[15.5px]"
-                >
-                  {store.store_name}
-                </span>
-                {isVerified && (
-                  <span
-                    title="Verified Merchant"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      color: primaryColor,
-                      flexShrink: 0,
-                    }}
-                  >
-                    <ShieldCheck size={15} />
-                  </span>
-                )}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, overflow: 'hidden' }}>
-                <span
-                  style={{
-                    fontSize: 11,
-                    color: '#64748b',
-                    fontWeight: 500,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    minWidth: 0,
-                    flexShrink: 1,
-                  }}
-                >
-                  @{username}
-                </span>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 3,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: primaryColor,
-                    background: `${primaryColor}14`,
-                    border: `1px solid ${primaryColor}29`,
-                    padding: '1px 5px',
-                    borderRadius: 10,
-                    flexShrink: 0,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: primaryColor }} />
-                  Online
-                </span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Quick Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }} className="sm:gap-2">
-            {/* QR Scanner modal trigger */}
-            <button
-              onClick={() => setIsQrOpen(true)}
-              aria-label="Store QR Code"
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 9,
-                background: '#f1f5f9',
-                border: '1px solid #e2e8f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#475569',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-              className="sm:w-[36px] sm:h-[36px] sm:rounded-[10px]"
-            >
-              <QrCode size={15} />
-            </button>
-
-            {/* Share Store */}
-            <button
-              onClick={handleShare}
-              aria-label="Share Store"
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 9,
-                background: '#f1f5f9',
-                border: '1px solid #e2e8f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#475569',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-              className="sm:w-[36px] sm:h-[36px] sm:rounded-[10px]"
-            >
-              <Share2 size={15} />
-            </button>
-
-            {/* Wishlist Header Button */}
-            <button
-              onClick={() => setIsWishlistOpen(true)}
-              aria-label="View Saved Items"
-              style={{
-                position: 'relative',
-                width: 34,
-                height: 34,
-                borderRadius: 9,
-                background: '#f1f5f9',
-                border: '1px solid #e2e8f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: wishlist.length > 0 ? '#ef4444' : '#475569',
-                cursor: 'pointer',
-                transition: 'background 0.15s ease',
-                flexShrink: 0,
-              }}
-              className="sm:w-[36px] sm:h-[36px] sm:rounded-[10px]"
-            >
-              <Heart size={15} fill={wishlist.length > 0 ? '#ef4444' : 'transparent'} />
-              {wishlist.length > 0 && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: -4,
-                    right: -4,
-                    background: '#ef4444',
-                    color: '#fff',
-                    fontSize: 9.5,
-                    fontWeight: 800,
-                    width: 16,
-                    height: 16,
-                    borderRadius: 8,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '2px solid #ffffff',
-                  }}
-                >
-                  {wishlist.length}
-                </span>
-              )}
-            </button>
-
-            {/* Floating Cart Button */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              style={{
-                background: primaryColor,
-                color: '#fff',
-                border: 'none',
-                borderRadius: 10,
-                height: 34,
-                padding: '0 10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 5,
-                fontWeight: 700,
-                fontSize: 12.5,
-                cursor: 'pointer',
-                boxShadow: `0 4px 14px ${primaryColor}40`,
-                transition: 'transform 0.15s ease',
-                flexShrink: 0,
-              }}
-              className="sm:h-[36px] sm:px-3.5 sm:rounded-[12px] sm:text-[13.5px]"
-            >
-              <ShoppingBag size={15} />
-              <span style={{ fontWeight: 700 }}>Bag</span>
-              {totalCartCount > 0 && (
-                <span
-                  style={{
-                    background: '#fff',
-                    color: primaryColor,
-                    fontSize: 11,
-                    fontWeight: 800,
-                    padding: '1px 5px',
-                    borderRadius: 8,
-                    marginLeft: 1,
-                  }}
-                >
-                  {totalCartCount}
-                </span>
-              )}
-            </button>
-          </div>
+          <Sparkles size={13} color="#ffffff" />
+          <span>{store.announcement_title || store.announcement_body}</span>
         </div>
-      </header>
+      )}
 
       {/* ── STORE HERO & PROFILE COVER ── */}
       <section
@@ -1030,174 +863,112 @@ export default function UniversalStorefront({
         }}
       >
         <div style={{ maxWidth: 840, margin: '0 auto', textAlign: 'center' }}>
-          {/* Announcement Pill */}
-          {store.announcement_title && (
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 7,
-                background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                color: '#854d0e',
-                border: '1px solid rgba(245, 158, 11, 0.25)',
-                padding: '6px 16px',
-                borderRadius: 24,
-                fontSize: 13,
-                fontWeight: 700,
-                marginBottom: 16,
-                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.08)',
-              }}
-            >
-              <Sparkles size={14} color="#d97706" /> {store.announcement_title}
-            </div>
-          )}
+          {/* Store Logo Avatar */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+            {store.logo_url ? (
+              <img
+                src={getOptimizedImageUrl(store.logo_url, 'md')}
+                alt={store.store_name}
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '4px solid #ffffff',
+                  boxShadow: '0 6px 24px rgba(15, 23, 42, 0.12)',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: '50%',
+                  background: primaryColor,
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 36,
+                  fontWeight: 800,
+                  border: '4px solid #ffffff',
+                  boxShadow: '0 6px 24px rgba(15, 23, 42, 0.12)',
+                }}
+              >
+                {store.store_name?.charAt(0)?.toUpperCase() || 'S'}
+              </div>
+            )}
+          </div>
+
+          {/* Store Title */}
+          <h1 style={{ fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 800, color: '#0f172a', margin: '0 0 12px', letterSpacing: '-0.02em' }}>
+            {store.store_name}
+            {isVerified && (
+              <span title="Verified Merchant" style={{ display: 'inline-flex', marginLeft: 6, color: primaryColor, verticalAlign: 'middle' }}>
+                <ShieldCheck size={22} />
+              </span>
+            )}
+          </h1>
 
           {/* Store Bio */}
           {store.store_bio && (
             <p
               style={{
-                fontSize: 15.5,
+                fontSize: 15,
                 color: '#334155',
                 lineHeight: 1.65,
-                margin: '0 auto 20px',
-                maxWidth: 580,
+                margin: '0 auto 22px',
+                maxWidth: 620,
                 fontWeight: 450,
+                whiteSpace: 'pre-line',
               }}
             >
               {store.store_bio}
             </p>
           )}
 
-          {/* Key Badges & Contact */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              fontSize: 13,
-              color: '#475569',
-            }}
-          >
-            {store.location && (
-              <button
-                type="button"
-                onClick={() => setIsLocationOpen(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  background: '#fff',
-                  border: '1px solid #e2e8f0',
-                  padding: '5px 12px',
-                  borderRadius: 16,
-                  fontWeight: 500,
-                  fontSize: 13,
-                  color: '#475569',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                title="View location & map"
-              >
-                <MapPin size={14} color={primaryColor} /> {store.location}
-              </button>
-            )}
-
-            {workingHoursDisplay && (
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  background: '#fff',
-                  border: '1px solid #e2e8f0',
-                  padding: '5px 12px',
-                  borderRadius: 16,
-                  fontWeight: 500,
-                }}
-              >
-                <Clock size={14} color={primaryColor} /> {workingHoursDisplay}
-              </span>
-            )}
-
+          {/* Chat With Us / Scan QR CTAs */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
             {store.whatsapp_phone && (
               <a
-                href={`https://wa.me/${store.whatsapp_phone.replace(/[^0-9]/g, '')}`}
+                href={`https://wa.me/${store.whatsapp_phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${store.store_name}, I'd like to know more about your products.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 6,
-                  background: `${primaryColor}14`,
+                  gap: 7,
+                  background: '#fff',
                   color: primaryColor,
-                  border: `1px solid ${primaryColor}3D`,
-                  padding: '5px 14px',
-                  borderRadius: 16,
+                  border: `1.5px solid ${primaryColor}`,
+                  padding: '9px 22px',
+                  borderRadius: 24,
                   fontWeight: 700,
+                  fontSize: 13.5,
                   textDecoration: 'none',
                 }}
               >
-                <WhatsAppIcon size={14} /> Message on WhatsApp
+                <WhatsAppIcon size={15} /> Chat with us
               </a>
             )}
-
             <button
-              onClick={() => setIsPoliciesOpen(true)}
+              onClick={() => setIsQrOpen(true)}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 5,
+                gap: 7,
                 background: '#fff',
-                border: '1px solid #e2e8f0',
-                padding: '5px 12px',
-                borderRadius: 16,
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#64748b',
+                color: primaryColor,
+                border: `1.5px solid ${primaryColor}`,
+                padding: '9px 22px',
+                borderRadius: 24,
+                fontWeight: 700,
+                fontSize: 13.5,
                 cursor: 'pointer',
               }}
             >
-              <Info size={14} /> Store Policies
+              <QrCode size={15} /> Scan QR
             </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ── TRUST SIGNALS STRIP ── */}
-      <section
-        style={{
-          background: '#fff',
-          borderBottom: '1px solid #e2e8f0',
-          padding: '12px 20px',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1120,
-            margin: '0 auto',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            gap: 16,
-            fontSize: 12.5,
-            fontWeight: 600,
-            color: '#475569',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Zap size={15} color={primaryColor} />
-            <span>Fast WhatsApp Checkout</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Truck size={15} color={primaryColor} />
-            <span>Next-Day Delivery Across Nigeria</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <ShieldCheck size={15} color={primaryColor} />
-            <span>100% Genuine Items Guaranteed</span>
           </div>
         </div>
       </section>
@@ -1291,120 +1062,6 @@ export default function UniversalStorefront({
             </button>
           </div>
         )}
-
-        {/* Toolbar: Search, Sort, View Controls */}
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 12,
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 20,
-          }}
-        >
-          {/* Search Input */}
-          <div style={{ position: 'relative', flex: '1 1 280px' }}>
-            <Search
-              size={17}
-              style={{
-                position: 'absolute',
-                left: 14,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: '#94a3b8',
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Search by name, brand, or details..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '11px 16px 11px 40px',
-                borderRadius: 12,
-                border: '1px solid #cbd5e1',
-                fontSize: 14,
-                background: '#fff',
-                outline: 'none',
-              }}
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                style={{
-                  position: 'absolute',
-                  right: 12,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  color: '#94a3b8',
-                  cursor: 'pointer',
-                }}
-              >
-                <X size={15} />
-              </button>
-            )}
-          </div>
-
-          {/* Sort & View Mode */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <SearchableSelect
-              value={sortBy}
-              onChange={(val) => setSortBy(val as any)}
-              searchable={false}
-              triggerStyle={{
-                padding: '8px 14px',
-                borderRadius: 12,
-                border: '1px solid #cbd5e1',
-                background: '#fff',
-                fontSize: 13.5,
-                fontWeight: 600,
-                color: '#334155',
-                minWidth: 165,
-              }}
-              options={[
-                { value: 'featured', label: 'Sort: Featured' },
-                { value: 'price-low', label: 'Price: Low to High' },
-                { value: 'price-high', label: 'Price: High to Low' },
-                { value: 'sale', label: 'Biggest Discount' },
-              ]}
-            />
-
-            <div style={{ display: 'flex', background: '#fff', border: '1px solid #cbd5e1', borderRadius: 10, padding: 2 }}>
-              <button
-                onClick={() => setViewMode('grid')}
-                aria-label="Grid View"
-                style={{
-                  padding: 6,
-                  border: 'none',
-                  borderRadius: 8,
-                  background: viewMode === 'grid' ? primaryColor : 'transparent',
-                  color: viewMode === 'grid' ? '#fff' : '#64748b',
-                  cursor: 'pointer',
-                }}
-              >
-                <LayoutGrid size={16} />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                aria-label="List View"
-                style={{
-                  padding: 6,
-                  border: 'none',
-                  borderRadius: 8,
-                  background: viewMode === 'list' ? primaryColor : 'transparent',
-                  color: viewMode === 'list' ? '#fff' : '#64748b',
-                  cursor: 'pointer',
-                }}
-              >
-                <List size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Category Filter Chips with Counters */}
         {categories.length > 0 && (
@@ -1529,17 +1186,19 @@ export default function UniversalStorefront({
               const isService = item.type === 'service';
               const isSaved = wishlist.includes(item.id);
               const isJustAdded = recentlyAddedId === item.id;
-              const stockText = isOutOfStock
-                ? 'Sold out'
-                : item.stock_quantity && item.stock_quantity > 0
-                ? `${item.stock_quantity} left`
-                : 'In stock';
 
               return (
                 <Link
                   key={item.id}
                   href={getProductUrl(item)}
                   className="storefront-product-card"
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+                    e.preventDefault();
+                    setQuickViewImageIndex(0);
+                    setQuickViewQty(1);
+                    setQuickViewProduct(item);
+                  }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = primaryColor;
                   }}
@@ -1557,26 +1216,46 @@ export default function UniversalStorefront({
                       overflow: 'hidden',
                     }}
                   >
-                    <ProductImageWithSkeleton
-                      src={imageUrl}
-                      alt={item.name}
-                      loading={index < 4 ? 'eager' : 'lazy'}
-                    />
+                    <div style={{ opacity: isOutOfStock ? 0.5 : 1 }}>
+                      <ProductImageWithSkeleton
+                        src={imageUrl}
+                        alt={item.name}
+                        loading={index < 4 ? 'eager' : 'lazy'}
+                      />
+                    </div>
 
-                    {/* Discount Pill */}
-                    {hasDiscount && (
+                    {/* Discount / Out of Stock Pill */}
+                    {isOutOfStock ? (
                       <span
                         style={{
                           position: 'absolute',
-                          top: 8,
-                          left: 8,
-                          background: '#ef4444',
+                          top: 10,
+                          left: 10,
+                          background: '#ffffff',
+                          color: '#e11d48',
+                          border: '1px solid #fecdd3',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: 9999,
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                        }}
+                      >
+                        Out of Stock
+                      </span>
+                    ) : hasDiscount && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: 10,
+                          left: 10,
+                          background: '#e11d48',
                           color: '#fff',
-                          fontSize: 10.5,
+                          fontSize: 11,
                           fontWeight: 800,
-                          padding: '3px 7px',
-                          borderRadius: 6,
-                          boxShadow: '0 2px 8px rgba(239, 68, 68, 0.35)',
+                          padding: '4px 10px',
+                          borderRadius: 9999,
+                          boxShadow: '0 2px 8px rgba(225, 29, 72, 0.35)',
                         }}
                       >
                         -{discountPercent}% OFF
@@ -1616,64 +1295,100 @@ export default function UniversalStorefront({
                   {/* Body Content */}
                   <div className="storefront-card-body">
                     <div>
-                      <h4 className="storefront-card-title">
+                      <h4 className="storefront-card-title" style={{ color: isOutOfStock ? '#94a3b8' : undefined }}>
                         {item.name}
                       </h4>
 
                       <div className="storefront-card-price-row">
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, flexWrap: 'wrap' }}>
-                          <span className="storefront-card-price">
-                            {formatCurrency(priceNum, currencyCode)}
+                          <span className="storefront-card-price" style={{ color: isOutOfStock ? '#94a3b8' : undefined }}>
+                            {formatCurrency(priceNum, selectedCurrency)}
                           </span>
-                          {hasDiscount && (
+                          {hasDiscount && !isOutOfStock && (
                             <span style={{ fontSize: 11, color: '#94a3b8', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
-                              {formatCurrency(compareNum, currencyCode)}
+                              {formatCurrency(compareNum, selectedCurrency)}
                             </span>
                           )}
                         </div>
-
-                        <span style={{ fontSize: 11, fontWeight: 600, color: isOutOfStock ? '#ef4444' : '#64748b', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                          {stockText}
-                        </span>
                       </div>
                     </div>
 
-                    {/* Add to Cart Button */}
-                    <button
-                      disabled={isOutOfStock}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        addToCart(item);
-                      }}
-                      className="storefront-card-btn"
-                      style={{
-                        background: isOutOfStock
-                          ? '#f1f5f9'
-                          : isJustAdded
-                          ? '#10b981'
-                          : primaryColor,
-                        color: isOutOfStock ? '#94a3b8' : '#ffffff',
-                        cursor: isOutOfStock ? 'not-allowed' : 'pointer',
-                        boxShadow: isOutOfStock
-                          ? 'none'
-                          : isJustAdded
-                          ? '0 4px 14px rgba(16, 185, 129, 0.45)'
-                          : `0 4px 14px ${primaryColor}38`,
-                      }}
-                    >
-                      {isJustAdded ? (
-                        <>
-                          <Check size={15} />
-                          Added!
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingBag size={15} />
-                          {isService ? 'Book' : 'Add to Cart'}
-                        </>
-                      )}
-                    </button>
+                    {/* Add to Cart / Edit Selection Button */}
+                    {!isOutOfStock && (() => {
+                      const inCartItem = cart.find(c => c.productId === item.id);
+                      const cartQty = inCartItem ? inCartItem.qty : 0;
+                      if (cartQty > 0) {
+                        return (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setIsCartOpen(true);
+                            }}
+                            className="storefront-card-btn"
+                            style={{
+                              background: '#fff',
+                              color: '#e11d48',
+                              border: '1.5px solid #e11d48',
+                              borderRadius: 9999,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: 6,
+                              fontWeight: 700,
+                            }}
+                          >
+                            Edit Selection
+                            <span
+                              style={{
+                                width: 18,
+                                height: 18,
+                                borderRadius: '50%',
+                                background: '#e11d48',
+                                color: '#ffffff',
+                                fontSize: 11,
+                                fontWeight: 800,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              {cartQty}
+                            </span>
+                          </button>
+                        );
+                      }
+                      return (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            addToCart(item);
+                          }}
+                          className="storefront-card-btn"
+                          style={{
+                            background: isJustAdded ? '#10b981' : '#fff',
+                            color: isJustAdded ? '#ffffff' : primaryColor,
+                            border: isJustAdded ? 'none' : `1.5px solid ${primaryColor}`,
+                            cursor: 'pointer',
+                            boxShadow: isJustAdded ? '0 4px 14px rgba(16, 185, 129, 0.45)' : 'none',
+                          }}
+                        >
+                          {isJustAdded ? (
+                            <>
+                              <Check size={15} />
+                              Added!
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingBag size={15} />
+                              {isService ? 'Book' : 'Add to Cart'}
+                            </>
+                          )}
+                        </button>
+                      );
+                    })()}
                   </div>
                 </Link>
               );
@@ -1728,10 +1443,10 @@ export default function UniversalStorefront({
                       {item.description || 'Quality product from this store.'}
                     </p>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                      <span style={{ fontSize: 16, fontWeight: 800 }}>{formatCurrency(priceNum, currencyCode)}</span>
+                      <span style={{ fontSize: 16, fontWeight: 800 }}>{formatCurrency(priceNum, selectedCurrency)}</span>
                       {hasDiscount && (
                         <span style={{ fontSize: 12, color: '#94a3b8', textDecoration: 'line-through' }}>
-                          {formatCurrency(compareNum, currencyCode)}
+                          {formatCurrency(compareNum, selectedCurrency)}
                         </span>
                       )}
                     </div>
@@ -1971,7 +1686,289 @@ export default function UniversalStorefront({
         </div>
       </main>
 
-      {/* ── SLIDE-OVER CHECKOUT DRAWER ── */}
+      {/* ── FLOATING VIEW CART BAR ── */}
+      {cart.length > 0 && !isCartOpen && (
+        <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 90 }}>
+          <button
+            onClick={() => setIsCartOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              background: primaryColor,
+              color: '#fff',
+              border: 'none',
+              borderRadius: 999,
+              padding: '6px 6px 6px 20px',
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: 'pointer',
+              boxShadow: `0 10px 28px ${primaryColor}55`,
+            }}
+          >
+            {totalCartCount} Item{totalCartCount > 1 ? 's' : ''} ({formatCurrency(cartTotal, selectedCurrency)})
+            <span
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                background: '#fff',
+                color: primaryColor,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <ArrowRight size={17} />
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* ── FLOATING SAVED ITEMS BUTTON ── */}
+      {wishlist.length > 0 && !isWishlistOpen && (
+        <button
+          onClick={() => setIsWishlistOpen(true)}
+          aria-label="View Saved Items"
+          style={{
+            position: 'fixed',
+            top: 16,
+            right: 16,
+            zIndex: 90,
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            background: '#fff',
+            border: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#ef4444',
+            cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(15, 23, 42, 0.12)',
+          }}
+        >
+          <Heart size={18} fill="#ef4444" />
+          <span
+            style={{
+              position: 'absolute',
+              top: -4,
+              right: -4,
+              background: '#ef4444',
+              color: '#fff',
+              fontSize: 9.5,
+              fontWeight: 800,
+              width: 16,
+              height: 16,
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '2px solid #ffffff',
+            }}
+          >
+            {wishlist.length}
+          </span>
+        </button>
+      )}
+
+      {/* ── PRODUCT QUICK VIEW MODAL ── */}
+      {quickViewProduct && (() => {
+        const item = quickViewProduct;
+        const priceNum = parseFloat(item.price || '0');
+        const compareNum = item.compare_at_price ? parseFloat(item.compare_at_price) : 0;
+        const hasDiscount = compareNum > priceNum;
+        const isOutOfStock = item.stock_status === 'out_of_stock';
+        const isService = item.type === 'service';
+        const isJustAdded = recentlyAddedId === item.id;
+        const images = item.image_urls && item.image_urls.length > 0 ? item.image_urls : [null];
+        const activeImage = optimizeImageUrl(images[quickViewImageIndex] ?? images[0], 'lg');
+        const maxQty = item.stock_quantity && item.stock_quantity > 0 ? item.stock_quantity : undefined;
+
+        return (
+          <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, zIndex: 200, background: '#fff', overflowY: 'auto' }}>
+            {/* Top Bar */}
+            <div
+              style={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 1,
+                background: 'rgba(255,255,255,0.96)',
+                backdropFilter: 'blur(8px)',
+                borderBottom: '1px solid #e2e8f0',
+                padding: '14px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <button
+                onClick={() => {
+                  const url = typeof window !== 'undefined' ? `${window.location.origin}${getProductUrl(item)}` : '';
+                  if (typeof navigator !== 'undefined' && navigator.share) {
+                    navigator.share({ title: item.name, url }).catch(() => {});
+                  } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                    navigator.clipboard.writeText(url);
+                    sonnerToast.success('Product link copied');
+                  }
+                }}
+                aria-label="Share product"
+                style={{ width: 38, height: 38, borderRadius: '50%', background: '#f1f5f9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#334155', cursor: 'pointer' }}
+              >
+                <Share2 size={16} />
+              </button>
+              <button
+                onClick={() => setQuickViewProduct(null)}
+                aria-label="Close"
+                style={{ width: 38, height: 38, borderRadius: '50%', background: '#f1f5f9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#334155', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ maxWidth: 1080, margin: '0 auto', padding: '28px 20px 60px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 40 }}>
+              {/* Image Gallery */}
+              <div>
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', background: '#f1f5f9', borderRadius: 20, overflow: 'hidden' }}>
+                  <ProductImageWithSkeleton src={activeImage} alt={item.name} loading="eager" />
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setQuickViewImageIndex((i) => (i - 1 + images.length) % images.length)}
+                        aria-label="Previous image"
+                        style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
+                      >
+                        <ChevronLeft size={18} />
+                      </button>
+                      <button
+                        onClick={() => setQuickViewImageIndex((i) => (i + 1) % images.length)}
+                        aria-label="Next image"
+                        style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                    </>
+                  )}
+                </div>
+                {images.length > 1 && (
+                  <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
+                    {images.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setQuickViewImageIndex(idx)}
+                        style={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: 12,
+                          overflow: 'hidden',
+                          padding: 0,
+                          background: '#f1f5f9',
+                          border: idx === quickViewImageIndex ? `2px solid ${primaryColor}` : '1px solid #e2e8f0',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <img src={optimizeImageUrl(img, 'thumb')} alt={`${item.name} ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Details */}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', margin: '0 0 8px', letterSpacing: '-0.01em' }}>{item.name}</h1>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 18 }}>
+                  <span style={{ fontSize: 19, fontWeight: 700, color: '#0f172a' }}>{formatCurrency(priceNum, selectedCurrency)}</span>
+                  {hasDiscount && (
+                    <span style={{ fontSize: 14, color: '#94a3b8', textDecoration: 'line-through' }}>{formatCurrency(compareNum, selectedCurrency)}</span>
+                  )}
+                </div>
+
+                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 16, marginBottom: 16 }}>
+                  {item.description && (
+                    <p style={{ fontSize: 14.5, color: '#334155', lineHeight: 1.65, margin: '0 0 16px', whiteSpace: 'pre-line' }}>{item.description}</p>
+                  )}
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      letterSpacing: '0.02em',
+                      padding: '4px 10px',
+                      borderRadius: 6,
+                      background: isOutOfStock ? '#fef2f2' : `${primaryColor}14`,
+                      color: isOutOfStock ? '#ef4444' : primaryColor,
+                    }}
+                  >
+                    {isOutOfStock ? 'OUT OF STOCK' : maxQty ? `${maxQty} IN STOCK` : 'IN STOCK'}
+                  </span>
+                </div>
+
+                <div style={{ marginTop: 'auto', paddingTop: 24, borderTop: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {!isOutOfStock && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 14px', background: '#f8fafc' }}>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{formatCurrency(priceNum, selectedCurrency)}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <button
+                          onClick={() => setQuickViewQty((q) => Math.max(1, q - 1))}
+                          aria-label="Decrease quantity"
+                          style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #cbd5e1', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#334155' }}
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span style={{ fontSize: 15, fontWeight: 700, minWidth: 18, textAlign: 'center' }}>{quickViewQty}</span>
+                        <button
+                          onClick={() => setQuickViewQty((q) => (maxQty ? Math.min(maxQty, q + 1) : q + 1))}
+                          aria-label="Increase quantity"
+                          style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid #cbd5e1', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#334155' }}
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    disabled={isOutOfStock}
+                    onClick={() => addToCart(item, null, undefined, quickViewQty)}
+                    style={{
+                      width: '100%',
+                      padding: '15px',
+                      borderRadius: 12,
+                      border: 'none',
+                      fontSize: 15,
+                      fontWeight: 700,
+                      cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      background: isOutOfStock ? '#e2e8f0' : isJustAdded ? '#10b981' : primaryColor,
+                      color: isOutOfStock ? '#94a3b8' : '#fff',
+                    }}
+                  >
+                    {isOutOfStock ? (
+                      'Out of Stock'
+                    ) : isJustAdded ? (
+                      <>
+                        <Check size={17} /> Added!
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag size={17} /> {isService ? 'Book' : 'Add To Cart'}
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── PRODUCT CART MODAL ── */}
       {isCartOpen && (
         <div
           role="dialog"
@@ -1980,287 +1977,900 @@ export default function UniversalStorefront({
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 100,
-            background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(4px)',
+            zIndex: 200,
+            background: 'rgba(15, 23, 42, 0.55)',
+            backdropFilter: 'blur(6px)',
             display: 'flex',
-            justifyContent: 'flex-end',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%',
-              maxWidth: 460,
-              height: '100%',
-              background: '#fff',
+              maxWidth: 480,
+              maxHeight: '90vh',
+              background: '#ffffff',
+              borderRadius: 24,
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: '-12px 0 32px rgba(0,0,0,0.18)',
+              overflow: 'hidden',
+              boxShadow: '0 24px 64px rgba(15, 23, 42, 0.28)',
             }}
           >
-            {/* Drawer Header */}
+            {/* Header */}
             <div
               style={{
-                padding: '18px 22px',
-                borderBottom: '1px solid #e2e8f0',
+                flexShrink: 0,
+                padding: '20px 24px 16px',
+                borderBottom: '1px solid #f1f5f9',
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 justifyContent: 'space-between',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <ShoppingBag size={20} color={primaryColor} />
-                <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0 }}>Your Order ({totalCartCount})</h3>
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: '#1e293b' }}>
+                  {cartStep === 'cart' && 'Your Cart'}
+                  {cartStep === 'checkout_step1' && 'Purchase Information'}
+                  {cartStep === 'checkout_step2' && 'Extra Information'}
+                  {cartStep === 'checkout_step3' && 'Order Summary'}
+                  {cartStep === 'payment' && 'Make Payment'}
+                </h3>
+                {cartStep === 'cart' && (
+                  <p style={{ fontSize: 13, color: '#64748b', margin: '2px 0 0', fontWeight: 500 }}>
+                    {totalCartCount} {totalCartCount === 1 ? 'Item' : 'Items'}
+                  </p>
+                )}
               </div>
+
               <button
                 onClick={() => setIsCartOpen(false)}
+                aria-label="Close"
                 style={{
-                  background: '#f1f5f9',
-                  border: 'none',
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: '#fff',
+                  border: '1.5px solid #e2e8f0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  cursor: 'pointer',
                   color: '#64748b',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
                 }}
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
 
-            {/* Cart Items */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px' }}>
-              {cart.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
-                  <ShoppingBag size={48} style={{ margin: '0 auto 14px', opacity: 0.35, color: primaryColor }} />
-                  <p style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>Your bag is empty</p>
-                  <p style={{ fontSize: 13.5, color: '#64748b', lineHeight: 1.5 }}>Explore our collection and add your favorite items to complete your order.</p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {cart.map((item) => (
-                    <div
-                      key={item.id}
-                      style={{
-                        display: 'flex',
-                        gap: 12,
-                        padding: '12px',
-                        borderRadius: 14,
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <img
-                        src={item.image_url || ''}
-                        alt={item.name}
-                        style={{ width: 60, height: 60, borderRadius: 10, objectFit: 'cover', background: '#e2e8f0', flexShrink: 0 }}
-                      />
+            {/* Step Progress Line for Checkout Steps */}
+            {['checkout_step1', 'checkout_step2', 'checkout_step3'].includes(cartStep) && (
+              <div style={{ display: 'flex', gap: 6, padding: '12px 24px 0' }}>
+                <div
+                  style={{
+                    height: 4,
+                    flex: 1,
+                    background: '#e11d48',
+                    borderRadius: 2,
+                  }}
+                />
+                <div
+                  style={{
+                    height: 4,
+                    flex: 1,
+                    background: ['checkout_step2', 'checkout_step3'].includes(cartStep) ? '#e11d48' : '#e2e8f0',
+                    borderRadius: 2,
+                    transition: 'background 0.3s',
+                  }}
+                />
+                <div
+                  style={{
+                    height: 4,
+                    flex: 1,
+                    background: cartStep === 'checkout_step3' ? '#e11d48' : '#e2e8f0',
+                    borderRadius: 2,
+                    transition: 'background 0.3s',
+                  }}
+                />
+              </div>
+            )}
 
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 14, fontWeight: 700, margin: '0 0 3px', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {item.name}
-                        </p>
-                        {item.variantName && (
-                          <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 3px' }}>{item.variantName}</p>
-                        )}
-                        <p style={{ fontSize: 14, fontWeight: 800, color: primaryColor, margin: 0 }}>
-                          {formatCurrency(item.price * item.qty, currencyCode)}
-                        </p>
-                      </div>
+            {/* Modal Body */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+              {/* STEP 0: YOUR CART */}
+              {cartStep === 'cart' && (
+                <div>
+                  <p style={{ fontSize: 13.5, color: '#64748b', margin: '0 0 16px', lineHeight: 1.5 }}>
+                    Review your items and proceed to checkout when you're ready
+                  </p>
 
-                      {/* Quantity Controls & Remove */}
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-                        <button
-                          onClick={() => removeFromCart(item.id)}
+                  {/* Currency selector aligned right */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#334155', background: '#f8fafc', padding: '6px 12px', borderRadius: 20, border: '1px solid #e2e8f0' }}>
+                      <span>🇳🇬</span>
+                      <span>{selectedCurrency}</span>
+                      <ChevronDown size={14} />
+                    </div>
+                  </div>
+
+                  {cart.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '50px 20px', color: '#94a3b8' }}>
+                      <ShoppingBag size={48} style={{ margin: '0 auto 14px', opacity: 0.35, color: primaryColor }} />
+                      <p style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Your cart is empty</p>
+                      <p style={{ fontSize: 13.5, color: '#64748b' }}>Add products from the store to continue.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                      {cart.map((item) => (
+                        <div
+                          key={item.id}
                           style={{
-                            background: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: '#94a3b8',
-                            padding: 2,
                             display: 'flex',
+                            gap: 14,
                             alignItems: 'center',
                           }}
-                          title="Remove item"
                         >
-                          <Trash2 size={14} />
-                        </button>
+                          <img
+                            src={item.image_url || ''}
+                            alt={item.name}
+                            style={{ width: 68, height: 68, borderRadius: 14, objectFit: 'cover', background: '#f1f5f9', flexShrink: 0 }}
+                          />
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '1px solid #cbd5e1', borderRadius: 8, padding: '2px 4px' }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontSize: 14.5, fontWeight: 700, margin: '0 0 4px', color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {item.name}
+                            </p>
+                            <p style={{ fontSize: 14.5, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                              {formatCurrency(item.price * item.qty, selectedCurrency)}
+                            </p>
+
+                            {/* Quantity Controls */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+                              <button
+                                onClick={() => updateQty(item.id, -1)}
+                                aria-label="Decrease quantity"
+                                style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#475569' }}
+                              >
+                                <Minus size={12} />
+                              </button>
+                              <span style={{ fontSize: 13.5, fontWeight: 700, minWidth: 16, textAlign: 'center', color: '#0f172a' }}>
+                                {item.qty}
+                              </span>
+                              <button
+                                onClick={() => updateQty(item.id, 1)}
+                                aria-label="Increase quantity"
+                                style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#475569' }}
+                              >
+                                <Plus size={12} />
+                              </button>
+                            </div>
+                          </div>
+
                           <button
-                            onClick={() => updateQty(item.id, -1)}
-                            style={{
-                              width: 22,
-                              height: 22,
-                              border: 'none',
-                              background: 'transparent',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                              color: '#475569'
-                            }}
+                            onClick={() => removeFromCart(item.id)}
+                            style={{ background: '#fff', border: '1px solid #fecdd3', borderRadius: '50%', width: 34, height: 34, cursor: 'pointer', color: '#e11d48', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            title="Remove item"
                           >
-                            <Minus size={12} />
-                          </button>
-                          <span style={{ fontSize: 13, fontWeight: 800, minWidth: 16, textAlign: 'center', color: '#0f172a' }}>
-                            {item.qty}
-                          </span>
-                          <button
-                            onClick={() => updateQty(item.id, 1)}
-                            style={{
-                              width: 22,
-                              height: 22,
-                              border: 'none',
-                              background: 'transparent',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                              color: '#475569'
-                            }}
-                          >
-                            <Plus size={12} />
+                            <Trash2 size={15} />
                           </button>
                         </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* STEP 1: PURCHASE INFORMATION */}
+              {cartStep === 'checkout_step1' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  {/* Processing timeline notice */}
+                  <div
+                    style={{
+                      background: '#ECFDF5',
+                      border: '1px solid #D1FAE5',
+                      borderRadius: 14,
+                      padding: '12px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#D1FAE5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Bell size={16} />
+                    </div>
+                    <p style={{ fontSize: 12.5, color: '#047857', margin: 0, lineHeight: 1.4, fontWeight: 500 }}>
+                      It typically takes 3 day(s) to process and complete your order. Once your order is ready, we'll notify you.
+                    </p>
+                  </div>
+
+                  {/* Cart item summary pill */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 14, border: '1px solid #f1f5f9', background: '#fafafa' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ display: 'flex', marginLeft: 4 }}>
+                        {cart.slice(0, 3).map((item, idx) => (
+                          <img
+                            key={item.id}
+                            src={item.image_url || ''}
+                            alt=""
+                            style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff', marginLeft: idx > 0 ? -8 : 0 }}
+                          />
+                        ))}
+                      </div>
+                      <div>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                          {totalCartCount} {totalCartCount === 1 ? 'item' : 'items'}
+                        </span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginLeft: 8 }}>
+                          {formatCurrency(cartTotal, selectedCurrency)}
+                        </span>
                       </div>
                     </div>
-                  ))}
+
+                    <button
+                      onClick={() => setCartStep('cart')}
+                      style={{
+                        background: '#FFF5F5',
+                        color: '#e11d48',
+                        border: '1px solid #FECDD3',
+                        borderRadius: 9999,
+                        padding: '5px 12px',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <ChevronLeft size={14} /> Back to Cart
+                    </button>
+                  </div>
+
+                  {/* Section: Your Details */}
+                  <div>
+                    <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#1e293b', margin: '0 0 10px' }}>Your Details</h4>
+                    <div style={{ border: '1px solid #e2e8f0', borderRadius: 16, padding: '14px 16px', background: '#fff' }}>
+                      {!isEditingDetails && customerName ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#FEE2E2', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <User size={20} />
+                            </div>
+                            <div>
+                              <p style={{ fontSize: 14.5, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>{customerName}</p>
+                              <p style={{ fontSize: 12.5, color: '#64748b', margin: 0 }}>
+                                {customerPhone}{customerEmail ? ` • ${customerEmail}` : ''}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setIsEditingDetails(true)}
+                            style={{
+                              background: '#FFF5F5',
+                              color: '#e11d48',
+                              border: '1px solid #FECDD3',
+                              borderRadius: 9999,
+                              padding: '5px 14px',
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4,
+                            }}
+                          >
+                            Edit <Edit3 size={13} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                          <input
+                            type="text"
+                            placeholder="Full name *"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 13.5, color: '#0f172a', outline: 'none' }}
+                          />
+                          <input
+                            type="tel"
+                            placeholder="WhatsApp phone number *"
+                            value={customerPhone}
+                            onChange={(e) => setCustomerPhone(e.target.value)}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 13.5, color: '#0f172a', outline: 'none' }}
+                          />
+                          <input
+                            type="email"
+                            placeholder="Email address"
+                            value={customerEmail}
+                            onChange={(e) => setCustomerEmail(e.target.value)}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 13.5, color: '#0f172a', outline: 'none' }}
+                          />
+                          <button
+                            onClick={() => {
+                              saveCustomerDetailsToStorage(customerName, customerPhone, customerEmail, customerNote, deliveryLocation);
+                              setIsEditingDetails(false);
+                            }}
+                            style={{ background: '#e11d48', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', alignSelf: 'flex-end' }}
+                          >
+                            Save Details
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Section: Delivery Location & Address */}
+                  <div>
+                    <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#1e293b', margin: '0 0 10px' }}>How would you like to get your order?</h4>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <button
+                        onClick={() => setIsRecipientDifferent(!isRecipientDifferent)}
+                        style={{
+                          background: '#FFF5F5',
+                          color: '#e11d48',
+                          border: '1px solid #FECDD3',
+                          borderRadius: 9999,
+                          padding: '7px 16px',
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          alignSelf: 'flex-start',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        {isRecipientDifferent ? 'Sending to yourself?' : 'Sending this to someone else?'} <Edit3 size={13} />
+                      </button>
+
+                      {isRecipientDifferent && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, background: '#fff', border: '1px dashed #fecdd3', borderRadius: 12 }}>
+                          <input
+                            type="text"
+                            placeholder="Recipient full name *"
+                            value={recipientName}
+                            onChange={(e) => setRecipientName(e.target.value)}
+                            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+                          />
+                          <input
+                            type="tel"
+                            placeholder="Recipient phone number *"
+                            value={recipientPhone}
+                            onChange={(e) => setRecipientPhone(e.target.value)}
+                            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Select Delivery Location */}
+                      <div style={{ position: 'relative', marginTop: 4 }}>
+                        <label style={{ position: 'absolute', top: -9, left: 12, background: '#fff', padding: '0 4px', fontSize: 11, fontWeight: 600, color: '#64748b' }}>
+                          Select Delivery Location
+                        </label>
+                        <select
+                          value={deliveryLocation}
+                          onChange={(e) => {
+                            setDeliveryLocation(e.target.value);
+                            saveCustomerDetailsToStorage(customerName, customerPhone, customerEmail, customerNote, e.target.value);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 14px',
+                            borderRadius: 12,
+                            border: '1px solid #cbd5e1',
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: '#0f172a',
+                            background: '#fff',
+                            outline: 'none',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <option value="Lagos State">Lagos State</option>
+                          <option value="Other States [GIGL]">Other States [GIGL]</option>
+                          <option value="Abuja (FCT)">Abuja (FCT)</option>
+                          <option value="Port Harcourt">Port Harcourt</option>
+                          <option value="International Shipping">International Shipping</option>
+                        </select>
+                      </div>
+
+                      {/* Delivery Address Textarea */}
+                      <div style={{ position: 'relative', marginTop: 6 }}>
+                        <label style={{ position: 'absolute', top: -9, left: 12, background: '#fff', padding: '0 4px', fontSize: 11, fontWeight: 600, color: '#64748b' }}>
+                          Delivery Address
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={customerNote}
+                          onChange={(e) => {
+                            setCustomerNote(e.target.value);
+                            saveCustomerDetailsToStorage(customerName, customerPhone, customerEmail, e.target.value, deliveryLocation);
+                          }}
+                          placeholder="Enter street address, landmark, or city..."
+                          style={{
+                            width: '100%',
+                            padding: '12px 14px',
+                            borderRadius: 12,
+                            border: '1px solid #cbd5e1',
+                            fontSize: 14,
+                            fontWeight: 500,
+                            color: '#0f172a',
+                            background: '#fff',
+                            outline: 'none',
+                            resize: 'none',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Delivery Options */}
+                  <div>
+                    <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#1e293b', margin: '0 0 10px' }}>Delivery Options</h4>
+                    <div
+                      onClick={() => setDeliveryMethod(deliveryMethod === 'delivery' ? 'pickup' : 'delivery')}
+                      style={{ border: '1px solid #f1f5f9', borderRadius: 16, padding: '14px 16px', background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#FEE2E2', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Truck size={18} />
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 14.5, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>
+                            {deliveryMethod === 'pickup' ? 'Store Pickup' : 'Standard'}
+                          </p>
+                          <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
+                            {deliveryMethod === 'pickup' ? (store.location || 'Pick up directly from store') : "We'll find a courier to deliver your order"}
+                          </p>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>
+                          {deliveryMethod === 'pickup' ? 'Free' : shippingFee > 0 ? formatCurrency(shippingFee, selectedCurrency) : 'Free'}
+                        </span>
+                        <div style={{ width: 18, height: 18, borderRadius: '50%', border: '5px solid #e11d48', background: '#fff' }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 2: EXTRA INFORMATION */}
+              {cartStep === 'checkout_step2' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <p style={{ fontSize: 14, color: '#334155', margin: 0, fontWeight: 500 }}>
+                    Do you have any notes or special instructions?
+                  </p>
+
+                  <div style={{ position: 'relative', marginTop: 10 }}>
+                    <label style={{ position: 'absolute', top: -9, left: 12, background: '#fff', padding: '0 4px', fontSize: 11, fontWeight: 600, color: '#64748b' }}>
+                      Order Notes
+                    </label>
+                    <textarea
+                      rows={5}
+                      value={orderNotes}
+                      onChange={(e) => setOrderNotes(e.target.value)}
+                      placeholder="e.g. Please include a gift card, call before delivery, color preferences, etc."
+                      style={{
+                        width: '100%',
+                        padding: '14px 16px',
+                        borderRadius: 14,
+                        border: '1px solid #cbd5e1',
+                        fontSize: 14,
+                        color: '#0f172a',
+                        outline: 'none',
+                        resize: 'none',
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: ORDER SUMMARY */}
+              {cartStep === 'checkout_step3' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h4 style={{ fontSize: 15, fontWeight: 700, color: '#1e293b', margin: 0 }}>Summary</h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#334155', background: '#f8fafc', padding: '6px 12px', borderRadius: 20, border: '1px solid #e2e8f0' }}>
+                      <span>🇳🇬</span>
+                      <span>{selectedCurrency}</span>
+                      <ChevronDown size={14} />
+                    </div>
+                  </div>
+
+                  {/* Cart Items List */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {cart.map((item) => (
+                      <div key={item.id} style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                        {item.image_url && (
+                          <img src={item.image_url} alt={item.name} style={{ width: 60, height: 60, borderRadius: 12, objectFit: 'cover' }} />
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: 14.5, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>{item.name}</p>
+                          {item.variantName && <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 2px' }}>{item.variantName}</p>}
+                          <p style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                            {formatCurrency(item.price * item.qty, selectedCurrency)}
+                          </p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                            <button onClick={() => updateQty(item.id, -1)} style={{ width: 24, height: 24, borderRadius: '50%', border: '1px solid #cbd5e1', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Minus size={11} /></button>
+                            <span style={{ fontSize: 13, fontWeight: 700 }}>{item.qty}</span>
+                            <button onClick={() => updateQty(item.id, 1)} style={{ width: 24, height: 24, borderRadius: '50%', border: '1px solid #cbd5e1', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Plus size={11} /></button>
+                          </div>
+                        </div>
+                        <Trash2 size={16} style={{ color: '#e11d48', cursor: 'pointer' }} onClick={() => removeFromCart(item.id)} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Summarized Contact/Shipping Cards */}
+                  <div style={{ border: '1px solid #f1f5f9', borderRadius: 16, background: '#fafafa', overflow: 'hidden' }}>
+                    {/* Contact */}
+                    <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9' }}>
+                      <div>
+                        <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 2px' }}>Contact:</p>
+                        <p style={{ fontSize: 13.5, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>{customerName || 'Guest Customer'}</p>
+                        <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>{customerPhone || 'No phone'}{customerEmail ? ` • ${customerEmail}` : ''}</p>
+                      </div>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                        <User size={16} />
+                      </div>
+                    </div>
+
+                    {/* Ship To */}
+                    <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9' }}>
+                      <div>
+                        <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 2px' }}>Ship To:</p>
+                        <p style={{ fontSize: 13.5, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>{isRecipientDifferent && recipientName ? recipientName : customerName || 'Guest'}</p>
+                        <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>{customerNote || 'No address provided'} ({deliveryLocation})</p>
+                      </div>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                        <MapPin size={16} />
+                      </div>
+                    </div>
+
+                    {/* Delivery Method */}
+                    <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 2px' }}>Delivery Method:</p>
+                        <p style={{ fontSize: 13.5, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>
+                          {deliveryMethod === 'pickup' ? 'Store Pickup' : 'Standard'}
+                        </p>
+                        <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>
+                          {deliveryMethod === 'pickup' ? 'Pick up from store' : 'Standard Delivery'}
+                        </p>
+                      </div>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                        <Package size={16} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SUMMARY breakdown */}
+                  <div>
+                    <h5 style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>SUMMARY</h5>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13.5 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
+                        <span>Total Items ({totalCartCount})</span>
+                        <span style={{ fontWeight: 600, color: '#0f172a' }}>{formatCurrency(cartTotal, selectedCurrency)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
+                        <span>Delivery Fee</span>
+                        <span style={{ fontWeight: 600, color: '#0f172a' }}>
+                          {deliveryMethod === 'pickup' ? 'Free' : shippingFee > 0 ? formatCurrency(shippingFee, selectedCurrency) : 'Free'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0f172a', fontWeight: 800, fontSize: 15, paddingTop: 6, borderTop: '1px solid #f1f5f9' }}>
+                        <span>Total</span>
+                        <span>{formatCurrency(orderTotal, selectedCurrency)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 4: MAKE PAYMENT */}
+              {cartStep === 'payment' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  {/* Warning banner */}
+                  <div
+                    style={{
+                      background: '#ECFDF5',
+                      border: '1px solid #D1FAE5',
+                      borderRadius: 14,
+                      padding: '12px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                    }}
+                  >
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#D1FAE5', color: '#047857', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <AlertCircle size={15} />
+                    </div>
+                    <p style={{ fontSize: 12.5, color: '#047857', margin: 0, fontWeight: 500 }}>
+                      Please make payment within 30 minutes to avoid order being cancelled
+                    </p>
+                  </div>
+
+                  {/* Payment Header Badge */}
+                  <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                    <div style={{ width: 54, height: 54, borderRadius: '50%', background: '#0F766E', color: '#fff', margin: '0 auto 10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <CreditCard size={26} />
+                    </div>
+                    <p style={{ fontSize: 16, color: '#475569', margin: '0 0 4px', fontWeight: 500 }}>Pay</p>
+                    <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                      {formatCurrency(orderTotal, selectedCurrency)}
+                    </h2>
+                  </div>
+
+                  {/* Payment Options */}
+                  <div style={{ border: '1px solid #f1f5f9', borderRadius: 16, background: '#fafafa', overflow: 'hidden' }}>
+                    {/* Paystack */}
+                    <div
+                      onClick={handleOnlinePayment}
+                      style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#E0F2FE', color: '#0284C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <CreditCard size={18} />
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 14, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>Pay with Paystack</p>
+                          <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>For card payments</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} style={{ color: '#94a3b8' }} />
+                    </div>
+
+                    {/* Bank Transfer */}
+                    <div
+                      onClick={handleOnlinePayment}
+                      style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FEE2E2', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Building size={18} />
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 14, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>Pay with Bank Transfer</p>
+                          <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>Confirmed instantly</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} style={{ color: '#94a3b8' }} />
+                    </div>
+
+                    {/* Share with friend */}
+                    <div
+                      onClick={handleShare}
+                      style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FFEDD5', color: '#EA580C', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Share2 size={18} />
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 14, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>Share with friend to pay</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} style={{ color: '#94a3b8' }} />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Checkout Form & Actions */}
-            {cart.length > 0 && (
-              <div style={{ padding: '20px 22px', borderTop: '1px solid #e2e8f0', background: '#ffffff', boxShadow: '0 -4px 20px rgba(0,0,0,0.03)' }}>
-                {/* Inputs */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#475569', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 5 }}>
-                      Full Name <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Joy Okafor"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '11px 14px',
-                        borderRadius: 10,
-                        border: '1.5px solid #cbd5e1',
-                        fontSize: 14,
-                        fontWeight: 500,
-                        background: '#f8fafc',
-                        outline: 'none',
-                        color: '#0f172a',
-                      }}
-                    />
+            {/* Modal Sticky Footer */}
+            <div style={{ padding: '16px 24px', borderTop: '1px solid #f1f5f9', background: '#ffffff', flexShrink: 0 }}>
+              {/* Step 0: Cart */}
+              {cartStep === 'cart' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 14, color: '#64748b', fontWeight: 600 }}>Subtotal</span>
+                      <div style={{ display: 'flex', marginLeft: 4 }}>
+                        {cart.slice(0, 3).map((item, idx) => (
+                          <img
+                            key={item.id}
+                            src={item.image_url || ''}
+                            alt=""
+                            style={{
+                              width: 22,
+                              height: 22,
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              border: '2px solid #fff',
+                              marginLeft: idx > 0 ? -8 : 0,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 18, fontWeight: 800, color: '#0f172a' }}>
+                      {formatCurrency(cartTotal, selectedCurrency)}
+                    </span>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#475569', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 5 }}>
-                      WhatsApp Phone Number <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      placeholder="e.g. +234 803 123 4567"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <button
+                      onClick={() => setCart([])}
                       style={{
-                        width: '100%',
-                        padding: '11px 14px',
-                        borderRadius: 10,
-                        border: '1.5px solid #cbd5e1',
+                        padding: '14px',
+                        borderRadius: 14,
+                        background: '#FFF5F5',
+                        color: '#e11d48',
+                        border: 'none',
                         fontSize: 14,
-                        fontWeight: 500,
-                        background: '#f8fafc',
-                        outline: 'none',
-                        color: '#0f172a',
+                        fontWeight: 700,
+                        cursor: 'pointer',
                       }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#475569', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 5 }}>
-                      Delivery Address / Special Notes
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter street address or instructions"
-                      value={customerNote}
-                      onChange={(e) => setCustomerNote(e.target.value)}
+                    >
+                      Clear Cart
+                    </button>
+                    <button
+                      onClick={() => setCartStep('checkout_step1')}
+                      disabled={cart.length === 0}
                       style={{
-                        width: '100%',
-                        padding: '11px 14px',
-                        borderRadius: 10,
-                        border: '1.5px solid #cbd5e1',
+                        padding: '14px',
+                        borderRadius: 14,
+                        background: '#e11d48',
+                        color: '#ffffff',
+                        border: 'none',
                         fontSize: 14,
-                        fontWeight: 500,
-                        background: '#f8fafc',
-                        outline: 'none',
-                        color: '#0f172a',
+                        fontWeight: 700,
+                        cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
                       }}
-                    />
+                    >
+                      Proceed
+                    </button>
                   </div>
                 </div>
+              )}
 
-                {/* Subtotal */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '12px 14px',
-                  borderRadius: 12,
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  marginBottom: 16
-                }}>
-                  <span style={{ fontSize: 13.5, color: '#64748b', fontWeight: 700 }}>Total Payable</span>
-                  <span style={{ fontSize: 18, fontWeight: 900, color: '#0f172a' }}>
-                    {formatCurrency(cartTotal, currencyCode)}
-                  </span>
+              {/* Step 1: Purchase Information */}
+              {cartStep === 'checkout_step1' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 14, color: '#64748b', fontWeight: 600 }}>Total</span>
+                    <span style={{ fontSize: 18, fontWeight: 800, color: '#0f172a' }}>
+                      {formatCurrency(orderTotal, selectedCurrency)}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <button
+                      onClick={() => handleWhatsAppCheckout()}
+                      style={{
+                        padding: '14px',
+                        borderRadius: 14,
+                        background: '#FFF5F5',
+                        color: '#e11d48',
+                        border: 'none',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Make Enquiry
+                    </button>
+                    <button
+                      onClick={() => setCartStep('checkout_step2')}
+                      style={{
+                        padding: '14px',
+                        borderRadius: 14,
+                        background: '#e11d48',
+                        color: '#ffffff',
+                        border: 'none',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Continue
+                    </button>
+                  </div>
                 </div>
+              )}
 
-                {/* Checkout Buttons */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {/* Step 2: Extra Information */}
+              {cartStep === 'checkout_step2' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }} onClick={() => setIsTotalExpanded(!isTotalExpanded)}>
+                      <span style={{ fontSize: 14, color: '#64748b', fontWeight: 600 }}>Total</span>
+                      <ChevronDown size={14} style={{ color: '#64748b' }} />
+                    </div>
+                    <span style={{ fontSize: 18, fontWeight: 800, color: '#0f172a' }}>
+                      {formatCurrency(orderTotal, selectedCurrency)}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <button
+                      onClick={() => setCartStep('checkout_step1')}
+                      style={{
+                        padding: '14px',
+                        borderRadius: 14,
+                        background: '#FFF5F5',
+                        color: '#e11d48',
+                        border: 'none',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Go Back
+                    </button>
+                    <button
+                      onClick={() => setCartStep('checkout_step3')}
+                      style={{
+                        padding: '14px',
+                        borderRadius: 14,
+                        background: '#e11d48',
+                        color: '#ffffff',
+                        border: 'none',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Order Summary */}
+              {cartStep === 'checkout_step3' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <button
-                    disabled={isCheckingOut}
-                    onClick={handleOnlinePayment}
+                    onClick={() => setCartStep('checkout_step2')}
                     style={{
-                      width: '100%',
-                      padding: '14px 20px',
-                      borderRadius: 12,
-                      background: primaryColor,
-                      color: '#ffffff',
+                      padding: '14px',
+                      borderRadius: 14,
+                      background: '#FFF5F5',
+                      color: '#e11d48',
                       border: 'none',
-                      fontSize: 15,
-                      fontWeight: 800,
-                      cursor: isCheckingOut ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      boxShadow: '0 4px 14px rgba(15, 23, 42, 0.15)',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: 'pointer',
                     }}
                   >
-                    {isCheckingOut ? 'Processing Order...' : 'Pay Online (Card / Transfer / MoMo)'}
+                    Go Back
                   </button>
+                  <button
+                    onClick={() => setCartStep('payment')}
+                    style={{
+                      padding: '14px',
+                      borderRadius: 14,
+                      background: '#e11d48',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Complete Order
+                  </button>
+                </div>
+              )}
 
+              {/* Step 4: Make Payment */}
+              {cartStep === 'payment' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <button
                     onClick={() => handleWhatsAppCheckout()}
                     style={{
                       width: '100%',
-                      padding: '12px 20px',
-                      borderRadius: 12,
-                      background: `${primaryColor}14`,
-                      color: primaryColor,
-                      border: `1.5px solid ${primaryColor}3D`,
+                      padding: '14px',
+                      borderRadius: 14,
+                      background: '#FFF5F5',
+                      color: '#e11d48',
+                      border: 'none',
                       fontSize: 14,
                       fontWeight: 700,
                       cursor: 'pointer',
@@ -2271,11 +2881,11 @@ export default function UniversalStorefront({
                     }}
                   >
                     <WhatsAppIcon size={18} />
-                    Order via WhatsApp
+                    Order via WhatsApp Fallback
                   </button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -2402,11 +3012,11 @@ export default function UniversalStorefront({
                             </h4>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
                               <span style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>
-                                {formatCurrency(priceNum, currencyCode)}
+                                {formatCurrency(priceNum, selectedCurrency)}
                               </span>
                               {hasDiscount && (
                                 <span style={{ fontSize: 12, color: '#94a3b8', textDecoration: 'line-through' }}>
-                                  {formatCurrency(compareNum, currencyCode)}
+                                  {formatCurrency(compareNum, selectedCurrency)}
                                 </span>
                               )}
                             </div>
@@ -3235,6 +3845,64 @@ export default function UniversalStorefront({
             {store.store_bio || 'Shop directly on WhatsApp with fast delivery and buyer protection.'}
           </p>
 
+          {(store.whatsapp_phone || store.instagram_handle || store.tiktok_handle || store.twitter_handle || store.facebook_handle) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>Our Socials</span>
+              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
+                {store.whatsapp_phone && (
+                  <a
+                    href={`https://wa.me/${store.whatsapp_phone.replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#25D366', fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    <WhatsAppIcon size={15} /> WhatsApp
+                  </a>
+                )}
+                {store.instagram_handle && (
+                  <a
+                    href={`https://instagram.com/${store.instagram_handle.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#e1306c', fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    <InstagramIcon size={15} /> Instagram
+                  </a>
+                )}
+                {store.tiktok_handle && (
+                  <a
+                    href={`https://tiktok.com/@${store.tiktok_handle.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#0f172a', fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    <TikTokIcon size={15} /> TikTok
+                  </a>
+                )}
+                {store.twitter_handle && (
+                  <a
+                    href={`https://x.com/${store.twitter_handle.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#0f172a', fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    <TwitterXIcon size={15} /> Twitter
+                  </a>
+                )}
+                {store.facebook_handle && (
+                  <a
+                    href={`https://facebook.com/${store.facebook_handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#1877f2', fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    <FacebookIcon size={15} /> Facebook
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
             <button
               onClick={() => setIsPoliciesOpen(true)}
@@ -3260,28 +3928,20 @@ export default function UniversalStorefront({
             >
               Store QR Code
             </button>
+            <span style={{ color: '#cbd5e1' }}>•</span>
+            <button
+              onClick={handleShare}
+              style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Share Store
+            </button>
           </div>
 
-          <div style={{ borderTop: '1px solid #f1f5f9', width: '100%', paddingTop: 16 }}>
-            <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 6px' }}>
+          <div style={{ borderTop: '1px solid #f1f5f9', width: '100%', paddingTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>
               © {new Date().getFullYear()} {store.store_name}. All rights reserved.
             </p>
-            <a
-              href={`https://${systemDomain}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: '#64748b',
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              Powered by <span style={{ color: primaryColor }}>{appName}</span>
-            </a>
+            <BuiltWithFrontstoreBadge href={`https://${systemDomain}`} />
           </div>
         </div>
       </footer>

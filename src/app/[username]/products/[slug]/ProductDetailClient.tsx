@@ -13,6 +13,7 @@ import ImageLightbox from "../../../../components/ImageLightbox";
 import ProductImage from "../../../../components/ProductImage";
 import { getColorHex } from '@/utils/colorUtils';
 import { getOptimizedImageUrl } from '@/lib/image';
+import BuiltWithFrontstoreBadge from '@/components/BuiltWithFrontstoreBadge';
 
 // --- Types & Interfaces ---
 interface Category {
@@ -536,7 +537,7 @@ export default function ProductDetailClient({
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      const pColor = (storeTheme as any)['--brand'] || store.primary_color || '#128C7E';
+      const pColor = (storeTheme as any)['--brand'] || store.primary_color || '#0B5D39';
       const pDeep = (storeTheme as any)['--brand-deep'] || pColor;
       const pTint = (storeTheme as any)['--tint'] || `color-mix(in srgb, ${pColor} 14%, white)`;
 
@@ -825,7 +826,7 @@ export default function ProductDetailClient({
                                 borderRadius: 18,
                                 background: hex,
                                 border: isLight ? '1.5px solid #cbd5e1' : '1.5px solid rgba(0,0,0,0.12)',
-                                outline: isSelected ? `3px solid ${storeTheme['--brand'] || 'var(--primary, #075E54)'}` : 'none',
+                                outline: isSelected ? `3px solid ${storeTheme['--brand'] || 'var(--primary, #0B5D39)'}` : 'none',
                                 outlineOffset: 2,
                                 cursor: 'pointer',
                                 boxShadow: isSelected ? '0 4px 12px rgba(0,0,0,0.18)' : '0 2px 5px rgba(0,0,0,0.06)',
@@ -947,8 +948,11 @@ export default function ProductDetailClient({
       )}
 
       {/* Footer */}
-      <footer className="fs-footer">
-        <ShieldCheck size={14} /> Payments are fully protected and receipts are instant, secured by Frontstore
+      <footer className="fs-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, paddingBottom: 28 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted, #64748b)', fontSize: 12 }}>
+          <ShieldCheck size={14} /> Payments are fully protected and receipts are instant, secured by Frontstore
+        </div>
+        <BuiltWithFrontstoreBadge />
       </footer>
 
       {/* Mobile Sticky CTA Bar */}
@@ -2558,7 +2562,7 @@ const CSS = `
   width: 100%;
   padding: 15px;
   border-radius: 14px;
-  background: var(--brand, var(--primary, #128C7E)) !important;
+  background: var(--brand, var(--primary, #0B5D39)) !important;
   color: #ffffff !important;
   font-size: 15px;
   font-weight: 700;

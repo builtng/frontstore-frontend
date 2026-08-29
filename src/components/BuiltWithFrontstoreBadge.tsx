@@ -7,11 +7,17 @@ interface BuiltWithFrontstoreBadgeProps {
   href?: string;
   /** Hide badge if store opts out (reserved for future setting) */
   hide?: boolean;
+  /** Optional custom className */
+  className?: string;
+  /** Optional custom inline styles */
+  style?: React.CSSProperties;
 }
 
 export default function BuiltWithFrontstoreBadge({
   href = 'https://frontstore.ng',
   hide = false,
+  className = '',
+  style = {},
 }: BuiltWithFrontstoreBadgeProps) {
   if (hide) return null;
 
@@ -19,23 +25,18 @@ export default function BuiltWithFrontstoreBadge({
     <>
       <style>{`
         .built-with-frontstore-badge {
-          position: fixed;
-          bottom: 20px;
-          left: 20px;
-          right: auto;
-          z-index: 30;
           display: inline-flex;
           align-items: center;
           gap: 7px;
-          padding: 7px 15px;
-          background-color: rgba(255, 255, 255, 0.96);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
+          padding: 6px 14px;
+          background-color: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
           border: 1px solid rgba(0, 0, 0, 0.1);
           border-radius: 9999px;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
           color: #374151;
-          font-size: 13px;
+          font-size: 12.5px;
           font-weight: 500;
           font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           text-decoration: none;
@@ -48,35 +49,19 @@ export default function BuiltWithFrontstoreBadge({
         }
 
         .built-with-frontstore-badge:hover {
-          transform: translateY(-2px) scale(1.02);
-          box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
           border-color: rgba(0, 0, 0, 0.18);
           color: #111827;
         }
 
         .built-with-frontstore-badge:active {
-          transform: translateY(0) scale(0.98);
+          transform: translateY(0);
         }
 
         .built-with-frontstore-badge-brand {
           font-weight: 700;
           color: #111827;
-        }
-
-        /* Responsive positioning on mobile view */
-        @media (max-width: 768px) {
-          .built-with-frontstore-badge {
-            bottom: 16px;
-            left: 16px;
-            right: auto;
-            padding: 6px 13px;
-            font-size: 12px;
-          }
-
-          /* If sticky mobile navigation bottom bar is present */
-          body:has(.ps-bottom) .built-with-frontstore-badge {
-            bottom: calc(68px + env(safe-area-inset-bottom, 0px));
-          }
         }
       `}</style>
 
@@ -84,14 +69,15 @@ export default function BuiltWithFrontstoreBadge({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="built-with-frontstore-badge"
+        className={`built-with-frontstore-badge ${className}`}
+        style={style}
         title="Create your own free store on Frontstore.ng"
         aria-label="Built with Frontstore — Click to visit frontstore.ng"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="15"
-          height="15"
+          width="14"
+          height="14"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

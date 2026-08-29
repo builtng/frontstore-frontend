@@ -23,7 +23,7 @@ const QUICK_FACTS: Record<string, QuickFacts> = {
   frontstore: {
     whatsapp: { yes: true, note: 'Order = a WhatsApp message' },
     ai: { yes: true, note: 'Photo in, full listing out' },
-    price: 'Free, Pro ₦2,000/mo, or Legend ₦7,000/mo',
+    price: 'Free, Pro ₦2,000/mo, or Business ₦7,000/mo',
     setup: '< 2 minutes',
     fee: 'None, every tier',
   },
@@ -86,7 +86,7 @@ export default function VsIndexPage() {
   const frontstoreFacts = QUICK_FACTS.frontstore;
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg, color-mix(in srgb, var(--primary) 5%, var(--bg)) 0%, var(--bg) 480px)' }}>
       <PublicSiteNav />
 
       <header className="hero-dark" style={{ padding: 'clamp(48px, 9vw, 88px) 20px clamp(56px, 9vw, 96px)' }}>
@@ -103,9 +103,12 @@ export default function VsIndexPage() {
           <p style={{ color: 'rgba(255,255,255,0.78)', fontSize: 'clamp(15px, 2vw, 17px)', lineHeight: 1.65, maxWidth: 520, margin: '0 auto' }}>
             Fair, feature-by-feature comparisons to help you pick the right platform for selling on WhatsApp and social media in Africa.
           </p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 28, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 24 }}>
             <a href="/signup" className="btn btn-primary" style={{ padding: '12px 24px', fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              Try Frontstore Free <ArrowRight size={15} />
+              Get Started Free <ArrowRight size={15} />
+            </a>
+            <a href="/why-frontstore" className="btn btn-secondary" style={{ padding: '12px 24px', fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              Why Choose Frontstore <ArrowRight size={15} />
             </a>
           </div>
         </div>

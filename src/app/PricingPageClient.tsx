@@ -10,12 +10,12 @@ import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
 
 const PAYMENT_METHODS = [
   { name: 'Paystack', icon: CreditCard, note: 'Cards, bank transfer & dedicated accounts', regions: 'Nigeria · Ghana · South Africa · Kenya' },
-  { name: 'Stripe', icon: CreditCard, note: 'International cards for verified merchants', regions: 'US · UK · EU & more' },
+  { name: 'Stripe', icon: CreditCard, note: 'International card payments & foreign currency payouts', regions: 'USD · GBP · EUR · CAD · Global' },
+  { name: 'Bank Transfer', icon: Building2, note: 'Direct-to-bank payment on every supported store', regions: 'All markets' },
   { name: 'MTN MoMo Agent', icon: Smartphone, note: 'Mobile money, confirmed straight to your dashboard', regions: 'Nigeria · Ghana · Uganda · Cameroon · Ivory Coast · Benin · Senegal' },
-  { name: 'Bank transfer', icon: Building2, note: 'Direct-to-bank payment on every supported store', regions: 'All markets' },
 ] as const;
 
-const COMING_SOON_METHODS = ['Flutterwave', 'M-Pesa'] as const;
+const COMING_SOON_METHODS = ['M-Pesa'] as const;
 
 export interface ApiPlanSku {
   key: string;
@@ -160,7 +160,7 @@ export default function PricingPageClient({ plans }: PricingPageClientProps) {
                 Never lose a sale to a payment method you don&apos;t support
               </h2>
               <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 14, maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>
-                Cards, bank transfer, and mobile money — wired straight into your storefront checkout.
+                Cards, bank transfers, and mobile money — wired straight into your storefront checkout.
               </p>
             </div>
 

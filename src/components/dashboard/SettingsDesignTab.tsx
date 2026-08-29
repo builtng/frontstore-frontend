@@ -43,14 +43,14 @@ interface SettingsDesignTabProps {
 }
 
 const PRESET_PALETTES = [
-  { name: 'Frontstore Green', value: '#25D366', tag: 'Default' },
+  { name: 'Sleek Forest Green', value: '#0B5D39', tag: 'Default' },
+  { name: 'Frontstore Emerald', value: '#0B5D39', tag: 'Classic' },
   { name: 'Ocean Blue', value: '#0284c7', tag: 'Fresh' },
   { name: 'Royal Indigo', value: '#4f46e5', tag: 'Luxe' },
   { name: 'Sunset Amber', value: '#ea580c', tag: 'Vibrant' },
   { name: 'Midnight Charcoal', value: '#1f2937', tag: 'Sleek' },
   { name: 'Plum Violet', value: '#7c3aed', tag: 'Elegant' },
   { name: 'Rose Pink', value: '#db2777', tag: 'Chic' },
-  { name: 'Emerald Forest', value: '#075E54', tag: 'Classic' }
 ];
 
 export default function SettingsDesignTab({
@@ -271,7 +271,7 @@ export default function SettingsDesignTab({
                       }}
                       className="input-field"
                       style={{ padding: '8px 12px', fontSize: 13.5, fontFamily: 'monospace', fontWeight: 700, height: 42 }}
-                      placeholder="#25D366"
+                      placeholder="#0B5D39"
                     />
                   </div>
                 </div>
@@ -420,13 +420,13 @@ export default function SettingsDesignTab({
                   width: 44,
                   height: 44,
                   borderRadius: 14,
-                  background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+                  background: 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)',
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  boxShadow: '0 4px 14px rgba(124, 58, 237, 0.3)'
+                  boxShadow: '0 4px 14px rgba(11, 93, 57, 0.3)'
                 }}>
                   <Sparkles size={22} />
                 </div>
@@ -442,9 +442,9 @@ export default function SettingsDesignTab({
                       textTransform: 'uppercase',
                       padding: '2px 8px',
                       borderRadius: 6,
-                      background: isPro ? 'rgba(124, 58, 237, 0.12)' : 'var(--bg-3)',
-                      color: isPro ? '#7c3aed' : 'var(--text-muted)',
-                      border: isPro ? '1px solid rgba(124, 58, 237, 0.25)' : '1px solid var(--border)'
+                      background: isPro ? 'rgba(11, 93, 57, 0.12)' : 'var(--bg-3)',
+                      color: isPro ? '#0B5D39' : 'var(--text-muted)',
+                      border: isPro ? '1px solid rgba(11, 93, 57, 0.25)' : '1px solid var(--border)'
                     }}>
                       {isPro ? 'PRO ACTIVE' : 'PRO FEATURE'}
                     </span>
@@ -489,7 +489,7 @@ export default function SettingsDesignTab({
                   width: 36,
                   height: 36,
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #7c3aed 0%, #25D366 100%)',
+                  background: 'linear-gradient(135deg, #0B5D39 0%, #25D366 100%)',
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
@@ -526,8 +526,8 @@ export default function SettingsDesignTab({
             {/* Upgrade Card for Free Tier */}
             {!isPro && (
               <div style={{
-                background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.06) 0%, rgba(168, 85, 247, 0.08) 100%)',
-                border: '1.5px dashed rgba(124, 58, 237, 0.3)',
+                background: 'linear-gradient(135deg, rgba(11, 93, 57, 0.06) 0%, rgba(16, 185, 129, 0.08) 100%)',
+                border: '1.5px dashed rgba(11, 93, 57, 0.3)',
                 borderRadius: 'var(--r-lg)',
                 padding: 16,
                 display: 'flex',
@@ -537,7 +537,7 @@ export default function SettingsDesignTab({
                 gap: 14
               }}>
                 <div style={{ flex: 1, minWidth: 240 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#7c3aed', fontSize: 13, fontWeight: 900 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#0B5D39', fontSize: 13, fontWeight: 900 }}>
                     <Zap size={16} /> Nina AI Requires a Pro Plan
                   </div>
                   <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 4, margin: '4px 0 0 0', lineHeight: 1.4 }}>
@@ -552,7 +552,7 @@ export default function SettingsDesignTab({
                   )}
                   className="btn clickable"
                   style={{
-                    background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+                    background: 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)',
                     color: '#fff',
                     padding: '8px 16px',
                     borderRadius: 'var(--r-md)',

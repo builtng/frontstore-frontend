@@ -30,8 +30,8 @@ const formatMoney = (value?: number, currencyCode: string = 'NGN') =>
 const planLabel = (plan?: string | null) => {
   if (plan === 'pro_yearly') return 'Pro Yearly';
   if (plan === 'pro_monthly') return 'Pro Monthly';
-  if (plan === 'legend_yearly') return 'Legend Yearly';
-  if (plan === 'legend_monthly') return 'Legend Monthly';
+  if (plan === 'legend_yearly') return 'Business Yearly';
+  if (plan === 'legend_monthly') return 'Business Monthly';
   return 'Free';
 };
 
@@ -140,7 +140,7 @@ export default function AdminOverviewPage() {
               value={`${stats?.active_stores || 0} / ${stats?.total_stores || 0}`}
               detail="Live digital storefronts"
               trend={{ value: `${Math.round(((stats?.active_stores || 0) / (stats?.total_stores || 1)) * 100)}% uptime`, positive: true }}
-              tone="purple"
+              tone="green"
             />
             <Metric
               icon={<Package size={18} />}

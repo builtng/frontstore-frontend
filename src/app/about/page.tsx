@@ -22,7 +22,7 @@ const STEPS = [
 
 export default function AboutPage() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', color: 'var(--text)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg, color-mix(in srgb, var(--primary) 5%, var(--bg)) 0%, var(--bg) 480px)', color: 'var(--text)' }}>
       <PublicSiteNav />
 
       {/* ── Hero ── */}

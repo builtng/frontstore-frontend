@@ -1,5 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const NINA_AUTHOR = { name: 'Nina', role: 'AI Assistant', avatarInitials: 'N', avatarBg: 'hsl(142, 70%, 94%)', avatarColor: 'hsl(142, 70%, 35%)' };
 
@@ -1202,7 +1206,7 @@ const completeCode = `export interface BlogArticle {
 
 export const BLOG_ARTICLES: BlogArticle[] = ${JSON.stringify(ALL_ARTICLES, null, 2)};
 
-export const CATEGORIES = ['All', 'State Guide', 'Fashion', 'Beauty', 'Food', 'Electronics', 'Retail'];
+export const CATEGORIES = ['All', 'Fashion', 'Beauty', 'Food', 'Electronics', 'Retail'];
 export const CITIES = ['All', 'Lagos', 'Nairobi', 'Accra', 'Johannesburg', 'Kampala', 'Mombasa', 'Cape Town', 'Port Harcourt', 'Abuja', 'Kumasi', 'Asaba', 'Warri', 'Abraka', 'Ughelli', 'Sapele', 'Agbor', 'Oghara', 'Oleh', 'Kwale', 'Ozoro', 'Ogwashi-Uku', 'Ibusa', 'Effurun', 'Agbarho', 'Koko', 'Obiaruku', 'Issele-Uku', 'Burutu', 'Bomadi', 'Patani', 'Orerokpe', 'Benin City', 'Auchi', 'Ekpoma', 'Uromi', 'Okada', 'Igarra', 'Sabongida-Ora', 'Agenegbode', 'Igueben', 'Fugar', 'Obio-Akpor', 'Choba', 'Eleme', 'Bonny', 'Omoku', 'Bori', 'Ahoada', 'Degema', 'Ikeja', 'Lekki', 'Victoria Island', 'Surulere', 'Yaba', 'Ikorodu', 'Ojo', 'Lagos Island', 'Epe', 'Badagry', 'Gbagada', 'Festac', 'Apapa', 'Oshodi', 'Wuse', 'Garki', 'Maitama', 'Gwarinpa', 'Asokoro', 'Jabi', 'Utako', 'Kubwa', 'Karu', 'Lugbe', 'Gwagwalada', 'Kuje', 'Kaduna', 'Zaria', 'Kafanchan', 'Samaru', 'Kano', 'Wudil', 'Bichi', 'Gezawa', 'Aba', 'Umuahia', 'Ohafia', 'Awka', 'Onitsha', 'Nnewi', 'Ihiala', 'Owerri', 'Orlu', 'Okigwe', 'Enugu', 'Nsukka', 'Ogurute'];
 `;
 

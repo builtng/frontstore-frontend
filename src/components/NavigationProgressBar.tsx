@@ -123,8 +123,8 @@ export default function NavigationProgressBar() {
         style={{
           height: '100%',
           width: `${progress}%`,
-          background: 'linear-gradient(90deg, #128C7E 0%, #25D366 70%, #34D399 100%)',
-          boxShadow: '0 0 10px rgba(37, 211, 102, 0.7), 0 0 4px rgba(18, 140, 126, 0.8)',
+          background: 'linear-gradient(90deg, #074328 0%, #0B5D39 70%, #0F7649 100%)',
+          boxShadow: '0 0 10px rgba(11, 93, 57, 0.7), 0 0 4px rgba(7, 67, 40, 0.8)',
           transition: progress === 100 ? 'width 0.2s ease-out' : 'width 0.3s cubic-bezier(0.1, 0.8, 0.3, 1)',
           borderRadius: '0 2px 2px 0',
         }}

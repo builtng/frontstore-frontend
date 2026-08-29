@@ -4,7 +4,7 @@ import React from 'react';
 import { ExternalLink, Check, Loader2 } from 'lucide-react';
 
 const COLOR_PRESETS = [
-  { name: 'Frontstore', value: '#25D366' },
+  { name: 'Sleek Green', value: '#0B5D39' },
   { name: 'Ruby', value: '#e11d48' },
   { name: 'Royal', value: '#4f46e5' },
   { name: 'Ocean', value: '#0284c7' },
@@ -115,7 +115,7 @@ export default function TemplatesTab({
                 }}
                 className="input-field"
                 style={{ fontFamily: 'monospace', fontWeight: 800 }}
-                placeholder="#25D366"
+                placeholder="#0B5D39"
               />
             </div>
 

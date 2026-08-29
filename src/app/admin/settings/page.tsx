@@ -53,6 +53,7 @@ export default function AdminSettingsPage() {
   const [visualHomeHeroDesc, setVisualHomeHeroDesc] = useState('');
   const [visualHomeStatsCount, setVisualHomeStatsCount] = useState('');
   const [visualHomeStatsText, setVisualHomeStatsText] = useState('');
+  const [visualHomeTrustBarHeadline, setVisualHomeTrustBarHeadline] = useState('');
   const [visualHomeVisionQuote, setVisualHomeVisionQuote] = useState('');
   const [visualHomeVisionCite, setVisualHomeVisionCite] = useState('');
 
@@ -92,6 +93,7 @@ export default function AdminSettingsPage() {
         setVisualHomeHeroDesc(homeObj.hero?.description || '');
         setVisualHomeStatsCount(homeObj.stats?.sellerCount || '');
         setVisualHomeStatsText(homeObj.stats?.text || '');
+        setVisualHomeTrustBarHeadline(homeObj.stats?.trustBarHeadline || '');
         setVisualHomeVisionQuote(homeObj.vision?.quote || '');
         setVisualHomeVisionCite(homeObj.vision?.cite || '');
       } catch (err) {
@@ -134,6 +136,7 @@ export default function AdminSettingsPage() {
           ...(homeObj as any).stats,
           sellerCount: visualHomeStatsCount,
           text: visualHomeStatsText,
+          trustBarHeadline: visualHomeTrustBarHeadline,
         },
         vision: {
           ...(homeObj as any).vision,
@@ -528,21 +531,21 @@ export default function AdminSettingsPage() {
                   required
                 />
                 <Field
-                  label="Legend Monthly Price (NGN)"
+                  label="Business Monthly Price (NGN)"
                   type="number"
                   value={String(settings.legend_monthly_price)}
                   onChange={(value) => setSettings({ ...settings, legend_monthly_price: value })}
                   placeholder="e.g. 7000"
-                  description="Price charged for the Legend Monthly plan, in Naira."
+                  description="Price charged for the Business Monthly plan, in Naira."
                   required
                 />
                 <Field
-                  label="Legend Yearly Price (NGN)"
+                  label="Business Yearly Price (NGN)"
                   type="number"
                   value={String(settings.legend_yearly_price)}
                   onChange={(value) => setSettings({ ...settings, legend_yearly_price: value })}
                   placeholder="e.g. 70000"
-                  description="Price charged for the Legend Yearly plan, in Naira."
+                  description="Price charged for the Business Yearly plan, in Naira."
                   required
                 />
                 <Field
@@ -569,7 +572,7 @@ export default function AdminSettingsPage() {
                   value={String(settings.nina_pro_plan_weekly_product_limit)}
                   onChange={(value) => setSettings({ ...settings, nina_pro_plan_weekly_product_limit: value })}
                   placeholder="e.g. 5"
-                  description="How many products/services a Pro plan merchant can post to Nina via WhatsApp per week (resets weekly). Legend plan is unlimited."
+                  description="How many products/services a Pro plan merchant can post to Nina via WhatsApp per week (resets weekly). Business plan is unlimited."
                   required
                 />
               </SettingsGroup>
@@ -866,18 +869,26 @@ export default function AdminSettingsPage() {
                   full={true}
                 />
                 <Field
-                  label="Sellers Count Stat"
+                  label="Trust Bar Businesses Stat / Count"
                   value={visualHomeStatsCount}
                   onChange={setVisualHomeStatsCount}
-                  placeholder="e.g. 1,200+ sellers"
-                  description={`Prominent statistic shown on the homepage hero. Leave blank to auto-show the real, live count of active stores (currently ${settings.real_store_count ?? '...'}); set this to override it with custom text.`}
+                  placeholder="e.g. 50,000+ businesses"
+                  description={`Prominent statistic shown in the Trust Bar on the homepage. Leave blank to auto-show live active stores (currently ${settings.real_store_count ?? '...'}); set to override (e.g. '50,000+ businesses').`}
                 />
                 <Field
-                  label="Sellers Stat Text Label"
+                  label="Trust Bar Subtitle / Region"
                   value={visualHomeStatsText}
                   onChange={setVisualHomeStatsText}
-                  placeholder="e.g. already selling on Frontstore"
-                  description="Description label below the seller statistic count."
+                  placeholder="e.g. across Africa"
+                  description="Region or text displayed following the count in the Trust Bar (e.g. 'across Africa')."
+                />
+                <Field
+                  label="Full Trust Bar Headline (Override)"
+                  value={visualHomeTrustBarHeadline}
+                  onChange={setVisualHomeTrustBarHeadline}
+                  placeholder="e.g. Trusted by 50,000+ businesses across Africa"
+                  description="Optional full headline for the Trust Bar. Overrides the count + region formatting if set."
+                  full={true}
                 />
                 <TextAreaField
                   label="Platform Vision Statement"

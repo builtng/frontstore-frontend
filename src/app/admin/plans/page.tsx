@@ -52,10 +52,10 @@ const DASHBOARD_GROUPS: { label: string; keys: string[] }[] = [
   {
     label: 'Sidebar',
     keys: [
-      'orders', 'products', 'inventory', 'coupons', 'customers', 'wallet',
+      'orders', 'products', 'inventory', 'bookkeeping', 'coupons', 'customers', 'wallet',
       'payment-links', 'invoices', 'receipts', 'whatsapp',
       'share', 'qr', 'reviews', 'blog', 'availability', 'bookings',
-      'integrations', 'billing',
+      'integrations', 'settings', 'billing',
     ],
   },
   { label: 'Stats', keys: ['stat_revenue', 'stat_orders', 'stat_views', 'stat_whatsapp', 'stat_conversion'] },
@@ -373,7 +373,7 @@ export default function AdminPlansPage() {
               <div>
                 <label style={{ fontSize: 12, fontWeight: 600 }}>Tier rank</label>
                 <input type="number" className="form-control" value={newTierRank} onChange={(e) => setNewTierRank(e.target.value)} />
-                <p style={{ fontSize: 11, color: 'var(--text-faint)', margin: '4px 0 0' }}>Free=0, Pro=10, Legend=20 — rank at or above 10/20 automatically inherits Pro/Legend gates elsewhere in the app.</p>
+                <p style={{ fontSize: 11, color: 'var(--text-faint)', margin: '4px 0 0' }}>Free=0, Pro=10, Business=20 — rank at or above 10/20 automatically inherits Pro/Business gates elsewhere in the app.</p>
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <div style={{ flex: 1 }}>

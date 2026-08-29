@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
   // ── Security & Caching HTTP Headers ────────────────────────────────────────
   async headers() {
     const devOrigins = process.env.NODE_ENV === 'development'
-      ? " http://localhost:8000 http://127.0.0.1:8000 ws://localhost:* ws://127.0.0.1:*"
+      ? " http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*"
       : "";
     let envApiOrigin = "";
     if (process.env.NEXT_PUBLIC_API_URL) {

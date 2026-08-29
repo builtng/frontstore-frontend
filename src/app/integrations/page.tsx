@@ -54,7 +54,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 
 export default function IntegrationsPage() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg, color-mix(in srgb, var(--primary) 5%, var(--bg)) 0%, var(--bg) 480px)' }}>
       <PublicSiteNav />
 
       <header className="hero-dark" style={{ padding: 'clamp(48px, 9vw, 88px) 20px clamp(56px, 9vw, 96px)', position: 'relative', overflow: 'hidden' }}>
@@ -165,7 +165,7 @@ export default function IntegrationsPage() {
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <p style={{ fontSize: 13.5, color: 'var(--text-muted)' }}>
             More integrations are added every month. Have a specific tool request?{' '}
-            <a href="mailto:support@frontstore.ng" style={{ color: 'var(--primary)', fontWeight: 700 }}>Tell us what to add next</a>.
+            <a href="mailto:hello@frontstore.ng" style={{ color: 'var(--primary)', fontWeight: 700 }}>Tell us what to add next</a>.
           </p>
         </div>
 

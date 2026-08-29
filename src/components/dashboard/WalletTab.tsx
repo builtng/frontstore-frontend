@@ -192,9 +192,9 @@ export default function WalletTab({ store, user, isPro, refreshDashboard, naviga
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
             width: 44, height: 44, borderRadius: 'var(--r-md)',
-            background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+            background: 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(37, 211, 102, 0.25)', flexShrink: 0
+            boxShadow: '0 4px 16px rgba(11, 93, 57, 0.25)', flexShrink: 0
           }}>
             <DollarSign size={22} color="#fff" />
           </div>

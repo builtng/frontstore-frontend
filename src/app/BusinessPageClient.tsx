@@ -213,7 +213,7 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
       </header>
 
       {/* ── Pain points: chaos vs control ── */}
-      <section style={{ padding: 'clamp(56px, 8vw, 88px) 20px', background: 'var(--bg-2)', borderTop: '1px solid var(--border)' }}>
+      <section style={{ padding: 'clamp(56px, 8vw, 88px) 20px', background: 'color-mix(in srgb, var(--primary) 6%, var(--bg-2))', borderTop: '1px solid var(--border)' }}>
         <div style={{ maxWidth: 980, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <span className="badge badge-primary" style={{ marginBottom: 12 }}>Where businesses get stuck</span>
@@ -290,7 +290,7 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
       </section>
 
       {/* ── Trust & scale ── */}
-      <section style={{ padding: 'clamp(56px, 8vw, 88px) 20px', background: 'var(--bg-2)' }}>
+      <section style={{ padding: 'clamp(56px, 8vw, 88px) 20px', background: 'color-mix(in srgb, var(--accent) 6%, var(--bg-2))' }}>
         <div style={{ maxWidth: 1080, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <span className="badge badge-primary" style={{ marginBottom: 12 }}>Why business owners trust it</span>
@@ -348,7 +348,7 @@ export default function BusinessPageClient({ initialSettings }: { initialSetting
       </section>
 
       {/* ── Final CTA ── */}
-      <section style={{ padding: 'clamp(40px, 8vw, 64px) 20px', background: 'var(--bg-2)' }}>
+      <section style={{ padding: 'clamp(40px, 8vw, 64px) 20px', background: 'color-mix(in srgb, var(--wa-green) 5%, var(--bg-2))' }}>
         <div className="hero-dark cta-inset" style={{ padding: 'clamp(48px, 9vw, 76px) 20px', textAlign: 'center' }}>
           <div className="hero-blob" style={{ top: '-40%', left: '-10%', width: 320, height: 320, background: 'rgba(255,255,255,0.05)' }} />
           <div className="hero-blob" style={{ bottom: '-45%', right: '-8%', width: 340, height: 340, background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }} />

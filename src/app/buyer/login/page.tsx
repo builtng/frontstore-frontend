@@ -7,21 +7,8 @@ import {
   Lock, Eye, EyeOff, Loader2, ArrowRight, ShoppingBag, Check
 } from 'lucide-react';
 import Logo from '@/components/Logo';
-
-const countries = [
-  { code: 'NG', name: 'Nigeria', dialCode: '+234', flag: '🇳🇬' },
-  { code: 'GH', name: 'Ghana', dialCode: '+233', flag: '🇬🇭' },
-  { code: 'KE', name: 'Kenya', dialCode: '+254', flag: '🇰🇪' },
-  { code: 'ZA', name: 'South Africa', dialCode: '+27', flag: '🇿🇦' },
-  { code: 'UG', name: 'Uganda', dialCode: '+256', flag: '🇺🇬' },
-  { code: 'RW', name: 'Rwanda', dialCode: '+250', flag: '🇷🇼' },
-  { code: 'CM', name: 'Cameroon', dialCode: '+237', flag: '🇨🇲' },
-  { code: 'CI', name: 'Ivory Coast', dialCode: '+225', flag: '🇨🇮' },
-  { code: 'SN', name: 'Senegal', dialCode: '+221', flag: '🇸🇳' },
-  { code: 'TZ', name: 'Tanzania', dialCode: '+255', flag: '🇹🇿' },
-  { code: 'GB', name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧' },
-  { code: 'US', name: 'United States', dialCode: '+1', flag: '🇺🇸' },
-];
+import { getApiUrl } from '@/lib/api';
+import { COUNTRIES, Country, getSavedCountry, saveCountry, detectAndSaveCountry } from '@/components/SelectCountryModal';
 
 const normalizePhone = (input: string, dialCode: string) => {
   const cleanDial = dialCode.replace(/[^\d]/g, '');
@@ -35,15 +22,23 @@ const normalizePhone = (input: string, dialCode: string) => {
 
 export default function BuyerLoginPage() {
   const router = useRouter();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  const API_URL = getApiUrl();
 
-  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+  const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = getSavedCountry();
+    setSelectedCountry(saved);
+    detectAndSaveCountry().then((detected) => {
+      if (detected) setSelectedCountry(detected);
+    });
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('buyer_token')) {
@@ -160,11 +155,15 @@ export default function BuyerLoginPage() {
                     borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', background: 'var(--surface)',
                     boxShadow: 'var(--shadow-lg)', zIndex: 100, padding: '6px 0'
                   }}>
-                    {countries.map(c => (
+                    {COUNTRIES.map(c => (
                       <button
                         key={c.code}
                         type="button"
-                        onClick={() => { setSelectedCountry(c); setIsCountryDropdownOpen(false); }}
+                        onClick={() => {
+                          setSelectedCountry(c);
+                          saveCountry(c);
+                          setIsCountryDropdownOpen(false);
+                        }}
                         style={{
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
                           padding: '9px 14px', background: selectedCountry.code === c.code ? 'var(--primary-light)' : 'none',

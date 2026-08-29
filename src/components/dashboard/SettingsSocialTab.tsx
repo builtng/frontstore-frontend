@@ -101,26 +101,26 @@ export default function SettingsSocialTab({
           }}>
             <div style={{
               width: 50, height: 50, borderRadius: '50%',
-              background: '#ede9fe', color: '#6d28d9',
+              background: '#EDF7F2', color: '#0B5D39',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(109,40,217,0.15)', marginBottom: 12
+              boxShadow: '0 4px 12px rgba(11,93,57,0.15)', marginBottom: 12
             }}>
               <Zap size={24} />
             </div>
             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, color: 'var(--text)' }}>Custom Domain Mapping</h3>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', maxWidth: 360, marginTop: 4, marginBottom: 16, lineHeight: 1.5 }}>
-              Connect your own custom domain (e.g. <code>mybrand.com</code>) to personalize your store URL. Requires a Legend subscription.
+              Connect your own custom domain (e.g. <code>mybrand.com</code>) to personalize your store URL. Requires a Business subscription.
             </p>
             <button
               type="button"
               onClick={() => openUpgradePrompt(
-                'Custom domain mapping requires Legend',
+                'Custom domain mapping requires Business',
                 'Connect your own domain to your store when you are ready for a more branded storefront experience.'
               )}
               className="btn btn-primary clickable"
-              style={{ padding: '8px 20px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13, background: '#7c3aed', borderColor: '#7c3aed' }}
+              style={{ padding: '8px 20px', borderRadius: 'var(--r-md)', fontWeight: 800, fontSize: 13, background: '#0B5D39', borderColor: '#0B5D39' }}
             >
-              Upgrade to Legend (₦{legendMonthlyPrice.toLocaleString()}/mo)
+              Upgrade to Business (₦{legendMonthlyPrice.toLocaleString()}/mo)
             </button>
           </div>
         )}

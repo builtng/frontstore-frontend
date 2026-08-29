@@ -43,7 +43,7 @@ const TOOL_BADGES: Record<string, { label: string; bg: string; color: string }> 
 
 export default function ToolsIndexPage() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg, color-mix(in srgb, var(--primary) 5%, var(--bg)) 0%, var(--bg) 480px)' }}>
       <PublicSiteNav />
 
       {/* Hero Header */}

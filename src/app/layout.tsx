@@ -123,8 +123,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#25D366" },
-    { media: "(prefers-color-scheme: dark)",  color: "#128C7E" },
+    { media: "(prefers-color-scheme: light)", color: "#0B5D39" },
+    { media: "(prefers-color-scheme: dark)",  color: "#074328" },
   ],
 };
 
@@ -165,13 +165,13 @@ export default function RootLayout({
                 {
                   '@type': 'ContactPoint',
                   contactType: 'customer support',
-                  email: 'support@frontstore.ng',
+                  email: 'hello@frontstore.ng',
                   availableLanguage: ['English', 'Pidgin'],
                 },
                 {
                   '@type': 'ContactPoint',
                   contactType: 'technical support',
-                  email: 'support@frontstore.ng',
+                  email: 'hello@frontstore.ng',
                 },
               ],
               sameAs: [

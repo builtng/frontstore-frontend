@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { getApiUrl } from '@/lib/api';
+import { resilientFetch } from '@/utils/resilientFetch';
 
 export interface AdminStats {
   total_revenue: number;
@@ -546,7 +548,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const savedApiUrl = localStorage.getItem('dev_api_url') || process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+    const savedApiUrl = getApiUrl();
     setApiUrl(savedApiUrl);
 
     const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
@@ -562,7 +564,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     const headers = getHeaders();
 
     // Ask server if the session/token is still valid
-    fetch(`${savedApiUrl}/v1/auth/me`, { credentials: 'include', headers })
+    resilientFetch(`${savedApiUrl}/v1/auth/me`, { credentials: 'include', headers })
       .then(async (res) => {
         if (!res.ok) {
           localStorage.removeItem('token');
@@ -575,8 +577,8 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const json = await res.json();
-        const user = json.data?.user;
+        const json = await res.json().catch(() => null);
+        const user = json?.data?.user;
         const userIsAdmin =
           user?.is_admin === true ||
           user?.is_admin === 1 ||

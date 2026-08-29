@@ -321,7 +321,7 @@ export default function BillingTab({
             <p style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text)' }}>
               {user.subscription_status === 'attention'
                 ? 'Your last renewal payment failed'
-                : `Auto-renewing ${user.plan.startsWith('legend') ? 'LEGEND' : 'PRO'} (${user.plan.endsWith('yearly') ? 'Yearly' : 'Monthly'}) subscription`}
+                : `Auto-renewing ${user.plan.startsWith('legend') ? 'BUSINESS' : 'PRO'} (${user.plan.endsWith('yearly') ? 'Yearly' : 'Monthly'}) subscription`}
             </p>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
               {user.subscription_status === 'attention'
@@ -502,7 +502,7 @@ export default function BillingTab({
               Yearly
               <span style={{
                 background: '#dcfce7',
-                color: '#128C7E',
+                color: '#0B5D39',
                 fontSize: 9,
                 fontWeight: 900,
                 padding: '1px 5px',
@@ -655,7 +655,7 @@ export default function BillingTab({
                 background: isPro
                   ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
                   : appliedCoupon && appliedCoupon.final_price === 0
-                    ? 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)'
+                    ? 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)'
                     : 'none',
                 border: isPro
                   ? '1.5px solid #d97706'
@@ -694,15 +694,15 @@ export default function BillingTab({
           padding: 28,
           display: 'flex',
           flexDirection: 'column',
-          border: isLegend ? '2.5px solid #7c3aed' : '1px solid var(--border)',
+          border: isLegend ? '2.5px solid #0B5D39' : '1px solid var(--border)',
           position: 'relative',
           background: 'var(--surface)',
-          boxShadow: '0 10px 25px -5px rgba(124,58,237,0.08)'
+          boxShadow: '0 10px 25px -5px rgba(11,93,57,0.08)'
         }}>
           {isLegend && (
             <span style={{
               position: 'absolute', top: 12, right: 12,
-              background: 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)', color: '#fff',
+              background: 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)', color: '#fff',
               fontSize: 10, fontWeight: 900, padding: '4px 10px',
               borderRadius: 'var(--r-full)', textTransform: 'uppercase', letterSpacing: '0.05em',
               display: 'flex', alignItems: 'center', gap: 4
@@ -711,7 +711,7 @@ export default function BillingTab({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h3 style={{ fontSize: 18, fontWeight: 900, color: 'var(--text)' }}>Business Plan</h3>
-            <span style={{ background: '#ede9fe', color: '#6d28d9', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4 }}>UNLIMITED AI</span>
+            <span style={{ background: '#EDF7F2', color: '#0B5D39', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 4 }}>UNLIMITED AI</span>
           </div>
           <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Everything in Pro, plus custom domain, ad pixels, and unlimited AI.</p>
 
@@ -766,7 +766,7 @@ export default function BillingTab({
               Yearly
               <span style={{
                 background: '#dcfce7',
-                color: '#128C7E',
+                color: '#0B5D39',
                 fontSize: 9,
                 fontWeight: 900,
                 padding: '1px 5px',
@@ -784,7 +784,7 @@ export default function BillingTab({
                   {legendBillingCycle === 'monthly' ? `₦${legendMonthlyPrice.toLocaleString()}` : `₦${legendYearlyPrice.toLocaleString()}`}
                 </span>
                 <div>
-                  <span style={{ fontSize: 28, fontWeight: 900, color: '#7c3aed', fontFamily: 'var(--font-heading)' }}>
+                  <span style={{ fontSize: 28, fontWeight: 900, color: '#0B5D39', fontFamily: 'var(--font-heading)' }}>
                     ₦{(appliedLegendCoupon.final_price || 0).toLocaleString()}
                   </span>
                   <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
@@ -794,7 +794,7 @@ export default function BillingTab({
               </div>
             ) : (
               <>
-                <span style={{ fontSize: 28, fontWeight: 900, color: '#7c3aed', fontFamily: 'var(--font-heading)' }}>
+                <span style={{ fontSize: 28, fontWeight: 900, color: '#0B5D39', fontFamily: 'var(--font-heading)' }}>
                   {legendBillingCycle === 'monthly' ? `₦${legendMonthlyPrice.toLocaleString()}` : `₦${legendYearlyPrice.toLocaleString()}`}
                 </span>
                 <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
@@ -803,7 +803,7 @@ export default function BillingTab({
               </>
             )}
             {legendBillingCycle === 'yearly' && !appliedLegendCoupon && (
-              <div style={{ fontSize: 11.5, color: '#25D366', fontWeight: 700, marginTop: 4 }}>
+              <div style={{ fontSize: 11.5, color: '#0B5D39', fontWeight: 700, marginTop: 4 }}>
                 equivalent to ₦{Math.round(legendYearlyPrice / 12).toLocaleString()} / month (billed annually)
               </div>
             )}
@@ -811,35 +811,35 @@ export default function BillingTab({
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--border)', paddingTop: 20, flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              <CheckCircle2 size={16} color="#7c3aed" />
+              <CheckCircle2 size={16} color="#0B5D39" />
               <span><strong>No transaction fees</strong> — 0% on every plan</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              <CheckCircle2 size={16} color="#7c3aed" />
+              <CheckCircle2 size={16} color="#0B5D39" />
               <span><strong>Everything in Pro, plus:</strong></span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              <CheckCircle2 size={16} color="#7c3aed" />
+              <CheckCircle2 size={16} color="#0B5D39" />
               <span>Connect a custom domain (e.g. <strong>yourbrand.com</strong>)</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              <CheckCircle2 size={16} color="#7c3aed" />
+              <CheckCircle2 size={16} color="#0B5D39" />
               <span>Facebook Pixel, Google Tag Manager &amp; TikTok Pixel tracking</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              <CheckCircle2 size={16} color="#7c3aed" />
+              <CheckCircle2 size={16} color="#0B5D39" />
               <span>Custom Storefront Builder with advanced section layouts</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              <CheckCircle2 size={16} color="#7c3aed" />
+              <CheckCircle2 size={16} color="#0B5D39" />
               <span><strong>Unlimited AI Studio generations</strong> on any billing cycle</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              <CheckCircle2 size={16} color="#7c3aed" />
+              <CheckCircle2 size={16} color="#0B5D39" />
               <span>Dashboard customization (Remove distractions)</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              <CheckCircle2 size={16} color="#7c3aed" />
+              <CheckCircle2 size={16} color="#0B5D39" />
               <span>Business storefront badge &amp; priority founder support</span>
             </div>
           </div>
@@ -882,8 +882,8 @@ export default function BillingTab({
                     fontSize: 12,
                     fontWeight: 700,
                     borderRadius: 'var(--r-sm)',
-                    border: '1.5px solid #7c3aed',
-                    color: '#7c3aed',
+                    border: '1.5px solid #0B5D39',
+                    color: '#0B5D39',
                     background: 'none',
                     cursor: 'pointer',
                   }}
@@ -893,8 +893,8 @@ export default function BillingTab({
               </div>
 
               {appliedLegendCoupon && (
-                <div style={{ marginTop: 10, padding: '8px 10px', background: '#ede9fe', borderRadius: 'var(--r-sm)', fontSize: 11.5, border: '1px solid #7c3aed', color: 'var(--text)' }}>
-                  <p style={{ color: '#7c3aed', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ marginTop: 10, padding: '8px 10px', background: '#EDF7F2', borderRadius: 'var(--r-sm)', fontSize: 11.5, border: '1px solid #0B5D39', color: 'var(--text)' }}>
+                  <p style={{ color: '#0B5D39', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Tag size={12} />
                     Code Applied: {appliedLegendCoupon.code}
                   </p>
@@ -917,16 +917,16 @@ export default function BillingTab({
               style={{
                 padding: 12,
                 background: isLegend
-                  ? 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)'
+                  ? 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)'
                   : appliedLegendCoupon && appliedLegendCoupon.final_price === 0
-                    ? 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)'
+                    ? 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)'
                     : 'none',
                 border: isLegend
-                  ? '1.5px solid #6d28d9'
+                  ? '1.5px solid #074328'
                   : appliedLegendCoupon && appliedLegendCoupon.final_price === 0
-                    ? '1.5px solid #25D366'
-                    : '1.5px solid #7c3aed',
-                color: isLegend || (appliedLegendCoupon && appliedLegendCoupon.final_price === 0) ? '#fff' : '#7c3aed',
+                    ? '1.5px solid #0B5D39'
+                    : '1.5px solid #0B5D39',
+                color: isLegend || (appliedLegendCoupon && appliedLegendCoupon.final_price === 0) ? '#fff' : '#0B5D39',
                 fontWeight: 800, borderRadius: 'var(--r-md)', fontSize: 13,
                 opacity: (isLegend || isInitializingPayment) ? 0.7 : 1,
                 display: 'inline-flex', alignItems: 'center', gap: 6, justifyContent: 'center',

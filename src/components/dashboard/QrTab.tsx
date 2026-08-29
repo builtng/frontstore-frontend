@@ -55,8 +55,8 @@ export default function QrTab({ isPro, store, systemDomain, openUpgradePrompt }:
       >
         <div
           style={{
-            background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.14), rgba(98, 16, 159, 0.08))',
-            color: '#9333ea',
+            background: 'linear-gradient(135deg, rgba(11, 93, 57, 0.14), rgba(4, 42, 25, 0.08))',
+            color: '#0B5D39',
             width: 72,
             height: 72,
             borderRadius: '50%',
@@ -64,13 +64,13 @@ export default function QrTab({ isPro, store, systemDomain, openUpgradePrompt }:
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 20,
-            boxShadow: '0 8px 24px rgba(147, 51, 234, 0.18)',
+            boxShadow: '0 8px 24px rgba(11, 93, 57, 0.18)',
           }}
         >
           <QrCode size={36} />
         </div>
 
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 999, background: 'rgba(147, 51, 234, 0.1)', color: '#9333ea', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 999, background: 'rgba(11, 93, 57, 0.1)', color: '#0B5D39', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
           <Sparkles size={13} /> Pro Feature
         </div>
 
@@ -193,8 +193,8 @@ export default function QrTab({ isPro, store, systemDomain, openUpgradePrompt }:
 
     // Top accent bar
     const barGrad = ctx.createLinearGradient(0, 0, W, 0);
-    barGrad.addColorStop(0, activeTheme === 'emerald' ? '#059669' : activeTheme === 'minimal' ? '#3b82f6' : '#4c1d95');
-    barGrad.addColorStop(1, activeTheme === 'emerald' ? '#34d399' : activeTheme === 'minimal' ? '#60a5fa' : '#7c3aed');
+    barGrad.addColorStop(0, activeTheme === 'emerald' ? '#059669' : activeTheme === 'minimal' ? '#3b82f6' : '#042A19');
+    barGrad.addColorStop(1, activeTheme === 'emerald' ? '#34d399' : activeTheme === 'minimal' ? '#60a5fa' : '#0B5D39');
     ctx.fillStyle = barGrad;
     ctx.fillRect(0, 0, W, 10);
 
@@ -469,7 +469,7 @@ export default function QrTab({ isPro, store, systemDomain, openUpgradePrompt }:
                   ? 'linear-gradient(90deg, #059669, #34d399)'
                   : activeTheme === 'minimal'
                   ? 'linear-gradient(90deg, #3b82f6, #60a5fa)'
-                  : 'linear-gradient(90deg, #4c1d95, #7c3aed)',
+                  : 'linear-gradient(90deg, #042A19, #0B5D39)',
             }}
           />
 
@@ -650,7 +650,7 @@ export default function QrTab({ isPro, store, systemDomain, openUpgradePrompt }:
                       ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
                       : activeTheme === 'minimal'
                       ? 'linear-gradient(135deg, #0f172a 0%, #334155 100%)'
-                      : 'linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%)',
+                      : 'linear-gradient(135deg, #042A19 0%, #0B5D39 100%)',
                   color: '#fff',
                   border: 'none',
                   cursor: 'pointer',

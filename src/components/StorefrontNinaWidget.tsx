@@ -47,7 +47,7 @@ export default function StorefrontNinaWidget({ store }: StorefrontNinaWidgetProp
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const primaryColor = store.primary_color || '#25D366';
+  const primaryColor = store.primary_color || '#0B5D39';
   const avatarUrl = store.nina_avatar_url || '/ninaAssistant.png';
 
   // Detect mobile viewport
@@ -522,8 +522,8 @@ export default function StorefrontNinaWidget({ store }: StorefrontNinaWidgetProp
                 }}>
                   <div style={{
                     width: 52, height: 52, borderRadius: '50%',
-                    background: planError.type === 'plan_required' ? 'rgba(124,58,237,0.1)' : 'rgba(245,158,11,0.1)',
-                    color: planError.type === 'plan_required' ? '#7c3aed' : '#d97706',
+                    background: planError.type === 'plan_required' ? 'rgba(11,93,57,0.1)' : 'rgba(245,158,11,0.1)',
+                    color: planError.type === 'plan_required' ? '#0B5D39' : '#d97706',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     marginBottom: 4,
                   }}>

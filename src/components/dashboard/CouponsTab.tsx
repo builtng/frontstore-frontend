@@ -6,6 +6,7 @@ import {
   Tag, Plus, CheckCircle2, Zap, Loader2, QrCode, Edit2, Trash2, X,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import SearchableSelect from '@/components/SearchableSelect';
 import { getCurrencySymbol, formatVal } from '@/utils/currency';
 import type { StoreInfo } from '@/types/dashboard';
 
@@ -346,14 +347,16 @@ export default function CouponsTab({ store, isPro, openUpgradePrompt }: CouponsT
               <div style={{ display: 'flex', gap: 10 }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Discount Type</label>
-                  <select
+                  <SearchableSelect
+                    options={[
+                      { value: 'percentage', label: 'Percentage (%)' },
+                      { value: 'fixed', label: 'Fixed Amount' },
+                    ]}
                     value={storeCouponType}
-                    onChange={(e) => setStoreCouponType(e.target.value as 'percentage' | 'fixed')}
-                    style={{ width: '100%', padding: 11, border: '1px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--card)' }}
-                  >
-                    <option value="percentage">Percentage (%)</option>
-                    <option value="fixed">Fixed Amount</option>
-                  </select>
+                    onChange={(val) => setStoreCouponType(val as 'percentage' | 'fixed')}
+                    searchable={false}
+                    triggerStyle={{ padding: '9px 12px', fontSize: '13px', borderRadius: '10px' }}
+                  />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Discount Value</label>

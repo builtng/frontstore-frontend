@@ -122,7 +122,7 @@ export default function MerchantDocsPage() {
             <div style={{ marginTop: 24, padding: 20, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)' }}>
               <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, color: 'var(--text)' }}>Need Direct Help?</h4>
               <p style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12 }}>Our seller support team is available by email.</p>
-              <a href="mailto:support@frontstore.ng" className="btn btn-primary" style={{ width: '100%', padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-sm)' }}>
+              <a href="mailto:hello@frontstore.ng" className="btn btn-primary" style={{ width: '100%', padding: '8px 12px', fontSize: 12, borderRadius: 'var(--r-sm)' }}>
                 Email Support
               </a>
             </div>

@@ -18,7 +18,6 @@ export default function StorefrontLayout({
   return (
     <div className="storefront-root light" style={{ colorScheme: 'light' }}>
       {children}
-      <BuiltWithFrontstoreBadge />
     </div>
   );
 }

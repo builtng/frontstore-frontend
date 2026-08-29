@@ -14,7 +14,7 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
     let active = true;
     let isDestroying = false;
 
-    const destroySession = (message: string) => {
+    const destroySession = (message?: string) => {
       if (isDestroying) return;
       isDestroying = true;
       
@@ -22,7 +22,9 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
       localStorage.removeItem('user');
       localStorage.removeItem('store');
       
-      toast.error(message);
+      if (message) {
+        toast.error(message, { id: 'session-expired-toast' });
+      }
       router.replace('/login');
       
       setTimeout(() => {
@@ -33,16 +35,12 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
     };
 
     const verifyAccount = async () => {
-      // Auth is the httpOnly fs_auth_token cookie now, not localStorage —
-      // storedUser is just a display-cache presence check before we ask the
-      // server (via that cookie, sent automatically with credentials: 'include')
-      // whether the session is actually still valid.
       const storedUser = localStorage.getItem('user');
       const savedApiUrl = getApiUrl();
 
       if (!storedUser || storedUser === 'undefined' || storedUser === 'null') {
         if (typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard')) {
-          destroySession('Your session has expired. Please log in again.');
+          destroySession(); // Silent redirect when visiting dashboard while unauthenticated
         } else {
           setIsVerifying(false);
         }
@@ -69,7 +67,7 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
 
         if (!response.ok) {
           if (response.status === 401) {
-            destroySession('Your session has expired or is invalid. Please log in again.');
+            destroySession('Your session has expired. Please log in again.');
             return;
           } else if (response.status === 404) {
             destroySession('Your account no longer exists. Please register again.');
@@ -121,19 +119,13 @@ export default function DashboardSessionGuard({ children }: { children: React.Re
         } else if (response.status === 404 && url.includes('/v1/auth/me')) {
           destroySession('Your account no longer exists. Please register again.');
         } else if (response.status === 404) {
-          // Every merchant-scoped endpoint resolves the caller's store via
-          // Store::where('user_id', ...)->firstOrFail(), so a 404 carrying this
-          // message means the store was deleted mid-session — auth/me won't be
-          // re-checked on its own since it only runs once per dashboard mount.
           try {
             const body = await response.clone().json();
-            // Match the exact Store model only — StoreFaq, StorefrontCoupon, etc.
-            // also contain "Store" and 404 on ordinary, unrelated missing resources.
             if (typeof body?.message === 'string' && body.message.includes('No query results for model [App\\Models\\Store]')) {
               destroySession('Your store no longer exists. Please register again.');
             }
           } catch {
-            // Non-JSON 404 body — not a store-lookup failure, ignore.
+            // Non-JSON 404 body — ignore.
           }
         }
       }

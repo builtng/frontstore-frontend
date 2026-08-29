@@ -1550,11 +1550,14 @@ const CSS = `
 .eyebrow{font-size:12px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.09em;}
 .hero-h1{font-family:var(--font-heading);font-weight:800;font-size:33px;line-height:1.06;letter-spacing:-.03em;margin:11px 0;color:#fff;}
 .hero-sub{font-size:14.5px;color:rgba(255,255,255,.72);line-height:1.55;}
-.hero-search-wrap{position:relative;margin:20px 0 12px;}
-.hs-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);}
-.hero-search{width:100%;padding:15px 44px;border-radius:999px;border:none;background:#fff;color:var(--ink);font-size:14px;font-family:inherit;box-shadow:0 14px 34px rgba(0,0,0,.28);}
-.hero-search:focus{outline:none;box-shadow:0 14px 34px rgba(0,0,0,.28), 0 0 0 3px var(--teal);}
-.hs-clr{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted);width:26px;height:26px;display:grid;place-items:center;}
+.hero-search-wrap{position:relative;margin:22px 0 14px;}
+.hs-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--muted);transition:color .2s ease;}
+.hero-search-wrap:focus-within .hs-icon{color:var(--teal);}
+.hero-search{width:100%;padding:16px 48px;border-radius:999px;border:1.5px solid transparent;background:#fff;color:var(--ink);font-size:14.5px;font-family:inherit;box-shadow:0 14px 36px rgba(0,0,0,.28);transition:all .2s cubic-bezier(0.4, 0, 0.2, 1);}
+.hero-search:hover:not(:focus){box-shadow:0 16px 40px rgba(0,0,0,.32);}
+.hero-search:focus{outline:none;border-color:var(--teal);box-shadow:0 14px 36px rgba(0,0,0,.28), 0 0 0 3.5px rgba(20, 184, 166, 0.35);}
+.hs-clr{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:rgba(0,0,0,.04);transition:background .15s ease, color .15s ease;}
+.hs-clr:hover{background:rgba(0,0,0,.08);color:var(--ink);}
 .chip-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:5px;margin-top:14px;scrollbar-width:none;}
 .chip-row::-webkit-scrollbar{display:none;}
 .chip{flex:0 0 auto;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff;}
@@ -1671,8 +1674,9 @@ const CSS = `
 
 /* toolbar */
 .toolbar{display:flex;gap:10px;margin-bottom:14px;padding-top:10px;}
-.tb-search{width:100%;padding:10px 12px 10px 36px;border-radius:11px;border:1.5px solid var(--line);background:var(--surface);font-size:14px;font-family:inherit;}
-.tb-search:focus{outline:none;border-color:var(--brand);}
+.tb-search{width:100%;padding:11px 14px 11px 38px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);font-size:14px;font-family:inherit;transition:all .2s ease;box-shadow:var(--shadow-xs);}
+.tb-search:hover:not(:focus){border-color:var(--border-strong);}
+.tb-search:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-tint), var(--shadow-xs);}
 .filter-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink);border:1.5px solid var(--line);background:var(--surface);padding:10px 14px;border-radius:11px;cursor:pointer;}
 .filter-btn.on{border-color:var(--brand);color:var(--brand);background:var(--brand-tint);}
 
@@ -1744,8 +1748,9 @@ const CSS = `
 .toggle-switch input:checked + .toggle-slider::before{transform:translateX(17px);}
 
 /* password form inputs */
-.pw-input{width:100%;padding:12px 14px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);font-size:13.5px;font-family:inherit;color:var(--ink);}
-.pw-input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-tint);}
+.pw-input{width:100%;padding:12px 16px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);font-size:14px;font-family:inherit;color:var(--ink);transition:all .2s ease;box-shadow:var(--shadow-xs);}
+.pw-input:hover:not(:focus){border-color:var(--border-strong);background:var(--surface);}
+.pw-input:focus{outline:none;border-color:var(--brand);background:var(--surface);box-shadow:0 0 0 3.5px var(--brand-tint), var(--shadow-xs);}
 
 /* add payment method */
 .add-pm-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--brand-text);border:1.5px dashed var(--line);background:none;padding:13px;border-radius:var(--r);margin-top:14px;}

@@ -569,7 +569,7 @@ export default function PaymentLinksTab({ store, isPro, openUpgradePrompt }: Pay
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <input
                   type="color"
-                  value={statsSettingsDraft.accent_color || '#25D366'}
+                  value={statsSettingsDraft.accent_color || '#0B5D39'}
                   onChange={e => setStatsSettingsDraft({ ...statsSettingsDraft, accent_color: e.target.value })}
                   style={{ width: 40, height: 36, padding: 2, borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer' }}
                 />
@@ -578,7 +578,7 @@ export default function PaymentLinksTab({ store, isPro, openUpgradePrompt }: Pay
                   value={statsSettingsDraft.accent_color || ''}
                   onChange={e => setStatsSettingsDraft({ ...statsSettingsDraft, accent_color: e.target.value })}
                   className="form-control"
-                  placeholder="#25D366"
+                  placeholder="#0B5D39"
                 />
               </div>
             </div>

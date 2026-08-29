@@ -32,8 +32,8 @@ const STORE_COLOR_PRESETS = [
   { name: 'Amber', value: '#d97706' },
   { name: 'Graphite', value: '#27272a' },
   { name: 'Teal', value: '#128c7e' },
-  { name: 'Violet', value: '#7c3aed' },
-  { name: 'Deep Purple', value: '#62109f' },
+  { name: 'Forest Green', value: '#0B5D39' },
+  { name: 'Deep Emerald', value: '#074328' },
 ];
 
 const formatMoney = (value?: number, currencyCode: string = 'NGN') =>
@@ -46,8 +46,8 @@ const formatMoney = (value?: number, currencyCode: string = 'NGN') =>
 const planLabel = (plan?: string | null) => {
   if (plan === 'pro_yearly') return 'Pro Yearly';
   if (plan === 'pro_monthly') return 'Pro Monthly';
-  if (plan === 'legend_yearly') return 'Legend Yearly';
-  if (plan === 'legend_monthly') return 'Legend Monthly';
+  if (plan === 'legend_yearly') return 'Business Yearly';
+  if (plan === 'legend_monthly') return 'Business Monthly';
   return 'Free';
 };
 
@@ -396,8 +396,8 @@ export default function AdminStoresPage() {
                           <option value="free">Free</option>
                           <option value="pro_monthly">Pro Monthly</option>
                           <option value="pro_yearly">Pro Yearly</option>
-                          <option value="legend_monthly">Legend Monthly</option>
-                          <option value="legend_yearly">Legend Yearly</option>
+                          <option value="legend_monthly">Business Monthly</option>
+                          <option value="legend_yearly">Business Yearly</option>
                         </select>
                         <ChevronDown size={14} />
                       </label>

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import Script from 'next/script';
 import { COOKIE_CONSENT_EVENT, getStoredConsent } from '@/lib/cookieConsent';
 
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-T4VQBGFXJN';
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-P4F7DG2MCF';
 const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '1274178732976511';
 
 function MetaPixelRouteTracker({ allowed }: { allowed: boolean }) {

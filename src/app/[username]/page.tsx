@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import StorefrontClient from './StorefrontClient';
+import StorefrontClient from './StorefrontClientNoSsr';
 
 interface PageProps {
   params: Promise<{

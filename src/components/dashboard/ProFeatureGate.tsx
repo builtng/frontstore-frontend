@@ -222,7 +222,7 @@ export default function ProFeatureGate({
               padding: '16px 28px',
               borderRadius: '16px',
               border: 'none',
-              background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+              background: 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)',
               color: '#ffffff',
               fontSize: 16,
               fontWeight: 800,
@@ -231,7 +231,7 @@ export default function ProFeatureGate({
               justifyContent: 'center',
               gap: 10,
               cursor: 'pointer',
-              boxShadow: '0 8px 24px -4px rgba(79, 70, 229, 0.4)',
+              boxShadow: '0 8px 24px -4px rgba(11, 93, 57, 0.4)',
               transition: 'transform 0.2s ease, boxShadow 0.2s ease',
             }}
           >
