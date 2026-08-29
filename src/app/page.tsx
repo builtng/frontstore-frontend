@@ -6,7 +6,7 @@ async function getPublicSettings() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   try {
     const res = await fetch(`${API_URL}/v1/public/settings`, {
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
     if (!res.ok) return null;
     const { data } = await res.json();
