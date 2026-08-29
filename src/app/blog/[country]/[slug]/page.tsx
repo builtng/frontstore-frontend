@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { BLOG_ARTICLES } from '@/utils/blogData';
 import BlogArticleClient from './BlogArticleClient';
 
@@ -15,6 +15,15 @@ function getCountrySlug(country?: string): string {
   return (country || '').toLowerCase().replace(/\s+/g, '-');
 }
 
+/** Normalise a raw URL param: decode URI encoding then replace spaces/+ with hyphens */
+function normalizeParam(raw: string): string {
+  try {
+    return decodeURIComponent(raw).replace(/[\s+]+/g, '-');
+  } catch {
+    return raw.replace(/[\s+]+/g, '-');
+  }
+}
+
 export async function generateStaticParams() {
   return BLOG_ARTICLES.map((article) => ({
     country: getCountrySlug(article.country),
@@ -24,8 +33,10 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { country, slug } = await params;
+  const normCountry = normalizeParam(country);
+  const normSlug = normalizeParam(slug);
   const article = BLOG_ARTICLES.find(
-    (a) => a.slug === slug && getCountrySlug(a.country) === country
+    (a) => a.slug === normSlug && getCountrySlug(a.country) === normCountry
   );
   if (!article) return {};
 
@@ -71,8 +82,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function BlogArticlePage({ params }: PageProps) {
   const { country, slug } = await params;
+
+  // Normalise any URL-encoded spaces (port%20harcourt → port-harcourt)
+  const normCountry = normalizeParam(country);
+  const normSlug = normalizeParam(slug);
+
+  // 301-redirect to the canonical hyphenated URL when params were un-normalised
+  if (normCountry !== country || normSlug !== slug) {
+    redirect(`/blog/${normCountry}/${normSlug}`);
+  }
+
   const article = BLOG_ARTICLES.find(
-    (a) => a.slug === slug && getCountrySlug(a.country) === country
+    (a) => a.slug === normSlug && getCountrySlug(a.country) === normCountry
   );
   if (!article) return notFound();
 
