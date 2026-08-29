@@ -27,8 +27,8 @@ const RESERVED_SUBDOMAINS = new Set([
   'mail', 'email', 'newsletter', 'blog', 'news', 'press',
   'legal', 'terms', 'privacy', 'policy', 'tos',
   'security', 'abuse', 'compliance', 'copyright',
-  'access-refused', 'activate', 'affiliate', 'business', 'buyer', 'confirm',
-  'marketplace', 'merchant', 'pricing', 'ref', 'refund-policy', 'return-policy',
+  'access-refused', 'activate', 'affiliate', 'business', 'buyer', 'claim', 'confirm',
+  'dmca', 'marketplace', 'merchant', 'pricing', 'ref', 'refund-policy', 'return-policy',
   'returns', 'solutions', 'stores', 'tools', 'vs'
 ]);
 
