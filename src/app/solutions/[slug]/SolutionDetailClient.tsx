@@ -23,9 +23,7 @@ import {
   Plus, 
   Layers, 
   ListChecks, 
-  HelpCircle,
-  Copy,
-  Check
+  HelpCircle
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, any> = {
@@ -40,14 +38,8 @@ const ICON_MAP: Record<string, any> = {
 export default function SolutionDetailClient({ data }: { data: SolutionPage }) {
   const [cartCount, setCartCount] = useState(1);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const [copiedLink, setCopiedLink] = useState(false);
 
   const IconComponent = (data.iconName && ICON_MAP[data.iconName]) || Layers;
-
-  const handleCopyLink = () => {
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
-  };
 
   return (
     <div style={{ background: '#FFFFFF', color: '#111827', minHeight: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif', overflowX: 'hidden' }}>
@@ -131,7 +123,7 @@ export default function SolutionDetailClient({ data }: { data: SolutionPage }) {
               gap: 8, 
               boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
             }}>
-              <span>See Live Catalog Demo</span>
+              <span>See Live Demo</span>
             </a>
 
           </div>
@@ -202,19 +194,18 @@ export default function SolutionDetailClient({ data }: { data: SolutionPage }) {
                 <span>frontstore.ng/<strong style={{ color: '#A5B4FC' }}>{data.slug}</strong></span>
               </div>
 
-              <button 
-                onClick={handleCopyLink} 
-                style={{ background: 'transparent', border: 'none', color: copiedLink ? '#27C93F' : '#A5B4FC', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
-              >
-                {copiedLink ? <Check size={12} /> : <Copy size={12} />}
-                <span>{copiedLink ? 'COPIED' : 'COPY'}</span>
-              </button>
+              <div style={{ width: 40 }} />
             </div>
 
             {/* Banner */}
             {data.bannerImage && (
               <div style={{ position: 'relative', height: 150, overflow: 'hidden' }}>
-                <img src={data.bannerImage} alt={data.eyebrow} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img 
+                  src={data.bannerImage} 
+                  alt={data.eyebrow} 
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1000&q=80'; }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%)' }} />
                 
                 <div style={{ position: 'absolute', bottom: 16, left: 20, right: 20, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
@@ -226,7 +217,12 @@ export default function SolutionDetailClient({ data }: { data: SolutionPage }) {
                       <h3 style={{ fontSize: 18, fontWeight: 800, color: '#FFF', margin: 0 }}>
                         {data.eyebrow} Storefront
                       </h3>
-                      <span style={{ fontSize: 12, color: '#E2E8F0' }}>Verified Merchant Catalog</span>
+                      <span style={{ fontSize: 12, color: '#E2E8F0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#25D366">
+                          <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.978-.276-.1-.476-.15-.677.15-.2.301-.776.978-.952 1.179-.175.2-.351.226-.652.075-.301-.15-1.27-.468-2.42-1.494-.894-.798-1.498-1.784-1.674-2.085-.176-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.2-.301.301-.501.1-.2.05-.376-.025-.526-.075-.15-.677-1.633-.928-2.236-.244-.588-.493-.508-.677-.517-.175-.01-.376-.01-.577-.01-.2 0-.527.075-.803.376-.276.301-1.054 1.03-1.054 2.51 0 1.48 1.08 2.909 1.23 3.11.15.2 2.126 3.246 5.15 4.552.72.31 1.282.496 1.72.635.723.23 1.381.197 1.902.12.58-.087 1.78-.727 2.03-1.43.25-.702.25-1.304.175-1.43-.075-.125-.276-.2-.577-.35zM12.04 21.784h-.002c-1.737 0-3.44-.467-4.935-1.353l-.354-.21-3.67.962.98-3.578-.23-.366A9.742 9.742 0 0 1 2.256 12c0-5.38 4.38-9.76 9.784-9.76 2.607 0 5.058 1.016 6.902 2.86A9.708 9.708 0 0 1 21.784 12c0 5.38-4.38 9.784-9.744 9.784zM12.04 0C5.4 0 0 5.4 0 12.04c0 2.12.553 4.19 1.604 6.01L0 24l6.14-1.61A12.015 12.015 0 0 0 12.04 24c6.64 0 12.04-5.4 12.04-12.04C24.08 5.4 18.68 0 12.04 0z"/>
+                        </svg>
+                        <span>Verified WhatsApp Merchant</span>
+                      </span>
                     </div>
                   </div>
 
@@ -241,7 +237,7 @@ export default function SolutionDetailClient({ data }: { data: SolutionPage }) {
             {/* Product Cards */}
             <div style={{ padding: 24, background: '#FAFAFA' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <h4 style={{ fontSize: 14, fontWeight: 700, color: '#374151', margin: 0 }}>Sample {data.eyebrow} Catalog</h4>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: '#374151', margin: 0 }}>Sample {data.eyebrow} Store</h4>
                 <span style={{ fontSize: 12, color: '#6B7280' }}>Tap product to test cart</span>
               </div>
 
@@ -269,7 +265,12 @@ export default function SolutionDetailClient({ data }: { data: SolutionPage }) {
                     )}
 
                     <div style={{ height: 130, borderRadius: 10, overflow: 'hidden', marginBottom: 10 }}>
-                      <img src={prod.image} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img 
+                        src={prod.image} 
+                        alt={prod.name} 
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=400&q=80'; }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      />
                     </div>
 
                     <h5 style={{ fontSize: 13.5, fontWeight: 700, color: '#111827', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -297,7 +298,9 @@ export default function SolutionDetailClient({ data }: { data: SolutionPage }) {
               {/* WhatsApp Checkout Bar */}
               <div style={{ marginTop: 20, background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 12, padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <MessageCircle size={18} style={{ color: '#059669' }} />
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366" style={{ flexShrink: 0 }}>
+                    <path d="M17.472 14.382c-.301-.15-1.78-.878-2.056-.978-.276-.1-.476-.15-.677.15-.2.301-.776.978-.952 1.179-.175.2-.351.226-.652.075-.301-.15-1.27-.468-2.42-1.494-.894-.798-1.498-1.784-1.674-2.085-.176-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.175.2-.301.301-.501.1-.2.05-.376-.025-.526-.075-.15-.677-1.633-.928-2.236-.244-.588-.493-.508-.677-.517-.175-.01-.376-.01-.577-.01-.2 0-.527.075-.803.376-.276.301-1.054 1.03-1.054 2.51 0 1.48 1.08 2.909 1.23 3.11.15.2 2.126 3.246 5.15 4.552.72.31 1.282.496 1.72.635.723.23 1.381.197 1.902.12.58-.087 1.78-.727 2.03-1.43.25-.702.25-1.304.175-1.43-.075-.125-.276-.2-.577-.35zM12.04 21.784h-.002c-1.737 0-3.44-.467-4.935-1.353l-.354-.21-3.67.962.98-3.578-.23-.366A9.742 9.742 0 0 1 2.256 12c0-5.38 4.38-9.76 9.784-9.76 2.607 0 5.058 1.016 6.902 2.86A9.708 9.708 0 0 1 21.784 12c0 5.38-4.38 9.784-9.744 9.784zM12.04 0C5.4 0 0 5.4 0 12.04c0 2.12.553 4.19 1.604 6.01L0 24l6.14-1.61A12.015 12.015 0 0 0 12.04 24c6.64 0 12.04-5.4 12.04-12.04C24.08 5.4 18.68 0 12.04 0z"/>
+                  </svg>
                   <span style={{ fontSize: 13, fontWeight: 700, color: '#065F46' }}>Automated WhatsApp Order Checkout</span>
                 </div>
                 <a href="/signup" style={{ background: '#059669', color: '#FFF', fontSize: 12, fontWeight: 700, padding: '6px 14px', borderRadius: 8, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>

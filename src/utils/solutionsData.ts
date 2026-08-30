@@ -159,7 +159,7 @@ export const SOLUTION_PAGES: SolutionPage[] = [
     iconName: 'Smartphone',
     productSamples: [
       { name: 'Wireless Active Noise-Canceling Buds', price: '₦35,000', originalPrice: '₦42,000', image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=400&q=80', badge: '1 Yr Warranty' },
-      { name: 'Ultra-Slim 20,000mAh Magnetic Power Bank', price: '₦16,500', image: 'https://images.unsplash.com/photo-1609592424074-c7151e399583?auto=format&fit=crop&w=400&q=80', badge: 'Fast Charge' },
+      { name: 'Ultra-Slim 20,000mAh Magnetic Power Bank', price: '₦16,500', image: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=400&q=80', badge: 'Fast Charge' },
       { name: 'Smart Fitness & AMOLED Health Watch', price: '₦24,900', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80' },
       { name: '4K Ultra-HD Mechanical Vlogging Tripod', price: '₦19,800', image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=400&q=80' }
     ],
