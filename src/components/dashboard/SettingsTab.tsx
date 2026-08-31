@@ -588,7 +588,11 @@ export default function SettingsTab({
 
       const json = await res.json();
       if (res.ok && json.data) {
-        toast.success('Storefront settings updated! 🌟');
+        if (json.pending_payout_account_change) {
+          toast.info('Settings saved. Your bank account change has been submitted for admin review and will apply once approved. 🔐', { duration: 7000 });
+        } else {
+          toast.success('Storefront settings updated! 🌟');
+        }
         setStore(json.data);
         localStorage.setItem('store', JSON.stringify(json.data));
         setSetStoreUsername(json.data.username || '');

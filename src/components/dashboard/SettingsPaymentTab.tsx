@@ -700,14 +700,19 @@ export default function SettingsPaymentTab({
           }}>
             {(() => {
               const isEnteringBankDetails = paymentAccountNumber.trim().length > 0 || paymentBankCode.trim().length > 0;
-              const isUnverifiedBank = isEnteringBankDetails && !accountVerified;
+              // Only block save while Paystack verification is actively running,
+              // or if the name is a confirmed mismatch. A failed/timeout verify
+              // should not permanently prevent the user from saving.
+              const isVerifyingInProgress = isEnteringBankDetails && isVerifying;
               const isNameMismatch = isEnteringBankDetails && nameMatchOk === false;
-              const isSaveDisabled = settingsSaving || isUnverifiedBank || isNameMismatch;
+              const isSaveDisabled = settingsSaving || isVerifyingInProgress || isNameMismatch;
+              // Show a non-blocking hint if the user has typed details but hasn't verified yet
+              const showUnverifiedHint = isEnteringBankDetails && !accountVerified && !isVerifying && !verifyError;
 
               return (
                 <>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {isUnverifiedBank && (
+                    {showUnverifiedHint && (
                       <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
                         ⚠️ Verify bank account number before saving.
                       </span>
@@ -739,6 +744,7 @@ export default function SettingsPaymentTab({
               );
             })()}
           </div>
+
 
         </div>
       </div>
