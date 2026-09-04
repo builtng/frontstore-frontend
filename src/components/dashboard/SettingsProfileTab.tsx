@@ -8,7 +8,7 @@ import Toggle from '../Toggle';
 import SearchableSelect from '../SearchableSelect';
 import { countries } from '@/utils/phone';
 import type { StoreInfo } from '@/types/dashboard';
-import { STORE_BIO_MAX_LENGTH } from '@/utils/storeBio';
+import { STORE_BIO_MAX_LENGTH, cleanStoreBio } from '@/utils/storeBio';
 
 const normalizeUsernameInput = (value: string) => (
   value
@@ -230,6 +230,7 @@ export default function SettingsProfileTab({
               value={setStoreBio}
               maxLength={STORE_BIO_MAX_LENGTH}
               onChange={e => setSetStoreBio(e.target.value.slice(0, STORE_BIO_MAX_LENGTH))}
+              onBlur={() => setSetStoreBio(cleanStoreBio(setStoreBio))}
               placeholder="Brief description of your shop (max 306 characters)..."
               className="input-field"
               style={{ resize: 'vertical' }}
