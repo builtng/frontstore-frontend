@@ -38,6 +38,7 @@ export interface StoreInfo {
   is_active: boolean;
   user?: MerchantInfo | null;
   currency_code: string;
+  country_code?: string | null;
   custom_domain?: string | null;
   verification_status?: string | null;
   is_verified?: boolean;
@@ -56,6 +57,11 @@ export interface StoreInfo {
   paystack_dva_active?: boolean;
   nina_avatar_url?: string | null;
   primary_color?: string | null;
+  // Editable profile fields
+  bio?: string | null;
+  store_bio?: string | null;
+  location?: string | null;
+  store_since?: string | null;
 }
 
 export interface Category {

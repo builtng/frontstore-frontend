@@ -8,12 +8,16 @@ import {
   ArrowRight,
   BadgeCheck,
   ChevronDown,
+  ChevronUp,
   Clock,
   ExternalLink,
   Landmark,
+  Loader2,
   Mail,
   Palette,
+  Pencil,
   Power,
+  Save,
   Search,
   ShieldCheck,
   Trash2,
@@ -76,9 +80,47 @@ export default function AdminStoresPage() {
   const [generatingDvaFor, setGeneratingDvaFor] = useState<string | null>(null);
   const [uploadingNinaAvatarFor, setUploadingNinaAvatarFor] = useState<string | null>(null);
 
+  // --- Edit merchant info state ---
+  const [editOpen, setEditOpen] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
+  // user fields
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  // store fields
+  const [editStoreName, setEditStoreName] = useState('');
+  const [editUsername, setEditUsername] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+  const [editStoreSince, setEditStoreSince] = useState('');
+  const [editCurrency, setEditCurrency] = useState('');
+  const [editCountry, setEditCountry] = useState('');
+  // payout bank fields
+  const [editBankName, setEditBankName] = useState('');
+  const [editBankAccount, setEditBankAccount] = useState('');
+  const [editBankAccountName, setEditBankAccountName] = useState('');
+  // admin note
+  const [editNote, setEditNote] = useState('');
+
   useEffect(() => {
     if (selectedStore) {
       setDrawerColor(selectedStore.primary_color || '#25D366');
+      // Seed the edit form with current values
+      setEditOpen(false);
+      setEditName(selectedStore.user?.name || '');
+      setEditEmail(selectedStore.user?.email || '');
+      setEditPhone(selectedStore.user?.phone_number || '');
+      setEditStoreName(selectedStore.store_name || '');
+      setEditUsername(selectedStore.username || '');
+      setEditBio(selectedStore.store_bio || selectedStore.bio || '');
+      setEditLocation(selectedStore.location || '');
+      setEditStoreSince(selectedStore.store_since || '');
+      setEditCurrency(selectedStore.currency_code || '');
+      setEditCountry(selectedStore.country_code || '');
+      setEditBankName(selectedStore.bank_name || '');
+      setEditBankAccount(selectedStore.bank_account_number || '');
+      setEditBankAccountName(selectedStore.bank_account_name || '');
+      setEditNote('');
     }
   }, [selectedStore]);
 
@@ -271,6 +313,188 @@ export default function AdminStoresPage() {
       );
     } catch (error: any) {
       if (error.message !== 'Session expired') toast.error(error.message);
+    }
+  };
+
+  // ---- Save editable merchant info (support override) ----
+  const handleSaveMerchantInfo = async () => {
+    if (!selectedStore) return;
+    setEditSaving(true);
+    try {
+      const errors: string[] = [];
+
+      // 1. Update user fields if user exists
+      if (selectedStore.user?.id) {
+        const userPayload: Record<string, string> = {};
+        if (editName.trim()) userPayload.name = editName.trim();
+        if (editEmail.trim()) userPayload.email = editEmail.trim();
+        if (editPhone.trim()) userPayload.phone_number = editPhone.trim();
+        if (editNote.trim()) userPayload.admin_note = editNote.trim();
+
+        if (Object.keys(userPayload).length > 0) {
+          const res = await fetch(`${apiUrl}/v1/admin/users/${selectedStore.user.id}`, {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: { ...getHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify(userPayload),
+          });
+          if (!res.ok) {
+            const j = await res.json().catch(() => ({}));
+            errors.push(j.message || 'Failed to update user info.');
+          } else {
+            await res.json().catch(() => {});
+            // reflect updates in local state
+            setStores((items) =>
+              items.map((s) =>
+                s.id === selectedStore.id
+                  ? {
+                      ...s,
+                      user: s.user
+                        ? {
+                            ...s.user,
+                            name: editName.trim() || s.user.name,
+                            email: editEmail.trim() || s.user.email,
+                            phone_number: editPhone.trim() || s.user.phone_number,
+                          }
+                        : s.user,
+                    }
+                  : s
+              )
+            );
+            setSelectedStore((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    user: prev.user
+                      ? {
+                          ...prev.user,
+                          name: editName.trim() || prev.user.name,
+                          email: editEmail.trim() || prev.user.email,
+                          phone_number: editPhone.trim() || prev.user.phone_number,
+                        }
+                      : prev.user,
+                  }
+                : prev
+            );
+          }
+        }
+      }
+
+      // 2. Update store profile fields
+      {
+        const storePayload: Record<string, string> = {};
+        if (editStoreName.trim()) storePayload.store_name = editStoreName.trim();
+        if (editUsername.trim()) storePayload.username = editUsername.trim();
+        if (editBio !== undefined) {
+          storePayload.bio = editBio;
+          storePayload.store_bio = editBio;
+        }
+        if (editLocation !== undefined) storePayload.location = editLocation;
+        if (editStoreSince !== undefined) storePayload.store_since = editStoreSince;
+        if (editCurrency.trim()) storePayload.currency_code = editCurrency.trim();
+        if (editCountry !== undefined) storePayload.country_code = editCountry;
+        if (editNote.trim()) storePayload.admin_note = editNote.trim();
+
+        const res = await fetch(`${apiUrl}/v1/admin/stores/${selectedStore.id}/profile`, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { ...getHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(storePayload),
+        });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          errors.push(j.message || 'Failed to update store profile.');
+        } else {
+          setStores((items) =>
+            items.map((s) =>
+              s.id === selectedStore.id
+                ? {
+                    ...s,
+                    store_name: editStoreName.trim() || s.store_name,
+                    username: editUsername.trim() || s.username,
+                    bio: editBio,
+                    store_bio: editBio,
+                    location: editLocation,
+                    store_since: editStoreSince,
+                    currency_code: editCurrency.trim() || s.currency_code,
+                    country_code: editCountry,
+                  }
+                : s
+            )
+          );
+          setSelectedStore((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  store_name: editStoreName.trim() || prev.store_name,
+                  username: editUsername.trim() || prev.username,
+                  bio: editBio,
+                  store_bio: editBio,
+                  location: editLocation,
+                  store_since: editStoreSince,
+                  currency_code: editCurrency.trim() || prev.currency_code,
+                  country_code: editCountry,
+                }
+              : prev
+          );
+        }
+      }
+
+      // 3. Update payout bank if any bank field is filled
+      if (editBankAccount.trim()) {
+        const bankPayload: Record<string, string> = {
+          bank_name: editBankName.trim(),
+          bank_account_number: editBankAccount.trim(),
+          bank_account_name: editBankAccountName.trim(),
+        };
+        if (editNote.trim()) bankPayload.admin_note = editNote.trim();
+
+        const res = await fetch(`${apiUrl}/v1/admin/stores/${selectedStore.id}/payout-bank`, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { ...getHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify(bankPayload),
+        });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          errors.push(j.message || 'Failed to update payout bank.');
+        } else {
+          setStores((items) =>
+            items.map((s) =>
+              s.id === selectedStore.id
+                ? {
+                    ...s,
+                    bank_name: editBankName.trim(),
+                    bank_account_number: editBankAccount.trim(),
+                    bank_account_name: editBankAccountName.trim(),
+                  }
+                : s
+            )
+          );
+          setSelectedStore((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  bank_name: editBankName.trim(),
+                  bank_account_number: editBankAccount.trim(),
+                  bank_account_name: editBankAccountName.trim(),
+                }
+              : prev
+          );
+        }
+      }
+
+      if (errors.length > 0) {
+        errors.forEach((e) => toast.error(e));
+      } else {
+        toast.success('Merchant information updated successfully.');
+        setEditOpen(false);
+        setEditNote('');
+      }
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -615,6 +839,256 @@ export default function AdminStoresPage() {
                     </span>
                   </div>
                 </div>
+              </div>
+
+              {/* ─── Edit Merchant Info (support override) ─── */}
+              <div className="admin-drawer__section" style={{ padding: 0, overflow: 'hidden', borderRadius: 12, border: '1px solid var(--border-strong, #30303a)' }}>
+                {/* Collapsible header */}
+                <button
+                  type="button"
+                  onClick={() => setEditOpen((v) => !v)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '13px 16px',
+                    background: editOpen ? 'var(--surface-2, #1c1c21)' : 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--text, #f2f2f4)',
+                    borderBottom: editOpen ? '1px solid var(--border-strong, #30303a)' : 'none',
+                    transition: 'background 0.15s',
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 14 }}>
+                    <Pencil size={15} style={{ color: 'var(--primary, #25D366)' }} />
+                    Edit Merchant Info
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6,
+                      background: 'rgba(255,165,0,0.12)', color: '#f59e0b', letterSpacing: '0.03em',
+                    }}>
+                      Support Override
+                    </span>
+                  </span>
+                  {editOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+
+                {editOpen && (
+                  <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted, #64748b)', lineHeight: 1.5 }}>
+                      Only use this when a merchant has contacted support and cannot update their own account.
+                      All changes take effect immediately.
+                    </p>
+
+                    {/* User Info */}
+                    <div>
+                      <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted, #8b8b9a)' }}>Account Info</p>
+                      <div className="admin-drawer__grid admin-drawer__grid--cols-2">
+                        <label className="admin-field">
+                          <span>Full Name</span>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            placeholder={selectedStore.user?.name || 'Full name'}
+                          />
+                        </label>
+                        <label className="admin-field">
+                          <span>Email Address</span>
+                          <input
+                            className="admin-input"
+                            type="email"
+                            value={editEmail}
+                            onChange={(e) => setEditEmail(e.target.value)}
+                            placeholder={selectedStore.user?.email || 'email@example.com'}
+                          />
+                        </label>
+                        <label className="admin-field">
+                          <span>WhatsApp / Phone</span>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editPhone}
+                            onChange={(e) => setEditPhone(e.target.value)}
+                            placeholder={selectedStore.user?.phone_number || '+2348012345678'}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Store Info */}
+                    <div>
+                      <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted, #8b8b9a)' }}>Store Info</p>
+                      <div className="admin-drawer__grid admin-drawer__grid--cols-2">
+                        <label className="admin-field">
+                          <span>Store Name</span>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editStoreName}
+                            onChange={(e) => setEditStoreName(e.target.value)}
+                            placeholder={selectedStore.store_name}
+                          />
+                        </label>
+                        <label className="admin-field">
+                          <span>Username / Handle</span>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editUsername}
+                            onChange={(e) =>
+                              setEditUsername(
+                                e.target.value
+                                  .toLowerCase()
+                                  .replace(/^@+/, '')
+                                  .replace(/_/g, '-')
+                                  .replace(/[^a-z0-9-]/g, '')
+                                  .slice(0, 40)
+                              )
+                            }
+                            placeholder={selectedStore.username}
+                          />
+                        </label>
+                        <label className="admin-field">
+                          <span>Location</span>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editLocation}
+                            onChange={(e) => setEditLocation(e.target.value)}
+                            placeholder="City, State, Country"
+                          />
+                        </label>
+                        <label className="admin-field">
+                          <span>Store Since (Year)</span>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editStoreSince}
+                            onChange={(e) => setEditStoreSince(e.target.value)}
+                            placeholder="e.g. 2021"
+                          />
+                        </label>
+                        <label className="admin-field">
+                          <span>Currency Code</span>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editCurrency}
+                            onChange={(e) => setEditCurrency(e.target.value.toUpperCase().slice(0, 3))}
+                            placeholder="NGN"
+                          />
+                        </label>
+                        <label className="admin-field">
+                          <span>Country Code</span>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editCountry}
+                            onChange={(e) => setEditCountry(e.target.value.toUpperCase().slice(0, 2))}
+                            placeholder="NG"
+                          />
+                        </label>
+                        <label className="admin-field admin-field--full">
+                          <span>Store Bio / Description</span>
+                          <textarea
+                            className="admin-input"
+                            value={editBio}
+                            onChange={(e) => setEditBio(e.target.value)}
+                            placeholder="Short description of the store…"
+                            rows={3}
+                            style={{ resize: 'vertical', lineHeight: 1.5 }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Payout Bank */}
+                    <div>
+                      <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted, #8b8b9a)' }}>Payout Bank Account</p>
+                      <div className="admin-drawer__grid admin-drawer__grid--cols-2">
+                        <label className="admin-field">
+                          <span>Bank Name</span>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editBankName}
+                            onChange={(e) => setEditBankName(e.target.value)}
+                            placeholder={selectedStore.bank_name || 'e.g. Access Bank'}
+                          />
+                        </label>
+                        <label className="admin-field">
+                          <span>Account Number</span>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editBankAccount}
+                            onChange={(e) => setEditBankAccount(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                            placeholder={selectedStore.bank_account_number || '0123456789'}
+                          />
+                        </label>
+                        <label className="admin-field">
+                          <span>Account Name</span>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editBankAccountName}
+                            onChange={(e) => setEditBankAccountName(e.target.value)}
+                            placeholder={selectedStore.bank_account_name || 'Account holder name'}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Admin Note */}
+                    <label className="admin-field">
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        Admin Note <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>(optional — logged with the change)</span>
+                      </span>
+                      <textarea
+                        className="admin-input"
+                        value={editNote}
+                        onChange={(e) => setEditNote(e.target.value)}
+                        placeholder="e.g. Merchant requested phone number update via support ticket #1234"
+                        rows={2}
+                        style={{ resize: 'vertical', lineHeight: 1.5 }}
+                      />
+                    </label>
+
+                    {/* Save button */}
+                    <button
+                      type="button"
+                      className="admin-action"
+                      disabled={editSaving}
+                      onClick={handleSaveMerchantInfo}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        justifyContent: 'center',
+                        padding: '10px 20px',
+                        fontWeight: 700,
+                        fontSize: 13,
+                        background: 'var(--primary, #25D366)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 10,
+                        cursor: editSaving ? 'wait' : 'pointer',
+                        opacity: editSaving ? 0.7 : 1,
+                        transition: 'opacity 0.15s',
+                        width: '100%',
+                      }}
+                    >
+                      {editSaving ? (
+                        <><Loader2 size={15} className="admin-spin" /> Saving changes…</>
+                      ) : (
+                        <><Save size={15} /> Save Merchant Info</>  
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {selectedStore.bank_account_number && (
