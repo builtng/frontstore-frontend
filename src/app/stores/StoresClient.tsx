@@ -7,6 +7,7 @@ import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import { PublicSiteNav, PublicSiteFooter } from '../../components/PublicSiteChrome';
 import { formatOsmCategory } from '../../utils/osmCategoryLabels';
 import { getOptimizedImageUrl } from '../../lib/image';
+import { truncateStoreBio } from '@/utils/storeBio';
 
 export interface UnclaimedListing {
   id: string;
@@ -328,7 +329,7 @@ export function StoreDirectoryCard({ store }: { store: StoreItem }) {
         fontSize: 13, color: 'var(--text-2)', lineHeight: 1.55, minHeight: 40,
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
       }}>
-        {store.store_bio || 'No bio description provided.'}
+        {truncateStoreBio(store.store_bio, 306) || 'No bio description provided.'}
       </p>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>

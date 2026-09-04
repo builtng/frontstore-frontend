@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import SearchableSelect from "../../components/SearchableSelect";
 import BuiltWithFrontstoreBadge from "@/components/BuiltWithFrontstoreBadge";
+import { truncateStoreBio } from "@/utils/storeBio";
 
 interface Store {
   id: string;
@@ -202,7 +203,7 @@ export default function ComingSoonStorefront({
         <div className="cs-content">
           <div className="cs-col">
             {store.store_bio ? (
-              <p className="cs-blurb">{store.store_bio}</p>
+              <p className="cs-blurb">{truncateStoreBio(store.store_bio, 306)}</p>
             ) : (
               <p className="cs-blurb">We are setting up our digital shop. Soon you will be able to browse our full catalogue and order directly on WhatsApp. Stay tuned!</p>
             )}

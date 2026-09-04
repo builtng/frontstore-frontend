@@ -2,6 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import StorefrontClient from './StorefrontClientNoSsr';
+import { truncateStoreBio } from '@/utils/storeBio';
 
 interface PageProps {
   params: Promise<{
@@ -72,7 +73,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? rawStoreName.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
     : rawStoreName;
   const title = `${storeName} | Shop on ${appName}`;
-  const description = safeText(store.store_bio, `Shop directly from ${storeName} on WhatsApp. Browse products and place orders instantly.`);
+  const bio = truncateStoreBio(store.store_bio, 306);
+  const description = safeText(bio, `Shop directly from ${storeName} on WhatsApp. Browse products and place orders instantly.`);
   const logo = store.logo_url || data.logo_url || `https://${systemDomain}/icon.png`;
   const url = `https://${systemDomain}/${storeUsername}`;
 
@@ -145,7 +147,7 @@ export default async function Page({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'Store',
     'name': storeName,
-    'description': safeText(data.store.store_bio, '') || undefined,
+    'description': safeText(truncateStoreBio(data.store.store_bio, 306), '') || undefined,
     'url': storeUrl,
     'image': data.store.logo_url || undefined,
     'telephone': data.store.whatsapp_phone || undefined,

@@ -5,6 +5,7 @@ import Script from 'next/script';
 import StorefrontNinaWidget from '../../components/StorefrontNinaWidget';
 import UniversalStorefront from './UniversalStorefront';
 import ComingSoonStorefront from './ComingSoonStorefront';
+import { truncateStoreBio } from '@/utils/storeBio';
 
 // --- Types & Interfaces ---
 interface StoreLink {
@@ -135,6 +136,7 @@ export default function StorefrontClient({
       ...s,
       username: s.username || username,
       store_name: formattedName,
+      store_bio: truncateStoreBio(s.store_bio, 306),
       currency_code: s.currency_code || 'NGN',
       whatsapp_phone: s.whatsapp_phone || '',
       location: s.location || 'Online store',

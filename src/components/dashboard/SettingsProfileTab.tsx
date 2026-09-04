@@ -8,6 +8,7 @@ import Toggle from '../Toggle';
 import SearchableSelect from '../SearchableSelect';
 import { countries } from '@/utils/phone';
 import type { StoreInfo } from '@/types/dashboard';
+import { STORE_BIO_MAX_LENGTH } from '@/utils/storeBio';
 
 const normalizeUsernameInput = (value: string) => (
   value
@@ -218,15 +219,24 @@ export default function SettingsProfileTab({
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Store Description (Bio)</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <label style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>Store Description (Bio)</label>
+              <span style={{ fontSize: 11, fontWeight: 600, color: (setStoreBio || '').length >= STORE_BIO_MAX_LENGTH ? 'var(--primary)' : 'var(--text-faint)' }}>
+                {(setStoreBio || '').length}/{STORE_BIO_MAX_LENGTH}
+              </span>
+            </div>
             <textarea
               rows={3}
               value={setStoreBio}
-              onChange={e => setSetStoreBio(e.target.value)}
-              placeholder="Brief description of your shop..."
+              maxLength={STORE_BIO_MAX_LENGTH}
+              onChange={e => setSetStoreBio(e.target.value.slice(0, STORE_BIO_MAX_LENGTH))}
+              placeholder="Brief description of your shop (max 306 characters)..."
               className="input-field"
               style={{ resize: 'vertical' }}
             />
+            <span style={{ display: 'block', fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>
+              Brief intro for your storefront header and SEO. Maximum 306 characters.
+            </span>
           </div>
 
           <div className="responsive-form-row">

@@ -13,6 +13,7 @@ import {
 import SearchableSelect from '../SearchableSelect';
 import Toggle from '../Toggle';
 import type { StoreInfo, StoreLink } from '@/types/dashboard';
+import { truncateStoreBio } from '@/utils/storeBio';
 
 interface SettingsSocialTabProps {
   isLegend: boolean;
@@ -682,7 +683,7 @@ export default function SettingsSocialTab({
                   {setStoreName || 'My Store'}
                 </h4>
                 <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', marginTop: 4, lineHeight: 1.4, maxHeight: 40, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                  {setStoreBio || 'No store description yet.'}
+                  {truncateStoreBio(setStoreBio, 306) || 'No store description yet.'}
                 </p>
 
                 {/* Hardcoded Social Icons */}

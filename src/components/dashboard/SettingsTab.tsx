@@ -12,6 +12,7 @@ import SettingsDesignTab from './SettingsDesignTab';
 import SettingsSocialTab from './SettingsSocialTab';
 import SettingsPaymentTab from './SettingsPaymentTab';
 import SettingsSecurityTab from './SettingsSecurityTab';
+import { limitStoreBio } from '@/utils/storeBio';
 
 const authHeaders = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
 
@@ -195,7 +196,7 @@ export default function SettingsTab({
     if (!store) return;
     setSetStoreUsername(store.username || '');
     setSetStoreName(store.store_name || '');
-    setSetStoreBio(store.store_bio || '');
+    setSetStoreBio(limitStoreBio(store.store_bio));
     setSetStoreLocation(store.location || '');
     setIsOnlineOnly(!!store.is_online_only);
     setSetStoreSince(store.since || '');
@@ -521,7 +522,7 @@ export default function SettingsTab({
         body: JSON.stringify({
           username: setStoreUsername,
           store_name: setStoreName,
-          store_bio: setStoreBio,
+          store_bio: limitStoreBio(setStoreBio?.trim()),
           location: setStoreLocation || null,
           is_online_only: isOnlineOnly,
           since: setStoreSince || null,
@@ -597,7 +598,7 @@ export default function SettingsTab({
         localStorage.setItem('store', JSON.stringify(json.data));
         setSetStoreUsername(json.data.username || '');
         setSetStoreName(json.data.store_name || '');
-        setSetStoreBio(json.data.store_bio || '');
+        setSetStoreBio(limitStoreBio(json.data.store_bio));
         setSetStoreLocation(json.data.location || '');
         setIsOnlineOnly(!!json.data.is_online_only);
         setSetStoreSince(json.data.since || '');

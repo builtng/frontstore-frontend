@@ -18,6 +18,7 @@ import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon } from '../../com
 import { resilientFetch } from '../../utils/resilientFetch';
 import { getOptimizedImageUrl } from '@/lib/image';
 import BuiltWithFrontstoreBadge from '@/components/BuiltWithFrontstoreBadge';
+import { truncateStoreBio } from '@/utils/storeBio';
 
 export interface StoreLink {
   id: string;
@@ -773,7 +774,7 @@ export default function UniversalStorefront({
       try {
         await navigator.share({
           title: store.store_name,
-          text: store.store_bio || `Shop directly from ${store.store_name}!`,
+          text: truncateStoreBio(store.store_bio, 306) || `Shop directly from ${store.store_name}!`,
           url: storeUrl,
         });
       } catch {}
@@ -923,7 +924,7 @@ export default function UniversalStorefront({
                 whiteSpace: 'pre-line',
               }}
             >
-              {store.store_bio}
+              {truncateStoreBio(store.store_bio, 306)}
             </p>
           )}
 
@@ -3842,7 +3843,7 @@ export default function UniversalStorefront({
           </div>
 
           <p style={{ fontSize: 13, color: '#64748b', margin: 0, maxWidth: 440 }}>
-            {store.store_bio || 'Shop directly on WhatsApp with fast delivery and buyer protection.'}
+            {truncateStoreBio(store.store_bio, 306) || 'Shop directly on WhatsApp with fast delivery and buyer protection.'}
           </p>
 
           {(store.whatsapp_phone || store.instagram_handle || store.tiktok_handle || store.twitter_handle || store.facebook_handle) && (
