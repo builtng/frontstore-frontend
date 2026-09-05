@@ -14,6 +14,7 @@ import {
   Landmark,
   Loader2,
   Mail,
+  MapPin,
   Palette,
   Pencil,
   Power,
@@ -73,6 +74,7 @@ export default function AdminStoresPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [selectedStore, setSelectedStore] = useState<StoreInfo | null>(null);
+  const [inspectorTab, setInspectorTab] = useState<'overview' | 'edit'>('overview');
   const [drawerColor, setDrawerColor] = useState('#25D366');
   const [savingColorFor, setSavingColorFor] = useState<string | null>(null);
   const [showCreateDrawer, setShowCreateDrawer] = useState(false);
@@ -92,6 +94,8 @@ export default function AdminStoresPage() {
   const [editUsername, setEditUsername] = useState('');
   const [editBio, setEditBio] = useState('');
   const [editLocation, setEditLocation] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editWhatsappPhone, setEditWhatsappPhone] = useState('');
   const [editStoreSince, setEditStoreSince] = useState('');
   const [editCurrency, setEditCurrency] = useState('');
   const [editCountry, setEditCountry] = useState('');
@@ -114,6 +118,8 @@ export default function AdminStoresPage() {
       setEditUsername(selectedStore.username || '');
       setEditBio(selectedStore.store_bio || selectedStore.bio || '');
       setEditLocation(selectedStore.location || '');
+      setEditAddress(selectedStore.address || '');
+      setEditWhatsappPhone(selectedStore.whatsapp_phone || '');
       setEditStoreSince(selectedStore.store_since || '');
       setEditCurrency(selectedStore.currency_code || '');
       setEditCountry(selectedStore.country_code || '');
@@ -121,6 +127,8 @@ export default function AdminStoresPage() {
       setEditBankAccount(selectedStore.bank_account_number || '');
       setEditBankAccountName(selectedStore.bank_account_name || '');
       setEditNote('');
+    } else {
+      setInspectorTab('overview');
     }
   }, [selectedStore]);
 
@@ -390,6 +398,8 @@ export default function AdminStoresPage() {
           storePayload.store_bio = editBio;
         }
         if (editLocation !== undefined) storePayload.location = editLocation;
+        if (editAddress !== undefined) storePayload.address = editAddress;
+        if (editWhatsappPhone !== undefined) storePayload.whatsapp_phone = editWhatsappPhone;
         if (editStoreSince !== undefined) storePayload.store_since = editStoreSince;
         if (editCurrency.trim()) storePayload.currency_code = editCurrency.trim();
         if (editCountry !== undefined) storePayload.country_code = editCountry;
@@ -415,6 +425,8 @@ export default function AdminStoresPage() {
                     bio: editBio,
                     store_bio: editBio,
                     location: editLocation,
+                    address: editAddress,
+                    whatsapp_phone: editWhatsappPhone,
                     store_since: editStoreSince,
                     currency_code: editCurrency.trim() || s.currency_code,
                     country_code: editCountry,
@@ -431,6 +443,8 @@ export default function AdminStoresPage() {
                   bio: editBio,
                   store_bio: editBio,
                   location: editLocation,
+                  address: editAddress,
+                  whatsapp_phone: editWhatsappPhone,
                   store_since: editStoreSince,
                   currency_code: editCurrency.trim() || prev.currency_code,
                   country_code: editCountry,
@@ -487,8 +501,9 @@ export default function AdminStoresPage() {
       if (errors.length > 0) {
         errors.forEach((e) => toast.error(e));
       } else {
-        toast.success('Merchant information updated successfully.');
+        toast.success('Merchant details & location updated successfully.');
         setEditOpen(false);
+        setInspectorTab('overview');
         setEditNote('');
       }
     } catch (error: any) {
@@ -673,6 +688,19 @@ export default function AdminStoresPage() {
                     )}
                     <button
                       type="button"
+                      className="admin-action"
+                      title="Edit Store Details & Locations"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedStore(store);
+                        setInspectorTab('edit');
+                      }}
+                    >
+                      <Pencil size={15} />
+                      Edit
+                    </button>
+                    <button
+                      type="button"
                       className={store.is_active ? 'admin-action warning' : 'admin-action'}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -739,357 +767,505 @@ export default function AdminStoresPage() {
           <div className="admin-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="admin-drawer__header">
               <div>
-                <h2>Store Inspector</h2>
-                <p>Verify bank payouts, balances, and security</p>
+                <h2>{inspectorTab === 'edit' ? 'Edit Store & Location' : 'Store Inspector'}</h2>
+                <p>
+                  {inspectorTab === 'edit'
+                    ? `Editing merchant & store details for ${selectedStore.store_name}`
+                    : 'Verify bank payouts, balances, and security'}
+                </p>
               </div>
-              <button className="admin-drawer__close" onClick={() => setSelectedStore(null)} type="button">
-                &times;
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setInspectorTab((tab) => (tab === 'edit' ? 'overview' : 'edit'))}
+                  className={inspectorTab === 'edit' ? 'btn btn-outline' : 'btn btn-primary'}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '6px 12px' }}
+                >
+                  <Pencil size={13} />
+                  {inspectorTab === 'edit' ? 'View Overview' : 'Edit Details'}
+                </button>
+                <button className="admin-drawer__close" onClick={() => setSelectedStore(null)} type="button">
+                  &times;
+                </button>
+              </div>
+            </div>
+
+            {/* Top Navigation Tabs */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '0 20px',
+                background: 'var(--surface-2, #1c1c21)',
+                borderBottom: '1px solid var(--border-strong, #30303a)',
+                gap: 8,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setInspectorTab('overview')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '11px 14px',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: inspectorTab === 'overview' ? 'var(--primary, #25D366)' : 'var(--text-muted, #8b8b9a)',
+                  borderBottom: inspectorTab === 'overview' ? '2px solid var(--primary, #25D366)' : '2px solid transparent',
+                  marginBottom: -1,
+                }}
+              >
+                <ShieldCheck size={14} />
+                Overview & Balances
+              </button>
+              <button
+                type="button"
+                onClick={() => setInspectorTab('edit')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '11px 14px',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: inspectorTab === 'edit' ? 'var(--primary, #25D366)' : 'var(--text-muted, #8b8b9a)',
+                  borderBottom: inspectorTab === 'edit' ? '2px solid var(--primary, #25D366)' : '2px solid transparent',
+                  marginBottom: -1,
+                }}
+              >
+                <Pencil size={14} />
+                Edit Store & Location
               </button>
             </div>
 
-            <div className="admin-drawer__content">
-              <div className="admin-drawer__section">
-                <h3>Store Identity</h3>
-                <div className="admin-drawer__grid">
-                  <div>
-                    <label>Store Name</label>
-                    <strong>{selectedStore.store_name}</strong>
-                  </div>
-                  <div>
-                    <label>Handle</label>
-                    <span>@{selectedStore.username}</span>
-                  </div>
-                  <div>
-                    <label>Status</label>
-                    <StatusChip tone={selectedStore.is_active ? 'green' : 'red'} label={selectedStore.is_active ? 'Active' : 'Suspended'} />
-                  </div>
-                  <div>
-                    <label>Verification Badge</label>
-                    <StatusChip
-                      tone={
-                        selectedStore.verification_status === 'verified'
-                          ? 'green'
-                          : selectedStore.verification_status === 'rejected'
-                          ? 'red'
-                          : 'gray'
-                      }
-                      label={selectedStore.verification_status || 'unverified'}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="admin-drawer__section">
-                <h3>Wallet Balances</h3>
-                <div className="admin-drawer__grid admin-drawer__grid--cols-2">
-                  <div className="admin-balance-card withdrawable">
-                    <label>Withdrawable Balance</label>
-                    <strong>{formatMoney(selectedStore.withdrawable_balance, selectedStore.currency_code)}</strong>
-                  </div>
-                  <div className="admin-balance-card pending">
-                    <label>Pending Escrow Balance</label>
-                    <strong>{formatMoney(selectedStore.pending_balance, selectedStore.currency_code)}</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="admin-drawer__section">
-                <h3>Trust & Payout Level</h3>
-                <div className="admin-tier-list">
-                  {PAYOUT_TIERS.map((tier) => {
-                    const isActive = (selectedStore.seller_level ?? 1) === tier.level;
-                    const Icon = tier.icon;
-                    return (
-                      <div key={tier.level} className={`admin-tier-row${isActive ? ' admin-tier-row--active' : ''}`}>
-                        <div className="admin-tier-row__icon">
-                          <Icon size={16} />
-                        </div>
-                        <div className="admin-tier-row__info">
-                          <strong>Level {tier.level} · {tier.name}</strong>
-                          <span>{tier.range}</span>
-                        </div>
-                        <span className="admin-tier-row__payout">{tier.payout}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="admin-drawer__section">
-                <h3>Merchant details</h3>
-                <div className="admin-drawer__grid">
-                  <div>
-                    <label>Owner Name</label>
-                    <strong>{selectedStore.user?.name || 'No name'}</strong>
-                  </div>
-                  <div>
-                    <label>Email Address</label>
-                    <span>{selectedStore.user?.email || 'No email'}</span>
-                  </div>
-                  <div>
-                    <label>Phone Number</label>
-                    <span>{selectedStore.user?.phone_number || 'No phone'}</span>
-                  </div>
-                  <div>
-                    <label>Joined Platform</label>
-                    <span>
-                      {selectedStore.user?.created_at
-                        ? new Date(selectedStore.user.created_at).toLocaleDateString()
-                        : 'N/A'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ─── Edit Merchant Info (support override) ─── */}
-              <div className="admin-drawer__section" style={{ padding: 0, overflow: 'hidden', borderRadius: 12, border: '1px solid var(--border-strong, #30303a)' }}>
-                {/* Collapsible header */}
-                <button
-                  type="button"
-                  onClick={() => setEditOpen((v) => !v)}
+            {inspectorTab === 'edit' ? (
+              <div className="admin-drawer__content" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {/* Header note */}
+                <div
                   style={{
-                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: 8,
+                    background: 'rgba(37, 211, 102, 0.08)',
+                    border: '1px solid rgba(37, 211, 102, 0.25)',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '13px 16px',
-                    background: editOpen ? 'var(--surface-2, #1c1c21)' : 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: 'var(--text, #f2f2f4)',
-                    borderBottom: editOpen ? '1px solid var(--border-strong, #30303a)' : 'none',
-                    transition: 'background 0.15s',
+                    flexDirection: 'column',
+                    gap: 4,
                   }}
                 >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 14 }}>
-                    <Pencil size={15} style={{ color: 'var(--primary, #25D366)' }} />
-                    Edit Merchant Info
-                    <span style={{
-                      fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6,
-                      background: 'rgba(255,165,0,0.12)', color: '#f59e0b', letterSpacing: '0.03em',
-                    }}>
-                      Support Override
-                    </span>
-                  </span>
-                  {editOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </button>
+                  <strong style={{ color: 'var(--primary, #25D366)', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Pencil size={14} /> Admin Support Override
+                  </strong>
+                  <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted, #94a3b8)', lineHeight: 1.4 }}>
+                    Changes made here take effect immediately across the merchant profile, public storefront, and live database.
+                  </p>
+                </div>
 
-                {editOpen && (
-                  <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    <p style={{ margin: 0, fontSize: 12, color: 'var(--text-muted, #64748b)', lineHeight: 1.5 }}>
-                      Only use this when a merchant has contacted support and cannot update their own account.
-                      All changes take effect immediately.
-                    </p>
-
-                    {/* User Info */}
-                    <div>
-                      <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted, #8b8b9a)' }}>Account Info</p>
-                      <div className="admin-drawer__grid admin-drawer__grid--cols-2">
-                        <label className="admin-field">
-                          <span>Full Name</span>
-                          <input
-                            className="admin-input"
-                            type="text"
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                            placeholder={selectedStore.user?.name || 'Full name'}
-                          />
-                        </label>
-                        <label className="admin-field">
-                          <span>Email Address</span>
-                          <input
-                            className="admin-input"
-                            type="email"
-                            value={editEmail}
-                            onChange={(e) => setEditEmail(e.target.value)}
-                            placeholder={selectedStore.user?.email || 'email@example.com'}
-                          />
-                        </label>
-                        <label className="admin-field">
-                          <span>WhatsApp / Phone</span>
-                          <input
-                            className="admin-input"
-                            type="text"
-                            value={editPhone}
-                            onChange={(e) => setEditPhone(e.target.value)}
-                            placeholder={selectedStore.user?.phone_number || '+2348012345678'}
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Store Info */}
-                    <div>
-                      <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted, #8b8b9a)' }}>Store Info</p>
-                      <div className="admin-drawer__grid admin-drawer__grid--cols-2">
-                        <label className="admin-field">
-                          <span>Store Name</span>
-                          <input
-                            className="admin-input"
-                            type="text"
-                            value={editStoreName}
-                            onChange={(e) => setEditStoreName(e.target.value)}
-                            placeholder={selectedStore.store_name}
-                          />
-                        </label>
-                        <label className="admin-field">
-                          <span>Username / Handle</span>
-                          <input
-                            className="admin-input"
-                            type="text"
-                            value={editUsername}
-                            onChange={(e) =>
-                              setEditUsername(
-                                e.target.value
-                                  .toLowerCase()
-                                  .replace(/^@+/, '')
-                                  .replace(/_/g, '-')
-                                  .replace(/[^a-z0-9-]/g, '')
-                                  .slice(0, 40)
-                              )
-                            }
-                            placeholder={selectedStore.username}
-                          />
-                        </label>
-                        <label className="admin-field">
-                          <span>Location</span>
-                          <input
-                            className="admin-input"
-                            type="text"
-                            value={editLocation}
-                            onChange={(e) => setEditLocation(e.target.value)}
-                            placeholder="City, State, Country"
-                          />
-                        </label>
-                        <label className="admin-field">
-                          <span>Store Since (Year)</span>
-                          <input
-                            className="admin-input"
-                            type="text"
-                            value={editStoreSince}
-                            onChange={(e) => setEditStoreSince(e.target.value)}
-                            placeholder="e.g. 2021"
-                          />
-                        </label>
-                        <label className="admin-field">
-                          <span>Currency Code</span>
-                          <input
-                            className="admin-input"
-                            type="text"
-                            value={editCurrency}
-                            onChange={(e) => setEditCurrency(e.target.value.toUpperCase().slice(0, 3))}
-                            placeholder="NGN"
-                          />
-                        </label>
-                        <label className="admin-field">
-                          <span>Country Code</span>
-                          <input
-                            className="admin-input"
-                            type="text"
-                            value={editCountry}
-                            onChange={(e) => setEditCountry(e.target.value.toUpperCase().slice(0, 2))}
-                            placeholder="NG"
-                          />
-                        </label>
-                        <label className="admin-field admin-field--full">
-                          <span>Store Bio / Description</span>
-                          <textarea
-                            className="admin-input"
-                            value={editBio}
-                            onChange={(e) => setEditBio(e.target.value)}
-                            placeholder="Short description of the store…"
-                            rows={3}
-                            style={{ resize: 'vertical', lineHeight: 1.5 }}
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Payout Bank */}
-                    <div>
-                      <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted, #8b8b9a)' }}>Payout Bank Account</p>
-                      <div className="admin-drawer__grid admin-drawer__grid--cols-2">
-                        <label className="admin-field">
-                          <span>Bank Name</span>
-                          <input
-                            className="admin-input"
-                            type="text"
-                            value={editBankName}
-                            onChange={(e) => setEditBankName(e.target.value)}
-                            placeholder={selectedStore.bank_name || 'e.g. Access Bank'}
-                          />
-                        </label>
-                        <label className="admin-field">
-                          <span>Account Number</span>
-                          <input
-                            className="admin-input"
-                            type="text"
-                            value={editBankAccount}
-                            onChange={(e) => setEditBankAccount(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                            placeholder={selectedStore.bank_account_number || '0123456789'}
-                          />
-                        </label>
-                        <label className="admin-field">
-                          <span>Account Name</span>
-                          <input
-                            className="admin-input"
-                            type="text"
-                            value={editBankAccountName}
-                            onChange={(e) => setEditBankAccountName(e.target.value)}
-                            placeholder={selectedStore.bank_account_name || 'Account holder name'}
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Admin Note */}
+                {/* 1. Account Info */}
+                <div className="admin-drawer__section">
+                  <h3>Merchant Account Details</h3>
+                  <div className="admin-drawer__grid admin-drawer__grid--cols-2">
                     <label className="admin-field">
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        Admin Note <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>(optional — logged with the change)</span>
-                      </span>
+                      <span>Full Name</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        placeholder={selectedStore.user?.name || 'Full name'}
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Email Address</span>
+                      <input
+                        className="admin-input"
+                        type="email"
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                        placeholder={selectedStore.user?.email || 'email@example.com'}
+                      />
+                    </label>
+                    <label className="admin-field admin-field--full">
+                      <span>Login / WhatsApp Phone</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editPhone}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                        placeholder={selectedStore.user?.phone_number || '+2348012345678'}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* 2. Store & Location Info */}
+                <div className="admin-drawer__section">
+                  <h3>Store Identity & Locations</h3>
+                  <div className="admin-drawer__grid admin-drawer__grid--cols-2">
+                    <label className="admin-field">
+                      <span>Store Name</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editStoreName}
+                        onChange={(e) => setEditStoreName(e.target.value)}
+                        placeholder={selectedStore.store_name}
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Username / Handle</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editUsername}
+                        onChange={(e) =>
+                          setEditUsername(
+                            e.target.value
+                              .toLowerCase()
+                              .replace(/^@+/, '')
+                              .replace(/_/g, '-')
+                              .replace(/[^a-z0-9-]/g, '')
+                              .slice(0, 40)
+                          )
+                        }
+                        placeholder={selectedStore.username}
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Store Location (City / State)</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editLocation}
+                        onChange={(e) => setEditLocation(e.target.value)}
+                        placeholder="e.g. Ikeja, Lagos, Nigeria"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Physical Street Address</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editAddress}
+                        onChange={(e) => setEditAddress(e.target.value)}
+                        placeholder="e.g. Suite 12, Victoria Mall, Plot 4"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Customer WhatsApp Contact Line</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editWhatsappPhone}
+                        onChange={(e) => setEditWhatsappPhone(e.target.value)}
+                        placeholder="e.g. +2348012345678"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Store Since (Year)</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editStoreSince}
+                        onChange={(e) => setEditStoreSince(e.target.value)}
+                        placeholder="e.g. 2022"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Currency Code</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editCurrency}
+                        onChange={(e) => setEditCurrency(e.target.value.toUpperCase().slice(0, 3))}
+                        placeholder="NGN"
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Country Code</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editCountry}
+                        onChange={(e) => setEditCountry(e.target.value.toUpperCase().slice(0, 2))}
+                        placeholder="NG"
+                      />
+                    </label>
+                    <label className="admin-field admin-field--full">
+                      <span>Store Bio / Description</span>
                       <textarea
                         className="admin-input"
-                        value={editNote}
-                        onChange={(e) => setEditNote(e.target.value)}
-                        placeholder="e.g. Merchant requested phone number update via support ticket #1234"
-                        rows={2}
+                        value={editBio}
+                        onChange={(e) => setEditBio(e.target.value)}
+                        placeholder="Short description of the store…"
+                        rows={3}
                         style={{ resize: 'vertical', lineHeight: 1.5 }}
                       />
                     </label>
+                  </div>
+                </div>
 
-                    {/* Save button */}
+                {/* 3. Payout Bank */}
+                <div className="admin-drawer__section">
+                  <h3>Payout Bank Account</h3>
+                  <div className="admin-drawer__grid admin-drawer__grid--cols-2">
+                    <label className="admin-field">
+                      <span>Bank Name</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editBankName}
+                        onChange={(e) => setEditBankName(e.target.value)}
+                        placeholder={selectedStore.bank_name || 'e.g. Access Bank'}
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Account Number</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editBankAccount}
+                        onChange={(e) => setEditBankAccount(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        placeholder={selectedStore.bank_account_number || '0123456789'}
+                      />
+                    </label>
+                    <label className="admin-field admin-field--full">
+                      <span>Account Name</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editBankAccountName}
+                        onChange={(e) => setEditBankAccountName(e.target.value)}
+                        placeholder={selectedStore.bank_account_name || 'Account holder name'}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* 4. Admin Audit Note */}
+                <div className="admin-drawer__section">
+                  <label className="admin-field">
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      Admin Note <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>(optional — logged with change)</span>
+                    </span>
+                    <textarea
+                      className="admin-input"
+                      value={editNote}
+                      onChange={(e) => setEditNote(e.target.value)}
+                      placeholder="e.g. Merchant requested location & contact update via support."
+                      rows={2}
+                      style={{ resize: 'vertical', lineHeight: 1.5 }}
+                    />
+                  </label>
+                </div>
+
+                {/* Save button */}
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={editSaving}
+                  onClick={handleSaveMerchantInfo}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    justifyContent: 'center',
+                    padding: '12px 20px',
+                    fontWeight: 700,
+                    fontSize: 14,
+                    width: '100%',
+                  }}
+                >
+                  {editSaving ? (
+                    <><Loader2 size={16} className="admin-spin" /> Saving Changes…</>
+                  ) : (
+                    <><Save size={16} /> Save All Changes</>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <div className="admin-drawer__content">
+                <div className="admin-drawer__section">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
+                    <h3 style={{ borderBottom: 'none', paddingBottom: 0, margin: 0 }}>Store Identity & Location</h3>
                     <button
                       type="button"
-                      className="admin-action"
-                      disabled={editSaving}
-                      onClick={handleSaveMerchantInfo}
+                      onClick={() => setInspectorTab('edit')}
                       style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--primary, #25D366)',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: 8,
-                        justifyContent: 'center',
-                        padding: '10px 20px',
-                        fontWeight: 700,
-                        fontSize: 13,
-                        background: 'var(--primary, #25D366)',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 10,
-                        cursor: editSaving ? 'wait' : 'pointer',
-                        opacity: editSaving ? 0.7 : 1,
-                        transition: 'opacity 0.15s',
-                        width: '100%',
+                        gap: 4,
                       }}
                     >
-                      {editSaving ? (
-                        <><Loader2 size={15} className="admin-spin" /> Saving changes…</>
-                      ) : (
-                        <><Save size={15} /> Save Merchant Info</>  
-                      )}
+                      <Pencil size={12} /> Edit Details
                     </button>
                   </div>
-                )}
-              </div>
+                  <div className="admin-drawer__grid">
+                    <div>
+                      <label>Store Name</label>
+                      <strong>{selectedStore.store_name}</strong>
+                    </div>
+                    <div>
+                      <label>Handle</label>
+                      <span>@{selectedStore.username}</span>
+                    </div>
+                    <div>
+                      <label>Location (City / State)</label>
+                      <span>{selectedStore.location || 'Not specified'}</span>
+                    </div>
+                    <div>
+                      <label>Physical Address</label>
+                      <span>{selectedStore.address || 'Not specified'}</span>
+                    </div>
+                    <div>
+                      <label>Store WhatsApp</label>
+                      <span>{selectedStore.whatsapp_phone || selectedStore.user?.phone_number || 'None'}</span>
+                    </div>
+                    <div>
+                      <label>Status</label>
+                      <StatusChip tone={selectedStore.is_active ? 'green' : 'red'} label={selectedStore.is_active ? 'Active' : 'Suspended'} />
+                    </div>
+                    <div>
+                      <label>Verification Badge</label>
+                      <StatusChip
+                        tone={
+                          selectedStore.verification_status === 'verified'
+                            ? 'green'
+                            : selectedStore.verification_status === 'rejected'
+                            ? 'red'
+                            : 'gray'
+                        }
+                        label={selectedStore.verification_status || 'unverified'}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Edit details quick banner */}
+                <div
+                  style={{
+                    padding: '14px 16px',
+                    borderRadius: 10,
+                    background: 'var(--surface-2, #1c1c21)',
+                    border: '1px solid var(--border-strong, #30303a)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                  }}
+                >
+                  <div>
+                    <strong style={{ fontSize: 13, color: 'var(--text, #f2f2f4)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Pencil size={14} style={{ color: 'var(--primary, #25D366)' }} />
+                      Need to edit merchant info or location?
+                    </strong>
+                    <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-muted, #94a3b8)' }}>
+                      Update name, handle, city/state location, physical address, and contact details.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setInspectorTab('edit')}
+                    style={{ flexShrink: 0, padding: '8px 14px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Pencil size={13} />
+                    Edit Details
+                  </button>
+                </div>
+
+                <div className="admin-drawer__section">
+                  <h3>Wallet Balances</h3>
+                  <div className="admin-drawer__grid admin-drawer__grid--cols-2">
+                    <div className="admin-balance-card withdrawable">
+                      <label>Withdrawable Balance</label>
+                      <strong>{formatMoney(selectedStore.withdrawable_balance, selectedStore.currency_code)}</strong>
+                    </div>
+                    <div className="admin-balance-card pending">
+                      <label>Pending Escrow Balance</label>
+                      <strong>{formatMoney(selectedStore.pending_balance, selectedStore.currency_code)}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="admin-drawer__section">
+                  <h3>Trust & Payout Level</h3>
+                  <div className="admin-tier-list">
+                    {PAYOUT_TIERS.map((tier) => {
+                      const isActive = (selectedStore.seller_level ?? 1) === tier.level;
+                      const Icon = tier.icon;
+                      return (
+                        <div key={tier.level} className={`admin-tier-row${isActive ? ' admin-tier-row--active' : ''}`}>
+                          <div className="admin-tier-row__icon">
+                            <Icon size={16} />
+                          </div>
+                          <div className="admin-tier-row__info">
+                            <strong>Level {tier.level} · {tier.name}</strong>
+                            <span>{tier.range}</span>
+                          </div>
+                          <span className="admin-tier-row__payout">{tier.payout}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="admin-drawer__section">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
+                    <h3 style={{ borderBottom: 'none', paddingBottom: 0, margin: 0 }}>Merchant details</h3>
+                    <button
+                      type="button"
+                      onClick={() => setInspectorTab('edit')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--primary, #25D366)',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <Pencil size={12} /> Edit
+                    </button>
+                  </div>
+                  <div className="admin-drawer__grid">
+                    <div>
+                      <label>Owner Name</label>
+                      <strong>{selectedStore.user?.name || 'No name'}</strong>
+                    </div>
+                    <div>
+                      <label>Email Address</label>
+                      <span>{selectedStore.user?.email || 'No email'}</span>
+                    </div>
+                    <div>
+                      <label>Phone Number</label>
+                      <span>{selectedStore.user?.phone_number || 'No phone'}</span>
+                    </div>
+                    <div>
+                      <label>Joined Platform</label>
+                      <span>
+                        {selectedStore.user?.created_at
+                          ? new Date(selectedStore.user.created_at).toLocaleDateString()
+                          : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
               {selectedStore.bank_account_number && (
                 <div className="admin-drawer__section">
@@ -1303,81 +1479,114 @@ export default function AdminStoresPage() {
                 </div>
               </div>
             </div>
+          )}
 
             <div className="admin-drawer__actions">
-              <button type="button" className="btn btn-outline" onClick={() => setSelectedStore(null)}>
-                Close Inspector
-              </button>
-              {hasReachedProductLimit(selectedStore) && (
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  disabled={sendingLimitEmailFor === selectedStore.id}
-                  onClick={() => {
-                    openConfirmationDialog(
-                      'Send limit-reached email',
-                      `Email "${selectedStore.user?.name || selectedStore.store_name}" letting them know they've hit the ${freeProductLimit}-product free plan limit and can upgrade to Pro?`,
-                      async () => {
-                        await handleSendLimitEmail(selectedStore.id);
-                      }
-                    );
-                  }}
-                >
-                  <Mail size={15} />
-                  {sendingLimitEmailFor === selectedStore.id ? 'Sending…' : 'Send limit email'}
-                </button>
+              {inspectorTab === 'edit' ? (
+                <>
+                  <button type="button" className="btn btn-outline" onClick={() => setInspectorTab('overview')}>
+                    Cancel / Back to Overview
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={editSaving}
+                    onClick={handleSaveMerchantInfo}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    {editSaving ? (
+                      <><Loader2 size={15} className="admin-spin" /> Saving changes…</>
+                    ) : (
+                      <><Save size={15} /> Save All Changes</>
+                    )}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button type="button" className="btn btn-outline" onClick={() => setSelectedStore(null)}>
+                    Close Inspector
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setInspectorTab('edit')}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Pencil size={15} />
+                    Edit Store & Location
+                  </button>
+                  {hasReachedProductLimit(selectedStore) && (
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      disabled={sendingLimitEmailFor === selectedStore.id}
+                      onClick={() => {
+                        openConfirmationDialog(
+                          'Send limit-reached email',
+                          `Email "${selectedStore.user?.name || selectedStore.store_name}" letting them know they've hit the ${freeProductLimit}-product free plan limit and can upgrade to Pro?`,
+                          async () => {
+                            await handleSendLimitEmail(selectedStore.id);
+                          }
+                        );
+                      }}
+                    >
+                      <Mail size={15} />
+                      {sendingLimitEmailFor === selectedStore.id ? 'Sending…' : 'Send limit email'}
+                    </button>
+                  )}
+                  {needsDedicatedAccount(selectedStore) && (
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      disabled={generatingDvaFor === selectedStore.id}
+                      onClick={() => {
+                        openConfirmationDialog(
+                          'Generate dedicated account',
+                          `Generate a Paystack dedicated account for "${selectedStore.store_name}"? The merchant will be notified by email once it's ready.`,
+                          async () => {
+                            await handleGenerateDva(selectedStore.id);
+                          }
+                        );
+                      }}
+                    >
+                      <Landmark size={15} />
+                      {generatingDvaFor === selectedStore.id ? 'Generating…' : 'Generate DVA'}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={selectedStore.is_active ? 'btn btn-primary btn-danger-tone' : 'btn btn-primary'}
+                    onClick={() => {
+                      openConfirmationDialog(
+                        selectedStore.is_active ? 'Suspend store' : 'Activate store',
+                        `Are you sure you want to ${selectedStore.is_active ? 'suspend' : 'activate'} "${selectedStore.store_name}"?`,
+                        async () => {
+                          await handleToggleStoreStatus(selectedStore.id);
+                          setSelectedStore((prev) => (prev ? { ...prev, is_active: !prev.is_active } : null));
+                        }
+                      );
+                    }}
+                  >
+                    {selectedStore.is_active ? 'Suspend Store' : 'Activate Store'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-danger-tone"
+                    onClick={() => {
+                      openConfirmationDialog(
+                        'Delete store',
+                        `This permanently deletes "${selectedStore.store_name}" and logs the merchant out of their dashboard. This cannot be undone.`,
+                        async () => {
+                          await handleDeleteStore(selectedStore.id);
+                        }
+                      );
+                    }}
+                  >
+                    <Trash2 size={15} />
+                    Delete Store
+                  </button>
+                </>
               )}
-              {needsDedicatedAccount(selectedStore) && (
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  disabled={generatingDvaFor === selectedStore.id}
-                  onClick={() => {
-                    openConfirmationDialog(
-                      'Generate dedicated account',
-                      `Generate a Paystack dedicated account for "${selectedStore.store_name}"? The merchant will be notified by email once it's ready.`,
-                      async () => {
-                        await handleGenerateDva(selectedStore.id);
-                      }
-                    );
-                  }}
-                >
-                  <Landmark size={15} />
-                  {generatingDvaFor === selectedStore.id ? 'Generating…' : 'Generate DVA'}
-                </button>
-              )}
-              <button
-                type="button"
-                className={selectedStore.is_active ? 'btn btn-primary btn-danger-tone' : 'btn btn-primary'}
-                onClick={() => {
-                  openConfirmationDialog(
-                    selectedStore.is_active ? 'Suspend store' : 'Activate store',
-                    `Are you sure you want to ${selectedStore.is_active ? 'suspend' : 'activate'} "${selectedStore.store_name}"?`,
-                    async () => {
-                      await handleToggleStoreStatus(selectedStore.id);
-                      setSelectedStore((prev) => (prev ? { ...prev, is_active: !prev.is_active } : null));
-                    }
-                  );
-                }}
-              >
-                {selectedStore.is_active ? 'Suspend Store' : 'Activate Store'}
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary btn-danger-tone"
-                onClick={() => {
-                  openConfirmationDialog(
-                    'Delete store',
-                    `This permanently deletes "${selectedStore.store_name}" and logs the merchant out of their dashboard. This cannot be undone.`,
-                    async () => {
-                      await handleDeleteStore(selectedStore.id);
-                    }
-                  );
-                }}
-              >
-                <Trash2 size={15} />
-                Delete Store
-              </button>
             </div>
           </div>
         </div>

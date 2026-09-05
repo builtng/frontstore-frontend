@@ -61,6 +61,8 @@ export interface StoreInfo {
   bio?: string | null;
   store_bio?: string | null;
   location?: string | null;
+  address?: string | null;
+  whatsapp_phone?: string | null;
   store_since?: string | null;
 }
 
