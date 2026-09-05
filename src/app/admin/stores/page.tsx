@@ -28,6 +28,105 @@ import {
 } from 'lucide-react';
 import { TableSkeleton, StatusChip, EmptyState } from '../components';
 import CreateMerchantDrawer from './CreateMerchantDrawer';
+import SearchableSelect, { SelectOption } from '@/components/SearchableSelect';
+import { NIGERIAN_STATES } from '@/utils/nigerianStates';
+
+export const COUNTRY_OPTIONS: SelectOption[] = [
+  { value: 'NG', label: 'Nigeria', sublabel: 'NG · +234', icon: <span>🇳🇬</span> },
+  { value: 'GH', label: 'Ghana', sublabel: 'GH · +233', icon: <span>🇬🇭</span> },
+  { value: 'KE', label: 'Kenya', sublabel: 'KE · +254', icon: <span>🇰🇪</span> },
+  { value: 'ZA', label: 'South Africa', sublabel: 'ZA · +27', icon: <span>🇿🇦</span> },
+  { value: 'GB', label: 'United Kingdom', sublabel: 'GB · +44', icon: <span>🇬🇧</span> },
+  { value: 'US', label: 'United States', sublabel: 'US · +1', icon: <span>🇺🇸</span> },
+  { value: 'CA', label: 'Canada', sublabel: 'CA · +1', icon: <span>🇨🇦</span> },
+  { value: 'UG', label: 'Uganda', sublabel: 'UG · +256', icon: <span>🇺🇬</span> },
+  { value: 'RW', label: 'Rwanda', sublabel: 'RW · +250', icon: <span>🇷🇼</span> },
+  { value: 'CM', label: 'Cameroon', sublabel: 'CM · +237', icon: <span>🇨🇲</span> },
+  { value: 'CI', label: 'Ivory Coast', sublabel: 'CI · +225', icon: <span>🇨🇮</span> },
+  { value: 'SN', label: 'Senegal', sublabel: 'SN · +221', icon: <span>🇸🇳</span> },
+  { value: 'TZ', label: 'Tanzania', sublabel: 'TZ · +255', icon: <span>🇹🇿</span> },
+  { value: 'AE', label: 'United Arab Emirates', sublabel: 'AE · +971', icon: <span>🇦🇪</span> },
+];
+
+export const COUNTRY_TO_CURRENCY: Record<string, string> = {
+  NG: 'NGN',
+  GH: 'GHS',
+  KE: 'KES',
+  ZA: 'ZAR',
+  GB: 'GBP',
+  US: 'USD',
+  CA: 'CAD',
+  UG: 'UGX',
+  RW: 'RWF',
+  CM: 'XAF',
+  CI: 'XOF',
+  SN: 'XOF',
+  TZ: 'TZS',
+  AE: 'AED',
+};
+
+export const CURRENCY_OPTIONS: SelectOption[] = [
+  { value: 'NGN', label: 'NGN (₦)', sublabel: 'Nigerian Naira' },
+  { value: 'USD', label: 'USD ($)', sublabel: 'US Dollar' },
+  { value: 'GBP', label: 'GBP (£)', sublabel: 'British Pound' },
+  { value: 'EUR', label: 'EUR (€)', sublabel: 'Euro' },
+  { value: 'GHS', label: 'GHS (₵)', sublabel: 'Ghanaian Cedi' },
+  { value: 'KES', label: 'KES (KSh)', sublabel: 'Kenyan Shilling' },
+  { value: 'ZAR', label: 'ZAR (R)', sublabel: 'South African Rand' },
+  { value: 'CAD', label: 'CAD ($)', sublabel: 'Canadian Dollar' },
+  { value: 'UGX', label: 'UGX (USh)', sublabel: 'Ugandan Shilling' },
+  { value: 'RWF', label: 'RWF (FRw)', sublabel: 'Rwandan Franc' },
+  { value: 'XOF', label: 'XOF (CFA)', sublabel: 'West African CFA Franc' },
+  { value: 'XAF', label: 'XAF (FCFA)', sublabel: 'Central African CFA Franc' },
+];
+
+export const STATE_REGION_OPTIONS: SelectOption[] = [
+  { value: '', label: 'None / Select State...', sublabel: 'Choose region' },
+  ...NIGERIAN_STATES.map((s) => ({
+    value: s.name,
+    label: s.name,
+    sublabel: 'Nigeria',
+  })),
+  { value: 'Greater London', label: 'Greater London', sublabel: 'United Kingdom' },
+  { value: 'Greater Manchester', label: 'Greater Manchester', sublabel: 'United Kingdom' },
+  { value: 'West Midlands', label: 'West Midlands (Birmingham)', sublabel: 'United Kingdom' },
+  { value: 'New York', label: 'New York', sublabel: 'United States' },
+  { value: 'California', label: 'California', sublabel: 'United States' },
+  { value: 'Texas', label: 'Texas', sublabel: 'United States' },
+  { value: 'Ontario', label: 'Ontario', sublabel: 'Canada' },
+  { value: 'Greater Accra', label: 'Greater Accra', sublabel: 'Ghana' },
+  { value: 'Nairobi County', label: 'Nairobi County', sublabel: 'Kenya' },
+];
+
+export const POPULAR_BANKS: SelectOption[] = [
+  { value: 'Access Bank', label: 'Access Bank', sublabel: 'Commercial Bank' },
+  { value: 'Guaranty Trust Bank', label: 'Guaranty Trust Bank (GTBank)', sublabel: 'Commercial Bank' },
+  { value: 'Zenith Bank', label: 'Zenith Bank', sublabel: 'Commercial Bank' },
+  { value: 'First Bank of Nigeria', label: 'First Bank of Nigeria', sublabel: 'Commercial Bank' },
+  { value: 'United Bank for Africa', label: 'United Bank for Africa (UBA)', sublabel: 'Commercial Bank' },
+  { value: 'Kuda Bank', label: 'Kuda Microfinance Bank', sublabel: 'Digital Bank' },
+  { value: 'OPay', label: 'OPay (PayCom)', sublabel: 'Fintech / Mobile Money' },
+  { value: 'Moniepoint Microfinance Bank', label: 'Moniepoint Microfinance Bank', sublabel: 'Fintech / Bank' },
+  { value: 'PalmPay', label: 'PalmPay', sublabel: 'Fintech / Mobile Money' },
+  { value: 'Fidelity Bank', label: 'Fidelity Bank', sublabel: 'Commercial Bank' },
+  { value: 'Stanbic IBTC Bank', label: 'Stanbic IBTC Bank', sublabel: 'Commercial Bank' },
+  { value: 'Sterling Bank', label: 'Sterling Bank', sublabel: 'Commercial Bank' },
+  { value: 'First City Monument Bank', label: 'FCMB', sublabel: 'Commercial Bank' },
+  { value: 'Wema Bank', label: 'Wema Bank (ALAT)', sublabel: 'Commercial Bank' },
+  { value: 'Union Bank of Nigeria', label: 'Union Bank', sublabel: 'Commercial Bank' },
+  { value: 'Polaris Bank', label: 'Polaris Bank', sublabel: 'Commercial Bank' },
+  { value: 'Ecobank Nigeria', label: 'Ecobank Nigeria', sublabel: 'Commercial Bank' },
+  { value: 'Providus Bank', label: 'Providus Bank', sublabel: 'Commercial Bank' },
+  { value: 'Keystone Bank', label: 'Keystone Bank', sublabel: 'Commercial Bank' },
+  { value: 'Jaiz Bank', label: 'Jaiz Bank', sublabel: 'Non-Interest Bank' },
+  { value: 'Taj Bank', label: 'Taj Bank', sublabel: 'Non-Interest Bank' },
+  { value: 'Standard Chartered Bank', label: 'Standard Chartered Bank', sublabel: 'International Bank' },
+  { value: 'Citibank Nigeria', label: 'Citibank Nigeria', sublabel: 'International Bank' },
+  { value: 'FairMoney Microfinance Bank', label: 'FairMoney Microfinance Bank', sublabel: 'Digital Bank' },
+  { value: 'Carbon', label: 'Carbon (One Finance)', sublabel: 'Digital Bank' },
+  { value: 'VFD Microfinance Bank', label: 'VFD Microfinance Bank', sublabel: 'Digital Bank' },
+  { value: 'Rubies Bank', label: 'Rubies Bank', sublabel: 'Digital Bank' },
+];
 
 const STORE_COLOR_PRESETS = [
   { name: 'Frontstore', value: '#25D366' },
@@ -99,12 +198,98 @@ export default function AdminStoresPage() {
   const [editStoreSince, setEditStoreSince] = useState('');
   const [editCurrency, setEditCurrency] = useState('');
   const [editCountry, setEditCountry] = useState('');
+  // location & bank dropdown state
+  const [editState, setEditState] = useState('');
+  const [editArea, setEditArea] = useState('');
+  const [customBankMode, setCustomBankMode] = useState(false);
+  const [liveBanks, setLiveBanks] = useState<SelectOption[]>(POPULAR_BANKS);
   // payout bank fields
   const [editBankName, setEditBankName] = useState('');
   const [editBankAccount, setEditBankAccount] = useState('');
   const [editBankAccountName, setEditBankAccountName] = useState('');
   // admin note
   const [editNote, setEditNote] = useState('');
+
+  // Fetch verified banks from API to enrich dropdown
+  useEffect(() => {
+    async function fetchBanks() {
+      try {
+        const res = await fetch(`${apiUrl}/v1/banks`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+            const apiBankOptions: SelectOption[] = json.data.map((b: any) => ({
+              value: b.name,
+              label: b.name,
+              sublabel: b.code ? `Bank · Code ${b.code}` : 'Bank',
+            }));
+            const map = new Map<string, SelectOption>();
+            POPULAR_BANKS.forEach((b) => map.set(b.value.toLowerCase(), b));
+            apiBankOptions.forEach((b) => {
+              if (!map.has(b.value.toLowerCase())) {
+                map.set(b.value.toLowerCase(), b);
+              }
+            });
+            setLiveBanks(Array.from(map.values()));
+          }
+        }
+      } catch {
+        // use default POPULAR_BANKS fallback
+      }
+    }
+    fetchBanks();
+  }, [apiUrl]);
+
+  const handleCountryChange = (val: string) => {
+    setEditCountry(val);
+    const suggestedCurrency = COUNTRY_TO_CURRENCY[val];
+    if (suggestedCurrency) {
+      setEditCurrency(suggestedCurrency);
+    }
+  };
+
+  const handleStateChange = (stateVal: string) => {
+    setEditState(stateVal);
+    if (stateVal) {
+      const combined = editArea.trim() ? `${editArea.trim()}, ${stateVal}` : stateVal;
+      setEditLocation(combined);
+    }
+  };
+
+  const handleAreaChange = (areaVal: string) => {
+    setEditArea(areaVal);
+    const combined = areaVal.trim()
+      ? (editState ? `${areaVal.trim()}, ${editState}` : areaVal.trim())
+      : (editState || '');
+    setEditLocation(combined);
+  };
+
+  const bankSelectOptions: SelectOption[] = React.useMemo(() => {
+    const list: SelectOption[] = [...liveBanks];
+    if (editBankName && !list.some((b) => b.value.toLowerCase() === editBankName.toLowerCase())) {
+      list.unshift({
+        value: editBankName,
+        label: editBankName,
+        sublabel: 'Current Store Bank',
+        icon: <Landmark size={14} />,
+      });
+    }
+    list.push({
+      value: '__CUSTOM__',
+      label: '✏️ Type custom bank name...',
+      sublabel: 'Enter an unlisted or international bank',
+    });
+    return list;
+  }, [liveBanks, editBankName]);
+
+  const handleBankSelect = (val: string) => {
+    if (val === '__CUSTOM__') {
+      setCustomBankMode(true);
+      setEditBankName('');
+    } else {
+      setEditBankName(val);
+    }
+  };
 
   useEffect(() => {
     if (selectedStore) {
@@ -117,15 +302,45 @@ export default function AdminStoresPage() {
       setEditStoreName(selectedStore.store_name || '');
       setEditUsername(selectedStore.username || '');
       setEditBio(selectedStore.store_bio || selectedStore.bio || '');
-      setEditLocation(selectedStore.location || '');
       setEditAddress(selectedStore.address || '');
       setEditWhatsappPhone(selectedStore.whatsapp_phone || '');
       setEditStoreSince(selectedStore.store_since || '');
-      setEditCurrency(selectedStore.currency_code || '');
-      setEditCountry(selectedStore.country_code || '');
+
+      const initialCountry = (selectedStore.country_code || 'NG').toUpperCase();
+      setEditCountry(initialCountry);
+
+      const initialCurrency = (selectedStore.currency_code || COUNTRY_TO_CURRENCY[initialCountry] || 'NGN').toUpperCase();
+      setEditCurrency(initialCurrency);
+
+      const rawLoc = selectedStore.location || '';
+      setEditLocation(rawLoc);
+
+      let matchedState = '';
+      for (const opt of STATE_REGION_OPTIONS) {
+        if (opt.value && rawLoc.toLowerCase().includes(opt.value.toLowerCase())) {
+          matchedState = opt.value;
+          break;
+        }
+      }
+      setEditState(matchedState);
+      if (matchedState) {
+        const regex = new RegExp(`\\b${matchedState}\\b`, 'gi');
+        const areaCleaned = rawLoc
+          .replace(regex, '')
+          .replace(/Nigeria/gi, '')
+          .replace(/United Kingdom/gi, '')
+          .replace(/United States/gi, '')
+          .replace(/^[\s,]+|[\s,]+$/g, '')
+          .trim();
+        setEditArea(areaCleaned);
+      } else {
+        setEditArea(rawLoc);
+      }
+
       setEditBankName(selectedStore.bank_name || '');
       setEditBankAccount(selectedStore.bank_account_number || '');
       setEditBankAccountName(selectedStore.bank_account_name || '');
+      setCustomBankMode(false);
       setEditNote('');
     } else {
       setInspectorTab('overview');
@@ -904,9 +1119,9 @@ export default function AdminStoresPage() {
                   </div>
                 </div>
 
-                {/* 2. Store & Location Info */}
+                {/* 2. Store Identity */}
                 <div className="admin-drawer__section">
-                  <h3>Store Identity & Locations</h3>
+                  <h3>Store Identity</h3>
                   <div className="admin-drawer__grid admin-drawer__grid--cols-2">
                     <label className="admin-field">
                       <span>Store Name</span>
@@ -938,26 +1153,6 @@ export default function AdminStoresPage() {
                       />
                     </label>
                     <label className="admin-field">
-                      <span>Store Location (City / State)</span>
-                      <input
-                        className="admin-input"
-                        type="text"
-                        value={editLocation}
-                        onChange={(e) => setEditLocation(e.target.value)}
-                        placeholder="e.g. Ikeja, Lagos, Nigeria"
-                      />
-                    </label>
-                    <label className="admin-field">
-                      <span>Physical Street Address</span>
-                      <input
-                        className="admin-input"
-                        type="text"
-                        value={editAddress}
-                        onChange={(e) => setEditAddress(e.target.value)}
-                        placeholder="e.g. Suite 12, Victoria Mall, Plot 4"
-                      />
-                    </label>
-                    <label className="admin-field">
                       <span>Customer WhatsApp Contact Line</span>
                       <input
                         className="admin-input"
@@ -977,26 +1172,6 @@ export default function AdminStoresPage() {
                         placeholder="e.g. 2022"
                       />
                     </label>
-                    <label className="admin-field">
-                      <span>Currency Code</span>
-                      <input
-                        className="admin-input"
-                        type="text"
-                        value={editCurrency}
-                        onChange={(e) => setEditCurrency(e.target.value.toUpperCase().slice(0, 3))}
-                        placeholder="NGN"
-                      />
-                    </label>
-                    <label className="admin-field">
-                      <span>Country Code</span>
-                      <input
-                        className="admin-input"
-                        type="text"
-                        value={editCountry}
-                        onChange={(e) => setEditCountry(e.target.value.toUpperCase().slice(0, 2))}
-                        placeholder="NG"
-                      />
-                    </label>
                     <label className="admin-field admin-field--full">
                       <span>Store Bio / Description</span>
                       <textarea
@@ -1011,19 +1186,173 @@ export default function AdminStoresPage() {
                   </div>
                 </div>
 
-                {/* 3. Payout Bank */}
+                {/* 3. Country & Currency (Modern Select Dropdowns) */}
                 <div className="admin-drawer__section">
-                  <h3>Payout Bank Account</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <h3 style={{ margin: 0, paddingBottom: 0, borderBottom: 'none' }}>Country & Currency</h3>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted, #94a3b8)' }}>Regional market & billing settings</span>
+                  </div>
                   <div className="admin-drawer__grid admin-drawer__grid--cols-2">
                     <label className="admin-field">
-                      <span>Bank Name</span>
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        Store Country
+                        <span style={{ fontSize: 11, color: 'var(--primary, #25D366)', fontWeight: 500 }}>Auto-syncs currency</span>
+                      </span>
+                      <SearchableSelect
+                        options={COUNTRY_OPTIONS}
+                        value={editCountry}
+                        onChange={handleCountryChange}
+                        placeholder="Select Country..."
+                        searchPlaceholder="Search country or code..."
+                        triggerStyle={{
+                          background: 'var(--surface-2, #1c1c21)',
+                          border: '1px solid var(--border-strong, #30303a)',
+                          borderRadius: 8,
+                          minHeight: 42,
+                          fontSize: 14,
+                          color: 'var(--text, #f2f2f4)',
+                        }}
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>Operating Currency</span>
+                      <SearchableSelect
+                        options={CURRENCY_OPTIONS}
+                        value={editCurrency}
+                        onChange={(val) => setEditCurrency(val)}
+                        placeholder="Select Currency..."
+                        searchPlaceholder="Search currency (e.g. NGN, USD)..."
+                        triggerStyle={{
+                          background: 'var(--surface-2, #1c1c21)',
+                          border: '1px solid var(--border-strong, #30303a)',
+                          borderRadius: 8,
+                          minHeight: 42,
+                          fontSize: 14,
+                          color: 'var(--text, #f2f2f4)',
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* 4. Location & Address */}
+                <div className="admin-drawer__section">
+                  <h3>Physical Location & Address</h3>
+                  <div className="admin-drawer__grid admin-drawer__grid--cols-2">
+                    <label className="admin-field">
+                      <span>State / Region</span>
+                      <SearchableSelect
+                        options={STATE_REGION_OPTIONS}
+                        value={editState}
+                        onChange={handleStateChange}
+                        placeholder="Select State / Region..."
+                        searchPlaceholder="Search states (Lagos, Abuja, Rivers...)..."
+                        triggerStyle={{
+                          background: 'var(--surface-2, #1c1c21)',
+                          border: '1px solid var(--border-strong, #30303a)',
+                          borderRadius: 8,
+                          minHeight: 42,
+                          fontSize: 14,
+                          color: 'var(--text, #f2f2f4)',
+                        }}
+                      />
+                    </label>
+                    <label className="admin-field">
+                      <span>City / Area / District</span>
                       <input
                         className="admin-input"
                         type="text"
-                        value={editBankName}
-                        onChange={(e) => setEditBankName(e.target.value)}
-                        placeholder={selectedStore.bank_name || 'e.g. Access Bank'}
+                        value={editArea}
+                        onChange={(e) => handleAreaChange(e.target.value)}
+                        placeholder="e.g. Ikeja, Lekki, Victoria Island"
                       />
+                    </label>
+                    <label className="admin-field admin-field--full">
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        Full Store Location Display
+                        <span style={{ fontSize: 11, color: 'var(--text-muted, #94a3b8)', fontWeight: 400 }}>Shown to buyers on storefront</span>
+                      </span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editLocation}
+                        onChange={(e) => setEditLocation(e.target.value)}
+                        placeholder="e.g. Ikeja, Lagos, Nigeria"
+                      />
+                    </label>
+                    <label className="admin-field admin-field--full">
+                      <span>Physical Street Address</span>
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={editAddress}
+                        onChange={(e) => setEditAddress(e.target.value)}
+                        placeholder="e.g. Suite 12, Victoria Mall, Plot 4"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* 5. Payout Bank Account */}
+                <div className="admin-drawer__section">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <h3 style={{ margin: 0, paddingBottom: 0, borderBottom: 'none' }}>Payout Bank Account</h3>
+                    <button
+                      type="button"
+                      onClick={() => setCustomBankMode(!customBankMode)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--primary, #25D366)',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                    >
+                      {customBankMode ? '← Pick from Bank List' : '✏️ Type custom bank name'}
+                    </button>
+                  </div>
+                  <div className="admin-drawer__grid admin-drawer__grid--cols-2">
+                    <label className="admin-field admin-field--full">
+                      <span>Bank Name</span>
+                      {customBankMode ? (
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <input
+                            className="admin-input"
+                            type="text"
+                            value={editBankName}
+                            onChange={(e) => setEditBankName(e.target.value)}
+                            placeholder="Enter bank name..."
+                            style={{ flex: 1 }}
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => setCustomBankMode(false)}
+                            style={{ padding: '0 14px', fontSize: 12, height: 42, whiteSpace: 'nowrap' }}
+                          >
+                            Back to List
+                          </button>
+                        </div>
+                      ) : (
+                        <SearchableSelect
+                          options={bankSelectOptions}
+                          value={editBankName}
+                          onChange={handleBankSelect}
+                          placeholder="Select Payout Bank..."
+                          searchPlaceholder="Search bank (Access, GTBank, Zenith, OPay...)..."
+                          triggerStyle={{
+                            background: 'var(--surface-2, #1c1c21)',
+                            border: '1px solid var(--border-strong, #30303a)',
+                            borderRadius: 8,
+                            minHeight: 42,
+                            fontSize: 14,
+                            color: 'var(--text, #f2f2f4)',
+                          }}
+                        />
+                      )}
                     </label>
                     <label className="admin-field">
                       <span>Account Number</span>
@@ -1033,9 +1362,10 @@ export default function AdminStoresPage() {
                         value={editBankAccount}
                         onChange={(e) => setEditBankAccount(e.target.value.replace(/\D/g, '').slice(0, 10))}
                         placeholder={selectedStore.bank_account_number || '0123456789'}
+                        maxLength={10}
                       />
                     </label>
-                    <label className="admin-field admin-field--full">
+                    <label className="admin-field">
                       <span>Account Name</span>
                       <input
                         className="admin-input"
@@ -1120,6 +1450,13 @@ export default function AdminStoresPage() {
                     <div>
                       <label>Handle</label>
                       <span>@{selectedStore.username}</span>
+                    </div>
+                    <div>
+                      <label>Country & Currency</label>
+                      <span>
+                        {selectedStore.country_code ? `${selectedStore.country_code} · ` : ''}
+                        {selectedStore.currency_code || 'NGN'}
+                      </span>
                     </div>
                     <div>
                       <label>Location (City / State)</label>
@@ -1267,25 +1604,48 @@ export default function AdminStoresPage() {
                   </div>
                 </div>
 
-              {selectedStore.bank_account_number && (
                 <div className="admin-drawer__section">
-                  <h3>Payout Bank account</h3>
-                  <div className="admin-drawer__grid">
-                    <div>
-                      <label>Bank Name</label>
-                      <strong>{selectedStore.bank_name || 'N/A'}</strong>
-                    </div>
-                    <div>
-                      <label>Account Number</label>
-                      <span>{selectedStore.bank_account_number}</span>
-                    </div>
-                    <div>
-                      <label>Account Name</label>
-                      <span>{selectedStore.bank_account_name || 'N/A'}</span>
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
+                    <h3 style={{ borderBottom: 'none', paddingBottom: 0, margin: 0 }}>Payout Bank Account</h3>
+                    <button
+                      type="button"
+                      onClick={() => setInspectorTab('edit')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--primary, #25D366)',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <Pencil size={12} /> {selectedStore.bank_account_number ? 'Edit Bank' : '+ Add Bank'}
+                    </button>
                   </div>
+                  {selectedStore.bank_account_number ? (
+                    <div className="admin-drawer__grid">
+                      <div>
+                        <label>Bank Name</label>
+                        <strong>{selectedStore.bank_name || 'N/A'}</strong>
+                      </div>
+                      <div>
+                        <label>Account Number</label>
+                        <span>{selectedStore.bank_account_number}</span>
+                      </div>
+                      <div>
+                        <label>Account Name</label>
+                        <span>{selectedStore.bank_account_name || 'N/A'}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ padding: '8px 0', fontSize: 13, color: 'var(--text-muted)' }}>
+                      No payout bank account configured yet. Click &quot;+ Add Bank&quot; to configure payout credentials.
+                    </div>
+                  )}
                 </div>
-              )}
 
               <div className="admin-drawer__section">
                 <h3>Customer Payment Account (Dedicated Account)</h3>
