@@ -1523,6 +1523,47 @@ export default function AdminStoresPage() {
                   </button>
                 </div>
 
+                {hasReachedProductLimit(selectedStore) && (
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      borderRadius: 10,
+                      background: 'rgba(234, 179, 8, 0.08)',
+                      border: '1px solid rgba(234, 179, 8, 0.25)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                    }}
+                  >
+                    <div>
+                      <strong style={{ fontSize: 13, color: '#facc15', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Mail size={14} /> Product limit reached ({freeProductLimit} products)
+                      </strong>
+                      <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-muted, #94a3b8)' }}>
+                        Notify merchant that they have reached the free tier limit.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ fontSize: 12, padding: '6px 12px', whiteSpace: 'nowrap' }}
+                      disabled={sendingLimitEmailFor === selectedStore.id}
+                      onClick={() => {
+                        openConfirmationDialog(
+                          'Send limit-reached email',
+                          `Email "${selectedStore.user?.name || selectedStore.store_name}" letting them know they've hit the ${freeProductLimit}-product free plan limit and can upgrade to Pro?`,
+                          async () => {
+                            await handleSendLimitEmail(selectedStore.id);
+                          }
+                        );
+                      }}
+                    >
+                      {sendingLimitEmailFor === selectedStore.id ? 'Sending…' : 'Send limit email'}
+                    </button>
+                  </div>
+                )}
+
                 <div className="admin-drawer__section">
                   <h3>Wallet Balances</h3>
                   <div className="admin-drawer__grid admin-drawer__grid--cols-2">
@@ -1648,7 +1689,29 @@ export default function AdminStoresPage() {
                 </div>
 
               <div className="admin-drawer__section">
-                <h3>Customer Payment Account (Dedicated Account)</h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 6 }}>
+                  <h3 style={{ borderBottom: 'none', paddingBottom: 0, margin: 0 }}>Customer Payment Account (Dedicated Account)</h3>
+                  {needsDedicatedAccount(selectedStore) && (
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ fontSize: 12, padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                      disabled={generatingDvaFor === selectedStore.id}
+                      onClick={() => {
+                        openConfirmationDialog(
+                          'Generate dedicated account',
+                          `Generate a Paystack dedicated account for "${selectedStore.store_name}"? The merchant will be notified by email once it's ready.`,
+                          async () => {
+                            await handleGenerateDva(selectedStore.id);
+                          }
+                        );
+                      }}
+                    >
+                      <Landmark size={13} />
+                      {generatingDvaFor === selectedStore.id ? 'Generating…' : 'Generate DVA'}
+                    </button>
+                  )}
+                </div>
                 {selectedStore.paystack_dva_active && selectedStore.paystack_dva_account_number ? (
                   <div className="admin-drawer__grid">
                     <div>
@@ -1841,78 +1904,74 @@ export default function AdminStoresPage() {
             </div>
           )}
 
-            <div className="admin-drawer__actions">
+            <div
+              className="admin-drawer__actions"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: inspectorTab === 'edit' ? '1fr 1.5fr' : 'repeat(4, 1fr)',
+                gap: 8,
+                padding: '16px 20px',
+              }}
+            >
               {inspectorTab === 'edit' ? (
                 <>
-                  <button type="button" className="btn btn-outline" onClick={() => setInspectorTab('overview')}>
-                    Cancel / Back to Overview
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => setInspectorTab('overview')}
+                    style={{ minWidth: 0, justifyContent: 'center' }}
+                  >
+                    Cancel
                   </button>
                   <button
                     type="button"
                     className="btn btn-primary"
                     disabled={editSaving}
                     onClick={handleSaveMerchantInfo}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    style={{ minWidth: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                   >
                     {editSaving ? (
-                      <><Loader2 size={15} className="admin-spin" /> Saving changes…</>
+                      <><Loader2 size={15} className="admin-spin" /> Saving…</>
                     ) : (
-                      <><Save size={15} /> Save All Changes</>
+                      <><Save size={15} /> Save Changes</>
                     )}
                   </button>
                 </>
               ) : (
                 <>
-                  <button type="button" className="btn btn-outline" onClick={() => setSelectedStore(null)}>
-                    Close Inspector
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => setSelectedStore(null)}
+                    style={{
+                      minWidth: 0,
+                      padding: '10px 4px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      textAlign: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    Close
                   </button>
                   <button
                     type="button"
                     className="btn btn-primary"
                     onClick={() => setInspectorTab('edit')}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    style={{
+                      minWidth: 0,
+                      padding: '10px 4px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 4,
+                    }}
                   >
-                    <Pencil size={15} />
-                    Edit Store & Location
+                    <Pencil size={13} />
+                    Edit
                   </button>
-                  {hasReachedProductLimit(selectedStore) && (
-                    <button
-                      type="button"
-                      className="btn btn-outline"
-                      disabled={sendingLimitEmailFor === selectedStore.id}
-                      onClick={() => {
-                        openConfirmationDialog(
-                          'Send limit-reached email',
-                          `Email "${selectedStore.user?.name || selectedStore.store_name}" letting them know they've hit the ${freeProductLimit}-product free plan limit and can upgrade to Pro?`,
-                          async () => {
-                            await handleSendLimitEmail(selectedStore.id);
-                          }
-                        );
-                      }}
-                    >
-                      <Mail size={15} />
-                      {sendingLimitEmailFor === selectedStore.id ? 'Sending…' : 'Send limit email'}
-                    </button>
-                  )}
-                  {needsDedicatedAccount(selectedStore) && (
-                    <button
-                      type="button"
-                      className="btn btn-outline"
-                      disabled={generatingDvaFor === selectedStore.id}
-                      onClick={() => {
-                        openConfirmationDialog(
-                          'Generate dedicated account',
-                          `Generate a Paystack dedicated account for "${selectedStore.store_name}"? The merchant will be notified by email once it's ready.`,
-                          async () => {
-                            await handleGenerateDva(selectedStore.id);
-                          }
-                        );
-                      }}
-                    >
-                      <Landmark size={15} />
-                      {generatingDvaFor === selectedStore.id ? 'Generating…' : 'Generate DVA'}
-                    </button>
-                  )}
                   <button
                     type="button"
                     className={selectedStore.is_active ? 'btn btn-primary btn-danger-tone' : 'btn btn-primary'}
@@ -1926,8 +1985,19 @@ export default function AdminStoresPage() {
                         }
                       );
                     }}
+                    style={{
+                      minWidth: 0,
+                      padding: '10px 4px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 4,
+                    }}
                   >
-                    {selectedStore.is_active ? 'Suspend Store' : 'Activate Store'}
+                    <Power size={13} />
+                    {selectedStore.is_active ? 'Suspend' : 'Activate'}
                   </button>
                   <button
                     type="button"
@@ -1941,9 +2011,19 @@ export default function AdminStoresPage() {
                         }
                       );
                     }}
+                    style={{
+                      minWidth: 0,
+                      padding: '10px 4px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 4,
+                    }}
                   >
-                    <Trash2 size={15} />
-                    Delete Store
+                    <Trash2 size={13} />
+                    Delete
                   </button>
                 </>
               )}
