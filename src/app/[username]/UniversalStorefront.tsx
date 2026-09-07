@@ -1935,7 +1935,7 @@ export default function UniversalStorefront({
             })}
           </div>
         ) : (
-          /* LIST VIEW (Flyer-inspired horizontal card layout) */
+          /* LIST VIEW (Jiji-inspired horizontal card layout with big image) */
           <div className="storefront-list-container">
             {paginatedItems.map((item, index) => {
               const priceNum = parseFloat(item.price || '0');
@@ -1944,10 +1944,11 @@ export default function UniversalStorefront({
               const discountPercent = hasDiscount ? Math.round(((compareNum - priceNum) / compareNum) * 100) : 0;
               const isOutOfStock = item.stock_status === 'out_of_stock';
               const rawImageUrl = (item.image_urls && item.image_urls[0]) || null;
-              const imageUrl = optimizeImageUrl(rawImageUrl, 'thumb');
+              const imageUrl = optimizeImageUrl(rawImageUrl, 'md');
               const isService = item.type === 'service';
               const isSaved = wishlist.includes(item.id);
               const isJustAdded = recentlyAddedId === item.id;
+              const itemCategory = categories.find((c) => c.id === item.category_id);
 
               return (
                 <div
@@ -1960,7 +1961,7 @@ export default function UniversalStorefront({
                     setQuickViewProduct(item);
                   }}
                 >
-                  {/* Thumbnail Container (Warm neutral backdrop from flyer) */}
+                  {/* Left Column: Big Image (Jiji style) */}
                   <div className="storefront-list-thumb-wrapper">
                     <div style={{ width: '100%', height: '100%', opacity: isOutOfStock ? 0.5 : 1 }}>
                       <ProductImageWithSkeleton
@@ -1970,159 +1971,143 @@ export default function UniversalStorefront({
                       />
                     </div>
 
-                    {/* Stock / Discount Tag */}
-                    {isOutOfStock ? (
-                      <span
-                        style={{
-                          position: 'absolute',
-                          top: 4,
-                          left: 4,
-                          background: '#ffffff',
-                          color: '#e11d48',
-                          fontSize: 9,
-                          fontWeight: 700,
-                          padding: '2px 6px',
-                          borderRadius: 9999,
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
-                        }}
-                      >
-                        Out of stock
-                      </span>
-                    ) : hasDiscount ? (
-                      <span
-                        style={{
-                          position: 'absolute',
-                          top: 4,
-                          left: 4,
-                          background: '#e11d48',
-                          color: '#fff',
-                          fontSize: 9,
-                          fontWeight: 800,
-                          padding: '2px 6px',
-                          borderRadius: 9999,
-                          boxShadow: '0 2px 4px rgba(225, 29, 72, 0.3)',
-                        }}
-                      >
-                        -{discountPercent}%
-                      </span>
-                    ) : null}
-                  </div>
-
-                  {/* Product Details (Title & Price) */}
-                  <div className="storefront-list-content">
-                    <h4 className="storefront-list-title" style={{ color: isOutOfStock ? '#94a3b8' : undefined }}>
-                      {item.name}
-                    </h4>
-
-                    <div className="storefront-list-price-row">
-                      <span className="storefront-list-price" style={{ color: isOutOfStock ? '#94a3b8' : undefined }}>
-                        {formatCurrency(priceNum, selectedCurrency)}
-                      </span>
-                      {hasDiscount && !isOutOfStock && (
-                        <span style={{ fontSize: 11.5, color: '#94a3b8', textDecoration: 'line-through' }}>
-                          {formatCurrency(compareNum, selectedCurrency)}
+                    {/* Jiji Top Badges */}
+                    <div className="storefront-list-thumb-badges">
+                      {Boolean(store.is_verified) && (
+                        <span className="storefront-list-verified-badge">
+                          <ShieldCheck size={11} strokeWidth={2.5} />
+                          Verified ID
                         </span>
                       )}
+                      {store.rating && Number(store.rating) > 0 ? (
+                        <span className="storefront-list-rating-badge">
+                          {Number(store.rating).toFixed(1)} ★★★★★
+                        </span>
+                      ) : null}
+                      {isOutOfStock ? (
+                        <span className="storefront-list-stock-badge">
+                          Out of stock
+                        </span>
+                      ) : hasDiscount ? (
+                        <span className="storefront-list-discount-badge">
+                          -{discountPercent}%
+                        </span>
+                      ) : null}
                     </div>
                   </div>
 
-                  {/* Flyer Dual Action Buttons (WhatsApp + Cart + Wishlist) */}
-                  <div className="storefront-list-actions" onClick={(e) => e.stopPropagation()}>
-                    {/* Wishlist Button */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleWishlist(item.id, e);
-                      }}
-                      title={isSaved ? 'Remove from wishlist' : 'Save to wishlist'}
-                      aria-label="Save to wishlist"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 32,
-                        height: 32,
-                        borderRadius: '50%',
-                        background: isSaved ? 'rgba(239, 68, 68, 0.08)' : '#f8fafc',
-                        border: '1px solid',
-                        borderColor: isSaved ? 'rgba(239, 68, 68, 0.25)' : '#e2e8f0',
-                        color: isSaved ? '#ef4444' : '#94a3b8',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <Heart size={14} fill={isSaved ? '#ef4444' : 'transparent'} />
-                    </button>
-
-                    {/* Add to Cart Button (Flyer Icon) */}
-                    {!isOutOfStock && (() => {
-                      const inCartItem = cart.find((c) => c.productId === item.id);
-                      const cartQty = inCartItem ? inCartItem.qty : 0;
-
-                      if (cartQty > 0) {
-                        return (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setIsCartOpen(true);
-                            }}
-                            className="storefront-flyer-action-btn added"
-                            title={`In your bag (${cartQty}). Click to view bag`}
-                            aria-label="View bag"
-                            style={{ position: 'relative' }}
+                  {/* Right Column: Details */}
+                  <div className="storefront-list-content">
+                    <div>
+                      {/* Header Row: Title & Price */}
+                      <div className="storefront-list-header-row">
+                        <h4 className="storefront-list-title" style={{ color: isOutOfStock ? '#94a3b8' : undefined }}>
+                          {item.name}
+                        </h4>
+                        <div className="storefront-list-price-wrap">
+                          <span
+                            className="storefront-list-price"
+                            style={{ color: isOutOfStock ? '#94a3b8' : (primaryColor || '#00b53f') }}
                           >
-                            <ShoppingBag size={17} />
-                            <span
-                              style={{
-                                position: 'absolute',
-                                top: -4,
-                                right: -4,
-                                minWidth: 16,
-                                height: 16,
-                                borderRadius: 8,
-                                background: '#e11d48',
-                                color: '#ffffff',
-                                fontSize: 10,
-                                fontWeight: 800,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '0 3px',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                              }}
-                            >
-                              {cartQty}
+                            {formatCurrency(priceNum, selectedCurrency)}
+                          </span>
+                          {hasDiscount && !isOutOfStock && (
+                            <span className="storefront-list-compare-price">
+                              {formatCurrency(compareNum, selectedCurrency)}
                             </span>
-                          </button>
-                        );
-                      }
+                          )}
+                        </div>
+                      </div>
 
-                      return (
+                      {/* Description Snippet (Jiji 2-line clamped preview) */}
+                      {item.description ? (
+                        <p className="storefront-list-desc">
+                          {item.description.replace(/\r?\n/g, ' ')}
+                        </p>
+                      ) : null}
+
+                      {/* Tag / Category Pill */}
+                      <div className="storefront-list-tags">
+                        <span className="storefront-list-tag">
+                          {itemCategory?.name || (item.type === 'service' ? 'Service' : 'Brand New')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Bottom Row: Location & Quick Action Buttons */}
+                    <div className="storefront-list-footer">
+                      <div className="storefront-list-location">
+                        <MapPin size={12} className="storefront-list-location-icon" />
+                        <span>{store.location || 'Nigeria'}</span>
+                      </div>
+
+                      <div className="storefront-list-actions" onClick={(e) => e.stopPropagation()}>
+                        {/* Wishlist Button */}
                         <button
                           type="button"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            if (isService || (item.variants && item.variants.length > 0)) {
-                              setQuickViewImageIndex(0);
-                              setQuickViewQty(1);
-                              setQuickViewProduct(item);
-                            } else {
-                              addToCart(item);
-                            }
+                            toggleWishlist(item.id, e);
                           }}
-                          className={`storefront-flyer-action-btn ${isJustAdded ? 'added' : ''}`}
-                          title={isService ? 'Book service' : isJustAdded ? 'Added to bag!' : 'Add to bag'}
-                          aria-label="Add to cart"
+                          title={isSaved ? 'Remove from wishlist' : 'Save to wishlist'}
+                          aria-label="Save to wishlist"
+                          className={`storefront-list-wishlist-btn ${isSaved ? 'saved' : ''}`}
                         >
-                          {isJustAdded ? <Check size={18} /> : <ShoppingBag size={17} />}
+                          <Heart size={14} fill={isSaved ? '#ef4444' : 'transparent'} />
                         </button>
-                      );
-                    })()}
+
+                        {/* Add to Cart Button */}
+                        {!isOutOfStock && (() => {
+                          const inCartItem = cart.find((c) => c.productId === item.id);
+                          const cartQty = inCartItem ? inCartItem.qty : 0;
+
+                          if (cartQty > 0) {
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setIsCartOpen(true);
+                                }}
+                                className="storefront-flyer-action-btn added"
+                                title={`In your bag (${cartQty}). Click to view bag`}
+                                aria-label="View bag"
+                                style={{ position: 'relative' }}
+                              >
+                                <ShoppingBag size={15} />
+                                <span className="storefront-list-badge-count">
+                                  {cartQty}
+                                </span>
+                              </button>
+                            );
+                          }
+
+                          return (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (isService || (item.variants && item.variants.length > 0)) {
+                                  setQuickViewImageIndex(0);
+                                  setQuickViewQty(1);
+                                  setQuickViewProduct(item);
+                                } else {
+                                  addToCart(item);
+                                }
+                              }}
+                              className={`storefront-flyer-action-btn ${isJustAdded ? 'added' : ''}`}
+                              title={isService ? 'Book service' : isJustAdded ? 'Added to bag!' : 'Add to bag'}
+                              aria-label="Add to cart"
+                            >
+                              {isJustAdded ? <Check size={16} /> : <ShoppingBag size={15} />}
+                            </button>
+                          );
+                        })()}
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
