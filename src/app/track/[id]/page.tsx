@@ -58,6 +58,7 @@ interface Order {
   tracking_number?: string | null;
   shipping_provider?: string | null;
   payout_hold_until?: string | null;
+  payment_method?: string | null;
 }
 
 export default function OrderTrackingPage() {
@@ -430,7 +431,7 @@ export default function OrderTrackingPage() {
   const isExpired = order.order_status === 'expired';
   const isConfirmed = order.order_status === 'confirmed';
   const isCompleted = order.order_status === 'completed';
-  const isDigitalOnly = order.items.length > 0 && order.items.every(item => item.product?.is_digital);
+  const isDigitalOnly = order.delivery_method === 'digital' || (order.items.length > 0 && order.items.every(item => item.product?.is_digital));
   const isDelivered = order.delivery_confirmed_at !== null;
 
   // Progress indexes: Placed=1, Confirmed=2, Completed=3
@@ -553,9 +554,8 @@ export default function OrderTrackingPage() {
                 >
                   {isConfirmingDelivery ? 'Confirming...' : (isDigitalOnly ? 'Confirm Download' : "Yes, I've Received My Order")}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setDisputePanelOpen(true)}
+                <a
+                  href={`/appeal?order_id=${order.id}`}
                   className="btn clickable"
                   style={{
                     width: '100%',
@@ -569,11 +569,12 @@ export default function OrderTrackingPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px'
+                    gap: '6px',
+                    textDecoration: 'none',
                   }}
                 >
-                  <ShieldAlert size={14} /> Report Problem / Dispute Order
-                </button>
+                  <ShieldAlert size={14} /> Report Problem / File Appeal with Screenshots
+                </a>
               </div>
             )}
           </div>
@@ -676,7 +677,7 @@ export default function OrderTrackingPage() {
         </div>
 
         {/* Real-time Logistics Tracker */}
-        {order.delivery_method === 'delivery' && (order as any).tracking_number && (
+        {!isDigitalOnly && order.delivery_method === 'delivery' && (order as any).tracking_number && (
           <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>🚚 Logistics Tracking</span>
@@ -817,10 +818,11 @@ export default function OrderTrackingPage() {
                     onChange={e => setDisputeReason(e.target.value)}
                     style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-2)', border: '1.5px solid var(--border)', borderRadius: '10px', fontSize: '13px', color: 'var(--text)' }}
                   >
-                    <option value="non_shipment">Items Not Received / Not Shipped</option>
+                    <option value="incorrect_items">Incorrect Items Sent (Wrong Product)</option>
                     <option value="damaged_items">Damaged or Defective Items</option>
-                    <option value="incorrect_items">Incorrect Items Sent</option>
+                    <option value="non_shipment">Items Not Received / Not Shipped</option>
                     <option value="fraud">Suspected Fraudulent Listing</option>
+                    <option value="others">Others (Unlisted Issue)</option>
                   </select>
                 </div>
 
@@ -1215,10 +1217,10 @@ export default function OrderTrackingPage() {
           </div>
         )}
 
-        {/* Delivery Details Card */}
+        {/* Delivery / Order Details Card */}
         <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-            Delivery Details
+            {isDigitalOnly ? 'Order Details' : 'Delivery Details'}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1234,12 +1236,32 @@ export default function OrderTrackingPage() {
               <span style={{ fontWeight: 600 }}>{order.customer_phone}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Delivery Method</span>
+              <span style={{ color: 'var(--text-muted)' }}>{isDigitalOnly ? 'Fulfillment' : 'Delivery Method'}</span>
               <span style={{ fontWeight: 600, textTransform: 'capitalize', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Package size={14} style={{ color: 'var(--primary)' }} /> {order.delivery_method}
+                {isDigitalOnly ? (
+                  <>
+                    <Download size={14} style={{ color: 'var(--primary)' }} /> Digital Delivery
+                  </>
+                ) : (
+                  <>
+                    <Package size={14} style={{ color: 'var(--primary)' }} /> {order.delivery_method}
+                  </>
+                )}
               </span>
             </div>
-            {order.delivery_method === 'delivery' && order.delivery_address && (
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Payment Method</span>
+              <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                {isDigitalOnly
+                  ? (order.payment_method && !['delivery', 'cod', 'cash_on_delivery', 'pay_on_delivery'].includes(order.payment_method.toLowerCase())
+                      ? (order.payment_method.toLowerCase() === 'paystack' ? 'Paystack' : (order.payment_method.toLowerCase() === 'whatsapp' ? 'Online / Paystack' : order.payment_method.charAt(0).toUpperCase() + order.payment_method.slice(1)))
+                      : 'Paystack / Online')
+                  : (order.payment_method
+                      ? (order.payment_method.toLowerCase() === 'paystack' ? 'Paystack' : order.payment_method.charAt(0).toUpperCase() + order.payment_method.slice(1))
+                      : 'Online')}
+              </span>
+            </div>
+            {!isDigitalOnly && order.delivery_method === 'delivery' && order.delivery_address && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px', borderTop: '1px solid var(--border)', paddingTop: '8px' }}>
                 <span style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={13} /> Shipping Address

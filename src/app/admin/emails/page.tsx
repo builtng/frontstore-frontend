@@ -6,10 +6,11 @@ import { useAdmin } from '../AdminContext';
 import {
   Mail, MessageCircle, Send, Loader2, Users, UserPlus, UserMinus, Globe, Sparkles,
   CalendarDays, CalendarRange, Image as ImageIcon, X, Wand2, Search, Eye, UserCog, Check,
+  ShoppingBag,
 } from 'lucide-react';
 
 type Channel = 'email' | 'whatsapp';
-type Segment = 'all' | 'new' | 'old' | 'inactive' | 'month' | 'year' | 'individual';
+type Segment = 'all' | 'new' | 'old' | 'inactive' | 'no_products' | 'month' | 'year' | 'individual';
 
 type RecipientResult = {
   id: number;
@@ -26,6 +27,7 @@ const MONTHS = [
 
 const SEGMENTS: Array<{ value: Segment; label: string; desc: string; icon: React.ReactNode }> = [
   { value: 'all', label: 'Everyone', desc: 'Every merchant with a store on the platform.', icon: <Globe size={16} /> },
+  { value: 'no_products', label: 'No Products Yet', desc: 'Merchants who haven\'t added or posted any products.', icon: <ShoppingBag size={16} /> },
   { value: 'new', label: 'New Merchants', desc: 'Signed up within the selected number of days.', icon: <UserPlus size={16} /> },
   { value: 'old', label: 'Existing Merchants', desc: 'Signed up more than the selected number of days ago.', icon: <Users size={16} /> },
   { value: 'inactive', label: 'Inactive Merchants', desc: "Haven't logged in within the selected number of days.", icon: <UserMinus size={16} /> },
@@ -174,8 +176,23 @@ export default function AdminEmailsPage() {
     if (segment === 'individual') return `${selectedRecipients.length} hand-picked merchant(s)`;
     if (segment === 'month') return `${MONTHS[month - 1]} ${year} sign-ups`;
     if (segment === 'year') return `${year} sign-ups`;
+    if (segment === 'no_products') return 'Merchants with no products posted yet';
     if (needsDays) return `${activeSegment.label} (last ${days} days)`;
     return activeSegment.label;
+  };
+
+  const handleLoadNoProductsTemplate = () => {
+    if (channel === 'email') {
+      setSubject('Your store is waiting for its first product! 🚀');
+      setBody(
+        `Hi there,\n\nWe noticed you set up your store on Frontstore, but haven't added any products yet.\n\nAdding a product takes less than a minute. Upload a photo, set your price, and start sharing your storefront link with customers on WhatsApp!\n\nLog in now and post your first product: https://frontstore.ng/dashboard`
+      );
+    } else {
+      setBody(
+        `Hello! 👋 Your Frontstore storefront is waiting for its first product.\n\nAdding a product takes less than 60 seconds — upload a photo, set your price, and start sharing your link on WhatsApp status.\n\nPost your first product now: https://frontstore.ng/dashboard`
+      );
+    }
+    toast.success('Loaded "First Product" nudge template.');
   };
 
   const handleAiSuggest = async () => {
@@ -488,14 +505,26 @@ export default function AdminEmailsPage() {
 
           <div style={{ marginBottom: 20 }}>
             {!showAiPrompt ? (
-              <button
-                type="button"
-                onClick={() => setShowAiPrompt(true)}
-                className="btn btn-outline"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderColor: 'var(--primary)', color: 'var(--primary)' }}
-              >
-                <Wand2 size={15} /> AI: Draft This For Me
-              </button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAiPrompt(true)}
+                  className="btn btn-outline"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderColor: 'var(--primary)', color: 'var(--primary)' }}
+                >
+                  <Wand2 size={15} /> AI: Draft This For Me
+                </button>
+                {segment === 'no_products' && (
+                  <button
+                    type="button"
+                    onClick={handleLoadNoProductsTemplate}
+                    className="btn btn-outline"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderColor: 'var(--border)', color: 'var(--text)' }}
+                  >
+                    <Sparkles size={15} style={{ color: 'var(--primary)' }} /> Use "First Product" Template
+                  </button>
+                )}
+              </div>
             ) : (
               <div style={{ padding: 14, borderRadius: 10, background: 'rgba(18, 140, 126, 0.05)', border: '1px solid var(--primary)' }}>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>

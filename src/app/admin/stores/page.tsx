@@ -25,6 +25,7 @@ import {
   Upload,
   UserPlus,
   Zap,
+  ShoppingBag,
 } from 'lucide-react';
 import { TableSkeleton, StatusChip, EmptyState } from '../components';
 import CreateMerchantDrawer from './CreateMerchantDrawer';
@@ -178,6 +179,8 @@ export default function AdminStoresPage() {
   const [savingColorFor, setSavingColorFor] = useState<string | null>(null);
   const [showCreateDrawer, setShowCreateDrawer] = useState(false);
   const [sendingLimitEmailFor, setSendingLimitEmailFor] = useState<string | null>(null);
+  const [sendingNoProductsEmailFor, setSendingNoProductsEmailFor] = useState<string | null>(null);
+  const [storeFilter, setStoreFilter] = useState<'all' | 'no_products'>('all');
   const [generatingDvaFor, setGeneratingDvaFor] = useState<string | null>(null);
   const [uploadingNinaAvatarFor, setUploadingNinaAvatarFor] = useState<string | null>(null);
 
@@ -354,11 +357,14 @@ export default function AdminStoresPage() {
   const needsDedicatedAccount = (store: StoreInfo) =>
     store.payment_provider !== 'stripe' && !store.paystack_dva_active;
 
-  const loadStores = async (page = 1, search = '') => {
+  const loadStores = async (page = 1, search = searchQuery, filter = storeFilter) => {
     if (!token) return;
     try {
       setStoresLoading(true);
-      const url = `${apiUrl}/v1/admin/stores?page=${page}&search=${encodeURIComponent(search)}`;
+      let url = `${apiUrl}/v1/admin/stores?page=${page}&search=${encodeURIComponent(search)}`;
+      if (filter && filter !== 'all') {
+        url += `&filter=${encodeURIComponent(filter)}`;
+      }
       const res = await fetch(url, { credentials: 'include', headers: getHeaders() });
       const json = await handleFetchResponse(res, 'Could not fetch stores directory.');
       setStores(json.data?.data || []);
@@ -418,6 +424,23 @@ export default function AdminStoresPage() {
       if (error.message !== 'Session expired') toast.error(error.message);
     } finally {
       setSendingLimitEmailFor(null);
+    }
+  };
+
+  const handleSendNoProductsEmail = async (storeId: string) => {
+    try {
+      setSendingNoProductsEmailFor(storeId);
+      const res = await fetch(`${apiUrl}/v1/admin/stores/${storeId}/send-no-products-email`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: getHeaders(),
+      });
+      const json = await handleFetchResponse(res, 'Failed to send first-product reminder email.');
+      toast.success(json.message);
+    } catch (error: any) {
+      if (error.message !== 'Session expired') toast.error(error.message);
+    } finally {
+      setSendingNoProductsEmailFor(null);
     }
   };
 
@@ -747,7 +770,7 @@ export default function AdminStoresPage() {
             className="admin-search"
             onSubmit={(event) => {
               event.preventDefault();
-              loadStores(1, searchQuery);
+              loadStores(1, searchQuery, storeFilter);
             }}
           >
             <Search size={16} />
@@ -762,6 +785,52 @@ export default function AdminStoresPage() {
             <UserPlus size={15} /> Create merchant
           </button>
         </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, alignItems: 'center' }}>
+        <button
+          type="button"
+          onClick={() => {
+            setStoreFilter('all');
+            loadStores(1, searchQuery, 'all');
+          }}
+          style={{
+            padding: '6px 14px',
+            borderRadius: 20,
+            fontSize: 12,
+            fontWeight: 700,
+            border: '1px solid var(--border)',
+            background: storeFilter === 'all' ? 'var(--primary)' : 'var(--surface-2)',
+            color: storeFilter === 'all' ? '#fff' : 'var(--text-muted)',
+            cursor: 'pointer',
+          }}
+        >
+          All Stores
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setStoreFilter('no_products');
+            loadStores(1, searchQuery, 'no_products');
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 14px',
+            borderRadius: 20,
+            fontSize: 12,
+            fontWeight: 700,
+            border: '1px solid var(--border)',
+            background: storeFilter === 'no_products' ? 'var(--primary)' : 'var(--surface-2)',
+            color: storeFilter === 'no_products' ? '#fff' : 'var(--text-muted)',
+            cursor: 'pointer',
+          }}
+        >
+          <ShoppingBag size={13} />
+          No Products Yet
+        </button>
       </div>
 
       {showCreateDrawer && (
@@ -881,6 +950,27 @@ export default function AdminStoresPage() {
                         {sendingLimitEmailFor === store.id ? 'Sending…' : 'Send limit email'}
                       </button>
                     )}
+                    {Number(store.products_count || 0) === 0 && (
+                      <button
+                        type="button"
+                        className="admin-action"
+                        disabled={sendingNoProductsEmailFor === store.id || !store.user?.email}
+                        title="Send email reminder to upload first product"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openConfirmationDialog(
+                            'Send "First Product" reminder email',
+                            `Email "${store.user?.name || store.store_name}" (${store.user?.email || 'no email'}) encouraging them to upload their first product?`,
+                            async () => {
+                              await handleSendNoProductsEmail(store.id);
+                            }
+                          );
+                        }}
+                      >
+                        <Mail size={15} />
+                        {sendingNoProductsEmailFor === store.id ? 'Sending…' : 'Nudge product'}
+                      </button>
+                    )}
                     {needsDedicatedAccount(store) && (
                       <button
                         type="button"
@@ -964,13 +1054,13 @@ export default function AdminStoresPage() {
 
       {lastPage > 1 && (
         <div className="admin-pagination">
-          <button type="button" onClick={() => loadStores(currentPage - 1, searchQuery)} disabled={currentPage === 1}>
+          <button type="button" onClick={() => loadStores(currentPage - 1, searchQuery, storeFilter)} disabled={currentPage === 1}>
             <ArrowLeft size={15} /> Previous
           </button>
           <span>
             Page {currentPage} of {lastPage}
           </span>
-          <button type="button" onClick={() => loadStores(currentPage + 1, searchQuery)} disabled={currentPage === lastPage}>
+          <button type="button" onClick={() => loadStores(currentPage + 1, searchQuery, storeFilter)} disabled={currentPage === lastPage}>
             Next <ArrowRight size={15} />
           </button>
         </div>
@@ -1523,6 +1613,47 @@ export default function AdminStoresPage() {
                   </button>
                 </div>
 
+                {Number(selectedStore.products_count || 0) === 0 && (
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      borderRadius: 10,
+                      background: 'rgba(7, 94, 84, 0.08)',
+                      border: '1px solid rgba(7, 94, 84, 0.25)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                    }}
+                  >
+                    <div>
+                      <strong style={{ fontSize: 13, color: 'var(--primary, #075E54)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <ShoppingBag size={14} /> No products posted yet
+                      </strong>
+                      <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-muted, #94a3b8)' }}>
+                        Nudge this merchant to post their first product to make their store live.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ fontSize: 12, padding: '6px 12px', whiteSpace: 'nowrap', borderColor: 'var(--primary)', color: 'var(--primary)' }}
+                      disabled={sendingNoProductsEmailFor === selectedStore.id || !selectedStore.user?.email}
+                      onClick={() => {
+                        openConfirmationDialog(
+                          'Send "First Product" reminder email',
+                          `Email "${selectedStore.user?.name || selectedStore.store_name}" (${selectedStore.user?.email || 'no email'}) encouraging them to upload their first product and start selling?`,
+                          async () => {
+                            await handleSendNoProductsEmail(selectedStore.id);
+                          }
+                        );
+                      }}
+                    >
+                      {sendingNoProductsEmailFor === selectedStore.id ? 'Sending…' : 'Send first product email'}
+                    </button>
+                  </div>
+                )}
+
                 {hasReachedProductLimit(selectedStore) && (
                   <div
                     style={{
@@ -1579,24 +1710,26 @@ export default function AdminStoresPage() {
                 </div>
 
                 <div className="admin-drawer__section">
-                  <h3>Trust & Payout Level</h3>
-                  <div className="admin-tier-list">
-                    {PAYOUT_TIERS.map((tier) => {
-                      const isActive = (selectedStore.seller_level ?? 1) === tier.level;
-                      const Icon = tier.icon;
-                      return (
-                        <div key={tier.level} className={`admin-tier-row${isActive ? ' admin-tier-row--active' : ''}`}>
-                          <div className="admin-tier-row__icon">
-                            <Icon size={16} />
-                          </div>
-                          <div className="admin-tier-row__info">
-                            <strong>Level {tier.level} · {tier.name}</strong>
-                            <span>{tier.range}</span>
-                          </div>
-                          <span className="admin-tier-row__payout">{tier.payout}</span>
-                        </div>
-                      );
-                    })}
+                  <div
+                    style={{
+                      background: 'rgba(37, 211, 102, 0.06)',
+                      border: '1px solid rgba(37, 211, 102, 0.2)',
+                      borderRadius: 10,
+                      padding: '12px 14px',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 10,
+                    }}
+                  >
+                    <Clock size={16} style={{ color: '#25D366', marginTop: 2, flexShrink: 0 }} />
+                    <div>
+                      <strong style={{ fontSize: 13, color: 'var(--text-main, #EDEDED)', display: 'block' }}>
+                        Merchant Payout Schedule: 24–48 Hours
+                      </strong>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted, #8b92a5)', lineHeight: 1.4, display: 'block', marginTop: 2 }}>
+                        Order payments are disbursed to the merchant 24–48 hours after fulfillment based on the product category's delivery timeline.
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1870,6 +2003,7 @@ export default function AdminStoresPage() {
                 </div>
               </div>
 
+              {/* Nina Assistant Avatar section commented out for now
               <div className="admin-drawer__section">
                 <h3>Nina Assistant Avatar</h3>
                 <p style={{ fontSize: 12, color: 'var(--text-muted, #64748b)', marginTop: -4, marginBottom: 12 }}>
@@ -1901,6 +2035,7 @@ export default function AdminStoresPage() {
                   </label>
                 </div>
               </div>
+              */}
             </div>
           )}
 

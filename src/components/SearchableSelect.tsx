@@ -8,6 +8,10 @@ export interface SelectOption {
   label: string;
   sublabel?: string;
   icon?: React.ReactNode;
+  badge?: string;
+  badgeColor?: string;
+  badgeBg?: string;
+  badgeBorder?: string;
 }
 
 interface SearchableSelectProps {
@@ -190,6 +194,23 @@ export default function SearchableSelect({
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: selectedOption ? 600 : 500 }}>
             {selectedOption ? selectedOption.label : placeholder}
           </span>
+          {selectedOption?.badge && (
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: '6px',
+                background: selectedOption.badgeBg || 'var(--bg-2)',
+                color: selectedOption.badgeColor || 'var(--text-2)',
+                border: selectedOption.badgeBorder ? `1px solid ${selectedOption.badgeBorder}` : 'none',
+                flexShrink: 0,
+                marginLeft: 'auto',
+              }}
+            >
+              {selectedOption.badge}
+            </span>
+          )}
         </span>
         <ChevronDown
           size={16}
@@ -335,10 +356,28 @@ export default function SearchableSelect({
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
                       {opt.icon && <span style={{ flexShrink: 0, display: 'inline-flex' }}>{opt.icon}</span>}
-                      <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {opt.label}
-                        </span>
+                      <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {opt.label}
+                          </span>
+                          {opt.badge && (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                padding: '2px 7px',
+                                borderRadius: '6px',
+                                background: opt.badgeBg || 'var(--bg-2)',
+                                color: opt.badgeColor || 'var(--text-2)',
+                                border: opt.badgeBorder ? `1px solid ${opt.badgeBorder}` : 'none',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {opt.badge}
+                            </span>
+                          )}
+                        </div>
                         {opt.sublabel && (
                           <span style={{ fontSize: '11px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>
                             {opt.sublabel}

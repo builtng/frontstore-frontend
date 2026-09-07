@@ -70,6 +70,9 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
+  delivery_timeline?: string | null;
+  delivery_days?: number | null;
+  payout_timeline?: string | null;
 }
 
 export interface ProductInfo {

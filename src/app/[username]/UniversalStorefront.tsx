@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   ShoppingBag, Plus, Minus, Trash2, X, Check,
@@ -9,7 +9,7 @@ import {
   Sparkles, Tag, Info, AlertCircle, QrCode, Copy,
   Truck, ShieldAlert, Bell, User, Edit3, Package, Building,
   Filter, Heart, RefreshCw, Layers, CreditCard, Lock,
-  Navigation
+  Navigation, MoreVertical, RotateCcw, Calendar, Download
 } from 'lucide-react';
 import { toast as sonnerToast } from 'sonner';
 import QRCodeSVG from 'react-qr-code';
@@ -33,6 +33,8 @@ export const DEFAULT_STORE_POLICIES = {
   delivery: 'Orders are dispatched within 24 hours of confirmation. Lagos deliveries arrive same-day or next-day. Nationwide deliveries arrive in 24–48 hours.',
   authenticity: 'We only sell 100% genuine and verified items. Inspect your order on delivery.',
   payment: 'All online payments made through Frontstore are held under buyer protection until delivery confirmation.',
+  refund: 'Items in original, unworn or unused condition with packaging intact can be returned or exchanged within 7 days. Buyer protection guarantees a refund if items are defective or not as described.',
+  booking: 'Reschedule or cancel up to 24 hours before your appointment for a full refund.',
 };
 
 export interface StoreType {
@@ -129,6 +131,7 @@ export interface CartItem {
   variantName?: string;
   image_url?: string;
   type: 'product' | 'service';
+  is_digital?: boolean;
 }
 
 interface UniversalStorefrontProps {
@@ -377,6 +380,9 @@ export default function UniversalStorefront({
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(false);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const [isStoreMenuOpen, setIsStoreMenuOpen] = useState(false);
+  const [activePolicyTab, setActivePolicyTab] = useState<'all' | 'delivery' | 'refund' | 'product' | 'booking'>('all');
+  const storeMenuRef = useRef<HTMLDivElement>(null);
   const [activeFaqId, setActiveFaqId] = useState<string | null>(null);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
@@ -396,6 +402,22 @@ export default function UniversalStorefront({
       }
     }
   }, [store.username, username]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      if (storeMenuRef.current && !storeMenuRef.current.contains(event.target as Node)) {
+        setIsStoreMenuOpen(false);
+      }
+    }
+    if (isStoreMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isStoreMenuOpen]);
 
   useEffect(() => {
     if (isCartOpen) setCartStep('cart');
@@ -458,6 +480,17 @@ export default function UniversalStorefront({
     return `/${username}`;
   };
 
+  const getReviewsUrl = () => {
+    if (isMounted && typeof window !== 'undefined') {
+      const host = window.location.host;
+      const isSubdomain = host.startsWith(`${username}.`) || host.endsWith('.localhost:3000') || (host.endsWith('.frontstore.ng') && host !== 'frontstore.ng' && host !== 'www.frontstore.ng');
+      if (isSubdomain) {
+        return '/reviews';
+      }
+    }
+    return `/${username}/reviews`;
+  };
+
   // Dynamic primary color CSS variables
   useEffect(() => {
     if (primaryColor && typeof document !== 'undefined') {
@@ -505,8 +538,9 @@ export default function UniversalStorefront({
   const isDigitalOnly = useMemo(() => {
     if (cart.length === 0) return false;
     return cart.every(item => {
+      if (item.is_digital !== undefined) return item.is_digital;
       const product = products.find(p => p.id === item.productId);
-      return product?.is_digital;
+      return Boolean(product?.is_digital);
     });
   }, [cart, products]);
 
@@ -621,6 +655,7 @@ export default function UniversalStorefront({
           variantName: variant?.title || variant?.name,
           image_url: itemImage,
           type: product.type === 'service' ? 'service' : 'product',
+          is_digital: Boolean(product.is_digital),
         },
       ];
     });
@@ -705,9 +740,9 @@ export default function UniversalStorefront({
       message += `\n📱 *Phone:* ${customerPhone.trim()}`;
     }
     if (!singleItem) {
-      message += `\n🚛 *Method:* ${deliveryMethod === 'pickup' ? 'Store Pickup' : 'Delivery'}`;
+      message += `\n🚛 *Method:* ${isDigitalOnly ? 'Digital Delivery (Instant Access)' : (deliveryMethod === 'pickup' ? 'Store Pickup' : 'Delivery')}`;
     }
-    if (customerNote.trim()) {
+    if (!isDigitalOnly && customerNote.trim()) {
       message += `\n📝 *${deliveryMethod === 'pickup' ? 'Note' : 'Delivery Address'}:* ${customerNote.trim()}`;
     }
 
@@ -753,9 +788,9 @@ export default function UniversalStorefront({
           customer_name: customerName || 'Guest Shopper',
           customer_phone: customerPhone,
           customer_email: customerEmail || undefined,
-          delivery_method: deliveryMethod,
-          delivery_address: deliveryMethod === 'delivery' ? customerNote : undefined,
-          delivery_location: deliveryLocation || undefined,
+          delivery_method: isDigitalOnly ? 'digital' : deliveryMethod,
+          delivery_address: isDigitalOnly ? undefined : (deliveryMethod === 'delivery' ? customerNote : undefined),
+          delivery_location: isDigitalOnly ? undefined : (deliveryLocation || undefined),
           notes: orderNotes || undefined,
           payment_method: 'paystack',
         }),
@@ -889,6 +924,297 @@ export default function UniversalStorefront({
           position: 'relative',
         }}
       >
+        {/* Store Top-Right Policies & Info Menu (⋮) */}
+        <div
+          ref={storeMenuRef}
+          style={{
+            position: 'absolute',
+            top: 14,
+            right: 14,
+            zIndex: 45,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setIsStoreMenuOpen(!isStoreMenuOpen)}
+            aria-label="Store menu and policies"
+            aria-expanded={isStoreMenuOpen}
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(15, 23, 42, 0.08)',
+              color: isStoreMenuOpen ? primaryColor : '#334155',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.borderColor = primaryColor;
+              e.currentTarget.style.color = primaryColor;
+            }}
+            onMouseOut={(e) => {
+              if (!isStoreMenuOpen) {
+                e.currentTarget.style.borderColor = '#e2e8f0';
+                e.currentTarget.style.color = '#334155';
+              }
+            }}
+          >
+            <MoreVertical size={19} />
+          </button>
+
+          {isStoreMenuOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 8px)',
+                right: 0,
+                width: 270,
+                background: '#ffffff',
+                borderRadius: 18,
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 16px 40px -8px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.06)',
+                padding: '8px 6px',
+                zIndex: 60,
+                textAlign: 'left',
+              }}
+            >
+              <div style={{ padding: '8px 12px 10px', borderBottom: '1px solid #f1f5f9', marginBottom: 4 }}>
+                <div style={{ fontSize: 10.5, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Store Policies &amp; Info
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {store.store_name}
+                </div>
+              </div>
+
+              {/* Delivery & Fulfillment */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsStoreMenuOpen(false);
+                  setActivePolicyTab('delivery');
+                  setIsPoliciesOpen(true);
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 11,
+                  padding: '9px 12px',
+                  background: 'none',
+                  border: 'none',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'background 0.12s',
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+              >
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: `${primaryColor}14`, color: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Truck size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>Delivery &amp; Fulfillment</div>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Shipping rates &amp; dispatch timeline</div>
+                </div>
+              </button>
+
+              {/* Return & Refund */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsStoreMenuOpen(false);
+                  setActivePolicyTab('refund');
+                  setIsPoliciesOpen(true);
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 11,
+                  padding: '9px 12px',
+                  background: 'none',
+                  border: 'none',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'background 0.12s',
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+              >
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: `${primaryColor}14`, color: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <RotateCcw size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>Return &amp; Refund Policy</div>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Buyer protection &amp; returns</div>
+                </div>
+              </button>
+
+              {/* Product Policy */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsStoreMenuOpen(false);
+                  setActivePolicyTab('product');
+                  setIsPoliciesOpen(true);
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 11,
+                  padding: '9px 12px',
+                  background: 'none',
+                  border: 'none',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'background 0.12s',
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+              >
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: `${primaryColor}14`, color: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <ShieldCheck size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>Product Policy</div>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Authenticity &amp; quality guarantee</div>
+                </div>
+              </button>
+
+              {/* Booking Policy (if configured) */}
+              {store.policy_bookings && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsStoreMenuOpen(false);
+                    setActivePolicyTab('booking');
+                    setIsPoliciesOpen(true);
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 11,
+                    padding: '9px 12px',
+                    background: 'none',
+                    border: 'none',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'background 0.12s',
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                >
+                  <div style={{ width: 32, height: 32, borderRadius: 10, background: `${primaryColor}14`, color: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Calendar size={16} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>Booking &amp; Cancellation</div>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Appointment terms &amp; rules</div>
+                  </div>
+                </button>
+              )}
+
+              {/* Store Location (if configured) */}
+              {store.location && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsStoreMenuOpen(false);
+                    setIsLocationOpen(true);
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 11,
+                    padding: '9px 12px',
+                    background: 'none',
+                    border: 'none',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'background 0.12s',
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = '#f8fafc'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                >
+                  <div style={{ width: 32, height: 32, borderRadius: 10, background: `${primaryColor}14`, color: primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <MapPin size={16} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>Store Location</div>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Pickup address &amp; map</div>
+                  </div>
+                </button>
+              )}
+
+              <div style={{ height: 1, background: '#f1f5f9', margin: '6px 6px' }} />
+
+              {/* Quick actions: Share & QR */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, padding: '2px 4px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsStoreMenuOpen(false);
+                    handleShare();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    padding: '8px 10px',
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 10,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: '#334155',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Share2 size={13} /> Share
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsStoreMenuOpen(false);
+                    setIsQrOpen(true);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    padding: '8px 10px',
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 10,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: '#334155',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <QrCode size={13} /> QR Code
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div style={{ maxWidth: 840, margin: '0 auto', textAlign: 'center' }}>
           {/* Store Logo Avatar */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
@@ -979,7 +1305,7 @@ export default function UniversalStorefront({
               </a>
             )}
             <button
-              onClick={() => window.location.href = `/${store.username}/reviews`}
+              onClick={() => window.location.href = getReviewsUrl()}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -2383,140 +2709,165 @@ export default function UniversalStorefront({
                     </div>
                   </div>
 
-                  {/* Section: Delivery Location & Address */}
-                  <div>
-                    <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#1e293b', margin: '0 0 10px' }}>How would you like to get your order?</h4>
+                  {!isDigitalOnly ? (
+                    <>
+                      {/* Section: Delivery Location & Address */}
+                      <div>
+                        <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#1e293b', margin: '0 0 10px' }}>How would you like to get your order?</h4>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      <button
-                        onClick={() => setIsRecipientDifferent(!isRecipientDifferent)}
-                        style={{
-                          background: '#FFF5F5',
-                          color: '#e11d48',
-                          border: '1px solid #FECDD3',
-                          borderRadius: 9999,
-                          padding: '7px 16px',
-                          fontSize: 12.5,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          alignSelf: 'flex-start',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6,
-                        }}
-                      >
-                        {isRecipientDifferent ? 'Sending to yourself?' : 'Sending this to someone else?'} <Edit3 size={13} />
-                      </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <button
+                            onClick={() => setIsRecipientDifferent(!isRecipientDifferent)}
+                            style={{
+                              background: '#FFF5F5',
+                              color: '#e11d48',
+                              border: '1px solid #FECDD3',
+                              borderRadius: 9999,
+                              padding: '7px 16px',
+                              fontSize: 12.5,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              alignSelf: 'flex-start',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                            }}
+                          >
+                            {isRecipientDifferent ? 'Sending to yourself?' : 'Sending this to someone else?'} <Edit3 size={13} />
+                          </button>
 
-                      {isRecipientDifferent && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, background: '#fff', border: '1px dashed #fecdd3', borderRadius: 12 }}>
-                          <input
-                            type="text"
-                            placeholder="Recipient full name *"
-                            value={recipientName}
-                            onChange={(e) => setRecipientName(e.target.value)}
-                            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
-                          />
-                          <input
-                            type="tel"
-                            placeholder="Recipient phone number *"
-                            value={recipientPhone}
-                            onChange={(e) => setRecipientPhone(e.target.value)}
-                            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
-                          />
+                          {isRecipientDifferent && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, background: '#fff', border: '1px dashed #fecdd3', borderRadius: 12 }}>
+                              <input
+                                type="text"
+                                placeholder="Recipient full name *"
+                                value={recipientName}
+                                onChange={(e) => setRecipientName(e.target.value)}
+                                style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+                              />
+                              <input
+                                type="tel"
+                                placeholder="Recipient phone number *"
+                                value={recipientPhone}
+                                onChange={(e) => setRecipientPhone(e.target.value)}
+                                style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }}
+                              />
+                            </div>
+                          )}
+
+                          {/* Select Delivery Location */}
+                          <div style={{ position: 'relative', marginTop: 4 }}>
+                            <label style={{ position: 'absolute', top: -9, left: 12, background: '#fff', padding: '0 4px', fontSize: 11, fontWeight: 600, color: '#64748b' }}>
+                              Select Delivery Location
+                            </label>
+                            <select
+                              value={deliveryLocation}
+                              onChange={(e) => {
+                                setDeliveryLocation(e.target.value);
+                                saveCustomerDetailsToStorage(customerName, customerPhone, customerEmail, customerNote, e.target.value);
+                              }}
+                              style={{
+                                width: '100%',
+                                padding: '12px 14px',
+                                borderRadius: 12,
+                                border: '1px solid #cbd5e1',
+                                fontSize: 14,
+                                fontWeight: 600,
+                                color: '#0f172a',
+                                background: '#fff',
+                                outline: 'none',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <option value="Lagos State">Lagos State</option>
+                              <option value="Other States [GIGL]">Other States [GIGL]</option>
+                              <option value="Abuja (FCT)">Abuja (FCT)</option>
+                              <option value="Port Harcourt">Port Harcourt</option>
+                              <option value="International Shipping">International Shipping</option>
+                            </select>
+                          </div>
+
+                          {/* Delivery Address Textarea */}
+                          <div style={{ position: 'relative', marginTop: 6 }}>
+                            <label style={{ position: 'absolute', top: -9, left: 12, background: '#fff', padding: '0 4px', fontSize: 11, fontWeight: 600, color: '#64748b' }}>
+                              Delivery Address
+                            </label>
+                            <textarea
+                              rows={3}
+                              value={customerNote}
+                              onChange={(e) => {
+                                setCustomerNote(e.target.value);
+                                saveCustomerDetailsToStorage(customerName, customerPhone, customerEmail, e.target.value, deliveryLocation);
+                              }}
+                              placeholder="Enter street address, landmark, or city..."
+                              style={{
+                                width: '100%',
+                                padding: '12px 14px',
+                                borderRadius: 12,
+                                border: '1px solid #cbd5e1',
+                                fontSize: 14,
+                                fontWeight: 500,
+                                color: '#0f172a',
+                                background: '#fff',
+                                outline: 'none',
+                                resize: 'none',
+                              }}
+                            />
+                          </div>
                         </div>
-                      )}
+                      </div>
 
-                      {/* Select Delivery Location */}
-                      <div style={{ position: 'relative', marginTop: 4 }}>
-                        <label style={{ position: 'absolute', top: -9, left: 12, background: '#fff', padding: '0 4px', fontSize: 11, fontWeight: 600, color: '#64748b' }}>
-                          Select Delivery Location
-                        </label>
-                        <select
-                          value={deliveryLocation}
-                          onChange={(e) => {
-                            setDeliveryLocation(e.target.value);
-                            saveCustomerDetailsToStorage(customerName, customerPhone, customerEmail, customerNote, e.target.value);
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '12px 14px',
-                            borderRadius: 12,
-                            border: '1px solid #cbd5e1',
-                            fontSize: 14,
-                            fontWeight: 600,
-                            color: '#0f172a',
-                            background: '#fff',
-                            outline: 'none',
-                            cursor: 'pointer',
-                          }}
+                      {/* Section: Delivery Options */}
+                      <div>
+                        <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#1e293b', margin: '0 0 10px' }}>Delivery Options</h4>
+                        <div
+                          onClick={() => setDeliveryMethod('delivery')}
+                          style={{ border: '1px solid #f1f5f9', borderRadius: 16, padding: '14px 16px', background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
                         >
-                          <option value="Lagos State">Lagos State</option>
-                          <option value="Other States [GIGL]">Other States [GIGL]</option>
-                          <option value="Abuja (FCT)">Abuja (FCT)</option>
-                          <option value="Port Harcourt">Port Harcourt</option>
-                          <option value="International Shipping">International Shipping</option>
-                        </select>
-                      </div>
-
-                      {/* Delivery Address Textarea */}
-                      <div style={{ position: 'relative', marginTop: 6 }}>
-                        <label style={{ position: 'absolute', top: -9, left: 12, background: '#fff', padding: '0 4px', fontSize: 11, fontWeight: 600, color: '#64748b' }}>
-                          Delivery Address
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={customerNote}
-                          onChange={(e) => {
-                            setCustomerNote(e.target.value);
-                            saveCustomerDetailsToStorage(customerName, customerPhone, customerEmail, e.target.value, deliveryLocation);
-                          }}
-                          placeholder="Enter street address, landmark, or city..."
-                          style={{
-                            width: '100%',
-                            padding: '12px 14px',
-                            borderRadius: 12,
-                            border: '1px solid #cbd5e1',
-                            fontSize: 14,
-                            fontWeight: 500,
-                            color: '#0f172a',
-                            background: '#fff',
-                            outline: 'none',
-                            resize: 'none',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Section: Delivery Options */}
-                  <div>
-                    <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#1e293b', margin: '0 0 10px' }}>Delivery Options</h4>
-                    <div
-                      onClick={() => setDeliveryMethod('delivery')}
-                      style={{ border: '1px solid #f1f5f9', borderRadius: 16, padding: '14px 16px', background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#FEE2E2', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <Truck size={18} />
-                        </div>
-                        <div>
-                          <p style={{ fontSize: 14.5, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>
-                            {deliveryMethod === 'pickup' ? 'Store Pickup' : 'Standard'}
-                          </p>
-                          <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
-                            {deliveryMethod === 'pickup' ? (store.location || 'Pick up directly from store') : "We'll find a courier to deliver your order"}
-                          </p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#FEE2E2', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <Truck size={18} />
+                            </div>
+                            <div>
+                              <p style={{ fontSize: 14.5, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>
+                                {deliveryMethod === 'pickup' ? 'Store Pickup' : 'Standard'}
+                              </p>
+                              <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
+                                {deliveryMethod === 'pickup' ? (store.location || 'Pick up directly from store') : "We'll find a courier to deliver your order"}
+                              </p>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>
+                              {deliveryMethod === 'pickup' ? 'Free' : shippingFee > 0 ? formatCurrency(shippingFee, selectedCurrency) : 'Free'}
+                            </span>
+                            <div style={{ width: 18, height: 18, borderRadius: '50%', border: '5px solid #e11d48', background: '#fff' }} />
+                          </div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>
-                          {deliveryMethod === 'pickup' ? 'Free' : shippingFee > 0 ? formatCurrency(shippingFee, selectedCurrency) : 'Free'}
-                        </span>
-                        <div style={{ width: 18, height: 18, borderRadius: '50%', border: '5px solid #e11d48', background: '#fff' }} />
+                    </>
+                  ) : (
+                    /* Section: Digital Product Info */
+                    <div style={{
+                      padding: '16px',
+                      background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+                      border: '1px solid #BBF7D0',
+                      borderRadius: 16,
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 12,
+                    }}>
+                      <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#16A34A', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Download size={18} />
+                      </div>
+                      <div>
+                        <h5 style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 700, color: '#14532D' }}>Instant Digital Delivery</h5>
+                        <p style={{ margin: 0, fontSize: 12.5, color: '#166534', lineHeight: 1.45 }}>
+                          No shipping address required. Download links and access credentials will be delivered immediately after payment.
+                        </p>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
 
@@ -2602,30 +2953,32 @@ export default function UniversalStorefront({
                     </div>
 
                     {/* Ship To */}
-                    <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9' }}>
-                      <div>
-                        <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 2px' }}>Ship To:</p>
-                        <p style={{ fontSize: 13.5, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>{isRecipientDifferent && recipientName ? recipientName : customerName || 'Guest'}</p>
-                        <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>{customerNote || 'No address provided'} ({deliveryLocation})</p>
+                    {!isDigitalOnly && (
+                      <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9' }}>
+                        <div>
+                          <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 2px' }}>Ship To:</p>
+                          <p style={{ fontSize: 13.5, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>{isRecipientDifferent && recipientName ? recipientName : customerName || 'Guest'}</p>
+                          <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>{customerNote || 'No address provided'} ({deliveryLocation})</p>
+                        </div>
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                          <MapPin size={16} />
+                        </div>
                       </div>
-                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-                        <MapPin size={16} />
-                      </div>
-                    </div>
+                    )}
 
-                    {/* Delivery Method */}
+                    {/* Delivery / Fulfillment Method */}
                     <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div>
-                        <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 2px' }}>Delivery Method:</p>
+                        <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 2px' }}>{isDigitalOnly ? 'Fulfillment:' : 'Delivery Method:'}</p>
                         <p style={{ fontSize: 13.5, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>
-                          {deliveryMethod === 'pickup' ? 'Store Pickup' : 'Standard'}
+                          {isDigitalOnly ? 'Digital Delivery' : (deliveryMethod === 'pickup' ? 'Store Pickup' : 'Standard')}
                         </p>
                         <p style={{ fontSize: 12, color: '#475569', margin: 0 }}>
-                          {deliveryMethod === 'pickup' ? 'Pick up from store' : 'Standard Delivery'}
+                          {isDigitalOnly ? 'Instant Download & Access' : (deliveryMethod === 'pickup' ? 'Pick up from store' : 'Standard Delivery')}
                         </p>
                       </div>
                       <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-                        <Package size={16} />
+                        {isDigitalOnly ? <Download size={16} /> : <Package size={16} />}
                       </div>
                     </div>
                   </div>
@@ -2638,12 +2991,14 @@ export default function UniversalStorefront({
                         <span>Total Items ({totalCartCount})</span>
                         <span style={{ fontWeight: 600, color: '#0f172a' }}>{formatCurrency(cartTotal, selectedCurrency)}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
-                        <span>Delivery Fee</span>
-                        <span style={{ fontWeight: 600, color: '#0f172a' }}>
-                          {deliveryMethod === 'pickup' ? 'Free' : shippingFee > 0 ? formatCurrency(shippingFee, selectedCurrency) : 'Free'}
-                        </span>
-                      </div>
+                      {!isDigitalOnly && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
+                          <span>Delivery Fee</span>
+                          <span style={{ fontWeight: 600, color: '#0f172a' }}>
+                            {deliveryMethod === 'pickup' ? 'Free' : shippingFee > 0 ? formatCurrency(shippingFee, selectedCurrency) : 'Free'}
+                          </span>
+                        </div>
+                      )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0f172a', fontWeight: 800, fontSize: 15, paddingTop: 6, borderTop: '1px solid #f1f5f9' }}>
                         <span>Total</span>
                         <span>{formatCurrency(orderTotal, selectedCurrency)}</span>
@@ -3377,24 +3732,26 @@ export default function UniversalStorefront({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: 20,
+            padding: 16,
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%',
-              maxWidth: 480,
+              maxWidth: 520,
               background: '#fff',
               borderRadius: 24,
-              padding: 28,
+              padding: '26px 22px 22px',
               position: 'relative',
-              maxHeight: '85vh',
+              maxHeight: '90vh',
               overflowY: 'auto',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
             }}
           >
             <button
               onClick={() => setIsPoliciesOpen(false)}
+              aria-label="Close policies modal"
               style={{
                 position: 'absolute',
                 top: 16,
@@ -3408,91 +3765,342 @@ export default function UniversalStorefront({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
+                color: '#64748b',
               }}
             >
-              <X size={15} />
+              <X size={16} />
             </button>
 
-            <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Store Policies & Info</h3>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, paddingRight: 32 }}>
+              <div
+                style={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: 14,
+                  background: `${primaryColor}18`,
+                  color: primaryColor,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <ShieldCheck size={22} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
+                  Store Policies &amp; Buyer Terms
+                </h3>
+                <p style={{ fontSize: 12.5, color: '#64748b', margin: '2px 0 0' }}>
+                  Verified terms for {store.store_name}
+                </p>
+              </div>
+            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            {/* Policy Navigation Tabs */}
+            <div
+              style={{
+                display: 'flex',
+                gap: 6,
+                overflowX: 'auto',
+                paddingBottom: 8,
+                marginBottom: 16,
+                borderBottom: '1px solid #f1f5f9',
+                scrollbarWidth: 'none',
+              }}
+            >
+              {[
+                { id: 'all', label: 'All Policies', icon: Layers },
+                { id: 'delivery', label: 'Delivery', icon: Truck },
+                { id: 'refund', label: 'Return & Refund', icon: RotateCcw },
+                { id: 'product', label: 'Product Policy', icon: ShieldCheck },
+                ...(store.policy_bookings ? [{ id: 'booking', label: 'Bookings', icon: Calendar }] : []),
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activePolicyTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActivePolicyTab(tab.id as any)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '7px 12px',
+                      borderRadius: 999,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      border: 'none',
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      background: isActive ? primaryColor : '#f1f5f9',
+                      color: isActive ? '#ffffff' : '#475569',
+                      transition: 'all 0.15s ease',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon size={13} /> {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Policy Cards Container */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Delivery Policy Card */}
+              {(activePolicyTab === 'all' || activePolicyTab === 'delivery') && (
                 <div
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    background: `${primaryColor}14`,
-                    color: primaryColor,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
+                    padding: 16,
+                    borderRadius: 16,
+                    border: '1px solid #e2e8f0',
+                    background: activePolicyTab === 'delivery' ? '#f8fafc' : '#ffffff',
                   }}
                 >
-                  <Truck size={20} />
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <div
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: 12,
+                        background: `${primaryColor}14`,
+                        color: primaryColor,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Truck size={19} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                        <h4 style={{ fontSize: 14.5, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                          Delivery &amp; Fulfillment
+                        </h4>
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: primaryColor, background: `${primaryColor}12`, padding: '2px 8px', borderRadius: 999 }}>
+                          Standard Terms
+                        </span>
+                      </div>
+                      <p style={{ margin: '6px 0 0', fontSize: 13, color: '#475569', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                        {store.delivery_info?.trim() || DEFAULT_STORE_POLICIES.delivery}
+                      </p>
+                      {store.shipping_type === 'free' && (
+                        <div style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#16a34a', background: '#dcfce7', padding: '3px 9px', borderRadius: 6 }}>
+                          ✨ This merchant offers Free Delivery on all items
+                        </div>
+                      )}
+                      {store.shipping_type === 'free_above_threshold' && store.shipping_free_threshold && (
+                        <div style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#16a34a', background: '#dcfce7', padding: '3px 9px', borderRadius: 6 }}>
+                          ✨ Free delivery on orders above {CURRENCY_CONFIG[store.currency_code]?.symbol || '₦'}{Number(store.shipping_free_threshold).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h4 style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>
-                    Delivery & Fulfillment
-                  </h4>
-                  <p style={{ margin: 0, fontSize: 13.5, color: '#64748b', lineHeight: 1.55 }}>
-                    {store.delivery_info?.trim() || DEFAULT_STORE_POLICIES.delivery}
-                  </p>
-                </div>
-              </div>
+              )}
 
-              <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              {/* Return & Refund Policy Card */}
+              {(activePolicyTab === 'all' || activePolicyTab === 'refund') && (
                 <div
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    background: `${primaryColor}14`,
-                    color: primaryColor,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
+                    padding: 16,
+                    borderRadius: 16,
+                    border: '1px solid #e2e8f0',
+                    background: activePolicyTab === 'refund' ? '#f8fafc' : '#ffffff',
                   }}
                 >
-                  <ShieldCheck size={20} />
-                </div>
-                <div>
-                  <h4 style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>
-                    100% Authenticity Guarantee
-                  </h4>
-                  <p style={{ margin: 0, fontSize: 13.5, color: '#64748b', lineHeight: 1.55 }}>
-                    {store.policy_products?.trim() || DEFAULT_STORE_POLICIES.authenticity}
-                  </p>
-                </div>
-              </div>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <div
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: 12,
+                        background: `${primaryColor}14`,
+                        color: primaryColor,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <RotateCcw size={19} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                        <h4 style={{ fontSize: 14.5, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                          Return &amp; Refund Policy
+                        </h4>
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: 999 }}>
+                          Buyer Protected
+                        </span>
+                      </div>
+                      <p style={{ margin: '6px 0 0', fontSize: 13, color: '#475569', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                        {store.return_policy?.trim() || store.policy_refunds?.trim() || DEFAULT_STORE_POLICIES.refund}
+                      </p>
+                    </div>
+                  </div>
 
-              <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <div style={{ marginTop: 12, padding: '12px 14px', background: '#fef2f2', borderRadius: 12, border: '1px solid #fee2e2', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <ShieldAlert size={16} style={{ color: '#dc2626' }} />
+                      <span style={{ fontSize: 13, fontWeight: 800, color: '#991b1b' }}>
+                        Wrong or damaged product guarantee
+                      </span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 12, color: '#7f1d1d', lineHeight: 1.45 }}>
+                      Under Frontstore Buyer Protection, merchant payouts are held until delivery is verified. If you receive the wrong product, damaged goods, or incomplete order, you can pause merchant payout immediately.
+                    </p>
+                    <a
+                      href="/appeal"
+                      style={{
+                        alignSelf: 'flex-start',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: '#b91c1c',
+                        textDecoration: 'underline',
+                        marginTop: 2,
+                      }}
+                    >
+                      File an Official Appeal with Proof &rarr;
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Product Policy Card */}
+              {(activePolicyTab === 'all' || activePolicyTab === 'product') && (
                 <div
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    background: `${primaryColor}14`,
-                    color: primaryColor,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
+                    padding: 16,
+                    borderRadius: 16,
+                    border: '1px solid #e2e8f0',
+                    background: activePolicyTab === 'product' ? '#f8fafc' : '#ffffff',
                   }}
                 >
-                  <CreditCard size={20} />
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <div
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: 12,
+                        background: `${primaryColor}14`,
+                        color: primaryColor,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <ShieldCheck size={19} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                        <h4 style={{ fontSize: 14.5, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                          100% Authenticity Guarantee (Product Policy)
+                        </h4>
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: '#16a34a', background: '#dcfce7', padding: '2px 8px', borderRadius: 999 }}>
+                          Authentic
+                        </span>
+                      </div>
+                      <p style={{ margin: '6px 0 0', fontSize: 13, color: '#475569', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                        {store.policy_products?.trim() || DEFAULT_STORE_POLICIES.authenticity}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h4 style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>
-                    Secure Payment Protection
-                  </h4>
-                  <p style={{ margin: 0, fontSize: 13.5, color: '#64748b', lineHeight: 1.55 }}>
-                    {store.policy_refunds?.trim() || store.return_policy?.trim() || DEFAULT_STORE_POLICIES.payment}
-                  </p>
+              )}
+
+              {/* Booking & Cancellation Policy Card (if configured) */}
+              {(activePolicyTab === 'all' || activePolicyTab === 'booking') && store.policy_bookings && (
+                <div
+                  style={{
+                    padding: 16,
+                    borderRadius: 16,
+                    border: '1px solid #e2e8f0',
+                    background: activePolicyTab === 'booking' ? '#f8fafc' : '#ffffff',
+                  }}
+                >
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <div
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: 12,
+                        background: `${primaryColor}14`,
+                        color: primaryColor,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Calendar size={19} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                        <h4 style={{ fontSize: 14.5, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                          Service Booking &amp; Cancellation
+                        </h4>
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: '#7c3aed', background: '#ede9fe', padding: '2px 8px', borderRadius: 999 }}>
+                          Appointments
+                        </span>
+                      </div>
+                      <p style={{ margin: '6px 0 0', fontSize: 13, color: '#475569', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                        {store.policy_bookings.trim()}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
+
+            {/* Modal Bottom Actions */}
+            <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => setIsPoliciesOpen(false)}
+                style={{
+                  width: '100%',
+                  padding: '12px 18px',
+                  borderRadius: 14,
+                  background: primaryColor,
+                  color: '#ffffff',
+                  border: 'none',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: `0 4px 14px ${primaryColor}35`,
+                  transition: 'opacity 0.15s ease',
+                }}
+              >
+                Got it, Close
+              </button>
+              {store.whatsapp_phone && (
+                <a
+                  href={`https://wa.me/${store.whatsapp_phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${store.store_name}, I have a question about your store policies.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: '#25D366',
+                    textDecoration: 'none',
+                    padding: '6px 0',
+                  }}
+                >
+                  <WhatsAppIcon size={14} /> Have questions? Chat with merchant on WhatsApp
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -4047,7 +4655,10 @@ export default function UniversalStorefront({
 
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
             <button
-              onClick={() => setIsPoliciesOpen(true)}
+              onClick={() => {
+                setActivePolicyTab('all');
+                setIsPoliciesOpen(true);
+              }}
               style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
             >
               Delivery & Returns

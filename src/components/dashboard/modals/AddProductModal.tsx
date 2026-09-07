@@ -35,6 +35,66 @@ interface AddProductModalProps {
   refreshProducts: () => void;
 }
 
+function getCategoryBadgeMeta(name: string, slug?: string, timeline?: string | null) {
+  const s = `${name} ${slug || ''}`.toLowerCase();
+  const displayTimeline = timeline || '24–48h';
+
+  if (s.includes('apparel') || s.includes('fashion') || s.includes('cloth') || s.includes('wear') || s.includes('shoe') || s.includes('dress') || s.includes('boutique')) {
+    return {
+      badge: `Apparel · ${displayTimeline}`,
+      badgeBg: '#ffe4e6',
+      badgeColor: '#e11d48',
+      badgeBorder: '#fecdd3',
+    };
+  }
+  if (s.includes('other') || s.includes('general') || s.includes('misc') || s.includes('default')) {
+    return {
+      badge: `Others · ${displayTimeline}`,
+      badgeBg: '#f1f5f9',
+      badgeColor: '#475569',
+      badgeBorder: '#cbd5e1',
+    };
+  }
+  if (s.includes('digital') || s.includes('course') || s.includes('ebook') || s.includes('software')) {
+    return {
+      badge: `Digital · ${displayTimeline}`,
+      badgeBg: '#ede9fe',
+      badgeColor: '#6d28d9',
+      badgeBorder: '#ddd6fe',
+    };
+  }
+  if (s.includes('food') || s.includes('grocer') || s.includes('snack') || s.includes('kitchen')) {
+    return {
+      badge: `Food · ${displayTimeline}`,
+      badgeBg: '#dcfce7',
+      badgeColor: '#15803d',
+      badgeBorder: '#bbf7d0',
+    };
+  }
+  if (s.includes('tech') || s.includes('gadget') || s.includes('phone') || s.includes('electronic')) {
+    return {
+      badge: `Tech · ${displayTimeline}`,
+      badgeBg: '#e0f2fe',
+      badgeColor: '#0369a1',
+      badgeBorder: '#bae6fd',
+    };
+  }
+  if (s.includes('beauty') || s.includes('cosmetic') || s.includes('perfume') || s.includes('skincare')) {
+    return {
+      badge: `Beauty · ${displayTimeline}`,
+      badgeBg: '#fae8ff',
+      badgeColor: '#a21caf',
+      badgeBorder: '#f5d0fe',
+    };
+  }
+  return {
+    badge: displayTimeline,
+    badgeBg: '#f8fafc',
+    badgeColor: '#334155',
+    badgeBorder: '#e2e8f0',
+  };
+}
+
 export default function AddProductModal({
   open, onClose, store, categories, products, selectedProduct, isPro, isLegend, user, setUser,
   openUpgradePrompt, selectedPersona, refreshProducts,
@@ -573,11 +633,50 @@ export default function AddProductModal({
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Category</label>
               <SearchableSelect
-                options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
+                options={categories.map(cat => {
+                  const meta = getCategoryBadgeMeta(cat.name, (cat as any).slug, cat.delivery_timeline);
+                  return {
+                    value: cat.id,
+                    label: cat.name,
+                    sublabel: cat.delivery_timeline ? `Delivery: ${cat.delivery_timeline}` : undefined,
+                    badge: meta.badge,
+                    badgeBg: meta.badgeBg,
+                    badgeColor: meta.badgeColor,
+                    badgeBorder: meta.badgeBorder,
+                  };
+                })}
                 value={prodCategory}
                 onChange={val => setProdCategory(val)}
                 placeholder="Select Category"
               />
+              {(() => {
+                const selectedCat = categories.find(c => c.id === prodCategory);
+                if (!selectedCat) return null;
+                const meta = getCategoryBadgeMeta(selectedCat.name, (selectedCat as any).slug, selectedCat.delivery_timeline);
+                return (
+                  <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: 6,
+                        background: meta.badgeBg,
+                        color: meta.badgeColor,
+                        border: `1px solid ${meta.badgeBorder}`,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      🏷️ {meta.badge}
+                    </span>
+                    <span style={{ fontSize: 11, color: 'var(--text-3, #8b92a5)' }}>
+                      Payout: 24–48h post-delivery
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', marginBottom: 6 }}>Inventory Status</label>

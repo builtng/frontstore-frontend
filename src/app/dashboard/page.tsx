@@ -34,6 +34,7 @@ import OverviewTab from '../../components/dashboard/OverviewTab';
 import CustomersTab from '../../components/dashboard/CustomersTab';
 import WalletTab from '../../components/dashboard/WalletTab';
 import BookkeepingTab from '../../components/dashboard/BookkeepingTab';
+import MerchantReferralsTab from '../../components/dashboard/MerchantReferralsTab';
 
 import { getColorHex } from '@/utils/colorUtils';
 import { businessPersonas } from '../../utils/businessPersonas';
@@ -267,6 +268,7 @@ type DashboardTab =
   | 'orders'
   | 'products'
   | 'whatsapp'
+  | 'referrals'
   | 'wallet'
   | 'bookkeeping'
   | 'coupons'
@@ -281,6 +283,7 @@ const DASHBOARD_TABS: DashboardTab[] = [
   'orders',
   'products',
   'whatsapp',
+  'referrals',
   'wallet',
   'bookkeeping',
   'coupons',
@@ -2138,6 +2141,7 @@ export default function DashboardPage() {
             {
               group: 'Conversations & Growth',
               items: [
+                { id: 'referrals', label: 'Refer & Earn', icon: <Users size={17} /> },
                 { id: 'whatsapp', label: 'WhatsApp & Growth', icon: <WhatsAppIcon size={17} />, count: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
                 { id: 'reviews', label: 'Reviews', icon: <Star size={17} />, count: reviews.filter(r => !r.reply).length || undefined },
               ]
@@ -2150,7 +2154,7 @@ export default function DashboardPage() {
               ]
             }
           ] as Array<{ group: string; items: Array<{ id: string; label: string; icon: React.ReactNode; count?: number; pro?: boolean; legend?: boolean }> }>).map(section => {
-            const visibleItems = section.items.filter(item => item.id === 'overview' || (isVisibleOnPlan(item.id) && !hiddenDashboardItems.includes(item.id)));
+            const visibleItems = section.items.filter(item => item.id === 'overview' || item.id === 'referrals' || (isVisibleOnPlan(item.id) && !hiddenDashboardItems.includes(item.id)));
             if (visibleItems.length === 0) return null;
 
             return (
@@ -2801,6 +2805,17 @@ export default function DashboardPage() {
               {activeTab === 'qr' && (
                 <QrTab store={store} systemDomain={systemDomain} isPro={isPro} openUpgradePrompt={openUpgradePrompt} />
               )}
+
+              {/* ── TAB 11: REFER & EARN ── */}
+              {activeTab === 'referrals' && (
+                <MerchantReferralsTab
+                  store={store}
+                  user={user}
+                  isPro={isPro}
+                  refreshDashboard={loadAllData}
+                  navigateDashboardTab={navigateDashboardTab}
+                />
+              )}
             </>
           )}
 
@@ -2907,6 +2922,7 @@ export default function DashboardPage() {
                 {
                   group: 'Conversations & Growth',
                   items: [
+                    { id: 'referrals', label: 'Refer & Earn', icon: <Users size={17} /> },
                     { id: 'whatsapp', label: 'WhatsApp & Growth', icon: <WhatsAppIcon size={17} />, count: waOrders.filter(o => o.payment_status === 'unpaid').length || undefined },
                     { id: 'reviews', label: 'Reviews', icon: <Star size={17} />, count: reviews.filter(r => !r.reply).length || undefined },
                   ]
@@ -2919,7 +2935,7 @@ export default function DashboardPage() {
                   ]
                 }
               ] as { group: string; items: { id: string; label: string; icon: React.ReactNode; count?: number; pro?: boolean; legend?: boolean }[] }[]).map(section => {
-                const visibleItems = section.items.filter(item => item.id === 'overview' || (isVisibleOnPlan(item.id) && !hiddenDashboardItems.includes(item.id)));
+                const visibleItems = section.items.filter(item => item.id === 'overview' || item.id === 'referrals' || (isVisibleOnPlan(item.id) && !hiddenDashboardItems.includes(item.id)));
                 if (visibleItems.length === 0) return null;
 
                 return (

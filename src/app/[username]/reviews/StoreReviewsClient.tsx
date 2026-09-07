@@ -82,7 +82,7 @@ export default function StoreReviewsClient({ store, initialReviews, systemDomain
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 
     try {
-      const res = await fetch(`${API_URL}/v1/store/${store.username}/reviews`, {
+      const res = await fetch(`${API_URL}/v1/public/store/${store.username}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,6 +123,10 @@ export default function StoreReviewsClient({ store, initialReviews, systemDomain
   const getStoreHomeUrl = () => {
     if (typeof window === 'undefined') return '/';
     const host = window.location.host;
+    const isMainDomain = host === 'frontstore.ng' || host === 'www.frontstore.ng' || host === 'frontstore.app' || host === 'www.frontstore.app';
+    if (isMainDomain) {
+      return `/${store.username}`;
+    }
     const isSubdomain = host.startsWith(`${store.username}.`) || (host.includes('.localhost') && host.startsWith(store.username)) || host.endsWith('.frontstore.ng');
     return isSubdomain ? '/' : `https://${store.username}.${systemDomain}`;
   };

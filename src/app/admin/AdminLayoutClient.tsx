@@ -47,6 +47,7 @@ const navGroups = [
       { href: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={16} />, permission: 'orders' },
       { href: '/admin/categories', label: 'Categories', icon: <Tag size={16} />, permission: 'categories' },
       { href: '/admin/verifications', label: 'Verifications', icon: <Shield size={16} />, permission: 'verifications' },
+      { href: '/admin/referrals', label: 'Merchant Referrals', icon: <Users size={16} /> },
     ],
   },
   {

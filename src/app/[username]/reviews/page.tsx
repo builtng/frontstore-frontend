@@ -18,7 +18,7 @@ async function getStore(username: string) {
 async function getReviews(username: string) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
   try {
-    const res = await fetch(`${API_URL}/v1/store/${username}/reviews`, { cache: 'no-store' });
+    const res = await fetch(`${API_URL}/v1/public/store/${username}/reviews`, { cache: 'no-store' });
     if (!res.ok) return [];
     const json = await res.json();
     return json.data || [];
@@ -33,8 +33,9 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
-  const store = await getStore(username);
-  if (!store) {
+  const storeData = await getStore(username);
+  const store = storeData?.store || storeData;
+  if (!store || !store.store_name) {
     return { title: 'Store Not Found | Frontstore' };
   }
   return {
@@ -45,8 +46,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function StoreReviewsPage({ params }: PageProps) {
   const { username } = await params;
-  const store = await getStore(username);
-  if (!store) {
+  const storeData = await getStore(username);
+  const store = storeData?.store || storeData;
+  if (!store || !store.id) {
     notFound();
   }
 
@@ -55,7 +57,7 @@ export default async function StoreReviewsPage({ params }: PageProps) {
   // We need to resolve system domain for the client
   const headersList = await headers();
   const host = headersList.get('host') || 'frontstore.ng';
-  let systemDomain = 'frontstore.ng';
+  let systemDomain = storeData?.system_domain || 'frontstore.ng';
   
   if (host.includes('.localhost')) {
     systemDomain = host.split('.').slice(1).join('.');

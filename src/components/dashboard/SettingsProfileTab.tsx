@@ -430,12 +430,19 @@ export default function SettingsProfileTab({
 
         {/* Card 2: Store Policies & Guarantees */}
         <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <ShieldCheck size={18} color="var(--primary)" /> Store Policies & Buyer Guarantees
-          </h3>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
-            Set the terms customers see in your store policies modal and product pages.
-          </p>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 900, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ShieldCheck size={18} color="var(--primary)" /> Store Policies &amp; Buyer Guarantees
+              </h3>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
+                Set the terms customers see in your storefront top-right menu (⋮), policy modals, product pages, and checkout.
+              </p>
+            </div>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', background: 'var(--primary-subtle, #ecfdf5)', color: 'var(--primary)', borderRadius: 999, fontSize: 11, fontWeight: 700 }}>
+              <MoreVertical size={13} /> Visible in Store Menu (⋮)
+            </span>
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }} className="responsive-settings-grid">
             <div>
@@ -484,7 +491,7 @@ export default function SettingsProfileTab({
                   )}
                 </div>
               </div>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Displayed in the storefront policies modal and during checkout.</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Displayed in the storefront menu (⋮), policies modal, and checkout.</p>
               <textarea
                 rows={3}
                 value={deliveryInfo}
@@ -492,7 +499,7 @@ export default function SettingsProfileTab({
                 placeholder="Orders are dispatched within 24 hours of confirmation. Lagos deliveries arrive same-day or next-day. Nationwide deliveries arrive in 24–48 hours."
                 className="input-field"
                 style={{ resize: 'vertical' }}
-                maxLength={500}
+                maxLength={2000}
               />
             </div>
 
@@ -509,7 +516,7 @@ export default function SettingsProfileTab({
                   Reset to default
                 </button>
               </div>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Displayed on product pages and in the policies modal.</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Displayed in storefront menu (⋮), product pages, and refund modal.</p>
               <textarea
                 rows={3}
                 value={returnPolicy}
@@ -517,7 +524,7 @@ export default function SettingsProfileTab({
                 placeholder="All online payments made through Frontstore are held under buyer protection until delivery confirmation."
                 className="input-field"
                 style={{ resize: 'vertical' }}
-                maxLength={500}
+                maxLength={2000}
               />
             </div>
 
@@ -534,7 +541,7 @@ export default function SettingsProfileTab({
                   Reset to default
                 </button>
               </div>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Displayed under buyer protection guarantees in the store policies modal.</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Displayed in storefront menu (⋮) under product guarantee and store policies modal.</p>
               <textarea
                 rows={3}
                 value={policyProducts}
@@ -542,7 +549,7 @@ export default function SettingsProfileTab({
                 placeholder="We only sell 100% genuine and verified items. Inspect your order on delivery."
                 className="input-field"
                 style={{ resize: 'vertical' }}
-                maxLength={500}
+                maxLength={2000}
               />
             </div>
 
@@ -567,7 +574,7 @@ export default function SettingsProfileTab({
                 placeholder="Reschedule or cancel up to 24 hours before your appointment for a full refund."
                 className="input-field"
                 style={{ resize: 'vertical' }}
-                maxLength={500}
+                maxLength={2000}
               />
             </div>
           </div>

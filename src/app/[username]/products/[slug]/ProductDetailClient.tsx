@@ -459,6 +459,8 @@ export default function ProductDetailClient({
       finalAddress = `${sessionType} on ${selectedDay} at ${selectedTime}` + (deliveryMethod === 'delivery' ? ` | Address: ${deliveryAddress}` : '');
     } else if (initialProduct.type === 'ticket') {
       finalAddress = 'Event ticket — no delivery required';
+    } else if (initialProduct.is_digital) {
+      finalAddress = 'Digital Delivery';
     }
 
     try {
@@ -470,8 +472,9 @@ export default function ProductDetailClient({
           customer_phone: checkoutPhone,
           customer_email: checkoutEmail || undefined,
           customer_whatsapp: checkoutWhatsapp || checkoutPhone,
-          delivery_method: kind === 'service' ? (deliveryMethod === 'delivery' ? 'delivery' : 'pickup') : deliveryMethod,
-          delivery_address: finalAddress || 'None specified',
+          delivery_method: initialProduct.is_digital ? 'digital' : (kind === 'service' ? (deliveryMethod === 'delivery' ? 'delivery' : 'pickup') : deliveryMethod),
+          delivery_address: initialProduct.is_digital ? 'Digital Delivery' : (finalAddress || 'None specified'),
+          payment_method: 'paystack',
           items: [{
             product_id: initialProduct.id,
             quantity: qty
@@ -491,8 +494,8 @@ export default function ProductDetailClient({
           phone_number: checkoutPhone,
           whatsapp_number: checkoutWhatsapp || checkoutPhone,
           email: checkoutEmail || null,
-          preferred_delivery_method: deliveryMethod,
-          preferred_delivery_address: deliveryMethod === 'delivery' ? deliveryAddress : null,
+          preferred_delivery_method: initialProduct.is_digital ? 'digital' : deliveryMethod,
+          preferred_delivery_address: (!initialProduct.is_digital && deliveryMethod === 'delivery') ? deliveryAddress : null,
         }));
       } catch { }
 
@@ -1384,7 +1387,15 @@ export default function ProductDetailClient({
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                 <span style={{ color: 'var(--muted)', fontSize: 13 }}>Fulfillment</span>
-                <strong style={{ color: 'var(--ink)', fontSize: 14, textTransform: 'capitalize' }}>{orderReceipt.order.delivery_method}</strong>
+                <strong style={{ color: 'var(--ink)', fontSize: 14, textTransform: 'capitalize' }}>
+                  {initialProduct.is_digital || orderReceipt.order.delivery_method === 'digital' ? 'Digital Delivery' : orderReceipt.order.delivery_method}
+                </strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                <span style={{ color: 'var(--muted)', fontSize: 13 }}>Payment Method</span>
+                <strong style={{ color: 'var(--ink)', fontSize: 14 }}>
+                  Paystack / Online
+                </strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                 <span style={{ color: 'var(--muted)', fontSize: 13 }}>Status</span>

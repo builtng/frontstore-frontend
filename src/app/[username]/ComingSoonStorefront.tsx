@@ -155,12 +155,12 @@ export default function ComingSoonStorefront({
   }
 
   function shareShop() {
-    const msg = `Have a look at ${storeName}, opening soon on ${appName}. You will be able to browse and order right inside WhatsApp: ${systemDomain}/${store.username}`;
+    const msg = `Have a look at ${storeName}, opening soon on ${appName}. You will be able to browse and order right inside WhatsApp: https://${store.username}.${systemDomain}`;
     if (typeof window !== "undefined") window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank", "noopener,noreferrer");
   }
 
   const first = name.trim().split(" ")[0];
-  const launchMsg = `Hi ${name.trim() || "there"}, good news, ${storeName} is now open on ${appName}. Browse and order right here: ${systemDomain}/${store.username}`;
+  const launchMsg = `Hi ${name.trim() || "there"}, good news, ${storeName} is now open on ${appName}. Browse and order right here: https://${store.username}.${systemDomain}`;
 
   const Cta = ({ full, label }: { full?: boolean; label: string }) => (
     <button className={"cs-cta" + (full ? " full" : "") + (notified ? " on" : "")} onClick={() => setOpen(true)}>

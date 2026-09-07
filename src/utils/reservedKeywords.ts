@@ -48,6 +48,12 @@ export const RESERVED_SUBDOMAINS = [
   'official', 'verified', 'whatsapp', 'meta', 'facebook', 'instagram', 'tiktok', 'twitter', 'x',
   'google', 'apple', 'paypal', 'frontstoreofficial', 'frontstoresupport', 'frontstoreteam',
 
+  // Marketing & Platform App Pages
+  'access-refused', 'activate', 'affiliate', 'appeal', 'appeals', 'audit', 'business', 'buyer', 'claim', 'confirm',
+  'dmca', 'forgot-password', 'free-audit', 'integrations', 'marketplace', 'merchant', 'online-store',
+  'pricing', 'record-keeping', 'ref', 'refund-policy', 'return-policy',
+  'returns', 'share-pay', 'solutions', 'stores', 'tools', 'vs', 'why-frontstore',
+
   // Junk / Placeholder values
   'null', 'undefined', 'none', 'nil', 'delete', 'deleted', 'remove', 'anonymous', 'unknown',
 ];

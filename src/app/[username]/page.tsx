@@ -76,7 +76,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const bio = truncateStoreBio(store.store_bio, 306);
   const description = safeText(bio, `Shop directly from ${storeName} on WhatsApp. Browse products and place orders instantly.`);
   const logo = store.logo_url || data.logo_url || `https://${systemDomain}/icon.png`;
-  const url = `https://${systemDomain}/${storeUsername}`;
+  const storeUrl = store.custom_domain ? `https://${store.custom_domain}` : `https://${storeUsername}.${systemDomain}`;
+  const url = storeUrl;
 
   return {
     title,
@@ -141,7 +142,7 @@ export default async function Page({ params }: PageProps) {
     data.store.twitter_handle ? `https://x.com/${safePathSegment(data.store.twitter_handle).replace(/^@/, '')}` : null,
   ].filter(Boolean);
 
-  const storeUrl = `https://${systemDomain}/${storeUsername}`;
+  const storeUrl = data?.store?.custom_domain ? `https://${data.store.custom_domain}` : `https://${storeUsername}.${systemDomain}`;
 
   const jsonLd = data && data.store ? {
     '@context': 'https://schema.org',

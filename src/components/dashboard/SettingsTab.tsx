@@ -558,7 +558,7 @@ export default function SettingsTab({
           about_intro_text: aboutIntroText || null,
           policy_bookings: policyBookings || null,
           policy_products: policyProducts || null,
-          policy_refunds: policyRefunds || null,
+          policy_refunds: returnPolicy || policyRefunds || null,
           announcement_title: announcementTitle || null,
           announcement_body: announcementBody || null,
           announcement_cta_label: announcementCtaLabel || null,

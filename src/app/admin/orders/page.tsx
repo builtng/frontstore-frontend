@@ -142,6 +142,9 @@ export default function AdminOrdersPage() {
                 const currencySymbol = orderCurrencyCode
                   ? orderCurrencySymbols[orderCurrencyCode] || `${orderCurrencyCode} `
                   : '₦';
+                const firstCategory = order.items?.find((i: any) => i.product?.category)?.product?.category;
+                const categoryTimeline = firstCategory?.delivery_timeline || '24–48h';
+
                 return (
                   <tr key={order.id}>
                     <td>
@@ -149,6 +152,13 @@ export default function AdminOrdersPage() {
                       <span style={{ textTransform: 'uppercase' }}>
                         {order.payment_method ? order.payment_method.toUpperCase() : 'WHATSAPP'}
                       </span>
+                      {firstCategory && (
+                        <div style={{ marginTop: 4, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11 }}>
+                          <span style={{ color: 'var(--text-muted)' }}>{firstCategory.name}</span>
+                          <span style={{ color: 'var(--text-faint)' }}>•</span>
+                          <span style={{ color: '#60a5fa', fontWeight: 600 }}>🚚 {categoryTimeline}</span>
+                        </div>
+                      )}
                     </td>
                     <td>
                       <strong>{order.store?.store_name || 'Unknown Store'}</strong>
@@ -185,10 +195,15 @@ export default function AdminOrdersPage() {
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {order.risk_level ? (
-                          <StatusChip tone={riskTone(order.risk_level)} label={order.risk_level} />
-                        ) : (
-                          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>—</span>
-                        )}
+                          <StatusChip tone={riskTone(order.risk_level)} label={`Risk: ${order.risk_level}`} />
+                        ) : null}
+                        {order.escrow_released ? (
+                          <StatusChip tone="green" label="Payout released" />
+                        ) : order.payment_status === 'paid' ? (
+                          <span style={{ fontSize: 11, color: '#25D366', fontWeight: 600 }}>
+                            💳 Payout: 24–48h post-delivery
+                          </span>
+                        ) : null}
                         {order.payout_hold_reason && (
                           <span style={{ fontSize: 11 }}>{order.payout_hold_reason}</span>
                         )}

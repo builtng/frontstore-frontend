@@ -287,7 +287,7 @@ export default async function ProductPage({ params }: PageProps) {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: `https://${systemDomain}/` },
-      { '@type': 'ListItem', position: 2, name: storeName, item: `https://${systemDomain}/${productUsername}` },
+      { '@type': 'ListItem', position: 2, name: storeName, item: `https://${productUsername}.${systemDomain}` },
       { '@type': 'ListItem', position: 3, name: productName, item: productUrl },
     ],
   };

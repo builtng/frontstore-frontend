@@ -19,7 +19,8 @@ import {
   XCircle,
   Mail,
   RefreshCw,
-  ShoppingBag
+  ShoppingBag,
+  ShieldAlert
 } from 'lucide-react';
 import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
 
@@ -221,11 +222,33 @@ export default function ReturnPolicyPage() {
             {/* 6. Merchant Dispute Resolution */}
             <section className="card shadow-lg" style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--surface)' }}>
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Scale size={20} style={{ color: 'var(--primary)' }} /> 6. Merchant Dispute Resolution Center
+                <Scale size={20} style={{ color: 'var(--primary)' }} /> 6. Merchant Dispute & Appeal Resolution Center
               </h2>
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
-                If a merchant and buyer cannot agree on a return or refund request within 48 hours, either party may escalate to Frontstore Dispute Resolution (`disputes@frontstore.ng`).
+                If a merchant delivered the wrong product, incorrect variant/size, defective items, or failed to honor agreed delivery terms, customers can lodge an immediate appeal with screenshot proof.
               </p>
+              
+              <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 'var(--r-md, 12px)', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <ShieldAlert size={20} style={{ color: '#dc2626' }} />
+                  <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#0f172a' }}>
+                    Merchant Sent the Wrong Item? File an Appeal
+                  </h4>
+                </div>
+                <p style={{ margin: 0, fontSize: 13.5, color: '#64748b', lineHeight: 1.6 }}>
+                  Lodge an appeal with photos of the delivered parcel, waybill label, and WhatsApp chats. Filing an appeal immediately locks merchant settlement from disbursement while Frontstore compliance specialists review the evidence within 24–48 hours.
+                </p>
+                <div>
+                  <a
+                    href="/appeal"
+                    className="btn btn-primary"
+                    style={{ padding: '10px 20px', fontSize: 13.5, borderRadius: 'var(--r-md)', display: 'inline-flex', alignItems: 'center', gap: 8, fontWeight: 700 }}
+                  >
+                    <ShieldAlert size={15} /> Launch Appeal Portal &rarr;
+                  </a>
+                </div>
+              </div>
+
               <p style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.65 }}>
                 Frontstore compliance specialists will examine WhatsApp chat logs, delivery waybills, photo proof, and store terms to render a binding determination within <strong>72 hours</strong>.
               </p>
