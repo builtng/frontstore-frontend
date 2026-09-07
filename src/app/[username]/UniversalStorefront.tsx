@@ -2011,23 +2011,6 @@ export default function UniversalStorefront({
                       <Heart size={14} fill={isSaved ? '#ef4444' : 'transparent'} />
                     </button>
 
-                    {/* WhatsApp Inquiry Button (Flyer Icon) */}
-                    {store.whatsapp_phone && (
-                      <a
-                        href={`https://wa.me/${store.whatsapp_phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                          `Hi ${store.store_name}, I'm interested in ${item.name} (${formatCurrency(priceNum, selectedCurrency)}). Can I place an order?`
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="storefront-flyer-action-btn"
-                        title={`Chat on WhatsApp about ${item.name}`}
-                        aria-label="Inquire on WhatsApp"
-                      >
-                        <WhatsAppIcon size={17} />
-                      </a>
-                    )}
-
                     {/* Add to Cart Button (Flyer Icon) */}
                     {!isOutOfStock && (() => {
                       const inCartItem = cart.find((c) => c.productId === item.id);
