@@ -14,9 +14,9 @@ interface AuthShellProps {
 }
 
 const TRUST_STATS = [
-  { icon: ShoppingBag, value: '50K+', label: 'Active Stores' },
-  { icon: TrendingUp, value: '₦2B+', label: 'Monthly Sales' },
-  { icon: Users, value: '200K+', label: 'Customers' },
+  { icon: ShoppingBag, value: '< 3m', label: 'Setup Time' },
+  { icon: TrendingUp, value: '99.9%', label: 'Uptime SLA' },
+  { icon: Users, value: '24/7', label: 'Support' },
 ];
 
 const TESTIMONIAL = {
