@@ -7,10 +7,10 @@ import {
   Truck, RotateCcw, X, Heart, Copy, ExternalLink, CheckCircle2, Shield, AlertCircle, Expand
 } from "lucide-react";
 import { toast } from "sonner";
-import { WhatsAppIcon } from "../../../../components/WhatsAppIcon";
-import WhatsAppDisclaimerModal from "../../../../components/WhatsAppDisclaimerModal";
-import ImageLightbox from "../../../../components/ImageLightbox";
-import ProductImage from "../../../../components/ProductImage";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import WhatsAppDisclaimerModal from "@/components/WhatsAppDisclaimerModal";
+import ImageLightbox from "@/components/ImageLightbox";
+import ProductImage from "@/components/ProductImage";
 import { getColorHex } from '@/utils/colorUtils';
 import { getOptimizedImageUrl } from '@/lib/image';
 import BuiltWithFrontstoreBadge from '@/components/BuiltWithFrontstoreBadge';
@@ -59,6 +59,8 @@ interface Store {
   whatsapp_phone: string;
   instagram_handle?: string | null;
   tiktok_handle?: string | null;
+  twitter_handle?: string | null;
+  facebook_handle?: string | null;
   business_persona?: string | null;
   store_template?: string | null;
   store_label?: string | null;

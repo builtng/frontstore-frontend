@@ -6,8 +6,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import BuiltWithFrontstoreBadge from '@/components/BuiltWithFrontstoreBadge';
-import { WhatsAppIcon } from '../../../../components/WhatsAppIcon';
-import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon } from '../../../../components/SocialIcons';
+import { WhatsAppIcon } from '@/components/WhatsAppIcon';
+import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon } from '@/components/SocialIcons';
 import { getColorHex } from '@/utils/colorUtils';
 
 interface Review {

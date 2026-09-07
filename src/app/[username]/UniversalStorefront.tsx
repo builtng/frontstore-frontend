@@ -316,7 +316,7 @@ function saveWishlistToStorage(storeUsername: string, ids: string[]): void {
     const key = `fs_wishlist_${storeUsername}`;
     const jsonStr = JSON.stringify(ids);
     document.cookie = `${key}=${encodeURIComponent(jsonStr)}; max-age=31536000; path=/; SameSite=Lax`;
-    localStorage.getItem(key, jsonStr);
+    localStorage.setItem(key, jsonStr);
   } catch (e) {
     console.error('Error saving wishlist storage', e);
   }

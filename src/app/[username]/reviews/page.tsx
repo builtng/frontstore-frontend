@@ -27,8 +27,13 @@ async function getReviews(username: string) {
   }
 }
 
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
-  const store = await getStore(params.username);
+interface PageProps {
+  params: Promise<{ username: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { username } = await params;
+  const store = await getStore(username);
   if (!store) {
     return { title: 'Store Not Found | Frontstore' };
   }
@@ -38,16 +43,17 @@ export async function generateMetadata({ params }: { params: { username: string 
   };
 }
 
-export default async function StoreReviewsPage({ params }: { params: { username: string } }) {
-  const store = await getStore(params.username);
+export default async function StoreReviewsPage({ params }: PageProps) {
+  const { username } = await params;
+  const store = await getStore(username);
   if (!store) {
     notFound();
   }
 
-  const reviews = await getReviews(params.username);
+  const reviews = await getReviews(username);
 
   // We need to resolve system domain for the client
-  const headersList = headers();
+  const headersList = await headers();
   const host = headersList.get('host') || 'frontstore.ng';
   let systemDomain = 'frontstore.ng';
   
