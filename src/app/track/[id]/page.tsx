@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock, Star, Truck, PartyPopper, ShieldCheck, MapPin, User, Phone, Send, MessageSquare, AlertTriangle, ShieldAlert, Scale, BadgeCheck } from 'lucide-react';
+import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock, Star, Truck, PartyPopper, ShieldCheck, MapPin, User, Phone, Send, MessageSquare, AlertTriangle, ShieldAlert, Scale, BadgeCheck, Receipt } from 'lucide-react';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
 import { getOptimizedImageUrl } from '@/lib/image';
+import OrderReceiptModal from '@/components/OrderReceiptModal';
+import { getApiUrl } from '@/lib/api';
 
 interface OrderItem {
   id: string;
@@ -99,6 +101,16 @@ export default function OrderTrackingPage() {
   const [disputeMessageText, setDisputeMessageText] = useState('');
   const [isSubmittingDispute, setIsSubmittingDispute] = useState(false);
   const [isSendingDisputeMessage, setIsSendingDisputeMessage] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('receipt') === '1') {
+        setIsReceiptModalOpen(true);
+      }
+    }
+  }, []);
 
   const fetchActiveDispute = async () => {
     if (!id) return;
@@ -502,6 +514,96 @@ export default function OrderTrackingPage() {
           <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
             Placed on {formattedDate}
           </p>
+        </div>
+
+        {/* Official Receipt Card Banner */}
+        <div
+          style={{
+            background: 'var(--surface)',
+            border: '1.5px solid var(--border)',
+            borderRadius: 'var(--r-xl, 16px)',
+            padding: '14px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                background: '#dcfce7',
+                color: '#15803d',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Receipt size={20} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text)' }}>
+                  Official Order Receipt
+                </span>
+                {order.payment_status === 'paid' && (
+                  <span style={{ fontSize: 10, fontWeight: 800, background: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: 6 }}>
+                    PAID
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: '2px 0 0' }}>
+                Ref: REC-{order.order_number} · Verified purchase documentation
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setIsReceiptModalOpen(true)}
+              style={{
+                padding: '7px 12px',
+                borderRadius: 8,
+                background: 'var(--surface-2, #f8fafc)',
+                color: 'var(--text)',
+                border: '1px solid var(--border)',
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              View Receipt
+            </button>
+            <a
+              href={`${getApiUrl()}/v1/orders/${order.id}/receipt/pdf`}
+              download={`receipt-${order.order_number}.pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '7px 12px',
+                borderRadius: 8,
+                background: 'var(--primary, #075E54)',
+                color: '#ffffff',
+                border: 'none',
+                fontSize: 12.5,
+                fontWeight: 700,
+                textDecoration: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(7, 94, 84, 0.2)',
+              }}
+            >
+              <Download size={13} /> PDF
+            </a>
+          </div>
         </div>
 
         {/* Verifying Payment overlay/banner */}
@@ -1425,6 +1527,47 @@ export default function OrderTrackingPage() {
         onCancel={() => setDeliveryConfirmationOpen(false)}
         loading={isConfirmingDelivery}
       />
+
+      {/* Official Digital Order Receipt Modal */}
+      {order && (
+        <OrderReceiptModal
+          isOpen={isReceiptModalOpen}
+          onClose={() => setIsReceiptModalOpen(false)}
+          order={{
+            id: order.id,
+            order_number: order.order_number,
+            receipt_number: `REC-${order.order_number}`,
+            customer_name: order.customer_name,
+            customer_phone: order.customer_phone,
+            customer_email: (order as any).customer_email,
+            delivery_method: order.delivery_method,
+            delivery_address: order.delivery_address,
+            total_amount: order.total_amount,
+            currency_code: order.store?.currency_code || 'NGN',
+            payment_status: order.payment_status,
+            payment_method: order.payment_method,
+            created_at: order.created_at,
+            shipping_fee: (order as any).shipping_fee,
+            discount_amount: (order as any).discount_amount,
+            frontstore_protect_fee: order.frontstore_protect_fee,
+            store: {
+              store_name: order.store?.store_name || 'Store',
+              username: order.store?.username,
+              whatsapp_phone: order.store?.whatsapp_phone,
+              is_verified: order.store?.is_verified,
+              logo_url: order.store?.logo_url,
+              currency_code: order.store?.currency_code,
+            },
+            items: (order.items || []).map(it => ({
+              id: it.id,
+              product_name: it.product_name,
+              product_price: it.product_price,
+              quantity: it.quantity,
+              product: it.product,
+            })),
+          }}
+        />
+      )}
 
     </div>
   );

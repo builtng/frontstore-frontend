@@ -10,7 +10,7 @@ import {
   Truck, ShieldAlert, Bell, User, Edit3, Package, Building,
   Filter, Heart, RefreshCw, Layers, CreditCard, Lock,
   Navigation, MoreVertical, RotateCcw, Calendar, Download,
-  CheckCircle2, Mail, Home, LayoutGrid, List, Maximize2
+  CheckCircle2, Mail, Home, LayoutGrid, List, Maximize2, Receipt
 } from 'lucide-react';
 import { toast as sonnerToast } from 'sonner';
 import QRCodeSVG from 'react-qr-code';
@@ -22,6 +22,8 @@ import BuiltWithFrontstoreBadge from '@/components/BuiltWithFrontstoreBadge';
 import { truncateStoreBio } from '@/utils/storeBio';
 import BankTransferPaymentModal from '../../components/BankTransferPaymentModal';
 import ImageLightbox from '../../components/ImageLightbox';
+import OrderReceiptModal from '@/components/OrderReceiptModal';
+import { getApiUrl } from '@/lib/api';
 
 export interface StoreLink {
   id: string;
@@ -623,6 +625,49 @@ export default function UniversalStorefront({
     sonnerToast.success('Order reference copied to clipboard!');
     setTimeout(() => setCopiedOrderNumber(false), 2000);
   };
+
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+
+  const receiptOrderData = useMemo(() => {
+    if (!confirmedOrderId) return null;
+    return {
+      id: confirmedOrderId,
+      order_number: confirmedOrderNum || '0000',
+      receipt_number: `REC-${confirmedOrderNum || '0000'}`,
+      customer_name: confirmedCustomerName || 'Customer',
+      customer_phone: confirmedCustomerPhone,
+      customer_email: confirmedCustomerEmail,
+      delivery_method: confirmedDeliveryMethod,
+      delivery_address: confirmedDeliveryAddress,
+      total_amount: confirmedAmount,
+      currency_code: confirmedCurrency,
+      payment_status: 'paid',
+      payment_method: createdOrderData?.order?.payment_method || 'Paystack / Online',
+      created_at: createdOrderData?.order?.created_at || new Date().toISOString(),
+      shipping_fee: shippingFee,
+      discount_amount: appliedDiscount,
+      frontstore_protect_fee: 0,
+      store: {
+        store_name: store.store_name,
+        username: store.username,
+        whatsapp_phone: store.whatsapp_phone,
+        is_verified: Boolean(store.is_verified),
+        logo_url: store.logo_url,
+        currency_code: store.currency_code,
+      },
+      items: (displayItems || []).map((it: any) => ({
+        id: it.id,
+        product_name: it.name || it.product_name || 'Product',
+        product_price: it.price || it.product_price || 0,
+        quantity: it.quantity || it.qty || 1,
+        product: {
+          is_digital: Boolean(it.is_digital),
+          image_url: it.image_url || it.product?.image_url,
+        },
+      })),
+    };
+  }, [confirmedOrderId, confirmedOrderNum, confirmedCustomerName, confirmedCustomerPhone, confirmedCustomerEmail, confirmedDeliveryMethod, confirmedDeliveryAddress, confirmedAmount, confirmedCurrency, createdOrderData, shippingFee, appliedDiscount, store, displayItems]);
+
 
   const digitalItems = useMemo(() => {
     return displayItems.filter((i: any) => {
@@ -3712,6 +3757,91 @@ export default function UniversalStorefront({
                     )}
                   </div>
 
+                  {/* Official Receipt Card */}
+                  <div
+                    style={{
+                      background: '#ffffff',
+                      border: '1.5px solid #e2e8f0',
+                      borderRadius: 16,
+                      padding: '14px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div
+                        style={{
+                          width: 38,
+                          height: 38,
+                          borderRadius: 10,
+                          background: '#f0fdf4',
+                          color: '#15803d',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Receipt size={20} />
+                      </div>
+                      <div>
+                        <h5 style={{ fontSize: 13.5, fontWeight: 700, margin: 0, color: '#0f172a' }}>
+                          Official Order Receipt
+                        </h5>
+                        <p style={{ fontSize: 11.5, color: '#64748b', margin: '2px 0 0' }}>
+                          Download PDF or view verified receipt
+                        </p>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button
+                        type="button"
+                        onClick={() => setIsReceiptModalOpen(true)}
+                        style={{
+                          padding: '8px 12px',
+                          borderRadius: 8,
+                          background: '#f8fafc',
+                          color: '#334155',
+                          border: '1px solid #cbd5e1',
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        View
+                      </button>
+                      {confirmedOrderId && (
+                        <a
+                          href={`${getApiUrl()}/v1/orders/${confirmedOrderId}/receipt/pdf`}
+                          download={`receipt-${confirmedOrderNum || 'order'}.pdf`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            padding: '8px 12px',
+                            borderRadius: 8,
+                            background: '#075E54',
+                            color: '#ffffff',
+                            border: 'none',
+                            fontSize: 12.5,
+                            fontWeight: 700,
+                            textDecoration: 'none',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 6px rgba(7, 94, 84, 0.2)',
+                          }}
+                        >
+                          <Download size={13} /> PDF
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Digital Downloads Card (If Order Contains Digital Items) */}
                   {hasDigital && (
                     <div
@@ -4387,6 +4517,29 @@ export default function UniversalStorefront({
 
                   <button
                     type="button"
+                    onClick={() => setIsReceiptModalOpen(true)}
+                    style={{
+                      width: '100%',
+                      padding: '13px',
+                      borderRadius: 14,
+                      background: '#f0fdf4',
+                      color: '#075E54',
+                      border: '1.5px solid #86efac',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <Receipt size={17} />
+                    View Order Receipt
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => {
                       setIsCartOpen(false);
                       setCart([]);
@@ -4412,6 +4565,13 @@ export default function UniversalStorefront({
           </div>
         </div>
       )}
+
+      {/* Official Digital Order Receipt Modal */}
+      <OrderReceiptModal
+        isOpen={isReceiptModalOpen}
+        onClose={() => setIsReceiptModalOpen(false)}
+        order={receiptOrderData}
+      />
 
       {/* ── SLIDE-OVER WISHLIST DRAWER ── */}
       {isWishlistOpen && (

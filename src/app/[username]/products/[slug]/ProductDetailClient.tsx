@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft, Share2, ShoppingBag, Star, Clock, MapPin, ShieldCheck,
   Check, Calendar, Plus, Minus, BadgeCheck, ChevronRight, Camera,
-  Truck, RotateCcw, X, Heart, Copy, ExternalLink, CheckCircle2, Shield, AlertCircle, Expand, Maximize2
+  Truck, RotateCcw, X, Heart, Copy, ExternalLink, CheckCircle2, Shield, AlertCircle, Expand, Maximize2, Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
@@ -15,6 +15,7 @@ import { getColorHex } from '@/utils/colorUtils';
 import { getOptimizedImageUrl } from '@/lib/image';
 import BuiltWithFrontstoreBadge from '@/components/BuiltWithFrontstoreBadge';
 import { InstagramIcon, TikTokIcon, TwitterXIcon, FacebookIcon } from '@/components/SocialIcons';
+import { getApiUrl } from '@/lib/api';
 // --- Types & Interfaces ---
 interface Category {
   store_label?: string | null;
@@ -1436,29 +1437,26 @@ export default function ProductDetailClient({
               <span>Your tracking page is ready. Save the link to check updates and confirm payment outside WhatsApp.</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 44px', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <a 
                 href={`/track/${orderReceipt.order.id}`} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="fs-msg-btn" 
-                style={{ textDecoration: 'none', margin: 0, padding: 10, display: 'flex', gap: 6 }}
+                style={{ textDecoration: 'none', margin: 0, padding: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13 }}
               >
-                <ExternalLink size={15} /> View tracking page
+                <ExternalLink size={15} /> Track Order
               </a>
-              <button 
-                type="button" 
-                onClick={async () => {
-                  await navigator.clipboard.writeText(`${window.location.origin}/track/${orderReceipt.order.id}`);
-                  toast.success('Tracking link copied to clipboard!');
-                }} 
+              <a 
+                href={`${getApiUrl()}/v1/orders/${orderReceipt.order.id}/receipt/pdf`} 
+                download={`receipt-${orderReceipt.order.order_number}.pdf`}
+                target="_blank" 
+                rel="noopener noreferrer" 
                 className="fs-msg-btn" 
-                aria-label="Copy tracking link" 
-                title="Copy tracking link" 
-                style={{ padding: 0, margin: 0 }}
+                style={{ textDecoration: 'none', margin: 0, padding: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 13, background: 'var(--brand)', color: '#fff', borderColor: 'var(--brand)' }}
               >
-                <Copy size={15} />
-              </button>
+                <Download size={15} /> PDF Receipt
+              </a>
             </div>
 
             {orderReceipt.order.payment_status === 'unpaid' && (
