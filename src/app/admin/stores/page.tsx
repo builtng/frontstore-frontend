@@ -32,7 +32,7 @@ import CreateMerchantDrawer from './CreateMerchantDrawer';
 import SearchableSelect, { SelectOption } from '@/components/SearchableSelect';
 import { NIGERIAN_STATES } from '@/utils/nigerianStates';
 
-export const COUNTRY_OPTIONS: SelectOption[] = [
+const COUNTRY_OPTIONS: SelectOption[] = [
   { value: 'NG', label: 'Nigeria', sublabel: 'NG · +234', icon: <span>🇳🇬</span> },
   { value: 'GH', label: 'Ghana', sublabel: 'GH · +233', icon: <span>🇬🇭</span> },
   { value: 'KE', label: 'Kenya', sublabel: 'KE · +254', icon: <span>🇰🇪</span> },
@@ -49,7 +49,7 @@ export const COUNTRY_OPTIONS: SelectOption[] = [
   { value: 'AE', label: 'United Arab Emirates', sublabel: 'AE · +971', icon: <span>🇦🇪</span> },
 ];
 
-export const COUNTRY_TO_CURRENCY: Record<string, string> = {
+const COUNTRY_TO_CURRENCY: Record<string, string> = {
   NG: 'NGN',
   GH: 'GHS',
   KE: 'KES',
@@ -66,7 +66,7 @@ export const COUNTRY_TO_CURRENCY: Record<string, string> = {
   AE: 'AED',
 };
 
-export const CURRENCY_OPTIONS: SelectOption[] = [
+const CURRENCY_OPTIONS: SelectOption[] = [
   { value: 'NGN', label: 'NGN (₦)', sublabel: 'Nigerian Naira' },
   { value: 'USD', label: 'USD ($)', sublabel: 'US Dollar' },
   { value: 'GBP', label: 'GBP (£)', sublabel: 'British Pound' },
@@ -81,7 +81,7 @@ export const CURRENCY_OPTIONS: SelectOption[] = [
   { value: 'XAF', label: 'XAF (FCFA)', sublabel: 'Central African CFA Franc' },
 ];
 
-export const STATE_REGION_OPTIONS: SelectOption[] = [
+const STATE_REGION_OPTIONS: SelectOption[] = [
   { value: '', label: 'None / Select State...', sublabel: 'Choose region' },
   ...NIGERIAN_STATES.map((s) => ({
     value: s.name,
@@ -99,7 +99,7 @@ export const STATE_REGION_OPTIONS: SelectOption[] = [
   { value: 'Nairobi County', label: 'Nairobi County', sublabel: 'Kenya' },
 ];
 
-export const POPULAR_BANKS: SelectOption[] = [
+const POPULAR_BANKS: SelectOption[] = [
   { value: 'Access Bank', label: 'Access Bank', sublabel: 'Commercial Bank' },
   { value: 'Guaranty Trust Bank', label: 'Guaranty Trust Bank (GTBank)', sublabel: 'Commercial Bank' },
   { value: 'Zenith Bank', label: 'Zenith Bank', sublabel: 'Commercial Bank' },
