@@ -306,6 +306,16 @@ export default function AddProductModal({
           setProdType('product');
         }
 
+        // Match category if available
+        if (categories && categories.length > 0) {
+          const searchCorpus = `${data.name || ''} ${(data.tags || []).join(' ')}`.toLowerCase();
+          const matched = categories.find((c) => {
+            const cName = c.name.toLowerCase();
+            return searchCorpus.includes(cName) || cName.split(/\s+/).some((w) => w.length > 3 && searchCorpus.includes(w));
+          });
+          if (matched) setProdCategory(matched.id);
+        }
+
         // Update user state with the new quota used counter
         if (typeof json.quota_used !== 'undefined') {
           setUser(prev => prev ? { ...prev, ai_analyses_used: json.quota_used } : null);
