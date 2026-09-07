@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   Flag,
@@ -14,7 +15,16 @@ import {
   X,
   Loader2,
   AlertCircle,
+  ArrowRight,
+  ShieldCheck,
+  ChevronRight,
+  Sparkles,
+  Store,
+  Clock,
+  Globe,
+  Phone,
 } from 'lucide-react';
+import Logo from '@/components/Logo';
 
 export interface UnclaimedListingData {
   id: string;
@@ -67,6 +77,9 @@ export default function UnclaimedStoreView({
   const [activeModal, setActiveModal] = useState<
     'none' | 'not-live' | 'shopper-thanks' | 'manual-claim' | 'report'
   >('none');
+
+  // Preview tab state for desktop
+  const [previewTab, setPreviewTab] = useState<'all' | 'popular' | 'featured'>('all');
 
   // Manual Claim Form States
   const [manualName, setManualName] = useState('');
@@ -163,44 +176,79 @@ export default function UnclaimedStoreView({
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#F7FAF7',
-        color: '#111827',
-        fontFamily: 'var(--font-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        position: 'relative',
-      }}
-    >
-      {/* ── Top Sticky Notice Bar ─────────────────────────────────────────── */}
-      <header
-        style={{
-          width: '100%',
-          backgroundColor: '#064E3B',
-          color: '#FFFFFF',
-          padding: '12px 16px',
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-          boxShadow: '0 4px 14px rgba(6, 78, 59, 0.18)',
-        }}
-      >
+    <div className="unclaimed-page-root">
+      {/* ── Desktop Top Chrome / Breadcrumbs Bar ─────────────────────────── */}
+      <nav className="unclaimed-desktop-chrome" aria-label="Breadcrumb and brand">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+            <Logo size={26} showText={true} textColor="#064E3B" text="Frontstore" />
+          </Link>
+
+          <div style={{ width: 1, height: 20, backgroundColor: '#E5E7EB' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#6B7280' }}>
+            <Link href="/" style={{ color: '#6B7280', textDecoration: 'none' }}>
+              Home
+            </Link>
+            <ChevronRight size={13} color="#9CA3AF" />
+            <Link href="/stores" style={{ color: '#6B7280', textDecoration: 'none' }}>
+              Business Directory
+            </Link>
+            {listing.state && (
+              <>
+                <ChevronRight size={13} color="#9CA3AF" />
+                <span>{listing.state}</span>
+              </>
+            )}
+            <ChevronRight size={13} color="#9CA3AF" />
+            <span style={{ color: '#111827', fontWeight: 600 }}>{listing.name}</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <Link
+            href="/stores"
+            style={{
+              fontSize: 13.5,
+              fontWeight: 600,
+              color: '#374151',
+              textDecoration: 'none',
+              padding: '8px 14px',
+              borderRadius: 8,
+              transition: 'background-color 0.15s',
+            }}
+          >
+            Browse Stores
+          </Link>
+          <button
+            onClick={handleClaimClick}
+            type="button"
+            style={{
+              fontSize: 13.5,
+              fontWeight: 700,
+              backgroundColor: '#064E3B',
+              color: '#FFFFFF',
+              padding: '8px 18px',
+              borderRadius: 9999,
+              border: 'none',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: '0 2px 6px rgba(6, 78, 59, 0.2)',
+            }}
+          >
+            <Flag size={13} />
+            Claim this business
+          </button>
+        </div>
+      </nav>
+
+      {/* ── Sticky Notice Bar ─────────────────────────────────────────────── */}
+      <header className="unclaimed-sticky-header">
+        {/* Mobile View: Centered banner */}
         <div
-          style={{
-            maxWidth: 540,
-            margin: '0 auto',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            fontSize: '13.5px',
-            fontWeight: 600,
-            textAlign: 'center',
-            cursor: 'pointer',
-          }}
+          className="unclaimed-banner-mobile"
           onClick={handleClaimClick}
           role="button"
           tabIndex={0}
@@ -219,20 +267,64 @@ export default function UnclaimedStoreView({
             </span>
           </span>
         </div>
+
+        {/* Desktop View: Full container banner with direct CTA */}
+        <div className="unclaimed-banner-desktop">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.16)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Flag size={15} strokeWidth={2.2} />
+            </div>
+            <div>
+              <span style={{ fontWeight: 600 }}>
+                Are you the owner of <strong style={{ color: '#FFFFFF' }}>{listing.name}</strong>?
+              </span>{' '}
+              <span style={{ color: 'rgba(255, 255, 255, 0.82)' }}>
+                This storefront is reserved for your business. Turn it into a WhatsApp store in 2 minutes.
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleClaimClick}
+            type="button"
+            style={{
+              backgroundColor: '#FFFFFF',
+              color: '#064E3B',
+              border: 'none',
+              borderRadius: 9999,
+              padding: '8px 20px',
+              fontSize: 13.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.15s ease',
+              flexShrink: 0,
+            }}
+          >
+            Claim Store Free <ArrowRight size={14} />
+          </button>
+        </div>
       </header>
 
-      {/* ── Main Phone-width Content Column ────────────────────────────────── */}
-      <main
-        style={{
-          width: '100%',
-          maxWidth: 480,
-          padding: '36px 20px 64px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'stretch',
-        }}
-      >
-        {/* ── Store Header ─────────────────────────────────────────────────── */}
+      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {/* ── MOBILE LAYOUT (Exactly as approved, < 1024px) ────────────────── */}
+      {/* ═════════════════════════════════════════════════════════════════════ */}
+      <main className="unclaimed-mobile-layout">
+        {/* Store Header */}
         <section
           style={{
             display: 'flex',
@@ -349,7 +441,6 @@ export default function UnclaimedStoreView({
               maxWidth: 340,
             }}
           >
-            {/* Chat with us (Secondary outline) */}
             <button
               onClick={() => setActiveModal('not-live')}
               type="button"
@@ -370,14 +461,11 @@ export default function UnclaimedStoreView({
                 boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
                 transition: 'all 0.15s ease',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F0F7F2')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
             >
               <MessageSquare size={16} strokeWidth={2.2} />
               Chat with us
             </button>
 
-            {/* Claim (Primary solid dark green) */}
             <button
               onClick={handleClaimClick}
               type="button"
@@ -398,8 +486,6 @@ export default function UnclaimedStoreView({
                 boxShadow: '0 4px 12px rgba(6, 78, 59, 0.22)',
                 transition: 'all 0.15s ease',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#053C2E')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#064E3B')}
             >
               <Flag size={16} strokeWidth={2.2} />
               Claim
@@ -407,9 +493,8 @@ export default function UnclaimedStoreView({
           </div>
         </section>
 
-        {/* ── Storefront Preview Section ───────────────────────────────────── */}
+        {/* Storefront Preview Section */}
         <section style={{ marginBottom: 28 }}>
-          {/* Header with hairline divider */}
           <div
             style={{
               display: 'flex',
@@ -429,22 +514,10 @@ export default function UnclaimedStoreView({
             >
               Storefront preview
             </h2>
-            <div
-              style={{
-                flex: 1,
-                height: 1,
-                backgroundColor: '#E5E7EB',
-              }}
-            />
+            <div style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
           </div>
 
-          <p
-            style={{
-              fontSize: 13,
-              color: '#6B7280',
-              margin: '0 0 16px',
-            }}
-          >
+          <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 16px' }}>
             Products appear here once {listing.name} claims the store.
           </p>
 
@@ -471,16 +544,7 @@ export default function UnclaimedStoreView({
                   cursor: 'pointer',
                   transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.06)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
-                }}
               >
-                {/* Product Image Box with centered Lock Badge */}
                 <div
                   style={{
                     width: '100%',
@@ -509,7 +573,6 @@ export default function UnclaimedStoreView({
                   </div>
                 </div>
 
-                {/* Skeleton bottom lines */}
                 <div style={{ padding: '14px 12px' }}>
                   <div
                     style={{
@@ -534,7 +597,7 @@ export default function UnclaimedStoreView({
           </div>
         </section>
 
-        {/* ── What You Unlock By Claiming Card ─────────────────────────────── */}
+        {/* What You Unlock By Claiming Card */}
         <section
           style={{
             backgroundColor: '#FFFFFF',
@@ -545,19 +608,11 @@ export default function UnclaimedStoreView({
             marginBottom: 24,
           }}
         >
-          <h2
-            style={{
-              fontSize: 16,
-              fontWeight: 700,
-              color: '#111827',
-              margin: '0 0 18px',
-            }}
-          >
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: '0 0 18px' }}>
             What you unlock by claiming
           </h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Feature 1 */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
               <div
                 style={{
@@ -575,30 +630,15 @@ export default function UnclaimedStoreView({
                 <Zap size={18} strokeWidth={2.2} />
               </div>
               <div style={{ minWidth: 0 }}>
-                <h3
-                  style={{
-                    fontSize: 14.5,
-                    fontWeight: 700,
-                    color: '#111827',
-                    margin: '0 0 2px',
-                  }}
-                >
+                <h3 style={{ fontSize: 14.5, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>
                   Store live in 2 minutes
                 </h3>
-                <p
-                  style={{
-                    fontSize: 13,
-                    color: '#6B7280',
-                    margin: 0,
-                    lineHeight: 1.45,
-                  }}
-                >
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0, lineHeight: 1.45 }}>
                   Add products, set your colour and domain.
                 </p>
               </div>
             </div>
 
-            {/* Feature 2 */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
               <div
                 style={{
@@ -616,30 +656,15 @@ export default function UnclaimedStoreView({
                 <Wallet size={18} strokeWidth={2.2} />
               </div>
               <div style={{ minWidth: 0 }}>
-                <h3
-                  style={{
-                    fontSize: 14.5,
-                    fontWeight: 700,
-                    color: '#111827',
-                    margin: '0 0 2px',
-                  }}
-                >
+                <h3 style={{ fontSize: 14.5, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>
                   Get paid anywhere
                 </h3>
-                <p
-                  style={{
-                    fontSize: 13,
-                    color: '#6B7280',
-                    margin: 0,
-                    lineHeight: 1.45,
-                  }}
-                >
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0, lineHeight: 1.45 }}>
                   Accept Naira and 7+ currencies.
                 </p>
               </div>
             </div>
 
-            {/* Feature 3 */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
               <div
                 style={{
@@ -657,24 +682,10 @@ export default function UnclaimedStoreView({
                 <MessageSquare size={18} strokeWidth={2.2} />
               </div>
               <div style={{ minWidth: 0 }}>
-                <h3
-                  style={{
-                    fontSize: 14.5,
-                    fontWeight: 700,
-                    color: '#111827',
-                    margin: '0 0 2px',
-                  }}
-                >
+                <h3 style={{ fontSize: 14.5, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>
                   Sell on WhatsApp
                 </h3>
-                <p
-                  style={{
-                    fontSize: 13,
-                    color: '#6B7280',
-                    margin: 0,
-                    lineHeight: 1.45,
-                  }}
-                >
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0, lineHeight: 1.45 }}>
                   Nina takes orders and payments for you.
                 </p>
               </div>
@@ -682,7 +693,7 @@ export default function UnclaimedStoreView({
           </div>
         </section>
 
-        {/* ── Footer Disclaimer & Report ───────────────────────────────────── */}
+        {/* Mobile Footer */}
         <footer
           style={{
             textAlign: 'center',
@@ -713,39 +724,978 @@ export default function UnclaimedStoreView({
         </footer>
       </main>
 
-      {/* ── Backdrop for Modals ───────────────────────────────────────────── */}
-      {activeModal !== 'none' && (
+      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {/* ── DESKTOP LAYOUT (Spacious 2-Column Experience, ≥ 1024px) ───────── */}
+      {/* ═════════════════════════════════════════════════════════════════════ */}
+      <main className="unclaimed-desktop-layout">
+        {/* ── LEFT COLUMN: Storefront Showcase & Catalog Simulation ───────── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
+          {/* Store Hero Showcase Card */}
+          <section
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 24,
+              border: '1px solid #E2ECE5',
+              overflow: 'hidden',
+              boxShadow: '0 4px 20px -4px rgba(6, 78, 59, 0.06)',
+            }}
+          >
+            {/* Branded Cover Banner Art */}
+            <div
+              style={{
+                height: 140,
+                background: 'linear-gradient(135deg, #064E3B 0%, #0D684D 55%, #10B981 100%)',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'flex-end',
+                padding: '16px 24px',
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  opacity: 0.1,
+                  backgroundImage:
+                    'radial-gradient(#ffffff 1.5px, transparent 1.5px), radial-gradient(#ffffff 1.5px, transparent 1.5px)',
+                  backgroundSize: '24px 24px',
+                  backgroundPosition: '0 0, 12px 12px',
+                }}
+              />
+
+              <div
+                style={{
+                  position: 'relative',
+                  zIndex: 2,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  backgroundColor: 'rgba(0, 0, 0, 0.28)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: 9999,
+                  padding: '5px 12px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: '#FFFFFF',
+                }}
+              >
+                <Store size={13} />
+                <span>Reserved Business Storefront</span>
+              </div>
+            </div>
+
+            {/* Profile Meta & Actions */}
+            <div style={{ padding: '0 32px 32px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'space-between',
+                  marginTop: -52,
+                  marginBottom: 20,
+                  flexWrap: 'wrap',
+                  gap: 16,
+                }}
+              >
+                {/* Monogram Avatar */}
+                <div
+                  style={{
+                    width: 96,
+                    height: 96,
+                    borderRadius: '50%',
+                    backgroundColor: '#064E3B',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 36,
+                    fontWeight: 700,
+                    letterSpacing: '0.02em',
+                    boxShadow: '0 10px 25px -4px rgba(6, 78, 59, 0.28)',
+                    border: '4px solid #FFFFFF',
+                    position: 'relative',
+                    zIndex: 3,
+                  }}
+                >
+                  {initials}
+                </div>
+
+                {/* Primary Action Buttons on Desktop */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <button
+                    onClick={() => setActiveModal('not-live')}
+                    type="button"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      backgroundColor: '#FFFFFF',
+                      border: '1.5px solid #064E3B',
+                      color: '#064E3B',
+                      borderRadius: 9999,
+                      padding: '11px 22px',
+                      fontSize: 14.5,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <MessageSquare size={16} strokeWidth={2.2} />
+                    Chat with us
+                  </button>
+
+                  <button
+                    onClick={handleClaimClick}
+                    type="button"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      backgroundColor: '#064E3B',
+                      border: 'none',
+                      color: '#FFFFFF',
+                      borderRadius: 9999,
+                      padding: '12px 24px',
+                      fontSize: 14.5,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 14px rgba(6, 78, 59, 0.24)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <Flag size={16} strokeWidth={2.2} />
+                    Claim This Store
+                  </button>
+                </div>
+              </div>
+
+              {/* Title & Badges */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
+                  <h1
+                    style={{
+                      fontFamily: "'Fraunces', Georgia, serif",
+                      fontSize: 36,
+                      fontWeight: 800,
+                      color: '#064E3B',
+                      margin: 0,
+                      lineHeight: 1.15,
+                      letterSpacing: '-0.025em',
+                    }}
+                  >
+                    {listing.name}
+                  </h1>
+
+                  {/* Status Badges */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        backgroundColor: '#EAF5EE',
+                        border: '1px solid #D1E7D8',
+                        borderRadius: 100,
+                        padding: '4px 12px',
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: '#064E3B',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          backgroundColor: '#064E3B',
+                          display: 'inline-block',
+                        }}
+                      />
+                      Unclaimed store
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        backgroundColor: '#F3F4F6',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: 100,
+                        padding: '4px 12px',
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: '#4B5563',
+                      }}
+                    >
+                      {categoryLabel}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location */}
+                {locationLabel && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      fontSize: 14,
+                      color: '#6B7280',
+                      marginBottom: 14,
+                    }}
+                  >
+                    <MapPin size={15} color="#9CA3AF" style={{ flexShrink: 0 }} />
+                    <span>{locationLabel}</span>
+                  </div>
+                )}
+
+                {/* Bio text */}
+                <p
+                  style={{
+                    fontSize: 15,
+                    lineHeight: 1.65,
+                    color: '#4B5563',
+                    maxWidth: 680,
+                    margin: 0,
+                  }}
+                >
+                  {bioText}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Storefront Catalog Interactive Simulation ─────────────────── */}
+          <section
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 24,
+              border: '1px solid #E2ECE5',
+              padding: '28px 32px 32px',
+              boxShadow: '0 4px 20px -4px rgba(6, 78, 59, 0.04)',
+            }}
+          >
+            {/* Header & Filter Tabs */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 16,
+                borderBottom: '1px solid #F3F4F6',
+                paddingBottom: 16,
+                marginBottom: 20,
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                  <h2
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 800,
+                      color: '#111827',
+                      margin: 0,
+                    }}
+                  >
+                    Storefront Catalog Preview
+                  </h2>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      backgroundColor: '#FEF3C7',
+                      color: '#92400E',
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    <Lock size={11} strokeWidth={2.5} />
+                    Locked Preview
+                  </span>
+                </div>
+                <p style={{ fontSize: 13.5, color: '#6B7280', margin: 0 }}>
+                  Products and instant WhatsApp checkout activate once {listing.name} claims this store.
+                </p>
+              </div>
+
+              {/* Simulation Filter Tabs */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: '#F7FAF7',
+                  border: '1px solid #E5EBE7',
+                  borderRadius: 12,
+                  padding: 3,
+                  gap: 4,
+                }}
+              >
+                {(
+                  [
+                    { id: 'all', label: 'All Items (6)' },
+                    { id: 'popular', label: 'Popular' },
+                    { id: 'featured', label: 'Featured' },
+                  ] as const
+                ).map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setPreviewTab(tab.id)}
+                    type="button"
+                    style={{
+                      border: 'none',
+                      backgroundColor: previewTab === tab.id ? '#FFFFFF' : 'transparent',
+                      color: previewTab === tab.id ? '#064E3B' : '#6B7280',
+                      fontWeight: previewTab === tab.id ? 700 : 600,
+                      fontSize: 12.5,
+                      padding: '6px 14px',
+                      borderRadius: 9,
+                      cursor: 'pointer',
+                      boxShadow: previewTab === tab.id ? '0 2px 5px rgba(0,0,0,0.04)' : 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 3-Column Desktop Locked Cards Grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 18,
+                marginBottom: 24,
+              }}
+            >
+              {[1, 2, 3, 4, 5, 6].map((idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setActiveModal('not-live')}
+                  role="button"
+                  tabIndex={0}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: 18,
+                    overflow: 'hidden',
+                    border: '1px solid #E6ECE8',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    position: 'relative',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-3px)';
+                    e.currentTarget.style.boxShadow = '0 10px 22px rgba(6, 78, 59, 0.08)';
+                    e.currentTarget.style.borderColor = '#C2DEC9';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
+                    e.currentTarget.style.borderColor = '#E6ECE8';
+                  }}
+                >
+                  {/* Square Product Image Placeholder */}
+                  <div
+                    style={{
+                      width: '100%',
+                      aspectRatio: '1 / 1',
+                      backgroundColor: '#EAF1EC',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                      gap: 8,
+                    }}
+                    className="unclaimed-shimmer"
+                  >
+                    <div
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '50%',
+                        backgroundColor: '#FFFFFF',
+                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.08)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#064E3B',
+                      }}
+                    >
+                      <Lock size={18} strokeWidth={2.2} />
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: '#064E3B',
+                        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+                        padding: '2px 8px',
+                        borderRadius: 9999,
+                      }}
+                    >
+                      Claim to reveal
+                    </span>
+                  </div>
+
+                  {/* Card Content Skeleton Details */}
+                  <div style={{ padding: '16px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div
+                        style={{
+                          width: '45%',
+                          height: 8,
+                          borderRadius: 4,
+                          backgroundColor: '#E2E8E4',
+                        }}
+                      />
+                      <div
+                        style={{
+                          width: '28%',
+                          height: 8,
+                          borderRadius: 4,
+                          backgroundColor: '#E2E8E4',
+                        }}
+                      />
+                    </div>
+
+                    <div
+                      style={{
+                        width: '85%',
+                        height: 12,
+                        borderRadius: 6,
+                        backgroundColor: '#D1DCD4',
+                      }}
+                    />
+
+                    {/* Simulated price & locked order button */}
+                    <div
+                      style={{
+                        marginTop: 'auto',
+                        paddingTop: 8,
+                        borderTop: '1px solid #F3F4F6',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: '#9CA3AF',
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        ₦ ••••••
+                      </div>
+
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                          color: '#064E3B',
+                          backgroundColor: '#EAF5EE',
+                          padding: '4px 8px',
+                          borderRadius: 6,
+                        }}
+                      >
+                        <MessageSquare size={11} /> Order
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Simulation Explainer Banner */}
+            <div
+              style={{
+                backgroundColor: '#F7FAF7',
+                border: '1px solid #E2ECE5',
+                borderRadius: 16,
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 14,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: '#EAF5EE',
+                    color: '#064E3B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Sparkles size={18} />
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 13.5, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>
+                    Want to see your real products live on this page?
+                  </h4>
+                  <p style={{ fontSize: 12.5, color: '#6B7280', margin: 0 }}>
+                    Claiming connects your WhatsApp phone number and lets you upload unlimited items in minutes.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleClaimClick}
+                type="button"
+                style={{
+                  backgroundColor: '#064E3B',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: 9999,
+                  padding: '9px 18px',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'background-color 0.15s ease',
+                }}
+              >
+                Claim & Add Products <ArrowRight size={13} />
+              </button>
+            </div>
+          </section>
+
+          {/* ── Visual Explainer: How Frontstore Commerce Works ───────────── */}
+          <section
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 24,
+              border: '1px solid #E2ECE5',
+              padding: '28px 32px',
+              boxShadow: '0 4px 20px -4px rgba(6, 78, 59, 0.04)',
+            }}
+          >
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 6px' }}>
+              How WhatsApp commerce works for your business
+            </h3>
+            <p style={{ fontSize: 13.5, color: '#6B7280', margin: '0 0 22px' }}>
+              Frontstore replaces endless back-and-forth chats with clean catalogs, automated orders, and instant bank verification.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    backgroundColor: '#EAF5EE',
+                    color: '#064E3B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    fontSize: 16,
+                  }}
+                >
+                  1
+                </div>
+                <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#111827', margin: 0 }}>
+                  Share your link
+                </h4>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0, lineHeight: 1.5 }}>
+                  Drop your link in Instagram bio, WhatsApp status, or marketing messages.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    backgroundColor: '#EAF5EE',
+                    color: '#064E3B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    fontSize: 16,
+                  }}
+                >
+                  2
+                </div>
+                <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#111827', margin: 0 }}>
+                  Shopper adds to bag
+                </h4>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0, lineHeight: 1.5 }}>
+                  Customers choose their size, quantity, and delivery address on a fast mobile menu.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    backgroundColor: '#EAF5EE',
+                    color: '#064E3B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    fontSize: 16,
+                  }}
+                >
+                  3
+                </div>
+                <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#111827', margin: 0 }}>
+                  Paid order in WhatsApp
+                </h4>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0, lineHeight: 1.5 }}>
+                  You receive a pre-formatted WhatsApp order message and instant bank settlement.
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* ── RIGHT COLUMN: High-Converting Sticky Claim Sidebar ──────────── */}
         <div
-          onClick={() => setActiveModal('none')}
           style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(6, 30, 20, 0.45)',
-            backdropFilter: 'blur(4px)',
-            WebkitBackdropFilter: 'blur(4px)',
-            zIndex: 50,
+            position: 'sticky',
+            top: 76,
             display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: 20,
           }}
         >
-          {/* Modal Card / Bottom Sheet Container */}
+          {/* Card 1: Main Conversion Claim Card */}
           <div
-            onClick={(e) => e.stopPropagation()}
             style={{
-              width: '100%',
-              maxWidth: 440,
               backgroundColor: '#FFFFFF',
-              borderRadius: '26px 26px 0 0',
-              padding: '24px 22px 32px',
-              boxShadow: '0 -8px 32px rgba(0,0,0,0.18)',
-              position: 'relative',
+              borderRadius: 24,
+              border: '1px solid #E2ECE5',
+              padding: '28px 24px',
+              boxShadow: '0 8px 30px -6px rgba(6, 78, 59, 0.08)',
             }}
+          >
+            {/* Pill Header */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                backgroundColor: '#EAF5EE',
+                color: '#064E3B',
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '4px 12px',
+                borderRadius: 9999,
+                marginBottom: 16,
+              }}
+            >
+              <Zap size={13} strokeWidth={2.5} />
+              Instant Setup
+            </div>
+
+            <h3
+              style={{
+                fontFamily: "'Fraunces', Georgia, serif",
+                fontSize: 22,
+                fontWeight: 800,
+                color: '#064E3B',
+                margin: '0 0 8px',
+                lineHeight: 1.25,
+              }}
+            >
+              Turn this page into your WhatsApp storefront
+            </h3>
+
+            <p style={{ fontSize: 13.5, color: '#6B7280', lineHeight: 1.55, margin: '0 0 20px' }}>
+              Claim ownership to activate order links, customize your store branding, and get paid directly.
+            </p>
+
+            {/* Feature Checklist */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: '#EAF5EE',
+                    color: '#064E3B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Zap size={16} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 13.5, fontWeight: 700, color: '#111827', margin: 0 }}>
+                    Store live in 2 minutes
+                  </h4>
+                  <p style={{ fontSize: 12.5, color: '#6B7280', margin: 0, lineHeight: 1.4 }}>
+                    Add products, set your colors and custom handle.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: '#EAF5EE',
+                    color: '#064E3B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Wallet size={16} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 13.5, fontWeight: 700, color: '#111827', margin: 0 }}>
+                    Get paid anywhere
+                  </h4>
+                  <p style={{ fontSize: 12.5, color: '#6B7280', margin: 0, lineHeight: 1.4 }}>
+                    Accept instant bank transfers, cards, and 7+ currencies.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: '#EAF5EE',
+                    color: '#064E3B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <MessageSquare size={16} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 13.5, fontWeight: 700, color: '#111827', margin: 0 }}>
+                    Sell on WhatsApp with Nina
+                  </h4>
+                  <p style={{ fontSize: 12.5, color: '#6B7280', margin: 0, lineHeight: 1.4 }}>
+                    Nina AI answers customer questions and collects payments.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Primary Action Button */}
+            <button
+              onClick={handleClaimClick}
+              type="button"
+              style={{
+                width: '100%',
+                backgroundColor: '#064E3B',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: 14,
+                padding: '14px 20px',
+                fontSize: 15,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                boxShadow: '0 4px 14px rgba(6, 78, 59, 0.28)',
+                transition: 'all 0.15s ease',
+                marginBottom: 12,
+              }}
+            >
+              <Flag size={16} strokeWidth={2.2} />
+              Claim {listing.name} Now
+            </button>
+
+            {/* Shopper link */}
+            <button
+              onClick={handleShopperClick}
+              type="button"
+              style={{
+                width: '100%',
+                background: 'none',
+                border: 'none',
+                color: '#4B5563',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                textAlign: 'center',
+                padding: '6px 0',
+                transition: 'color 0.15s ease',
+              }}
+            >
+              Are you a shopper? Let the owner know you&apos;re waiting &rarr;
+            </button>
+
+            {/* Trust reassurance note */}
+            <div
+              style={{
+                marginTop: 18,
+                paddingTop: 16,
+                borderTop: '1px solid #F3F4F6',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 16,
+                fontSize: 12,
+                color: '#6B7280',
+              }}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Check size={13} color="#064E3B" strokeWidth={3} /> Free listing
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Check size={13} color="#064E3B" strokeWidth={3} /> No card required
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Check size={13} color="#064E3B" strokeWidth={3} /> Verified claim
+              </span>
+            </div>
+          </div>
+
+          {/* Card 2: Business Information on File & Report Link */}
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 20,
+              border: '1px solid #E2ECE5',
+              padding: '20px 22px',
+              fontSize: 13,
+              color: '#4B5563',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
+            }}
+          >
+            <h4
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                color: '#9CA3AF',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                margin: '0 0 12px',
+              }}
+            >
+              Directory Information
+            </h4>
+
+            <div style={{ display: 'grid', gap: 10, marginBottom: 16 }}>
+              {listing.address && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <MapPin size={14} color="#9CA3AF" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <span>{listing.address}</span>
+                </div>
+              )}
+              {listing.opening_hours && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <Clock size={14} color="#9CA3AF" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <span>{listing.opening_hours}</span>
+                </div>
+              )}
+              {listing.website && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <Globe size={14} color="#9CA3AF" style={{ marginTop: 2, flexShrink: 0 }} />
+                  <a
+                    href={listing.website.startsWith('http') ? listing.website : `https://${listing.website}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: '#064E3B', textDecoration: 'underline', wordBreak: 'break-all' }}
+                  >
+                    {listing.website}
+                  </a>
+                </div>
+              )}
+            </div>
+
+            <div
+              style={{
+                paddingTop: 12,
+                borderTop: '1px solid #F3F4F6',
+                fontSize: 12,
+                lineHeight: 1.5,
+                color: '#6B7280',
+              }}
+            >
+              <span>This listing was created from verified public map sources. </span>
+              <span>Not the owner or spotted an error? </span>
+              <button
+                onClick={() => setActiveModal('report')}
+                type="button"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  color: '#064E3B',
+                  fontWeight: 700,
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  font: 'inherit',
+                }}
+              >
+                Report this page.
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {/* ── MODALS (Mobile Bottom-Sheet / Desktop Centered Dialog) ─────────── */}
+      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {activeModal !== 'none' && (
+        <div
+          className="unclaimed-modal-overlay"
+          onClick={() => setActiveModal('none')}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="unclaimed-modal-container"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* ── MODAL 1: This store isn't live yet ────────────────────────── */}
             {activeModal === 'not-live' && (
               <div>
-                {/* Header row: Icon on left, Close button on right */}
                 <div
                   style={{
                     display: 'flex',
@@ -830,8 +1780,6 @@ export default function UnclaimedStoreView({
                       cursor: 'pointer',
                       transition: 'background-color 0.15s ease',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#053C2E')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#064E3B')}
                   >
                     Yes, claim my store
                   </button>
@@ -851,8 +1799,6 @@ export default function UnclaimedStoreView({
                       cursor: 'pointer',
                       transition: 'background-color 0.15s ease',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F9FAFB')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
                   >
                     I&apos;m a shopper
                   </button>
