@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import StorefrontClient from './StorefrontClientNoSsr';
 import { truncateStoreBio } from '@/utils/storeBio';
 
@@ -8,6 +8,20 @@ interface PageProps {
   params: Promise<{
     username: string;
   }>;
+}
+
+async function getUnclaimedListing(slug: string) {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+  try {
+    const res = await fetch(`${API_URL}/v1/public/frontstore-stores/${slug}`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return null;
+    const { data } = await res.json();
+    return data;
+  } catch (err) {
+    return null;
+  }
 }
 
 async function getStoreData(username: string) {
@@ -44,6 +58,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const data = await getStoreData(username);
   
   if (!data || !data.store) {
+    const unclaimed = await getUnclaimedListing(username);
+    if (unclaimed) {
+      return {
+        title: `Are you the owner of ${unclaimed.name}? Claim this store | Frontstore`,
+        description: `${unclaimed.name} on Frontstore. Claim this free listing and turn it into a WhatsApp storefront in minutes.`,
+      };
+    }
     return {
       title: "Store Not Found | Frontstore",
       description: "The storefront you are looking for does not exist on Frontstore.",
@@ -116,6 +137,10 @@ export default async function Page({ params }: PageProps) {
   const data = await getStoreData(username);
   
   if (!data || !data.store) {
+    const unclaimed = await getUnclaimedListing(username);
+    if (unclaimed?.slug) {
+      redirect(`/claim/${unclaimed.slug}`);
+    }
     return notFound();
   }
 

@@ -10,7 +10,7 @@ import {
   Truck, ShieldAlert, Bell, User, Edit3, Package, Building,
   Filter, Heart, RefreshCw, Layers, CreditCard, Lock,
   Navigation, MoreVertical, RotateCcw, Calendar, Download,
-  CheckCircle2, Mail, Home
+  CheckCircle2, Mail, Home, LayoutGrid, List, Maximize2
 } from 'lucide-react';
 import { toast as sonnerToast } from 'sonner';
 import QRCodeSVG from 'react-qr-code';
@@ -21,6 +21,7 @@ import { getOptimizedImageUrl } from '@/lib/image';
 import BuiltWithFrontstoreBadge from '@/components/BuiltWithFrontstoreBadge';
 import { truncateStoreBio } from '@/utils/storeBio';
 import BankTransferPaymentModal from '../../components/BankTransferPaymentModal';
+import ImageLightbox from '../../components/ImageLightbox';
 
 export interface StoreLink {
   id: string;
@@ -359,6 +360,27 @@ export default function UniversalStorefront({
   const [sortBy, setSortBy] = useState<'featured' | 'price-low' | 'price-high' | 'sale'>('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  // Hydrate viewMode preference from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('frontstore_storefront_view_mode');
+      if (saved === 'grid' || saved === 'list') {
+        setViewMode(saved);
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  const handleSetViewMode = (mode: 'grid' | 'list') => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('frontstore_storefront_view_mode', mode);
+    } catch {
+      // Ignore localStorage errors
+    }
+  };
+
   const handleHomeClick = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (activeTab !== 'all') setActiveTab('all');
@@ -367,16 +389,11 @@ export default function UniversalStorefront({
   };
 
   const handleNinaClick = () => {
-    if (store.nina_chat_qr_enabled) {
-      if (onToggleNina) {
-        onToggleNina();
-      } else {
-        window.dispatchEvent(new CustomEvent('frontstore:open-nina'));
-      }
-    } else if (store.whatsapp_phone) {
-      const waDigits = store.whatsapp_phone.replace(/[^0-9]/g, '');
-      const waText = encodeURIComponent(`Hi ${store.store_name}, I am browsing your store.`);
-      window.open(`https://wa.me/${waDigits}?text=${waText}`, '_blank');
+    if (onToggleNina) {
+      onToggleNina();
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('frontstore:open-nina'));
     }
   };
 
@@ -418,10 +435,16 @@ export default function UniversalStorefront({
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [quickViewImageIndex, setQuickViewImageIndex] = useState(0);
+  const [isQuickViewLightboxOpen, setIsQuickViewLightboxOpen] = useState(false);
   const [quickViewQty, setQuickViewQty] = useState(1);
   const [showPolicies, setShowPolicies] = useState(false);
   const [bankTransferModalOpen, setBankTransferModalOpen] = useState(false);
   const [bankTransferDetails, setBankTransferDetails] = useState<any>(null);
+
+  useEffect(() => {
+    setIsQuickViewLightboxOpen(false);
+    setQuickViewImageIndex(0);
+  }, [quickViewProduct?.id]);
 
   useEffect(() => {
     const storeUser = store.username || username;
@@ -1366,30 +1389,27 @@ export default function UniversalStorefront({
             </p>
           )}
 
-          {/* Chat With Us / Scan QR CTAs */}
+          {/* Chat With Nina / Reviews CTAs */}
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-            {store.whatsapp_phone && (
-              <a
-                href={`https://wa.me/${store.whatsapp_phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${store.store_name}, I'd like to know more about your products.`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 7,
-                  background: '#fff',
-                  color: primaryColor,
-                  border: `1.5px solid ${primaryColor}`,
-                  padding: '9px 22px',
-                  borderRadius: 24,
-                  fontWeight: 700,
-                  fontSize: 13.5,
-                  textDecoration: 'none',
-                }}
-              >
-                <WhatsAppIcon size={15} /> Chat with us
-              </a>
-            )}
+            <button
+              type="button"
+              onClick={handleNinaClick}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 7,
+                background: '#fff',
+                color: primaryColor,
+                border: `1.5px solid ${primaryColor}`,
+                padding: '9px 22px',
+                borderRadius: 24,
+                fontWeight: 700,
+                fontSize: 13.5,
+                cursor: 'pointer',
+              }}
+            >
+              <Sparkles size={15} /> Chat with Nina
+            </button>
             <button
               onClick={() => window.location.href = getReviewsUrl()}
               style={{
@@ -1561,6 +1581,42 @@ export default function UniversalStorefront({
                 </button>
               );
             })}
+          </div>
+        )}
+
+        {/* ── CATALOG TOOLBAR (Item Count & Grid/List View Toggle) ── */}
+        {filteredItems.length > 0 && (
+          <div className="storefront-catalog-toolbar">
+            <div className="storefront-catalog-count">
+              <span>
+                {activeTab === 'saved'
+                  ? `${filteredItems.length} saved item${filteredItems.length === 1 ? '' : 's'}`
+                  : `${filteredItems.length} item${filteredItems.length === 1 ? '' : 's'}`}
+              </span>
+            </div>
+
+            <div className="storefront-view-toggle" role="group" aria-label="Catalog view mode">
+              <button
+                type="button"
+                onClick={() => handleSetViewMode('grid')}
+                className={`storefront-view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                title="Grid view"
+                aria-label="Grid view"
+                aria-pressed={viewMode === 'grid'}
+              >
+                <LayoutGrid size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSetViewMode('list')}
+                className={`storefront-view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                title="List view"
+                aria-label="List view"
+                aria-pressed={viewMode === 'list'}
+              >
+                <List size={16} />
+              </button>
+            </div>
           </div>
         )}
 
@@ -1834,94 +1890,213 @@ export default function UniversalStorefront({
             })}
           </div>
         ) : (
-          /* LIST VIEW */
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {paginatedItems.map((item) => {
+          /* LIST VIEW (Flyer-inspired horizontal card layout) */
+          <div className="storefront-list-container">
+            {paginatedItems.map((item, index) => {
               const priceNum = parseFloat(item.price || '0');
               const compareNum = item.compare_at_price ? parseFloat(item.compare_at_price) : 0;
               const hasDiscount = compareNum > priceNum;
+              const discountPercent = hasDiscount ? Math.round(((compareNum - priceNum) / compareNum) * 100) : 0;
+              const isOutOfStock = item.stock_status === 'out_of_stock';
               const rawImageUrl = (item.image_urls && item.image_urls[0]) || null;
               const imageUrl = optimizeImageUrl(rawImageUrl, 'thumb');
+              const isService = item.type === 'service';
+              const isSaved = wishlist.includes(item.id);
+              const isJustAdded = recentlyAddedId === item.id;
 
               return (
-                <Link
+                <div
                   key={item.id}
-                  href={getProductUrl(item)}
-                  style={{
-                    background: '#fff',
-                    borderRadius: 16,
-                    border: '1px solid #e2e8f0',
-                    padding: 14,
-                    display: 'flex',
-                    gap: 16,
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                    transition: 'border-color 0.15s ease, transform 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = primaryColor;
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                    e.currentTarget.style.transform = 'translateY(0)';
+                  className="storefront-list-card"
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+                    setQuickViewImageIndex(0);
+                    setQuickViewQty(1);
+                    setQuickViewProduct(item);
                   }}
                 >
-                  <img
-                    src={imageUrl || ''}
-                    alt={item.name}
-                    loading="lazy"
-                    decoding="async"
-                    style={{ width: 84, height: 84, borderRadius: 12, objectFit: 'cover', background: '#f1f5f9' }}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h4 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 4px' }}>{item.name}</h4>
-                    <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 8px', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {item.description || 'Quality product from this store.'}
-                    </p>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                      <span style={{ fontSize: 16, fontWeight: 800 }}>{formatCurrency(priceNum, selectedCurrency)}</span>
-                      {hasDiscount && (
-                        <span style={{ fontSize: 12, color: '#94a3b8', textDecoration: 'line-through' }}>
+                  {/* Thumbnail Container (Warm neutral backdrop from flyer) */}
+                  <div className="storefront-list-thumb-wrapper">
+                    <div style={{ width: '100%', height: '100%', opacity: isOutOfStock ? 0.5 : 1 }}>
+                      <ProductImageWithSkeleton
+                        src={imageUrl}
+                        alt={item.name}
+                        loading={index < 4 ? 'eager' : 'lazy'}
+                      />
+                    </div>
+
+                    {/* Stock / Discount Tag */}
+                    {isOutOfStock ? (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: 4,
+                          left: 4,
+                          background: '#ffffff',
+                          color: '#e11d48',
+                          fontSize: 9,
+                          fontWeight: 700,
+                          padding: '2px 6px',
+                          borderRadius: 9999,
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
+                        }}
+                      >
+                        Out of stock
+                      </span>
+                    ) : hasDiscount ? (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: 4,
+                          left: 4,
+                          background: '#e11d48',
+                          color: '#fff',
+                          fontSize: 9,
+                          fontWeight: 800,
+                          padding: '2px 6px',
+                          borderRadius: 9999,
+                          boxShadow: '0 2px 4px rgba(225, 29, 72, 0.3)',
+                        }}
+                      >
+                        -{discountPercent}%
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {/* Product Details (Title & Price) */}
+                  <div className="storefront-list-content">
+                    <h4 className="storefront-list-title" style={{ color: isOutOfStock ? '#94a3b8' : undefined }}>
+                      {item.name}
+                    </h4>
+
+                    <div className="storefront-list-price-row">
+                      <span className="storefront-list-price" style={{ color: isOutOfStock ? '#94a3b8' : undefined }}>
+                        {formatCurrency(priceNum, selectedCurrency)}
+                      </span>
+                      {hasDiscount && !isOutOfStock && (
+                        <span style={{ fontSize: 11.5, color: '#94a3b8', textDecoration: 'line-through' }}>
                           {formatCurrency(compareNum, selectedCurrency)}
                         </span>
                       )}
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      addToCart(item);
-                    }}
-                    style={{
-                      padding: '10px 16px',
-                      borderRadius: 10,
-                      background: recentlyAddedId === item.id ? '#10b981' : primaryColor,
-                      color: '#fff',
-                      border: 'none',
-                      fontSize: 13.5,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      transition: 'background-color 0.2s ease, transform 0.15s ease',
-                    }}
-                  >
-                    {recentlyAddedId === item.id ? (
-                      <>
-                        <Check size={15} /> Added
-                      </>
-                    ) : (
-                      <>
-                        <Plus size={15} /> Add
-                      </>
+
+                  {/* Flyer Dual Action Buttons (WhatsApp + Cart + Wishlist) */}
+                  <div className="storefront-list-actions" onClick={(e) => e.stopPropagation()}>
+                    {/* Wishlist Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleWishlist(item.id, e);
+                      }}
+                      title={isSaved ? 'Remove from wishlist' : 'Save to wishlist'}
+                      aria-label="Save to wishlist"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        background: isSaved ? 'rgba(239, 68, 68, 0.08)' : '#f8fafc',
+                        border: '1px solid',
+                        borderColor: isSaved ? 'rgba(239, 68, 68, 0.25)' : '#e2e8f0',
+                        color: isSaved ? '#ef4444' : '#94a3b8',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <Heart size={14} fill={isSaved ? '#ef4444' : 'transparent'} />
+                    </button>
+
+                    {/* WhatsApp Inquiry Button (Flyer Icon) */}
+                    {store.whatsapp_phone && (
+                      <a
+                        href={`https://wa.me/${store.whatsapp_phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                          `Hi ${store.store_name}, I'm interested in ${item.name} (${formatCurrency(priceNum, selectedCurrency)}). Can I place an order?`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="storefront-flyer-action-btn"
+                        title={`Chat on WhatsApp about ${item.name}`}
+                        aria-label="Inquire on WhatsApp"
+                      >
+                        <WhatsAppIcon size={17} />
+                      </a>
                     )}
-                  </button>
-                </Link>
+
+                    {/* Add to Cart Button (Flyer Icon) */}
+                    {!isOutOfStock && (() => {
+                      const inCartItem = cart.find((c) => c.productId === item.id);
+                      const cartQty = inCartItem ? inCartItem.qty : 0;
+
+                      if (cartQty > 0) {
+                        return (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setIsCartOpen(true);
+                            }}
+                            className="storefront-flyer-action-btn added"
+                            title={`In your bag (${cartQty}). Click to view bag`}
+                            aria-label="View bag"
+                            style={{ position: 'relative' }}
+                          >
+                            <ShoppingBag size={17} />
+                            <span
+                              style={{
+                                position: 'absolute',
+                                top: -4,
+                                right: -4,
+                                minWidth: 16,
+                                height: 16,
+                                borderRadius: 8,
+                                background: '#e11d48',
+                                color: '#ffffff',
+                                fontSize: 10,
+                                fontWeight: 800,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '0 3px',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                              }}
+                            >
+                              {cartQty}
+                            </span>
+                          </button>
+                        );
+                      }
+
+                      return (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (isService || (item.variants && item.variants.length > 0)) {
+                              setQuickViewImageIndex(0);
+                              setQuickViewQty(1);
+                              setQuickViewProduct(item);
+                            } else {
+                              addToCart(item);
+                            }
+                          }}
+                          className={`storefront-flyer-action-btn ${isJustAdded ? 'added' : ''}`}
+                          title={isService ? 'Book service' : isJustAdded ? 'Added to bag!' : 'Add to bag'}
+                          aria-label="Add to cart"
+                        >
+                          {isJustAdded ? <Check size={18} /> : <ShoppingBag size={17} />}
+                        </button>
+                      );
+                    })()}
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -2145,6 +2320,7 @@ export default function UniversalStorefront({
             WebkitBackdropFilter: 'blur(20px)',
             borderTop: '1px solid rgba(226, 232, 240, 0.8)',
             boxShadow: '0 -4px 20px rgba(15, 23, 42, 0.06)',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           }}
         >
           <div
@@ -2152,21 +2328,13 @@ export default function UniversalStorefront({
               maxWidth: 480,
               margin: '0 auto',
               padding: '0 24px',
+              height: 60,
               display: 'flex',
-              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'space-between',
               position: 'relative',
             }}
           >
-            {/* Top Navigation Row: Home | Ask Nina | Cart */}
-            <div
-              style={{
-                height: 58,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                position: 'relative',
-              }}
-            >
               {/* Home Tab */}
               <button
                 type="button"
@@ -2293,7 +2461,7 @@ export default function UniversalStorefront({
                     letterSpacing: '-0.01em',
                   }}
                 >
-                  {store.nina_chat_qr_enabled ? 'Ask Nina' : 'Chat'}
+                  Chat with Nina
                 </span>
               </div>
 
@@ -2361,31 +2529,6 @@ export default function UniversalStorefront({
                   Cart
                 </span>
               </button>
-            </div>
-
-            {/* Bottom Row: Secured by Frontstore */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 5,
-                paddingTop: 3,
-                paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))',
-              }}
-            >
-              <ShieldCheck size={13} color="#059669" strokeWidth={2.2} />
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 650,
-                  color: '#0f172a',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                Secured by {appName || 'Frontstore'}
-              </span>
-            </div>
           </div>
         </nav>
       )}
@@ -2516,21 +2659,72 @@ export default function UniversalStorefront({
             <div style={{ maxWidth: 1080, margin: '0 auto', padding: '28px 20px 60px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 40 }}>
               {/* Image Gallery */}
               <div>
-                <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', background: '#f1f5f9', borderRadius: 20, overflow: 'hidden' }}>
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '100%',
+                    aspectRatio: '1 / 1',
+                    background: '#f1f5f9',
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    cursor: 'zoom-in',
+                  }}
+                  onClick={() => setIsQuickViewLightboxOpen(true)}
+                >
                   <ProductImageWithSkeleton src={activeImage} alt={item.name} loading="eager" />
+
+                  {/* Expand Image Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsQuickViewLightboxOpen(true);
+                    }}
+                    aria-label="Expand image to full view"
+                    title="Expand to full view"
+                    style={{
+                      position: 'absolute',
+                      bottom: 14,
+                      right: 14,
+                      zIndex: 10,
+                      width: 38,
+                      height: 38,
+                      borderRadius: 11,
+                      background: 'rgba(255, 255, 255, 0.94)',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      border: '1px solid rgba(255, 255, 255, 0.6)',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.16)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#0f172a',
+                      cursor: 'pointer',
+                      transition: 'transform 0.16s ease, background 0.16s ease',
+                    }}
+                  >
+                    <Maximize2 size={17} strokeWidth={2.2} />
+                  </button>
+
                   {images.length > 1 && (
                     <>
                       <button
-                        onClick={() => setQuickViewImageIndex((i) => (i - 1 + images.length) % images.length)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setQuickViewImageIndex((i) => (i - 1 + images.length) % images.length);
+                        }}
                         aria-label="Previous image"
-                        style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
+                        style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', zIndex: 10 }}
                       >
                         <ChevronLeft size={18} />
                       </button>
                       <button
-                        onClick={() => setQuickViewImageIndex((i) => (i + 1) % images.length)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setQuickViewImageIndex((i) => (i + 1) % images.length);
+                        }}
                         aria-label="Next image"
-                        style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
+                        style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.92)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', zIndex: 10 }}
                       >
                         <ChevronRight size={18} />
                       </button>
@@ -2696,6 +2890,18 @@ export default function UniversalStorefront({
           </div>
         );
       })()}
+
+      {/* ── QUICK VIEW IMAGE LIGHTBOX ── */}
+      {quickViewProduct && (
+        <ImageLightbox
+          open={isQuickViewLightboxOpen}
+          images={quickViewProduct.image_urls || []}
+          index={quickViewImageIndex}
+          onIndexChange={setQuickViewImageIndex}
+          onClose={() => setIsQuickViewLightboxOpen(false)}
+          alt={quickViewProduct.name}
+        />
+      )}
 
       {/* ── PRODUCT CART MODAL ── */}
       {isCartOpen && (

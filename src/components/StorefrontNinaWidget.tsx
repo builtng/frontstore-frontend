@@ -74,10 +74,33 @@ export default function StorefrontNinaWidget({
 
   // Listen to custom open event
   useEffect(() => {
-    const handleOpenEvent = () => setOpen(true);
+    const handleOpenEvent = () => {
+      setOpen(true);
+      setMode('chat');
+    };
     window.addEventListener('frontstore:open-nina', handleOpenEvent);
     return () => window.removeEventListener('frontstore:open-nina', handleOpenEvent);
   }, [setOpen]);
+
+  // When open changes to true, automatically switch to chat mode
+  useEffect(() => {
+    if (open) {
+      setMode('chat');
+    }
+  }, [open]);
+
+  // Initialize with Nina's assistant greeting if no chat history
+  useEffect(() => {
+    if (mode === 'chat' && messages.length === 0) {
+      setMessages([
+        {
+          id: 'welcome-seed',
+          role: 'assistant',
+          content: `Hi there! 👋 I am Nina, the AI shopping assistant for ${store.store_name}. How can I help you today? Ask me about our products, sizes, prices, or checkout!`,
+        },
+      ]);
+    }
+  }, [mode, messages.length, store.store_name]);
 
   // Detect mobile viewport
   useEffect(() => {

@@ -9,6 +9,7 @@ import {
 import SearchableSelect from '../../SearchableSelect';
 import FileUpload from '../../FileUpload';
 import Toggle from '../../Toggle';
+import ImageLightbox from '../../ImageLightbox';
 import { getApiUrl } from '@/lib/api';
 import { resilientFetch } from '@/utils/resilientFetch';
 import { getCurrencySymbol } from '@/utils/currency';
@@ -108,6 +109,7 @@ export default function AddProductModal({
   const [prodDesc, setProdDesc] = useState('');
   const [prodStock, setProdStock] = useState('in_stock');
   const [prodImageUrls, setProdImageUrls] = useState<string[]>([]);
+  const [previewLightboxIndex, setPreviewLightboxIndex] = useState<number | null>(null);
   const [prodImageUploading, setProdImageUploading] = useState(false);
   const [prodTags, setProdTags] = useState<string[]>([]);
   const [prodTagInput, setProdTagInput] = useState('');
@@ -503,10 +505,26 @@ export default function AddProductModal({
                     style={{ padding: 16, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}
                   >
                     {prodImageUrls.map((url, idx) => (
-                      <div key={idx} className="fu-tile-img" style={{ position: 'relative', width: idx === 0 ? 110 : 80, height: idx === 0 ? 110 : 80, flexShrink: 0 }}>
+                      <div
+                        key={idx}
+                        className="fu-tile-img"
+                        style={{ position: 'relative', width: idx === 0 ? 110 : 80, height: idx === 0 ? 110 : 80, flexShrink: 0, cursor: 'zoom-in' }}
+                        onClick={() => setPreviewLightboxIndex(idx)}
+                        title="Click to view full image"
+                      >
                         <img src={url} alt={`Product image ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--r-lg)' }} />
                         {idx === 0 && <span style={{ position: 'absolute', top: 6, left: 6, fontSize: 9, fontWeight: 900, background: 'var(--primary)', color: '#fff', padding: '2px 6px', borderRadius: 4, textTransform: 'uppercase' }}>Cover</span>}
-                        <button type="button" onClick={() => setProdImageUrls(prev => prev.filter((_, i) => i !== idx))} className="fu-tile-img__remove" title="Remove">✕</button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setProdImageUrls(prev => prev.filter((_, i) => i !== idx));
+                          }}
+                          className="fu-tile-img__remove"
+                          title="Remove"
+                        >
+                          ✕
+                        </button>
                       </div>
                     ))}
                     {prodImageUrls.length < 3 && (
@@ -1274,6 +1292,15 @@ export default function AddProductModal({
         </form>
 
       </div>
+
+      <ImageLightbox
+        open={previewLightboxIndex !== null}
+        images={prodImageUrls}
+        index={previewLightboxIndex ?? 0}
+        onIndexChange={setPreviewLightboxIndex}
+        onClose={() => setPreviewLightboxIndex(null)}
+        alt={prodName || 'Product photo preview'}
+      />
     </div>
   );
 }

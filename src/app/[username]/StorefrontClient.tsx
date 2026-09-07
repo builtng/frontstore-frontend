@@ -234,14 +234,12 @@ ttq.page();}(window,document,'ttq');`}
         isNinaOpen={isNinaOpen}
         onToggleNina={handleToggleNina}
       />
-      {store.nina_chat_qr_enabled ? (
-        <StorefrontNinaWidget
-          store={store}
-          open={isNinaOpen}
-          onOpenChange={setIsNinaOpen}
-          hideFloatingLauncher={true}
-        />
-      ) : null}
+      <StorefrontNinaWidget
+        store={store}
+        open={isNinaOpen}
+        onOpenChange={setIsNinaOpen}
+        hideFloatingLauncher={true}
+      />
     </>
   );
 }
