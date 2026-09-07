@@ -453,7 +453,7 @@ export default function OrderTrackingPage() {
   const whatsappChatUrl = `https://wa.me/${store.whatsapp_phone}?text=${encodeURIComponent(checkinMsg)}`;
 
   return (
-    <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', position: 'relative' }}>
+    <div style={{ maxWidth: '800px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', position: 'relative' }}>
 
       {/* Navbar Header */}
       <header style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 20 }}>
@@ -499,68 +499,6 @@ export default function OrderTrackingPage() {
         {paymentError && (
           <div style={{ background: 'var(--danger-light)', border: '1px solid var(--danger)', borderRadius: '16px', padding: '16px', textAlign: 'center', color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
             <AlertCircle size={16} /> {paymentError}
-          </div>
-        )}
-
-        {/* Secure Online Payment Box */}
-        {order.payment_status === 'unpaid' && !isExpired && !isCancelled && (
-          <div className="card" style={{
-            padding: '22px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            textAlign: 'center'
-          }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <ShieldCheck size={19} style={{ color: 'var(--primary)' }} />
-              </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--text)' }}>
-                Pay Online Securely
-              </h3>
-            </div>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-              Pay via Paystack using Cards, Bank Transfer, or USSD to instantly process your order.
-            </p>
-            {/* Trust Badge */}
-            <div style={{
-              background: 'var(--bg-2)',
-              borderRadius: '12px',
-              padding: '12px',
-              fontSize: '12px',
-              color: 'var(--text-muted)',
-              lineHeight: 1.4,
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '8px',
-              textAlign: 'left'
-            }}>
-              <ShieldCheck size={15} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 1 }} />
-              <span>
-                <strong style={{ color: 'var(--text)' }}>Escrow Protection Active:</strong> For Free Plan stores, your payment is held securely in escrow until you confirm delivery below.
-              </span>
-            </div>
-            <button
-              onClick={handlePayNow}
-              disabled={isInitializingPayment}
-              className="btn btn-primary clickable"
-              style={{
-                width: '100%',
-                padding: '14px',
-                borderRadius: '12px',
-                fontWeight: 700,
-                fontSize: '14px',
-                backgroundColor: 'var(--primary)',
-                color: '#fff',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
-            >
-              {isInitializingPayment ? 'Initializing...' : `Pay Now ${currencySymbol}${parseFloat(order.total_amount || '0').toLocaleString()}`}
-            </button>
           </div>
         )}
 

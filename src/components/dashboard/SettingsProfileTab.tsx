@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  FileText, Megaphone, ShieldCheck, Truck, RotateCcw, Calendar, Loader2,
+  FileText, Megaphone, ShieldCheck, Truck, RotateCcw, Calendar, Loader2, MoreVertical
 } from 'lucide-react';
 import Toggle from '../Toggle';
 import SearchableSelect from '../SearchableSelect';
@@ -106,6 +106,23 @@ export default function SettingsProfileTab({
     ? new Date(new Date(store.whatsapp_phone_updated_at).getTime() + 30 * 24 * 60 * 60 * 1000)
     : null;
   const whatsappOnCooldown = !!whatsappCooldownUntil && whatsappCooldownUntil.getTime() > Date.now();
+
+  const [deliveryMenuOpen, setDeliveryMenuOpen] = useState(false);
+  const deliveryMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (deliveryMenuRef.current && !deliveryMenuRef.current.contains(event.target as Node)) {
+        setDeliveryMenuOpen(false);
+      }
+    };
+    if (deliveryMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [deliveryMenuOpen]);
 
   return (
     <form onSubmit={handleSettingsSave} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -426,13 +443,46 @@ export default function SettingsProfileTab({
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase' }}>
                   <Truck size={14} color="var(--primary)" /> Delivery &amp; Fulfillment Policy
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setDeliveryInfo('Orders are dispatched within 24 hours of confirmation. Lagos deliveries arrive same-day or next-day. Nationwide deliveries arrive in 24–48 hours.')}
-                  style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
-                >
-                  Reset to default
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }} ref={deliveryMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryInfo('Orders are dispatched within 24 hours of confirmation. Lagos deliveries arrive same-day or next-day. Nationwide deliveries arrive in 24–48 hours.')}
+                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    Reset to default
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMenuOpen(!deliveryMenuOpen)}
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', borderRadius: 'var(--r-sm)' }}
+                  >
+                    <MoreVertical size={14} />
+                  </button>
+                  {deliveryMenuOpen && (
+                    <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: 'var(--bg-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, minWidth: 140, overflow: 'hidden', padding: 4 }}>
+                      <div style={{ padding: '4px 8px', fontSize: 10, fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Auto-fill time</div>
+                      {[
+                        { label: '1 day', value: '24 - 48 hours' },
+                        { label: '2-3 days', value: '48 - 72 hours' },
+                        { label: '1 week', value: '5 - 7 business days' }
+                      ].map(opt => (
+                        <button
+                          key={opt.label}
+                          type="button"
+                          onClick={() => {
+                            setDeliveryInfo(`Orders are dispatched within ${opt.value}.`);
+                            setDeliveryMenuOpen(false);
+                          }}
+                          style={{ width: '100%', textAlign: 'left', padding: '6px 8px', background: 'none', border: 'none', fontSize: 12, color: 'var(--text)', cursor: 'pointer', borderRadius: 'var(--r-sm)' }}
+                          onMouseOver={e => e.currentTarget.style.background = 'var(--bg-2)'}
+                          onMouseOut={e => e.currentTarget.style.background = 'none'}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Displayed in the storefront policies modal and during checkout.</p>
               <textarea

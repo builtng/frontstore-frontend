@@ -493,7 +493,7 @@ export default function ProductsTab({
                           {prod.image_urls?.[0] ? (
                             <img
                               src={prod.image_urls[0]}
-                              alt=""
+                              alt={prod.name}
                               style={{ width: 36, height: 36, borderRadius: 'var(--r-md)', objectFit: 'cover', border: '1px solid var(--border)' }}
                             />
                           ) : (

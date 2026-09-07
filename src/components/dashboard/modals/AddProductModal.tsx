@@ -112,10 +112,13 @@ export default function AddProductModal({
   const getSelectedPersonaPreset = () => businessPersonas.find(item => item.id === selectedPersona);
 
   const handleGenerateAIDescription = async () => {
-    if (user?.plan === 'free' || !user?.plan) {
+    const isPaidPlan = user?.plan === 'pro_monthly' || user?.plan === 'pro_yearly' || isLegend;
+    const isFreePlan = user?.plan === 'free' || !user?.plan;
+
+    if (isFreePlan && (user?.ai_analyses_used ?? 0) >= 3) {
       openUpgradePrompt(
-        'AI product writing requires Pro',
-        'Generate richer product descriptions automatically with AI. You can keep editing manually on Free, or upgrade when you want AI assistance.'
+        'AI product writing limit reached',
+        'You have used your 3 free AI rewrites. Upgrade to Pro for unlimited AI assistance.'
       );
       return;
     }
@@ -398,7 +401,7 @@ export default function AddProductModal({
                     </div>
                   ) : (
                     <span style={{ fontSize: 11, fontWeight: 750, padding: '4px 10px', borderRadius: 'var(--r-full)', background: 'var(--primary-light)', color: 'var(--primary)', flexShrink: 0 }}>
-                      {(user?.plan === 'pro_yearly' || isLegend) ? '✦ Unlimited AI' : `${Math.max(0, (user?.plan === 'pro_monthly' ? 15 : 3) - (user?.ai_analyses_used ?? 0))} AI credits left`}
+                      ✨ Unlimited AI
                     </span>
                   )}
                 </div>

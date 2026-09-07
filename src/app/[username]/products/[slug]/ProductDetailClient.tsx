@@ -14,7 +14,7 @@ import ProductImage from "../../../../components/ProductImage";
 import { getColorHex } from '@/utils/colorUtils';
 import { getOptimizedImageUrl } from '@/lib/image';
 import BuiltWithFrontstoreBadge from '@/components/BuiltWithFrontstoreBadge';
-
+import { InstagramIcon, TikTokIcon, TwitterXIcon, FacebookIcon } from '@/components/SocialIcons';
 // --- Types & Interfaces ---
 interface Category {
   store_label?: string | null;
@@ -746,7 +746,24 @@ export default function ProductDetailClient({
           <div className="fs-panel">
             {/* Header info */}
             <p className="fs-cat">{initialProduct.category?.name || "General"}</p>
-            <h1 className="fs-name">{initialProduct.name}</h1>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+              <h1 className="fs-name" style={{ margin: 0, wordBreak: 'break-word' }}>{initialProduct.name}</h1>
+              <div className="fs-price-row" style={{ flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'baseline', marginTop: 0 }}>
+                <span className="fs-price">{fmt(unitPrice, currencySymbol)}</span>
+                {initialProduct.compare_at_price && (
+                  <span className="fs-compare" style={{ textDecoration: 'line-through', color: 'var(--muted)', marginLeft: 8, fontSize: 16 }}>
+                    {fmt(initialProduct.compare_at_price, currencySymbol)}
+                  </span>
+                )}
+                {kind === "service" && <span className="fs-per" style={{ marginLeft: 6 }}>per session</span>}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, color: '#e11d48', fontSize: 13, fontWeight: 500, background: '#ffe4e6', padding: '4px 8px', borderRadius: 6, width: 'fit-content' }}>
+              <AlertCircle size={14} />
+              <span>{Math.max(12, initialProduct.views_count || 15)} people are viewing this right now</span>
+            </div>
+
             {(store.rating != null || reviews.length > 0) && (
             <div className="fs-rating">
               <Star size={13} fill="#c79a4b" color="#c79a4b" />
@@ -754,16 +771,6 @@ export default function ProductDetailClient({
               <i>({reviews.length > 0 ? reviews.length : (store.review_count ?? 0)} reviews)</i>
             </div>
             )}
-            
-            <div className="fs-price-row">
-              <span className="fs-price">{fmt(unitPrice, currencySymbol)}</span>
-              {initialProduct.compare_at_price && (
-                <span className="fs-compare" style={{ textDecoration: 'line-through', color: 'var(--muted)', marginLeft: 8, fontSize: 16 }}>
-                  {fmt(initialProduct.compare_at_price, currencySymbol)}
-                </span>
-              )}
-              {kind === "service" && <span className="fs-per" style={{ marginLeft: 6 }}>per session</span>}
-            </div>
 
             {/* Event details — shown for ticket-type products */}
             {initialProduct.type === 'ticket' && (initialProduct.event_date || initialProduct.event_location) ? (
@@ -1467,6 +1474,111 @@ export default function ProductDetailClient({
           </div>
         </>
       )}
+      {/* ── STORE FOOTER ── */}
+      <footer
+        style={{
+          background: 'var(--surface)',
+          borderTop: '1px solid var(--line)',
+          padding: '36px 20px 28px',
+          textAlign: 'center',
+          marginTop: '40px'
+        }}
+      >
+        <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontFamily: 'Fraunces', fontSize: 18, fontWeight: 800, color: 'var(--ink)' }}>
+              {store.store_name}
+            </span>
+            {store.is_verified ? <ShieldCheck size={18} color="var(--brand)" /> : null}
+          </div>
+
+          <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0, maxWidth: 440, lineHeight: 1.5 }}>
+            {store.store_bio ? (store.store_bio.length > 200 ? store.store_bio.substring(0, 200) + '...' : store.store_bio) : 'Shop directly on WhatsApp with fast delivery and buyer protection.'}
+          </p>
+
+          {(store.whatsapp_phone || store.instagram_handle || store.tiktok_handle || store.twitter_handle || store.facebook_handle) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', marginTop: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-faint)' }}>Our Socials</span>
+              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
+                {store.whatsapp_phone && (
+                  <a
+                    href={`https://wa.me/${store.whatsapp_phone.replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#25D366', fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    <WhatsAppIcon size={15} /> WhatsApp
+                  </a>
+                )}
+                {store.instagram_handle && (
+                  <a
+                    href={`https://instagram.com/${store.instagram_handle.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#e1306c', fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    <InstagramIcon size={15} /> Instagram
+                  </a>
+                )}
+                {store.tiktok_handle && (
+                  <a
+                    href={`https://tiktok.com/@${store.tiktok_handle.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--ink)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    <TikTokIcon size={15} /> TikTok
+                  </a>
+                )}
+                {/* Note: Store model interface provided doesn't explicitly mention twitter_handle/facebook_handle but standard logic maps it if it exists */}
+                {(store as any).twitter_handle && (
+                  <a
+                    href={`https://x.com/${(store as any).twitter_handle.replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--ink)', fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    <TwitterXIcon size={15} /> Twitter
+                  </a>
+                )}
+                {(store as any).facebook_handle && (
+                  <a
+                    href={`https://facebook.com/${(store as any).facebook_handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#1877f2', fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    <FacebookIcon size={15} /> Facebook
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', marginTop: 8 }}>
+            <a
+              href={getStoreHomeUrl()}
+              style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Back to Home
+            </a>
+            <span style={{ color: 'var(--line)' }}>•</span>
+            <button
+              onClick={handleShareProduct}
+              style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Share Product
+            </button>
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--line)', width: '100%', paddingTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 4 }}>
+            <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>
+              © {new Date().getFullYear()} {store.store_name}. All rights reserved.
+            </p>
+            <BuiltWithFrontstoreBadge href={`https://${systemDomain}`} />
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

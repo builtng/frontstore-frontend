@@ -19,6 +19,7 @@ import { resilientFetch } from '../../utils/resilientFetch';
 import { getOptimizedImageUrl } from '@/lib/image';
 import BuiltWithFrontstoreBadge from '@/components/BuiltWithFrontstoreBadge';
 import { truncateStoreBio } from '@/utils/storeBio';
+import BankTransferPaymentModal from '../../components/BankTransferPaymentModal';
 
 export interface StoreLink {
   id: string;
@@ -315,7 +316,7 @@ function saveWishlistToStorage(storeUsername: string, ids: string[]): void {
     const key = `fs_wishlist_${storeUsername}`;
     const jsonStr = JSON.stringify(ids);
     document.cookie = `${key}=${encodeURIComponent(jsonStr)}; max-age=31536000; path=/; SameSite=Lax`;
-    localStorage.setItem(key, jsonStr);
+    localStorage.getItem(key, jsonStr);
   } catch (e) {
     console.error('Error saving wishlist storage', e);
   }
@@ -349,7 +350,7 @@ export default function UniversalStorefront({
   // Cart & Checkout
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartStep, setCartStep] = useState<'cart' | 'checkout_step1' | 'checkout_step2' | 'checkout_step3' | 'payment'>('cart');
+  const [cartStep, setCartStep] = useState<'cart' | 'checkout_step1' | 'checkout_step2' | 'checkout_step3' | 'payment' | 'confirmed'>('cart');
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
   const [customerName, setCustomerName] = useState('');
@@ -382,6 +383,9 @@ export default function UniversalStorefront({
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [quickViewImageIndex, setQuickViewImageIndex] = useState(0);
   const [quickViewQty, setQuickViewQty] = useState(1);
+  const [showPolicies, setShowPolicies] = useState(false);
+  const [bankTransferModalOpen, setBankTransferModalOpen] = useState(false);
+  const [bankTransferDetails, setBankTransferDetails] = useState<any>(null);
 
   useEffect(() => {
     const storeUser = store.username || username;
@@ -498,7 +502,19 @@ export default function UniversalStorefront({
     return parseFloat(String(store.shipping_handling_fee ?? 0)) || 0;
   }, [deliveryMethod, store.shipping_handling_fee]);
 
-  const orderTotal = cartTotal + shippingFee + handlingFee;
+  const isDigitalOnly = useMemo(() => {
+    if (cart.length === 0) return false;
+    return cart.every(item => {
+      const product = products.find(p => p.id === item.productId);
+      return product?.is_digital;
+    });
+  }, [cart, products]);
+
+  const orderTotal = cartTotal + (isDigitalOnly ? 0 : shippingFee + handlingFee);
+
+  const [createdOrderData, setCreatedOrderData] = useState<any>(null);
+  const [isInitializingPayment, setIsInitializingPayment] = useState(false);
+
 
   const hasProducts = useMemo(() => products.some(p => p.type !== 'service'), [products]);
   const hasServices = useMemo(() => products.some(p => p.type === 'service'), [products]);
@@ -614,7 +630,7 @@ export default function UniversalStorefront({
       setRecentlyAddedId((curr) => (curr === product.id ? null : curr));
     }, 1400);
 
-    sonnerToast.success(`Added ${quantity > 1 ? `${quantity}x ` : ''}${product.name} to bag`);
+
   };
 
   const updateQty = (id: string, delta: number) => {
@@ -716,7 +732,7 @@ export default function UniversalStorefront({
       setIsEditingDetails(true);
       return;
     }
-    if (deliveryMethod === 'delivery' && !customerNote.trim()) {
+    if (!isDigitalOnly && deliveryMethod === 'delivery' && !customerNote.trim()) {
       sonnerToast.error('Please enter a delivery address before placing an order.');
       setCartStep('checkout_step1');
       return;
@@ -754,6 +770,7 @@ export default function UniversalStorefront({
         // Show payment screen modal so user can choose payment method
         setCartStep('payment');
         if (res.ok) {
+          setCreatedOrderData(data?.data);
           sonnerToast.success('Order created! Please complete payment below.');
         } else {
           const errorMsg = data?.message || data?.error;
@@ -830,6 +847,15 @@ export default function UniversalStorefront({
         color: '#0f172a',
       }}
     >
+      <BankTransferPaymentModal
+        open={bankTransferModalOpen}
+        onClose={() => setBankTransferModalOpen(false)}
+        details={bankTransferDetails}
+        currencySymbol={selectedCurrency ? CURRENCY_CONFIG[selectedCurrency]?.symbol : ''}
+        onPaid={() => {
+          setCartStep('confirmed');
+        }}
+      />
       {/* ── TOP ANNOUNCEMENT / PROMO BANNER ── */}
       {(store.announcement_title || store.announcement_body) && (
         <div
@@ -953,7 +979,7 @@ export default function UniversalStorefront({
               </a>
             )}
             <button
-              onClick={() => setIsQrOpen(true)}
+              onClick={() => window.location.href = `/${store.username}/reviews`}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -968,7 +994,7 @@ export default function UniversalStorefront({
                 cursor: 'pointer',
               }}
             >
-              <QrCode size={15} /> Scan QR
+              <Star size={15} /> Reviews
             </button>
           </div>
         </div>
@@ -1609,11 +1635,15 @@ export default function UniversalStorefront({
                 </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-                {reviews.map((r) => (
+              <div style={{ display: 'flex', overflowX: 'auto', gap: 16, scrollSnapType: 'x mandatory', paddingBottom: 12, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+                {reviews.slice(0, 5).map((r) => (
                   <div
                     key={r.id}
                     style={{
+                      minWidth: 280,
+                      maxWidth: 320,
+                      flex: '0 0 auto',
+                      scrollSnapAlign: 'start',
                       background: '#f8fafc',
                       borderRadius: 14,
                       padding: 16,
@@ -1819,6 +1849,11 @@ export default function UniversalStorefront({
               >
                 <Share2 size={16} />
               </button>
+
+              <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>
+                {store.store_name}
+              </div>
+
               <button
                 onClick={() => setQuickViewProduct(null)}
                 aria-label="Close"
@@ -1878,12 +1913,14 @@ export default function UniversalStorefront({
 
               {/* Details */}
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', margin: '0 0 8px', letterSpacing: '-0.01em' }}>{item.name}</h1>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 18 }}>
-                  <span style={{ fontSize: 19, fontWeight: 700, color: '#0f172a' }}>{formatCurrency(priceNum, selectedCurrency)}</span>
-                  {hasDiscount && (
-                    <span style={{ fontSize: 14, color: '#94a3b8', textDecoration: 'line-through' }}>{formatCurrency(compareNum, selectedCurrency)}</span>
-                  )}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, margin: '0 0 16px' }}>
+                  <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em', margin: 0, wordBreak: 'break-word' }}>{item.name}</h1>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 19, fontWeight: 700, color: '#0f172a' }}>{formatCurrency(priceNum, selectedCurrency)}</span>
+                    {hasDiscount && (
+                      <span style={{ fontSize: 14, color: '#94a3b8', textDecoration: 'line-through' }}>{formatCurrency(compareNum, selectedCurrency)}</span>
+                    )}
+                  </div>
                 </div>
 
                 <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 16, marginBottom: 16 }}>
@@ -1907,7 +1944,19 @@ export default function UniversalStorefront({
                   </span>
                 </div>
 
-                <div style={{ marginTop: 'auto', paddingTop: 24, borderTop: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ 
+                  marginTop: 'auto', 
+                  paddingTop: 16, 
+                  paddingBottom: 16, 
+                  borderTop: '1px solid #e2e8f0', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: 12,
+                  position: 'sticky',
+                  bottom: 0,
+                  background: '#fff',
+                  zIndex: 10
+                }}>
                   {!isOutOfStock && (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 14px', background: '#f8fafc' }}>
                       <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{formatCurrency(priceNum, selectedCurrency)}</span>
@@ -1931,37 +1980,66 @@ export default function UniversalStorefront({
                     </div>
                   )}
 
-                  <button
-                    disabled={isOutOfStock}
-                    onClick={() => addToCart(item, null, undefined, quickViewQty)}
-                    style={{
-                      width: '100%',
-                      padding: '15px',
-                      borderRadius: 12,
-                      border: 'none',
-                      fontSize: 15,
-                      fontWeight: 700,
-                      cursor: isOutOfStock ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      background: isOutOfStock ? '#e2e8f0' : isJustAdded ? '#10b981' : primaryColor,
-                      color: isOutOfStock ? '#94a3b8' : '#fff',
-                    }}
-                  >
-                    {isOutOfStock ? (
-                      'Out of Stock'
-                    ) : isJustAdded ? (
-                      <>
-                        <Check size={17} /> Added!
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingBag size={17} /> {isService ? 'Book' : 'Add To Cart'}
-                      </>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    {!isOutOfStock && (
+                      <button
+                        onClick={() => {
+                          addToCart(item, null, undefined, quickViewQty);
+                          setQuickViewProduct(null);
+                          setIsCartOpen(true);
+                          setCartStep('checkout_step1');
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '15px',
+                          borderRadius: 12,
+                          border: 'none',
+                          fontSize: 15,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 8,
+                          background: '#0f172a',
+                          color: '#fff',
+                        }}
+                      >
+                        Buy it Now
+                      </button>
                     )}
-                  </button>
+                    <button
+                      disabled={isOutOfStock}
+                      onClick={() => addToCart(item, null, undefined, quickViewQty)}
+                      style={{
+                        flex: 1,
+                        padding: '15px',
+                        borderRadius: 12,
+                        border: 'none',
+                        fontSize: 15,
+                        fontWeight: 700,
+                        cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        background: isOutOfStock ? '#e2e8f0' : isJustAdded ? '#10b981' : primaryColor,
+                        color: isOutOfStock ? '#94a3b8' : '#fff',
+                      }}
+                    >
+                      {isOutOfStock ? (
+                        'Out of Stock'
+                      ) : isJustAdded ? (
+                        <>
+                          <Check size={17} /> Added!
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag size={17} /> {isService ? 'Book' : 'Add To Cart'}
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2019,6 +2097,7 @@ export default function UniversalStorefront({
                   {cartStep === 'checkout_step2' && 'Extra Information'}
                   {cartStep === 'checkout_step3' && 'Order Summary'}
                   {cartStep === 'payment' && 'Make Payment'}
+                  {cartStep === 'confirmed' && 'Order Confirmed'}
                 </h3>
                 {cartStep === 'cart' && (
                   <p style={{ fontSize: 13, color: '#64748b', margin: '2px 0 0', fontWeight: 500 }}>
@@ -2196,7 +2275,7 @@ export default function UniversalStorefront({
                           <img
                             key={item.id}
                             src={item.image_url || ''}
-                            alt=""
+                            alt={item.name}
                             style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff', marginLeft: idx > 0 ? -8 : 0 }}
                           />
                         ))}
@@ -2414,7 +2493,7 @@ export default function UniversalStorefront({
                   <div>
                     <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#1e293b', margin: '0 0 10px' }}>Delivery Options</h4>
                     <div
-                      onClick={() => setDeliveryMethod(deliveryMethod === 'delivery' ? 'pickup' : 'delivery')}
+                      onClick={() => setDeliveryMethod('delivery')}
                       style={{ border: '1px solid #f1f5f9', borderRadius: 16, padding: '14px 16px', background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -2677,7 +2756,7 @@ export default function UniversalStorefront({
                           <img
                             key={item.id}
                             src={item.image_url || ''}
-                            alt=""
+                            alt={item.name}
                             style={{
                               width: 22,
                               height: 22,
@@ -2758,7 +2837,7 @@ export default function UniversalStorefront({
                       Make Enquiry
                     </button>
                     <button
-                      onClick={() => setCartStep('checkout_step2')}
+                      onClick={() => setCartStep(isDigitalOnly ? 'checkout_step3' : 'checkout_step2')}
                       style={{
                         padding: '14px',
                         borderRadius: 14,
@@ -2828,7 +2907,7 @@ export default function UniversalStorefront({
               {cartStep === 'checkout_step3' && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <button
-                    onClick={() => setCartStep('checkout_step2')}
+                    onClick={() => setCartStep(isDigitalOnly ? 'checkout_step1' : 'checkout_step2')}
                     style={{
                       padding: '14px',
                       borderRadius: 14,
@@ -2863,6 +2942,58 @@ export default function UniversalStorefront({
               {/* Step 4: Make Payment */}
               {cartStep === 'payment' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <button
+                    onClick={async () => {
+                      if (!createdOrderData?.order?.id) return;
+                      setIsInitializingPayment(true);
+                      try {
+                        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
+                        const res = await fetch(`${API_URL}/v1/public/orders/${createdOrderData.order.id}/initialize-payment`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' }
+                        });
+                        const json = await res.json();
+                        if (json?.data?.authorization_url) {
+                           window.location.href = json.data.authorization_url;
+                        } else if (json?.status === 'bank_transfer') {
+                           setBankTransferDetails({
+                             order_id: createdOrderData.order.id,
+                             order_number: createdOrderData.order.order_number,
+                             bank_name: json.data.bank_name,
+                             bank_account_number: json.data.bank_account_number,
+                             bank_account_name: json.data.bank_account_name,
+                             amount: orderTotal,
+                             currency_code: selectedCurrency
+                           });
+                           setBankTransferModalOpen(true);
+                        } else {
+                           sonnerToast.error(json.message || 'Payment initialization failed.');
+                        }
+                      } catch (err) {
+                        sonnerToast.error('Payment initialization failed.');
+                      } finally {
+                        setIsInitializingPayment(false);
+                      }
+                    }}
+                    disabled={isInitializingPayment}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      borderRadius: 14,
+                      background: '#0f172a',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: isInitializingPayment ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    {isInitializingPayment ? 'Loading...' : 'Pay Securely Online'}
+                  </button>
                   <button
                     onClick={() => handleWhatsAppCheckout()}
                     style={{
@@ -3025,7 +3156,12 @@ export default function UniversalStorefront({
                               disabled={isOutOfStock}
                               onClick={(e) => {
                                 addToCart(item, null, e);
-                                sonnerToast.success('Added to bag');
+                                sonnerToast.success('Added to bag', {
+                                  action: {
+                                    label: 'View Cart',
+                                    onClick: () => setIsCartOpen(true),
+                                  },
+                                });
                               }}
                               style={{
                                 padding: '5px 12px',
@@ -3078,7 +3214,12 @@ export default function UniversalStorefront({
                     savedProducts.forEach((p) => addToCart(p));
                     setIsWishlistOpen(false);
                     setIsCartOpen(true);
-                    sonnerToast.success(`Added ${savedProducts.length} saved items to your bag`);
+                    sonnerToast.success(`Added ${savedProducts.length} saved items to your bag`, {
+                      action: {
+                        label: 'View Cart',
+                        onClick: () => setIsCartOpen(true),
+                      },
+                    });
                   }}
                   style={{
                     width: '100%',
