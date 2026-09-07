@@ -232,7 +232,7 @@ export default function SettingsTab({
     setSetLinkedin(store.linkedin_handle || '');
     setSetFacebookPixelId(store.facebook_pixel_id || '');
     setSetGoogleTagManagerId(store.google_tag_manager_id || '');
-    setSetCurrency(store.currency_code || 'NGN');
+    setSetCurrency((!store.currency_code || store.currency_code.toUpperCase() === 'USD') ? 'NGN' : store.currency_code);
     setSetStoreCountryCode(store.country_code || '');
     setSetPaymentProvider(store.payment_provider || '');
     setAvailableProviders(store.available_payment_providers || []);
@@ -342,10 +342,9 @@ export default function SettingsTab({
 
     if (match) {
       setSetStoreCountryCode(match.code);
-      setSetCurrency(match.default_currency || detectedCurrencyCode || 'NGN');
       setCountryDetectionFailed(false);
     }
-  }, [geoDetectionDone, metaCountries, detectedCountryCode, detectedCurrencyCode, setStoreCountryCode, setCurrency, store]);
+  }, [geoDetectionDone, metaCountries, detectedCountryCode, setStoreCountryCode, setCurrency, store]);
 
   // Auto-sync Store Country when Store Currency is changed (for unsaved stores)
   useEffect(() => {

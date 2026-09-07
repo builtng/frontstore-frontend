@@ -19,7 +19,7 @@ import {
 // are unfiltered. Every other entry scopes both currency display and product visibility to that
 // one country, per market.
 const MARKETS = [
-  { code:"GLOBAL", label:"Global",  ccy:"USD", symbol:"$",   perNgn:0.00062 },
+  { code:"GLOBAL", label:"Global",  ccy:"NGN", symbol:"₦",   perNgn:1       },
   { code:"NG", label:"Nigeria",      ccy:"NGN", symbol:"₦",   perNgn:1       },
   { code:"GH", label:"Ghana",        ccy:"GHS", symbol:"GH₵", perNgn:0.0077  },
   { code:"KE", label:"Kenya",        ccy:"KES", symbol:"KSh", perNgn:0.084   },
