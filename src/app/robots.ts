@@ -57,8 +57,9 @@ export default function robots(): MetadataRoute.Robots {
           '/*?reset=',
           '/*?session=',
           '/*?preview=',
+          '/*?ref=',
+          '/*?q=',
         ],
-        crawlDelay: 1,
       },
 
       // ── Google — full access to all indexable content ────────────────────────
@@ -84,7 +85,25 @@ export default function robots(): MetadataRoute.Robots {
           '/nigeria-states',
           '/nigeria-states/',
         ],
-        disallow: ['/dashboard', '/dashboard/', '/api/', '/admin', '/admin/', '/track/', '/_next/', '/confirm/', '/buyer/', '/merchant/'],
+        disallow: [
+          '/dashboard',
+          '/dashboard/',
+          '/admin',
+          '/admin/',
+          '/api/',
+          '/track/',
+          '/_next/',
+          '/confirm/',
+          '/buyer/',
+          '/merchant/',
+          '/*?token=',
+          '/*?auth=',
+          '/*?reset=',
+          '/*?session=',
+          '/*?preview=',
+          '/*?ref=',
+          '/*?q=',
+        ],
       },
 
       // ── Google Image bot — allow all images on public pages ──────────────────

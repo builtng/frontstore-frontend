@@ -62,7 +62,10 @@ export const metadata: Metadata = {
   creator: "Frontstore",
   publisher: "Frontstore Technologies",
   alternates: {
-    canonical: '/',
+    languages: {
+      'en': 'https://frontstore.ng',
+      'x-default': 'https://frontstore.ng',
+    },
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
