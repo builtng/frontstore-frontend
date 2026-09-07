@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { Search, ShieldCheck } from 'lucide-react';
 import BankTransferPaymentModal from '../../../components/BankTransferPaymentModal';
 
+import { getOptimizedImageUrl } from '@/lib/image';
+
 interface OrderItem {
   id: string;
   product_name: string;
@@ -17,6 +19,7 @@ interface Store {
   store_name: string;
   whatsapp_phone: string;
   currency_code: string;
+  logo_url?: string | null;
 }
 
 interface Order {
@@ -129,6 +132,14 @@ export default function SharePayPage() {
     <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', background: '#f8fafc', padding: 20 }}>
       <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          {store.logo_url && (
+            <img
+              src={getOptimizedImageUrl(store.logo_url, 'thumb')}
+              alt={store.store_name}
+              style={{ width: 48, height: 48, borderRadius: 12, objectFit: 'cover', margin: '0 auto 12px', display: 'block', border: '1px solid #e2e8f0' }}
+              onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+            />
+          )}
           <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>Pay for Order</h1>
           <p style={{ color: '#64748b', margin: 0 }}>
             You're completing a payment for <strong>{order.customer_name}</strong> at <strong>{store.store_name}</strong>

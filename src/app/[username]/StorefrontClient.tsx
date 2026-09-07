@@ -176,8 +176,13 @@ export default function StorefrontClient({
     );
   }
 
+  // Nina AI state
+  const [isNinaOpen, setIsNinaOpen] = useState(false);
+  const handleToggleNina = () => setIsNinaOpen((prev) => !prev);
+
   return (
     <>
+      {/* Dynamic Pixel Trackers */}
       {store.facebook_pixel_id ? (
         <Script id="fb-pixel" strategy="afterInteractive">
           {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -226,9 +231,17 @@ ttq.page();}(window,document,'ttq');`}
         systemDomain={systemDomain}
         storeDisclaimer={storeDisclaimer}
         appName={appName}
+        isNinaOpen={isNinaOpen}
+        onToggleNina={handleToggleNina}
       />
-      {store.nina_chat_qr_enabled ? <StorefrontNinaWidget store={store} /> : null}
+      {store.nina_chat_qr_enabled ? (
+        <StorefrontNinaWidget
+          store={store}
+          open={isNinaOpen}
+          onOpenChange={setIsNinaOpen}
+          hideFloatingLauncher={true}
+        />
+      ) : null}
     </>
   );
 }
-

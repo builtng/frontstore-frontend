@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Search, Package, AlertCircle, Check, Download, ExternalLink, Lock, Star, Truck, PartyPopper, ShieldCheck, MapPin, User, Phone, Send, MessageSquare, AlertTriangle, ShieldAlert, Scale, BadgeCheck } from 'lucide-react';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import { WhatsAppIcon } from '../../../components/WhatsAppIcon';
+import { getOptimizedImageUrl } from '@/lib/image';
 
 interface OrderItem {
   id: string;
@@ -30,10 +31,12 @@ interface OrderItem {
 }
 
 interface Store {
+  username?: string;
   store_name: string;
   whatsapp_phone: string;
   currency_code: string;
   is_verified?: boolean;
+  logo_url?: string | null;
 }
 
 interface Order {
@@ -459,7 +462,19 @@ export default function OrderTrackingPage() {
       {/* Navbar Header */}
       <header style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: 34, height: 34, borderRadius: 'var(--r-md)', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          {store.logo_url ? (
+            <img
+              src={getOptimizedImageUrl(store.logo_url, 'thumb')}
+              alt={store.store_name}
+              style={{ width: 34, height: 34, borderRadius: 'var(--r-md, 8px)', objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }}
+              onError={(e) => {
+                (e.currentTarget as HTMLElement).style.display = 'none';
+                const fallback = (e.currentTarget.nextElementSibling as HTMLElement);
+                if (fallback) fallback.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div style={{ display: store.logo_url ? 'none' : 'flex', width: 34, height: 34, borderRadius: 'var(--r-md)', background: 'var(--primary-light)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Package size={17} style={{ color: 'var(--primary)' }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -638,25 +653,45 @@ export default function OrderTrackingPage() {
         )}
 
         {/* Merchant Trust Profile */}
-        <div className="card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {store.logo_url ? (
+            <img
+              src={getOptimizedImageUrl(store.logo_url, 'thumb')}
+              alt={store.store_name}
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '12px',
+                objectFit: 'cover',
+                border: '1px solid var(--border)',
+                flexShrink: 0
+              }}
+              onError={(e) => {
+                (e.currentTarget as HTMLElement).style.display = 'none';
+                const fallback = (e.currentTarget.nextElementSibling as HTMLElement);
+                if (fallback) fallback.style.display = 'flex';
+              }}
+            />
+          ) : null}
           <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-border) 100%)',
-            display: 'flex',
+            display: store.logo_url ? 'none' : 'flex',
+            width: '44px',
+            height: '44px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '16px',
+            fontSize: '18px',
             fontWeight: 900,
-            color: '#fff',
-            flexShrink: 0
+            color: '#ffffff',
+            flexShrink: 0,
+            boxShadow: '0 2px 8px rgba(11, 93, 57, 0.2)'
           }}>
-            {store.store_name.charAt(0).toUpperCase()}
+            {(store.store_name || 'S').charAt(0).toUpperCase()}
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-              <strong style={{ fontSize: '14px', color: 'var(--text)' }}>{store.store_name}</strong>
+              <strong style={{ fontSize: '15px', color: 'var(--text)', fontWeight: 800 }}>{store.store_name}</strong>
               {(order.store as any).is_verified && (
                 <span style={{
                   background: 'rgba(37, 211, 102, 0.12)',
@@ -673,6 +708,11 @@ export default function OrderTrackingPage() {
                 </span>
               )}
             </div>
+            {store.username && (
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: 2 }}>
+                @{store.username}
+              </div>
+            )}
           </div>
         </div>
 

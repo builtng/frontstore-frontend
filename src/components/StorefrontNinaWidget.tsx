@@ -23,6 +23,9 @@ interface Message {
 
 interface StorefrontNinaWidgetProps {
   store: Store;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideFloatingLauncher?: boolean;
 }
 
 function getApiUrl(): string {
@@ -32,8 +35,27 @@ function getApiUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
 }
 
-export default function StorefrontNinaWidget({ store }: StorefrontNinaWidgetProps) {
-  const [open, setOpen] = useState(false);
+export default function StorefrontNinaWidget({
+  store,
+  open: controlledOpen,
+  onOpenChange,
+  hideFloatingLauncher = false,
+}: StorefrontNinaWidgetProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+
+  const setOpen = useCallback(
+    (valOrFn: boolean | ((prev: boolean) => boolean)) => {
+      const next = typeof valOrFn === 'function' ? valOrFn(open) : valOrFn;
+      if (!isControlled) {
+        setInternalOpen(next);
+      }
+      onOpenChange?.(next);
+    },
+    [isControlled, open, onOpenChange]
+  );
+
   const [mode, setMode] = useState<'welcome' | 'chat'>('welcome');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -49,6 +71,13 @@ export default function StorefrontNinaWidget({ store }: StorefrontNinaWidgetProp
 
   const primaryColor = store.primary_color || '#0B5D39';
   const avatarUrl = store.nina_avatar_url || '/ninaAssistant.png';
+
+  // Listen to custom open event
+  useEffect(() => {
+    const handleOpenEvent = () => setOpen(true);
+    window.addEventListener('frontstore:open-nina', handleOpenEvent);
+    return () => window.removeEventListener('frontstore:open-nina', handleOpenEvent);
+  }, [setOpen]);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -204,32 +233,34 @@ export default function StorefrontNinaWidget({ store }: StorefrontNinaWidgetProp
   return (
     <>
       {/* Floating launcher button */}
-      <button
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Chat with Nina AI"
-        className="nina-launcher"
-        style={{
-          position: 'fixed',
-          bottom: 28,
-          right: 28,
-          zIndex: 9999,
-          width: 60,
-          height: 60,
-          borderRadius: '50%',
-          background: `linear-gradient(135deg, ${primaryColor}, #25D366)`,
-          border: 'none',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: `0 8px 30px rgba(37, 211, 102, 0.45)`,
-          transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s',
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08) translateY(-2px)'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-      >
-        {open ? <X size={24} color="#fff" strokeWidth={2.5} /> : <img src={avatarUrl} alt="Nina" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />}
-      </button>
+      {!hideFloatingLauncher && (
+        <button
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Chat with Nina AI"
+          className="nina-launcher"
+          style={{
+            position: 'fixed',
+            bottom: 28,
+            right: 28,
+            zIndex: 9999,
+            width: 60,
+            height: 60,
+            borderRadius: '50%',
+            background: `linear-gradient(135deg, ${primaryColor}, #25D366)`,
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: `0 8px 30px rgba(37, 211, 102, 0.45)`,
+            transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08) translateY(-2px)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+        >
+          {open ? <X size={24} color="#fff" strokeWidth={2.5} /> : <img src={avatarUrl} alt="Nina" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />}
+        </button>
+      )}
 
       {/* Main chat window / popover */}
       {open && (
@@ -237,7 +268,7 @@ export default function StorefrontNinaWidget({ store }: StorefrontNinaWidgetProp
           className={`nina-container ${isMobile ? 'nina-mobile' : 'nina-desktop'}`}
           style={{
             position: 'fixed',
-            bottom: isMobile ? 0 : 100,
+            bottom: isMobile ? 0 : 88,
             right: isMobile ? 0 : 28,
             zIndex: 9998,
             width: isMobile ? '100%' : 380,
@@ -300,20 +331,26 @@ export default function StorefrontNinaWidget({ store }: StorefrontNinaWidgetProp
                   <RotateCcw size={15} />
                 </button>
               )}
-              {isMobile && (
-                <button
-                  onClick={() => setOpen(false)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#fff',
-                    padding: 4,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <X size={24} />
-                </button>
-              )}
+              <button
+                onClick={() => setOpen(false)}
+                aria-label="Close chat"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: 'none',
+                  borderRadius: 10,
+                  padding: isMobile ? 4 : 6,
+                  cursor: 'pointer',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background 0.2s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
+              >
+                <X size={isMobile ? 24 : 18} />
+              </button>
             </div>
           </div>
 

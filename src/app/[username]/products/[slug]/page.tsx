@@ -306,7 +306,7 @@ export default async function ProductPage({ params }: PageProps) {
         initialProduct={product}
         store={storeData.store}
         allProducts={storeData.products || []}
-        reviews={storeData.reviews || []}
+        reviews={productReviews?.length > 0 ? productReviews : (storeData.reviews || [])}
         systemDomain={systemDomain}
         storeDisclaimer={storeData.store_disclaimer || ''}
       />

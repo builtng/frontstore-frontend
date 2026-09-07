@@ -9,6 +9,7 @@ import BuiltWithFrontstoreBadge from '@/components/BuiltWithFrontstoreBadge';
 import { WhatsAppIcon } from '@/components/WhatsAppIcon';
 import { InstagramIcon, TikTokIcon, FacebookIcon, TwitterXIcon } from '@/components/SocialIcons';
 import { getColorHex } from '@/utils/colorUtils';
+import { getOptimizedImageUrl } from '@/lib/image';
 
 interface Review {
   id: string;
@@ -24,6 +25,7 @@ interface Store {
   id: string;
   username: string;
   store_name: string;
+  logo_url?: string | null;
   store_bio?: string | null;
   primary_color?: string | null;
   is_verified?: boolean | number;
@@ -159,6 +161,16 @@ export default function StoreReviewsClient({ store, initialReviews, systemDomain
             >
               <ChevronLeft size={18} color="#475569" />
             </button>
+            {store.logo_url ? (
+              <img
+                src={getOptimizedImageUrl(store.logo_url, 'thumb')}
+                alt={store.store_name}
+                style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0', flexShrink: 0 }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = 'none';
+                }}
+              />
+            ) : null}
             <div>
               <h1 style={{ fontSize: 16, fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
                 {store.store_name}
@@ -301,6 +313,16 @@ export default function StoreReviewsClient({ store, initialReviews, systemDomain
         }}
       >
         <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
+          {store.logo_url ? (
+            <img
+              src={getOptimizedImageUrl(store.logo_url, 'thumb')}
+              alt={store.store_name}
+              style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: '2px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}
+              onError={(e) => {
+                (e.currentTarget as HTMLElement).style.display = 'none';
+              }}
+            />
+          ) : null}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontFamily: 'Fraunces', fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
               {store.store_name}

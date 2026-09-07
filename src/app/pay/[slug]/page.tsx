@@ -4,10 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Search, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { getOptimizedImageUrl } from '@/lib/image';
 
 interface PaymentLinkStore {
   store_name: string;
   currency_code: string;
+  logo_url?: string | null;
 }
 
 interface PaymentLinkData {
@@ -262,9 +264,22 @@ export default function PaymentLinkPage() {
       )}
 
       <header style={{ padding: '16px 20px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 20 }}>
+        {store.logo_url ? (
+          <img
+            src={getOptimizedImageUrl(store.logo_url, 'thumb')}
+            alt=""
+            style={{ width: 26, height: 26, borderRadius: '7px', objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }}
+            onError={(e) => {
+              (e.currentTarget as HTMLElement).style.display = 'none';
+              const fallback = (e.currentTarget.nextElementSibling as HTMLElement);
+              if (fallback) fallback.style.display = 'flex';
+            }}
+          />
+        ) : null}
         <span style={{
-          width: 24, height: 24, borderRadius: '7px', background: 'var(--primary)', color: '#fff',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800,
+          display: store.logo_url ? 'none' : 'flex',
+          width: 26, height: 26, borderRadius: '7px', background: 'var(--primary)', color: '#fff',
+          alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800,
           fontFamily: 'var(--font-heading)', flexShrink: 0,
         }}>
           {storeInitial}

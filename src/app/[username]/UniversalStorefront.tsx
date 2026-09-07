@@ -9,7 +9,8 @@ import {
   Sparkles, Tag, Info, AlertCircle, QrCode, Copy,
   Truck, ShieldAlert, Bell, User, Edit3, Package, Building,
   Filter, Heart, RefreshCw, Layers, CreditCard, Lock,
-  Navigation, MoreVertical, RotateCcw, Calendar, Download
+  Navigation, MoreVertical, RotateCcw, Calendar, Download,
+  CheckCircle2, Mail, Home
 } from 'lucide-react';
 import { toast as sonnerToast } from 'sonner';
 import QRCodeSVG from 'react-qr-code';
@@ -68,6 +69,8 @@ export interface StoreType {
   faq_help_text?: string | null;
   payment_provider?: string | null;
   reply_time_minutes?: number | null;
+  nina_chat_qr_enabled?: boolean | number;
+  nina_avatar_url?: string | null;
   shipping_type?: string | null;
   shipping_flat_fee?: string | number | null;
   shipping_free_threshold?: string | number | null;
@@ -101,6 +104,8 @@ export interface Product {
   stock_quantity?: number | null;
   category_id: string | null;
   is_digital?: boolean;
+  digital_file_url?: string | null;
+  digital_link?: string | null;
   type?: 'service' | 'product';
   duration_minutes?: number | null;
   variants?: ProductVariant[];
@@ -145,6 +150,8 @@ interface UniversalStorefrontProps {
   systemDomain: string;
   storeDisclaimer: string;
   appName: string;
+  isNinaOpen?: boolean;
+  onToggleNina?: () => void;
 }
 
 export const CURRENCY_CONFIG: Record<string, { symbol: string; rate: number; label: string; flag: string }> = {
@@ -335,6 +342,8 @@ export default function UniversalStorefront({
   systemDomain = 'frontstore.ng',
   storeDisclaimer,
   appName = 'Frontstore',
+  isNinaOpen,
+  onToggleNina,
 }: UniversalStorefrontProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState<string>(store.currency_code || 'NGN');
@@ -349,6 +358,27 @@ export default function UniversalStorefront({
   const [activeTab, setActiveTab] = useState<'all' | 'products' | 'services' | 'saved'>('all');
   const [sortBy, setSortBy] = useState<'featured' | 'price-low' | 'price-high' | 'sale'>('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  const handleHomeClick = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (activeTab !== 'all') setActiveTab('all');
+    if (selectedCategoryId !== 'all') setSelectedCategoryId('all');
+    if (searchTerm) setSearchTerm('');
+  };
+
+  const handleNinaClick = () => {
+    if (store.nina_chat_qr_enabled) {
+      if (onToggleNina) {
+        onToggleNina();
+      } else {
+        window.dispatchEvent(new CustomEvent('frontstore:open-nina'));
+      }
+    } else if (store.whatsapp_phone) {
+      const waDigits = store.whatsapp_phone.replace(/[^0-9]/g, '');
+      const waText = encodeURIComponent(`Hi ${store.store_name}, I am browsing your store.`);
+      window.open(`https://wa.me/${waDigits}?text=${waText}`, '_blank');
+    }
+  };
 
   // Cart & Checkout
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -420,7 +450,7 @@ export default function UniversalStorefront({
   }, [isStoreMenuOpen]);
 
   useEffect(() => {
-    if (isCartOpen) setCartStep('cart');
+    if (isCartOpen && cartStep !== 'confirmed') setCartStep('cart');
   }, [isCartOpen]);
 
   useEffect(() => {
@@ -548,6 +578,47 @@ export default function UniversalStorefront({
 
   const [createdOrderData, setCreatedOrderData] = useState<any>(null);
   const [isInitializingPayment, setIsInitializingPayment] = useState(false);
+  const [confirmedOrderSnapshot, setConfirmedOrderSnapshot] = useState<any>(null);
+  const [copiedOrderNumber, setCopiedOrderNumber] = useState(false);
+
+  const confirmedOrderId = confirmedOrderSnapshot?.orderId || createdOrderData?.order?.id || bankTransferDetails?.order_id;
+  const confirmedOrderNum = confirmedOrderSnapshot?.orderNumber || createdOrderData?.order?.order_number || bankTransferDetails?.order_number;
+  const confirmedAmount = confirmedOrderSnapshot?.totalAmount ?? (createdOrderData?.order?.total_amount ? Number(createdOrderData.order.total_amount) : (Number(bankTransferDetails?.amount) || orderTotal));
+  const confirmedCurrency = confirmedOrderSnapshot?.currencyCode || createdOrderData?.order?.currency_code || bankTransferDetails?.currency_code || selectedCurrency;
+  const confirmedDeliveryMethod = confirmedOrderSnapshot?.deliveryMethod || createdOrderData?.order?.delivery_method || (isDigitalOnly ? 'digital' : deliveryMethod);
+  const confirmedDeliveryAddress = confirmedOrderSnapshot?.deliveryAddress || createdOrderData?.order?.delivery_address || (deliveryMethod === 'delivery' ? customerNote : undefined);
+  const confirmedCustomerName = confirmedOrderSnapshot?.customerName || createdOrderData?.order?.customer_name || customerName;
+  const confirmedCustomerPhone = confirmedOrderSnapshot?.customerPhone || createdOrderData?.order?.customer_phone || customerPhone;
+  const confirmedCustomerEmail = confirmedOrderSnapshot?.customerEmail || createdOrderData?.order?.customer_email || customerEmail;
+  const displayItems = confirmedOrderSnapshot?.items || createdOrderData?.order?.items || (cart.length > 0 ? cart : []);
+
+  const handleCopyOrderNumber = (num?: string) => {
+    const val = num || confirmedOrderNum;
+    if (!val) return;
+    navigator.clipboard?.writeText(val);
+    setCopiedOrderNumber(true);
+    sonnerToast.success('Order reference copied to clipboard!');
+    setTimeout(() => setCopiedOrderNumber(false), 2000);
+  };
+
+  const digitalItems = useMemo(() => {
+    return displayItems.filter((i: any) => {
+      if (i.is_digital) return true;
+      const prod = products.find((p: any) => p.id === (i.productId || i.product_id));
+      return Boolean(prod?.is_digital);
+    });
+  }, [displayItems, products]);
+
+  const hasDigital = digitalItems.length > 0 || confirmedDeliveryMethod === 'digital' || isDigitalOnly;
+
+  const whatsappFollowupUrl = useMemo(() => {
+    if (createdOrderData?.whatsapp_url) return createdOrderData.whatsapp_url;
+    const phone = store.whatsapp_phone ? store.whatsapp_phone.replace(/[^0-9]/g, '') : '';
+    if (!phone) return null;
+    const refText = confirmedOrderNum ? ` #${confirmedOrderNum}` : '';
+    const text = `Hello *${store.store_name}*, I have confirmed and paid for my order${refText} on your store!`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  }, [createdOrderData, store.whatsapp_phone, store.store_name, confirmedOrderNum]);
 
 
   const hasProducts = useMemo(() => products.some(p => p.type !== 'service'), [products]);
@@ -888,7 +959,22 @@ export default function UniversalStorefront({
         details={bankTransferDetails}
         currencySymbol={selectedCurrency ? CURRENCY_CONFIG[selectedCurrency]?.symbol : ''}
         onPaid={() => {
+          const activeOrder = createdOrderData?.order;
+          setConfirmedOrderSnapshot({
+            orderId: activeOrder?.id || bankTransferDetails?.order_id,
+            orderNumber: activeOrder?.order_number || bankTransferDetails?.order_number,
+            totalAmount: activeOrder?.total_amount ? Number(activeOrder.total_amount) : (Number(bankTransferDetails?.amount) || orderTotal),
+            currencyCode: activeOrder?.currency_code || selectedCurrency,
+            items: (activeOrder?.items && activeOrder.items.length > 0) ? activeOrder.items : [...cart],
+            deliveryMethod: activeOrder?.delivery_method || (isDigitalOnly ? 'digital' : deliveryMethod),
+            deliveryAddress: activeOrder?.delivery_address || (deliveryMethod === 'delivery' ? customerNote : undefined),
+            customerName: activeOrder?.customer_name || customerName,
+            customerPhone: activeOrder?.customer_phone || customerPhone,
+            customerEmail: activeOrder?.customer_email || customerEmail,
+            whatsappUrl: createdOrderData?.whatsapp_url,
+          });
           setCartStep('confirmed');
+          setCart([]);
         }}
       />
       {/* ── TOP ANNOUNCEMENT / PROMO BANNER ── */}
@@ -1327,7 +1413,7 @@ export default function UniversalStorefront({
       </section>
 
       {/* ── MAIN CATALOGUE CONTAINER ── */}
-      <main id="store-catalog-section" style={{ flex: 1, maxWidth: 1120, width: '100%', margin: '0 auto', padding: '28px 20px 80px' }}>
+      <main id="store-catalog-section" style={{ flex: 1, maxWidth: 1120, width: '100%', margin: '0 auto', padding: '28px 20px calc(96px + env(safe-area-inset-bottom, 0px))' }}>
         {/* Navigation Tabs (Goods vs Services vs Saved) */}
         {( (hasProducts && hasServices) || wishlist.length > 0 || activeTab === 'saved') && (
           <div
@@ -2043,45 +2129,275 @@ export default function UniversalStorefront({
         </div>
       </main>
 
-      {/* ── FLOATING VIEW CART BAR ── */}
-      {cart.length > 0 && !isCartOpen && (
-        <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 90 }}>
-          <button
-            onClick={() => setIsCartOpen(true)}
+      {/* ── PROFESSIONAL STICKY FOOTER (HOME - ASK NINA - CART) ── */}
+      {!isCartOpen && (
+        <nav
+          aria-label="Store bottom navigation"
+          className="storefront-bottom-nav"
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 150,
+            background: 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderTop: '1px solid rgba(226, 232, 240, 0.8)',
+            boxShadow: '0 -4px 20px rgba(15, 23, 42, 0.06)',
+          }}
+        >
+          <div
             style={{
+              maxWidth: 480,
+              margin: '0 auto',
+              padding: '0 24px',
               display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              background: primaryColor,
-              color: '#fff',
-              border: 'none',
-              borderRadius: 999,
-              padding: '6px 6px 6px 20px',
-              fontWeight: 700,
-              fontSize: 14,
-              cursor: 'pointer',
-              boxShadow: `0 10px 28px ${primaryColor}55`,
+              flexDirection: 'column',
+              position: 'relative',
             }}
           >
-            {totalCartCount} Item{totalCartCount > 1 ? 's' : ''} ({formatCurrency(cartTotal, selectedCurrency)})
-            <span
+            {/* Top Navigation Row: Home | Ask Nina | Cart */}
+            <div
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: '50%',
-                background: '#fff',
-                color: primaryColor,
+                height: 58,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                position: 'relative',
+              }}
+            >
+              {/* Home Tab */}
+              <button
+                type="button"
+                onClick={handleHomeClick}
+                aria-label="Home"
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'none',
+                  border: 'none',
+                  padding: '4px 0',
+                  cursor: 'pointer',
+                  gap: 3,
+                }}
+              >
+                <Home
+                  size={22}
+                  strokeWidth={1.8}
+                  color={activeTab === 'all' && selectedCategoryId === 'all' && !searchTerm ? '#0f172a' : '#64748b'}
+                />
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: activeTab === 'all' && selectedCategoryId === 'all' && !searchTerm ? '#0f172a' : '#64748b',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  Home
+                </span>
+              </button>
+
+              {/* Middle: Ask Nina (Elevated protruding button) */}
+              <div
+                style={{
+                  flex: 1,
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: -22,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleNinaClick}
+                  aria-label={store.nina_chat_qr_enabled ? 'Chat with Nina AI' : 'Contact Store'}
+                  style={{
+                    width: 58,
+                    height: 58,
+                    borderRadius: '50%',
+                    background: '#ffffff',
+                    border: '3.5px solid #ffffff',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.14), 0 0 0 1.5px rgba(226, 232, 240, 0.8)',
+                    padding: 0,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08) translateY(-2px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; }}
+                  onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.95)'; }}
+                  onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                >
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      background: primaryColor || '#0B5D39',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                    }}
+                  >
+                    <img
+                      src={store.nina_avatar_url || '/ninaAssistant.png'}
+                      alt="Nina AI"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                  </div>
+
+                  {/* Sparkle badge at bottom-right corner of avatar */}
+                  <span
+                    style={{
+                      position: 'absolute',
+                      bottom: -1,
+                      right: -1,
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      background: primaryColor || '#0B5D39',
+                      border: '2px solid #ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    <Sparkles size={9} color="#ffffff" strokeWidth={2.5} />
+                  </span>
+                </button>
+
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 750,
+                    color: '#0f172a',
+                    marginTop: 3,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {store.nina_chat_qr_enabled ? 'Ask Nina' : 'Chat'}
+                </span>
+              </div>
+
+              {/* Cart Tab */}
+              <button
+                type="button"
+                onClick={() => setIsCartOpen(true)}
+                aria-label={`Cart (${totalCartCount} items)`}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'none',
+                  border: 'none',
+                  padding: '4px 0',
+                  cursor: 'pointer',
+                  gap: 3,
+                }}
+              >
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShoppingBag
+                    size={22}
+                    strokeWidth={1.8}
+                    color={totalCartCount > 0 ? '#0f172a' : '#64748b'}
+                  />
+                  {totalCartCount > 0 && (
+                    <span
+                      key={totalCartCount}
+                      className="cart-alert-badge"
+                      style={{
+                        position: 'absolute',
+                        top: -6,
+                        right: -9,
+                        minWidth: 18,
+                        height: 18,
+                        borderRadius: 999,
+                        background: '#ea580c',
+                        color: '#ffffff',
+                        fontSize: 10.5,
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '0 4px',
+                        border: '2px solid #ffffff',
+                        boxShadow: '0 2px 6px rgba(234, 88, 12, 0.4)',
+                        lineHeight: 1,
+                        animation: 'cartBadgePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                      }}
+                    >
+                      {totalCartCount > 99 ? '99+' : totalCartCount}
+                    </span>
+                  )}
+                </div>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: totalCartCount > 0 ? 700 : 600,
+                    color: totalCartCount > 0 ? '#0f172a' : '#64748b',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  Cart
+                </span>
+              </button>
+            </div>
+
+            {/* Bottom Row: Secured by Frontstore */}
+            <div
+              style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexShrink: 0,
+                gap: 5,
+                paddingTop: 3,
+                paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))',
               }}
             >
-              <ArrowRight size={17} />
-            </span>
-          </button>
-        </div>
+              <ShieldCheck size={13} color="#059669" strokeWidth={2.2} />
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 650,
+                  color: '#0f172a',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                Secured by {appName || 'Frontstore'}
+              </span>
+            </div>
+          </div>
+        </nav>
       )}
+
+      {/* Styled Keyframes */}
+      <style>{`
+        @keyframes cartBadgePop {
+          0% { transform: scale(0.35); }
+          60% { transform: scale(1.3); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
 
       {/* ── FLOATING SAVED ITEMS BUTTON ── */}
       {wishlist.length > 0 && !isWishlistOpen && (
@@ -2176,8 +2492,16 @@ export default function UniversalStorefront({
                 <Share2 size={16} />
               </button>
 
-              <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>
-                {store.store_name}
+              <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                {store.logo_url && (
+                  <img
+                    src={getOptimizedImageUrl(store.logo_url, 'thumb')}
+                    alt={store.store_name}
+                    style={{ width: 24, height: 24, borderRadius: 6, objectFit: 'cover' }}
+                    onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+                  />
+                )}
+                <span>{store.store_name}</span>
               </div>
 
               <button
@@ -2430,10 +2754,21 @@ export default function UniversalStorefront({
                     {totalCartCount} {totalCartCount === 1 ? 'Item' : 'Items'}
                   </p>
                 )}
+                {cartStep === 'confirmed' && (
+                  <p style={{ fontSize: 13, color: '#16a34a', margin: '2px 0 0', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <CheckCircle2 size={13} /> Payment verified
+                  </p>
+                )}
               </div>
 
               <button
-                onClick={() => setIsCartOpen(false)}
+                onClick={() => {
+                  setIsCartOpen(false);
+                  if (cartStep === 'confirmed') {
+                    setCart([]);
+                    setCartStep('cart');
+                  }
+                }}
                 aria-label="Close"
                 style={{
                   width: 36,
@@ -2494,14 +2829,7 @@ export default function UniversalStorefront({
                     Review your items and proceed to checkout when you're ready
                   </p>
 
-                  {/* Currency selector aligned right */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#334155', background: '#f8fafc', padding: '6px 12px', borderRadius: 20, border: '1px solid #e2e8f0' }}>
-                      <span>🇳🇬</span>
-                      <span>{selectedCurrency}</span>
-                      <ChevronDown size={14} />
-                    </div>
-                  </div>
+
 
                   {cart.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '50px 20px', color: '#94a3b8' }}>
@@ -2907,11 +3235,6 @@ export default function UniversalStorefront({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <h4 style={{ fontSize: 15, fontWeight: 700, color: '#1e293b', margin: 0 }}>Summary</h4>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#334155', background: '#f8fafc', padding: '6px 12px', borderRadius: 20, border: '1px solid #e2e8f0' }}>
-                      <span>🇳🇬</span>
-                      <span>{selectedCurrency}</span>
-                      <ChevronDown size={14} />
-                    </div>
                   </div>
 
                   {/* Cart Items List */}
@@ -3044,40 +3367,6 @@ export default function UniversalStorefront({
 
                   {/* Payment Options */}
                   <div style={{ border: '1px solid #f1f5f9', borderRadius: 16, background: '#fafafa', overflow: 'hidden' }}>
-                    {/* Paystack */}
-                    <div
-                      onClick={handleOnlinePayment}
-                      style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#E0F2FE', color: '#0284C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <CreditCard size={18} />
-                        </div>
-                        <div>
-                          <p style={{ fontSize: 14, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>Pay with Paystack</p>
-                          <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>For card payments</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={18} style={{ color: '#94a3b8' }} />
-                    </div>
-
-                    {/* Bank Transfer */}
-                    <div
-                      onClick={handleOnlinePayment}
-                      style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#FEE2E2', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Building size={18} />
-                        </div>
-                        <div>
-                          <p style={{ fontSize: 14, fontWeight: 700, margin: '0 0 2px', color: '#0f172a' }}>Pay with Bank Transfer</p>
-                          <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>Confirmed instantly</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={18} style={{ color: '#94a3b8' }} />
-                    </div>
-
                     {/* Share with friend */}
                     <div
                       onClick={handleShare}
@@ -3093,6 +3382,429 @@ export default function UniversalStorefront({
                       </div>
                       <ChevronRight size={18} style={{ color: '#94a3b8' }} />
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 5: ORDER CONFIRMED */}
+              {cartStep === 'confirmed' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {/* Visual Celebration Hero */}
+                  <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
+                    <div
+                      style={{
+                        width: 62,
+                        height: 62,
+                        borderRadius: '50%',
+                        background: '#dcfce7',
+                        color: '#16a34a',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 12px',
+                        boxShadow: '0 0 0 8px #f0fdf4, 0 4px 12px rgba(22, 163, 74, 0.15)',
+                      }}
+                    >
+                      <CheckCircle2 size={34} style={{ strokeWidth: 2.4 }} />
+                    </div>
+                    <h4 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
+                      Payment Received!
+                    </h4>
+                    <p style={{ fontSize: 13.5, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                      Thank you{confirmedCustomerName ? `, ${confirmedCustomerName}` : ''}! Your order has been placed and confirmed with{' '}
+                      <strong style={{ color: '#0f172a' }}>{store.store_name}</strong>.
+                    </p>
+                  </div>
+
+                  {/* Success Alert Banner Card */}
+                  <div
+                    style={{
+                      background: '#f0fdf4',
+                      border: '1.5px solid #86efac',
+                      borderRadius: 16,
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 10,
+                      boxShadow: '0 2px 8px rgba(34, 197, 94, 0.08)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                      <div
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: '50%',
+                          background: '#dcfce7',
+                          color: '#15803d',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          marginTop: 1,
+                        }}
+                      >
+                        <Check size={18} style={{ strokeWidth: 3 }} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                          <span style={{ fontSize: 11.5, fontWeight: 800, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            {hasDigital ? 'Downloads Ready & Link Sent' : 'Order Link & Confirmation Sent'}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: 13, color: '#166534', margin: 0, lineHeight: 1.45 }}>
+                          {hasDigital ? (
+                            <>
+                              We've sent your order receipt and access link to your <strong>WhatsApp</strong>
+                              {confirmedCustomerPhone ? ` (${confirmedCustomerPhone})` : ''}
+                              {confirmedCustomerEmail ? ` and email (${confirmedCustomerEmail})` : ''}. You can also download your digital files directly below!
+                            </>
+                          ) : (
+                            <>
+                              We've sent your order receipt and live tracking link to your <strong>WhatsApp</strong>
+                              {confirmedCustomerPhone ? ` (${confirmedCustomerPhone})` : ''}
+                              {confirmedCustomerEmail ? ` and email (${confirmedCustomerEmail})` : ''}. Check your messages to follow your order!
+                            </>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Order Reference Pill */}
+                    {confirmedOrderNum && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          background: '#ffffff',
+                          borderRadius: 10,
+                          border: '1px solid #bbf7d0',
+                          padding: '8px 12px',
+                          marginTop: 4,
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 12, color: '#15803d', fontWeight: 600 }}>Order Ref:</span>
+                          <span style={{ fontSize: 13.5, fontWeight: 800, color: '#0f172a', letterSpacing: '0.02em' }}>
+                            #{confirmedOrderNum}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyOrderNumber(confirmedOrderNum)}
+                          style={{
+                            background: copiedOrderNumber ? '#dcfce7' : '#f8fafc',
+                            border: '1px solid',
+                            borderColor: copiedOrderNumber ? '#86efac' : '#e2e8f0',
+                            color: copiedOrderNumber ? '#15803d' : '#475569',
+                            borderRadius: 6,
+                            padding: '4px 8px',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          {copiedOrderNumber ? (
+                            <>
+                              <Check size={12} /> Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={12} /> Copy
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Digital Downloads Card (If Order Contains Digital Items) */}
+                  {hasDigital && (
+                    <div
+                      style={{
+                        background: '#f8fafc',
+                        border: '1.5px solid #cbd5e1',
+                        borderRadius: 16,
+                        padding: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 12,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              background: '#e0f2fe',
+                              color: '#0284c7',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Download size={16} />
+                          </div>
+                          <div>
+                            <h5 style={{ fontSize: 13.5, fontWeight: 700, margin: 0, color: '#0f172a' }}>
+                              Digital Product Downloads
+                            </h5>
+                            <p style={{ fontSize: 11.5, color: '#64748b', margin: 0 }}>Instant access unlocked</p>
+                          </div>
+                        </div>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            background: '#dcfce7',
+                            color: '#15803d',
+                            padding: '3px 8px',
+                            borderRadius: 20,
+                          }}
+                        >
+                          Ready
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {digitalItems.map((item: any, idx: number) => {
+                          const prod = products.find((p: any) => p.id === (item.productId || item.product_id));
+                          const name = item.product_name || item.name || prod?.name || 'Digital Item';
+                          const fileUrl = prod?.digital_file_url;
+                          const directLink = prod?.digital_link;
+
+                          return (
+                            <div
+                              key={item.id || idx}
+                              style={{
+                                background: '#ffffff',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: 12,
+                                padding: '12px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 10,
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#1e293b' }}>
+                                  {name}
+                                </span>
+                                <span style={{ fontSize: 12, color: '#64748b' }}>Qty: {item.quantity || item.qty || 1}</span>
+                              </div>
+
+                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                {fileUrl && (
+                                  <a
+                                    href={fileUrl}
+                                    download
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: 6,
+                                      background: primaryColor || '#e11d48',
+                                      color: '#ffffff',
+                                      padding: '8px 14px',
+                                      borderRadius: 8,
+                                      fontSize: 12.5,
+                                      fontWeight: 700,
+                                      textDecoration: 'none',
+                                    }}
+                                  >
+                                    <Download size={14} /> Download File
+                                  </a>
+                                )}
+                                {directLink && (
+                                  <a
+                                    href={directLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: 6,
+                                      background: '#ffffff',
+                                      color: '#0f172a',
+                                      border: '1.5px solid #e2e8f0',
+                                      padding: '8px 14px',
+                                      borderRadius: 8,
+                                      fontSize: 12.5,
+                                      fontWeight: 700,
+                                      textDecoration: 'none',
+                                    }}
+                                  >
+                                    <ExternalLink size={14} /> Open Access Link
+                                  </a>
+                                )}
+                                {confirmedOrderId && !fileUrl && !directLink && (
+                                  <Link
+                                    href={`/track/${confirmedOrderId}`}
+                                    onClick={() => {
+                                      setIsCartOpen(false);
+                                      setCart([]);
+                                      setCartStep('cart');
+                                    }}
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: 6,
+                                      background: primaryColor || '#e11d48',
+                                      color: '#ffffff',
+                                      padding: '8px 14px',
+                                      borderRadius: 8,
+                                      fontSize: 12.5,
+                                      fontWeight: 700,
+                                      textDecoration: 'none',
+                                    }}
+                                  >
+                                    <Download size={14} /> View Downloads on Tracking Page
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Order Details Breakdown Card */}
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 16,
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Amount Paid</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, background: '#dcfce7', color: '#15803d', padding: '2px 7px', borderRadius: 12 }}>
+                          PAID
+                        </span>
+                        <span style={{ fontSize: 18, fontWeight: 800, color: '#0f172a' }}>
+                          {formatCurrency(confirmedAmount, confirmedCurrency)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ height: 1, background: '#f1f5f9' }} />
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
+                      <span style={{ color: '#64748b' }}>Fulfillment</span>
+                      <span style={{ fontWeight: 600, color: '#0f172a', textAlign: 'right' }}>
+                        {confirmedDeliveryMethod === 'digital'
+                          ? 'Digital Delivery (Instant Access)'
+                          : confirmedDeliveryMethod === 'pickup'
+                          ? 'Store Pickup'
+                          : 'Standard Delivery'}
+                      </span>
+                    </div>
+
+                    {confirmedDeliveryAddress && confirmedDeliveryMethod !== 'pickup' && confirmedDeliveryMethod !== 'digital' && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: 13 }}>
+                        <span style={{ color: '#64748b' }}>Delivery Address</span>
+                        <span style={{ fontWeight: 500, color: '#0f172a', textAlign: 'right', maxWidth: '65%' }}>
+                          {confirmedDeliveryAddress}
+                        </span>
+                      </div>
+                    )}
+
+                    {confirmedCustomerName && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
+                        <span style={{ color: '#64748b' }}>Customer</span>
+                        <span style={{ fontWeight: 500, color: '#0f172a' }}>
+                          {confirmedCustomerName} {confirmedCustomerPhone ? `(${confirmedCustomerPhone})` : ''}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Items Preview */}
+                  {displayItems && displayItems.length > 0 && (
+                    <div>
+                      <h5 style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px' }}>
+                        Ordered Items ({displayItems.length})
+                      </h5>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 180, overflowY: 'auto' }}>
+                        {displayItems.map((item: any, idx: number) => {
+                          const name = item.product_name || item.name;
+                          const qty = item.quantity || item.qty || 1;
+                          const price = item.product_price || item.price;
+                          const img = item.image_url || item.product?.image_url;
+                          return (
+                            <div
+                              key={item.id || idx}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 12,
+                                padding: '8px 10px',
+                                background: '#f8fafc',
+                                borderRadius: 12,
+                                border: '1px solid #f1f5f9',
+                              }}
+                            >
+                              {img ? (
+                                <img
+                                  src={img}
+                                  alt={name}
+                                  style={{ width: 42, height: 42, borderRadius: 8, objectFit: 'cover', background: '#e2e8f0', flexShrink: 0 }}
+                                />
+                              ) : (
+                                <div style={{ width: 42, height: 42, borderRadius: 8, background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', flexShrink: 0 }}>
+                                  <Package size={20} />
+                                </div>
+                              )}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ fontSize: 13.5, fontWeight: 600, color: '#1e293b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {name}
+                                </p>
+                                <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>
+                                  Qty: {qty}
+                                </p>
+                              </div>
+                              {price && (
+                                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>
+                                  {formatCurrency(Number(price) * qty, confirmedCurrency)}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Frontstore Buyer Protection guarantee pill */}
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px dashed #cbd5e1',
+                      borderRadius: 14,
+                      padding: '12px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                    }}
+                  >
+                    <ShieldCheck size={20} style={{ color: '#059669', flexShrink: 0 }} />
+                    <p style={{ fontSize: 12, color: '#475569', margin: 0, lineHeight: 1.4 }}>
+                      <strong style={{ color: '#0f172a' }}>Frontstore Buyer Protection:</strong> Your payment is held safely until the seller fulfills your order.
+                    </p>
                   </div>
                 </div>
               )}
@@ -3277,7 +3989,14 @@ export default function UniversalStorefront({
                     Go Back
                   </button>
                   <button
-                    onClick={() => setCartStep('payment')}
+                    onClick={() => {
+                      if (!createdOrderData) {
+                        handleOnlinePayment();
+                      } else {
+                        setCartStep('payment');
+                      }
+                    }}
+                    disabled={isCheckingOut}
                     style={{
                       padding: '14px',
                       borderRadius: 14,
@@ -3286,10 +4005,11 @@ export default function UniversalStorefront({
                       border: 'none',
                       fontSize: 14,
                       fontWeight: 700,
-                      cursor: 'pointer',
+                      cursor: isCheckingOut ? 'not-allowed' : 'pointer',
+                      opacity: isCheckingOut ? 0.7 : 1,
                     }}
                   >
-                    Complete Order
+                    {isCheckingOut ? 'Processing...' : 'Complete Order'}
                   </button>
                 </div>
               )}
@@ -3299,11 +4019,51 @@ export default function UniversalStorefront({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <button
                     onClick={async () => {
-                      if (!createdOrderData?.order?.id) return;
                       setIsInitializingPayment(true);
                       try {
                         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.frontstore.ng/api';
-                        const res = await fetch(`${API_URL}/v1/public/orders/${createdOrderData.order.id}/initialize-payment`, {
+                        let orderId = createdOrderData?.order?.id;
+                        let orderNumber = createdOrderData?.order?.order_number;
+
+                        // If order is not created yet, create it first
+                        if (!orderId) {
+                          const orderRes = await resilientFetch(`${API_URL}/v1/public/store/${username}/orders`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              items: cart.map((i) => ({
+                                product_id: i.productId,
+                                product_variant_id: i.variantId,
+                                quantity: i.qty,
+                              })),
+                              customer_name: customerName || 'Guest Shopper',
+                              customer_phone: customerPhone,
+                              customer_email: customerEmail || undefined,
+                              delivery_method: isDigitalOnly ? 'digital' : deliveryMethod,
+                              delivery_address: isDigitalOnly ? undefined : (deliveryMethod === 'delivery' ? customerNote : undefined),
+                              delivery_location: isDigitalOnly ? undefined : (deliveryLocation || undefined),
+                              notes: orderNotes || undefined,
+                              payment_method: 'paystack',
+                            }),
+                          });
+                          const orderData = await orderRes.json();
+                          if (!orderRes.ok) {
+                            sonnerToast.error(orderData?.message || orderData?.error || 'Failed to create order.');
+                            setIsInitializingPayment(false);
+                            return;
+                          }
+                          setCreatedOrderData(orderData?.data);
+                          orderId = orderData?.data?.order?.id;
+                          orderNumber = orderData?.data?.order?.order_number;
+                        }
+
+                        if (!orderId) {
+                          sonnerToast.error('Could not find order ID to process payment.');
+                          setIsInitializingPayment(false);
+                          return;
+                        }
+
+                        const res = await fetch(`${API_URL}/v1/public/orders/${orderId}/initialize-payment`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' }
                         });
@@ -3312,8 +4072,8 @@ export default function UniversalStorefront({
                            window.location.href = json.data.authorization_url;
                         } else if (json?.status === 'bank_transfer') {
                            setBankTransferDetails({
-                             order_id: createdOrderData.order.id,
-                             order_number: createdOrderData.order.order_number,
+                             order_id: orderId,
+                             order_number: orderNumber,
                              bank_name: json.data.bank_name,
                              bank_account_number: json.data.bank_account_number,
                              bank_account_name: json.data.bank_account_name,
@@ -3347,9 +4107,10 @@ export default function UniversalStorefront({
                       gap: 8,
                     }}
                   >
-                    {isInitializingPayment ? 'Loading...' : 'Pay Securely Online'}
+                    {isInitializingPayment ? 'Processing Payment...' : 'Pay Securely Online'}
                   </button>
-                  <button
+                  {/* Order via WhatsApp Fallback commented out */}
+                  {/* <button
                     onClick={() => handleWhatsAppCheckout()}
                     style={{
                       width: '100%',
@@ -3369,6 +4130,92 @@ export default function UniversalStorefront({
                   >
                     <WhatsAppIcon size={18} />
                     Order via WhatsApp Fallback
+                  </button> */}
+                </div>
+              )}
+
+              {/* Step 5: Confirmed Action Buttons */}
+              {cartStep === 'confirmed' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {confirmedOrderId && (
+                    <Link
+                      href={`/track/${confirmedOrderId}`}
+                      onClick={() => {
+                        setIsCartOpen(false);
+                        setCart([]);
+                        setCartStep('cart');
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '14px',
+                        borderRadius: 14,
+                        background: '#0f172a',
+                        color: '#ffffff',
+                        border: 'none',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        textDecoration: 'none',
+                        boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
+                      }}
+                    >
+                      {hasDigital ? <Download size={17} /> : <Truck size={17} />}
+                      {hasDigital ? 'Access Downloads & Track Order' : 'Track Order Status'}
+                    </Link>
+                  )}
+
+                  {whatsappFollowupUrl && (
+                    <a
+                      href={whatsappFollowupUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        width: '100%',
+                        padding: '14px',
+                        borderRadius: 14,
+                        background: '#25D366',
+                        color: '#ffffff',
+                        border: 'none',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        textDecoration: 'none',
+                        boxShadow: '0 4px 12px rgba(37, 211, 102, 0.2)',
+                      }}
+                    >
+                      <WhatsAppIcon size={18} />
+                      Chat with Seller on WhatsApp
+                    </a>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      setCart([]);
+                      setCartStep('cart');
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: 14,
+                      background: '#f1f5f9',
+                      color: '#475569',
+                      border: 'none',
+                      fontSize: 13.5,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Continue Shopping
                   </button>
                 </div>
               )}
@@ -4579,12 +5426,20 @@ export default function UniversalStorefront({
         style={{
           background: '#fff',
           borderTop: '1px solid #e2e8f0',
-          padding: '36px 20px 28px',
+          padding: '36px 20px calc(96px + env(safe-area-inset-bottom, 0px))',
           textAlign: 'center',
         }}
       >
         <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {store.logo_url && (
+              <img
+                src={getOptimizedImageUrl(store.logo_url, 'thumb')}
+                alt={store.store_name}
+                style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'cover', border: '1px solid #e2e8f0' }}
+                onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+              />
+            )}
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
               {store.store_name}
             </span>

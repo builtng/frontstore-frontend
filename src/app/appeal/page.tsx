@@ -31,6 +31,7 @@ import {
 import { PublicSiteNav, PublicSiteFooter } from '@/components/PublicSiteChrome';
 import { getApiUrl } from '@/lib/api';
 import { getCurrencySymbol } from '@/utils/currency';
+import { getOptimizedImageUrl } from '@/lib/image';
 
 interface OrderItem {
   id: string;
@@ -60,6 +61,7 @@ interface OrderData {
     whatsapp_phone: string;
     currency_code: string;
     is_verified?: boolean;
+    logo_url?: string | null;
   };
   items: OrderItem[];
 }
@@ -412,9 +414,19 @@ function AppealContent() {
                 <span style={{ fontSize: 13.5, color: 'var(--text-muted)', fontWeight: 600 }}>Case Reference</span>
                 <span style={{ fontSize: 14, color: 'var(--text)', fontWeight: 800 }}>{submittedAppeal.reference}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px dashed var(--border)' }}>
                 <span style={{ fontSize: 13.5, color: 'var(--text-muted)', fontWeight: 600 }}>Store</span>
-                <span style={{ fontSize: 14, color: 'var(--text)', fontWeight: 700 }}>{submittedAppeal.order.store?.store_name}</span>
+                <span style={{ fontSize: 14, color: 'var(--text)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  {submittedAppeal.order.store?.logo_url ? (
+                    <img
+                      src={getOptimizedImageUrl(submittedAppeal.order.store.logo_url, 'thumb')}
+                      alt=""
+                      style={{ width: 20, height: 20, borderRadius: 5, objectFit: 'cover' }}
+                      onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+                    />
+                  ) : null}
+                  {submittedAppeal.order.store?.store_name}
+                </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px dashed var(--border)' }}>
                 <span style={{ fontSize: 13.5, color: 'var(--text-muted)', fontWeight: 600 }}>Amount Protected</span>
@@ -541,17 +553,48 @@ function AppealContent() {
               {order && (
                 <section className="card shadow-sm" style={{ padding: 22, background: 'var(--surface)', borderRadius: 16, border: '1.5px solid var(--primary)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontSize: 16, fontWeight: 800 }}>Order #{order.order_number}</span>
-                        {order.store.is_verified && (
-                          <span style={{ color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 700 }}>
-                            <BadgeCheck size={14} /> Verified Store
-                          </span>
-                        )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      {order.store.logo_url ? (
+                        <img
+                          src={getOptimizedImageUrl(order.store.logo_url, 'thumb')}
+                          alt={order.store.store_name}
+                          style={{ width: 44, height: 44, borderRadius: 12, objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }}
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = 'none';
+                            const fallback = (e.currentTarget.nextElementSibling as HTMLElement);
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        style={{
+                          display: order.store.logo_url ? 'none' : 'flex',
+                          width: 44,
+                          height: 44,
+                          borderRadius: 12,
+                          background: 'linear-gradient(135deg, #0B5D39 0%, #074328 100%)',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 18,
+                          fontWeight: 900,
+                          color: '#fff',
+                          flexShrink: 0
+                        }}
+                      >
+                        {(order.store.store_name || 'M').charAt(0).toUpperCase()}
                       </div>
-                      <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                        Merchant: <strong>{order.store.store_name}</strong> (@{order.store.username})
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                          <span style={{ fontSize: 16, fontWeight: 800 }}>Order #{order.order_number}</span>
+                          {order.store.is_verified && (
+                            <span style={{ color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 700 }}>
+                              <BadgeCheck size={14} /> Verified Store
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                          Merchant: <strong>{order.store.store_name}</strong> (@{order.store.username})
+                        </div>
                       </div>
                     </div>
 

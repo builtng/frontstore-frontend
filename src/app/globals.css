@@ -8348,6 +8348,7 @@ a[role="button"]:active {
   transition: transform 0.2s ease, background 0.2s ease;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .catlog-purple-btn:hover {
@@ -8371,6 +8372,7 @@ a[role="button"]:active {
   transition: transform 0.2s ease, background 0.2s ease;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .catlog-white-btn:hover {
@@ -9010,8 +9012,22 @@ html, body {
   justify-content: center;
 }
 
+.catlog-nav-actions-desktop {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
 @media (max-width: 900px) {
+  .catlog-nav-container {
+    padding: 0 16px;
+    height: 64px;
+  }
   .catlog-nav-menu {
+    display: none !important;
+  }
+  .catlog-nav-actions-desktop {
     display: none !important;
   }
   .catlog-mobile-toggle {

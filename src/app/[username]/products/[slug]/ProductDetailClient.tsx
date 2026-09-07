@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft, Share2, ShoppingBag, Star, Clock, MapPin, ShieldCheck,
   Check, Calendar, Plus, Minus, BadgeCheck, ChevronRight, Camera,
-  Truck, RotateCcw, X, Heart, Copy, ExternalLink, CheckCircle2, Shield, AlertCircle, Expand
+  Truck, RotateCcw, X, Heart, Copy, ExternalLink, CheckCircle2, Shield, AlertCircle, Expand, Maximize2
 } from "lucide-react";
 import { toast } from "sonner";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
@@ -587,7 +587,18 @@ export default function ProductDetailClient({
           >
             <ChevronLeft size={18} /> {store.store_name.split(' ')[0]}
           </button>
-          <span className="fs-nav-store">{store.store_name} {store.is_verified ? <BadgeCheck size={13} className="fs-verif" /> : null}</span>
+          <span className="fs-nav-store" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {store.logo_url && (
+              <img
+                src={getOptimizedImageUrl(store.logo_url, 'thumb')}
+                alt=""
+                style={{ width: 22, height: 22, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+                onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+              />
+            )}
+            <span>{store.store_name}</span>
+            {store.is_verified ? <BadgeCheck size={13} className="fs-verif" /> : null}
+          </span>
           <div className="fs-nav-right">
             <button className="fs-icn" onClick={handleShareProduct} aria-label="Share product page"><Share2 size={18} /></button>
             <button className="fs-icn" onClick={() => {
@@ -619,9 +630,10 @@ export default function ProductDetailClient({
                   type="button"
                   className="fs-expand-btn z-20"
                   onClick={(e) => { e.stopPropagation(); setLightboxOpen(true); }}
-                  aria-label="View full image"
+                  aria-label="View full screen image"
+                  title="View full screen"
                 >
-                  <Expand size={15} />
+                  <Maximize2 size={16} strokeWidth={2.2} />
                 </button>
               </div>
             ) : (
@@ -912,7 +924,21 @@ export default function ProductDetailClient({
             {/* Store Profile Card */}
             <div className="fs-store-card">
               {store.logo_url ? (
-                <img src={getOptimizedImageUrl(store.logo_url, 'thumb')} alt="Store logo" loading="lazy" style={{ width: 42, height: 42, borderRadius: 12, objectFit: 'cover' }} />
+                <img
+                  src={getOptimizedImageUrl(store.logo_url, 'thumb')}
+                  alt="Store logo"
+                  loading="lazy"
+                  style={{ width: 42, height: 42, borderRadius: 12, objectFit: 'cover' }}
+                  onError={(e) => {
+                    const parent = (e.currentTarget as HTMLElement).parentElement;
+                    if (parent) {
+                      const fallback = document.createElement('span');
+                      fallback.className = 'fs-store-av';
+                      fallback.textContent = (store.store_name?.[0] || 'S').toUpperCase();
+                      parent.replaceChild(fallback, e.currentTarget);
+                    }
+                  }}
+                />
               ) : (
                 <span className="fs-store-av">{store.store_name[0].toUpperCase()}</span>
               )}
@@ -1833,14 +1859,31 @@ const CSS = `
   position: absolute;
   bottom: 14px;
   right: 14px;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  background: rgba(255,255,255,.92);
-  color: var(--brand-deep);
-  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  transition: all 0.16s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.fs-expand-btn:hover {
+  background: #ffffff;
+  color: #0f172a;
+  transform: scale(1.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+}
+
+.fs-expand-btn:active {
+  transform: scale(0.95);
 }
 
 .fs-thumbs {

@@ -69,8 +69,8 @@ export function PublicSiteNav() {
         <div className="catlog-nav-container">
           
           {/* Official Frontstore Logo & Navigation Links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-            <a href="/" className="catlog-brand-logo" style={{ textDecoration: 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexShrink: 0 }}>
+            <a href="/" className="catlog-brand-logo" style={{ textDecoration: 'none', flexShrink: 0 }}>
               <Logo size={32} showText={true} textColor="#ffffff" text={appName} />
             </a>
 
@@ -170,10 +170,10 @@ export function PublicSiteNav() {
           </div>
 
           {/* Right Action Items: Country Flag, Log In, Get Started */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
             
             {/* Country Flag Selector Popover */}
-            <div ref={countryMenuRef} style={{ position: 'relative' }}>
+            <div ref={countryMenuRef} style={{ position: 'relative', flexShrink: 0 }}>
               <button
                 type="button"
                 onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
@@ -184,6 +184,8 @@ export function PublicSiteNav() {
                   cursor: 'pointer', color: '#ffffff', fontSize: 13, fontWeight: 700,
                   border: '1px solid rgba(255,255,255,0.15)',
                   transition: 'all 0.2s ease',
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap',
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
@@ -208,6 +210,7 @@ export function PublicSiteNav() {
                     top: 'calc(100% + 12px)',
                     right: -10,
                     width: 220,
+                    maxWidth: 'calc(100vw - 32px)',
                     background: '#FFFFFF',
                     borderRadius: 20,
                     padding: 8,
@@ -312,20 +315,23 @@ export function PublicSiteNav() {
               )}
             </div>
 
-            {!mounted ? (
-              <div style={{ width: 140, height: 42 }} />
-            ) : isLoggedIn ? (
-              <a href="/dashboard" className="catlog-purple-btn" style={{ background: '#0B5D39', borderRadius: 999, padding: '10px 22px', fontSize: 14 }}>
-                Dashboard <ArrowRight size={14} />
-              </a>
-            ) : (
-              <>
-                <a href="/login" className="catlog-nav-link" style={{ fontSize: 14.5, color: '#ffffff', fontWeight: 600 }}>Log In</a>
-                <a href="/signup" className="catlog-purple-btn" style={{ background: '#0B5D39', borderRadius: 999, padding: '10px 22px', fontSize: 14, fontWeight: 750 }}>
-                  Get Started →
+            {/* Desktop Auth Actions (Hidden on Mobile) */}
+            <div className="catlog-nav-actions-desktop">
+              {!mounted ? (
+                <div style={{ width: 140, height: 42 }} />
+              ) : isLoggedIn ? (
+                <a href="/dashboard" className="catlog-purple-btn" style={{ background: '#0B5D39', borderRadius: 999, padding: '10px 22px', fontSize: 14, whiteSpace: 'nowrap' }}>
+                  Dashboard <ArrowRight size={14} />
                 </a>
-              </>
-            )}
+              ) : (
+                <>
+                  <a href="/login" className="catlog-nav-link" style={{ fontSize: 14.5, color: '#ffffff', fontWeight: 600, whiteSpace: 'nowrap' }}>Log In</a>
+                  <a href="/signup" className="catlog-purple-btn" style={{ background: '#0B5D39', borderRadius: 999, padding: '10px 22px', fontSize: 14, fontWeight: 750, whiteSpace: 'nowrap' }}>
+                    Get Started →
+                  </a>
+                </>
+              )}
+            </div>
 
             {/* Mobile Menu Button */}
             <button 
@@ -359,8 +365,8 @@ export function PublicSiteNav() {
           >
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <Logo size={24} showText={true} textColor="#3B24B2" text={appName} />
-                <button type="button" onClick={() => setMobileOpen(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}>
+                <Logo size={24} showText={true} textColor="#0B5D39" text={appName} />
+                <button type="button" onClick={() => setMobileOpen(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 4 }}>
                   <X size={20} />
                 </button>
               </div>
@@ -373,11 +379,76 @@ export function PublicSiteNav() {
                 <a href="/why-frontstore" style={{ textDecoration: 'none', color: '#111827', fontWeight: 700, padding: '10px 0' }}>Why {appName}</a>
                 <a href="/blog" style={{ textDecoration: 'none', color: '#111827', fontWeight: 700, padding: '10px 0' }}>Blog</a>
               </nav>
+
+              {/* Mobile Drawer Country Switcher */}
+              <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid #F3F4F6' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                  Select Country
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {[
+                    { code: 'NG', name: 'Nigeria' },
+                    { code: 'GH', name: 'Ghana' },
+                    { code: 'ZA', name: 'South Africa' },
+                    { code: 'KE', name: 'Kenya' },
+                  ].map((country) => {
+                    const isSelected = selectedCountry.code === country.code;
+                    return (
+                      <button
+                        key={country.code}
+                        type="button"
+                        onClick={() => {
+                          const full = COUNTRIES.find((c) => c.code === country.code) || {
+                            code: country.code,
+                            name: country.name,
+                            dialCode: '',
+                            flag: '',
+                          };
+                          setSelectedCountry(full);
+                          try {
+                            localStorage.setItem('frontstore_country_code', country.code);
+                          } catch {}
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '6px 10px',
+                          borderRadius: 999,
+                          border: isSelected ? '1.5px solid #0B5D39' : '1px solid #E5E7EB',
+                          background: isSelected ? '#EDF7F2' : '#FFFFFF',
+                          color: isSelected ? '#0B5D39' : '#374151',
+                          fontSize: 12.5,
+                          fontWeight: isSelected ? 700 : 500,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <img
+                          src={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png`}
+                          alt={country.name}
+                          width={16}
+                          height={16}
+                          style={{ borderRadius: '50%', objectFit: 'cover' }}
+                        />
+                        {country.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <a href="/signup" className="catlog-purple-btn" style={{ width: '100%', background: '#0B5D39' }}>Get Started Free</a>
-              <a href="/login" className="catlog-white-btn" style={{ width: '100%', border: '1px solid #E5E7EB', color: '#111827' }}>Sign In</a>
+              {isLoggedIn ? (
+                <a href="/dashboard" className="catlog-purple-btn" style={{ width: '100%', background: '#0B5D39' }}>
+                  Dashboard <ArrowRight size={14} />
+                </a>
+              ) : (
+                <>
+                  <a href="/signup" className="catlog-purple-btn" style={{ width: '100%', background: '#0B5D39' }}>Get Started Free</a>
+                  <a href="/login" className="catlog-white-btn" style={{ width: '100%', border: '1px solid #E5E7EB', color: '#111827' }}>Sign In</a>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -65,23 +65,29 @@ export default function ImageLightbox({
             <button
                 type="button"
                 onClick={onClose}
-                aria-label="Close full image view"
+                aria-label="Exit full screen (Esc)"
+                title="Exit full screen (Esc)"
                 style={{
                     position: 'absolute',
-                    top: 16,
-                    right: 16,
-                    width: 40,
-                    height: 40,
+                    top: 18,
+                    right: 18,
+                    width: 44,
+                    height: 44,
                     display: 'grid',
                     placeItems: 'center',
-                    border: 'none',
-                    background: 'rgba(255,255,255,.12)',
+                    border: '1px solid rgba(255,255,255,.24)',
+                    background: 'rgba(20, 20, 25, 0.75)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
                     color: '#fff',
                     borderRadius: '50%',
                     cursor: 'pointer',
+                    boxShadow: '0 4px 16px rgba(0,0,0,.45)',
+                    transition: 'all 0.18s ease',
+                    zIndex: 10,
                 }}
             >
-                <X size={20} />
+                <X size={22} strokeWidth={2.4} />
             </button>
 
             {images.length > 1 && (
