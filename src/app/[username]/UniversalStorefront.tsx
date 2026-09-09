@@ -10,7 +10,7 @@ import {
   Truck, ShieldAlert, Bell, User, Edit3, Package, Building,
   Filter, Heart, RefreshCw, Layers, CreditCard, Lock,
   Navigation, MoreVertical, RotateCcw, Calendar, Download,
-  CheckCircle2, Mail, Home, LayoutGrid, List, Maximize2, Receipt
+  CheckCircle2, Mail, Home, LayoutGrid, List, Maximize2, Receipt, Eye
 } from 'lucide-react';
 import { toast as sonnerToast } from 'sonner';
 import QRCodeSVG from 'react-qr-code';
@@ -442,6 +442,24 @@ export default function UniversalStorefront({
   const [showPolicies, setShowPolicies] = useState(false);
   const [bankTransferModalOpen, setBankTransferModalOpen] = useState(false);
   const [bankTransferDetails, setBankTransferDetails] = useState<any>(null);
+
+  const openImageQuickView = (item: Product, e?: React.MouseEvent, initialIndex: number = 0) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const legacyUrl = (item as any).image_url;
+    const rawImages = (item.image_urls && item.image_urls.length > 0)
+      ? item.image_urls
+      : (legacyUrl ? [legacyUrl] : []);
+    const normalizedItem: Product = {
+      ...item,
+      image_urls: rawImages.length > 0 ? rawImages : (legacyUrl ? [legacyUrl] : []),
+    };
+    setQuickViewProduct(normalizedItem);
+    setQuickViewImageIndex(initialIndex);
+    setIsQuickViewLightboxOpen(true);
+  };
 
   useEffect(() => {
     setIsQuickViewLightboxOpen(false);
@@ -1755,6 +1773,7 @@ export default function UniversalStorefront({
                       background: '#f1f5f9',
                       overflow: 'hidden',
                     }}
+                    onClick={(e) => openImageQuickView(item, e)}
                   >
                     <div style={{ opacity: isOutOfStock ? 0.5 : 1 }}>
                       <ProductImageWithSkeleton
@@ -1763,6 +1782,17 @@ export default function UniversalStorefront({
                         loading={index < 4 ? 'eager' : 'lazy'}
                       />
                     </div>
+
+                    {/* Quick Image View Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => openImageQuickView(item, e)}
+                      title="Quick view image"
+                      aria-label="Quick view image"
+                      className="storefront-grid-quick-image-btn"
+                    >
+                      <Eye size={14} />
+                    </button>
 
                     {/* Discount / Out of Stock Pill */}
                     {isOutOfStock ? (
@@ -1961,7 +1991,10 @@ export default function UniversalStorefront({
                   }}
                 >
                   {/* Left Column: Compact Square Image Thumbnail */}
-                  <div className="storefront-list-thumb-wrapper">
+                  <div
+                    className="storefront-list-thumb-wrapper"
+                    onClick={(e) => openImageQuickView(item, e)}
+                  >
                     <div style={{ position: 'absolute', inset: 0, opacity: isOutOfStock ? 0.5 : 1 }}>
                       <ProductImageWithSkeleton
                         src={imageUrl}
@@ -1969,6 +2002,17 @@ export default function UniversalStorefront({
                         loading={index < 4 ? 'eager' : 'lazy'}
                       />
                     </div>
+
+                    {/* Quick Image View Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => openImageQuickView(item, e)}
+                      title="Quick view image"
+                      aria-label="Quick view image"
+                      className="storefront-list-quick-image-btn"
+                    >
+                      <Eye size={13} />
+                    </button>
 
                     {/* Stock / Discount Tag */}
                     {isOutOfStock ? (
