@@ -1960,9 +1960,9 @@ export default function UniversalStorefront({
                     setQuickViewProduct(item);
                   }}
                 >
-                  {/* Left Column: Big Image (Jiji size) */}
+                  {/* Left Column: Compact Square Image Thumbnail */}
                   <div className="storefront-list-thumb-wrapper">
-                    <div style={{ width: '100%', height: '100%', opacity: isOutOfStock ? 0.5 : 1 }}>
+                    <div style={{ position: 'absolute', inset: 0, opacity: isOutOfStock ? 0.5 : 1 }}>
                       <ProductImageWithSkeleton
                         src={imageUrl}
                         alt={item.name}
@@ -2008,28 +2008,26 @@ export default function UniversalStorefront({
                     ) : null}
                   </div>
 
-                  {/* Right Column: Title, Price & Action Buttons */}
+                  {/* Content: Title, Price & Action Buttons stacked cleanly */}
                   <div className="storefront-list-content">
-                    <div className="storefront-list-details">
-                      <h4 className="storefront-list-title" style={{ color: isOutOfStock ? '#94a3b8' : undefined }}>
-                        {item.name}
-                      </h4>
-                      <div className="storefront-list-price-row">
-                        <span
-                          className="storefront-list-price"
-                          style={{ color: isOutOfStock ? '#94a3b8' : undefined }}
-                        >
-                          {formatCurrency(priceNum, selectedCurrency)}
+                    <h4 className="storefront-list-title" style={{ color: isOutOfStock ? '#94a3b8' : undefined }}>
+                      {item.name}
+                    </h4>
+                    <div className="storefront-list-price-row">
+                      <span
+                        className="storefront-list-price"
+                        style={{ color: isOutOfStock ? '#94a3b8' : undefined }}
+                      >
+                        {formatCurrency(priceNum, selectedCurrency)}
+                      </span>
+                      {hasDiscount && !isOutOfStock && (
+                        <span className="storefront-list-compare-price">
+                          {formatCurrency(compareNum, selectedCurrency)}
                         </span>
-                        {hasDiscount && !isOutOfStock && (
-                          <span className="storefront-list-compare-price">
-                            {formatCurrency(compareNum, selectedCurrency)}
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
 
-                    {/* Action Buttons (Wishlist + Cart) */}
+                    {/* Action Buttons (Wishlist + Cart) directly under price */}
                     <div className="storefront-list-actions" onClick={(e) => e.stopPropagation()}>
                       {/* Wishlist Button */}
                       <button
@@ -2043,7 +2041,7 @@ export default function UniversalStorefront({
                         aria-label="Save to wishlist"
                         className={`storefront-list-wishlist-btn ${isSaved ? 'saved' : ''}`}
                       >
-                        <Heart size={15} fill={isSaved ? '#ef4444' : 'transparent'} />
+                        <Heart size={14} fill={isSaved ? '#ef4444' : 'transparent'} />
                       </button>
 
                       {/* Add to Cart Button */}
@@ -2065,7 +2063,7 @@ export default function UniversalStorefront({
                               aria-label="View bag"
                               style={{ position: 'relative' }}
                             >
-                              <ShoppingBag size={16} />
+                              <ShoppingBag size={14} />
                               <span className="storefront-list-badge-count">
                                 {cartQty}
                               </span>
@@ -2091,7 +2089,7 @@ export default function UniversalStorefront({
                             title={isService ? 'Book service' : isJustAdded ? 'Added to bag!' : 'Add to bag'}
                             aria-label="Add to cart"
                           >
-                            {isJustAdded ? <Check size={16} /> : <ShoppingBag size={16} />}
+                            {isJustAdded ? <Check size={14} /> : <ShoppingBag size={14} />}
                           </button>
                         );
                       })()}
